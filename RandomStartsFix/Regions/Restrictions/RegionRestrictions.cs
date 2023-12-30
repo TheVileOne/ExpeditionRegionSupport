@@ -21,11 +21,14 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
         /// </summary>
         public List<RoomRestrictions> RoomRestrictions = new List<RoomRestrictions>();
 
-        public bool HasEntries =>
-                    WorldState != WorldState.Any ||
-                    ProgressionRestriction != ProgressionRequirements.None ||
-                    Restrictions.RoomRestrictions.HasEntries(RoomRestrictions) ||
-                    !Slugcats.IsEmpty;
+        public bool HasEntries => !NoRestrictedFields || HasRoomEntries;
+
+        public bool NoRestrictedFields => 
+                    WorldState == WorldState.Any &&
+                    ProgressionRestriction == ProgressionRequirements.None &&
+                    Slugcats.IsEmpty;
+
+        public bool HasRoomEntries => Restrictions.RoomRestrictions.HasEntries(RoomRestrictions);
 
         /// <summary>
         /// Restrictions apply to specific rooms rather than entire region
@@ -157,13 +160,13 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
         {
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendLine();
-            sb.Append("WorldState: ");
-            sb.Append(WorldState);
-            sb.Append(Environment.NewLine);
-            sb.Append(Slugcats.ToString());
-            sb.Append("Progression Restrictions: ");
-            sb.Append(ProgressionRestriction);
+            sb.AppendLine()
+              .Append("WorldState: ")
+              .Append(WorldState)
+              .Append(Environment.NewLine)
+              .Append(Slugcats.ToString())
+              .Append("Progression Restrictions: ")
+              .Append(ProgressionRestriction);
 
             return sb.ToString();
         }
@@ -403,7 +406,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
             }
             else
             {
-                sb.Append("Slugcats Allowed: ALL");
+                sb.Append("Slugcats Allowed");
                 sb.Append(Environment.NewLine);
 
                 foreach (SlugcatStats.Name name in Allowed)

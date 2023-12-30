@@ -211,7 +211,7 @@ namespace ExpeditionRegionSupport.Regions
         /// </summary>
         public void LogRestrictions()
         {
-            Plugin.Logger.LogDebug("REGION RESTRICTIONS LOGGED: " + RegionCode);
+            //Plugin.Logger.LogDebug("REGION RESTRICTIONS LOGGED: " + RegionCode);
 
             if (Restrictions == null)
             {
