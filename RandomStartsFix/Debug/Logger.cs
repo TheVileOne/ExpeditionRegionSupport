@@ -96,16 +96,23 @@ namespace ExpeditionRegionSupport.Debug
             //Check for a custom log path
             if (LogPath != null)
             {
-                StreamWriter writeStream = new StreamWriter(File.OpenWrite(LogPath));
-                Log(writeStream, data);
+                //StreamWriter writeStream = new StreamWriter(File.OpenWrite(LogPath));
+                //Log(writeStream, data);
+                Log(LogPath, data?.ToString() ?? "NULL");
             }
 
             //Check for a custom base log path
             if (BaseLogPath != null)
             {
-                StreamWriter writeStream = new StreamWriter(File.OpenWrite(BaseLogPath));
-                Log(writeStream, data);
+                //StreamWriter writeStream = new StreamWriter(File.OpenWrite(BaseLogPath));
+                //Log(writeStream, data);
+                Log(BaseLogPath, data?.ToString() ?? "NULL");
             }
+        }
+
+        public void Log(string path, string data)
+        {
+            File.AppendAllText(path, Environment.NewLine + data);
         }
 
         public void Log(StreamWriter stream, object data)
@@ -114,6 +121,7 @@ namespace ExpeditionRegionSupport.Debug
             {
                 //Log data to file
                 stream.WriteLine(data);
+                stream.WriteLine(Environment.NewLine);
                 stream.Close(); //Stream needs to be closed to avoid IOExceptions
             }
             catch
