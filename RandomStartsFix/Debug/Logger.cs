@@ -28,7 +28,7 @@ namespace ExpeditionRegionSupport.Debug
             baseLogger = logger;
         }
 
-        public Logger(string filename)
+        public Logger(string filename, bool overwrite = false)
         {
             BaseLogDirectory = AssetManager.ResolveDirectory("logs");//Path.Combine(Custom.RootFolderDirectory(), "logs");
             BaseLogPath = Path.Combine(BaseLogDirectory, filename);
@@ -36,6 +36,9 @@ namespace ExpeditionRegionSupport.Debug
             try
             {
                 Directory.CreateDirectory(BaseLogDirectory);
+
+                if (overwrite)
+                    File.Delete(BaseLogPath);
             }
             catch
             {
@@ -89,8 +92,16 @@ namespace ExpeditionRegionSupport.Debug
             //Send data to the BepInEx logger if enabled
             if (BaseLoggingEnabled)
             {
-                if (BaseLogPath == null && baseLogger != null)
-                    baseLogger.Log(level, data);
+                if (BaseLogPath == null)
+                {
+                    baseLogger?.Log(level, data);
+                }
+                else //Check for a custom base log path
+                {
+                    //StreamWriter writeStream = new StreamWriter(File.OpenWrite(BaseLogPath));
+                    //Log(writeStream, data);
+                    Log(BaseLogPath, data?.ToString() ?? "NULL");
+                }
             }
 
             //Check for a custom log path
@@ -99,14 +110,6 @@ namespace ExpeditionRegionSupport.Debug
                 //StreamWriter writeStream = new StreamWriter(File.OpenWrite(LogPath));
                 //Log(writeStream, data);
                 Log(LogPath, data?.ToString() ?? "NULL");
-            }
-
-            //Check for a custom base log path
-            if (BaseLogPath != null)
-            {
-                //StreamWriter writeStream = new StreamWriter(File.OpenWrite(BaseLogPath));
-                //Log(writeStream, data);
-                Log(BaseLogPath, data?.ToString() ?? "NULL");
             }
         }
 

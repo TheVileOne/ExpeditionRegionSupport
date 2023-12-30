@@ -364,7 +364,7 @@ namespace ExpeditionRegionSupport
 
         private void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)
         {
-            Logger = new Debug.Logger("ErsLog.txt"); //Override BepInEx logger
+            Logger = new Debug.Logger("ErsLog.txt", true); //Override BepInEx logger
 
             orig(self);
 

@@ -126,18 +126,22 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                     //Create folder for logging
                     Directory.CreateDirectory(resultFolder);
 
-                    Plugin.Logger.BaseLoggingEnabled = false; //Disable BepInEx logger, use custom logpath instead
                     Plugin.Logger.LogDebug("LOGGING RESTRICTION TEST CASES");
+                    Plugin.Logger.BaseLoggingEnabled = false; //Disable BepInEx logger, use custom logpath instead
 
                     foreach (string testCase in testCases)
                     {
+                        string testCaseName = Path.GetFileName(testCase);
+
+                        Plugin.Logger.LogInfo("Test Case: " + testCaseName);
+
                         try
                         {
                             processFile(testCase);
 
-                            Plugin.Logger.SetLogger(Path.GetFileName(testCase).Replace("test", "result"), resultFolder);
-
-                            Plugin.Logger.Log("Test Case: " + Path.GetFileName(testCase));
+                            //Log test case results
+                            Plugin.Logger.SetLogger(testCaseName.Replace("test", "result"), resultFolder);
+                            Plugin.Logger.LogInfo("Test Case: " + testCaseName);
                             LogRestrictions();
                         }
                         catch (Exception ex)
@@ -300,9 +304,6 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
         /// </summary>
         private static void applyRestrictions(string[] regionCodes, RegionRestrictions regionRestrictions)
         {
-            if (regionRestrictions == null)
-                Plugin.Logger.LogDebug("NULL Debug");
-
             //All region codes share the same restrictions
             foreach (string text in regionCodes)
             {
