@@ -46,8 +46,6 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
 
         public void InheritValues(RegionRestrictions r, bool noRooms = false)
         {
-            Plugin.Logger.LogDebug("Attempting to inherit restrictions");
-
             WorldState = r.WorldState;
             Slugcats = new SlugcatRestrictions()
             {
@@ -58,8 +56,6 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
             if (!noRooms)
                 RoomRestrictions = new List<RoomRestrictions>(r.RoomRestrictions);
             ProgressionRestriction = r.ProgressionRestriction;
-
-            Plugin.Logger.LogDebug("Process finished");
         }
 
         /// <summary>
@@ -167,7 +163,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
               .Append(Slugcats.ToString())
               .Append("Progression Restrictions: ")
               .Append(ProgressionRestriction);
-
+            
             return sb.ToString();
         }
     }
@@ -345,7 +341,6 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
             if (!Allowed.Contains(name))
             {
                 Allowed.Add(name);
-                Plugin.Logger.LogInfo(name);
                 return true;
             }
             return false;
@@ -370,7 +365,6 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
             if (!NotAllowed.Contains(name))
             {
                 NotAllowed.Add(name);
-                Plugin.Logger.LogInfo(name);
                 return true;
             }
             return false;
@@ -386,10 +380,16 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
         {
             bool hasChanged = false;
             foreach (SlugcatStats.Name name in r.Allowed)
+            {
+                Plugin.Logger.LogInfo("[ALLOW]" + name);
                 hasChanged |= Allow(name);
+            }
 
             foreach (SlugcatStats.Name name in r.NotAllowed)
+            {
+                Plugin.Logger.LogInfo("[DISALLOW]" + name);
                 hasChanged |= Disallow(name);
+            }
 
             if (hasChanged)
                 Plugin.Logger.LogInfo("SLUGCATS updated");
@@ -426,7 +426,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                 sb.Append("Slugcats Not Allowed");
                 sb.Append(Environment.NewLine);
 
-                foreach (SlugcatStats.Name name in Allowed)
+                foreach (SlugcatStats.Name name in NotAllowed)
                 {
                     sb.Append(name.value);
                     sb.Append(Environment.NewLine);
