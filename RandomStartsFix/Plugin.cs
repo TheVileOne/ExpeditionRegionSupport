@@ -18,11 +18,11 @@ namespace ExpeditionRegionSupport
     [BepInPlugin(PLUGIN_GUID, PLUGIN_NAME, PLUGIN_VERSION)]
     public partial class Plugin : BaseUnityPlugin
     {
-        public const string PLUGIN_GUID = "fluffball.expeditionregionsupport"; // This should be the same as the id in modinfo.json!
-        public const string PLUGIN_NAME = "Expedition Region Support"; // This should be a human-readable version of your mod's name. This is used for log files and also displaying which mods get loaded. In general, it's a good idea to match this with your modinfo.json as well.
+        public const string PLUGIN_GUID = "fluffball.expeditionregionsupport";
+        public const string PLUGIN_NAME = "Expedition Region Support";
         public const string PLUGIN_VERSION = "0.9.2";
 
-        public static new ManualLogSource Logger { get; private set; }
+        public static new Debug.Logger Logger;
 
         public static List<SlugcatStats.Name> AvailableCampaigns = new List<SlugcatStats.Name>();
 
@@ -30,7 +30,7 @@ namespace ExpeditionRegionSupport
 
         public void OnEnable()
         {
-            Logger = base.Logger;
+            Logger = new Debug.Logger(base.Logger);
 
             try
             {
@@ -364,6 +364,8 @@ namespace ExpeditionRegionSupport
 
         private void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)
         {
+            Logger = new Debug.Logger("ErsLog.txt"); //Override BepInEx logger
+
             orig(self);
 
             SlugBaseEnabled = ModManager.ActiveMods.Exists(m => m.id == "slime-cubed.slugbase");

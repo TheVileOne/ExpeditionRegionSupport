@@ -519,7 +519,7 @@ namespace ExpeditionRegionSupport.Regions
                 Plugin.Logger.LogError(ex);
             }
 
-            Plugin.Logger.LogMessage("No restrictions found");
+            Plugin.Logger.LogInfo("No restrictions found");
             return false;
         }
 
