@@ -221,12 +221,9 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                         //FieldTypes will be unknown when data is stored on new lines instead of in-line
                         if (field != FieldType.Unknown)
                         {
-                            //A new room
+                            //A new room set should be defined whenever the switching from a non-rooms field to a rooms field
                             if (field == FieldType.RoomRestrictions && field != activeField)
-                            {
                                 activeRoomRestrictions = new RoomRestrictions();
-                                //collapseProcessedRoomSets(regionRestrictions);
-                            }
 
                             checkForHeader = true; //Assume inline field on first process
                             activeField = field;
@@ -308,31 +305,10 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
         }
 
         /// <summary>
-        /// Collapses all processed RoomRestrictions this process block to a single index location
-        /// </summary>
-        private static void collapseProcessedRoomSets(RegionRestrictions regionRestrictions)
-        {
-            Plugin.Logger.LogInfo("Collapsing room sets");
-
-            if (roomProcessIndex < 0 || roomProcessIndex >= roomRestrictions.Count - 1) return;
-
-            RoomRestrictions target = roomRestrictions[roomProcessIndex];
-
-            //Start at the process index + 1 for this restriction set
-            for (int i = roomProcessIndex + 1; i < roomRestrictions.Count; i++)
-                target.AddRooms(roomRestrictions[i].Rooms);
-
-            //Remove all restriction sets that used to store rooms
-            roomRestrictions.RemoveRange(roomProcessIndex + 1, roomRestrictions.Count - (roomProcessIndex + 1));
-        }
-
-        /// <summary>
         /// Processes the restrictions that were processed from file
         /// </summary>
         private static void applyRestrictions(string[] regionCodes, RegionRestrictions regionRestrictions)
         {
-            //collapseProcessedRoomSets(regionRestrictions);
-
             //All region codes share the same restrictions, but room restrictions may be different
             foreach (string text in regionCodes)
             {
@@ -511,40 +487,6 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
             }
         }
 
-        private static void retrieveRoomRestrictions(string regionCode, RegionRestrictions regionRestrictions)
-        {
-            //Room restrictions can now be added now that we have RegionRestrictions instantiated.
-            //Room restrictions that are not processed through this loop may be added if their region code header is processed later in the file.
-            //For this reason, roomRestrictions should not be cleared until the entire file is processed.
-            int i = 0;
-            while (i < roomRestrictions.Count)
-            {
-                RoomRestrictions restrictions = roomRestrictions[i];
-
-                Plugin.Logger.LogDebug("Room Restriction: " + restrictions.Rooms);
-
-                //Check that this room restriction belongs to this datatype
-                if (restrictions.RegionCode == regionCode)
-                {
-                    Plugin.Logger.LogDebug("Restrictions added");
-                    regionRestrictions.RoomRestrictions.Add(restrictions);
-                    roomRestrictions.RemoveAt(i);
-                }
-
-
-                /*RegionSelector.RegionKey regionKey = regionsRestricted.Find(restrictions.RegionCode);
-
-                if (!regionKey.IsEmpty) //A region key was found, add room restrictions
-                {
-                    regionKey.Restrictions.RoomRestrictions.Add(restrictions);
-                    roomRestrictions.RemoveAt(i);
-                }
-                else //All restrictions to rooms need to have a matching RegionKey, preferrably defined in the same read block.
-                    Plugin.Logger.LogWarning("Region header " + restrictions.RegionCode + " not found. Room restrictions not handled");*/
-                i++;
-            }
-        }
-
         private static bool checkForHeader;
 
         /// <summary>
@@ -665,54 +607,6 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
 
                 activeRoomRestrictions.AddRooms(array);
             }
-        }
-
-
-        /// <summary>
-        /// Adds a room name into a RoomRestrictions object that matches its region code. Fetch object when it exists, create one when it doesn't.
-        /// </summary>
-        /// <param name="roomName">The full name of a room "<regionCode>_<roomCode>"</param>
-        private static void applyRoomRestrictions(string roomName)
-        {
-            string regionCode, roomCode;
-            RegionUtils.ParseRoomName(roomName, out regionCode, out roomCode);
-
-            if (roomCode == null)
-            {
-                Plugin.Logger.LogWarning("Abnormal room data detected: " + roomName);
-                return;
-            }
-
-            RoomRestrictions found = findRoomRestrictions(regionCode);
-
-            bool wasFound = true;
-            if (found == null)
-            {
-                activeRoomRestrictions = new RoomRestrictions(regionCode);
-                roomRestrictions.Add(activeRoomRestrictions);
-
-                wasFound = false;
-            }
-
-            //At this point, we can handle adding the room to the restrictions list
-            Plugin.Logger.LogInfo(roomName);
-
-            activeRoomRestrictions.AddRoom(roomName, !wasFound); //TODO: Add RoomRestrictions processor
-        }
-
-        /// <summary>
-        /// Checks and returnsa RoomRestrictions object containing a given RegionCode
-        /// </summary>
-        private static RoomRestrictions findRoomRestrictions(string regionCode)
-        {
-            if (activeRoomRestrictions != null && activeRoomRestrictions.RegionCode == regionCode)
-                return activeRoomRestrictions;
-
-            RoomRestrictions found = roomRestrictions.Find(rs => rs.RegionCode == regionCode);
-
-            if (found != null)
-                activeRoomRestrictions = found;
-            return found;
         }
 
         private static void parseField_ProgressionRestrictions(string data, RegionRestrictions regionRestrictions)

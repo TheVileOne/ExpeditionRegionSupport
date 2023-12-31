@@ -91,9 +91,6 @@ namespace ExpeditionRegionSupport.Regions
 
             IsCacheFound = false;
 
-            //RegionCache = new RegionKey(regionCode);
-            //IsCacheFound = Contains(RegionCache);
-
             //We want an accurate RegionCache. Get it directly from the list.
             IsCacheFound = TryFind(regionCode, out RegionCache);
 

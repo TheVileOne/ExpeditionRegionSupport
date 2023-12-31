@@ -24,8 +24,6 @@ namespace ExpeditionRegionSupport
 
         public static new Debug.Logger Logger;
 
-        public static List<SlugcatStats.Name> AvailableCampaigns = new List<SlugcatStats.Name>();
-
         public static bool SlugBaseEnabled;
 
         public void OnEnable()
@@ -36,12 +34,7 @@ namespace ExpeditionRegionSupport
             {
                 On.Menu.ExpeditionMenu.ctor += ExpeditionMenu_ctor;
 
-                On.MoreSlugcats.MSCRoomSpecificScript.DS_RIVSTARTcutscene.Update += DS_RIVSTARTcutscene_Update;
-                On.Player.SuperHardSetPosition += Player_SuperHardSetPosition;
                 On.RegionGate.customOEGateRequirements += RegionGate_customOEGateRequirements;
-
-                On.Player.GraspsCanBeCrafted += Player_GraspsCanBeCrafted;
-                On.Player.CraftingResults += Player_CraftingResults;
 
                 On.Expedition.ExpeditionGame.ExpeditionRandomStarts += ExpeditionGame_ExpeditionRandomStarts;
                 IL.Expedition.ExpeditionGame.ExpeditionRandomStarts += ExpeditionGame_ExpeditionRandomStarts;
@@ -49,57 +42,11 @@ namespace ExpeditionRegionSupport
                 IL.SaveState.setDenPosition += SaveState_setDenPosition;
                 
                 On.RainWorld.PostModsInit += RainWorld_PostModsInit;
-                On.SaveState.setDenPosition += SaveState_setDenPosition;
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex);
             }
-        }
-
-        private bool Player_GraspsCanBeCrafted(On.Player.orig_GraspsCanBeCrafted orig, Player self)
-        {
-            if (self.SlugCatClass == SlugcatStats.Name.Red)
-                return self.input[0].y == 1 && self.CraftingResults() != null;
-
-            return orig(self);
-        }
-
-        private AbstractPhysicalObject.AbstractObjectType Player_CraftingResults(On.Player.orig_CraftingResults orig, Player self)
-        {
-            if (self.grasps.Length < 2 || self.SlugCatClass != SlugcatStats.Name.Red) //We need to be holding at least two things
-                return orig(self);
-
-            var craftingResult = CraftObject(self, self.grasps[0], self.grasps[1]);
-
-            return craftingResult?.type;
-        }
-
-        private AbstractPhysicalObject GourmandCombos_CraftingResults(On.MoreSlugcats.GourmandCombos.orig_CraftingResults orig, PhysicalObject crafter, Creature.Grasp graspA, Creature.Grasp graspB)
-        {
-            if ((crafter as Player).SlugCatClass == SlugcatStats.Name.Red)
-                return CraftObject(crafter as Player, graspA, graspB);
-
-            return orig(crafter, graspA, graspB);
-        }
-
-        public AbstractPhysicalObject CraftObject(Player player, Creature.Grasp graspA, Creature.Grasp graspB)
-        {
-            if (player == null || graspA?.grabbed == null || graspB?.grabbed == null) return null;
-
-            //Check grasps here
-            if (player.SlugCatClass == SlugcatStats.Name.Red)
-            {
-                AbstractPhysicalObject.AbstractObjectType grabbedObjectTypeA = graspA.grabbed.abstractPhysicalObject.type;
-                AbstractPhysicalObject.AbstractObjectType grabbedObjectTypeB = graspB.grabbed.abstractPhysicalObject.type;
-
-                if (grabbedObjectTypeA == AbstractPhysicalObject.AbstractObjectType.Rock && grabbedObjectTypeB == AbstractPhysicalObject.AbstractObjectType.Rock)
-                {
-                    return new AbstractSpear(player.room.world, null, player.abstractCreature.pos, player.room.game.GetNewID(), false);
-                }
-            }
-
-            return null;
         }
 
         private bool RegionGate_customOEGateRequirements(On.RegionGate.orig_customOEGateRequirements orig, RegionGate self)
@@ -108,110 +55,6 @@ namespace ExpeditionRegionSupport
                 return true;
 
             return orig(self);
-        }
-
-        private void Player_SuperHardSetPosition(On.Player.orig_SuperHardSetPosition orig, Player self, UnityEngine.Vector2 pos)
-        {
-            /*if (self.tongue != null)
-            {
-                try
-                {
-                    if (self.tongue.Attached)
-                    {
-                        self.tongue.Release();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError(ex);
-                    Logger.LogDebug("Tongue 1");
-                }
-
-                try
-                {
-                    self.tongue.pos = self.mainBodyChunk.pos;
-                    self.tongue.lastPos = self.mainBodyChunk.lastPos;
-                    self.tongue.rope.Reset(pos);
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError(ex);
-                    Logger.LogDebug("Tongue 2");
-                }
-
-                try
-                {
-                    foreach (PlayerGraphics.RopeSegment ropeSegment in (self.graphicsModule as PlayerGraphics).ropeSegments)
-                    {
-                        ropeSegment.pos = pos;
-                        ropeSegment.lastPos = pos;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError(ex);
-                    Logger.LogDebug("Tongue 3");
-                    if ((self.graphicsModule as PlayerGraphics).ropeSegments == null)
-                    {
-                        Logger.LogError("Null ref found");
-                    }
-                }
-
-            }
-
-            try
-            {
-                for (int i = 0; i < self.bodyChunks.Length; i++)
-                {
-                    self.bodyChunks[i].HardSetPosition(pos);
-                    for (int j = 0; j < 2; j++)
-                    {
-                        (self.graphicsModule as PlayerGraphics).drawPositions[i, j] = pos;
-                    }
-                }
-            }
-            catch(Exception ex)
-            {
-                Logger.LogError(ex);
-                Logger.LogDebug("BODY CHUNKS");
-            }
-
-            try
-            {
-                foreach (BodyPart bodyPart in (self.graphicsModule as PlayerGraphics).bodyParts)
-                {
-                    bodyPart.pos = pos;
-                    bodyPart.lastPos = pos;
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex);
-                Logger.LogDebug("BODY PARTS");
-            }*/
-
-            try
-            {
-                orig(self, pos);
-
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex);
-            }
-        }
-
-        private void DS_RIVSTARTcutscene_Update(On.MoreSlugcats.MSCRoomSpecificScript.DS_RIVSTARTcutscene.orig_Update orig, MSCRoomSpecificScript.DS_RIVSTARTcutscene self, bool eu)
-        {
-            try
-            {
-                orig(self, eu);
-            }
-            catch(Exception ex)
-            {
-                Logger.LogError(ex);
-                Logger.LogDebug("Player is " + self.room.game.FirstAlivePlayer);
-            }
         }
 
         private void SaveState_setDenPosition(ILContext il)
@@ -294,17 +137,6 @@ namespace ExpeditionRegionSupport
             orig(self, manager);
         }
 
-        private void SaveState_setDenPosition(On.SaveState.orig_setDenPosition orig, SaveState self)
-        {
-            Logger.LogInfo("Finding den spawn");
-            if (ExpeditionData.startingDen != null)
-                Logger.LogInfo("DEN: " + ExpeditionData.startingDen);
-            else
-                Logger.LogInfo("Starting den is NULL");
-
-            orig(self);
-        }
-
         private bool hasProcessedRooms;
 
         /// <summary>
@@ -369,25 +201,6 @@ namespace ExpeditionRegionSupport
             orig(self);
 
             SlugBaseEnabled = ModManager.ActiveMods.Exists(m => m.id == "slime-cubed.slugbase");
-
-            string[] nameArray = ExtEnumBase.GetNames(typeof(SlugcatStats.Name));
-
-            for (int i = 0; i < nameArray.Length; i++)
-            {
-                SlugcatStats.Name name = (SlugcatStats.Name)ExtEnumBase.Parse(typeof(SlugcatStats.Name), nameArray[i], true);
-
-                Logger.LogInfo(name);
-                AvailableCampaigns.Add(name);
-            }
-
-            try
-            {
-                On.MoreSlugcats.GourmandCombos.CraftingResults += GourmandCombos_CraftingResults;
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex);
-            }
         }
 
         private void ExpeditionGame_ExpeditionRandomStarts(ILContext il)
@@ -429,168 +242,6 @@ namespace ExpeditionRegionSupport
             Logger.LogDebug(roomInfo);
             RegionSelector.Instance.AddRoom(roomInfo);
         }
-
-        bool regionSpecificFlag_ = false;
-        bool customRegionAllowed_ = false;
-
-        private bool processLine(/*string[] valueArray, int valueIndex*/ string value, RainWorld rainWorld)
-        {
-            //string value = valueArray[valueIndex];
-            Logger.LogInfo(value);
-            bool allowParse = true;
-
-            if (value.StartsWith("#REGION_SPECIFIC"))
-            {
-                customRegionAllowed_ = false; //In case someone forgot to add an end line.
-                regionSpecificFlag_ = true;
-                //We need to check campaign completion status for these characters
-                string[] restrictedToCharacters = value.Replace("#REGION_SPECIFIC", string.Empty).Split(',');
-
-                foreach (string name in restrictedToCharacters)
-                {
-                    ExtEnumBase nameEnum;
-
-                    if (ExtEnumBase.TryParse(typeof(SlugcatStats.Name), name, true, out nameEnum))
-                    {
-                        //Have we beaten the game with this slugcat
-                        if (MineForGameComplete((SlugcatStats.Name)nameEnum, rainWorld))
-                        {
-                            customRegionAllowed_ = true;
-                            break;
-                        }
-                    }
-
-                    /*if (slugcatMatch(name.Trim(), slugcat))
-                    {
-                        customRegionAllowed = true;
-                        break;
-                    }*/
-                }
-                allowParse = false;
-            }
-            else if (regionSpecificFlag_)
-            {
-                if (value.StartsWith("#REGION_SPECIFIC_END") || value.StartsWith("#REGION_END") || value.StartsWith("#END"))
-                {
-                    //End custom region block
-                    customRegionAllowed_ = false;
-                    regionSpecificFlag_ = false;
-                    allowParse = false;
-                }
-                else
-                    allowParse = customRegionAllowed_;
-            }
-            return allowParse;
-        }
-
-        private static bool slugcatMatch(string name, SlugcatStats.Name slugcat)
-        {
-            return string.Equals(name.ToLower().Trim(), slugcat.ToString().ToLower().Trim());
-        }
-
-        /// <summary>
-        /// This hook allows mod specific regions to add custom spawn data to be used in expedition mode.
-        /// </summary>
-        /*private string ExpeditionGame_ExpeditionRandomStarts(On.Expedition.ExpeditionGame.orig_ExpeditionRandomStarts orig, RainWorld rainWorld, SlugcatStats.Name slugcat)
-        {
-            Dictionary<string, int> dictionary = new Dictionary<string, int>();
-            Dictionary<string, List<string>> dictionary2 = new Dictionary<string, List<string>>();
-            string[] slugcatStoryRegions = SlugcatStats.getSlugcatStoryRegions(slugcat);
-            if (File.Exists(AssetManager.ResolveFilePath("randomstarts.txt")))
-            {
-                bool regionSpecificFlag = false;
-                bool customRegionAllowed = false;
-                bool allowParse = false;
-
-                string[] array = File.ReadAllLines(AssetManager.ResolveFilePath("randomstarts.txt"));
-                for (int i = 0; i < array.Length; i++)
-                {
-                    if (!array[i].StartsWith("//") && array[i].Length > 0)
-                    {
-                        if (array[i].StartsWith("#REGION_SPECIFIC"))
-                        {
-                            customRegionAllowed = false; //In case someone forgot to add an end line.
-                            regionSpecificFlag = true;
-                            //We need to check campaign completion status for these characters
-                            string[] restrictedToCharacters = array[i].Replace("#REGION_SPECIFIC", string.Empty).Split(',');
-
-                            foreach (string name in restrictedToCharacters)
-                            {
-                                ExtEnumBase nameEnum;
-
-                                if (ExtEnumBase.TryParse(typeof(SlugcatStats.Name), name, true, out nameEnum))
-                                {
-                                    //Have we beaten the game with this slugcat
-                                    if (MineForGameComplete((SlugcatStats.Name)nameEnum, rainWorld))
-                                    {
-                                        customRegionAllowed = true;
-                                        break;
-                                    }
-                                }
-                            }
-                            allowParse = false;
-                        }
-                        else if (regionSpecificFlag)
-                        {
-                            if (array[i].StartsWith("#REGION_SPECIFIC_END") || array[i].StartsWith("#REGION_END") || array[i].StartsWith("#END"))
-                            {
-                                //End custom region block
-                                customRegionAllowed = false;
-                                regionSpecificFlag = false;
-                                allowParse = false;
-                            }
-                            else
-                                allowParse = customRegionAllowed;
-                        }
-
-                        if (allowParse)
-                        {
-                            string regionCode = Regex.Split(array[i], "_")[0]; //Room name format "region code_room name"
-
-                            //Don't process the same region twice
-                            if (checkRegionRequirements(regionCode, slugcat, slugcatStoryRegions))
-                            {
-                                //Hardcoded room check from MSC code
-                                if (array[i] == "MS_S07" && ModManager.MSC && ExpeditionGame.unlockedExpeditionSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Rivulet))
-                                {
-                                    continue;
-                                }
-
-                                if (!dictionary2.ContainsKey(regionCode))
-                                    dictionary2.Add(regionCode, new List<string>());
-
-                                dictionary2[regionCode].Add(array[i]);
-
-                                if (dictionary2[regionCode].Contains(array[i]) && !dictionary.ContainsKey(regionCode))
-                                    dictionary.Add(regionCode, ExpeditionGame.GetRegionWeight(regionCode));
-                            }
-                        }
-                    }
-                }
-                Random random = new Random();
-                int maxValue = dictionary.Values.Sum();
-                int randomIndex = random.Next(0, maxValue);
-                string key = dictionary.First(delegate (KeyValuePair<string, int> x)
-                {
-                    randomIndex -= x.Value;
-                    return randomIndex < 0;
-                }).Key;
-                ExpeditionGame.lastRandomRegion = key;
-                int num = (from list in dictionary2.Values
-                           select list.Count).Sum();
-                string text2 = dictionary2[key].ElementAt(UnityEngine.Random.Range(0, dictionary2[key].Count - 1));
-                ExpLog.Log(string.Format("{0} | {1} valid regions for {2} with {3} possible dens", new object[]
-                {
-                    text2,
-                    dictionary.Keys.Count,
-                    slugcat.value,
-                    num
-                }));
-                return text2;
-            }
-            return "SU_S01";
-            //return orig(rainWorld, slugcat);
-        }*/
 
         public bool MineForGameComplete(SlugcatStats.Name name, RainWorld rainWorld)
         {
