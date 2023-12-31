@@ -127,7 +127,6 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                     Directory.CreateDirectory(resultFolder);
 
                     Plugin.Logger.LogDebug("LOGGING RESTRICTION TEST CASES");
-                    Plugin.Logger.BaseLoggingEnabled = false; //Disable BepInEx logger, use custom logpath instead
 
                     foreach (string testCase in testCases)
                     {
@@ -141,8 +140,9 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
 
                             //Log test case results
                             Plugin.Logger.SetLogger(testCaseName.Replace("test", "result"), resultFolder);
-                            Plugin.Logger.LogInfo("Test Case: " + testCaseName);
+                            Plugin.Logger.LogInfo("Case Results: " + testCaseName);
                             LogRestrictions();
+                            Plugin.Logger.LogInfo("Case Results: END");
                         }
                         catch (Exception ex)
                         {
@@ -151,8 +151,6 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
 
                         Plugin.Logger.DetachLogger(false);
                     }
-
-                    Plugin.Logger.BaseLoggingEnabled = true;
                 }
             }
         }
