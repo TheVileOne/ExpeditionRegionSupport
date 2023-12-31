@@ -128,6 +128,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                     //Create folder for logging
                     Directory.CreateDirectory(resultFolder);
 
+                    Plugin.Logger.LogHeadersEnabled = false;
                     Plugin.Logger.LogDebug("LOGGING RESTRICTION TEST CASES");
 
                     foreach (string testCase in testCases)
@@ -153,6 +154,8 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
 
                         Plugin.Logger.DetachLogger(false);
                     }
+
+                    Plugin.Logger.LogHeadersEnabled = true;
                 }
             }
         }
