@@ -15,14 +15,20 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
         /// </summary>
         public void MergeValues(RegionRestrictions r)
         {
+            if (!r.HasEntries)
+            {
+                Plugin.Logger.LogWarning("EMPTY set detected");
+                return;
+            }
+
             Plugin.Logger.LogInfo("Restrictions already exist. Attempting to merge");
 
             MergeUtils.MergeRoomRestrictions(this, r);
-            processDuplicateRestrictions();
+            ProcessDuplicateRestrictions();
 
             MergeUtils.MergeValues(this, r);
         }
-        private void processDuplicateRestrictions()
+        public void ProcessDuplicateRestrictions()
         {
             int i = 0;
             while (i < RoomRestrictions.Count)
@@ -41,7 +47,8 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                 {
                     RoomRestrictions compareTarget = RoomRestrictions[j];
 
-                    IEnumerable<string> duplicateRooms = current.Rooms.Intersect(compareTarget.Rooms); //Compare to each list already processed for matching data
+                    //Compare to each list already processed for matching data. Needs to be stored in a new list to avoid interfering with the enumerator
+                    IEnumerable<string> duplicateRooms = new List<string>(current.Rooms.Intersect(compareTarget.Rooms));
 
                     if (duplicateRooms.Count() > 0)
                     {
@@ -74,12 +81,13 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                                 listToProcess2 = compareTarget.Rooms;
                             }
                         }
-                        else
+                        else //This indicates there is a restriction mismatch. Create a new target and insert merged changes into it
                         {
                             listToProcess = current.Rooms;
                             listToProcess2 = compareTarget.Rooms;
 
                             restrictionsTarget = new RoomRestrictions(current.RegionCode);
+                            restrictionsTarget.Restrictions = MergeUtils.GetMergedValues(Restrictions.RoomRestrictions.GetRestrictionsByIndex(compareTarget, this, j), current.Restrictions);
                             RoomRestrictions.Insert(i, restrictionsTarget);
                         }
 

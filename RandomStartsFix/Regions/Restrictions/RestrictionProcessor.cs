@@ -218,6 +218,13 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                         //FieldTypes will be unknown when data is stored on new lines instead of in-line
                         if (field != FieldType.Unknown)
                         {
+                            //A new room
+                            if (field == FieldType.RoomRestrictions && field != activeField)
+                            {
+                                activeRoomRestrictions = new RoomRestrictions();
+                                //collapseProcessedRoomSets(regionRestrictions);
+                            }
+
                             checkForHeader = true; //Assume inline field on first process
                             activeField = field;
                             activeModifierField = Modifier.None;
@@ -298,11 +305,32 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
         }
 
         /// <summary>
+        /// Collapses all processed RoomRestrictions this process block to a single index location
+        /// </summary>
+        private static void collapseProcessedRoomSets(RegionRestrictions regionRestrictions)
+        {
+            Plugin.Logger.LogInfo("Collapsing room sets");
+
+            if (roomProcessIndex < 0 || roomProcessIndex >= roomRestrictions.Count - 1) return;
+
+            RoomRestrictions target = roomRestrictions[roomProcessIndex];
+
+            //Start at the process index + 1 for this restriction set
+            for (int i = roomProcessIndex + 1; i < roomRestrictions.Count; i++)
+                target.AddRooms(roomRestrictions[i].Rooms);
+
+            //Remove all restriction sets that used to store rooms
+            roomRestrictions.RemoveRange(roomProcessIndex + 1, roomRestrictions.Count - (roomProcessIndex + 1));
+        }
+
+        /// <summary>
         /// Processes the restrictions that were processed from file
         /// </summary>
         private static void applyRestrictions(string[] regionCodes, RegionRestrictions regionRestrictions)
         {
-            //All region codes share the same restrictions
+            //collapseProcessedRoomSets(regionRestrictions);
+
+            //All region codes share the same restrictions, but room restrictions may be different
             foreach (string text in regionCodes)
             {
                 try
@@ -315,6 +343,11 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                     //Fetch RoomRestrictions that apply to this region code
                     regionRestrictions.RoomRestrictions = getRoomRestrictions(regionCode, regionRestrictions);
 
+
+                    if (!regionRestrictions.HasEntries) continue; //These isn't a point in processing something without entries
+
+                    Plugin.Logger.LogDebug("Rooms inherit from me: " + regionRestrictions.IsRoomSpecific);
+
                     //Fetch existing RegionRestrictions if one exists
                     //Merge recently processed restrictions with it if it does, create a new one otherwise
                     RegionKey found;
@@ -326,8 +359,17 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                     else
                     {
                         Plugin.Logger.LogInfo("Existing restrictions not found. Creating restrictions");
+
+                        //We need to sanity check internal rooms for duplicate, and inconsistent data
+                        if (regionRestrictions.RoomRestrictions.Count > 0)
+                        {
+                            Plugin.Logger.LogInfo("More than one restrictions set detected. Checking for consistency");
+                            regionRestrictions.ProcessDuplicateRestrictions();
+                        }
+
                         regionsRestricted.Add(regionCode);
-                        regionsRestricted.RegionCache.Restrictions.InheritValues(regionRestrictions, true);
+                        regionsRestricted.RegionCache.Restrictions.InheritValues(regionRestrictions);
+
                     }
                 }
                 catch(Exception ex)
@@ -398,6 +440,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
             try
             {
                 Plugin.Logger.LogInfo("Processing room restrictions");
+                Plugin.Logger.LogInfo($"Found {roomRestrictions.Count} sets to process");
 
                 List<RoomRestrictions> restrictions = new List<RoomRestrictions>();
                 List<RoomRestrictions> restrictionsToRemove = new List<RoomRestrictions>(); //A list of restrictions that do not need to be processed anymore 
@@ -422,6 +465,8 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                                                                      //Find all rooms associated with a region code, and add them
                     foreach (string room in current.Rooms)
                     {
+                        Plugin.Logger.LogInfo("Processing Room: " + room);
+
                         if (!room.StartsWith(regionCode)) continue; //Not the same region
 
                         if (r.IsEmpty) //First pass will be empty
@@ -460,45 +505,6 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                 Plugin.Logger.LogError(ex);
 
                 return new List<RoomRestrictions>();
-            }
-        }
-
-        private static void LogRestrictions()
-        {
-            foreach (RegionKey region in regionsRestricted)
-            {
-                Plugin.Logger.LogDebug("Region: " + region.RegionCode);
-
-                RegionRestrictions restrictions = region.Restrictions;
-
-                bool roomSpecific = restrictions.IsRoomSpecific;
-                bool hasRoomEntries = restrictions.HasRoomEntries;
-
-                if (restrictions.NoRestrictedFields)
-                {
-                    if (roomSpecific || !hasRoomEntries)
-                    {
-                        Plugin.Logger.LogDebug("NO RESTRICTIONS");
-
-                        if (roomSpecific)
-                            Plugin.Logger.LogDebug("HAS ROOM INHERITENCE");
-                    }
-                    else
-                        Plugin.Logger.LogDebug("ROOMS ONLY");
-
-                }
-                else if (roomSpecific)
-                {
-                    Plugin.Logger.LogDebug("ROOMS ONLY (WITH INHERITENCE)");
-                }
-                else if (hasRoomEntries)
-                {
-                    Plugin.Logger.LogDebug("REGION-RESTRICTED (WITH ROOMS)");
-                }
-                else
-                    Plugin.Logger.LogDebug("REGION ONLY");
-
-                region.LogRestrictions();
             }
         }
 
@@ -656,12 +662,6 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
 
                 activeRoomRestrictions.AddRooms(array);
             }
-            return;
-
-            //TODO: Implement roomsToProcess
-            //All restrictions after apply to every room in roomsToProcess
-            foreach (string room in array)
-                applyRoomRestrictions(room.Trim());
         }
 
 
@@ -700,8 +700,6 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
         /// <summary>
         /// Checks and returnsa RoomRestrictions object containing a given RegionCode
         /// </summary>
-        /// <param name="regionCode"></param>
-        /// <returns></returns>
         private static RoomRestrictions findRoomRestrictions(string regionCode)
         {
             if (activeRoomRestrictions != null && activeRoomRestrictions.RegionCode == regionCode)
@@ -790,6 +788,45 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
             Enum.TryParse(data, true, out value);
 
             return value;
+        }
+
+        private static void LogRestrictions()
+        {
+            foreach (RegionKey region in regionsRestricted)
+            {
+                Plugin.Logger.LogDebug("Region: " + region.RegionCode);
+
+                RegionRestrictions restrictions = region.Restrictions;
+
+                bool roomSpecific = restrictions.IsRoomSpecific;
+                bool hasRoomEntries = restrictions.HasRoomEntries;
+
+                if (restrictions.NoRestrictedFields)
+                {
+                    if (roomSpecific || !hasRoomEntries)
+                    {
+                        Plugin.Logger.LogDebug("NO RESTRICTIONS");
+
+                        if (roomSpecific)
+                            Plugin.Logger.LogDebug("HAS ROOM INHERITENCE");
+                    }
+                    else
+                        Plugin.Logger.LogDebug("ROOMS ONLY");
+
+                }
+                else if (roomSpecific)
+                {
+                    Plugin.Logger.LogDebug("ROOMS ONLY (WITH INHERITENCE)");
+                }
+                else if (hasRoomEntries)
+                {
+                    Plugin.Logger.LogDebug("REGION-RESTRICTED (WITH ROOMS)");
+                }
+                else
+                    Plugin.Logger.LogDebug("REGION ONLY");
+
+                region.LogRestrictions();
+            }
         }
 
         private static string removeFieldHeader(string field, int headerLength)
