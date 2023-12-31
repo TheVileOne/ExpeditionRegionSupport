@@ -29,7 +29,7 @@ namespace ExpeditionRegionSupport.Debug
         /// <summary>
         /// When set this will completely replace the BepInEx logger as the base logger 
         /// </summary>
-        public string baseLogPath;
+        private string baseLogPath;
 
         /// <summary>
         /// The default directory where logs are stored
