@@ -12,14 +12,21 @@ namespace ExpeditionRegionSupport.Debug
     public class Logger
     {
         public bool BaseLoggingEnabled = true;
-        public string LogPath { get; private set; }
+
+        /// <summary>
+        /// When set, this will serve as an alternative logging output path
+        /// </summary>
+        private string logPath;
 
         /// <summary>
         /// When set this will completely replace the BepInEx logger as the base logger 
         /// </summary>
-        public string BaseLogPath {  get; private set; }
+        public string baseLogPath;
 
-        public string BaseLogDirectory { get; private set; }
+        /// <summary>
+        /// The default directory where logs are stored
+        /// </summary>
+        private string baseLogDirectory;
 
         private ManualLogSource baseLogger;
 
@@ -30,15 +37,15 @@ namespace ExpeditionRegionSupport.Debug
 
         public Logger(string filename, bool overwrite = false)
         {
-            BaseLogDirectory = AssetManager.ResolveDirectory("logs");//Path.Combine(Custom.RootFolderDirectory(), "logs");
-            BaseLogPath = Path.Combine(BaseLogDirectory, filename);
+            baseLogDirectory = AssetManager.ResolveDirectory("logs");//Path.Combine(Custom.RootFolderDirectory(), "logs");
+            baseLogPath = Path.Combine(baseLogDirectory, filename);
 
             try
             {
-                Directory.CreateDirectory(BaseLogDirectory);
+                Directory.CreateDirectory(baseLogDirectory);
 
                 if (overwrite)
-                    File.Delete(BaseLogPath);
+                    File.Delete(baseLogPath);
             }
             catch
             {
@@ -62,7 +69,7 @@ namespace ExpeditionRegionSupport.Debug
             if (detachBaseLogger)
                 BaseLoggingEnabled = false;
             else
-                LogPath = null;
+                logPath = null;
         }
 
         /// <summary>
@@ -78,7 +85,7 @@ namespace ExpeditionRegionSupport.Debug
 
         public void SetLogger(string path)
         {
-            LogPath = path;
+            logPath = path;
         }
 
         public void Log(object data, LogLevel level = LogLevel.None)
@@ -92,7 +99,7 @@ namespace ExpeditionRegionSupport.Debug
             //Send data to the BepInEx logger if enabled
             if (BaseLoggingEnabled)
             {
-                if (BaseLogPath == null)
+                if (baseLogPath == null)
                 {
                     baseLogger?.Log(level, data);
                 }
@@ -100,25 +107,25 @@ namespace ExpeditionRegionSupport.Debug
                 {
                     //StreamWriter writeStream = new StreamWriter(File.OpenWrite(BaseLogPath));
                     //Log(writeStream, data);
-                    Log(BaseLogPath, data?.ToString() ?? "NULL");
+                    Log(baseLogPath, data?.ToString() ?? "NULL");
                 }
             }
 
             //Check for a custom log path
-            if (LogPath != null)
+            if (logPath != null)
             {
                 //StreamWriter writeStream = new StreamWriter(File.OpenWrite(LogPath));
                 //Log(writeStream, data);
-                Log(LogPath, data?.ToString() ?? "NULL");
+                Log(logPath, data?.ToString() ?? "NULL");
             }
         }
 
-        public void Log(string path, string data)
+        public static void Log(string path, string data)
         {
             File.AppendAllText(path, Environment.NewLine + data);
         }
 
-        public void Log(StreamWriter stream, object data)
+        public static void Log(StreamWriter stream, object data)
         {
             try
             {
@@ -135,6 +142,11 @@ namespace ExpeditionRegionSupport.Debug
         public void LogInfo(object data)
         {
             Log(data, LogLevel.Info);
+        }
+
+        public void LogMessage(object data)
+        {
+            Log(data, LogLevel.Message);
         }
 
         public void LogDebug(object data)
