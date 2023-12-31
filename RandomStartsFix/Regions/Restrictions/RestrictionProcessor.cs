@@ -315,7 +315,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                 try
                 {
                     //Supports: $XX $XX $XX and $XX XX XX
-                    string regionCode = (text.StartsWith("$") ? text.Substring(1) : text).Trim(); //Get rid of $ symbol and any whitespace
+                    string regionCode = parseRegionHeader(text.Trim()); //Get rid of $ symbol and any whitespace
 
                     Plugin.Logger.LogInfo("Processing restrictions for region " + regionCode);
 
@@ -485,6 +485,11 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
 
                 return new List<RoomRestrictions>();
             }
+        }
+
+        private static string parseRegionHeader(string text)
+        {
+            return text.StartsWith("$") ? text.Substring(1) : text;
         }
 
         private static bool checkForHeader;
