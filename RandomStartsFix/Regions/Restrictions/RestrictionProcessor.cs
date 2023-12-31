@@ -76,6 +76,8 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
             }
         }
 
+        public static string LogHeader => processingRooms ? "[ROOMS] " : string.Empty;
+
         public static RegionList Process()
         {
             if (processField == null)
@@ -209,6 +211,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                             //New region block has started. Clear field flags.
                             activeField = FieldType.Unknown;
                             activeModifierField = Modifier.None;
+
                             continue;
                         }
 
@@ -264,7 +267,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                             }
 
                             if (modifierChanged)
-                                Plugin.Logger.LogInfo("MODIFIER: " + activeModifierField.ToString());
+                                Plugin.Logger.LogInfo(LogHeader + "MODIFIER: " + activeModifierField.ToString());
 
                             if (modifier != Modifier.None) continue; //Modifier header - Values on this line currently not supported
                         }
@@ -569,7 +572,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
             }
 
             if (field != FieldType.Unknown)
-                Plugin.Logger.LogInfo("FIELD: " + field.ToString());
+                Plugin.Logger.LogInfo(LogHeader + "FIELD: " + field.ToString());
             return field;
         }
 
