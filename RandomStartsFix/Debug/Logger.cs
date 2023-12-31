@@ -11,7 +11,15 @@ namespace ExpeditionRegionSupport.Debug
 {
     public class Logger
     {
+        /// <summary>
+        /// A flag that disables the primary logging path
+        /// </summary>
         public bool BaseLoggingEnabled = true;
+
+        /// <summary>
+        /// A flag that affects whether log levels are included in logged output. Does not affect BepInEx logger
+        /// </summary>
+        public bool LogHeadersEnabled = true;
 
         /// <summary>
         /// When set, this will serve as an alternative logging output path
@@ -96,6 +104,10 @@ namespace ExpeditionRegionSupport.Debug
                 level = LogLevel.Info;
             }
 
+            int spacesRequired = Math.Max(7 - level.ToString().Length, 0);
+
+            string logOutput = (LogHeadersEnabled ? $"[{level}" + new string(' ', spacesRequired) + "] " : string.Empty) + data?.ToString() ?? "NULL";
+
             //Send data to the BepInEx logger if enabled
             if (BaseLoggingEnabled)
             {
@@ -107,7 +119,7 @@ namespace ExpeditionRegionSupport.Debug
                 {
                     //StreamWriter writeStream = new StreamWriter(File.OpenWrite(BaseLogPath));
                     //Log(writeStream, data);
-                    Log(baseLogPath, data?.ToString() ?? "NULL");
+                    Log(baseLogPath, logOutput);
                 }
             }
 
@@ -116,7 +128,7 @@ namespace ExpeditionRegionSupport.Debug
             {
                 //StreamWriter writeStream = new StreamWriter(File.OpenWrite(LogPath));
                 //Log(writeStream, data);
-                Log(logPath, data?.ToString() ?? "NULL");
+                Log(logPath, logOutput);
             }
         }
 
