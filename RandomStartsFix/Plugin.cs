@@ -25,6 +25,7 @@ namespace ExpeditionRegionSupport
         public static new Debug.Logger Logger;
 
         public static bool SlugBaseEnabled;
+        public WorldState ActiveWorldState;
 
         public void OnEnable()
         {
@@ -36,6 +37,7 @@ namespace ExpeditionRegionSupport
 
                 On.RegionGate.customOEGateRequirements += RegionGate_customOEGateRequirements;
 
+                On.Menu.ChallengeSelectPage.StartButton_OnPressDone += ChallengeSelectPage_StartButton_OnPressDone1;
                 On.Expedition.ExpeditionGame.ExpeditionRandomStarts += ExpeditionGame_ExpeditionRandomStarts;
                 IL.Expedition.ExpeditionGame.ExpeditionRandomStarts += ExpeditionGame_ExpeditionRandomStarts;
                 IL.Menu.ChallengeSelectPage.StartButton_OnPressDone += ChallengeSelectPage_StartButton_OnPressDone;
@@ -49,9 +51,20 @@ namespace ExpeditionRegionSupport
             }
         }
 
+        private void ChallengeSelectPage_StartButton_OnPressDone1(On.Menu.ChallengeSelectPage.orig_StartButton_OnPressDone orig, Menu.ChallengeSelectPage self, Menu.Remix.MixedUI.UIfocusable trigger)
+        {
+            ActiveWorldState = RegionUtils.GetWorldStateFromStoryRegions(ExpeditionData.slugcatPlayer, SlugcatStats.getSlugcatStoryRegions(ExpeditionData.slugcatPlayer));
+
+            Logger.LogInfo("WS " + ActiveWorldState);
+
+            orig(self, trigger);
+        }
+
         private bool RegionGate_customOEGateRequirements(On.RegionGate.orig_customOEGateRequirements orig, RegionGate self)
         {
-            if (ModManager.MSC && (/*self.room.world.name == "OE" ||*/ ModManager.Expedition && self.room.game.rainWorld.ExpeditionMode && ExpeditionGame.unlockedExpeditionSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Gourmand)))
+            if (ModManager.MSC && (/*self.room.world.name == "OE" ||*/ ModManager.Expedition && self.room.game.rainWorld.ExpeditionMode
+                                                                    && (ActiveWorldState & (WorldState.Vanilla | WorldState.Gourmand)) != 0
+                                                                    && ExpeditionGame.unlockedExpeditionSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Gourmand)))
                 return true;
 
             return orig(self);

@@ -71,10 +71,6 @@ namespace ExpeditionRegionSupport.Regions
                 Plugin.Logger.LogError(ex);
             }
 
-            //Some regions are made available to Monk, and Survivor after unlock.
-            //This check is automatically processed when retrieving optional regions array.
-            bool slugcatIsMonkOrSurvivor = ActiveSlugcat == SlugcatStats.Name.White || ActiveSlugcat == SlugcatStats.Name.Yellow;
-
             //These methods are already curated to the provided slugcat, and account for MSC being enabled
             string[] availableStoryRegions = SlugcatStats.getSlugcatStoryRegions(ActiveSlugcat);
             string[] availableOptionalRegions = SlugcatStats.getSlugcatOptionalRegions(ActiveSlugcat);
@@ -112,8 +108,12 @@ namespace ExpeditionRegionSupport.Regions
                     handleStoryOrOptionalRegion(regionCode, false);
 
                 //Metropolis is not returned as an optional region, but should be handled as one for certain characters.
-                if (slugcatIsMonkOrSurvivor && !handleRestrictedRegion("LC", false))
+                if (!handleRestrictedRegion("LC", false))
                     handleOptionalRegion("LC");
+
+                if (ActiveSlugcat == SlugcatStats.Name.Red && !handleRestrictedRegion("OE", false))
+                    handleOptionalRegion("OE");
+
 
                 //SlugBase may not return a full list of available regions. Regions.txt is a more reliable place to get regions.
                 if (Plugin.SlugBaseEnabled && ModManager.ModdedRegionsEnabled && File.Exists(path))
@@ -147,7 +147,7 @@ namespace ExpeditionRegionSupport.Regions
                         continue;
 
                     //Check available optional regions to see if they are unlocked
-                    if ((availableOptionalRegions.Contains(regionCode) || regionCode == "LC" && slugcatIsMonkOrSurvivor) && handleOptionalRegion(regionCode)) //A mod may add regions to this. It could still return false.
+                    if (availableOptionalRegions.Contains(regionCode) && handleOptionalRegion(regionCode)) //A mod may add regions to this. It could still return false.
                         continue;
 
                     if (RainWorld.ShowLogs && !RegionUtils.IsVanillaRegion(regionCode) && !RegionUtils.IsMSCRegion(regionCode))
