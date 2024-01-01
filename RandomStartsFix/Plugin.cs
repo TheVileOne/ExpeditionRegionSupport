@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using Expedition;
 using MoreSlugcats;
 using ExpeditionRegionSupport.Regions;
+using ExpeditionRegionSupport.Regions.Restrictions;
 using UnityEngine;
 
 namespace ExpeditionRegionSupport
@@ -20,7 +21,7 @@ namespace ExpeditionRegionSupport
     {
         public const string PLUGIN_GUID = "fluffball.expeditionregionsupport";
         public const string PLUGIN_NAME = "Expedition Region Support";
-        public const string PLUGIN_VERSION = "0.9.2";
+        public const string PLUGIN_VERSION = "0.9.4";
 
         public static new Debug.Logger Logger;
 
