@@ -80,10 +80,10 @@ namespace ExpeditionRegionSupport.Debug
 
         public void AttachLogger(LogModule logModule)
         {
-            if (AllLoggers.Exists(logger => logger.IsLog(logModule))) return;
-
             if (BaseLogger != logModule) //The latest logger added will be set as the ActiveLogger
                 ActiveLogger = logModule;
+
+            if (AllLoggers.Exists(logger => logger.IsLog(logModule))) return;
 
             logModule.HeadersEnabled = LogHeadersEnabled;
             AllLoggers.Add(logModule);
