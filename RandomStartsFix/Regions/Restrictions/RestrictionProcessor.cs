@@ -645,8 +645,8 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
             //TODO: This switch statement may not be required
             switch (data.ToLower())
             {
-                case "standard":
                 case "vanilla":
+                case "standard":
                 case "white":
                 case "yellow":
                 case "red":

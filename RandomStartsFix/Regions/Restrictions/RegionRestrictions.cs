@@ -466,10 +466,15 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
         CampaignFinish //Not yet supported
     }
 
+    [Flags]
     public enum WorldState
     {
-        Any = 0,
-        Standard = 1, Vanilla = 1, Monk = 1, Survivor = 1, Hunter = 1, //Regions for Monk, Survivor, Hunter and any other campaign that has the same regions.
+        None = 0,
+        Any = Vanilla | MSC | Other,
+        Vanilla = 1, //Regions for Monk, Survivor, Hunter and any other campaign that has the same regions.
+        Monk = Vanilla,
+        Survivor = Vanilla,
+        Hunter = Vanilla,
         SpearMaster = 2,
         Artificer = 4,
         OldWorld = SpearMaster | Artificer,
