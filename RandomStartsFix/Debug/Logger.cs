@@ -14,86 +14,142 @@ namespace ExpeditionRegionSupport.Debug
         /// <summary>
         /// A flag that disables the primary logging path
         /// </summary>
-        public bool BaseLoggingEnabled = true;
+        public bool BaseLoggingEnabled
+        {
+            get => BaseLogger.Enabled;
+            set => BaseLogger.Enabled = value;
+        }
+
+        private bool headersEnabled;
 
         /// <summary>
-        /// A flag that affects whether log levels are included in logged output. Does not affect BepInEx logger
+        /// A flag that affects whether log levels are included in logged output for all loggers. Does not affect BepInEx logger
         /// </summary>
-        public bool LogHeadersEnabled = true;
+        public bool LogHeadersEnabled
+        {
+            get => headersEnabled;
+            set
+            {
+                headersEnabled = value;
+                AllLoggers.ForEach(logger => logger.HeadersEnabled = value);
+            }
+        }
 
-        /// <summary>
-        /// When set, this will serve as an alternative logging output path
-        /// </summary>
-        private string logPath;
+        public LogModule BaseLogger { get; private set; }
+        public LogModule ActiveLogger;
 
-        /// <summary>
-        /// When set this will completely replace the BepInEx logger as the base logger 
-        /// </summary>
-        private string baseLogPath;
+        public List<LogModule> AllLoggers = new List<LogModule>();
 
         /// <summary>
         /// The default directory where logs are stored
         /// </summary>
-        private string baseLogDirectory;
-
-        private ManualLogSource baseLogger;
+        private string baseDirectory;
 
         public Logger(ManualLogSource logger)
         {
-            baseLogger = logger;
+            BaseLogger = new LogModule(logger);
+            AttachLogger(BaseLogger);
         }
 
-        public Logger(string filename, bool overwrite = false)
+        public Logger(string logName, bool overwrite = false)
         {
-            baseLogDirectory = AssetManager.ResolveDirectory("logs");//Path.Combine(Custom.RootFolderDirectory(), "logs");
-            baseLogPath = Path.Combine(baseLogDirectory, filename);
+            baseDirectory = AssetManager.ResolveDirectory("logs");//Path.Combine(Custom.RootFolderDirectory(), "logs");
 
             try
             {
-                Directory.CreateDirectory(baseLogDirectory);
+                Directory.CreateDirectory(baseDirectory);
+
+                BaseLogger = new LogModule(Path.Combine(baseDirectory, logName + ".txt"));
+                AttachLogger(BaseLogger);
 
                 if (overwrite)
-                    File.Delete(baseLogPath);
+                    File.Delete(BaseLogger.LogPath);
             }
             catch
             {
             }
         }
 
-        /// <summary>
-        /// Attaches a BepInEx logger
-        /// </summary>
-        public void AttachLogger(ManualLogSource logger)
+        public void AttachLogger(string logName, string logDirectory = null)
         {
-            BaseLoggingEnabled = true;
-            baseLogger = logger;
+            if (logDirectory == null)
+                logDirectory = baseDirectory;
+
+            AttachLogger(new LogModule(Path.Combine(logDirectory, logName + ".txt")));
+        }
+
+        public void AttachLogger(LogModule logModule)
+        {
+            if (AllLoggers.Exists(logger => logger.IsLog(logModule))) return;
+
+            if (BaseLogger != logModule) //The latest logger added will be set as the ActiveLogger
+                ActiveLogger = logModule;
+
+            logModule.HeadersEnabled = LogHeadersEnabled;
+            AllLoggers.Add(logModule);
+        }
+
+        public void AttachBaseLogger(string logName)
+        {
+            AttachBaseLogger(logName, baseDirectory);
+        }
+
+        public void AttachBaseLogger(string logName, string logDirectory)
+        {
+            if (BaseLogger.IsLog(logName)) return;
+
+            BaseLogger.LogPath = Path.Combine(logDirectory, logName + ".txt");
+        }
+
+        public void AttachBaseLogger(LogModule logger)
+        {
+            AllLoggers.Remove(BaseLogger);
+            BaseLogger = logger;
+            AttachLogger(BaseLogger);
+        }
+
+        public void AttachBaseLogger(ManualLogSource logSource)
+        {
+            BaseLogger.LogSource = logSource;
         }
 
         /// <summary>
-        /// Disables base logger, or nulls current log path
+        /// Removes, and sets to null the ActiveLogger
         /// </summary>
-        public void DetachLogger(bool detachBaseLogger)
+        public void DetachLogger()
         {
-            if (detachBaseLogger)
-                BaseLoggingEnabled = false;
+            if (ActiveLogger == null) return;
+
+            AllLoggers.Remove(ActiveLogger);
+            ActiveLogger = null;
+        }
+
+        /// <summary>
+        /// Disables base logger, or removes logger with given logName
+        /// </summary>
+        public void DetachLogger(string logName)
+        {
+            //The base logger cannot be detached
+            if (BaseLogger.IsLog(logName))
+            {
+                BaseLogger.Enabled = false;
+                return;
+            }
+
+            if (ActiveLogger != null && ActiveLogger.IsLog(logName))
+                ActiveLogger = null;
+
+            AllLoggers.RemoveAll(logger => logger.IsLog(logName));
+        }
+
+        public void SetActiveLogger(string logName)
+        {
+            LogModule found = AllLoggers.Find(logger => logger.IsLog(logName));
+
+            if (found != null)
+                ActiveLogger = found;
             else
-                logPath = null;
-        }
-
-        /// <summary>
-        /// Formats an output path for the logger
-        /// </summary>
-        public void SetLogger(string filename, string directory)
-        {
-            if (directory != null)
-                filename = Path.Combine(directory, filename);
-
-            SetLogger(filename);
-        }
-
-        public void SetLogger(string path)
-        {
-            logPath = path;
+                AttachLogger(logName);
         }
 
         public void Log(object data, LogLevel level = LogLevel.None)
@@ -102,53 +158,13 @@ namespace ExpeditionRegionSupport.Debug
             {
                 UnityEngine.Debug.Log(data);
                 level = LogLevel.Info;
+
+                AllLoggers.ForEach(logger => logger.Log(data, level));
+                return;
             }
 
-            int spacesRequired = Math.Max(7 - level.ToString().Length, 0);
-
-            string logOutput = (LogHeadersEnabled ? $"[{level}" + new string(' ', spacesRequired) + "] " : string.Empty) + data?.ToString() ?? "NULL";
-
-            //Send data to the BepInEx logger if enabled
-            if (BaseLoggingEnabled)
-            {
-                if (baseLogPath == null)
-                {
-                    baseLogger?.Log(level, data);
-                }
-                else //Check for a custom base log path
-                {
-                    //StreamWriter writeStream = new StreamWriter(File.OpenWrite(BaseLogPath));
-                    //Log(writeStream, data);
-                    Log(baseLogPath, logOutput);
-                }
-            }
-
-            //Check for a custom log path
-            if (logPath != null)
-            {
-                //StreamWriter writeStream = new StreamWriter(File.OpenWrite(LogPath));
-                //Log(writeStream, data);
-                Log(logPath, logOutput);
-            }
-        }
-
-        public static void Log(string path, string data)
-        {
-            File.AppendAllText(path, Environment.NewLine + data);
-        }
-
-        public static void Log(StreamWriter stream, object data)
-        {
-            try
-            {
-                //Log data to file
-                stream.WriteLine(data);
-                stream.WriteLine(Environment.NewLine);
-                stream.Close(); //Stream needs to be closed to avoid IOExceptions
-            }
-            catch
-            {
-            }
+            BaseLogger.Log(data, level);
+            ActiveLogger?.Log(data, level);
         }
 
         public void LogInfo(object data)
@@ -174,6 +190,81 @@ namespace ExpeditionRegionSupport.Debug
         public void LogError(object data)
         {
             Log(data, LogLevel.Error);
+        }
+    }
+
+    /// <summary>
+    /// Contains components of the logger
+    /// </summary>
+    public class LogModule
+    {
+        private ManualLogSource logSource;
+        public ManualLogSource LogSource
+        {
+            get => logSource;
+            set
+            {
+                if (value != null)
+                    LogPath = null;
+                logSource = value;
+            }
+        }
+
+        /// <summary>
+        /// A flag that determines if log details should be written to file
+        /// </summary>
+        public bool Enabled = true;
+
+        /// <summary>
+        /// A flag that determines whether log levels should be displayed as header information.
+        /// Does not apply to BepInEx logger
+        /// </summary>
+        public bool HeadersEnabled = true;
+
+        /// <summary>
+        /// The full path for this Logger
+        /// </summary>
+        public string LogPath;
+
+        public LogModule(ManualLogSource logSource)
+        {
+            LogSource = logSource;
+        }
+
+        public LogModule(string logPath)
+        {
+            LogPath = logPath;
+        }
+
+        public bool IsLog(string logName)
+        {
+            return LogPath != null && Path.GetFileNameWithoutExtension(LogPath) == logName;
+        }
+
+        public bool IsLog(LogModule logger)
+        {
+            return (LogSource != null && LogSource == logger.LogSource) || (LogPath == logger.LogPath);
+        }
+
+        public void Log(object data, LogLevel level)
+        {
+            if (!Enabled) return;
+
+            if (LogPath != null)
+            {
+                int spacesRequired = Math.Max(7 - level.ToString().Length, 0);
+
+                string logOutput = (HeadersEnabled ? $"[{level}" + new string(' ', spacesRequired) + "] " : string.Empty) + data?.ToString() ?? "NULL";
+                File.AppendAllText(LogPath, Environment.NewLine + logOutput);
+            }
+            else if (LogSource != null)
+            {
+                LogSource.Log(level, data);
+            }
+            else
+            {
+                UnityEngine.Debug.Log(data);
+            }
         }
     }
 }

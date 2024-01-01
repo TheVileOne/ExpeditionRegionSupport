@@ -133,7 +133,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
 
                     foreach (string testCase in testCases)
                     {
-                        string testCaseName = Path.GetFileName(testCase);
+                        string testCaseName = Path.GetFileNameWithoutExtension(testCase);
 
                         Plugin.Logger.LogInfo("Test Case: " + testCaseName);
 
@@ -142,7 +142,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                             processFile(testCase);
 
                             //Log test case results
-                            Plugin.Logger.SetLogger(testCaseName.Replace("test", "result"), resultFolder);
+                            Plugin.Logger.AttachLogger(testCaseName.Replace("test", "result"), resultFolder);
                             Plugin.Logger.LogInfo("Case Results: " + testCaseName);
                             LogRestrictions();
                             Plugin.Logger.LogInfo("Case Results: END");
@@ -152,7 +152,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                             Plugin.Logger.LogError(ex);
                         }
 
-                        Plugin.Logger.DetachLogger(false);
+                        Plugin.Logger.DetachLogger();
                     }
 
                     Plugin.Logger.LogHeadersEnabled = true;
