@@ -551,7 +551,12 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
             string[] array = Regex.Split(data, ":");
 
             if (array.Length > 1)
-                regionRestrictions.WorldState = parseWorldState(Regex.Split(array[1], ",")[0].Trim()); //WORLD STATE: Saint (Only process first entry)
+            {
+                array = Regex.Split(array[1], ",");
+
+                foreach (string state in array)
+                    regionRestrictions.WorldState |= parseWorldState(state.Trim()); //WORLD STATE: Saint
+            }
         }
 
         private static void parseField_Slugcats(string data, RegionRestrictions regionRestrictions)
