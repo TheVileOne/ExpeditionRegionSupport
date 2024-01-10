@@ -23,15 +23,15 @@ namespace ExpeditionRegionSupport
         public const string PLUGIN_NAME = "Expedition Region Support";
         public const string PLUGIN_VERSION = "0.9.4";
 
-        public static new Debug.Logger Logger;
+        public static new Logging.Logger Logger;
 
         public static bool SlugBaseEnabled;
         public WorldState ActiveWorldState;
 
         public void OnEnable()
         {
-            Logger = new Debug.Logger(base.Logger);
-
+            Logger = new Logging.Logger(base.Logger);
+            
             try
             {
                 On.Menu.ExpeditionMenu.ctor += ExpeditionMenu_ctor;
@@ -45,6 +45,9 @@ namespace ExpeditionRegionSupport
                 IL.SaveState.setDenPosition += SaveState_setDenPosition;
                 
                 On.RainWorld.PostModsInit += RainWorld_PostModsInit;
+
+                //Allow communication with Log Manager
+                Logging.Logger.ApplyHooks();
             }
             catch (Exception ex)
             {
@@ -210,7 +213,7 @@ namespace ExpeditionRegionSupport
 
         private void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)
         {
-            Logger = new Debug.Logger("ErsLog", true); //Override BepInEx logger
+            Logger = new Logging.Logger("ErsLog", true); //Override BepInEx logger
 
             orig(self);
 

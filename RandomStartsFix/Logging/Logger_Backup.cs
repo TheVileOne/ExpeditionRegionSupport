@@ -6,10 +6,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
-namespace ExpeditionRegionSupport.Debug
+namespace ExpeditionRegionSupport.Logging
 {
-    public class Logger
+    /*
+    public class Logger_Old
     {
         /// <summary>
         /// A flag that disables the primary logging path
@@ -40,6 +42,8 @@ namespace ExpeditionRegionSupport.Debug
 
         public List<LogModule> AllLoggers = new List<LogModule>();
 
+        public static string DefaultPath = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "Logs");
+
         /// <summary>
         /// The default directory where logs are stored
         /// </summary>
@@ -53,7 +57,7 @@ namespace ExpeditionRegionSupport.Debug
 
         public Logger(string logName, bool overwrite = false)
         {
-            baseDirectory = AssetManager.ResolveDirectory("logs");//Path.Combine(Custom.RootFolderDirectory(), "logs");
+            baseDirectory = DefaultPath; //AssetManager.ResolveDirectory("logs");//Path.Combine(Custom.RootFolderDirectory(), "logs");
 
             try
             {
@@ -267,4 +271,5 @@ namespace ExpeditionRegionSupport.Debug
             }
         }
     }
+    */
 }
