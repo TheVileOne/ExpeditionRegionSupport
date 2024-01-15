@@ -12,6 +12,9 @@ using MoreSlugcats;
 using ExpeditionRegionSupport.Regions;
 using ExpeditionRegionSupport.Regions.Restrictions;
 using UnityEngine;
+using System.IO;
+using Menu;
+using ExpeditionRegionSupport.Interface;
 
 namespace ExpeditionRegionSupport
 {
@@ -28,6 +31,8 @@ namespace ExpeditionRegionSupport
         public static bool SlugBaseEnabled;
         public WorldState ActiveWorldState;
 
+        private SimpleButton settingsButton;
+
         public void OnEnable()
         {
             Logger = new Logging.Logger(base.Logger);
@@ -35,15 +40,17 @@ namespace ExpeditionRegionSupport
             try
             {
                 On.Menu.ExpeditionMenu.ctor += ExpeditionMenu_ctor;
+                On.Menu.ExpeditionMenu.Singal += ExpeditionMenu_Singal;
+                On.Menu.ExpeditionMenu.Update += ExpeditionMenu_Update;
+                On.Menu.ExpeditionMenu.UpdatePage += ExpeditionMenu_UpdatePage;
+                On.Menu.ChallengeSelectPage.StartButton_OnPressDone += ChallengeSelectPage_StartButton_OnPressDone;
+                IL.Menu.ChallengeSelectPage.StartButton_OnPressDone += ChallengeSelectPage_StartButton_OnPressDone;
 
-                On.RegionGate.customOEGateRequirements += RegionGate_customOEGateRequirements;
-
-                On.Menu.ChallengeSelectPage.StartButton_OnPressDone += ChallengeSelectPage_StartButton_OnPressDone1;
                 On.Expedition.ExpeditionGame.ExpeditionRandomStarts += ExpeditionGame_ExpeditionRandomStarts;
                 IL.Expedition.ExpeditionGame.ExpeditionRandomStarts += ExpeditionGame_ExpeditionRandomStarts;
-                IL.Menu.ChallengeSelectPage.StartButton_OnPressDone += ChallengeSelectPage_StartButton_OnPressDone;
+
                 IL.SaveState.setDenPosition += SaveState_setDenPosition;
-                
+                On.RegionGate.customOEGateRequirements += RegionGate_customOEGateRequirements;
                 On.RainWorld.PostModsInit += RainWorld_PostModsInit;
 
                 //Allow communication with Log Manager
@@ -55,7 +62,70 @@ namespace ExpeditionRegionSupport
             }
         }
 
-        private void ChallengeSelectPage_StartButton_OnPressDone1(On.Menu.ChallengeSelectPage.orig_StartButton_OnPressDone orig, Menu.ChallengeSelectPage self, Menu.Remix.MixedUI.UIfocusable trigger)
+        private void ExpeditionMenu_UpdatePage(On.Menu.ExpeditionMenu.orig_UpdatePage orig, ExpeditionMenu self, int pageIndex)
+        {
+            settingsButton.RemoveSubObject(settingsButton);
+            settingsButton = createSettingsButton(self, self.pages[self.currentPage]);
+            self.pages[self.currentPage].subObjects.Add(settingsButton);
+        }
+
+        public static PlayerProgression StoredProgression;
+
+        /// <summary>
+        /// This hook stores save data needed to validate region spawning, and sets a button for custom dialogue page.
+        /// </summary>
+        private void ExpeditionMenu_ctor(On.Menu.ExpeditionMenu.orig_ctor orig, ExpeditionMenu self, ProcessManager manager)
+        {
+            StoredProgression = manager.rainWorld.progression; //This data is going to be overwritten in the constructor, but this mod still needs access to it.
+            orig(self, manager);
+
+            float y = (manager.rainWorld.options.ScreenSize.x != 1024f) ? 695f : 728f;
+
+            settingsButton = createSettingsButton(self, self.pages[1]);// new SimpleButton(self, self.pages[1], self.Translate("SETTINGS"), "SETTINGS", new Vector2(self.rightAnchor - 150f, y - 40), new Vector2(100f, 30f));
+            self.pages[1].subObjects.Add(settingsButton);
+        }
+
+        private SimpleButton createSettingsButton(ExpeditionMenu menu, Page page)
+        {
+            float y = (menu.manager.rainWorld.options.ScreenSize.x != 1024f) ? 695f : 728f;
+
+            Vector2 settingsButtonOrigPos = new Vector2(menu.rightAnchor - 150f, y - 40);
+
+            return new SimpleButton(menu, page, menu.Translate("SETTINGS"), "SETTINGS", settingsButtonOrigPos, new Vector2(100f, 30f));
+        }
+
+        private void ExpeditionMenu_Update(On.Menu.ExpeditionMenu.orig_Update orig, ExpeditionMenu self)
+        {
+            orig(self);
+
+            if (self.pagesMoving)
+            {
+                float movementAdjustedX = self.rightAnchor - (self.leftAnchor + 150f);
+                float buttonOffsetY = 40 + (self.manager.rainWorld.options.ScreenSize.x != 1024f ? 695f : 728f);
+
+                settingsButton.pos = new Vector2(self.manualButton.pos.x, self.manualButton.pos.y - 40);
+                settingsButton.lastPos = new Vector2(self.manualButton.lastPos.x, self.manualButton.lastPos.y - 40);
+                settingsButton.page.pos = new Vector2(self.manualButton.page.pos.x, self.manualButton.page.pos.y - 40);
+                settingsButton.page.lastPos = new Vector2(self.manualButton.page.lastPos.x, self.manualButton.page.lastPos.y - 40);
+
+                //settingsButton.pos = new Vector2(movementAdjustedX, settingsButton.pos.y - buttonOffsetY) - settingsButton.page.pos;
+                //settingsButton.lastPos = new Vector2(movementAdjustedX, settingsButton.lastPos.y - buttonOffsetY) - settingsButton.page.lastPos;
+            }
+        }
+
+        private void ExpeditionMenu_Singal(On.Menu.ExpeditionMenu.orig_Singal orig, ExpeditionMenu self, MenuObject sender, string message)
+        {
+            if (message == "SETTINGS")
+            {
+                Dialog settingsDialog = new ExpeditionSettingsDialog(self.manager);
+                self.PlaySound(SoundID.MENU_Player_Join_Game);
+                self.manager.ShowDialog(settingsDialog);
+            }
+
+            orig(self, sender, message);
+        }
+
+        private void ChallengeSelectPage_StartButton_OnPressDone(On.Menu.ChallengeSelectPage.orig_StartButton_OnPressDone orig, Menu.ChallengeSelectPage self, Menu.Remix.MixedUI.UIfocusable trigger)
         {
             ActiveWorldState = RegionUtils.GetWorldStateFromStoryRegions(ExpeditionData.slugcatPlayer, SlugcatStats.getSlugcatStoryRegions(ExpeditionData.slugcatPlayer));
 
@@ -141,17 +211,6 @@ namespace ExpeditionRegionSupport
             cursor.Index = cursorIndex;
             //cursor.GotoPrev(MoveType.Before, x => x.Match(OpCodes.Ldarg_0)); //Go to before method arguments are loaded onto the stack.
             cursor.Emit(OpCodes.Br_S, jumpLabel); //Jump over method arguments and method call.
-        }
-
-        public static PlayerProgression StoredProgression;
-
-        /// <summary>
-        /// This hook stores save data needed to validate region spawning.
-        /// </summary>
-        private void ExpeditionMenu_ctor(On.Menu.ExpeditionMenu.orig_ctor orig, Menu.ExpeditionMenu self, ProcessManager manager)
-        {
-            StoredProgression = manager.rainWorld.progression; //This data is going to be overwritten in the constructor, but this mod still needs access to it.
-            orig(self, manager);
         }
 
         private bool hasProcessedRooms;
