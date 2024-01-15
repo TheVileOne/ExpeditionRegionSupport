@@ -114,7 +114,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                     string resultFolder = debugFolder + Path.DirectorySeparatorChar + "results";
 
                     //Start each test case with fresh results
-                    foreach (string file in Directory.GetFiles(resultFolder, "result-*.txt"))
+                    foreach (string file in Directory.GetFiles(resultFolder, "result-*.log"))
                     {
                         try
                         {
