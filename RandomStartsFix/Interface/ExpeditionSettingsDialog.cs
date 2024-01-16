@@ -28,7 +28,7 @@ namespace ExpeditionRegionSupport.Interface
         public ExpeditionSettingsDialog(ProcessManager manager) : base(manager)
         {
             float num = 500;
-            float globalOffX = (float)((num - 250f) / -2f);
+            float globalOffX = 200;//(num - 250f) / -2f;
 
             RoundedRect roundedRect = new RoundedRect(this, pages[0], new Vector2(243f + globalOffX, 100f), new Vector2(num, 550f), true);
         }
@@ -40,13 +40,7 @@ namespace ExpeditionRegionSupport.Interface
             if (message == "EXIT")
             {
                 PlaySound(SoundID.MENU_Switch_Page_Out);
-                /*Expedition.coreFile.Save(false);
-                MusicPlayer musicPlayer = this.manager.musicPlayer;
-                if (musicPlayer != null)
-                {
-                    musicPlayer.FadeOutAllSongs(100f);
-                }*/
-                manager.RequestMainProcessSwitch(ProcessManager.ProcessID.MainMenu);
+                manager.StopSideProcess(this);
             }
         }
 

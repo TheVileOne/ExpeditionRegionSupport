@@ -64,6 +64,8 @@ namespace ExpeditionRegionSupport
 
         private void ExpeditionMenu_UpdatePage(On.Menu.ExpeditionMenu.orig_UpdatePage orig, ExpeditionMenu self, int pageIndex)
         {
+            orig(self, pageIndex);
+            settingsButton.RemoveSprites();
             settingsButton.RemoveSubObject(settingsButton);
             settingsButton = createSettingsButton(self, self.pages[self.currentPage]);
             self.pages[self.currentPage].subObjects.Add(settingsButton);
@@ -103,10 +105,10 @@ namespace ExpeditionRegionSupport
                 float movementAdjustedX = self.rightAnchor - (self.leftAnchor + 150f);
                 float buttonOffsetY = 40 + (self.manager.rainWorld.options.ScreenSize.x != 1024f ? 695f : 728f);
 
-                settingsButton.pos = new Vector2(self.manualButton.pos.x, self.manualButton.pos.y - 40);
-                settingsButton.lastPos = new Vector2(self.manualButton.lastPos.x, self.manualButton.lastPos.y - 40);
-                settingsButton.page.pos = new Vector2(self.manualButton.page.pos.x, self.manualButton.page.pos.y - 40);
-                settingsButton.page.lastPos = new Vector2(self.manualButton.page.lastPos.x, self.manualButton.page.lastPos.y - 40);
+                settingsButton.pos = new Vector2(self.manualButton.pos.x, self.manualButton.pos.y - 40);// - self.manualButton.page.pos;
+                settingsButton.lastPos = new Vector2(self.manualButton.lastPos.x, self.manualButton.lastPos.y - 40);// - self.manualButton.page.lastPos;
+                //settingsButton.page.pos = new Vector2(self.manualButton.page.pos.x, self.manualButton.page.pos.y - 40);
+                //settingsButton.page.lastPos = new Vector2(self.manualButton.page.lastPos.x, self.manualButton.page.lastPos.y - 40);
 
                 //settingsButton.pos = new Vector2(movementAdjustedX, settingsButton.pos.y - buttonOffsetY) - settingsButton.page.pos;
                 //settingsButton.lastPos = new Vector2(movementAdjustedX, settingsButton.lastPos.y - buttonOffsetY) - settingsButton.page.lastPos;
