@@ -9,7 +9,7 @@ using Vector2 = UnityEngine.Vector2;
 
 namespace ExpeditionRegionSupport.Interface
 {
-    public class ExpeditionSettingsDialog : Dialog
+    public class ExpeditionSettingsDialog : FilterDialog
     {
         private CheckBox shelterDetectionCheckBox;
         private SimpleButton reloadButton;
@@ -25,7 +25,7 @@ namespace ExpeditionRegionSupport.Interface
         //TODO:
         //Show custom regions available in Expedition?
 
-        public ExpeditionSettingsDialog(ProcessManager manager) : base(manager)
+        public ExpeditionSettingsDialog(ProcessManager manager) : base(manager, null)
         {
             float num = 500;
             float globalOffX = 200;//(num - 250f) / -2f;
@@ -35,13 +35,14 @@ namespace ExpeditionRegionSupport.Interface
 
         public override void Singal(MenuObject sender, string message)
         {
-            base.Singal(sender, message);
-
-            if (message == "EXIT")
+            if (message == "CLOSE")
             {
                 PlaySound(SoundID.MENU_Switch_Page_Out);
                 manager.StopSideProcess(this);
+                return;
             }
+
+            base.Singal(sender, message);
         }
 
         private bool pauseButtonHandled;
