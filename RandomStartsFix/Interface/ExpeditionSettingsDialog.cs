@@ -2,9 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Remoting.Contexts;
 using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using static ModManager;
 using Vector2 = UnityEngine.Vector2;
@@ -33,6 +31,9 @@ namespace ExpeditionRegionSupport.Interface
 
         private List<MenuLabel> filters;
 
+        private string closeButtonText = "CLOSE";
+        private string closeButtonSignal => closeButtonText;
+
         //TODO:
         //Show custom regions available in Expedition?
 
@@ -47,7 +48,7 @@ namespace ExpeditionRegionSupport.Interface
 
         public override void Singal(MenuObject sender, string message)
         {
-            if (message == "CLOSE")
+            if (message == closeButtonSignal)
             {
                 PlaySound(SoundID.MENU_Switch_Page_Out);
                 closing = true;
@@ -64,7 +65,7 @@ namespace ExpeditionRegionSupport.Interface
         {
             if (!pauseButtonHandled && RWInput.CheckPauseButton(0, manager.rainWorld))
             {
-                Singal(null, "CLOSE");
+                Singal(null, closeButtonSignal);
                 pauseButtonHandled = true;
             }
 
@@ -76,9 +77,7 @@ namespace ExpeditionRegionSupport.Interface
             ModMerger modMerger = new ModMerger();
 
             //TODO
-        }
-
-        
+        }       
 
         private void initializeDialog()
         {
@@ -131,13 +130,15 @@ namespace ExpeditionRegionSupport.Interface
 
         private void initializeCancelButton()
         {
+            string closeButtonTranslation = Translate(closeButtonText);
+
             //Adjust button width to accomodate varying translation lengths
             float num = 85f;
-            float num2 = Menu.Remix.MixedUI.LabelTest.GetWidth(Translate("CLOSE"), false) + 10f;
+            float num2 = Menu.Remix.MixedUI.LabelTest.GetWidth(closeButtonTranslation, false) + 10f;
             if (num2 > num)
                 num = num2;
 
-            cancelButton = new SimpleButton(this, MainPage, Translate("CLOSE"), "CLOSE", new Vector2(683f - num / 2f, 120f), new Vector2(num, 35f));
+            cancelButton = new SimpleButton(this, MainPage, closeButtonTranslation, closeButtonSignal, new Vector2(683f - num / 2f, 120f), new Vector2(num, 35f));
             cancelButton.nextSelectable[0] = cancelButton;
             cancelButton.nextSelectable[2] = cancelButton;
 
@@ -185,7 +186,7 @@ namespace ExpeditionRegionSupport.Interface
                 checkBox.nextSelectable[3] = cancelButton;
                 cancelButton.nextSelectable[1] = checkBox;
             }
-            else if (checkBoxIndex > 0) //
+            else if (checkBoxIndex > 0)
             {
                 FSprite dividerSprite = new FSprite("pixel", true);
 
@@ -212,11 +213,11 @@ namespace ExpeditionRegionSupport.Interface
             pages = new List<Page>();
             container = new FContainer();
             Futile.stage.AddChild(container);
-            mySoundLoopName = "";
+            mySoundLoopName = string.Empty;
             cursorContainer = new FContainer();
             currentPage = 0;
 
-            infoLabel = new FLabel(RWCustom.Custom.GetFont(), "");
+            infoLabel = new FLabel(RWCustom.Custom.GetFont(), string.Empty);
             infoLabel.y = Mathf.Max(0.01f + manager.rainWorld.options.SafeScreenOffset.y, 20.01f);
             infoLabel.x = manager.rainWorld.screenSize.x / 2f + 0.01f;
             Futile.stage.AddChild(infoLabel);
