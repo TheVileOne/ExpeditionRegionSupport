@@ -25,12 +25,12 @@ namespace ExpeditionRegionSupport.Interface
         //TODO:
         //Show custom regions available in Expedition?
 
-        public ExpeditionSettingsDialog(ProcessManager manager) : base(manager, null)
+        public ExpeditionSettingsDialog(ProcessManager manager, ChallengeSelectPage owner) : base(manager, owner)
         {
             float num = 500;
             float globalOffX = 200;//(num - 250f) / -2f;
 
-            RoundedRect roundedRect = new RoundedRect(this, pages[0], new Vector2(243f + globalOffX, 100f), new Vector2(num, 550f), true);
+            //RoundedRect roundedRect = new RoundedRect(this, pages[0], new Vector2(243f + globalOffX, 100f), new Vector2(num, 550f), true);
         }
 
         public override void Singal(MenuObject sender, string message)
