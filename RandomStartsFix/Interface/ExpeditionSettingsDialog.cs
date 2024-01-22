@@ -50,7 +50,7 @@ namespace ExpeditionRegionSupport.Interface
         {
             if (!pauseButtonHandled && RWInput.CheckPauseButton(0, manager.rainWorld))
             {
-                Singal(null, "EXIT");
+                Singal(null, "CLOSE");
                 pauseButtonHandled = true;
             }
 
