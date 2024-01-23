@@ -26,7 +26,6 @@ namespace ExpeditionRegionSupport.Interface
             
             IL.Menu.FilterDialog.GrafUpdate += FilterDialog_GrafUpdate;
 
-            //IL.Menu.FilterDialog.ctor += FilterDialog_ctor;
             On.Menu.FilterDialog.GetChecked += FilterDialog_GetChecked;
             On.Menu.FilterDialog.SetChecked += FilterDialog_SetChecked;
 
@@ -55,7 +54,7 @@ namespace ExpeditionRegionSupport.Interface
         {
             ILCursor cursor = new ILCursor(il);
 
-            cursor.GotoNext(MoveType.After, x => x.MatchCallOrCallvirt<Menu.Menu>(nameof(Menu.Menu.Update)));
+            cursor.GotoNext(MoveType.After, x => x.MatchCallOrCallvirt<Menu.Menu>(nameof(Update)));
             cursor.Emit(OpCodes.Ldarg_0);
             cursor.EmitDelegate(updateHook); //Logic here cannot be handled with vanilla logic anymore. Use custom handling
 
@@ -63,7 +62,7 @@ namespace ExpeditionRegionSupport.Interface
 
             cursor.GotoNext(MoveType.Before,
                 x => x.Match(OpCodes.Ldarg_0),
-                x => x.Match(OpCodes.Ldfld, nameof(FilterDialog.cancelButton)));
+                x => x.MatchLdfld<FilterDialog>(nameof(cancelButton)));
             ILLabel branchTarget = cursor.DefineLabel();
             cursor.MarkLabel(branchTarget);
 
@@ -185,7 +184,7 @@ namespace ExpeditionRegionSupport.Interface
             cursor.BranchTo( //Branch past second reference to label
                 x => x.MatchLdloc(7),
                 x => x.Match(OpCodes.Callvirt));
-            
+
             //Replace CheckBox
 
             cursor.GotoNext(MoveType.After, x => x.MatchNewobj(typeof(CheckBox))); //Go to CheckBox instantiation
@@ -194,8 +193,9 @@ namespace ExpeditionRegionSupport.Interface
 
             //Second subObjects branch over
 
-            cursor.GotoNext(MoveType.Before, x => x.MatchLdfld<Menu.Menu>(nameof(pages)));
-            cursor.Emit(OpCodes.Pop); //Get rid of an Ldarg_0 on the stack
+            cursor.GotoNext(MoveType.Before,
+                x => x.MatchLdarg(0),
+                x => x.MatchLdfld<Menu.Menu>(nameof(pages)));
 
             cursor.BranchTo(
                 x => x.MatchLdloc(8),
