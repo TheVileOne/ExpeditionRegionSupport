@@ -101,11 +101,11 @@ namespace ExpeditionRegionSupport.Interface
             self.closing = cwt.Page.Closing;
             self.opening = cwt.Page.Opening;
 
-            /*if (cwt.RunOnNextUpdate != null)
+            if (cwt.RunOnNextUpdate != null)
             {
                 cwt.RunOnNextUpdate.Invoke(self);
                 cwt.RunOnNextUpdate = null;
-            }*/
+            }
 
             Plugin.Logger.LogInfo(self.currentAlpha);
             Plugin.Logger.LogInfo(self.targetAlpha);
