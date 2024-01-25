@@ -1,4 +1,5 @@
-﻿using Menu;
+﻿using Extensions;
+using Menu;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using System;

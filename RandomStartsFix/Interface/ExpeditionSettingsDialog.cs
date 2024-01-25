@@ -1,4 +1,5 @@
-﻿using Menu;
+﻿using Extensions;
+using Menu;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,7 @@ namespace ExpeditionRegionSupport.Interface
 {
     public partial class ExpeditionSettingsDialog : FilterDialog
     {
-        public ExtensionMethods.FilterDialogCWT CWT;
+        public Extensions.ExtensionMethods.FilterDialogCWT CWT;
         public ScrollablePage MainPage
         {
             get => CWT.Page;
