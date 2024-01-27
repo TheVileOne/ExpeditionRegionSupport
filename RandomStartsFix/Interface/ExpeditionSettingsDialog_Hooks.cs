@@ -278,7 +278,7 @@ namespace ExpeditionRegionSupport.Interface
                     //These must be modded filters if this is true
                     if (newFiltersDetected > 0)
                     {
-                        UnityEngine.Debug.Log(string.Format($"Detected {0} new filters in post-processing", newFiltersDetected));
+                        UnityEngine.Debug.Log(string.Format("Detected {0} new filters in post-processing", newFiltersDetected));
 
                         int[] filterIndexes = new int[newFiltersDetected];
 
