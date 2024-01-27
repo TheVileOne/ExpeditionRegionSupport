@@ -78,12 +78,22 @@ namespace Extensions
             self.subObjects.Add(child);
         }
 
+        //FContainer
+
+        /// <summary>
+        /// Returns all children belonging to this container in a list
+        /// </summary>
+        public static List<FNode> GetAllChildren(this FContainer parent)
+        {
+            return new List<FNode>(parent._childNodes);
+        }
+
         /// <summary>
         /// Take all child FNodes in one container and place them in another container
         /// </summary>
         public static void MoveChildrenToNewContainer(this FContainer currentParent, FContainer newParent)
         {
-            List<FNode> newChildList = new List<FNode>(currentParent._childNodes);
+            List<FNode> newChildList = currentParent.GetAllChildren();
 
             currentParent.RemoveAllChildren();
             newChildList.ForEach(newParent.AddChild);
