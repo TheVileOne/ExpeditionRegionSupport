@@ -37,6 +37,12 @@ namespace Extensions
             cwt.Page.subObjects.Add(cwt.Options);
         }
 
+        public static void CloseFilterDialog(this FilterDialog self)
+        {
+            self.pageTitle.RemoveFromContainer();
+            self.manager.StopSideProcess(self);
+        }
+
         //MenuObject
 
         public static void SetAlpha(this MenuObject self, float alpha)

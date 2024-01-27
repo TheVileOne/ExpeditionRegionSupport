@@ -257,10 +257,10 @@ namespace ExpeditionRegionSupport.Interface
         {
             var cwt = dialog.GetCWT();
 
-            if (cwt.Page.Closing && cwt.Page.HasClosed)
+            if (cwt.Page.HasClosed)
             {
-                dialog.pageTitle.RemoveFromContainer();
-                dialog.manager.StopSideProcess(dialog);
+                dialog.CloseFilterDialog();
+                cwt.Page.HasClosed = false;
             }
         }
 
