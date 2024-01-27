@@ -32,7 +32,7 @@ namespace Extensions
             var cwt = self.GetCWT();
 
             cwt.Page = new ScrollablePage(self, null, "main", 0);
-            cwt.Options = new FilterOptions(self, cwt.Page, new UnityEngine.Vector2(0, 0)); //Default pos is placeholder
+            cwt.Options = new FilterOptions(self, cwt.Page, cwt.Page.pos);
 
             cwt.Page.subObjects.Add(cwt.Options);
         }
