@@ -27,6 +27,16 @@ namespace Extensions
 
         public static FilterDialogCWT GetCWT(this FilterDialog self) => filterDialogCWT.GetValue(self, _ => new());
 
+        public static void InitializePage(this FilterDialog self)
+        {
+            var cwt = self.GetCWT();
+
+            cwt.Page = new ScrollablePage(self, null, "main", 0);
+            cwt.Options = new FilterOptions(self, cwt.Page, new UnityEngine.Vector2(0, 0)); //Default pos is placeholder
+
+            cwt.Page.subObjects.Add(cwt.Options);
+        }
+
         //MenuObject
 
         public static void SetAlpha(this MenuObject self, float alpha)
@@ -35,6 +45,37 @@ namespace Extensions
 
             foreach (MenuObject child in self.subObjects)
                 child.SetAlpha(alpha);
+        }
+
+        public static void ChangeOwner(this MenuObject self, MenuObject newOwner)
+        {
+            if (self.owner != null)
+                self.owner.RemoveSubObject(self);
+
+            self.owner = newOwner;
+            self.ChangeMenu(newOwner?.menu);
+
+            newOwner.subObjects.Add(self);
+        }
+
+        public static void ChangeMenu(this MenuObject self, Menu.Menu newMenu)
+        {
+            self.menu = newMenu;
+            self.subObjects.ForEach(child => child.ChangeMenu(newMenu));
+        }
+
+        public static void AddSubObject(this MenuObject self, MenuObject child)
+        {
+            if (child == null)
+            {
+                Plugin.Logger.LogWarning("Attempted to add a null MenuObject to " + self);
+                return;
+            }
+
+            if (child.owner != self) //Probably assigned through constructor
+                child.ChangeOwner(self);
+
+            self.subObjects.Add(child);
         }
 
         //FContainer

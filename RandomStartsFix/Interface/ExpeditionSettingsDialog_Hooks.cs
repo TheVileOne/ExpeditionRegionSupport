@@ -153,7 +153,7 @@ namespace ExpeditionRegionSupport.Interface
         {
             var cwt = self.GetCWT();
 
-            cwt.Options = new FilterOptions(self, cwt.Page, new UnityEngine.Vector2(0, 0)); //Default pos is placeholder
+            self.InitializePage();
 
             if (self is ExpeditionSettingsDialog)
             {
@@ -236,7 +236,7 @@ namespace ExpeditionRegionSupport.Interface
             FilterDialog fd = dialog as FilterDialog;
 
             if (fd != null)
-                page = fd.GetCWT().Page = new ScrollablePage(dialog, null, "main", 0);
+                page = fd.GetCWT().Page;
 
             return page;
         }
@@ -302,8 +302,6 @@ namespace ExpeditionRegionSupport.Interface
                         }
                     };
                 };
-
-                cwt.Page.subObjects.Add(cwt.Options);
             }
         }
 
