@@ -78,20 +78,6 @@ namespace Extensions
             self.subObjects.Add(child);
         }
 
-        //FContainer
-
-        public class FContainerCWT
-        {
-            public bool EventTrackingEnabled;
-            public List<FNode> AddedList = null;
-            public void HandleOnAdded(FNode node)
-            {
-                if (AddedList == null)
-
-                    AddedList.Add(node);
-            }
-        }
-
         /// <summary>
         /// Take all child FNodes in one container and place them in another container
         /// </summary>
@@ -102,10 +88,5 @@ namespace Extensions
             currentParent.RemoveAllChildren();
             newChildList.ForEach(newParent.AddChild);
         }
-
-        public static readonly ConditionalWeakTable<FContainer, FContainerCWT> fContainerCWT = new();
-
-        public static FContainerCWT GetCWT(this FContainer self) => fContainerCWT.GetValue(self, _ => new());
-    }
     }
 }

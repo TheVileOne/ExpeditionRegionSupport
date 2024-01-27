@@ -14,9 +14,6 @@ namespace ExpeditionRegionSupport.Interface
     {
         public static void ApplyHooks()
         {
-            On.FContainer.AddChild += FContainer_AddChild;
-
-            On.Menu.Dialog.ctor_ProcessManager += Dialog_ctor_ProcessManager;
             IL.Menu.Dialog.ctor_ProcessManager += Dialog_ctor_ProcessManager;
             
             On.Menu.FilterDialog.ctor += FilterDialog_ctor;
@@ -33,9 +30,6 @@ namespace ExpeditionRegionSupport.Interface
             On.Menu.FilterDialog.Singal += FilterDialog_Singal;
 
             On.Menu.CheckBox.ctor += CheckBox_ctor;
-            On.Menu.ButtonTemplate.ctor += ButtonTemplate_ctor;
-            On.Menu.MouseCursor.ctor += MouseCursor_ctor;
-            IL.Menu.MouseCursor.ctor += MouseCursor_ctor1;
             IL.Menu.Page.ctor += Page_ctor;
         }
 
@@ -53,55 +47,6 @@ namespace ExpeditionRegionSupport.Interface
             cursor.BranchTo(OpCodes.Brtrue, MoveType.After,
                 x => x.MatchLdfld<Page>(nameof(Page.mouseCursor)),
                 x => x.Match(OpCodes.Callvirt));
-        }
-
-        private static void MouseCursor_ctor1(ILContext il)
-        {
-            /*ILCursor cursor = new ILCursor(il);
-
-            cursor.GotoNext(MoveType.After, x => x.MatchLdfld<Menu.Menu>(nameof(cursorContainer)));
-            cursor.Emit(OpCodes.Pop);
-            cursor.Emit(OpCodes.Ldarg_1);
-            cursor.EmitDelegate(containerHook);*/
-        }
-
-        private static FContainer containerHook(Menu.Menu menu)
-        {
-            if (menu is FilterDialog || menu.cursorContainer == null)
-                return new FContainer(); //FUCK YOU GAME
-
-            return menu.cursorContainer;
-        }
-
-        private static void MouseCursor_ctor(On.Menu.MouseCursor.orig_ctor orig, MouseCursor self, Menu.Menu menu, MenuObject owner, UnityEngine.Vector2 pos)
-        {
-            //if (menu.cursorContainer == null)
-            //    menu.cursorContainer = new FContainer();
-
-            orig(self, menu, owner, pos);
-
-            //menu.cursorContainer = self.myContainer;
-        }
-
-        private static void ButtonTemplate_ctor(On.Menu.ButtonTemplate.orig_ctor orig, ButtonTemplate self, Menu.Menu menu, MenuObject owner, UnityEngine.Vector2 pos, UnityEngine.Vector2 size)
-        {
-            try
-            {
-                self.menu = menu;
-                self.owner = owner;
-
-                if (menu == null)
-                    throw new ArgumentNullException(nameof(menu));
-
-                if (owner == null)
-                    throw new ArgumentNullException(nameof(menu));
-
-                orig(self, menu, owner, pos, size);
-            }
-            catch (Exception ex)
-            {
-                Plugin.Logger.LogError(ex);
-            }
         }
 
         private static void FilterDialog_Singal(On.Menu.FilterDialog.orig_Singal orig, FilterDialog self, MenuObject sender, string message)
@@ -151,16 +96,6 @@ namespace ExpeditionRegionSupport.Interface
             }
         }
 
-        private static void FContainer_AddChild(On.FContainer.orig_AddChild orig, FContainer self, FNode node)
-        {
-            var cwt = self.GetCWT();
-
-            if (cwt.EventTrackingEnabled)
-                cwt.HandleOnAdded(node);
-
-            orig(self, node);
-        }
-
         private static void FilterDialog_Update(On.Menu.FilterDialog.orig_Update orig, FilterDialog self)
         {
             var cwt = self.GetCWT();
@@ -187,25 +122,6 @@ namespace ExpeditionRegionSupport.Interface
 
         #region Constructor hooks
 
-        private static void Dialog_ctor_ProcessManager(On.Menu.Dialog.orig_ctor_ProcessManager orig, Dialog self, ProcessManager manager)
-        {
-            orig(self, manager);
-
-            /*if (self is FilterDialog)
-            {
-                //Remove original page
-                self.pages.Remove(self.pages.Find(p => p.name == "main"));
-
-                ScrollablePage page = new ScrollablePage(self, null, "main", 0);
-
-                //Replace with ScrollablePage for FilterDialog instances
-                if (self.pages.Count > 0)
-                    self.pages.Insert(0, page);
-                else
-                    self.pages.Add(page);
-            }*/
-        }
-
         /// <summary>
         /// This hook allows FilterDialog to use a ScrollablePage instead of a Page
         /// </summary>
@@ -224,9 +140,6 @@ namespace ExpeditionRegionSupport.Interface
 
             self.InitializePage();
 
-            //Temporarily store a reference to this container, which will get recreated when menu constructor runs
-            //FContainer tempContainer = self.cursorContainer;
-            
             if (self is ExpeditionSettingsDialog)
             {
                 self.owner = owner;
@@ -239,9 +152,6 @@ namespace ExpeditionRegionSupport.Interface
             {
                 orig(self, manager, owner);
             }
-
-            //It is safe to move sprites back to new container
-            //tempContainer.MoveChildrenToNewContainer(self.cursorContainer);
 
             self.opening = cwt.Page.Opening = true;
             self.targetAlpha = cwt.Page.TargetAlpha = 1f;
