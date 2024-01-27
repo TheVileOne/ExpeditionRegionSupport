@@ -33,6 +33,8 @@ namespace ExpeditionRegionSupport.Interface
             IL.Menu.Page.ctor += Page_ctor;
         }
 
+        #region Constructor hooks
+
         private static void Page_ctor(ILContext il)
         {
             ILCursor cursor = new ILCursor(il);
@@ -48,79 +50,6 @@ namespace ExpeditionRegionSupport.Interface
                 x => x.MatchLdfld<Page>(nameof(Page.mouseCursor)),
                 x => x.Match(OpCodes.Callvirt));
         }
-
-        private static void FilterDialog_Singal(On.Menu.FilterDialog.orig_Singal orig, FilterDialog self, MenuObject sender, string message)
-        {
-            orig(self, sender, message);
-
-            if (message == "CLOSE")
-            {
-                var cwt = self.GetCWT();
-
-                cwt.Page.Closing = true;
-                cwt.Page.TargetAlpha = 0f;
-            }
-        }
-
-        /// <summary>
-        /// This hook replaces dialog field references in FilterDialog.Update with page references
-        /// </summary>
-        private static void FilterDialog_Update(ILContext il)
-        {
-            ILCursor cursor = new ILCursor(il);
-
-            cursor.GotoNext(MoveType.After, x => x.MatchCallOrCallvirt<Menu.Menu>(nameof(Update)));
-            cursor.Emit(OpCodes.Ldarg_0);
-            cursor.EmitDelegate(updateHook); //Logic here cannot be handled with vanilla logic anymore. Use custom handling
-
-            int cursorIndex = cursor.Index;
-
-            cursor.GotoNext(MoveType.Before,
-                x => x.Match(OpCodes.Ldarg_0),
-                x => x.MatchLdfld<FilterDialog>(nameof(cancelButton)));
-            ILLabel branchTarget = cursor.DefineLabel();
-            cursor.MarkLabel(branchTarget);
-
-            cursor.Index = cursorIndex;
-            cursor.Emit(OpCodes.Br, branchTarget); //Branch to cancel button handling
-        }
-
-        private static void updateHook(FilterDialog dialog)
-        {
-            var cwt = dialog.GetCWT();
-
-            if (cwt.Page.Closing && cwt.Page.HasClosed)
-            {
-                dialog.pageTitle.RemoveFromContainer();
-                dialog.manager.StopSideProcess(dialog);
-            }
-        }
-
-        private static void FilterDialog_Update(On.Menu.FilterDialog.orig_Update orig, FilterDialog self)
-        {
-            var cwt = self.GetCWT();
-
-            //Set pre-existing fields now maintained through the main page. These are kept for compatibility reasons.
-            self.currentAlpha = cwt.Page.CurrentAlpha;
-            self.targetAlpha = cwt.Page.TargetAlpha;
-            self.closing = cwt.Page.Closing;
-            self.opening = cwt.Page.Opening;
-
-            if (cwt.RunOnNextUpdate != null)
-            {
-                cwt.RunOnNextUpdate.Invoke(self);
-                cwt.RunOnNextUpdate = null;
-            }
-
-            Plugin.Logger.LogInfo(self.currentAlpha);
-            Plugin.Logger.LogInfo(self.targetAlpha);
-            Plugin.Logger.LogInfo(self.closing);
-            Plugin.Logger.LogInfo(self.opening);
-
-            orig(self);
-        }
-
-        #region Constructor hooks
 
         /// <summary>
         /// This hook allows FilterDialog to use a ScrollablePage instead of a Page
@@ -299,6 +228,66 @@ namespace ExpeditionRegionSupport.Interface
 
         #endregion
 
+        #region Update hooks
+
+        /// <summary>
+        /// This hook replaces dialog field references in FilterDialog.Update with page references
+        /// </summary>
+        private static void FilterDialog_Update(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            cursor.GotoNext(MoveType.After, x => x.MatchCallOrCallvirt<Menu.Menu>(nameof(Update)));
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.EmitDelegate(updateHook); //Logic here cannot be handled with vanilla logic anymore. Use custom handling
+
+            int cursorIndex = cursor.Index;
+
+            cursor.GotoNext(MoveType.Before,
+                x => x.Match(OpCodes.Ldarg_0),
+                x => x.MatchLdfld<FilterDialog>(nameof(cancelButton)));
+            ILLabel branchTarget = cursor.DefineLabel();
+            cursor.MarkLabel(branchTarget);
+
+            cursor.Index = cursorIndex;
+            cursor.Emit(OpCodes.Br, branchTarget); //Branch to cancel button handling
+        }
+
+        private static void updateHook(FilterDialog dialog)
+        {
+            var cwt = dialog.GetCWT();
+
+            if (cwt.Page.Closing && cwt.Page.HasClosed)
+            {
+                dialog.pageTitle.RemoveFromContainer();
+                dialog.manager.StopSideProcess(dialog);
+            }
+        }
+
+        private static void FilterDialog_Update(On.Menu.FilterDialog.orig_Update orig, FilterDialog self)
+        {
+            var cwt = self.GetCWT();
+
+            //Set pre-existing fields now maintained through the main page. These are kept for compatibility reasons.
+            self.currentAlpha = cwt.Page.CurrentAlpha;
+            self.targetAlpha = cwt.Page.TargetAlpha;
+            self.closing = cwt.Page.Closing;
+            self.opening = cwt.Page.Opening;
+
+            if (cwt.RunOnNextUpdate != null)
+            {
+                cwt.RunOnNextUpdate.Invoke(self);
+                cwt.RunOnNextUpdate = null;
+            }
+
+            Plugin.Logger.LogInfo(self.currentAlpha);
+            Plugin.Logger.LogInfo(self.targetAlpha);
+            Plugin.Logger.LogInfo(self.closing);
+            Plugin.Logger.LogInfo(self.opening);
+
+            orig(self);
+        }
+
         /// <summary>
         /// This hook processes base.GrafUpdate(), and maintains the alpha for darkSprite
         /// </summary>
@@ -348,6 +337,21 @@ namespace ExpeditionRegionSupport.Interface
             }
         }
 
+        #endregion
+
+        private static void FilterDialog_Singal(On.Menu.FilterDialog.orig_Singal orig, FilterDialog self, MenuObject sender, string message)
+        {
+            orig(self, sender, message);
+
+            if (message == "CLOSE")
+            {
+                var cwt = self.GetCWT();
+
+                cwt.Page.Closing = true;
+                cwt.Page.TargetAlpha = 0f;
+            }
+        }
+
         private static bool FilterDialog_GetChecked(On.Menu.FilterDialog.orig_GetChecked orig, FilterDialog self, CheckBox box)
         {
             //Do not return orig
@@ -357,11 +361,6 @@ namespace ExpeditionRegionSupport.Interface
         private static void FilterDialog_SetChecked(On.Menu.FilterDialog.orig_SetChecked orig, FilterDialog self, CheckBox box, bool c)
         {
 
-        }
-
-        private bool checkType(FilterDialog dialog)
-        {
-            return dialog is ExpeditionSettingsDialog;
         }
     }
 }
