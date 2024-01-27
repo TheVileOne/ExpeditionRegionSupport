@@ -11,6 +11,11 @@ namespace Extensions
     public static class ILCursorExtension
     {
         /// <summary>
+        /// ILLabels generated when BranchStart() is invoked awaiting an instruction to target
+        /// </summary>
+        public static readonly Stack<ILLabel> PendingBranchLabels = new Stack<ILLabel>();
+
+        /// <summary>
         /// Generates an unconditional branch statement at current cursor index to the instruction returned by matchPredicates
         /// Cursor position will be moved to after branch target instruction on successful branch emit
         /// </summary>
@@ -58,6 +63,24 @@ namespace Extensions
 
             //Set cursor index back to target instruction
             cursor.Goto(branchTarget.Target, moveType);
+        }
+
+        public static void BranchStart(this ILCursor cursor, OpCode branchCode)
+        {
+            //Define an ILLabel using the ILCursor for context
+            ILLabel targetLabel = cursor.DefineLabel();
+
+            //Emit instruction without a target. A target should be added through BranchFinish
+            cursor.Emit(branchCode, targetLabel);
+
+            //Store label reference until a target is ready to be applied
+            PendingBranchLabels.Push(targetLabel);
+        }
+
+        public static void BranchFinish(this ILCursor cursor)
+        {
+            //Pop a pending ILLabel off the stack
+            cursor.MarkLabel(PendingBranchLabels.Pop());
         }
     }
 }
