@@ -33,6 +33,9 @@ namespace ExpeditionRegionSupport.Interface
             On.Menu.FilterDialog.Singal += FilterDialog_Singal;
 
             On.Menu.CheckBox.ctor += CheckBox_ctor;
+            On.Menu.ButtonTemplate.ctor += ButtonTemplate_ctor;
+            On.Menu.MouseCursor.ctor += MouseCursor_ctor;
+            IL.Menu.MouseCursor.ctor += MouseCursor_ctor1;
             IL.Menu.Page.ctor += Page_ctor;
         }
 
@@ -52,6 +55,53 @@ namespace ExpeditionRegionSupport.Interface
                 x => x.Match(OpCodes.Callvirt));
         }
 
+        private static void MouseCursor_ctor1(ILContext il)
+        {
+            /*ILCursor cursor = new ILCursor(il);
+
+            cursor.GotoNext(MoveType.After, x => x.MatchLdfld<Menu.Menu>(nameof(cursorContainer)));
+            cursor.Emit(OpCodes.Pop);
+            cursor.Emit(OpCodes.Ldarg_1);
+            cursor.EmitDelegate(containerHook);*/
+        }
+
+        private static FContainer containerHook(Menu.Menu menu)
+        {
+            if (menu is FilterDialog || menu.cursorContainer == null)
+                return new FContainer(); //FUCK YOU GAME
+
+            return menu.cursorContainer;
+        }
+
+        private static void MouseCursor_ctor(On.Menu.MouseCursor.orig_ctor orig, MouseCursor self, Menu.Menu menu, MenuObject owner, UnityEngine.Vector2 pos)
+        {
+            //if (menu.cursorContainer == null)
+            //    menu.cursorContainer = new FContainer();
+
+            orig(self, menu, owner, pos);
+
+            //menu.cursorContainer = self.myContainer;
+        }
+
+        private static void ButtonTemplate_ctor(On.Menu.ButtonTemplate.orig_ctor orig, ButtonTemplate self, Menu.Menu menu, MenuObject owner, UnityEngine.Vector2 pos, UnityEngine.Vector2 size)
+        {
+            try
+            {
+                self.menu = menu;
+                self.owner = owner;
+
+                if (menu == null)
+                    throw new ArgumentNullException(nameof(menu));
+
+                if (owner == null)
+                    throw new ArgumentNullException(nameof(menu));
+
+                orig(self, menu, owner, pos, size);
+            }
+            catch (Exception ex)
+            {
+                Plugin.Logger.LogError(ex);
+            }
         }
 
         private static void FilterDialog_Singal(On.Menu.FilterDialog.orig_Singal orig, FilterDialog self, MenuObject sender, string message)
@@ -174,6 +224,9 @@ namespace ExpeditionRegionSupport.Interface
 
             self.InitializePage();
 
+            //Temporarily store a reference to this container, which will get recreated when menu constructor runs
+            //FContainer tempContainer = self.cursorContainer;
+            
             if (self is ExpeditionSettingsDialog)
             {
                 self.owner = owner;
@@ -186,6 +239,9 @@ namespace ExpeditionRegionSupport.Interface
             {
                 orig(self, manager, owner);
             }
+
+            //It is safe to move sprites back to new container
+            //tempContainer.MoveChildrenToNewContainer(self.cursorContainer);
 
             self.opening = cwt.Page.Opening = true;
             self.targetAlpha = cwt.Page.TargetAlpha = 1f;
