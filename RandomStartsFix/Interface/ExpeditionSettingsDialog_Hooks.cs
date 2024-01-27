@@ -287,7 +287,7 @@ namespace ExpeditionRegionSupport.Interface
                         while (newFiltersDetected > 0 && currentIndex >= 0)
                         {
                             //Fill missing indexes so that the earliest are positioned first
-                            if (!cwt.Options.Options.Contains(dialog.checkBoxes[currentIndex]))
+                            if (!cwt.Options.Boxes.Contains(dialog.checkBoxes[currentIndex]))
                             {
                                 filterIndexes[depositIndex] = currentIndex;
                                 depositIndex--;

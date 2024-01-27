@@ -17,7 +17,7 @@ namespace ExpeditionRegionSupport.Interface
 
         public List<FSprite> Dividers = new List<FSprite>();
         public List<MenuLabel> Filters = new List<MenuLabel>();
-        public List<FilterCheckBox> Options = new List<FilterCheckBox>();
+        public List<FilterCheckBox> Boxes = new List<FilterCheckBox>();
 
         /// <summary>
         /// Used to keep last divider from being rendered
@@ -44,7 +44,7 @@ namespace ExpeditionRegionSupport.Interface
 
         public void AddOption(FilterCheckBox option)
         {
-            Options.Add(option);
+            Boxes.Add(option);
             Filters.Add(option.label);
 
             FSprite divider = createDividerSprite();
@@ -64,13 +64,13 @@ namespace ExpeditionRegionSupport.Interface
             if (index < 0)
                 throw new IndexOutOfRangeException();
 
-            if (index >= Options.Count)
+            if (index >= Boxes.Count)
             {
                 AddOption(option);
                 return;
             }
 
-            Options.Insert(index, option);
+            Boxes.Insert(index, option);
             Filters.Insert(index, option.label);
 
             filtersDirty = true;
@@ -89,7 +89,7 @@ namespace ExpeditionRegionSupport.Interface
 
         public bool HasCheckedOptions(FilterCheckBox excludeThis)
         {
-            return Options.Count == 1 || Options.Exists(o => o != excludeThis && !o.FilterImmune && o.Checked);
+            return Boxes.Count == 1 || Boxes.Exists(o => o != excludeThis && !o.FilterImmune && o.Checked);
         }
 
         public bool GetChecked(CheckBox box)
@@ -140,9 +140,9 @@ namespace ExpeditionRegionSupport.Interface
         {
             LastFilterChanged = null;
 
-            for (int i = 0; i < Options.Count; i++)
+            for (int i = 0; i < Boxes.Count; i++)
             {
-                FilterCheckBox filterOption = Options[i];
+                FilterCheckBox filterOption = Boxes[i];
                 MenuLabel filterLabel = filterOption.label;
 
                 filterOption.pos.y = filterOption.lastPos.y = 577f - 37f * i;
@@ -150,7 +150,7 @@ namespace ExpeditionRegionSupport.Interface
             }
 
             //Check if dividers need to be updated
-            int dividersNeeded = Options.Count - Dividers.Count - 1;
+            int dividersNeeded = Boxes.Count - Dividers.Count - 1;
 
             if (dividersNeeded > 0)
             {
