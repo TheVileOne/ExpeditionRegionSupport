@@ -189,8 +189,11 @@ namespace ExpeditionRegionSupport.Interface
 
         public FilterCheckBox(Menu.Menu menu, FilterOptions owner, IOwnCheckBox reportTo, Vector2 pos, MenuLabel label, string IDString) : this(menu, owner, reportTo, pos, 0, string.Empty, IDString)
         {
-            subObjects.Remove(this.label);
-            subObjects.Add(this.label = label);
+            this.label.menu = null;
+            this.label.owner = null;
+
+            RemoveSubObject(this.label);
+            this.AddSubObject(this.label = label);
         }
 
         public override void Clicked()
