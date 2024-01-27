@@ -263,7 +263,10 @@ namespace ExpeditionRegionSupport.Interface
             var cwt = dialog.GetCWT();
 
             //Replace the reference, so 
+
+            //Replace the reference, so that mods will add to the new reference instead
             dialog.dividers = cwt.Options.Dividers;
+            dialog.challengeTypes = cwt.Options.Filters;
 
             if (!(dialog is ExpeditionSettingsDialog))
             {
