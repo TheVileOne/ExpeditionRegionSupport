@@ -44,6 +44,8 @@ namespace ExpeditionRegionSupport.Interface
 
         public void AddOption(FilterCheckBox option)
         {
+            Plugin.Logger.LogInfo("Added Option: " + option.label.myText);
+
             Boxes.Add(option);
             Filters.Add(option.label);
 

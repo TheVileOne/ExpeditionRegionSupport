@@ -329,7 +329,7 @@ namespace ExpeditionRegionSupport.Interface
             box.owner.RecursiveRemoveSelectables(box);
             box.Container.MoveChildrenToNewContainer(filterBox.Container);
 
-            //filterOptions.AddOption(filterBox); //Label isn't set at this point. We can't call this here
+            filterOptions.AddOption(filterBox);
             return filterBox;
         }
 
