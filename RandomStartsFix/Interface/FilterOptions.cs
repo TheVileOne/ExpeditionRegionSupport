@@ -46,8 +46,18 @@ namespace ExpeditionRegionSupport.Interface
         {
             Plugin.Logger.LogInfo("Added Option: " + option.label.myText);
 
+            option.label.pos = option.label.lastPos = new Vector2(-250f, 14f);
+
             Boxes.Add(option);
             Filters.Add(option.label);
+
+            //Experimental code:
+            if (option.Container != Container)
+                Container.MoveChildrenToNewContainer(option.Container);
+
+            //Closer to how the old labels are stored
+            //option.subObjects.Remove(option.label);
+            //subObjects.Add(option.label);
 
             FSprite divider = createDividerSprite();
 
