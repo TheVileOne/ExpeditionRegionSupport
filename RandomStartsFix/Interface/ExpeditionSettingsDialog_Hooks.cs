@@ -241,16 +241,9 @@ namespace ExpeditionRegionSupport.Interface
             cursor.Emit(OpCodes.Ldarg_0);
             cursor.EmitDelegate(updateHook); //Logic here cannot be handled with vanilla logic anymore. Use custom handling
 
-            int cursorIndex = cursor.Index;
-
-            cursor.GotoNext(MoveType.Before,
+            cursor.BranchTo(OpCodes.Br, MoveType.Before, //Branch to cancel button handling
                 x => x.Match(OpCodes.Ldarg_0),
                 x => x.MatchLdfld<FilterDialog>(nameof(cancelButton)));
-            ILLabel branchTarget = cursor.DefineLabel();
-            cursor.MarkLabel(branchTarget);
-
-            cursor.Index = cursorIndex;
-            cursor.Emit(OpCodes.Br, branchTarget); //Branch to cancel button handling
         }
 
         private static void updateHook(FilterDialog dialog)
