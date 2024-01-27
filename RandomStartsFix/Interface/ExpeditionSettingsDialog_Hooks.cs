@@ -226,6 +226,9 @@ namespace ExpeditionRegionSupport.Interface
         /// </summary>
         private static void CheckBox_ctor(On.Menu.CheckBox.orig_ctor orig, CheckBox self, Menu.Menu menu, MenuObject owner, CheckBox.IOwnCheckBox reportTo, UnityEngine.Vector2 pos, float textWidth, string displayText, string IDString, bool textOnRight)
         {
+            self.menu = menu;
+            self.owner = owner;
+
             if (menu is FilterDialog && !(self is FilterCheckBox))
                 self.Container = new FContainer();
             orig(self, menu, owner, reportTo, pos, textWidth, displayText, IDString, textOnRight);
