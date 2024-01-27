@@ -100,8 +100,6 @@ namespace ExpeditionRegionSupport.Interface
 
             initializeCheckBoxes();
 
-            MainPage.subObjects.Add(CWT.Options); //TODO: handle this differently?
-
             this.opening = true;
             this.targetAlpha = 1f;
         }
@@ -228,10 +226,8 @@ namespace ExpeditionRegionSupport.Interface
 
         private void initializeDialogBase()
         {
-            MainPage = new ScrollablePage(this, null, "main", 0);
-
             pages.Add(MainPage);
-            pos = new Vector2((manager.rainWorld.options.ScreenSize.x - size.x) * 0.5f, (manager.rainWorld.options.ScreenSize.x - this.size.y) * 0.5f);
+            pos = new Vector2((manager.rainWorld.options.ScreenSize.x - size.x) * 0.5f, (manager.rainWorld.options.ScreenSize.x - size.y) * 0.5f);
             darkSprite = new FSprite("pixel", true)
             {
                 color = new Color(0f, 0f, 0f),
