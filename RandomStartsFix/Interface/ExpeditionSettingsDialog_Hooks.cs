@@ -33,6 +33,25 @@ namespace ExpeditionRegionSupport.Interface
             On.Menu.FilterDialog.Singal += FilterDialog_Singal;
 
             On.Menu.CheckBox.ctor += CheckBox_ctor;
+            IL.Menu.Page.ctor += Page_ctor;
+        }
+
+        private static void Page_ctor(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            cursor.GotoNext(MoveType.After, x => x.MatchStfld<Page>(nameof(Page.mouseCursor))); //1st reference to mouseCursor
+            cursor.GotoPrev(MoveType.Before, //The start of argument construction for mouseCursor
+                x => x.MatchLdarg(0),
+                x => x.MatchLdarg(1),
+                x => x.MatchLdarg(0));
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.EmitDelegate<Func<Page, bool>>((p) => p is ScrollablePage); //Skip over mouseCursor creation. It breaks scrollable pages
+            cursor.BranchTo(OpCodes.Brtrue, MoveType.After,
+                x => x.MatchLdfld<Page>(nameof(Page.mouseCursor)),
+                x => x.Match(OpCodes.Callvirt));
+        }
+
         }
 
         private static void FilterDialog_Singal(On.Menu.FilterDialog.orig_Singal orig, FilterDialog self, MenuObject sender, string message)
@@ -262,7 +281,8 @@ namespace ExpeditionRegionSupport.Interface
         {
             var cwt = dialog.GetCWT();
 
-            //Replace the reference, so 
+            cwt.Page.mouseCursor = new MouseCursor(dialog, cwt.Page, new UnityEngine.Vector2(-100f, -100f));
+            cwt.Page.subObjects.Add(cwt.Page.mouseCursor);
 
             //Replace the reference, so that mods will add to the new reference instead
             dialog.dividers = cwt.Options.Dividers;
