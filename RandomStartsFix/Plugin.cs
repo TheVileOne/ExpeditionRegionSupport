@@ -49,9 +49,6 @@ namespace ExpeditionRegionSupport
                 //User Input
                 On.Menu.ExpeditionMenu.Singal += ExpeditionMenu_Singal;
 
-                //Testing
-                On.Menu.ChallengeSelectPage.Singal += ChallengeSelectPage_Singal;
-
                 //Random Spawn hooks
                 On.Menu.ChallengeSelectPage.StartButton_OnPressDone += ChallengeSelectPage_StartButton_OnPressDone;
                 IL.Menu.ChallengeSelectPage.StartButton_OnPressDone += ChallengeSelectPage_StartButton_OnPressDone;
@@ -72,16 +69,6 @@ namespace ExpeditionRegionSupport
             {
                 Logger.LogError(ex);
             }
-        }
-
-        private void ChallengeSelectPage_Singal(On.Menu.ChallengeSelectPage.orig_Singal orig, ChallengeSelectPage self, MenuObject sender, string message)
-        {
-            if (message == "FILTER")
-                Logger.LogDebug("FILTER");
-            else if (message == "HIDDEN")
-                Logger.LogDebug("HIDDEN");
-
-            orig(self, sender, message);
         }
 
         private void ExpeditionMenu_UpdatePage(On.Menu.ExpeditionMenu.orig_UpdatePage orig, ExpeditionMenu self, int pageIndex)
