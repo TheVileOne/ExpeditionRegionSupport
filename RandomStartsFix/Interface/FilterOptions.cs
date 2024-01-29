@@ -226,13 +226,13 @@ namespace ExpeditionRegionSupport.Interface
             get; private set;
         }
 
-        public FilterCheckBox(Menu.Menu menu, FilterOptions owner, IOwnCheckBox reportTo, Vector2 pos, float textWidth, string displayText, string IDString, bool textOnRight = false) : base(menu, owner, reportTo, pos, textWidth, displayText, IDString, textOnRight)
+        public FilterCheckBox(Menu.Menu menu, FilterOptions owner, Vector2 pos, float textWidth, string displayText, string IDString, bool textOnRight = false) : base(menu, owner, owner, pos, textWidth, displayText, IDString, textOnRight)
         {
             Owner = owner;
             Checked = true;
         }
 
-        public FilterCheckBox(Menu.Menu menu, FilterOptions owner, IOwnCheckBox reportTo, Vector2 pos, MenuLabel label, string IDString) : this(menu, owner, reportTo, pos, 0, string.Empty, IDString)
+        public FilterCheckBox(Menu.Menu menu, FilterOptions owner, Vector2 pos, MenuLabel label, string IDString) : this(menu, owner, pos, 0, string.Empty, IDString)
         {
             this.label.menu = null;
             this.label.owner = null;

@@ -165,13 +165,13 @@ namespace ExpeditionRegionSupport.Interface
             MenuLabel checkBoxLabel = new MenuLabel(this, MainPage, labelText, actualLabelPosition, default(Vector2), true, null);
             checkBoxLabel.label.alignment = FLabelAlignment.Left;
 
-            filters.Add(checkBoxLabel);
-
-            FilterCheckBox checkBox = new FilterCheckBox(this, CWT.Options, this, actualCheckBoxPosition, 0f, string.Empty, checkBoxIDString, false)
+            FilterCheckBox checkBox = new FilterCheckBox(this, CWT.Options, actualCheckBoxPosition, 0f, string.Empty, checkBoxIDString, false)
             {
                 label = checkBoxLabel
             };
-            
+
+            checkBox.subObjects.Add(checkBoxLabel);
+
             CWT.Options.AddOption(checkBox);
 
             //Handle control navigation
