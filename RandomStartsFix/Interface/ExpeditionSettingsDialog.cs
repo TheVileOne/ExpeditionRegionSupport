@@ -241,7 +241,7 @@ namespace ExpeditionRegionSupport.Interface
                 alpha = 0f
             };
 
-            MainPage.Container.AddChild(darkSprite);
+            container.AddChild(darkSprite);
         }
     }
 }
