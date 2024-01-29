@@ -41,6 +41,7 @@ namespace ExpeditionRegionSupport.Interface
 
         public ScrollablePage(Menu.Menu menu, MenuObject owner, string name, int index) : base(menu, owner, name, index)
         {
+            Container = new FContainer();
         }
 
         public override void Update()
@@ -77,6 +78,8 @@ namespace ExpeditionRegionSupport.Interface
             }
 
             pos.y = Mathf.Lerp(menu.manager.rainWorld.options.ScreenSize.y + 100f, 0.01f, (baseAlpha < 0.999f) ? baseAlpha : 1f);
+
+            Container.y = pos.y;
         }
     }
 }

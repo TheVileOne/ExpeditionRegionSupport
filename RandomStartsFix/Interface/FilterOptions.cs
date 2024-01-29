@@ -11,9 +11,12 @@ namespace ExpeditionRegionSupport.Interface
 {
     public class FilterOptions : PositionedMenuObject, CheckBox.IOwnCheckBox
     {
-        public const int DEFAULT_CHALLENGE_COUNT = 9;
+        public static Color LABEL_CHECKED_COLOR = new Color(0.83f, 0.83f, 0.83f);
+        public static Color LABEL_UNCHECKED_COLOR = new Color(0.25f, 0.25f, 0.25f);
 
-        //public CheckBox.IOwnCheckBox OptionHandle;
+        public Action<FilterCheckBox, bool> OnFilterChanged;
+
+        public CheckBox.IOwnCheckBox OptionHandle;
 
         public List<FSprite> Dividers = new List<FSprite>();
         public List<MenuLabel> Filters = new List<MenuLabel>();
@@ -40,24 +43,17 @@ namespace ExpeditionRegionSupport.Interface
 
         public FilterOptions(Menu.Menu menu, MenuObject owner, Vector2 pos) : base(menu, owner, pos)
         {
+            OptionHandle = this;
         }
 
         public void AddOption(FilterCheckBox option)
         {
             Plugin.Logger.LogInfo("Added Option: " + option.label.myText);
 
-            option.label.pos = option.label.lastPos = new Vector2(-250f, 14f);
-
             Boxes.Add(option);
             Filters.Add(option.label);
 
-            //Experimental code:
-            if (option.Container != Container)
-                Container.MoveChildrenToNewContainer(option.Container);
-
-            //Closer to how the old labels are stored
-            //option.subObjects.Remove(option.label);
-            //subObjects.Add(option.label);
+            onCheckBoxAdded(option);
 
             FSprite divider = createDividerSprite();
 
@@ -85,7 +81,19 @@ namespace ExpeditionRegionSupport.Interface
             Boxes.Insert(index, option);
             Filters.Insert(index, option.label);
 
+            onCheckBoxAdded(option);
             filtersDirty = true;
+        }
+
+        private void onCheckBoxAdded(FilterCheckBox box)
+        {
+            box.label.SetPosition(new Vector2(-250f, 14f));
+            box.label.SetColor(box.Checked ? LABEL_CHECKED_COLOR : LABEL_UNCHECKED_COLOR);
+
+            box.reportTo = OptionHandle; //Example check state handling
+
+            if (box.Container != Container)
+                Container.MoveChildrenToNewContainer(box.Container);
         }
 
         private FSprite createDividerSprite()
@@ -106,12 +114,21 @@ namespace ExpeditionRegionSupport.Interface
 
         public bool GetChecked(CheckBox box)
         {
-            return box.Checked;
+            return (box as FilterCheckBox).Checked;
         }
 
         public void SetChecked(CheckBox box, bool checkState)
         {
-            if (box.buttonBehav.greyedOut) return;
+            Plugin.Logger.LogInfo(box.label.text + (checkState ? " filter removed" : " filter applied"));
+
+            //Basic CheckBox validation is handled before this logic is run
+
+            if (!(box is FilterCheckBox))
+                throw new ArgumentException("FilterOptions only uses FilterCheckBox");
+
+            FilterCheckBox filterBox = (FilterCheckBox)box;
+
+            filterBox.SetChecked(checkState); //This is needed in case SetChecked gets called from base CheckBox before setting FilterCheckBox.Checked
 
             //TODO: Comments
             if (!DoubleClick && LastFilterChanged == box && DoubleClickProtection > 0)
@@ -121,9 +138,13 @@ namespace ExpeditionRegionSupport.Interface
 
                 menu.PlaySound(SoundID.MENU_Player_Join_Game);
                 //SetChecked(box, true);
+                filterBox.SetToLastState();
+                return;
             }
 
-            box.Checked = checkState;
+            box.label.SetColor(checkState ? LABEL_CHECKED_COLOR : LABEL_UNCHECKED_COLOR);
+
+            OnFilterChanged?.Invoke((FilterCheckBox)box, checkState);
             LastFilterChanged = box;
         }
 
@@ -157,8 +178,9 @@ namespace ExpeditionRegionSupport.Interface
                 FilterCheckBox filterOption = Boxes[i];
                 MenuLabel filterLabel = filterOption.label;
 
-                filterOption.pos.y = filterOption.lastPos.y = 577f - 37f * i;
-                filterLabel.pos.y = filterLabel.lastPos.y = 590f - 37f * i;
+                //TODO: This position assignment may be wrong
+                filterOption.SetPosY(577f - 37f * i);
+                filterLabel.SetPosY(590f - 37f * i);
             }
 
             //Check if dividers need to be updated
@@ -189,13 +211,24 @@ namespace ExpeditionRegionSupport.Interface
 
     public class FilterCheckBox: CheckBox
     {
+        public FilterOptions Owner;
+
         /// <summary>
         /// This checkbox should be treated more like a secondary filter, and will be ignored by the primary filter criteria
         /// </summary>
         public bool FilterImmune;
 
+        /// <summary>
+        /// Stores the check state for this CheckBox.
+        /// </summary>
+        public new bool Checked
+        {
+            get; private set;
+        }
+
         public FilterCheckBox(Menu.Menu menu, FilterOptions owner, IOwnCheckBox reportTo, Vector2 pos, float textWidth, string displayText, string IDString, bool textOnRight = false) : base(menu, owner, reportTo, pos, textWidth, displayText, IDString, textOnRight)
         {
+            Owner = owner;
             Checked = true;
         }
 
@@ -211,9 +244,25 @@ namespace ExpeditionRegionSupport.Interface
         public override void Clicked()
         {
             //Check if this option is enabled, and is allowed to be checked on/off
-            if (buttonBehav.greyedOut || (!FilterImmune && !(owner as FilterOptions).HasCheckedOptions(this))) return;
+            if (buttonBehav.greyedOut || (!FilterImmune && !Owner.HasCheckedOptions(this))) return;
 
+            //Invoking base will update the base Checked state, which will notify FilterOptions of the state change.
+            //This may not end up actually changing the state due to double-click protection, but currently will be set anyways.
             base.Clicked();
+        }
+
+        /// <summary>
+        /// Set the value of Checked
+        /// </summary>
+        public void SetChecked(bool checkState)
+        {
+            Plugin.Logger.LogInfo("Check state set to " + checkState);
+            Checked = checkState;
+        }
+
+        public void SetToLastState()
+        {
+            SetChecked(!Checked);
         }
     }
 }

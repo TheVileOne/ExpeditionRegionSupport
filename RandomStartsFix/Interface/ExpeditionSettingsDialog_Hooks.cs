@@ -1,10 +1,12 @@
-﻿using Extensions;
+﻿using Expedition;
+using Extensions;
 using Menu;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -58,13 +60,31 @@ namespace ExpeditionRegionSupport.Interface
         {
             ILCursor cursor = new ILCursor(il);
 
+            //Swap out the old Page object with a ScrollablePage object
+
             cursor.GotoNext(MoveType.After, x => x.MatchNewobj(typeof(Page))); //Go to Page instantiation
-            cursor.Emit(OpCodes.Ldarg_0); //Put `this` onto stack
+            cursor.Emit(OpCodes.Ldarg_0);
             cursor.EmitDelegate(replacePage);
+
+            //Container assignment of darkSprite is changed from Page container to Dialog container
+
+            cursor.GotoNext(MoveType.After, x => x.MatchLdfld<Menu.Menu>(nameof(pages)));
+            cursor.GotoNext(MoveType.After, x => x.MatchCallOrCallvirt(typeof(MenuObject).GetMethod("get_Container")));
+            cursor.Emit(OpCodes.Pop);
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.Emit<Menu.Menu>(OpCodes.Ldfld, nameof(container)); //Menu.container
         }
 
         private static void FilterDialog_ctor(On.Menu.FilterDialog.orig_ctor orig, FilterDialog self, ProcessManager manager, ChallengeSelectPage owner)
         {
+            if (ChallengeOrganizer.filterChallengeTypes.Count == 0)
+                Plugin.Logger.LogInfo("NO ACTIVE FILTERS");
+            else
+            {
+                Plugin.Logger.LogInfo("ACTIVE FILTERS");
+                ChallengeOrganizer.filterChallengeTypes.ForEach(Plugin.Logger.LogInfo);
+            }
+
             var cwt = self.GetCWT();
 
             self.InitializePage();
@@ -183,8 +203,32 @@ namespace ExpeditionRegionSupport.Interface
             dialog.dividers = cwt.Options.Dividers;
             dialog.challengeTypes = cwt.Options.Filters;
 
+            //Add to Menu container
+            dialog.container.AddChild(cwt.Page.Container);
+
             if (!(dialog is ExpeditionSettingsDialog))
             {
+                cwt.Options.OnFilterChanged -= onFilterChanged;
+
+                //Find applicable filters, and update checkbox states
+                foreach (string challengeType in ChallengeOrganizer.filterChallengeTypes)
+                {
+                    CheckBox box = null;
+                    if (ChallengeOrganizer.availableChallengeTypes.Exists(ch => ch.GetType().Name == challengeType))
+                        (box = dialog.checkBoxes.Find(ch => ch.IDString == challengeType)).Checked = false;
+
+                    /*
+                    if (box != null)
+                    {
+                        Plugin.Logger.LogDebug("Base " + box.Checked);
+                        Plugin.Logger.LogDebug("Custom " + (box as FilterCheckBox).Checked);
+                        box = null;
+                    }
+                    */
+                }
+
+                cwt.Options.OnFilterChanged += onFilterChanged;
+
                 cwt.RunOnNextUpdate += (dialog) =>
                 {
                     int filtersProcessed = cwt.Options.Filters.Count;
@@ -198,7 +242,7 @@ namespace ExpeditionRegionSupport.Interface
                         int[] filterIndexes = new int[newFiltersDetected];
 
                         int currentIndex = dialog.checkBoxes.Count - 1;
-                        int depositIndex = filterIndexes.Length - 1; 
+                        int depositIndex = filterIndexes.Length - 1;
                         while (newFiltersDetected > 0 && currentIndex >= 0)
                         {
                             //Fill missing indexes so that the earliest are positioned first
@@ -212,6 +256,7 @@ namespace ExpeditionRegionSupport.Interface
                             currentIndex--;
                         }
 
+                        //TODO:Check behavior
                         //Index position should be the same for all lists
                         foreach (int filterIndex in filterIndexes)
                         {
@@ -219,10 +264,27 @@ namespace ExpeditionRegionSupport.Interface
                             MenuLabel filterLabel = dialog.challengeTypes[filterIndex];
 
                             FilterCheckBox filterOption = replaceCheckBox(filterBox, filterLabel);
-
                         }
                     };
                 };
+            }
+        }
+
+        private static void onFilterChanged(FilterCheckBox box, bool checkState)
+        {
+            bool filterApplied = !checkState; //Checked means option is not filtered. A filter is applied when option is unchecked.
+            
+            Plugin.Logger.LogDebug("Filter set: " + box.label.text + " " + checkState);
+
+            if (filterApplied && !ChallengeOrganizer.filterChallengeTypes.Contains(box.IDString))
+            {
+                ExpLog.Log("Add " + box.IDString);
+                ChallengeOrganizer.filterChallengeTypes.Add(box.IDString);
+            }
+            else if (!filterApplied)
+            {
+                ExpLog.Log("Remove " + box.IDString);
+                ChallengeOrganizer.filterChallengeTypes.Remove(box.IDString);
             }
         }
 
@@ -253,6 +315,8 @@ namespace ExpeditionRegionSupport.Interface
             if (cwt.Page.HasClosed)
             {
                 dialog.CloseFilterDialog();
+
+                cwt.Options.OnFilterChanged -= onFilterChanged;
                 cwt.Page.HasClosed = false;
             }
         }
@@ -273,10 +337,12 @@ namespace ExpeditionRegionSupport.Interface
                 cwt.RunOnNextUpdate = null;
             }
 
+            /*
             Plugin.Logger.LogInfo(self.currentAlpha);
             Plugin.Logger.LogInfo(self.targetAlpha);
             Plugin.Logger.LogInfo(self.closing);
             Plugin.Logger.LogInfo(self.opening);
+            */
 
             orig(self);
         }

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Extensions
 {
@@ -44,6 +45,30 @@ namespace Extensions
         }
 
         //MenuObject
+
+        /// <summary>
+        /// Changes both position and last position to a given Vector2
+        /// </summary>
+        public static void SetPosition(this PositionedMenuObject self, Vector2 pos)
+        {
+            self.pos = self.lastPos = pos;
+        }
+
+        /// <summary>
+        /// Changes the x-value of both position and last position
+        /// </summary>
+        public static void SetPosX(this PositionedMenuObject self, float x)
+        {
+            self.pos.x = self.lastPos.x = x;
+        }
+
+        /// <summary>
+        /// Changes the y-value of both position and last position
+        /// </summary>
+        public static void SetPosY(this PositionedMenuObject self, float y)
+        {
+            self.pos.y = self.lastPos.y = y;
+        }
 
         public static void SetAlpha(this MenuObject self, float alpha)
         {
@@ -82,6 +107,13 @@ namespace Extensions
                 child.ChangeOwner(self);
 
             self.subObjects.Add(child);
+        }
+
+        //MenuLabel
+
+        public static void SetColor(this MenuLabel self, Color color)
+        {
+            self.label.color = color;
         }
 
         //FContainer
