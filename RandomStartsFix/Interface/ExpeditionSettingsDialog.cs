@@ -95,7 +95,6 @@ namespace ExpeditionRegionSupport.Interface
 
             dividers = new List<FSprite>();
             filters = new List<MenuLabel>();
-            checkBoxes = new List<CheckBox>();
 
             initializeCheckBoxes();
 
@@ -167,9 +166,14 @@ namespace ExpeditionRegionSupport.Interface
             checkBoxLabel.label.alignment = FLabelAlignment.Left;
 
             filters.Add(checkBoxLabel);
-            MainPage.subObjects.Add(checkBoxLabel);
-            CheckBox checkBox = new CheckBox(this, MainPage, this, actualCheckBoxPosition, 0f, string.Empty, checkBoxIDString, false);
+
+            FilterCheckBox checkBox = new FilterCheckBox(this, CWT.Options, this, actualCheckBoxPosition, 0f, string.Empty, checkBoxIDString, false)
+            {
+                label = checkBoxLabel
+            };
             
+            CWT.Options.AddOption(checkBox);
+
             //Handle control navigation
             checkBox.nextSelectable[0] = checkBox;
             checkBox.nextSelectable[2] = checkBox;
@@ -195,8 +199,6 @@ namespace ExpeditionRegionSupport.Interface
                 dividers.Add(dividerSprite);
             }
 
-            MainPage.subObjects.Add(checkBox);
-            checkBoxes.Add(checkBox);
             return checkBox;
         }
 
