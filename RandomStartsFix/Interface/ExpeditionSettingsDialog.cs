@@ -12,7 +12,7 @@ namespace ExpeditionRegionSupport.Interface
 {
     public partial class ExpeditionSettingsDialog : FilterDialog
     {
-        public Extensions.ExtensionMethods.FilterDialogCWT CWT;
+        public ExtensionMethods.FilterDialogCWT CWT => this.GetCWT();
         public ScrollablePage MainPage
         {
             get => CWT.Page;
@@ -40,7 +40,6 @@ namespace ExpeditionRegionSupport.Interface
 
         public ExpeditionSettingsDialog(ProcessManager manager, ChallengeSelectPage owner) : base(manager, owner)
         {
-            CWT = this.GetCWT();
             float num = 500;
             float globalOffX = 200;//(num - 250f) / -2f;
 
