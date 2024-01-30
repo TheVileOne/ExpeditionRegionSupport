@@ -30,8 +30,6 @@ namespace ExpeditionRegionSupport.Interface
         private CheckBox regionFilterCustom;
         private CheckBox regionFilterVisitedOnly;
 
-        private List<MenuLabel> filters;
-
         private string closeButtonText = "CLOSE";
         private string closeButtonSignal => closeButtonText;
 
@@ -93,13 +91,10 @@ namespace ExpeditionRegionSupport.Interface
             initializeHeaders();
             initializeCancelButton();
 
-            dividers = new List<FSprite>();
-            filters = new List<MenuLabel>();
-
             initializeCheckBoxes();
 
-            this.opening = true;
-            this.targetAlpha = 1f;
+            opening = true;
+            targetAlpha = 1f;
         }
 
         private void initializeHeaders()
@@ -112,15 +107,15 @@ namespace ExpeditionRegionSupport.Interface
 
             if (manager.rainWorld.options.language != InGameTranslator.LanguageID.English)
             {
-                localizedSubtitle = new MenuLabel(this, MainPage, Translate("-SETTINGS-"), new Vector2(683f, 740f), default(Vector2), false, null);
+                localizedSubtitle = new MenuLabel(this, MainPage, Translate("-SETTINGS-"), new Vector2(683f, 740f), default, false, null);
                 localizedSubtitle.label.color = new Color(0.5f, 0.5f, 0.5f);
                 MainPage.subObjects.Add(localizedSubtitle);
             }
 
-            heading = new MenuLabel(this, MainPage, Translate("REGION FILTER"), new Vector2(683f, 655f), default(Vector2), false, null);
+            heading = new MenuLabel(this, MainPage, Translate("REGION FILTER"), new Vector2(683f, 655f), default, false, null);
             heading.label.color = new Color(0.7f, 0.7f, 0.7f);
             MainPage.subObjects.Add(heading);
-            description = new MenuLabel(this, MainPage, Translate("Toggle which challenges can appear when randomising"), new Vector2(683f, 635f), default(Vector2), false, null);
+            description = new MenuLabel(this, MainPage, Translate("Toggle which regions are spawnable"), new Vector2(683f, 635f), default, false, null);
             description.label.color = new Color(0.7f, 0.7f, 0.7f);
             MainPage.subObjects.Add(description);
         }
@@ -130,10 +125,7 @@ namespace ExpeditionRegionSupport.Interface
             string closeButtonTranslation = Translate(closeButtonText);
 
             //Adjust button width to accomodate varying translation lengths
-            float num = 85f;
-            float num2 = Menu.Remix.MixedUI.LabelTest.GetWidth(closeButtonTranslation, false) + 10f;
-            if (num2 > num)
-                num = num2;
+            float num = Math.Max(85f, Menu.Remix.MixedUI.LabelTest.GetWidth(closeButtonTranslation, false) + 10f);
 
             cancelButton = new SimpleButton(this, MainPage, closeButtonTranslation, closeButtonSignal, new Vector2(683f - num / 2f, 120f), new Vector2(num, 35f));
             cancelButton.nextSelectable[0] = cancelButton;
@@ -154,15 +146,16 @@ namespace ExpeditionRegionSupport.Interface
         {
             Vector2 defaultLabelPosition = new Vector2(553, 590);
             Vector2 defaultCheckBoxPosition = new Vector2(793, 577);
-            Vector2 defaultDividerPosition = new Vector2(684 - leftAnchor, 571);
+            //Vector2 defaultDividerPosition = new Vector2(684 - leftAnchor, 571);
 
             float checkBoxHeight = 37f * checkBoxIndex; //This affects how checkboxes stack 
 
             Vector2 actualLabelPosition = new Vector2(defaultLabelPosition.x, defaultLabelPosition.y - checkBoxHeight);
             Vector2 actualCheckBoxPosition = new Vector2(defaultCheckBoxPosition.x, defaultCheckBoxPosition.y - checkBoxHeight);
-            Vector2 actualDividerPosition = new Vector2(defaultDividerPosition.x, defaultDividerPosition.y - checkBoxHeight);
+            //Vector2 actualDividerPosition = new Vector2(defaultDividerPosition.x, defaultDividerPosition.y - checkBoxHeight);
 
-            MenuLabel checkBoxLabel = new MenuLabel(this, MainPage, labelText, actualLabelPosition, default(Vector2), true, null);
+            //TODO: Move inside FilterCheckBox???
+            MenuLabel checkBoxLabel = new MenuLabel(this, MainPage, labelText, actualLabelPosition, default, true, null);
             checkBoxLabel.label.alignment = FLabelAlignment.Left;
 
             FilterCheckBox checkBox = new FilterCheckBox(this, CWT.Options, actualCheckBoxPosition, 0f, string.Empty, checkBoxIDString, false)
@@ -170,7 +163,7 @@ namespace ExpeditionRegionSupport.Interface
                 label = checkBoxLabel
             };
 
-            checkBox.subObjects.Add(checkBoxLabel);
+            checkBox.AddSubObject(checkBoxLabel);
 
             CWT.Options.AddOption(checkBox);
 
@@ -190,6 +183,7 @@ namespace ExpeditionRegionSupport.Interface
             }
             else if (checkBoxIndex > 0)
             {
+               /*
                 FSprite dividerSprite = new FSprite("pixel", true);
 
                 dividerSprite.SetPosition(actualDividerPosition);
@@ -197,6 +191,7 @@ namespace ExpeditionRegionSupport.Interface
                 dividerSprite.color = new Color(0.4f, 0.4f, 0.4f);
                 container.AddChild(dividerSprite);
                 dividers.Add(dividerSprite);
+               */
             }
 
             return checkBox;
