@@ -38,6 +38,28 @@ namespace Extensions
             cwt.Page.subObjects.Add(cwt.Options);
         }
 
+        public static void PreUpdate(this FilterDialog self)
+        {
+            var cwt = self.GetCWT();
+
+            //Set pre-existing fields now maintained through the main page. These are kept for compatibility reasons.
+            self.currentAlpha = cwt.Page.CurrentAlpha;
+            self.targetAlpha = cwt.Page.TargetAlpha;
+            self.closing = cwt.Page.Closing;
+            self.opening = cwt.Page.Opening;
+
+            if (cwt.RunOnNextUpdate != null)
+            {
+                cwt.RunOnNextUpdate.Invoke(self);
+                cwt.RunOnNextUpdate = null;
+            }
+
+            Plugin.Logger.LogInfo(self.currentAlpha);
+            Plugin.Logger.LogInfo(self.targetAlpha);
+            Plugin.Logger.LogInfo(self.closing);
+            Plugin.Logger.LogInfo(self.opening);
+        }
+
         public static void CloseFilterDialog(this FilterDialog self)
         {
             self.pageTitle.RemoveFromContainer();

@@ -19,6 +19,18 @@ namespace ExpeditionRegionSupport.Interface
             set => CWT.Page = value;
         }
 
+        #region InitStrings
+
+        public readonly string HeaderText = "SETTINGS";
+        public readonly string SubHeaderText = "Region filter";
+
+
+
+        private string closeButtonText = "CLOSE";
+        private string closeButtonSignal => closeButtonText;
+
+        #endregion
+
         private CheckBox shelterDetectionCheckBox;
         private SimpleButton reloadButton;
 
@@ -30,14 +42,23 @@ namespace ExpeditionRegionSupport.Interface
         private CheckBox regionFilterCustom;
         private CheckBox regionFilterVisitedOnly;
 
-        private string closeButtonText = "CLOSE";
-        private string closeButtonSignal => closeButtonText;
+        private bool initSuccess;
 
         //TODO:
         //Show custom regions available in Expedition?
 
         public ExpeditionSettingsDialog(ProcessManager manager, ChallengeSelectPage owner) : base(manager, owner)
         {
+            try
+            {
+                //localizedSubtitle.text = "-REGIONS-";
+                //heading.text = "REGION FILTER";
+                //description.text = "Filter region types from being spawnable locations when randomising";
+            }
+            catch (Exception ex)
+            {
+                Plugin.Logger.LogError(ex);
+            }
             float num = 500;
             float globalOffX = 200;//(num - 250f) / -2f;
 
@@ -61,6 +82,16 @@ namespace ExpeditionRegionSupport.Interface
         private bool pauseButtonHandled;
         public override void Update()
         {
+            if (!initSuccess)
+            {
+                this.CloseFilterDialog();
+                return;
+            }
+
+            this.PreUpdate();
+
+            Plugin.Logger.LogInfo("Updated");
+
             if (!pauseButtonHandled && RWInput.CheckPauseButton(0, manager.rainWorld))
             {
                 Singal(null, closeButtonSignal);
@@ -134,7 +165,7 @@ namespace ExpeditionRegionSupport.Interface
             MainPage.subObjects.Add(cancelButton);
         }
 
-        private void initializeCheckBoxes()
+        public void initializeCheckBoxes()
         {
             regionFilterVanilla = CreateCheckBox("VANILLA REGIONS", 0, "VANILLA");
             regionFilterMoreSlugcats = CreateCheckBox("MORE SLUGCATS REGIONS", 1, "MORE SLUGCATS");

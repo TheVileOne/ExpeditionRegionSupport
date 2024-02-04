@@ -21,6 +21,10 @@ namespace ExpeditionRegionSupport.Interface
             On.Menu.FilterDialog.ctor += FilterDialog_ctor;
             IL.Menu.FilterDialog.ctor += FilterDialog_ctor;
 
+            //On.ProcessManager.Update += ProcessManager_Update;
+            //On.MainLoopProcess.Update += MainLoopProcess_Update;
+            //On.MainLoopProcess.GrafUpdate += MainLoopProcess_GrafUpdate;
+
             On.Menu.FilterDialog.Update += FilterDialog_Update;
             IL.Menu.FilterDialog.Update += FilterDialog_Update;
             
@@ -32,10 +36,73 @@ namespace ExpeditionRegionSupport.Interface
             On.Menu.FilterDialog.Singal += FilterDialog_Singal;
 
             On.Menu.CheckBox.ctor += CheckBox_ctor;
-            IL.Menu.Page.ctor += Page_ctor;
+            //IL.Menu.Page.ctor += Page_ctor;
+        }
+
+        private static void MainLoopProcess_GrafUpdate(On.MainLoopProcess.orig_GrafUpdate orig, MainLoopProcess self, float timeStacker)
+        {
+            if (self.manager.sideProcesses.Exists(d => d is Dialog))
+            {
+                ExpeditionSettingsDialog settingsDialog = (ExpeditionSettingsDialog)self.manager.sideProcesses.FindLast(d => d is ExpeditionSettingsDialog);
+
+                if (settingsDialog != null)
+                {
+                    //Plugin.Logger.LogInfo(settingsDialog.ToString());
+                    settingsDialog.Update();
+                }
+            }
+        }
+
+        private static void ProcessManager_Update(On.ProcessManager.orig_Update orig, ProcessManager self, float deltaTime)
+        {
+            if (self.sideProcesses.Exists(d => d is Dialog))
+            {
+                ExpeditionSettingsDialog settingsDialog = (ExpeditionSettingsDialog)self.sideProcesses.FindLast(d => d is ExpeditionSettingsDialog);
+
+                if (settingsDialog != null)
+                {
+                    //Plugin.Logger.LogInfo(settingsDialog.ToString());
+                    settingsDialog.Update();
+                }
+            }
+
+            orig(self, deltaTime);
+        }
+
+        private static void MainLoopProcess_Update(On.MainLoopProcess.orig_Update orig, MainLoopProcess self)
+        {
+            ExpeditionSettingsDialog settingsDialog = self as ExpeditionSettingsDialog;
+
+            if (settingsDialog != null)
+                settingsDialog.Update();
+
+            orig(self);
         }
 
         #region Constructor hooks
+
+        private static bool initializePage(Dialog dialog)
+        {
+            bool handled = false;
+
+            if (dialog is FilterDialog)
+            {
+                var cwt = (dialog as FilterDialog).GetCWT();
+
+                cwt.Page = new ScrollablePage(dialog, null, "main", 0);
+                cwt.Options = new FilterOptions(dialog, cwt.Page, cwt.Page.pos);
+
+                cwt.Page.subObjects.Add(cwt.Options);
+
+                dialog.pages.Add(cwt.Page);
+                handled = true;
+            }
+            else
+            {
+                //dialog.pages.Add(new Page(dialog, null, "main", 0));
+            }
+            return handled;
+        }
 
         private static void Page_ctor(ILContext il)
         {
@@ -60,11 +127,23 @@ namespace ExpeditionRegionSupport.Interface
         {
             ILCursor cursor = new ILCursor(il);
 
+            //Emit dialog type check after base logic is handled
+            cursor.GotoNext(MoveType.After,
+                x => x.Match(OpCodes.Ldsfld),
+                x => x.Match(OpCodes.Call));
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.EmitDelegate(initializePage); //Initializes page when handling FilterDailogs, returns handled state
+
+            //Branch over existing page creation logic when page has already been handled 
+            cursor.BranchTo(OpCodes.Brtrue, MoveType.After,
+                x => x.MatchNewobj(typeof(Page)),
+                x => x.Match(OpCodes.Callvirt));
+
             //Swap out the old Page object with a ScrollablePage object
 
-            cursor.GotoNext(MoveType.After, x => x.MatchNewobj(typeof(Page))); //Go to Page instantiation
-            cursor.Emit(OpCodes.Ldarg_0);
-            cursor.EmitDelegate(replacePage);
+            //cursor.GotoNext(MoveType.After, x => x.MatchNewobj(typeof(Page))); //Go to Page instantiation
+            //cursor.Emit(OpCodes.Ldarg_0);
+            //cursor.EmitDelegate(replacePage);
 
             //Container assignment of darkSprite is changed from Page container to Dialog container
 
@@ -87,8 +166,27 @@ namespace ExpeditionRegionSupport.Interface
 
             var cwt = self.GetCWT();
 
-            self.InitializePage();
+            //self.InitializePage();
 
+            bool hasErrors = false;
+
+            try
+            {
+                orig(self, manager, owner);
+            }
+            catch (Exception ex)
+            {
+                Plugin.Logger.LogError("Dialog could not be loaded successfully");
+                Plugin.Logger.LogError(ex);
+
+                hasErrors = true;
+            }
+
+            ExpeditionSettingsDialog settingsDialog = self as ExpeditionSettingsDialog;
+            if (settingsDialog != null)
+                settingsDialog.initSuccess = !hasErrors;
+
+            /*
             if (self is ExpeditionSettingsDialog)
             {
                 self.owner = owner;
@@ -104,15 +202,97 @@ namespace ExpeditionRegionSupport.Interface
 
             self.opening = cwt.Page.Opening = true;
             self.targetAlpha = cwt.Page.TargetAlpha = 1f;
+            */
         }
 
         private static void FilterDialog_ctor(ILContext il)
+        {
+            FilterDialog_ctorHook(il); //IL for handling FilterDialog
+            SettingsDialog_ctorHook(il); //IL for handling ExpeditionSettingsDialog
+            FilterDialog_DebugHook(il);
+
+            Plugin.Logger.LogDebug(il);
+        }
+
+        private static void SettingsDialog_ctorHook(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            //cursor.GotoNext(MoveType.After, x => x.MatchDup());
+            //cursor.GotoNext(MoveType.Before, x => x.MatchLdsfld(typeof(ChallengeOrganizer), "filterChallengeTypes"));
+            //cursor.EmitDelegate<Func<FilterDialog, bool>>(d => d is ExpeditionSettingsDialog);
+
+            //^^ may need to be changed
+            //cursor.GotoNext(MoveType.Before, //Test null ref logic
+           //     x => x.Match(OpCodes.Newobj),
+           //     x => x.MatchStloc(3));
+            cursor.GotoNext(MoveType.After, x => x.MatchStloc(3)); //original code
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.EmitDelegate<Func<FilterDialog, bool>>(d => d is ExpeditionSettingsDialog);
+
+            //Branch to cancel button logic 
+            cursor.BranchTo(OpCodes.Brtrue, MoveType.Before,
+                x => x.MatchLdarg(0),
+                x => x.MatchLdfld<FilterDialog>(nameof(cancelButton)));
+            cursor.Index++;
+            //cursor.Emit(OpCodes.Ldloc_3);
+            //cursor.EmitDelegate(debugMethod);
+            /*cursor.EmitDelegate(() =>
+            {
+                Plugin.Logger.LogDebug("S2");
+            });*/
+
+            //Go to before loop processing Challenge filters. ExpeditionSettingsDialog doesn't need any of this login in the loop to run
+            cursor.GotoNext(MoveType.Before,
+                x => x.MatchLdcI4(0),
+                x => x.MatchStloc(6));
+
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.EmitDelegate<Func<FilterDialog, bool>>(d =>
+            {
+                ExpeditionSettingsDialog settingsDialog = d as ExpeditionSettingsDialog;
+
+                if (settingsDialog != null)
+                {
+                    settingsDialog.initializeCheckBoxes();
+                    return true;
+                }
+                return false;
+            });
+
+            //Branch over loop
+            cursor.BranchTo(OpCodes.Brtrue, MoveType.Before,
+                x => x.MatchLdarg(0),
+                x => x.MatchLdcI4(1),
+                x => x.MatchStfld<FilterDialog>(nameof(opening)));
+
+            cursor.EmitDelegate(() =>
+            {
+                Plugin.Logger.LogDebug("S4");
+            });
+
+            cursor.GotoNext(MoveType.Before, x => x.MatchRet());
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.EmitDelegate(onFilterDialogCreated);
+
+            cursor.EmitDelegate(() =>
+            {
+                Plugin.Logger.LogDebug("S10");
+            });
+        }
+
+        private static void FilterDialog_ctorHook(ILContext il)
         {
             ILCursor cursor = new ILCursor(il);
 
             cursor.GotoNext(MoveType.After, //This is just after label is added to this.challengeTypes
                 x => x.MatchLdloc(7),
                 x => x.Match(OpCodes.Callvirt));
+
+            cursor.EmitDelegate(() =>
+            {
+                Plugin.Logger.LogDebug("S5");
+            });
 
             //First subObjects branch over
 
@@ -132,9 +312,19 @@ namespace ExpeditionRegionSupport.Interface
                 x => x.MatchLdarg(0),
                 x => x.MatchLdfld<Menu.Menu>(nameof(pages)));
 
+            cursor.EmitDelegate(() =>
+            {
+                Plugin.Logger.LogDebug("S6");
+            });
+
             cursor.BranchTo(
                 x => x.MatchLdloc(8),
                 x => x.Match(OpCodes.Callvirt));
+
+            cursor.EmitDelegate(() =>
+            {
+                Plugin.Logger.LogDebug("S7");
+            });
 
             //Branch over divider handling
 
@@ -142,16 +332,65 @@ namespace ExpeditionRegionSupport.Interface
                 x => x.MatchLdarg(0),
                 x => x.MatchLdfld<Menu.Menu>(nameof(container)));
 
+            cursor.EmitDelegate(() =>
+            {
+                Plugin.Logger.LogDebug("S8");
+            });
+
             cursor.BranchTo(
                 x => x.MatchLdfld<FilterDialog>(nameof(dividers)),
                 x => x.MatchLdloc(9),
                 x => x.Match(OpCodes.Callvirt));
 
+            cursor.EmitDelegate(() =>
+            {
+                Plugin.Logger.LogDebug("S9");
+            });
+
             //Evaluate filters (before post-method hooking)
 
-            cursor.GotoNext(MoveType.Before, x => x.MatchRet());
+            /*cursor.GotoNext(MoveType.Before, x => x.MatchRet());
             cursor.Emit(OpCodes.Ldarg_0);
             cursor.EmitDelegate(onFilterDialogCreated);
+
+            cursor.EmitDelegate(() =>
+            {
+                Plugin.Logger.LogDebug("S10");
+            });*/
+        }
+
+        private static void FilterDialog_DebugHook(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            cursor.GotoNext(MoveType.After,
+                //x => x.MatchLdarg(0),
+                
+                //x => x.MatchLdarg(1));
+                //x => x.MatchLdarg(2));
+                //x => x.Match(OpCodes.Ldstr));
+                x => x.MatchStfld<FilterDialog>(nameof(FilterDialog.heading)));
+            cursor.GotoNext(MoveType.After,
+                x => x.MatchLdarg(0),
+                x => x.Match(OpCodes.Newobj),
+                x => x.Match(OpCodes.Stfld));
+            /*cursor.GotoNext(MoveType.Before,
+                x => x.MatchLdarg(0),
+                x => x.MatchLdfld<FilterDialog>(nameof(cancelButton)),
+                x => x.Match(OpCodes.Ldfld));*/
+            cursor.EmitDelegate(() =>
+            {
+                Plugin.Logger.LogDebug("S1");
+            });
+            cursor.GotoNext(MoveType.Before, x => x.Match(OpCodes.Ldsfld));
+
+            int logCount = 1;
+            cursor.EmitDelegate(() =>
+            {
+                Plugin.Logger.LogDebug("Log " + logCount);
+                logCount++;
+            });
+
         }
 
         /// <summary>
@@ -160,12 +399,19 @@ namespace ExpeditionRegionSupport.Interface
         /// </summary>
         private static void CheckBox_ctor(On.Menu.CheckBox.orig_ctor orig, CheckBox self, Menu.Menu menu, MenuObject owner, CheckBox.IOwnCheckBox reportTo, UnityEngine.Vector2 pos, float textWidth, string displayText, string IDString, bool textOnRight)
         {
-            self.menu = menu;
-            self.owner = owner;
+            try
+            {
+                self.menu = menu;
+                self.owner = owner;
 
-            if (menu is FilterDialog && !(self is FilterCheckBox))
-                self.Container = new FContainer();
-            orig(self, menu, owner, reportTo, pos, textWidth, displayText, IDString, textOnRight);
+                if (menu is FilterDialog && !(self is FilterCheckBox))
+                    self.Container = new FContainer();
+                orig(self, menu, owner, reportTo, pos, textWidth, displayText, IDString, textOnRight);
+            }
+            catch (Exception ex)
+            {
+                Plugin.Logger.LogError(ex);
+            }
         }
 
         private static Page replacePage(Page page, Dialog dialog)
@@ -180,93 +426,118 @@ namespace ExpeditionRegionSupport.Interface
 
         private static FilterCheckBox replaceCheckBox(CheckBox box, MenuLabel label)
         {
-            FilterOptions filterOptions = ((FilterDialog)box.menu).GetCWT().Options;
+            try
+            {
+                FilterOptions filterOptions = ((FilterDialog)box.menu).GetCWT().Options;
 
-            FilterCheckBox filterBox = new FilterCheckBox(box.menu, filterOptions, box.pos, label, box.IDString);
+                FilterCheckBox filterBox = new FilterCheckBox(box.menu, filterOptions, box.pos, label, box.IDString);
 
-            //Do some cleanup of stuff that was handled in CheckBox constructor
-            box.owner.RecursiveRemoveSelectables(box);
-            box.Container.MoveChildrenToNewContainer(filterBox.Container);
+                //Do some cleanup of stuff that was handled in CheckBox constructor
+                box.owner.RecursiveRemoveSelectables(box);
+                box.Container.MoveChildrenToNewContainer(filterBox.Container);
 
-            filterOptions.AddOption(filterBox);
-            return filterBox;
+                //temp commented out
+                filterOptions.AddOption(filterBox);
+
+                return filterBox;
+            }
+            catch (Exception ex)
+            {
+                Plugin.Logger.LogError("replaceCheckBox");
+                Plugin.Logger.LogError(ex);
+            }
+
+            return null;
         }
 
         public static void onFilterDialogCreated(FilterDialog dialog)
         {
-            var cwt = dialog.GetCWT();
+            Plugin.Logger.LogDebug("Filter created");
 
-            cwt.Page.mouseCursor = new MouseCursor(dialog, cwt.Page, new UnityEngine.Vector2(-100f, -100f));
-            cwt.Page.subObjects.Add(cwt.Page.mouseCursor);
-
-            //Replace the reference, so that mods will add to the new reference instead
-            dialog.dividers = cwt.Options.Dividers;
-            dialog.challengeTypes = cwt.Options.Filters;
-
-            //Add to Menu container
-            dialog.container.AddChild(cwt.Page.Container);
-
-            if (!(dialog is ExpeditionSettingsDialog))
+            try
             {
-                cwt.Options.OnFilterChanged -= onFilterChanged;
+                var cwt = dialog.GetCWT();
 
-                //Find applicable filters, and update checkbox states
-                foreach (string challengeType in ChallengeOrganizer.filterChallengeTypes)
+                //cwt.Page.mouseCursor = new MouseCursor(dialog, cwt.Page, new UnityEngine.Vector2(-100f, -100f));
+                //cwt.Page.subObjects.Add(cwt.Page.mouseCursor);
+
+                //Replace the reference, so that mods will add to the new reference instead
+                dialog.dividers = cwt.Options.Dividers;
+                dialog.challengeTypes = cwt.Options.Filters;
+
+                //Add to Menu container
+                //dialog.container.AddChild(cwt.Page.Container);
+
+                dialog.opening = cwt.Page.Opening = true;
+                dialog.closing = cwt.Page.Closing = false;
+
+                if (!(dialog is ExpeditionSettingsDialog))
                 {
-                    CheckBox box = null;
-                    if (ChallengeOrganizer.availableChallengeTypes.Exists(ch => ch.GetType().Name == challengeType))
-                        (box = dialog.checkBoxes.Find(ch => ch.IDString == challengeType)).Checked = false;
+                    cwt.Options.OnFilterChanged -= onFilterChanged;
 
-                    /*
-                    if (box != null)
+                    //Find applicable filters, and update checkbox states
+                    foreach (string challengeType in ChallengeOrganizer.filterChallengeTypes)
                     {
-                        Plugin.Logger.LogDebug("Base " + box.Checked);
-                        Plugin.Logger.LogDebug("Custom " + (box as FilterCheckBox).Checked);
-                        box = null;
-                    }
-                    */
-                }
+                        CheckBox box = null;
+                        if (ChallengeOrganizer.availableChallengeTypes.Exists(ch => ch.GetType().Name == challengeType))
+                            (box = dialog.checkBoxes.Find(ch => ch.IDString == challengeType)).Checked = false;
 
-                cwt.Options.OnFilterChanged += onFilterChanged;
-
-                cwt.RunOnNextUpdate += (dialog) =>
-                {
-                    int filtersProcessed = cwt.Options.Filters.Count;
-                    int newFiltersDetected = dialog.checkBoxes.Count - filtersProcessed;
-
-                    //These must be modded filters if this is true
-                    if (newFiltersDetected > 0)
-                    {
-                        UnityEngine.Debug.Log(string.Format("Detected {0} new filters in post-processing", newFiltersDetected));
-
-                        int[] filterIndexes = new int[newFiltersDetected];
-
-                        int currentIndex = dialog.checkBoxes.Count - 1;
-                        int depositIndex = filterIndexes.Length - 1;
-                        while (newFiltersDetected > 0 && currentIndex >= 0)
+                        /*
+                        if (box != null)
                         {
-                            //Fill missing indexes so that the earliest are positioned first
-                            if (!cwt.Options.Boxes.Contains(dialog.checkBoxes[currentIndex]))
+                            Plugin.Logger.LogDebug("Base " + box.Checked);
+                            Plugin.Logger.LogDebug("Custom " + (box as FilterCheckBox).Checked);
+                            box = null;
+                        }
+                        */
+                    }
+
+                    cwt.Options.OnFilterChanged += onFilterChanged;
+
+                    cwt.RunOnNextUpdate += (dialog) =>
+                    {
+                        int filtersProcessed = cwt.Options.Filters.Count;
+                        int newFiltersDetected = dialog.checkBoxes.Count - filtersProcessed;
+
+                        //These must be modded filters if this is true
+                        if (newFiltersDetected > 0)
+                        {
+                            UnityEngine.Debug.Log(string.Format("Detected {0} new filters in post-processing", newFiltersDetected));
+
+                            int[] filterIndexes = new int[newFiltersDetected];
+
+                            int currentIndex = dialog.checkBoxes.Count - 1;
+                            int depositIndex = filterIndexes.Length - 1;
+                            while (newFiltersDetected > 0 && currentIndex >= 0)
                             {
-                                filterIndexes[depositIndex] = currentIndex;
-                                depositIndex--;
-                                newFiltersDetected--;
+                                //Fill missing indexes so that the earliest are positioned first
+                                if (!cwt.Options.Boxes.Contains(dialog.checkBoxes[currentIndex]))
+                                {
+                                    filterIndexes[depositIndex] = currentIndex;
+                                    depositIndex--;
+                                    newFiltersDetected--;
+                                }
+
+                                currentIndex--;
                             }
 
-                            currentIndex--;
-                        }
+                            //TODO:Check behavior
+                            //Index position should be the same for all lists
+                            foreach (int filterIndex in filterIndexes)
+                            {
+                                CheckBox filterBox = dialog.checkBoxes[filterIndex];
+                                MenuLabel filterLabel = dialog.challengeTypes[filterIndex];
 
-                        //TODO:Check behavior
-                        //Index position should be the same for all lists
-                        foreach (int filterIndex in filterIndexes)
-                        {
-                            CheckBox filterBox = dialog.checkBoxes[filterIndex];
-                            MenuLabel filterLabel = dialog.challengeTypes[filterIndex];
-
-                            FilterCheckBox filterOption = replaceCheckBox(filterBox, filterLabel);
-                        }
+                                FilterCheckBox filterOption = replaceCheckBox(filterBox, filterLabel);
+                            }
+                        };
                     };
-                };
+                }
+            }
+            catch (Exception ex)
+            {
+                Plugin.Logger.LogError("END");
+                Plugin.Logger.LogError(ex);
             }
         }
 
@@ -323,27 +594,7 @@ namespace ExpeditionRegionSupport.Interface
 
         private static void FilterDialog_Update(On.Menu.FilterDialog.orig_Update orig, FilterDialog self)
         {
-            var cwt = self.GetCWT();
-
-            //Set pre-existing fields now maintained through the main page. These are kept for compatibility reasons.
-            self.currentAlpha = cwt.Page.CurrentAlpha;
-            self.targetAlpha = cwt.Page.TargetAlpha;
-            self.closing = cwt.Page.Closing;
-            self.opening = cwt.Page.Opening;
-
-            if (cwt.RunOnNextUpdate != null)
-            {
-                cwt.RunOnNextUpdate.Invoke(self);
-                cwt.RunOnNextUpdate = null;
-            }
-
-            /*
-            Plugin.Logger.LogInfo(self.currentAlpha);
-            Plugin.Logger.LogInfo(self.targetAlpha);
-            Plugin.Logger.LogInfo(self.closing);
-            Plugin.Logger.LogInfo(self.opening);
-            */
-
+            self.PreUpdate();
             orig(self);
         }
 
