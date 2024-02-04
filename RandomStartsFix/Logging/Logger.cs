@@ -554,10 +554,8 @@ namespace ExpeditionRegionSupport.Logging
             //TODO: This is an old and probably non-thread safe way of logging. Replace with new method
             if (LogPath != null)
             {
-                int spacesRequired = Math.Max(7 - level.ToString().Length, 0);
-
-                string logOutput = (HeadersEnabled ? $"[{level}" + new string(' ', spacesRequired) + "] " : string.Empty) + data?.ToString() ?? "NULL";
-                File.AppendAllText(LogPath, Environment.NewLine + logOutput);
+                string logMessage = Environment.NewLine + FormatLogMessage(data?.ToString(), level);
+                File.AppendAllText(LogPath, logMessage);
             }
             else if (LogSource != null)
             {
@@ -567,6 +565,25 @@ namespace ExpeditionRegionSupport.Logging
             {
                 Debug.Log(data);
             }
+        }
+
+        public string FormatLogMessage(string message, LogLevel level)
+        {
+            string header = FormatHeader(level) + (HeadersEnabled ? ' ' : string.Empty);
+
+            return header + (message ?? "NULL");
+        }
+
+        public string FormatHeader(LogLevel level)
+        {
+            if (HeadersEnabled)
+            {
+                int spacesRequired = Math.Max(7 - level.ToString().Length, 0);
+
+                return $"[{level}" + new string(' ', spacesRequired) + "]";
+            }
+
+            return string.Empty;
         }
     }
 }
