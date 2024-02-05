@@ -21,10 +21,6 @@ namespace ExpeditionRegionSupport.Interface
             On.Menu.FilterDialog.ctor += FilterDialog_ctor;
             IL.Menu.FilterDialog.ctor += FilterDialog_ctor;
 
-            //On.ProcessManager.Update += ProcessManager_Update;
-            //On.MainLoopProcess.Update += MainLoopProcess_Update;
-            //On.MainLoopProcess.GrafUpdate += MainLoopProcess_GrafUpdate;
-
             On.Menu.FilterDialog.Update += FilterDialog_Update;
             IL.Menu.FilterDialog.Update += FilterDialog_Update;
             
@@ -36,47 +32,6 @@ namespace ExpeditionRegionSupport.Interface
             On.Menu.FilterDialog.Singal += FilterDialog_Singal;
 
             On.Menu.CheckBox.ctor += CheckBox_ctor;
-            //IL.Menu.Page.ctor += Page_ctor;
-        }
-
-        private static void MainLoopProcess_GrafUpdate(On.MainLoopProcess.orig_GrafUpdate orig, MainLoopProcess self, float timeStacker)
-        {
-            if (self.manager.sideProcesses.Exists(d => d is Dialog))
-            {
-                ExpeditionSettingsDialog settingsDialog = (ExpeditionSettingsDialog)self.manager.sideProcesses.FindLast(d => d is ExpeditionSettingsDialog);
-
-                if (settingsDialog != null)
-                {
-                    //Plugin.Logger.LogInfo(settingsDialog.ToString());
-                    settingsDialog.Update();
-                }
-            }
-        }
-
-        private static void ProcessManager_Update(On.ProcessManager.orig_Update orig, ProcessManager self, float deltaTime)
-        {
-            if (self.sideProcesses.Exists(d => d is Dialog))
-            {
-                ExpeditionSettingsDialog settingsDialog = (ExpeditionSettingsDialog)self.sideProcesses.FindLast(d => d is ExpeditionSettingsDialog);
-
-                if (settingsDialog != null)
-                {
-                    //Plugin.Logger.LogInfo(settingsDialog.ToString());
-                    settingsDialog.Update();
-                }
-            }
-
-            orig(self, deltaTime);
-        }
-
-        private static void MainLoopProcess_Update(On.MainLoopProcess.orig_Update orig, MainLoopProcess self)
-        {
-            ExpeditionSettingsDialog settingsDialog = self as ExpeditionSettingsDialog;
-
-            if (settingsDialog != null)
-                settingsDialog.Update();
-
-            orig(self);
         }
 
         #region Constructor hooks
@@ -104,22 +59,6 @@ namespace ExpeditionRegionSupport.Interface
             return handled;
         }
 
-        private static void Page_ctor(ILContext il)
-        {
-            ILCursor cursor = new ILCursor(il);
-
-            cursor.GotoNext(MoveType.After, x => x.MatchStfld<Page>(nameof(Page.mouseCursor))); //1st reference to mouseCursor
-            cursor.GotoPrev(MoveType.Before, //The start of argument construction for mouseCursor
-                x => x.MatchLdarg(0),
-                x => x.MatchLdarg(1),
-                x => x.MatchLdarg(0));
-            cursor.Emit(OpCodes.Ldarg_0);
-            cursor.EmitDelegate<Func<Page, bool>>((p) => p is ScrollablePage); //Skip over mouseCursor creation. It breaks scrollable pages
-            cursor.BranchTo(OpCodes.Brtrue, MoveType.After,
-                x => x.MatchLdfld<Page>(nameof(Page.mouseCursor)),
-                x => x.Match(OpCodes.Callvirt));
-        }
-
         /// <summary>
         /// This hook allows FilterDialog to use a ScrollablePage instead of a Page
         /// </summary>
@@ -138,12 +77,6 @@ namespace ExpeditionRegionSupport.Interface
             cursor.BranchTo(OpCodes.Brtrue, MoveType.After,
                 x => x.MatchNewobj(typeof(Page)),
                 x => x.Match(OpCodes.Callvirt));
-
-            //Swap out the old Page object with a ScrollablePage object
-
-            //cursor.GotoNext(MoveType.After, x => x.MatchNewobj(typeof(Page))); //Go to Page instantiation
-            //cursor.Emit(OpCodes.Ldarg_0);
-            //cursor.EmitDelegate(replacePage);
 
             //Container assignment of darkSprite is changed from Page container to Dialog container
 
@@ -181,31 +114,12 @@ namespace ExpeditionRegionSupport.Interface
             }
             
             cwt.InitSuccess = !hasErrors;
-
-            /*
-            if (self is ExpeditionSettingsDialog)
-            {
-                self.owner = owner;
-                self.manager = manager;
-                self.ID = ProcessManager.ProcessID.Dialog;
-                (self as ExpeditionSettingsDialog).initializeDialog();
-                onFilterDialogCreated(self);
-            }
-            else //orig isn't called to avoid Challenge filter specific logic in constructor
-            {
-                orig(self, manager, owner);
-            }
-
-            self.opening = cwt.Page.Opening = true;
-            self.targetAlpha = cwt.Page.TargetAlpha = 1f;
-            */
         }
 
         private static void FilterDialog_ctor(ILContext il)
         {
             FilterDialog_ctorHook(il); //IL for handling FilterDialog
             SettingsDialog_ctorHook(il); //IL for handling ExpeditionSettingsDialog
-            FilterDialog_DebugHook(il);
 
             Plugin.Logger.LogDebug(il);
         }
@@ -218,11 +132,7 @@ namespace ExpeditionRegionSupport.Interface
             //cursor.GotoNext(MoveType.Before, x => x.MatchLdsfld(typeof(ChallengeOrganizer), "filterChallengeTypes"));
             //cursor.EmitDelegate<Func<FilterDialog, bool>>(d => d is ExpeditionSettingsDialog);
 
-            //^^ may need to be changed
-            //cursor.GotoNext(MoveType.Before, //Test null ref logic
-           //     x => x.Match(OpCodes.Newobj),
-           //     x => x.MatchStloc(3));
-            cursor.GotoNext(MoveType.After, x => x.MatchStloc(3)); //original code
+            cursor.GotoNext(MoveType.After, x => x.MatchStloc(3));
             cursor.Emit(OpCodes.Ldarg_0);
             cursor.EmitDelegate<Func<FilterDialog, bool>>(d => d is ExpeditionSettingsDialog);
 
@@ -230,13 +140,6 @@ namespace ExpeditionRegionSupport.Interface
             cursor.BranchTo(OpCodes.Brtrue, MoveType.Before,
                 x => x.MatchLdarg(0),
                 x => x.MatchLdfld<FilterDialog>(nameof(FilterDialog.cancelButton)));
-            cursor.Index++;
-            //cursor.Emit(OpCodes.Ldloc_3);
-            //cursor.EmitDelegate(debugMethod);
-            /*cursor.EmitDelegate(() =>
-            {
-                Plugin.Logger.LogDebug("S2");
-            });*/
 
             //Go to before loop processing Challenge filters. ExpeditionSettingsDialog doesn't need any of this login in the loop to run
             cursor.GotoNext(MoveType.Before,
@@ -262,19 +165,9 @@ namespace ExpeditionRegionSupport.Interface
                 x => x.MatchLdcI4(1),
                 x => x.MatchStfld<FilterDialog>(nameof(FilterDialog.opening)));
 
-            cursor.EmitDelegate(() =>
-            {
-                Plugin.Logger.LogDebug("S4");
-            });
-
             cursor.GotoNext(MoveType.Before, x => x.MatchRet());
             cursor.Emit(OpCodes.Ldarg_0);
             cursor.EmitDelegate(onFilterDialogCreated);
-
-            cursor.EmitDelegate(() =>
-            {
-                Plugin.Logger.LogDebug("S10");
-            });
         }
 
         private static void FilterDialog_ctorHook(ILContext il)
@@ -284,11 +177,6 @@ namespace ExpeditionRegionSupport.Interface
             cursor.GotoNext(MoveType.After, //This is just after label is added to this.challengeTypes
                 x => x.MatchLdloc(7),
                 x => x.Match(OpCodes.Callvirt));
-
-            cursor.EmitDelegate(() =>
-            {
-                Plugin.Logger.LogDebug("S5");
-            });
 
             //First subObjects branch over
 
@@ -308,19 +196,9 @@ namespace ExpeditionRegionSupport.Interface
                 x => x.MatchLdarg(0),
                 x => x.MatchLdfld<Menu.Menu>(nameof(Menu.Menu.pages)));
 
-            cursor.EmitDelegate(() =>
-            {
-                Plugin.Logger.LogDebug("S6");
-            });
-
             cursor.BranchTo(
                 x => x.MatchLdloc(8),
                 x => x.Match(OpCodes.Callvirt));
-
-            cursor.EmitDelegate(() =>
-            {
-                Plugin.Logger.LogDebug("S7");
-            });
 
             //Branch over divider handling
 
@@ -328,65 +206,10 @@ namespace ExpeditionRegionSupport.Interface
                 x => x.MatchLdarg(0),
                 x => x.MatchLdfld<Menu.Menu>(nameof(Menu.Menu.container)));
 
-            cursor.EmitDelegate(() =>
-            {
-                Plugin.Logger.LogDebug("S8");
-            });
-
             cursor.BranchTo(
                 x => x.MatchLdfld<FilterDialog>(nameof(FilterDialog.dividers)),
                 x => x.MatchLdloc(9),
                 x => x.Match(OpCodes.Callvirt));
-
-            cursor.EmitDelegate(() =>
-            {
-                Plugin.Logger.LogDebug("S9");
-            });
-
-            //Evaluate filters (before post-method hooking)
-
-            /*cursor.GotoNext(MoveType.Before, x => x.MatchRet());
-            cursor.Emit(OpCodes.Ldarg_0);
-            cursor.EmitDelegate(onFilterDialogCreated);
-
-            cursor.EmitDelegate(() =>
-            {
-                Plugin.Logger.LogDebug("S10");
-            });*/
-        }
-
-        private static void FilterDialog_DebugHook(ILContext il)
-        {
-            ILCursor cursor = new ILCursor(il);
-
-            cursor.GotoNext(MoveType.After,
-                //x => x.MatchLdarg(0),
-                
-                //x => x.MatchLdarg(1));
-                //x => x.MatchLdarg(2));
-                //x => x.Match(OpCodes.Ldstr));
-                x => x.MatchStfld<FilterDialog>(nameof(FilterDialog.heading)));
-            cursor.GotoNext(MoveType.After,
-                x => x.MatchLdarg(0),
-                x => x.Match(OpCodes.Newobj),
-                x => x.Match(OpCodes.Stfld));
-            /*cursor.GotoNext(MoveType.Before,
-                x => x.MatchLdarg(0),
-                x => x.MatchLdfld<FilterDialog>(nameof(cancelButton)),
-                x => x.Match(OpCodes.Ldfld));*/
-            cursor.EmitDelegate(() =>
-            {
-                Plugin.Logger.LogDebug("S1");
-            });
-            cursor.GotoNext(MoveType.Before, x => x.Match(OpCodes.Ldsfld));
-
-            int logCount = 1;
-            cursor.EmitDelegate(() =>
-            {
-                Plugin.Logger.LogDebug("Log " + logCount);
-                logCount++;
-            });
-
         }
 
         /// <summary>
@@ -410,36 +233,24 @@ namespace ExpeditionRegionSupport.Interface
             }
         }
 
-        private static Page replacePage(Page page, Dialog dialog)
-        {
-            FilterDialog fd = dialog as FilterDialog;
-
-            if (fd != null)
-                page = fd.GetCWT().Page;
-
-            return page;
-        }
-
         private static FilterCheckBox replaceCheckBox(CheckBox box, MenuLabel label)
         {
             try
             {
-                FilterOptions filterOptions = ((FilterDialog)box.menu).GetCWT().Options;
-
-                FilterCheckBox filterBox = new FilterCheckBox(box.menu, filterOptions, box.pos, label, box.IDString);
+                FilterDialog dialog = (FilterDialog)box.menu;
+                FilterOptions filters = dialog.GetCWT().Options;
+                FilterCheckBox filterBox = new FilterCheckBox(dialog, filters, box.pos, label, box.IDString);
 
                 //Do some cleanup of stuff that was handled in CheckBox constructor
                 box.owner.RecursiveRemoveSelectables(box);
                 box.Container.MoveChildrenToNewContainer(filterBox.Container);
 
-                //temp commented out
-                filterOptions.AddOption(filterBox);
+                filters.AddOption(filterBox);
 
                 return filterBox;
             }
             catch (Exception ex)
             {
-                Plugin.Logger.LogError("replaceCheckBox");
                 Plugin.Logger.LogError(ex);
             }
 
@@ -454,15 +265,9 @@ namespace ExpeditionRegionSupport.Interface
             {
                 var cwt = dialog.GetCWT();
 
-                //cwt.Page.mouseCursor = new MouseCursor(dialog, cwt.Page, new UnityEngine.Vector2(-100f, -100f));
-                //cwt.Page.subObjects.Add(cwt.Page.mouseCursor);
-
                 //Replace the reference, so that mods will add to the new reference instead
                 dialog.dividers = cwt.Options.Dividers;
                 dialog.challengeTypes = cwt.Options.Filters;
-
-                //Add to Menu container
-                //dialog.container.AddChild(cwt.Page.Container);
 
                 dialog.opening = cwt.Page.Opening = true;
                 dialog.closing = cwt.Page.Closing = false;
@@ -533,7 +338,6 @@ namespace ExpeditionRegionSupport.Interface
             }
             catch (Exception ex)
             {
-                Plugin.Logger.LogError("END");
                 Plugin.Logger.LogError(ex);
             }
         }
