@@ -265,6 +265,8 @@ namespace ExpeditionRegionSupport.Interface
             {
                 var cwt = dialog.GetCWT();
 
+                dialog.container.AddChild(cwt.Page.Container);
+
                 //Replace the reference, so that mods will add to the new reference instead
                 dialog.dividers = cwt.Options.Dividers;
                 dialog.challengeTypes = cwt.Options.Filters;
