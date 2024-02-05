@@ -52,10 +52,7 @@ namespace ExpeditionRegionSupport.Interface
                 dialog.pages.Add(cwt.Page);
                 handled = true;
             }
-            else
-            {
-                //dialog.pages.Add(new Page(dialog, null, "main", 0));
-            }
+
             return handled;
         }
 
@@ -120,17 +117,11 @@ namespace ExpeditionRegionSupport.Interface
         {
             FilterDialog_ctorHook(il); //IL for handling FilterDialog
             SettingsDialog_ctorHook(il); //IL for handling ExpeditionSettingsDialog
-
-            Plugin.Logger.LogDebug(il);
         }
 
         private static void SettingsDialog_ctorHook(ILContext il)
         {
             ILCursor cursor = new ILCursor(il);
-
-            //cursor.GotoNext(MoveType.After, x => x.MatchDup());
-            //cursor.GotoNext(MoveType.Before, x => x.MatchLdsfld(typeof(ChallengeOrganizer), "filterChallengeTypes"));
-            //cursor.EmitDelegate<Func<FilterDialog, bool>>(d => d is ExpeditionSettingsDialog);
 
             cursor.GotoNext(MoveType.After, x => x.MatchStloc(3));
             cursor.Emit(OpCodes.Ldarg_0);

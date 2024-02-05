@@ -34,7 +34,6 @@ namespace ExpeditionRegionSupport.Interface
 
         //private RegionFilter regionFilter; //TODO: Create?
 
-        private CheckboxCollection filterOptions;
         private CheckBox regionFilterVanilla;
         private CheckBox regionFilterMoreSlugcats;
         private CheckBox regionFilterCustom;
@@ -45,20 +44,9 @@ namespace ExpeditionRegionSupport.Interface
 
         public ExpeditionSettingsDialog(ProcessManager manager, ChallengeSelectPage owner) : base(manager, owner)
         {
-            try
-            {
-                //localizedSubtitle.text = "-REGIONS-";
-                //heading.text = "REGION FILTER";
-                //description.text = "Filter region types from being spawnable locations when randomising";
-            }
-            catch (Exception ex)
-            {
-                Plugin.Logger.LogError(ex);
-            }
-            float num = 500;
-            float globalOffX = 200;//(num - 250f) / -2f;
-
-            //RoundedRect roundedRect = new RoundedRect(this, pages[0], new Vector2(243f + globalOffX, 100f), new Vector2(num, 550f), true);
+            localizedSubtitle.text = "-REGIONS-";
+            heading.text = "REGION FILTER";
+            description.text = "Filter region types from being spawnable locations when randomising";
         }
 
         public override void Singal(MenuObject sender, string message)
