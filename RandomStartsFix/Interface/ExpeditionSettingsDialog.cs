@@ -141,10 +141,10 @@ namespace ExpeditionRegionSupport.Interface
 
         public void InitializeCheckBoxes()
         {
-            regionFilterVanilla = CreateCheckBox("VANILLA REGIONS", 0, "VANILLA");
-            regionFilterMoreSlugcats = CreateCheckBox("MORE SLUGCATS REGIONS", 1, "MORE SLUGCATS");
-            regionFilterCustom = CreateCheckBox("CUSTOM REGIONS", 2, "MORE SLUGCATS");
-            regionFilterVisitedOnly = CreateCheckBox("VISITED REGIONS ONLY", 3, "VISITED ONLY", true);
+            regionFilterVanilla = CreateCheckBox("Vanilla Regions", 0, "VANILLA");
+            regionFilterMoreSlugcats = CreateCheckBox("More Slugcats Regions", 1, "MORE SLUGCATS");
+            regionFilterCustom = CreateCheckBox("Custom Regions", 2, "MORE SLUGCATS");
+            regionFilterVisitedOnly = CreateCheckBox("Visited Regions Only", 3, "VISITED ONLY", true);
         }
 
         public CheckBox CreateCheckBox(string labelText, int checkBoxIndex, string checkBoxIDString, bool isLastCheckBox = false)
