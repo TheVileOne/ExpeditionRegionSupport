@@ -24,8 +24,6 @@ namespace ExpeditionRegionSupport.Interface
         public readonly string HeaderText = "SETTINGS";
         public readonly string SubHeaderText = "Region filter";
 
-
-
         private string closeButtonText = "CLOSE";
         private string closeButtonSignal => closeButtonText;
 
@@ -98,7 +96,7 @@ namespace ExpeditionRegionSupport.Interface
             initializeHeaders();
             initializeCancelButton();
 
-            initializeCheckBoxes();
+            InitializeCheckBoxes();
 
             opening = true;
             targetAlpha = 1f;
@@ -141,7 +139,7 @@ namespace ExpeditionRegionSupport.Interface
             MainPage.subObjects.Add(cancelButton);
         }
 
-        public void initializeCheckBoxes()
+        public void InitializeCheckBoxes()
         {
             regionFilterVanilla = CreateCheckBox("VANILLA REGIONS", 0, "VANILLA");
             regionFilterMoreSlugcats = CreateCheckBox("MORE SLUGCATS REGIONS", 1, "MORE SLUGCATS");

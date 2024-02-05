@@ -250,7 +250,7 @@ namespace ExpeditionRegionSupport.Interface
 
                 if (settingsDialog != null)
                 {
-                    settingsDialog.initializeCheckBoxes();
+                    settingsDialog.InitializeCheckBoxes();
                     return true;
                 }
                 return false;
