@@ -269,9 +269,7 @@ namespace ExpeditionRegionSupport.Interface
                 dialog.dividers = cwt.Options.Dividers;
                 dialog.challengeTypes = cwt.Options.Filters;
 
-                dialog.opening = cwt.Page.Opening = true;
-                dialog.closing = cwt.Page.Closing = false;
-                dialog.targetAlpha = cwt.Page.TargetAlpha = 1f;
+                dialog.OpenFilterDialog();
 
                 if (!(dialog is ExpeditionSettingsDialog))
                 {

@@ -65,6 +65,15 @@ namespace ExpeditionRegionSupport.Interface
             self.closing = page.Closing;
         }
 
+        public static void OpenFilterDialog(this FilterDialog self)
+        {
+            ScrollablePage page = self.GetCWT().Page;
+
+            self.opening = page.Opening = true;
+            self.closing = page.Closing = false;
+            self.targetAlpha = page.TargetAlpha = 1f;
+        }
+
         public static void CloseFilterDialog(this FilterDialog self, bool instantClose = false)
         {
             //Normally there is a fade out process before close. This code will bypass it.
