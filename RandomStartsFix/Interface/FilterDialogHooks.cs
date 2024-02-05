@@ -582,7 +582,7 @@ namespace ExpeditionRegionSupport.Interface
 
             if (cwt.Page.HasClosed)
             {
-                dialog.CloseFilterDialog();
+                dialog.CloseFilterDialog(true);
 
                 cwt.Options.OnFilterChanged -= onFilterChanged;
                 cwt.Page.HasClosed = false;
