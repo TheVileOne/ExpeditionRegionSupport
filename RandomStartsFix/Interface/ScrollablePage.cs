@@ -81,5 +81,20 @@ namespace ExpeditionRegionSupport.Interface
 
             Container.y = pos.y;
         }
+
+        /// <summary>
+        /// Sets field values back to base values
+        /// </summary>
+        public void SetToDefault()
+        {
+            float defaultAlpha = 0f;
+
+            baseAlpha = defaultAlpha;
+            CurrentAlpha = defaultAlpha;
+            LastAlpha = defaultAlpha;
+            TargetAlpha = defaultAlpha;
+
+            Closing = Opening = false;
+        }
     }
 }

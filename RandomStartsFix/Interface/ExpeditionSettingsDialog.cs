@@ -42,8 +42,6 @@ namespace ExpeditionRegionSupport.Interface
         private CheckBox regionFilterCustom;
         private CheckBox regionFilterVisitedOnly;
 
-        private bool initSuccess;
-
         //TODO:
         //Show custom regions available in Expedition?
 
@@ -70,35 +68,13 @@ namespace ExpeditionRegionSupport.Interface
             if (message == closeButtonSignal)
             {
                 PlaySound(SoundID.MENU_Switch_Page_Out);
-                closing = true;
+                /*closing = true;
                 targetAlpha = 0f;
                 manager.StopSideProcess(this);
-                return;
+                return;*/
             }
 
             base.Singal(sender, message);
-        }
-
-        private bool pauseButtonHandled;
-        public override void Update()
-        {
-            if (!initSuccess)
-            {
-                this.CloseFilterDialog();
-                return;
-            }
-
-            this.PreUpdate();
-
-            Plugin.Logger.LogInfo("Updated");
-
-            if (!pauseButtonHandled && RWInput.CheckPauseButton(0, manager.rainWorld))
-            {
-                Singal(null, closeButtonSignal);
-                pauseButtonHandled = true;
-            }
-
-            base.Update();
         }
 
         public void ReloadFiles()

@@ -166,8 +166,6 @@ namespace ExpeditionRegionSupport.Interface
 
             var cwt = self.GetCWT();
 
-            //self.InitializePage();
-
             bool hasErrors = false;
 
             try
@@ -181,10 +179,8 @@ namespace ExpeditionRegionSupport.Interface
 
                 hasErrors = true;
             }
-
-            ExpeditionSettingsDialog settingsDialog = self as ExpeditionSettingsDialog;
-            if (settingsDialog != null)
-                settingsDialog.initSuccess = !hasErrors;
+            
+            cwt.InitSuccess = !hasErrors;
 
             /*
             if (self is ExpeditionSettingsDialog)
@@ -594,7 +590,30 @@ namespace ExpeditionRegionSupport.Interface
 
         private static void FilterDialog_Update(On.Menu.FilterDialog.orig_Update orig, FilterDialog self)
         {
-            self.PreUpdate();
+            var cwt = self.GetCWT();
+
+            if (!cwt.InitSuccess)
+            {
+                self.CloseFilterDialog(true);
+                return;
+            }
+
+            if (!cwt.PauseButtonHandled && RWInput.CheckPauseButton(0, self.manager.rainWorld))
+            {
+                self.CloseFilterDialog();
+                cwt.PauseButtonHandled = true;
+            }
+
+            //Set pre-existing fields now maintained through the main page. These are kept for compatibility reasons.
+            self.AssignValuesFromPage();
+
+            if (cwt.RunOnNextUpdate != null)
+            {
+                cwt.RunOnNextUpdate.Invoke(self);
+                cwt.RunOnNextUpdate = null;
+            }
+
+            self.LogValues();
             orig(self);
         }
 

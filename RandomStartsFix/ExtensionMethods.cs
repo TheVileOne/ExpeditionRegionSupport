@@ -22,6 +22,16 @@ namespace Extensions
             public Action<FilterDialog> RunOnNextUpdate;
             public ScrollablePage Page;
             public FilterOptions Options;
+
+            /// <summary>
+            /// Indicates that the constructor has successfully run without an exception
+            /// </summary>
+            public bool InitSuccess;
+
+            /// <summary>
+            /// Ensures that the close dialog trigger is handled only once
+            /// </summary>
+            public bool PauseButtonHandled;
         }
 
         public static readonly ConditionalWeakTable<FilterDialog, FilterDialogCWT> filterDialogCWT = new();
@@ -38,32 +48,56 @@ namespace Extensions
             cwt.Page.subObjects.Add(cwt.Options);
         }
 
-        public static void PreUpdate(this FilterDialog self)
+        /// <summary>
+        /// Sets field values back to base values
+        /// </summary>
+        public static void SetToDefault(this FilterDialog self)
         {
-            var cwt = self.GetCWT();
+            ScrollablePage page = self.GetCWT().Page;
 
-            //Set pre-existing fields now maintained through the main page. These are kept for compatibility reasons.
-            self.currentAlpha = cwt.Page.CurrentAlpha;
-            self.targetAlpha = cwt.Page.TargetAlpha;
-            self.closing = cwt.Page.Closing;
-            self.opening = cwt.Page.Opening;
-
-            if (cwt.RunOnNextUpdate != null)
-            {
-                cwt.RunOnNextUpdate.Invoke(self);
-                cwt.RunOnNextUpdate = null;
-            }
-
-            Plugin.Logger.LogInfo(self.currentAlpha);
-            Plugin.Logger.LogInfo(self.targetAlpha);
-            Plugin.Logger.LogInfo(self.closing);
-            Plugin.Logger.LogInfo(self.opening);
+            page.SetToDefault();
+            self.AssignValuesFromPage();
         }
 
-        public static void CloseFilterDialog(this FilterDialog self)
+        public static void AssignValuesFromPage(this FilterDialog self)
         {
-            self.pageTitle.RemoveFromContainer();
-            self.manager.StopSideProcess(self);
+            ScrollablePage page = self.GetCWT().Page;
+
+            self.uAlpha = page.BaseAlpha;
+            self.currentAlpha = page.Alpha;
+            self.lastAlpha = page.LastAlpha;
+            self.targetAlpha = page.TargetAlpha;
+
+            self.opening = page.Opening;
+            self.closing = page.Closing;
+        }
+
+        public static void CloseFilterDialog(this FilterDialog self, bool instantClose = false)
+        {
+            //Normally there is a fade out process before close. This code will bypass it.
+            if (instantClose)
+            {
+                self.SetToDefault();
+
+                self.owner.unlocksButton.greyedOut = false;
+                self.owner.startButton.greyedOut = false;
+
+                self.pageTitle.RemoveFromContainer();
+                self.manager.StopSideProcess(self);
+                return;
+            }
+
+            self.Singal(null, "CLOSE");
+        }
+
+        public static void LogValues(this FilterDialog self)
+        {
+            if (self.closing || self.opening)
+            {
+                Plugin.Logger.LogInfo(self.closing ? "Closing" : "Opening");
+                Plugin.Logger.LogInfo("Current Alpha: " + self.currentAlpha);
+                Plugin.Logger.LogInfo("Target Alpha: " + self.targetAlpha);
+            }
         }
 
         //MenuObject
