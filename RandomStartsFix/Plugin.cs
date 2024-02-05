@@ -44,7 +44,7 @@ namespace ExpeditionRegionSupport
                 On.Menu.ExpeditionMenu.Update += ExpeditionMenu_Update;
                 On.Menu.ExpeditionMenu.UpdatePage += ExpeditionMenu_UpdatePage;
 
-                ExpeditionSettingsDialog.ApplyHooks();
+                FilterDialogHooks.ApplyHooks();
 
                 //User Input
                 On.Menu.ExpeditionMenu.Singal += ExpeditionMenu_Singal;

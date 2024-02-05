@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace ExpeditionRegionSupport.Interface
 {
-    public partial class ExpeditionSettingsDialog
+    public class FilterDialogHooks
     {
         public static void ApplyHooks()
         {
@@ -147,11 +147,11 @@ namespace ExpeditionRegionSupport.Interface
 
             //Container assignment of darkSprite is changed from Page container to Dialog container
 
-            cursor.GotoNext(MoveType.After, x => x.MatchLdfld<Menu.Menu>(nameof(pages)));
+            cursor.GotoNext(MoveType.After, x => x.MatchLdfld<Menu.Menu>(nameof(Menu.Menu.pages)));
             cursor.GotoNext(MoveType.After, x => x.MatchCallOrCallvirt(typeof(MenuObject).GetMethod("get_Container")));
             cursor.Emit(OpCodes.Pop);
             cursor.Emit(OpCodes.Ldarg_0);
-            cursor.Emit<Menu.Menu>(OpCodes.Ldfld, nameof(container)); //Menu.container
+            cursor.Emit<Menu.Menu>(OpCodes.Ldfld, nameof(Menu.Menu.container)); //Menu.container
         }
 
         private static void FilterDialog_ctor(On.Menu.FilterDialog.orig_ctor orig, FilterDialog self, ProcessManager manager, ChallengeSelectPage owner)
@@ -229,7 +229,7 @@ namespace ExpeditionRegionSupport.Interface
             //Branch to cancel button logic 
             cursor.BranchTo(OpCodes.Brtrue, MoveType.Before,
                 x => x.MatchLdarg(0),
-                x => x.MatchLdfld<FilterDialog>(nameof(cancelButton)));
+                x => x.MatchLdfld<FilterDialog>(nameof(FilterDialog.cancelButton)));
             cursor.Index++;
             //cursor.Emit(OpCodes.Ldloc_3);
             //cursor.EmitDelegate(debugMethod);
@@ -260,7 +260,7 @@ namespace ExpeditionRegionSupport.Interface
             cursor.BranchTo(OpCodes.Brtrue, MoveType.Before,
                 x => x.MatchLdarg(0),
                 x => x.MatchLdcI4(1),
-                x => x.MatchStfld<FilterDialog>(nameof(opening)));
+                x => x.MatchStfld<FilterDialog>(nameof(FilterDialog.opening)));
 
             cursor.EmitDelegate(() =>
             {
@@ -306,7 +306,7 @@ namespace ExpeditionRegionSupport.Interface
 
             cursor.GotoNext(MoveType.Before,
                 x => x.MatchLdarg(0),
-                x => x.MatchLdfld<Menu.Menu>(nameof(pages)));
+                x => x.MatchLdfld<Menu.Menu>(nameof(Menu.Menu.pages)));
 
             cursor.EmitDelegate(() =>
             {
@@ -326,7 +326,7 @@ namespace ExpeditionRegionSupport.Interface
 
             cursor.GotoNext(MoveType.Before,
                 x => x.MatchLdarg(0),
-                x => x.MatchLdfld<Menu.Menu>(nameof(container)));
+                x => x.MatchLdfld<Menu.Menu>(nameof(Menu.Menu.container)));
 
             cursor.EmitDelegate(() =>
             {
@@ -334,7 +334,7 @@ namespace ExpeditionRegionSupport.Interface
             });
 
             cursor.BranchTo(
-                x => x.MatchLdfld<FilterDialog>(nameof(dividers)),
+                x => x.MatchLdfld<FilterDialog>(nameof(FilterDialog.dividers)),
                 x => x.MatchLdloc(9),
                 x => x.Match(OpCodes.Callvirt));
 
@@ -466,6 +466,7 @@ namespace ExpeditionRegionSupport.Interface
 
                 dialog.opening = cwt.Page.Opening = true;
                 dialog.closing = cwt.Page.Closing = false;
+                dialog.targetAlpha = cwt.Page.TargetAlpha = 1f;
 
                 if (!(dialog is ExpeditionSettingsDialog))
                 {
@@ -566,13 +567,13 @@ namespace ExpeditionRegionSupport.Interface
         {
             ILCursor cursor = new ILCursor(il);
 
-            cursor.GotoNext(MoveType.After, x => x.MatchCallOrCallvirt<Menu.Menu>(nameof(Update)));
+            cursor.GotoNext(MoveType.After, x => x.MatchCallOrCallvirt<Menu.Menu>(nameof(Menu.Menu.Update)));
             cursor.Emit(OpCodes.Ldarg_0);
             cursor.EmitDelegate(updateHook); //Logic here cannot be handled with vanilla logic anymore. Use custom handling
 
             cursor.BranchTo(OpCodes.Br, MoveType.Before, //Branch to cancel button handling
                 x => x.Match(OpCodes.Ldarg_0),
-                x => x.MatchLdfld<FilterDialog>(nameof(cancelButton)));
+                x => x.MatchLdfld<FilterDialog>(nameof(FilterDialog.cancelButton)));
         }
 
         private static void updateHook(FilterDialog dialog)

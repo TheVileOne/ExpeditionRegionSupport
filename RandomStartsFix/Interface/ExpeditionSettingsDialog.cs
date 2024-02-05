@@ -10,9 +10,9 @@ using Vector2 = UnityEngine.Vector2;
 
 namespace ExpeditionRegionSupport.Interface
 {
-    public partial class ExpeditionSettingsDialog : FilterDialog
+    public class ExpeditionSettingsDialog : FilterDialog
     {
-        public ExtensionMethods.FilterDialogCWT CWT => this.GetCWT();
+        public FilterDialogExtension.FilterDialogCWT CWT => this.GetCWT();
         public ScrollablePage MainPage
         {
             get => CWT.Page;
