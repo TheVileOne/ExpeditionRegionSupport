@@ -44,9 +44,8 @@ namespace ExpeditionRegionSupport.Interface
 
         public ExpeditionSettingsDialog(ProcessManager manager, ChallengeSelectPage owner) : base(manager, owner)
         {
-            localizedSubtitle.text = "-REGIONS-";
             heading.text = "REGION FILTER";
-            description.text = "Filter region types from being spawnable locations when randomising";
+            description.text = "Filter spawnable region categories when randomising";
         }
 
         public override void Singal(MenuObject sender, string message)
