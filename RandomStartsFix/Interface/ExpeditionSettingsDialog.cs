@@ -25,7 +25,6 @@ namespace ExpeditionRegionSupport.Interface
         public readonly string SubHeaderText = "Region filter";
 
         private string closeButtonText = "CLOSE";
-        private string closeButtonSignal => closeButtonText;
 
         #endregion
 
@@ -46,20 +45,6 @@ namespace ExpeditionRegionSupport.Interface
         {
             heading.text = "REGION FILTER";
             description.text = "Filter spawnable region categories when randomising";
-        }
-
-        public override void Singal(MenuObject sender, string message)
-        {
-            if (message == closeButtonSignal)
-            {
-                PlaySound(SoundID.MENU_Switch_Page_Out);
-                /*closing = true;
-                targetAlpha = 0f;
-                manager.StopSideProcess(this);
-                return;*/
-            }
-
-            base.Singal(sender, message);
         }
 
         public void ReloadFiles()
@@ -119,7 +104,7 @@ namespace ExpeditionRegionSupport.Interface
             //Adjust button width to accomodate varying translation lengths
             float num = Math.Max(85f, Menu.Remix.MixedUI.LabelTest.GetWidth(closeButtonTranslation, false) + 10f);
 
-            cancelButton = new SimpleButton(this, MainPage, closeButtonTranslation, closeButtonSignal, new Vector2(683f - num / 2f, 120f), new Vector2(num, 35f));
+            //cancelButton = new SimpleButton(this, MainPage, closeButtonTranslation, closeButtonSignal, new Vector2(683f - num / 2f, 120f), new Vector2(num, 35f));
             cancelButton.nextSelectable[0] = cancelButton;
             cancelButton.nextSelectable[2] = cancelButton;
 

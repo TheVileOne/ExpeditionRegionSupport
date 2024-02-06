@@ -17,13 +17,13 @@ namespace ExpeditionRegionSupport.Interface
         public static void ApplyHooks()
         {
             IL.Menu.Dialog.ctor_ProcessManager += Dialog_ctor_ProcessManager;
-            
+
             On.Menu.FilterDialog.ctor += FilterDialog_ctor;
             IL.Menu.FilterDialog.ctor += FilterDialog_ctor;
 
             On.Menu.FilterDialog.Update += FilterDialog_Update;
             IL.Menu.FilterDialog.Update += FilterDialog_Update;
-            
+
             IL.Menu.FilterDialog.GrafUpdate += FilterDialog_GrafUpdate;
 
             On.Menu.FilterDialog.GetChecked += FilterDialog_GetChecked;
@@ -466,6 +466,12 @@ namespace ExpeditionRegionSupport.Interface
 
         private static void FilterDialog_Singal(On.Menu.FilterDialog.orig_Singal orig, FilterDialog self, MenuObject sender, string message)
         {
+            if (message == "CLOSE")
+            {
+                //self.PlaySound(SoundID.MENU_Switch_Page_Out);
+                self.PlaySound(SoundID.MENU_Player_Join_Game);
+            }
+
             orig(self, sender, message);
 
             if (message == "CLOSE")
