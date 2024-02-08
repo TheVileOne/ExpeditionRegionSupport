@@ -1,4 +1,5 @@
-﻿using Extensions;
+﻿using ExpeditionRegionSupport.Settings;
+using Extensions;
 using Menu;
 using System;
 using System.Collections.Generic;
@@ -111,13 +112,13 @@ namespace ExpeditionRegionSupport.Interface
 
         public void InitializeCheckBoxes()
         {
-            regionFilterVanilla = CreateCheckBox("Vanilla Regions", 0, "VANILLA");
-            regionFilterMoreSlugcats = CreateCheckBox("More Slugcats Regions", 1, "MORE SLUGCATS");
-            regionFilterCustom = CreateCheckBox("Custom Regions", 2, "MORE SLUGCATS");
-            regionFilterVisitedOnly = CreateCheckBox("Visited Regions Only", 3, "VISITED ONLY", true);
+            regionFilterVanilla = CreateCheckBox("Vanilla Regions", ExpeditionSettings.Filters.AllowVanillaRegions, 0, "VANILLA");
+            regionFilterMoreSlugcats = CreateCheckBox("More Slugcats Regions", ExpeditionSettings.Filters.AllowMoreSlugcatsRegions, 1, "MORE SLUGCATS");
+            regionFilterCustom = CreateCheckBox("Custom Regions", ExpeditionSettings.Filters.AllowCustomRegions, 2, "CUSTOM");
+            regionFilterVisitedOnly = CreateCheckBox("Visited Regions Only", ExpeditionSettings.Filters.VisitedRegionsOnly, 3, "VISITED ONLY", true);
         }
 
-        public FilterCheckBox CreateCheckBox(string labelText, int checkBoxIndex, string checkBoxIDString, bool isLastCheckBox = false)
+        public FilterCheckBox CreateCheckBox(string labelText, SimpleToggle optionState, int checkBoxIndex, string checkBoxIDString, bool isLastCheckBox = false)
         {
             Vector2 defaultLabelPosition = new Vector2(553, 590);
             Vector2 defaultCheckBoxPosition = new Vector2(793, 577);
@@ -133,7 +134,7 @@ namespace ExpeditionRegionSupport.Interface
             MenuLabel checkBoxLabel = new MenuLabel(this, MainPage, labelText, actualLabelPosition, default, true, null);
             checkBoxLabel.label.alignment = FLabelAlignment.Left;
 
-            FilterCheckBox checkBox = new FilterCheckBox(this, CWT.Options, actualCheckBoxPosition, 0f, string.Empty, checkBoxIDString, false)
+            FilterCheckBox checkBox = new FilterCheckBox(this, CWT.Options, optionState, actualCheckBoxPosition, 0f, string.Empty, checkBoxIDString, false)
             {
                 label = checkBoxLabel
             };

@@ -1,4 +1,5 @@
-﻿using Extensions;
+﻿using ExpeditionRegionSupport.Settings;
+using Extensions;
 using Menu;
 using System;
 using System.Collections.Generic;
@@ -211,6 +212,7 @@ namespace ExpeditionRegionSupport.Interface
 
     public class FilterCheckBox: CheckBox
     {
+        public SimpleToggle CheckState;
         public FilterOptions Owner;
 
         /// <summary>
@@ -223,16 +225,17 @@ namespace ExpeditionRegionSupport.Interface
         /// </summary>
         public new bool Checked
         {
-            get; private set;
+            get => CheckState.Value;
+            private set => CheckState.Value = value;
         }
 
-        public FilterCheckBox(Menu.Menu menu, FilterOptions owner, Vector2 pos, float textWidth, string displayText, string IDString, bool textOnRight = false) : base(menu, owner, owner, pos, textWidth, displayText, IDString, textOnRight)
+        public FilterCheckBox(Menu.Menu menu, FilterOptions owner, SimpleToggle checkState, Vector2 pos, float textWidth, string displayText, string IDString, bool textOnRight = false) : base(menu, owner, owner, pos, textWidth, displayText, IDString, textOnRight)
         {
             Owner = owner;
-            Checked = true;
+            CheckState = checkState ?? new SimpleToggle(true);
         }
 
-        public FilterCheckBox(Menu.Menu menu, FilterOptions owner, Vector2 pos, MenuLabel label, string IDString) : this(menu, owner, pos, 0, string.Empty, IDString)
+        public FilterCheckBox(Menu.Menu menu, FilterOptions owner, SimpleToggle checkState, Vector2 pos, MenuLabel label, string IDString) : this(menu, owner, checkState, pos, 0, string.Empty, IDString)
         {
             this.label.menu = null;
             this.label.owner = null;

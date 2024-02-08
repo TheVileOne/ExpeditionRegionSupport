@@ -230,7 +230,7 @@ namespace ExpeditionRegionSupport.Interface
             {
                 FilterDialog dialog = (FilterDialog)box.menu;
                 FilterOptions filters = dialog.GetCWT().Options;
-                FilterCheckBox filterBox = new FilterCheckBox(dialog, filters, box.pos, label, box.IDString);
+                FilterCheckBox filterBox = new FilterCheckBox(dialog, filters, null, box.pos, label, box.IDString);
 
                 //Do some cleanup of stuff that was handled in CheckBox constructor
                 box.owner.RecursiveRemoveSelectables(box);
