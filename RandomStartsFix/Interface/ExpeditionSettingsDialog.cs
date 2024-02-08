@@ -31,12 +31,10 @@ namespace ExpeditionRegionSupport.Interface
         private CheckBox shelterDetectionCheckBox;
         private SimpleButton reloadButton;
 
-        //private RegionFilter regionFilter; //TODO: Create?
-
-        private CheckBox regionFilterVanilla;
-        private CheckBox regionFilterMoreSlugcats;
-        private CheckBox regionFilterCustom;
-        private CheckBox regionFilterVisitedOnly;
+        private FilterCheckBox regionFilterVanilla;
+        private FilterCheckBox regionFilterMoreSlugcats;
+        private FilterCheckBox regionFilterCustom;
+        private FilterCheckBox regionFilterVisitedOnly;
 
         //TODO:
         //Show custom regions available in Expedition?
@@ -119,7 +117,7 @@ namespace ExpeditionRegionSupport.Interface
             regionFilterVisitedOnly = CreateCheckBox("Visited Regions Only", 3, "VISITED ONLY", true);
         }
 
-        public CheckBox CreateCheckBox(string labelText, int checkBoxIndex, string checkBoxIDString, bool isLastCheckBox = false)
+        public FilterCheckBox CreateCheckBox(string labelText, int checkBoxIndex, string checkBoxIDString, bool isLastCheckBox = false)
         {
             Vector2 defaultLabelPosition = new Vector2(553, 590);
             Vector2 defaultCheckBoxPosition = new Vector2(793, 577);

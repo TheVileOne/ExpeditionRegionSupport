@@ -128,7 +128,7 @@ namespace ExpeditionRegionSupport
         {
             if (message == "SETTINGS")
             {
-                Dialog settingsDialog = new ExpeditionSettingsDialog(self.manager, self.challengeSelect);
+                ExpeditionSettingsDialog settingsDialog = new ExpeditionSettingsDialog(self.manager, self.challengeSelect);
                 self.PlaySound(SoundID.MENU_Player_Join_Game);
                 self.manager.ShowDialog(settingsDialog);
             }
