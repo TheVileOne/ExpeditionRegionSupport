@@ -30,7 +30,9 @@ namespace ExpeditionRegionSupport.Interface
         #endregion
 
         private CheckBox shelterDetectionCheckBox;
-        private SimpleButton reloadButton;
+        private SimpleButton restoreDefaultButton;
+        private SimpleButton reloadFromFileButton;
+        private SimpleButton customizeSpawnsButton;
 
         private FilterCheckBox regionFilterVanilla;
         private FilterCheckBox regionFilterMoreSlugcats;
@@ -44,6 +46,8 @@ namespace ExpeditionRegionSupport.Interface
         {
             heading.text = "REGION FILTER";
             description.text = "Filter spawnable region categories when randomising";
+
+            InitializeButtons();
         }
 
         public void ReloadFiles()
@@ -98,6 +102,8 @@ namespace ExpeditionRegionSupport.Interface
 
         private void initializeCancelButton()
         {
+            MainPage.AddSubObject(CreateButton("CLOSE", "CLOSE", new Vector2(683f, 120f)));
+            return;
             string closeButtonTranslation = Translate(closeButtonText);
 
             //Adjust button width to accomodate varying translation lengths
@@ -108,6 +114,31 @@ namespace ExpeditionRegionSupport.Interface
             cancelButton.nextSelectable[2] = cancelButton;
 
             MainPage.subObjects.Add(cancelButton);
+        }
+
+        public void InitializeButtons()
+        {
+            MainPage.AddSubObject(CreateButton("Reload Expedition Files", ExpeditionSignal.RELOAD_MOD_FILES, new Vector2(683f, 240f)));
+            MainPage.AddSubObject(CreateButton("Restore Defaults", ExpeditionSignal.RESTORE_DEFAULTS, new Vector2(683f, 200f)));
+            MainPage.AddSubObject(CreateButton("Customize Spawns", ExpeditionSignal.OPEN_SPAWN_DIALOG, new Vector2(683f, 160f)));
+        }
+
+        public SimpleButton CreateButton(string buttonTextRaw, string signalText, Vector2 pos)
+        {
+            string buttonTextTranslated = Translate(buttonTextRaw);
+
+            //Adjust button width to accomodate varying translation lengths
+            float buttonWidth = Math.Max(85f, Menu.Remix.MixedUI.LabelTest.GetWidth(buttonTextTranslated, false) + 10f); //+10 is the padding
+
+            //Creates a button aligned vertically in the center of the screen
+            SimpleButton button = new SimpleButton(this, MainPage, buttonTextTranslated, signalText,
+                         new Vector2(pos.x - (buttonWidth / 2f), pos.y), new Vector2(buttonWidth, 35f)); //pos, size
+
+            //A next selectable doesn't exist for these directions
+            button.nextSelectable[0] = button;
+            button.nextSelectable[2] = button;
+
+            return button;
         }
 
         public void InitializeCheckBoxes()
@@ -171,6 +202,30 @@ namespace ExpeditionRegionSupport.Interface
             }
 
             return checkBox;
+        }
+
+        public override void Singal(MenuObject sender, string signal)
+        {
+            switch (signal)
+            {
+                case ExpeditionSignal.RESTORE_DEFAULTS:
+                    {
+                        ExpeditionSettings.RestoreToDefaults();
+                        return;
+                    }
+                case ExpeditionSignal.RELOAD_MOD_FILES:
+                    {
+                        ReloadFiles();
+                        return;
+                    }
+                case ExpeditionSignal.OPEN_SPAWN_DIALOG:
+                    {
+                        //Not implemented yet
+                        return;
+                    }
+            }
+
+            base.Singal(sender, signal);
         }
 
         private void initializeBase()
