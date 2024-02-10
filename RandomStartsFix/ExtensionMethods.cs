@@ -87,6 +87,18 @@ namespace Extensions
             self.label.color = color;
         }
 
+        public class SimpleButtonCWT
+        {
+            /// <summary>
+            /// A flag that indicates that this button must remain in the middle of its parent container / owner
+            /// </summary>
+            public bool CenterInParent;
+        }
+
+        public static readonly ConditionalWeakTable<SimpleButton, SimpleButtonCWT> simpleButtonCWT = new();
+
+        public static SimpleButtonCWT GetCWT(this SimpleButton self) => simpleButtonCWT.GetValue(self, _ => new());
+
         //FContainer
 
         /// <summary>

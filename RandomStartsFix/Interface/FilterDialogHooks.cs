@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Vector2 = UnityEngine.Vector2;
 
 namespace ExpeditionRegionSupport.Interface
 {
@@ -32,6 +33,7 @@ namespace ExpeditionRegionSupport.Interface
             On.Menu.FilterDialog.Singal += FilterDialog_Singal;
 
             On.Menu.CheckBox.ctor += CheckBox_ctor;
+            On.Menu.SimpleButton.SetSize += SimpleButton_SetSize;
         }
 
         #region Constructor hooks
@@ -492,6 +494,25 @@ namespace ExpeditionRegionSupport.Interface
         private static void FilterDialog_SetChecked(On.Menu.FilterDialog.orig_SetChecked orig, FilterDialog self, CheckBox box, bool c)
         {
 
+        }
+
+        private static void SimpleButton_SetSize(On.Menu.SimpleButton.orig_SetSize orig, SimpleButton self, Vector2 newSize)
+        {
+            orig(self, newSize);
+
+            if (self.GetCWT().CenterInParent)
+            {
+                float horizontalCenter;
+
+                var objectWithSize = self.owner as RectangularMenuObject;
+
+                if (objectWithSize != null)
+                    horizontalCenter = objectWithSize.size.x / 2;
+                else
+                    horizontalCenter = 683f; //Screen width / 2
+
+                self.SetPosX(horizontalCenter - (self.size.x / 2f));
+            }
         }
     }
 }

@@ -73,6 +73,8 @@ namespace ExpeditionRegionSupport.Interface
             MainPage.AddSubObject(CreateButton("Reload Expedition Files", ExpeditionSignal.RELOAD_MOD_FILES, spacer, ref firstHandled));
             MainPage.AddSubObject(CreateButton("Restore Defaults", ExpeditionSignal.RESTORE_DEFAULTS, spacer, ref firstHandled));
             MainPage.AddSubObject(CreateButton("Customize Spawns", ExpeditionSignal.OPEN_SPAWN_DIALOG, spacer, ref firstHandled));
+
+            UpdateButtonSize();
         }
 
         public SimpleButton CreateButton(string buttonTextRaw, string signalText, PositionSpacer spacer, ref bool firstHandled)
@@ -104,7 +106,29 @@ namespace ExpeditionRegionSupport.Interface
             button.nextSelectable[0] = button;
             button.nextSelectable[2] = button;
 
+            button.GetCWT().CenterInParent = true; //Keeps button position correct on resize
+
             return button;
+        }
+
+        public void UpdateButtonSize()
+        {
+            float highestWidth = 0f;
+            List<SimpleButton> buttons = new List<SimpleButton>();
+
+            foreach (MenuObject obj in MainPage.subObjects)
+            {
+                SimpleButton button = obj as SimpleButton;
+
+                if (button != null && button != cancelButton)
+                {
+                    highestWidth = Mathf.Max(highestWidth, button.size.x);
+                    buttons.Add(button);
+                }
+            }
+
+            foreach (SimpleButton button in buttons)
+                button.SetSize(new Vector2(highestWidth, button.size.y));
         }
 
         public void InitializeCheckBoxes()
