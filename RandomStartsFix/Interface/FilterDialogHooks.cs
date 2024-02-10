@@ -258,6 +258,7 @@ namespace ExpeditionRegionSupport.Interface
             {
                 var cwt = dialog.GetCWT();
 
+                dialog.pageTitle.x = 683f; //720f doesn't work anymore, and I'm not sure why it worked in the first place
                 dialog.container.AddChild(cwt.Page.Container);
 
                 //Replace the reference, so that mods will add to the new reference instead
