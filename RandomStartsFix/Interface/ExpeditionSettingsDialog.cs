@@ -22,6 +22,16 @@ namespace ExpeditionRegionSupport.Interface
 
         #region InitStrings
 
+        /// <summary>
+        /// The common distance between two vertically adjacent selectables 
+        /// </summary>
+        public const float VERTICAL_PADDING = 10f;
+
+        /// <summary>
+        /// The height of a SimpleButton in this dialog
+        /// </summary>
+        public const float BUTTON_HEIGHT = 35f;
+
         public readonly string HeaderText = "SETTINGS";
         public readonly string SubHeaderText = "Region filter";
 
@@ -118,9 +128,26 @@ namespace ExpeditionRegionSupport.Interface
 
         public void InitializeButtons()
         {
-            MainPage.AddSubObject(CreateButton("Reload Expedition Files", ExpeditionSignal.RELOAD_MOD_FILES, new Vector2(683f, 240f)));
-            MainPage.AddSubObject(CreateButton("Restore Defaults", ExpeditionSignal.RESTORE_DEFAULTS, new Vector2(683f, 200f)));
-            MainPage.AddSubObject(CreateButton("Customize Spawns", ExpeditionSignal.OPEN_SPAWN_DIALOG, new Vector2(683f, 160f)));
+            PositionSpacer spacer = new PositionSpacer(new Vector2(683f, 265f), BUTTON_HEIGHT, VERTICAL_PADDING);
+
+            bool firstHandled = false;
+            MainPage.AddSubObject(CreateButton("Reload Expedition Files", ExpeditionSignal.RELOAD_MOD_FILES, spacer, ref firstHandled));
+            MainPage.AddSubObject(CreateButton("Restore Defaults", ExpeditionSignal.RESTORE_DEFAULTS, spacer, ref firstHandled));
+            MainPage.AddSubObject(CreateButton("Customize Spawns", ExpeditionSignal.OPEN_SPAWN_DIALOG, spacer, ref firstHandled));
+        }
+
+        public SimpleButton CreateButton(string buttonTextRaw, string signalText, PositionSpacer spacer, ref bool firstHandled)
+        {
+            Vector2 buttonPos = firstHandled ? spacer.NextPosition : spacer.CurrentPosition;
+
+            try
+            {
+                return CreateButton(buttonTextRaw, signalText, buttonPos);
+            }
+            finally
+            {
+                firstHandled = true;
+            }
         }
 
         public SimpleButton CreateButton(string buttonTextRaw, string signalText, Vector2 pos)
@@ -132,7 +159,7 @@ namespace ExpeditionRegionSupport.Interface
 
             //Creates a button aligned vertically in the center of the screen
             SimpleButton button = new SimpleButton(this, MainPage, buttonTextTranslated, signalText,
-                         new Vector2(pos.x - (buttonWidth / 2f), pos.y), new Vector2(buttonWidth, 35f)); //pos, size
+                         new Vector2(pos.x - (buttonWidth / 2f), pos.y), new Vector2(buttonWidth, BUTTON_HEIGHT)); //pos, size
 
             //A next selectable doesn't exist for these directions
             button.nextSelectable[0] = button;
