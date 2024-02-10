@@ -236,7 +236,6 @@ namespace ExpeditionRegionSupport.Interface
 
                 //Do some cleanup of stuff that was handled in CheckBox constructor
                 box.owner.RecursiveRemoveSelectables(box);
-                box.Container.MoveChildrenToNewContainer(filterBox.Container);
 
                 filters.AddOption(filterBox);
 
