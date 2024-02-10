@@ -137,6 +137,8 @@ namespace ExpeditionRegionSupport.Interface
             regionFilterMoreSlugcats = CreateCheckBox("More Slugcats Regions", ExpeditionSettings.Filters.AllowMoreSlugcatsRegions, 1, "MORE SLUGCATS");
             regionFilterCustom = CreateCheckBox("Custom Regions", ExpeditionSettings.Filters.AllowCustomRegions, 2, "CUSTOM");
             regionFilterVisitedOnly = CreateCheckBox("Visited Regions Only", ExpeditionSettings.Filters.VisitedRegionsOnly, 3, "VISITED ONLY", true);
+
+            regionFilterVisitedOnly.FilterImmune = true;
         }
 
         public FilterCheckBox CreateCheckBox(string labelText, SimpleToggle optionState, int checkBoxIndex, string checkBoxIDString, bool isLastCheckBox = false)
