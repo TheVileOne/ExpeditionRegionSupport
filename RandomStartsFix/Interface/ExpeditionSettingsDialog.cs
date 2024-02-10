@@ -143,26 +143,11 @@ namespace ExpeditionRegionSupport.Interface
 
         public FilterCheckBox CreateCheckBox(string labelText, SimpleToggle optionState, int checkBoxIndex, string checkBoxIDString, bool isLastCheckBox = false)
         {
-            Vector2 defaultLabelPosition = new Vector2(553, 590);
-            Vector2 defaultCheckBoxPosition = new Vector2(793, 577);
-            //Vector2 defaultDividerPosition = new Vector2(684 - leftAnchor, 571);
-
             float checkBoxHeight = 37f * checkBoxIndex; //This affects how checkboxes stack 
 
-            Vector2 actualLabelPosition = new Vector2(defaultLabelPosition.x, defaultLabelPosition.y - checkBoxHeight);
-            Vector2 actualCheckBoxPosition = new Vector2(defaultCheckBoxPosition.x, defaultCheckBoxPosition.y - checkBoxHeight);
-            //Vector2 actualDividerPosition = new Vector2(defaultDividerPosition.x, defaultDividerPosition.y - checkBoxHeight);
+            Vector2 actualCheckBoxPosition = new Vector2(793f, 577f - checkBoxHeight);
 
-            //TODO: Move inside FilterCheckBox???
-            MenuLabel checkBoxLabel = new MenuLabel(this, MainPage, labelText, actualLabelPosition, default, true, null);
-            checkBoxLabel.label.alignment = FLabelAlignment.Left;
-
-            FilterCheckBox checkBox = new FilterCheckBox(this, CWT.Options, optionState, actualCheckBoxPosition, 0f, string.Empty, checkBoxIDString, false)
-            {
-                label = checkBoxLabel
-            };
-
-            checkBox.AddSubObject(checkBoxLabel);
+            FilterCheckBox checkBox = new FilterCheckBox(this, CWT.Options, optionState, actualCheckBoxPosition, 0f, labelText, checkBoxIDString);
 
             CWT.Options.AddOption(checkBox);
 
@@ -179,18 +164,6 @@ namespace ExpeditionRegionSupport.Interface
             {
                 checkBox.nextSelectable[3] = cancelButton;
                 cancelButton.nextSelectable[1] = checkBox;
-            }
-            else if (checkBoxIndex > 0)
-            {
-                /*
-                 FSprite dividerSprite = new FSprite("pixel", true);
-
-                 dividerSprite.SetPosition(actualDividerPosition);
-                 dividerSprite.scaleX = 270f;
-                 dividerSprite.color = new Color(0.4f, 0.4f, 0.4f);
-                 container.AddChild(dividerSprite);
-                 dividers.Add(dividerSprite);
-                */
             }
 
             return checkBox;

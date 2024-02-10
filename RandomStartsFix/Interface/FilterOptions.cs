@@ -229,19 +229,35 @@ namespace ExpeditionRegionSupport.Interface
             private set => CheckState.Value = value;
         }
 
-        public FilterCheckBox(Menu.Menu menu, FilterOptions owner, SimpleToggle checkState, Vector2 pos, float textWidth, string displayText, string IDString, bool textOnRight = false) : base(menu, owner, owner, pos, textWidth, displayText, IDString, textOnRight)
+        public FilterCheckBox(Menu.Menu menu, FilterOptions owner, SimpleToggle checkState, Vector2 pos, float textWidth, string displayText, string IDString, bool bigText = true, bool textOnRight = false) : base(menu, owner, owner, pos, textWidth, string.Empty, IDString, textOnRight)
         {
             Owner = owner;
             CheckState = checkState ?? new SimpleToggle(true);
+
+            if (displayText != string.Empty)
+            {
+                MenuLabel filterBoxLabel = new MenuLabel(menu, owner, displayText, label.pos, default, bigText);
+                filterBoxLabel.label.alignment = FLabelAlignment.Left;
+
+                changeLabel(filterBoxLabel);
+            }
         }
 
         public FilterCheckBox(Menu.Menu menu, FilterOptions owner, SimpleToggle checkState, Vector2 pos, MenuLabel label, string IDString) : this(menu, owner, checkState, pos, 0, string.Empty, IDString)
         {
-            this.label.menu = null;
-            this.label.owner = null;
+            changeLabel(label);
+        }
 
-            RemoveSubObject(this.label);
-            this.AddSubObject(this.label = label);
+        /// <summary>
+        /// Changes the existing label with a new label. This is because FilterDialog creates a new MenuLabel instead of using the one created by CheckBox constructor
+        /// </summary>
+        private void changeLabel(MenuLabel newLabel)
+        {
+            label.menu = null;
+            label.owner = null;
+
+            this.RemoveSubObject(label);
+            this.AddSubObject(label = newLabel);
         }
 
         public override void Clicked()
