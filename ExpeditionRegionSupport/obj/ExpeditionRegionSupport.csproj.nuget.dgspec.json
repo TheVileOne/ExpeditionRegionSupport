@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Michael\\source\\repos\\RandomStartsFix\\RandomStartsFix\\ExpeditionRegionSupport.csproj": {}
+    "C:\\Users\\Michael\\source\\repos\\RandomStartsFix\\ExpeditionRegionSupport\\ExpeditionRegionSupport.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Michael\\source\\repos\\RandomStartsFix\\RandomStartsFix\\ExpeditionRegionSupport.csproj": {
+    "C:\\Users\\Michael\\source\\repos\\RandomStartsFix\\ExpeditionRegionSupport\\ExpeditionRegionSupport.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Michael\\source\\repos\\RandomStartsFix\\RandomStartsFix\\ExpeditionRegionSupport.csproj",
+        "projectUniqueName": "C:\\Users\\Michael\\source\\repos\\RandomStartsFix\\ExpeditionRegionSupport\\ExpeditionRegionSupport.csproj",
         "projectName": "ExpeditionRegionSupport",
-        "projectPath": "C:\\Users\\Michael\\source\\repos\\RandomStartsFix\\RandomStartsFix\\ExpeditionRegionSupport.csproj",
+        "projectPath": "C:\\Users\\Michael\\source\\repos\\RandomStartsFix\\ExpeditionRegionSupport\\ExpeditionRegionSupport.csproj",
         "packagesPath": "C:\\Users\\Michael\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Michael\\source\\repos\\RandomStartsFix\\RandomStartsFix\\obj\\",
+        "outputPath": "C:\\Users\\Michael\\source\\repos\\RandomStartsFix\\ExpeditionRegionSupport\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Michael\\AppData\\Roaming\\NuGet\\NuGet.Config",
