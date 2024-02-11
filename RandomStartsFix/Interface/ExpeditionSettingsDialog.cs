@@ -73,14 +73,20 @@ namespace ExpeditionRegionSupport.Interface
 
         public void InitializeButtons()
         {
+            List<SimpleButton> buttons = new List<SimpleButton>();
+
             PositionSpacer spacer = new PositionSpacer(new Vector2(683f, 265f), BUTTON_HEIGHT, VERTICAL_PADDING);
 
             bool firstHandled = false;
-            MainPage.AddSubObject(reloadFromFileButton = CreateButton("Reload Expedition Files", ExpeditionSignal.RELOAD_MOD_FILES, spacer, ref firstHandled));
-            MainPage.AddSubObject(cancelChangesButton = CreateButton("Restore Defaults", ExpeditionSignal.RESTORE_DEFAULTS, spacer, ref firstHandled));
-            MainPage.AddSubObject(customizeSpawnsButton = CreateButton("Customize Spawns", ExpeditionSignal.OPEN_SPAWN_DIALOG, spacer, ref firstHandled));
+            buttons.Add(reloadFromFileButton = CreateButton("Reload Expedition Files", ExpeditionSignal.RELOAD_MOD_FILES, spacer, ref firstHandled));
+            buttons.Add(cancelChangesButton = CreateButton("Restore Defaults", ExpeditionSignal.RESTORE_DEFAULTS, spacer, ref firstHandled));
+            buttons.Add(customizeSpawnsButton = CreateButton("Customize Spawns", ExpeditionSignal.OPEN_SPAWN_DIALOG, spacer, ref firstHandled));
+
+            buttons.ForEach(MainPage.AddSubObject);
 
             UpdateButtonSize();
+
+            MenuUtils.SetSelectables(buttons, CWT.Options.Boxes.Last(), cancelButton);
         }
 
         public SimpleButton CreateButton(string buttonTextRaw, string signalText, PositionSpacer spacer, ref bool firstHandled)
@@ -156,15 +162,7 @@ namespace ExpeditionRegionSupport.Interface
             regionFilterVisitedOnly.FilterImmune = true;
             shelterDetectionCheckBox.FilterImmune = true;
 
-            FilterCheckBox firstOption = options.Boxes.First();
-            FilterCheckBox lastOption = options.Boxes.Last();
-
-            //Update keyboard navigation out of FilterOptions
-            firstOption.nextSelectable[1] = cancelButton;
-            lastOption.nextSelectable[3] = cancelButton;
-
-            cancelButton.nextSelectable[3] = firstOption;
-            cancelButton.nextSelectable[1] = lastOption;
+            MenuUtils.SetSelectables(options.Boxes, cancelButton);
         }
 
         public FilterCheckBox CreateCheckBox(string labelText, SimpleToggle optionState, string IDString, PositionSpacer spacer, ref bool firstHandled)
