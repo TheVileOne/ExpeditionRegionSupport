@@ -32,13 +32,17 @@ namespace ExpeditionRegionSupport.Interface
         /// </summary>
         public const float BUTTON_HEIGHT = 35f;
 
+        /// <summary>
+        /// The height of a CheckBox in this dialog
+        /// </summary>
+        public const float CHECKBOX_HEIGHT = 35f;
+
         public readonly string HeaderText = "SETTINGS";
         public readonly string SubHeaderText = "Region filter";
 
         #endregion
 
-        private CheckBox shelterDetectionCheckBox;
-        private SimpleButton restoreDefaultButton;
+        private SimpleButton cancelChangesButton;
         private SimpleButton reloadFromFileButton;
         private SimpleButton customizeSpawnsButton;
 
@@ -46,6 +50,8 @@ namespace ExpeditionRegionSupport.Interface
         private FilterCheckBox regionFilterMoreSlugcats;
         private FilterCheckBox regionFilterCustom;
         private FilterCheckBox regionFilterVisitedOnly;
+
+        private FilterCheckBox shelterDetectionCheckBox;
 
         //TODO:
         //Show custom regions available in Expedition?
@@ -70,9 +76,9 @@ namespace ExpeditionRegionSupport.Interface
             PositionSpacer spacer = new PositionSpacer(new Vector2(683f, 265f), BUTTON_HEIGHT, VERTICAL_PADDING);
 
             bool firstHandled = false;
-            MainPage.AddSubObject(CreateButton("Reload Expedition Files", ExpeditionSignal.RELOAD_MOD_FILES, spacer, ref firstHandled));
-            MainPage.AddSubObject(CreateButton("Restore Defaults", ExpeditionSignal.RESTORE_DEFAULTS, spacer, ref firstHandled));
-            MainPage.AddSubObject(CreateButton("Customize Spawns", ExpeditionSignal.OPEN_SPAWN_DIALOG, spacer, ref firstHandled));
+            MainPage.AddSubObject(reloadFromFileButton = CreateButton("Reload Expedition Files", ExpeditionSignal.RELOAD_MOD_FILES, spacer, ref firstHandled));
+            MainPage.AddSubObject(cancelChangesButton = CreateButton("Restore Defaults", ExpeditionSignal.RESTORE_DEFAULTS, spacer, ref firstHandled));
+            MainPage.AddSubObject(customizeSpawnsButton = CreateButton("Customize Spawns", ExpeditionSignal.OPEN_SPAWN_DIALOG, spacer, ref firstHandled));
 
             UpdateButtonSize();
         }
@@ -133,38 +139,55 @@ namespace ExpeditionRegionSupport.Interface
 
         public void InitializeCheckBoxes()
         {
-            regionFilterVanilla = CreateCheckBox("Vanilla Regions", ExpeditionSettings.Filters.AllowVanillaRegions, 0, "VANILLA");
-            regionFilterMoreSlugcats = CreateCheckBox("More Slugcats Regions", ExpeditionSettings.Filters.AllowMoreSlugcatsRegions, 1, "MORE SLUGCATS");
-            regionFilterCustom = CreateCheckBox("Custom Regions", ExpeditionSettings.Filters.AllowCustomRegions, 2, "CUSTOM");
-            regionFilterVisitedOnly = CreateCheckBox("Visited Regions Only", ExpeditionSettings.Filters.VisitedRegionsOnly, 3, "VISITED ONLY", true);
+            FilterOptions options = CWT.Options;
+
+            PositionSpacer spacer = new PositionSpacer(new Vector2(793f, 577f), CHECKBOX_HEIGHT, 2f);
+
+            bool firstHandled = false;
+            options.AddOption(regionFilterVanilla = CreateCheckBox("Vanilla Regions", ExpeditionSettings.Filters.AllowVanillaRegions, "VANILLA", spacer, ref firstHandled));
+            options.AddOption(regionFilterMoreSlugcats = CreateCheckBox("More Slugcats Regions", ExpeditionSettings.Filters.AllowMoreSlugcatsRegions, "MORE SLUGCATS", spacer, ref firstHandled));
+            options.AddOption(regionFilterCustom = CreateCheckBox("Custom Regions", ExpeditionSettings.Filters.AllowCustomRegions, "CUSTOM", spacer, ref firstHandled));
+            options.AddOption(regionFilterVisitedOnly = CreateCheckBox("Visited Regions Only", ExpeditionSettings.Filters.VisitedRegionsOnly, "VISITED ONLY", spacer, ref firstHandled));
+
+            Vector2 nextPos = spacer.NextPosition - new Vector2(0, 80f);
+
+            options.AddOption(shelterDetectionCheckBox = CreateCheckBox("Enable Shelter Detection", ExpeditionSettings.DetectShelterSpawns, "SHELTER_DETECTION", nextPos));
 
             regionFilterVisitedOnly.FilterImmune = true;
+            shelterDetectionCheckBox.FilterImmune = true;
+
+            FilterCheckBox firstOption = options.Boxes.First();
+            FilterCheckBox lastOption = options.Boxes.Last();
+
+            //Update keyboard navigation out of FilterOptions
+            firstOption.nextSelectable[1] = cancelButton;
+            lastOption.nextSelectable[3] = cancelButton;
+
+            cancelButton.nextSelectable[3] = firstOption;
+            cancelButton.nextSelectable[1] = lastOption;
         }
 
-        public FilterCheckBox CreateCheckBox(string labelText, SimpleToggle optionState, int checkBoxIndex, string checkBoxIDString, bool isLastCheckBox = false)
+        public FilterCheckBox CreateCheckBox(string labelText, SimpleToggle optionState, string IDString, PositionSpacer spacer, ref bool firstHandled)
         {
-            float checkBoxHeight = 37f * checkBoxIndex; //This affects how checkboxes stack 
+            Vector2 checkBoxPos = firstHandled ? spacer.NextPosition : spacer.CurrentPosition;
 
-            Vector2 actualCheckBoxPosition = new Vector2(793f, 577f - checkBoxHeight);
+            try
+            {
+                return CreateCheckBox(labelText, optionState, IDString, checkBoxPos);
+            }
+            finally
+            {
+                firstHandled = true;
+            }
+        }
 
-            FilterCheckBox checkBox = new FilterCheckBox(this, CWT.Options, optionState, actualCheckBoxPosition, 0f, labelText, checkBoxIDString);
+        public FilterCheckBox CreateCheckBox(string labelText, SimpleToggle optionState, string IDString, Vector2 pos)
+        {
+            FilterCheckBox checkBox = new FilterCheckBox(this, CWT.Options, optionState, pos, 0f, labelText, IDString);
 
-            CWT.Options.AddOption(checkBox);
-
-            //Handle control navigation
+            //A next selectable doesn't exist for these directions
             checkBox.nextSelectable[0] = checkBox;
             checkBox.nextSelectable[2] = checkBox;
-            if (checkBoxIndex == 0)
-            {
-                checkBox.nextSelectable[1] = cancelButton;
-                cancelButton.nextSelectable[3] = checkBox;
-            }
-
-            if (isLastCheckBox)
-            {
-                checkBox.nextSelectable[3] = cancelButton;
-                cancelButton.nextSelectable[1] = checkBox;
-            }
 
             return checkBox;
         }
