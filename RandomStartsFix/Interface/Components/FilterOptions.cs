@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace ExpeditionRegionSupport.Interface
+namespace ExpeditionRegionSupport.Interface.Components
 {
     public class FilterOptions : PositionedMenuObject, CheckBox.IOwnCheckBox
     {
@@ -192,7 +192,7 @@ namespace ExpeditionRegionSupport.Interface
                 pendingDivider = null;
 
                 //Reset Y positions for all dividers
-                for(int i = 0; i< Dividers.Count;  i++)
+                for (int i = 0; i < Dividers.Count; i++)
                     Dividers[i].y = 571f - 37f * (i + 1); //TODO: Check padding is correct
 
                 //Add any extra dividers as necessary
@@ -210,7 +210,7 @@ namespace ExpeditionRegionSupport.Interface
         }
     }
 
-    public class FilterCheckBox: CheckBox
+    public class FilterCheckBox : CheckBox
     {
         public SimpleToggle CheckState;
         public FilterOptions Owner;
@@ -256,14 +256,14 @@ namespace ExpeditionRegionSupport.Interface
             label.menu = null;
             label.owner = null;
 
-            this.RemoveSubObject(label);
+            RemoveSubObject(label);
             this.AddSubObject(label = newLabel);
         }
 
         public override void Clicked()
         {
             //Check if this option is enabled, and is allowed to be checked on/off
-            if (buttonBehav.greyedOut || (!FilterImmune && !Owner.HasCheckedOptions(this))) return;
+            if (buttonBehav.greyedOut || !FilterImmune && !Owner.HasCheckedOptions(this)) return;
 
             //Invoking base will update the base Checked state, which will notify FilterOptions of the state change.
             //This may not end up actually changing the state due to double-click protection, but currently will be set anyways.
