@@ -74,100 +74,47 @@ namespace ExpeditionRegionSupport.Interface
 
         public void InitializeButtons()
         {
-            List<SimpleButton> buttons = new List<SimpleButton>();
+            SimpleButtonFactory factory = new SimpleButtonFactory(this, MainPage)
+            {
+                Spacer = new PositionSpacer(new Vector2(683f, 265f), SimpleButtonFactory.BUTTON_HEIGHT, VERTICAL_PADDING)
+            };
 
-            PositionSpacer spacer = new PositionSpacer(new Vector2(683f, 265f), BUTTON_HEIGHT, VERTICAL_PADDING);
+            factory.ObjectCreated += (b) => b.GetCWT().CenterInParent = true; //Keeps button position correct on resize
 
-            bool firstHandled = false;
-            buttons.Add(reloadFromFileButton = CreateButton("Reload Expedition Files", ExpeditionSignal.RELOAD_MOD_FILES, spacer, ref firstHandled));
-            buttons.Add(cancelChangesButton = CreateButton("Restore Defaults", ExpeditionSignal.RESTORE_DEFAULTS, spacer, ref firstHandled));
-            buttons.Add(customizeSpawnsButton = CreateButton("Customize Spawns", ExpeditionSignal.OPEN_SPAWN_DIALOG, spacer, ref firstHandled));
+            reloadFromFileButton = factory.Create("Reload Expedition Files", ExpeditionSignal.RELOAD_MOD_FILES);
+            cancelChangesButton = factory.Create("Restore Defaults", ExpeditionSignal.RESTORE_DEFAULTS);
+            customizeSpawnsButton = factory.Create("Customize Spawns", ExpeditionSignal.OPEN_SPAWN_DIALOG);
 
+            List<SimpleButton> buttons = factory.ObjectsCreated;
+            
             buttons.ForEach(MainPage.AddSubObject);
 
             MenuUtils.UpdateButtonSize(buttons, cancelButton);
             MenuUtils.SetSelectables(buttons, CWT.Options.Boxes.Last(), cancelButton);
         }
 
-        public SimpleButton CreateButton(string buttonTextRaw, string signalText, PositionSpacer spacer, ref bool firstHandled)
-        {
-            Vector2 buttonPos = firstHandled ? spacer.NextPosition : spacer.CurrentPosition;
-
-            try
-            {
-                return CreateButton(buttonTextRaw, signalText, buttonPos);
-            }
-            finally
-            {
-                firstHandled = true;
-            }
-        }
-
-        public SimpleButton CreateButton(string buttonTextRaw, string signalText, Vector2 pos)
-        {
-            string buttonTextTranslated = Translate(buttonTextRaw);
-
-            //Adjust button width to accomodate varying translation lengths
-            float buttonWidth = Math.Max(85f, Menu.Remix.MixedUI.LabelTest.GetWidth(buttonTextTranslated, false) + 10f); //+10 is the padding
-
-            //Creates a button aligned vertically in the center of the screen
-            SimpleButton button = new SimpleButton(this, MainPage, buttonTextTranslated, signalText,
-                         new Vector2(pos.x - (buttonWidth / 2f), pos.y), new Vector2(buttonWidth, BUTTON_HEIGHT)); //pos, size
-
-            //A next selectable doesn't exist for these directions
-            button.nextSelectable[0] = button;
-            button.nextSelectable[2] = button;
-
-            button.GetCWT().CenterInParent = true; //Keeps button position correct on resize
-
-            return button;
-        }
-
         public void InitializeCheckBoxes()
         {
             FilterOptions options = CWT.Options;
 
-            PositionSpacer spacer = new PositionSpacer(new Vector2(793f, 577f), CHECKBOX_HEIGHT, 2f);
+            FilterCheckBoxFactory factory = new FilterCheckBoxFactory(this, options, options.Boxes, options.AddOption)
+            {
+                Spacer = new PositionSpacer(new Vector2(793f, 577f), CHECKBOX_HEIGHT, 2f)
+            };
 
-            bool firstHandled = false;
-            options.AddOption(regionFilterVanilla = CreateCheckBox("Vanilla Regions", ExpeditionSettings.Filters.AllowVanillaRegions, "VANILLA", spacer, ref firstHandled));
-            options.AddOption(regionFilterMoreSlugcats = CreateCheckBox("More Slugcats Regions", ExpeditionSettings.Filters.AllowMoreSlugcatsRegions, "MORE SLUGCATS", spacer, ref firstHandled));
-            options.AddOption(regionFilterCustom = CreateCheckBox("Custom Regions", ExpeditionSettings.Filters.AllowCustomRegions, "CUSTOM", spacer, ref firstHandled));
-            options.AddOption(regionFilterVisitedOnly = CreateCheckBox("Visited Regions Only", ExpeditionSettings.Filters.VisitedRegionsOnly, "VISITED ONLY", spacer, ref firstHandled));
+            regionFilterVanilla = factory.Create("Vanilla Regions", ExpeditionSettings.Filters.AllowVanillaRegions, "VANILLA");
+            regionFilterMoreSlugcats = factory.Create("More Slugcats Regions", ExpeditionSettings.Filters.AllowMoreSlugcatsRegions, "MORE SLUGCATS");
+            regionFilterCustom = factory.Create("Custom Regions", ExpeditionSettings.Filters.AllowCustomRegions, "CUSTOM");
+            regionFilterVisitedOnly = factory.Create("Visited Regions Only", ExpeditionSettings.Filters.VisitedRegionsOnly, "VISITED ONLY");
 
-            Vector2 nextPos = spacer.NextPosition - new Vector2(0, 80f);
+            Vector2 nextPos = factory.Spacer.NextPosition - new Vector2(0, 80f);
 
-            options.AddOption(shelterDetectionCheckBox = CreateCheckBox("Enable Shelter Detection", ExpeditionSettings.DetectShelterSpawns, "SHELTER_DETECTION", nextPos));
+            shelterDetectionCheckBox = factory.Create("Enable Shelter Detection", ExpeditionSettings.DetectShelterSpawns, "SHELTER_DETECTION", nextPos);
 
             regionFilterVisitedOnly.FilterImmune = true;
             shelterDetectionCheckBox.FilterImmune = true;
 
             MenuUtils.SetSelectables(options.Boxes, cancelButton);
-        }
-
-        public FilterCheckBox CreateCheckBox(string labelText, SimpleToggle optionState, string IDString, PositionSpacer spacer, ref bool firstHandled)
-        {
-            Vector2 checkBoxPos = firstHandled ? spacer.NextPosition : spacer.CurrentPosition;
-
-            try
-            {
-                return CreateCheckBox(labelText, optionState, IDString, checkBoxPos);
-            }
-            finally
-            {
-                firstHandled = true;
-            }
-        }
-
-        public FilterCheckBox CreateCheckBox(string labelText, SimpleToggle optionState, string IDString, Vector2 pos)
-        {
-            FilterCheckBox checkBox = new FilterCheckBox(this, CWT.Options, optionState, pos, 0f, labelText, IDString);
-
-            //A next selectable doesn't exist for these directions
-            checkBox.nextSelectable[0] = checkBox;
-            checkBox.nextSelectable[2] = checkBox;
-
-            return checkBox;
         }
 
         public override void Singal(MenuObject sender, string signal)

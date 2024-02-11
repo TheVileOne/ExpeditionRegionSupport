@@ -27,7 +27,7 @@ namespace ExpeditionRegionSupport.Interface.Components
         public MenuObject Owner;
 
         public List<T> ObjectsCreated;
-        protected event Action<T> ObjectCreated;
+        public event Action<T> ObjectCreated;
 
         private bool firstHandled = false;
 
