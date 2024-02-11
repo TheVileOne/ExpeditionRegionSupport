@@ -23,21 +23,6 @@ namespace ExpeditionRegionSupport.Interface
 
         #region InitValues
 
-        /// <summary>
-        /// The common distance between two vertically adjacent selectables 
-        /// </summary>
-        public const float VERTICAL_PADDING = 10f;
-
-        /// <summary>
-        /// The height of a SimpleButton in this dialog
-        /// </summary>
-        public const float BUTTON_HEIGHT = 35f;
-
-        /// <summary>
-        /// The height of a CheckBox in this dialog
-        /// </summary>
-        public const float CHECKBOX_HEIGHT = 35f;
-
         public readonly string HeaderText = "SETTINGS";
         public readonly string SubHeaderText = "Region filter";
 
@@ -76,7 +61,7 @@ namespace ExpeditionRegionSupport.Interface
         {
             SimpleButtonFactory factory = new SimpleButtonFactory(this, MainPage)
             {
-                Spacer = new PositionSpacer(new Vector2(683f, 265f), SimpleButtonFactory.BUTTON_HEIGHT, VERTICAL_PADDING)
+                Spacer = new PositionSpacer(new Vector2(683f, 265f), SimpleButtonFactory.BUTTON_HEIGHT, 10f)
             };
 
             factory.ObjectCreated += (b) => b.GetCWT().CenterInParent = true; //Keeps button position correct on resize
@@ -99,7 +84,7 @@ namespace ExpeditionRegionSupport.Interface
 
             FilterCheckBoxFactory factory = new FilterCheckBoxFactory(this, options, options.Boxes, options.AddOption)
             {
-                Spacer = new PositionSpacer(new Vector2(793f, 577f), CHECKBOX_HEIGHT, 2f)
+                Spacer = new PositionSpacer(new Vector2(793f, 577f), FilterCheckBoxFactory.CHECKBOX_HEIGHT, 2f)
             };
 
             regionFilterVanilla = factory.Create("Vanilla Regions", ExpeditionSettings.Filters.AllowVanillaRegions, "VANILLA");

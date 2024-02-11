@@ -102,6 +102,8 @@ namespace ExpeditionRegionSupport.Interface.Components
 
     public class FilterCheckBoxFactory : MenuObjectFactory<FilterCheckBox>
     {
+        public const float CHECKBOX_HEIGHT = 35f;
+
         public FilterCheckBoxFactory(Menu.Menu menu, MenuObject owner, List<FilterCheckBox> listStorage = null, Action<FilterCheckBox> onObjectCreated = null) : base(menu, owner, listStorage, onObjectCreated)
         {
         }
