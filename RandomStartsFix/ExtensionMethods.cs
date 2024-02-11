@@ -80,6 +80,13 @@ namespace Extensions
             self.subObjects.Add(child);
         }
 
+        public static void InitializeSelectionNav(this MenuObject self)
+        {
+            //A next selectable doesn't exist for these directions
+            self.nextSelectable[0] = self;
+            self.nextSelectable[2] = self;
+        }
+
         //MenuLabel
 
         public static void SetColor(this MenuLabel self, Color color)
