@@ -5,11 +5,29 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ExpeditionRegionSupport.Regions.Restrictions;
+using static PlayerProgression.MiscProgressionData;
 
 namespace ExpeditionRegionSupport.Regions
 {
     public static class RegionUtils
     {
+        public static List<string> GetVisitedRegions(RainWorld rainWorld, SlugcatStats.Name slugcat)
+        {
+            List<string> visitedRegions = new List<string>();
+
+            foreach (ConditionalShelterData conditionalShelterData in rainWorld.progression.miscProgressionData.ConditionalShelterDiscovery)
+            {
+                if (conditionalShelterData.checkSlugcatIndex(slugcat))
+                {
+                    string shelterRegion = conditionalShelterData.GetShelterRegion();
+
+                    if (!visitedRegions.Contains(shelterRegion))
+                        visitedRegions.Add(shelterRegion);
+                }
+            }
+            return visitedRegions;
+        }
+
         public static WorldState GetWorldStateFromStoryRegions(SlugcatStats.Name name, string[] storyRegions)
         {
             WorldState state = WorldState.Any;

@@ -31,6 +31,7 @@ namespace ExpeditionRegionSupport
 
         public static bool SlugBaseEnabled;
         public WorldState ActiveWorldState;
+        public List<string> RegionsVisited;
 
         private SimpleButton settingsButton;
 
@@ -149,6 +150,16 @@ namespace ExpeditionRegionSupport
 
         public void SettingsDialog_OnDialogClosed(ExpeditionSettingsDialog sender)
         {
+            if (ExpeditionSettings.Filters.VisitedRegionsOnly.Value)
+                UpdateRegionsVisited(sender.manager.rainWorld);
+
+
+            sender.OnDialogClosed -= SettingsDialog_OnDialogClosed;
+        }
+
+        public void UpdateRegionsVisited(RainWorld rainWorld)
+        {
+            RegionsVisited = RegionUtils.GetVisitedRegions(rainWorld, ExpeditionData.slugcatPlayer);
         }
 
         private void ChallengeSelectPage_StartButton_OnPressDone(On.Menu.ChallengeSelectPage.orig_StartButton_OnPressDone orig, Menu.ChallengeSelectPage self, Menu.Remix.MixedUI.UIfocusable trigger)
