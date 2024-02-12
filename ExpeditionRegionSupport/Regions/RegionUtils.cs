@@ -5,17 +5,36 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ExpeditionRegionSupport.Regions.Restrictions;
-using static PlayerProgression.MiscProgressionData;
 
 namespace ExpeditionRegionSupport.Regions
 {
     public static class RegionUtils
     {
-        public static List<string> GetVisitedRegions(RainWorld rainWorld, SlugcatStats.Name slugcat)
-        {
-            List<string> visitedRegions = new List<string>();
+        public static Dictionary<string, List<string>> RegionsVisited => Plugin.CurrentProgression.miscProgressionData.regionsVisited;
 
-            foreach (ConditionalShelterData conditionalShelterData in rainWorld.progression.miscProgressionData.ConditionalShelterDiscovery)
+        public static bool HasVisitedRegion(SlugcatStats.Name slugcat, string regionCode)
+        {
+            return RegionsVisited[regionCode].Contains(slugcat.value);
+        }
+
+        public static List<string> GetVisitedRegions(SlugcatStats.Name slugcat)
+        {
+            var enumerator = RegionsVisited.GetEnumerator();
+
+            List<string> visitedRegions = new List<string>();
+            while (enumerator.MoveNext())
+            {
+                string regionCode = enumerator.Current.Key;
+                List<string> regionVisitors = enumerator.Current.Value;
+
+                if (regionVisitors.Contains(slugcat.value))
+                    visitedRegions.Add(regionCode);
+            }
+
+            return visitedRegions;
+
+            /*
+            foreach (ConditionalShelterData conditionalShelterData in Plugin.CurrentProgression.miscProgressionData.ConditionalShelterDiscovery)
             {
                 if (conditionalShelterData.checkSlugcatIndex(slugcat))
                 {
@@ -26,6 +45,7 @@ namespace ExpeditionRegionSupport.Regions
                 }
             }
             return visitedRegions;
+            */
         }
 
         public static WorldState GetWorldStateFromStoryRegions(SlugcatStats.Name name, string[] storyRegions)

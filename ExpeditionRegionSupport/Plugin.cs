@@ -15,7 +15,6 @@ using ExpeditionRegionSupport.Settings;
 using Menu;
 using MoreSlugcats;
 using UnityEngine;
-using static PlayerProgression.MiscProgressionData;
 
 namespace ExpeditionRegionSupport
 {
@@ -51,6 +50,10 @@ namespace ExpeditionRegionSupport
                 //User Input
                 On.Menu.ExpeditionMenu.Singal += ExpeditionMenu_Singal;
 
+                //CharacterSelect
+
+                On.Menu.CharacterSelectPage.UpdateSelectedSlugcat += CharacterSelectPage_UpdateSelectedSlugcat;
+
                 //Random Spawn hooks
                 On.Menu.ChallengeSelectPage.StartButton_OnPressDone += ChallengeSelectPage_StartButton_OnPressDone;
                 IL.Menu.ChallengeSelectPage.StartButton_OnPressDone += ChallengeSelectPage_StartButton_OnPressDone;
@@ -73,6 +76,15 @@ namespace ExpeditionRegionSupport
             }
         }
 
+        private void CharacterSelectPage_UpdateSelectedSlugcat(On.Menu.CharacterSelectPage.orig_UpdateSelectedSlugcat orig, CharacterSelectPage self, int slugcatIndex)
+        {
+            SlugcatStats.Name lastSelected = ExpeditionData.slugcatPlayer;
+            orig(self, slugcatIndex);
+
+            if (lastSelected != ExpeditionData.slugcatPlayer && ExpeditionSettings.Filters.VisitedRegionsOnly.Value)
+                UpdateRegionsVisited();
+        }
+
         private void ExpeditionMenu_UpdatePage(On.Menu.ExpeditionMenu.orig_UpdatePage orig, ExpeditionMenu self, int pageIndex)
         {
             orig(self, pageIndex);
@@ -82,14 +94,17 @@ namespace ExpeditionRegionSupport
             self.pages[self.currentPage].subObjects.Add(settingsButton);
         }
 
-        public static PlayerProgression StoredProgression;
+        /// <summary>
+        /// A reference to the PlayerProgression outside of Expedition mode
+        /// </summary>
+        public static PlayerProgression CurrentProgression;
 
         /// <summary>
         /// This hook stores save data needed to validate region spawning, and sets a button for custom dialogue page.
         /// </summary>
         private void ExpeditionMenu_ctor(On.Menu.ExpeditionMenu.orig_ctor orig, ExpeditionMenu self, ProcessManager manager)
         {
-            StoredProgression = manager.rainWorld.progression; //This data is going to be overwritten in the constructor, but this mod still needs access to it.
+            CurrentProgression = manager.rainWorld.progression; //This data is going to be overwritten in the constructor, but this mod still needs access to it.
             orig(self, manager);
 
             float y = (manager.rainWorld.options.ScreenSize.x != 1024f) ? 695f : 728f;
@@ -130,7 +145,6 @@ namespace ExpeditionRegionSupport
         {
             if (message == "SETTINGS")
             {
-                Logger.LogInfo("Showing dialog");
                 try
                 {
                     ExpeditionSettingsDialog settingsDialog = new ExpeditionSettingsDialog(self.manager, self.challengeSelect);
@@ -151,15 +165,19 @@ namespace ExpeditionRegionSupport
         public void SettingsDialog_OnDialogClosed(ExpeditionSettingsDialog sender)
         {
             if (ExpeditionSettings.Filters.VisitedRegionsOnly.Value)
-                UpdateRegionsVisited(sender.manager.rainWorld);
+                UpdateRegionsVisited();
 
 
             sender.OnDialogClosed -= SettingsDialog_OnDialogClosed;
         }
 
-        public void UpdateRegionsVisited(RainWorld rainWorld)
+        public void UpdateRegionsVisited()
         {
-            RegionsVisited = RegionUtils.GetVisitedRegions(rainWorld, ExpeditionData.slugcatPlayer);
+            RegionsVisited = RegionUtils.GetVisitedRegions(ExpeditionData.slugcatPlayer);
+
+            Logger.LogInfo(RegionsVisited.Count + " regions visited detected");
+            foreach (string region in RegionsVisited)
+                Logger.LogInfo(region);
         }
 
         private void ChallengeSelectPage_StartButton_OnPressDone(On.Menu.ChallengeSelectPage.orig_StartButton_OnPressDone orig, Menu.ChallengeSelectPage self, Menu.Remix.MixedUI.UIfocusable trigger)

@@ -503,12 +503,16 @@ namespace ExpeditionRegionSupport.Regions
                     if (restrictions.ProgressionRestriction == ProgressionRequirements.OnVisit)
                     {
                         //Check that player has registered the region in their save data
+                        if (!RegionUtils.HasVisitedRegion(ActiveSlugcat, regionCode))
+                            return true;
+                        
+                        /*
                         List<string> visitorRecord;
-                        if (Plugin.StoredProgression.miscProgressionData.regionsVisited.TryGetValue(regionCode, out visitorRecord)
-                            && visitorRecord.Count == 0)
+                        if (RegionUtils.RegionsVisited.TryGetValue(regionCode, out visitorRecord) && visitorRecord.Count == 0)
                         {
                             return true;
                         }
+                        */
                     }
                     else if (restrictions.ProgressionRestriction == ProgressionRequirements.CampaignFinish)
                     {
