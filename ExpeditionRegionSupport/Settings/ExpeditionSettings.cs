@@ -31,7 +31,7 @@ namespace ExpeditionRegionSupport.Settings
             AllowVanillaRegions = new SimpleToggle(true);
             AllowMoreSlugcatsRegions = new SimpleToggle(true);
             AllowCustomRegions = new SimpleToggle(true);
-            VisitedRegionsOnly = new SimpleToggle(true);
+            VisitedRegionsOnly = new SimpleToggle(false);
             ShelterSpawnsOnly = new SimpleToggle(false);
         }
 
