@@ -39,6 +39,8 @@ namespace ExpeditionRegionSupport.Interface
 
         private FilterCheckBox shelterDetectionCheckBox;
 
+        public event Action<ExpeditionSettingsDialog> OnDialogClosed;
+
         //TODO:
         //Show custom regions available in Expedition?
 
@@ -124,6 +126,9 @@ namespace ExpeditionRegionSupport.Interface
             }
 
             base.Singal(sender, signal);
+
+            if (signal == "CLOSE")
+                OnDialogClosed?.Invoke(this);
         }
     }
 }

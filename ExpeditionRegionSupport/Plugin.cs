@@ -1,6 +1,6 @@
 ﻿using BepInEx;
-using DependencyFlags = BepInEx.BepInDependency.DependencyFlags;
 using BepInEx.Logging;
+using DependencyFlags = BepInEx.BepInDependency.DependencyFlags;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using System;
@@ -8,13 +8,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Expedition;
-using MoreSlugcats;
+using ExpeditionRegionSupport.Interface;
 using ExpeditionRegionSupport.Regions;
 using ExpeditionRegionSupport.Regions.Restrictions;
-using UnityEngine;
-using System.IO;
+using ExpeditionRegionSupport.Settings;
 using Menu;
-using ExpeditionRegionSupport.Interface;
+using MoreSlugcats;
+using UnityEngine;
+using static PlayerProgression.MiscProgressionData;
 
 namespace ExpeditionRegionSupport
 {
@@ -129,12 +130,25 @@ namespace ExpeditionRegionSupport
             if (message == "SETTINGS")
             {
                 Logger.LogInfo("Showing dialog");
-                ExpeditionSettingsDialog settingsDialog = new ExpeditionSettingsDialog(self.manager, self.challengeSelect);
-                self.PlaySound(SoundID.MENU_Player_Join_Game);
-                self.manager.ShowDialog(settingsDialog);
+                try
+                {
+                    ExpeditionSettingsDialog settingsDialog = new ExpeditionSettingsDialog(self.manager, self.challengeSelect);
+                    self.PlaySound(SoundID.MENU_Player_Join_Game);
+                    self.manager.ShowDialog(settingsDialog);
+
+                    settingsDialog.OnDialogClosed += SettingsDialog_OnDialogClosed;
+                }
+                catch(Exception ex)
+                {
+                    Logger.LogError(ex);
+                }
             }
 
             orig(self, sender, message);
+        }
+
+        public void SettingsDialog_OnDialogClosed(ExpeditionSettingsDialog sender)
+        {
         }
 
         private void ChallengeSelectPage_StartButton_OnPressDone(On.Menu.ChallengeSelectPage.orig_StartButton_OnPressDone orig, Menu.ChallengeSelectPage self, Menu.Remix.MixedUI.UIfocusable trigger)
