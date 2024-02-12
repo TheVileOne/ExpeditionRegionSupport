@@ -82,8 +82,11 @@ namespace ExpeditionRegionSupport.Interface
             {
                 self.SetToDefault();
 
-                self.owner.unlocksButton.greyedOut = false;
-                self.owner.startButton.greyedOut = false;
+                if (self.owner != null)
+                {
+                    self.owner.unlocksButton.greyedOut = false;
+                    self.owner.startButton.greyedOut = false;
+                }
 
                 self.pageTitle.RemoveFromContainer();
                 self.manager.StopSideProcess(self);
