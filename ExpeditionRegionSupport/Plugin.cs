@@ -15,6 +15,7 @@ using ExpeditionRegionSupport.Settings;
 using Menu;
 using MoreSlugcats;
 using UnityEngine;
+using ExpeditionRegionSupport.Challenges;
 
 namespace ExpeditionRegionSupport
 {
@@ -30,16 +31,18 @@ namespace ExpeditionRegionSupport
 
         public static bool SlugBaseEnabled;
         public WorldState ActiveWorldState;
-        public List<string> RegionsVisited;
+        public static List<string> RegionsVisited;
 
         private SimpleButton settingsButton;
 
         public void OnEnable()
         {
             Logger = new Logging.Logger(base.Logger);
-            
+
             try
             {
+                ChallengeFilter.ApplyHooks();
+
                 //User Interface
                 On.Menu.ExpeditionMenu.ctor += ExpeditionMenu_ctor;
                 On.Menu.ExpeditionMenu.Update += ExpeditionMenu_Update;
@@ -51,7 +54,6 @@ namespace ExpeditionRegionSupport
                 On.Menu.ExpeditionMenu.Singal += ExpeditionMenu_Singal;
 
                 //CharacterSelect
-
                 On.Menu.CharacterSelectPage.UpdateSelectedSlugcat += CharacterSelectPage_UpdateSelectedSlugcat;
 
                 //Random Spawn hooks
@@ -164,8 +166,13 @@ namespace ExpeditionRegionSupport
 
         public void SettingsDialog_OnDialogClosed(ExpeditionSettingsDialog sender)
         {
+            ChallengeFilter.CurrentFilter = ChallengeFilterOptions.None;
+
             if (ExpeditionSettings.Filters.VisitedRegionsOnly.Value)
+            {
+                ChallengeFilter.CurrentFilter = ChallengeFilterOptions.VisitedRegions;
                 UpdateRegionsVisited();
+            }
 
 
             sender.OnDialogClosed -= SettingsDialog_OnDialogClosed;
