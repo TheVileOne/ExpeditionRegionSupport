@@ -210,7 +210,7 @@ namespace ExpeditionRegionSupport.Interface
         /// This hook isolates the sprite container for a checkbox belonging to a FilterDialog. 
         /// This makes it easier to retrieve any transfer CheckBox sprites into the FilterCheckBox class
         /// </summary>
-        private static void CheckBox_ctor(On.Menu.CheckBox.orig_ctor orig, CheckBox self, Menu.Menu menu, MenuObject owner, CheckBox.IOwnCheckBox reportTo, UnityEngine.Vector2 pos, float textWidth, string displayText, string IDString, bool textOnRight)
+        private static void CheckBox_ctor(On.Menu.CheckBox.orig_ctor orig, CheckBox self, Menu.Menu menu, MenuObject owner, CheckBox.IOwnCheckBox reportTo, Vector2 pos, float textWidth, string displayText, string IDString, bool textOnRight)
         {
             try
             {
