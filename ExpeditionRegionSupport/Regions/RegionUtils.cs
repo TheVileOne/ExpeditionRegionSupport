@@ -14,7 +14,12 @@ namespace ExpeditionRegionSupport.Regions
 
         public static bool HasVisitedRegion(SlugcatStats.Name slugcat, string regionCode)
         {
-            return RegionsVisited[regionCode].Contains(slugcat.value);
+            List<string> visitorList;
+            if (RegionsVisited.TryGetValue(regionCode, out visitorList))
+                return visitorList.Contains(slugcat.value);
+
+            Plugin.Logger.LogInfo("RegionCode detected that isn't part of RegionsVisited dictionary");
+            return false;
         }
 
         public static List<string> GetVisitedRegions(SlugcatStats.Name slugcat)
