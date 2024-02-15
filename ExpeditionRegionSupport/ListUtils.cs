@@ -18,5 +18,24 @@ namespace ExpeditionRegionSupport
             foreach (T item in list)
                 self.Remove(item);
         }
+
+        public class ConstrainedList<T> : List<T>
+        {
+            /// <summary>
+            /// A condition to check against each object added to this list. True adds item to list, false rejects it.
+            /// </summary>
+            public Predicate<T> Constraint;
+
+            public ConstrainedList(Predicate<T> constraint)
+            {
+                Constraint = constraint;
+            }
+
+            public new void Add(T item)
+            {
+                if (Constraint.Invoke(item))
+                    base.Add(item);
+            }
+        }
     }
 }
