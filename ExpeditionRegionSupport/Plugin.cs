@@ -339,10 +339,9 @@ namespace ExpeditionRegionSupport
         {
             Logger = new Logging.Logger("ErsLog", true); //Override BepInEx logger
 
-            ChallengeFilter.ApplyHooks(); //This needs to be handled in PostModsInIt or Expedition.ChallengeTools breaks
-
             orig(self);
 
+            ChallengeFilter.ApplyHooks(); //This needs to be handled in PostModsInIt or Expedition.ChallengeTools breaks
             SlugBaseEnabled = ModManager.ActiveMods.Exists(m => m.id == "slime-cubed.slugbase");
         }
 

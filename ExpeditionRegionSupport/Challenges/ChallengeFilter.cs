@@ -25,18 +25,25 @@ namespace ExpeditionRegionSupport.Challenges
 
         public static void ApplyHooks()
         {
-            IL.Expedition.ChallengeOrganizer.RandomChallenge += ChallengeOrganizer_RandomChallenge;
+            try
+            {
+                IL.Expedition.ChallengeOrganizer.RandomChallenge += ChallengeOrganizer_RandomChallenge;
 
-            On.Expedition.EchoChallenge.Generate += EchoChallenge_Generate;
-            IL.Expedition.EchoChallenge.Generate += EchoChallenge_Generate;
+                On.Expedition.EchoChallenge.Generate += EchoChallenge_Generate;
+                IL.Expedition.EchoChallenge.Generate += EchoChallenge_Generate;
 
-            On.Expedition.PearlDeliveryChallenge.Generate += PearlDeliveryChallenge_Generate;
-            IL.Expedition.PearlDeliveryChallenge.Generate += PearlDeliveryChallenge_Generate;
+                On.Expedition.PearlDeliveryChallenge.Generate += PearlDeliveryChallenge_Generate;
+                IL.Expedition.PearlDeliveryChallenge.Generate += PearlDeliveryChallenge_Generate;
 
-            On.Expedition.NeuronDeliveryChallenge.Generate += NeuronDeliveryChallenge_Generate;
+                On.Expedition.NeuronDeliveryChallenge.Generate += NeuronDeliveryChallenge_Generate;
 
-            On.Expedition.PearlHoardChallenge.Generate += PearlHoardChallenge_Generate;
-            IL.Expedition.PearlHoardChallenge.Generate += PearlHoardChallenge_Generate;
+                On.Expedition.PearlHoardChallenge.Generate += PearlHoardChallenge_Generate;
+                IL.Expedition.PearlHoardChallenge.Generate += PearlHoardChallenge_Generate;
+            }
+            catch (Exception ex)
+            {
+                Plugin.Logger.LogError(ex);
+            }
         }
 
         private static void ChallengeOrganizer_RandomChallenge(ILContext il)
