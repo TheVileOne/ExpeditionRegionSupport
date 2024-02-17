@@ -41,8 +41,6 @@ namespace ExpeditionRegionSupport
 
             try
             {
-                ChallengeFilter.ApplyHooks();
-
                 //User Interface
                 On.Menu.ExpeditionMenu.ctor += ExpeditionMenu_ctor;
                 On.Menu.ExpeditionMenu.Update += ExpeditionMenu_Update;
@@ -340,6 +338,8 @@ namespace ExpeditionRegionSupport
         private void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)
         {
             Logger = new Logging.Logger("ErsLog", true); //Override BepInEx logger
+
+            ChallengeFilter.ApplyHooks(); //This needs to be handled in PostModsInIt or Expedition.ChallengeTools breaks
 
             orig(self);
 
