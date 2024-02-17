@@ -24,8 +24,36 @@ namespace ExpeditionRegionSupport.Challenges
 
         public static void ApplyHooks()
         {
+            IL.Expedition.ChallengeOrganizer.RandomChallenge += ChallengeOrganizer_RandomChallenge;
+
             On.Expedition.EchoChallenge.Generate += EchoChallenge_Generate;
             IL.Expedition.EchoChallenge.Generate += EchoChallenge_Generate;
+        }
+
+        private static void ChallengeOrganizer_RandomChallenge(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+            int outputIndex;
+
+            cursor.GotoNext(MoveType.After, x => x.MatchCallOrCallvirt<Challenge>(nameof(Challenge.Generate)));
+            outputIndex = cursor.Index; //Record the index where Generate pushes something onto the stack
+            cursor.GotoPrev(MoveType.After, x => x.MatchBlt(out _)); //This is before Generate is called
+            
+            ILLabel runGenerateAgain = cursor.MarkLabel();
+            cursor.Index = outputIndex;
+            cursor.Emit(OpCodes.Dup); 
+            cursor.BranchStart(OpCodes.Brtrue); //Branch if Generate doesn't return null
+
+            //A null return most likely means we cannot pick this Challenge type with current filter settings.
+            //Remove Challenge type from list and try again
+            cursor.EmitReference(FilterTarget);
+            cursor.Emit(OpCodes.Ldloc_0); //Push list containing selectable challenges
+
+            MethodInfo removeCall = typeof(List<Challenge>).GetMethod("Remove", new Type[] { typeof(Challenge) });
+            cursor.Emit(OpCodes.Callvirt, removeCall);
+            cursor.Emit(OpCodes.Br, runGenerateAgain);
+            cursor.BranchFinish();
+            
         }
 
         private static Challenge EchoChallenge_Generate(On.Expedition.EchoChallenge.orig_Generate orig, EchoChallenge self)
@@ -44,7 +72,7 @@ namespace ExpeditionRegionSupport.Challenges
             }
             finally
             {
-                FilterTarget = null;
+                //FilterTarget = null;
             }
         }
 
