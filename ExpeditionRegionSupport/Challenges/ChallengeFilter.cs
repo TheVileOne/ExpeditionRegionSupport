@@ -32,6 +32,8 @@ namespace ExpeditionRegionSupport.Challenges
 
             On.Expedition.PearlDeliveryChallenge.Generate += PearlDeliveryChallenge_Generate;
             IL.Expedition.PearlDeliveryChallenge.Generate += PearlDeliveryChallenge_Generate;
+
+            On.Expedition.NeuronDeliveryChallenge.Generate += NeuronDeliveryChallenge_Generate;
         }
 
         private static void ChallengeOrganizer_RandomChallenge(ILContext il)
@@ -151,6 +153,17 @@ namespace ExpeditionRegionSupport.Challenges
             cursor.Emit(OpCodes.Ldnull); //Return null to indicate that no challenges of the current type can be chosen
             cursor.Emit(OpCodes.Ret);
             cursor.BranchFinish();
+        }
+
+        private static Challenge NeuronDeliveryChallenge_Generate(On.Expedition.NeuronDeliveryChallenge.orig_Generate orig, NeuronDeliveryChallenge self)
+        {
+            FilterTarget = self;
+
+            //If player has not visited Shoreline, or Five Pebbles, this challenge type cannot be chosen
+            if (CurrentFilter == ChallengeFilterOptions.VisitedRegions && (!Plugin.RegionsVisited.Contains("SL") || !Plugin.RegionsVisited.Contains("SS")))
+                return null;
+
+            return orig(self);
         }
 
         private static void applyEchoChallengeFilter(List<string> allowedRegions)
