@@ -30,7 +30,7 @@ namespace ExpeditionRegionSupport
         public static new Logging.Logger Logger;
 
         public static bool SlugBaseEnabled;
-        public WorldState ActiveWorldState;
+        public static WorldState ActiveWorldState;
         public static List<string> RegionsVisited;
 
         private SimpleButton settingsButton;
@@ -83,8 +83,13 @@ namespace ExpeditionRegionSupport
             SlugcatStats.Name lastSelected = ExpeditionData.slugcatPlayer;
             orig(self, slugcatIndex);
 
-            if (lastSelected != ExpeditionData.slugcatPlayer && ExpeditionSettings.Filters.VisitedRegionsOnly.Value)
-                UpdateRegionsVisited();
+            if (lastSelected != ExpeditionData.slugcatPlayer)
+            {
+                ActiveWorldState = RegionUtils.GetWorldStateFromStoryRegions(ExpeditionData.slugcatPlayer);
+
+                if (ExpeditionSettings.Filters.VisitedRegionsOnly.Value)
+                    UpdateRegionsVisited();
+            }
         }
 
         private void ExpeditionMenu_UpdatePage(On.Menu.ExpeditionMenu.orig_UpdatePage orig, ExpeditionMenu self, int pageIndex)
@@ -189,7 +194,7 @@ namespace ExpeditionRegionSupport
 
         private void ChallengeSelectPage_StartButton_OnPressDone(On.Menu.ChallengeSelectPage.orig_StartButton_OnPressDone orig, Menu.ChallengeSelectPage self, Menu.Remix.MixedUI.UIfocusable trigger)
         {
-            ActiveWorldState = RegionUtils.GetWorldStateFromStoryRegions(ExpeditionData.slugcatPlayer, SlugcatStats.getSlugcatStoryRegions(ExpeditionData.slugcatPlayer));
+            ActiveWorldState = RegionUtils.GetWorldStateFromStoryRegions(ExpeditionData.slugcatPlayer);
 
             Logger.LogInfo("WS " + ActiveWorldState);
 

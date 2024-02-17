@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Expedition;
+using ExpeditionRegionSupport.Regions;
 using Extensions;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -28,6 +29,9 @@ namespace ExpeditionRegionSupport.Challenges
 
             On.Expedition.EchoChallenge.Generate += EchoChallenge_Generate;
             IL.Expedition.EchoChallenge.Generate += EchoChallenge_Generate;
+
+            On.Expedition.PearlDeliveryChallenge.Generate += PearlDeliveryChallenge_Generate;
+            IL.Expedition.PearlDeliveryChallenge.Generate += PearlDeliveryChallenge_Generate;
         }
 
         private static void ChallengeOrganizer_RandomChallenge(ILContext il)
@@ -70,10 +74,6 @@ namespace ExpeditionRegionSupport.Challenges
                 Plugin.Logger.LogWarning("Filter encountered an IndexOutOfRangeException");
                 return null; //Return null to indicate that no challenges of the current type can be chosen
             }
-            finally
-            {
-                //FilterTarget = null;
-            }
         }
 
         private static void EchoChallenge_Generate(ILContext il)
@@ -87,7 +87,7 @@ namespace ExpeditionRegionSupport.Challenges
             cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to end of loop
             cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //After end of loop
 
-            cursor.Emit(OpCodes.Ldloc_0); //Push list of echo region options on the stack
+            cursor.Emit(OpCodes.Ldloc_0); //Push list of region codes available for selection onto stack
             cursor.EmitDelegate(applyEchoChallengeFilter);
 
             //Handle list post filter. An empty list will throw an exception
@@ -101,12 +101,72 @@ namespace ExpeditionRegionSupport.Challenges
             cursor.BranchFinish();
         }
 
-        private static void applyEchoChallengeFilter(List<string> echoRegions)
+        private static Challenge PearlDeliveryChallenge_Generate(On.Expedition.PearlDeliveryChallenge.orig_Generate orig, PearlDeliveryChallenge self)
+        {
+            FilterTarget = self;
+
+            try
+            {
+                return orig(self);
+            }
+            catch (IndexOutOfRangeException)
+            {
+                //This will trigger if the list is empty, and some mod didn't check the list count after applying a mod-specific filter
+                Plugin.Logger.LogWarning("Filter encountered an IndexOutOfRangeException");
+                return null; //Return null to indicate that no challenges of the current type can be chosen
+            }
+        }
+
+        private static void PearlDeliveryChallenge_Generate(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            //Apply filter logic
+
+            cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to end of loop
+            cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //After end of loop
+
+            cursor.Emit(OpCodes.Ldloc_1); //Push list of region codes available for selection onto stack
+            cursor.EmitDelegate(applyPearlDeliveryChallengeFilter);
+
+
+            //Handle list post filter. An empty list will throw an exception
+
+            cursor.Emit(OpCodes.Ldloc_1); //Push list back on the stack to check its count
+            cursor.EmitDelegate<Func<List<string>, bool>>((allowedRegions) =>
+            {
+                if (CurrentFilter == ChallengeFilterOptions.VisitedRegions)
+                {
+                    string deliveryRegion = RegionUtils.GetPearlDeliveryRegion(Plugin.ActiveWorldState);
+
+                    //We cannot choose this challenge type if we haven't visited the delivery region yet
+                    if (!allowedRegions.Contains(deliveryRegion))
+                        return false;
+
+                    return allowedRegions.Count > 0;
+                }
+                return true;
+            });
+            cursor.BranchStart(OpCodes.Brtrue); //Branch to main logic, or any additional mod-specific filters when list isn't empty
+            cursor.Emit(OpCodes.Ldnull); //Return null to indicate that no challenges of the current type can be chosen
+            cursor.Emit(OpCodes.Ret);
+            cursor.BranchFinish();
+        }
+
+        private static void applyEchoChallengeFilter(List<string> allowedRegions)
         {
             if (!HasFilter) return;
 
             if (CurrentFilter == ChallengeFilterOptions.VisitedRegions)
-                echoRegions.RemoveAll(r => !Plugin.RegionsVisited.Contains(r));
+                allowedRegions.RemoveAll(r => !Plugin.RegionsVisited.Contains(r));
+        }
+
+        private static void applyPearlDeliveryChallengeFilter(List<string> allowedRegions)
+        {
+            if (!HasFilter) return;
+
+            if (CurrentFilter == ChallengeFilterOptions.VisitedRegions)
+                allowedRegions.RemoveAll(r => !Plugin.RegionsVisited.Contains(r));
         }
     }
 

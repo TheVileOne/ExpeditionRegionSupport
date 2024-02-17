@@ -53,8 +53,16 @@ namespace ExpeditionRegionSupport.Regions
             */
         }
 
-        public static WorldState GetWorldStateFromStoryRegions(SlugcatStats.Name name, string[] storyRegions)
+        public static string GetPearlDeliveryRegion(WorldState state)
         {
+            return state != WorldState.Artificer ? "SL" : "SS";
+        }
+
+        public static WorldState GetWorldStateFromStoryRegions(SlugcatStats.Name name, string[] storyRegions = null)
+        {
+            if (storyRegions == null)
+                storyRegions = SlugcatStats.getSlugcatStoryRegions(name);
+
             WorldState state = WorldState.Any;
 
             if (ModManager.MSC)
