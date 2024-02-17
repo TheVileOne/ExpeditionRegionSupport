@@ -84,13 +84,9 @@ namespace ExpeditionRegionSupport.Challenges
 
             //Apply filter logic
 
-            cursor.GotoNext(MoveType.After, //Move us closer to loop process code
-                x => x.MatchAdd(),
-                x => x.MatchStloc(2),
-                x => x.MatchLdloc(2));
-            cursor.GotoNext(MoveType.After, //Move to after loop finishes
-                x => x.MatchCallOrCallvirt(getCountMethod),
-                x => x.Match(OpCodes.Blt));
+            cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to end of loop
+            cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //After end of loop
+
             cursor.Emit(OpCodes.Ldloc_0); //Push list of echo region options on the stack
             cursor.EmitDelegate(applyEchoChallengeFilter);
 
