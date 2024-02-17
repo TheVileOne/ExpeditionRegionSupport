@@ -34,6 +34,9 @@ namespace ExpeditionRegionSupport.Challenges
             IL.Expedition.PearlDeliveryChallenge.Generate += PearlDeliveryChallenge_Generate;
 
             On.Expedition.NeuronDeliveryChallenge.Generate += NeuronDeliveryChallenge_Generate;
+
+            On.Expedition.PearlHoardChallenge.Generate += PearlHoardChallenge_Generate;
+            IL.Expedition.PearlHoardChallenge.Generate += PearlHoardChallenge_Generate;
         }
 
         private static void ChallengeOrganizer_RandomChallenge(ILContext il)
@@ -131,7 +134,6 @@ namespace ExpeditionRegionSupport.Challenges
             cursor.Emit(OpCodes.Ldloc_1); //Push list of region codes available for selection onto stack
             cursor.EmitDelegate(applyPearlDeliveryChallengeFilter);
 
-
             //Handle list post filter. An empty list will throw an exception
 
             cursor.Emit(OpCodes.Ldloc_1); //Push list back on the stack to check its count
@@ -166,6 +168,56 @@ namespace ExpeditionRegionSupport.Challenges
             return orig(self);
         }
 
+        private static Challenge PearlHoardChallenge_Generate(On.Expedition.PearlHoardChallenge.orig_Generate orig, PearlHoardChallenge self)
+        {
+            FilterTarget = self;
+
+            try
+            {
+                return orig(self);
+            }
+            catch (IndexOutOfRangeException)
+            {
+                //This will trigger if the list is empty, and some mod didn't check the list count after applying a mod-specific filter
+                Plugin.Logger.LogWarning("Filter encountered an IndexOutOfRangeException");
+                return null; //Return null to indicate that no challenges of the current type can be chosen
+            }
+}
+
+        private static void PearlHoardChallenge_Generate(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            MethodInfo getCountMethod = typeof(List<string>).GetMethod("get_Count");
+            List<string> tempStorage = null;
+
+            cursor.GotoNext(MoveType.After, x => x.MatchStloc(1)); //Move to after array assignment
+            cursor.BranchTo(OpCodes.Br, MoveType.Before, //Ignore check for HR. We need to use the list defined there
+                x => x.MatchLdloc(1),
+                x => x.Match(OpCodes.Call));
+            cursor.GotoNext(MoveType.Before, x => x.MatchDup()); //Existing Dup removes HR
+            cursor.Emit(OpCodes.Dup);
+            cursor.EmitDelegate<Func<List<string>, List<string>>>((list) =>
+            {
+                return tempStorage = list;
+            });
+            cursor.EmitDelegate(applyPearlHoardChallengeFilter);
+
+            //Handle list post filter. An empty list will throw an exception
+
+            /*cursor.GotoNext(MoveType.After, //Move to after HR is removed from list
+                x => x.Match(OpCodes.Callvirt),
+                x => x.MatchPop());*/
+            cursor.GotoNext(MoveType.After, x => x.MatchStloc(1)); //Move to after array gets reformed
+            cursor.EmitReference(tempStorage); //Make sure list isn't consumed on the stack, as we need to check its count
+            cursor.Emit(OpCodes.Call, getCountMethod);
+            cursor.Emit(OpCodes.Ldc_I4_0);
+            cursor.BranchStart(OpCodes.Bgt); //Branch to main logic, or any additional mod-specific filters when list isn't empty
+            cursor.Emit(OpCodes.Ldnull); //Return null to indicate that no challenges of the current type can be chosen
+            cursor.Emit(OpCodes.Ret);
+            cursor.BranchFinish();
+        }
+
         private static void applyEchoChallengeFilter(List<string> allowedRegions)
         {
             if (!HasFilter) return;
@@ -175,6 +227,14 @@ namespace ExpeditionRegionSupport.Challenges
         }
 
         private static void applyPearlDeliveryChallengeFilter(List<string> allowedRegions)
+        {
+            if (!HasFilter) return;
+
+            if (CurrentFilter == ChallengeFilterOptions.VisitedRegions)
+                allowedRegions.RemoveAll(r => !Plugin.RegionsVisited.Contains(r));
+        }
+
+        private static void applyPearlHoardChallengeFilter(List<string> allowedRegions)
         {
             if (!HasFilter) return;
 
