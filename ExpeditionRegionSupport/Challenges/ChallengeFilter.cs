@@ -23,10 +23,19 @@ namespace ExpeditionRegionSupport.Challenges
 
         public static bool HasFilter => CurrentFilter != ChallengeFilterOptions.None;
 
+        /// <summary>
+        /// A flag that indicates that not all assignment requests could be processed successfully
+        /// </summary>
+        public static bool FailedToAssign;
+
         public static void ApplyHooks()
         {
             try
             {
+                On.Expedition.ChallengeOrganizer.AssignChallenge += ChallengeOrganizer_AssignChallenge;
+                IL.Expedition.ChallengeOrganizer.AssignChallenge += ChallengeOrganizer_AssignChallenge;
+
+                On.Expedition.ChallengeOrganizer.RandomChallenge += ChallengeOrganizer_RandomChallenge;
                 IL.Expedition.ChallengeOrganizer.RandomChallenge += ChallengeOrganizer_RandomChallenge;
 
                 On.Expedition.EchoChallenge.Generate += EchoChallenge_Generate;
@@ -49,17 +58,46 @@ namespace ExpeditionRegionSupport.Challenges
             }
         }
 
+        private static void ChallengeOrganizer_AssignChallenge(On.Expedition.ChallengeOrganizer.orig_AssignChallenge orig, int slot, bool hidden)
+        {
+            if (FailedToAssign) return;
+
+            orig(slot, hidden);
+        }
+
+        private static Challenge ChallengeOrganizer_RandomChallenge(On.Expedition.ChallengeOrganizer.orig_RandomChallenge orig, bool hidden)
+        {
+            if (FailedToAssign) return null;
+
+            return orig(hidden);
+        }
+
+        private static void ChallengeOrganizer_AssignChallenge(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            cursor.GotoNext(MoveType.After, x => x.MatchStloc(1)); //Move to after challenge is assigned
+            cursor.Emit(OpCodes.Ldloc_1);
+            cursor.BranchStart(OpCodes.Brtrue); //Null check
+            cursor.EmitDelegate<Action>(() => FailedToAssign = true);
+            cursor.Emit(OpCodes.Ret);
+            cursor.BranchFinish();
+        }
+
         private static void ChallengeOrganizer_RandomChallenge(ILContext il)
         {
             ILCursor cursor = new ILCursor(il);
 
-            cursor.GotoNext(MoveType.After, x => x.MatchCallOrCallvirt<Challenge>(nameof(Challenge.Generate)));
-            int outputIndex = cursor.Index; //Record the index where Generate pushes something onto the stack
-
-            cursor.GotoPrev(MoveType.After, x => x.MatchBlt(out _));
+            cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to end of loop
+            cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //After end of loop
 
             ILLabel runGenerateAgain = cursor.MarkLabel();
-            cursor.Index = outputIndex;
+
+            cursor.Emit(OpCodes.Ldloc_0); //Push list of challenge types onto stack
+            applyEmptyListHandling<Challenge>(cursor);
+
+            while (cursor.TryGotoNext(MoveType.Before, x => x.MatchRet())) //Find the last return
+
             cursor.Emit(OpCodes.Dup);
             cursor.BranchStart(OpCodes.Brtrue); //Null check Challenge gen - This means challenge type cannot be selected
 
@@ -110,7 +148,7 @@ namespace ExpeditionRegionSupport.Challenges
             //Handle list post filter. An empty list will throw an exception
 
             cursor.Emit(OpCodes.Ldloc_0); //Push list back on the stack to check its count
-            applyEmptyListHandling(cursor);
+            applyEmptyListHandling<string>(cursor);
         }
 
         private static Challenge PearlDeliveryChallenge_Generate(On.Expedition.PearlDeliveryChallenge.orig_Generate orig, PearlDeliveryChallenge self)
@@ -210,7 +248,7 @@ namespace ExpeditionRegionSupport.Challenges
             cursor.GotoNext(MoveType.After, x => x.MatchStloc(1)); //Move to after array gets reformed
             cursor.Emit(OpCodes.Ldloc_1); //Push array on the stack
             cursor.EmitDelegate(convertToList); //Convert it to list for type compatibility
-            applyEmptyListHandling(cursor);
+            applyEmptyListHandling<string>(cursor);
         }
 
         private static Challenge VistaChallenge_Generate(On.Expedition.VistaChallenge.orig_Generate orig, VistaChallenge self)
@@ -244,7 +282,7 @@ namespace ExpeditionRegionSupport.Challenges
             //Handle list post filter. An empty list will throw an exception
 
             cursor.Emit(OpCodes.Ldloc_3); //Push list back on the stack to check its count
-            applyEmptyListHandling(cursor);
+            applyEmptyListHandling<string>(cursor);
         }
 
         private static List<string> convertToList(string[] array)
@@ -284,10 +322,10 @@ namespace ExpeditionRegionSupport.Challenges
                 allowedRegions.RemoveAll(r => !Plugin.RegionsVisited.Contains(r.Split('_')[0]));
         }
 
-        private static void applyEmptyListHandling(ILCursor cursor)
+        private static void applyEmptyListHandling<T>(ILCursor cursor)
         {
             //Check that list on the stack has at least one item
-            cursor.Emit(OpCodes.Call, typeof(List<string>).GetMethod("get_Count"));
+            cursor.Emit(OpCodes.Call, typeof(List<T>).GetMethod("get_Count"));
             cursor.Emit(OpCodes.Ldc_I4_0);
 
             //Return null if list is empty
