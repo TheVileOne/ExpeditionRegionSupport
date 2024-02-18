@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Expedition;
 using ExpeditionRegionSupport.Regions;
 using Extensions;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using static ExpeditionRegionSupport.ListUtils;
 
 namespace ExpeditionRegionSupport.Challenges
 {
@@ -49,27 +49,32 @@ namespace ExpeditionRegionSupport.Challenges
         private static void ChallengeOrganizer_RandomChallenge(ILContext il)
         {
             ILCursor cursor = new ILCursor(il);
-            int outputIndex;
 
             cursor.GotoNext(MoveType.After, x => x.MatchCallOrCallvirt<Challenge>(nameof(Challenge.Generate)));
-            outputIndex = cursor.Index; //Record the index where Generate pushes something onto the stack
-            cursor.GotoPrev(MoveType.After, x => x.MatchBlt(out _)); //This is before Generate is called
+            int outputIndex = cursor.Index; //Record the index where Generate pushes something onto the stack
+
+            cursor.GotoPrev(MoveType.After, x => x.MatchBlt(out _));
             
             ILLabel runGenerateAgain = cursor.MarkLabel();
             cursor.Index = outputIndex;
             cursor.Emit(OpCodes.Dup); 
-            cursor.BranchStart(OpCodes.Brtrue); //Branch if Generate doesn't return null
+            cursor.BranchStart(OpCodes.Brtrue); //Null check Challenge gen - This means challenge type cannot be selected
 
-            //A null return most likely means we cannot pick this Challenge type with current filter settings.
-            //Remove Challenge type from list and try again
-            cursor.EmitReference(FilterTarget);
-            cursor.Emit(OpCodes.Ldloc_0); //Push list containing selectable challenges
+            cursor.Emit(OpCodes.Ldloc_0); //Push list containing selectable challenges onto the stack
+            cursor.EmitDelegate(onGenerationFailed);
 
-            MethodInfo removeCall = typeof(List<Challenge>).GetMethod("Remove", new Type[] { typeof(Challenge) });
-            cursor.Emit(OpCodes.Callvirt, removeCall);
             cursor.Emit(OpCodes.Br, runGenerateAgain);
             cursor.BranchFinish();
             
+        }
+
+        /// <summary>
+        /// Handle when a challenge was unable to be selected
+        /// </summary>
+        private static void onGenerationFailed(List<Challenge> availableChallenges)
+        {
+            Plugin.Logger.LogInfo($"Challenge type {FilterTarget.ChallengeName()} could not be selected. Generating another");
+            availableChallenges.Remove(FilterTarget);
         }
 
         private static Challenge EchoChallenge_Generate(On.Expedition.EchoChallenge.orig_Generate orig, EchoChallenge self)
