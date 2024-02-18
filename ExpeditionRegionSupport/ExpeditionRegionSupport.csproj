@@ -7,20 +7,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Reference Include="0Harmony">
-			<HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\BepInEx\core\0Harmony.dll</HintPath>
-		</Reference>
-		<Reference Include="0Harmony20">
-			<HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\BepInEx\core\0Harmony20.dll</HintPath>
-		</Reference>
 		<Reference Include="Assembly-CSharp">
 			<HintPath>..\..\..\..\OneDrive\Desktop\RW Modding\PUBLIC-Assembly-CSharp.dll</HintPath>
 		</Reference>
 		<Reference Include="BepInEx">
 			<HintPath>..\..\..\..\OneDrive\Desktop\RW Modding\BepInEx.dll</HintPath>
-		</Reference>
-		<Reference Include="BepInEx.Harmony">
-			<HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\BepInEx\core\BepInEx.Harmony.dll</HintPath>
 		</Reference>
 		<Reference Include="BepInEx.Preloader">
 			<HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\BepInEx\core\BepInEx.Preloader.dll</HintPath>
@@ -30,18 +21,6 @@
 		</Reference>
 		<Reference Include="Mono.Cecil">
 			<HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\Mono.Cecil.dll</HintPath>
-		</Reference>
-		<Reference Include="Mono.Cecil.Mdb">
-			<HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\Mono.Cecil.Mdb.dll</HintPath>
-		</Reference>
-		<Reference Include="Mono.Cecil.Pdb">
-			<HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\Mono.Cecil.Pdb.dll</HintPath>
-		</Reference>
-		<Reference Include="Mono.Cecil.Rocks">
-			<HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\Mono.Cecil.Rocks.dll</HintPath>
-		</Reference>
-		<Reference Include="MonoMod.Common">
-			<HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\MonoMod.Common.dll</HintPath>
 		</Reference>
 		<Reference Include="MonoMod.RuntimeDetour">
 			<HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\BepInEx\core\MonoMod.RuntimeDetour.dll</HintPath>
