@@ -27,19 +27,17 @@ namespace ExpeditionRegionSupport.Filters
 
     public class NeuronDeliveryChallengeFilter : ChallengeFilter
     {
-        public string DeliveryRegion;
-
         public NeuronDeliveryChallengeFilter(FilterOptions filterID) : base(filterID)
         {
         }
 
         /// <summary>
-        /// Check that delivery region isn't filtered
+        /// Check that delivery regions aren't filtered
         /// </summary>
         /// <returns>Filter state (true means not filtered)</returns>
         public override bool ConditionMet()
         {
-            return !Enabled || Evaluate(DeliveryRegion, true);
+            return !Enabled || (Evaluate("SL", true) && Evaluate("SS", true)); //Both regions must be visited to get this challenge
         }
     }
 }
