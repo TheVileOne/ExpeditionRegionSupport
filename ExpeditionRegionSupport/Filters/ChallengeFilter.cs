@@ -29,7 +29,7 @@ namespace ExpeditionRegionSupport.Filters
     {
         public string DeliveryRegion;
 
-        public NeuronDeliveryChallengeFilter(FilterOptions filterID) : base (filterID)
+        public NeuronDeliveryChallengeFilter(FilterOptions filterID) : base(filterID)
         {
         }
 
@@ -39,7 +39,7 @@ namespace ExpeditionRegionSupport.Filters
         /// <returns>Filter state (true means not filtered)</returns>
         public override bool ConditionMet()
         {
-            return Evaluate(DeliveryRegion, true);
+            return !Enabled || Evaluate(DeliveryRegion, true);
         }
     }
 }

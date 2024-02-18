@@ -53,6 +53,8 @@ namespace ExpeditionRegionSupport.Filters
         /// <param name="valueModifier">A function used to apply formatting to a value</param>
         public virtual void Apply(List<T> allowedItems, Func<T, T> valueModifier = null)
         {
+            if (!Enabled) return;
+
             //Determines if we check if Compare reference contains or does not contain an item
             bool compareCondition = Criteria != FilterCriteria.MustExclude;
 
