@@ -8,7 +8,8 @@ namespace ExpeditionRegionSupport.Filters
 {
     public static partial class ChallengeFilterSettings
     {
-        public static Dictionary<string, List<Filter>> Filters;
+        public static Dictionary<string, List<ChallengeFilter>> Filters;
+
 
         public static FilterOptions CurrentFilter;
 
@@ -26,14 +27,14 @@ namespace ExpeditionRegionSupport.Filters
 
         static ChallengeFilterSettings()
         {
-            Filters = new Dictionary<string, List<Filter>>();
+            Filters = new Dictionary<string, List<ChallengeFilter>>();
 
             //Iterate through challenge types to populate challenge filters 
             foreach (string name in ExpeditionGame.challengeNames.Keys)
             {
-                List<Filter> filters = new List<Filter>();
+                List<ChallengeFilter> filters = new List<ChallengeFilter>();
 
-                Filter f = processFilter(name);
+                ChallengeFilter f = processFilter(name);
                 if (f != null)
                     filters.Add(f);
 
@@ -41,7 +42,7 @@ namespace ExpeditionRegionSupport.Filters
             }
         }
 
-        private static Filter processFilter(string name)
+        private static ChallengeFilter processFilter(string name)
         {
             FilterOptions filterType = FilterOptions.VisitedRegions; //The only type managed by default
 
