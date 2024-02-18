@@ -10,6 +10,16 @@ namespace ExpeditionRegionSupport.Filters
     {
         public FilterCriteria Criteria = FilterCriteria.None;
 
+        private bool _enabled = true;
+        /// <summary>
+        /// Flag that prevents filter logic from being applied
+        /// </summary>
+        public virtual bool Enabled
+        {
+            get => _enabled;
+            set => _enabled = value;
+        }
+
         /// <summary>
         /// Applies any constraints necessary for comparing sets of data
         /// </summary>
