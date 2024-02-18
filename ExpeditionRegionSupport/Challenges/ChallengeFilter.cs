@@ -39,6 +39,9 @@ namespace ExpeditionRegionSupport.Challenges
 
                 On.Expedition.PearlHoardChallenge.Generate += PearlHoardChallenge_Generate;
                 IL.Expedition.PearlHoardChallenge.Generate += PearlHoardChallenge_Generate;
+
+                On.Expedition.VistaChallenge.Generate += VistaChallenge_Generate;
+                IL.Expedition.VistaChallenge.Generate += VistaChallenge_Generate;
             }
             catch (Exception ex)
             {
@@ -210,6 +213,40 @@ namespace ExpeditionRegionSupport.Challenges
             applyEmptyListHandling(cursor);
         }
 
+        private static Challenge VistaChallenge_Generate(On.Expedition.VistaChallenge.orig_Generate orig, VistaChallenge self)
+        {
+            FilterTarget = self;
+
+            try
+            {
+                return orig(self);
+            }
+            catch (IndexOutOfRangeException)
+            {
+                //This will trigger if the list is empty, and some mod didn't check the list count after applying a mod-specific filter
+                Plugin.Logger.LogWarning("Filter encountered an IndexOutOfRangeException");
+                return null; //Return null to indicate that no challenges of the current type can be chosen
+            }
+        }
+
+        private static void VistaChallenge_Generate(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            //Apply filter logic
+
+            cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to end of loop
+            cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //After end of loop
+
+            cursor.Emit(OpCodes.Ldloc_3); //Push list of region codes available for selection onto stack
+            cursor.EmitDelegate(applyVistaChallengeFilter);
+
+            //Handle list post filter. An empty list will throw an exception
+
+            cursor.Emit(OpCodes.Ldloc_3); //Push list back on the stack to check its count
+            applyEmptyListHandling(cursor);
+        }
+
         private static List<string> convertToList(string[] array)
         {
             return array.ToList();
@@ -237,6 +274,14 @@ namespace ExpeditionRegionSupport.Challenges
 
             if (CurrentFilter == ChallengeFilterOptions.VisitedRegions)
                 allowedRegions.RemoveAll(r => !Plugin.RegionsVisited.Contains(r));
+        }
+
+        private static void applyVistaChallengeFilter(List<string> allowedRegions)
+        {
+            if (!HasFilter) return;
+
+            if (CurrentFilter == ChallengeFilterOptions.VisitedRegions)
+                allowedRegions.RemoveAll(r => !Plugin.RegionsVisited.Contains(r.Split('_')[0]));
         }
 
         private static void applyEmptyListHandling(ILCursor cursor)
