@@ -412,7 +412,7 @@ namespace ExpeditionRegionSupport.Interface
                 cwt.RunOnNextUpdate = null;
             }
 
-            self.LogValues();
+            //self.LogValues();
             orig(self);
         }
 
