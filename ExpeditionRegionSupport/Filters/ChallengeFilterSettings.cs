@@ -8,14 +8,14 @@ namespace ExpeditionRegionSupport.Filters
 {
     public static partial class ChallengeFilterSettings
     {
-        public static ChallengeFilterOptions CurrentFilter;
+        public static FilterOptions CurrentFilter;
 
         /// <summary>
         /// The Expedition challenge that the filter is handling, or is about to handle
         /// </summary>
         public static Challenge FilterTarget;
 
-        public static bool HasFilter => CurrentFilter != ChallengeFilterOptions.None;
+        public static bool HasFilter => CurrentFilter != FilterOptions.None;
 
         /// <summary>
         /// A flag that indicates that not all assignment requests could be processed successfully
@@ -26,7 +26,7 @@ namespace ExpeditionRegionSupport.Filters
         {
             if (!HasFilter) return;
 
-            if (CurrentFilter == ChallengeFilterOptions.VisitedRegions)
+            if (CurrentFilter == FilterOptions.VisitedRegions)
                 allowedRegions.RemoveAll(r => !Plugin.RegionsVisited.Contains(r));
         }
 
@@ -34,7 +34,7 @@ namespace ExpeditionRegionSupport.Filters
         {
             if (!HasFilter) return;
 
-            if (CurrentFilter == ChallengeFilterOptions.VisitedRegions)
+            if (CurrentFilter == FilterOptions.VisitedRegions)
                 allowedRegions.RemoveAll(r => !Plugin.RegionsVisited.Contains(r));
         }
 
@@ -42,7 +42,7 @@ namespace ExpeditionRegionSupport.Filters
         {
             if (!HasFilter) return;
 
-            if (CurrentFilter == ChallengeFilterOptions.VisitedRegions)
+            if (CurrentFilter == FilterOptions.VisitedRegions)
                 allowedRegions.RemoveAll(r => !Plugin.RegionsVisited.Contains(r));
         }
 
@@ -50,7 +50,7 @@ namespace ExpeditionRegionSupport.Filters
         {
             if (!HasFilter) return;
 
-            if (CurrentFilter == ChallengeFilterOptions.VisitedRegions)
+            if (CurrentFilter == FilterOptions.VisitedRegions)
                 allowedRegions.RemoveAll(r => !Plugin.RegionsVisited.Contains(r.Split('_')[0]));
         }
 
@@ -64,7 +64,7 @@ namespace ExpeditionRegionSupport.Filters
         }
     }
 
-    public enum ChallengeFilterOptions
+    public enum FilterOptions
     {
         None,
         VisitedRegions

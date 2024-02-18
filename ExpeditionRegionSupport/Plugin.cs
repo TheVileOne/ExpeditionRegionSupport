@@ -169,11 +169,11 @@ namespace ExpeditionRegionSupport
 
         public void SettingsDialog_OnDialogClosed(ExpeditionSettingsDialog sender)
         {
-            ChallengeFilterSettings.CurrentFilter = ChallengeFilterOptions.None;
+            ChallengeFilterSettings.CurrentFilter = FilterOptions.None;
 
             if (ExpeditionSettings.Filters.VisitedRegionsOnly.Value)
             {
-                ChallengeFilterSettings.CurrentFilter = ChallengeFilterOptions.VisitedRegions;
+                ChallengeFilterSettings.CurrentFilter = FilterOptions.VisitedRegions;
                 UpdateRegionsVisited();
             }
 

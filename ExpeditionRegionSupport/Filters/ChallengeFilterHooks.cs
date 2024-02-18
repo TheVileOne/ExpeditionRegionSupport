@@ -161,7 +161,7 @@ namespace ExpeditionRegionSupport.Filters
             cursor.Emit(OpCodes.Ldloc_1); //Push list back on the stack to check its count
             cursor.EmitDelegate<Func<List<string>, bool>>((allowedRegions) =>
             {
-                if (CurrentFilter == ChallengeFilterOptions.VisitedRegions)
+                if (CurrentFilter == FilterOptions.VisitedRegions)
                 {
                     string deliveryRegion = RegionUtils.GetPearlDeliveryRegion(Plugin.ActiveWorldState);
 
@@ -184,7 +184,7 @@ namespace ExpeditionRegionSupport.Filters
             FilterTarget = self;
 
             //If player has not visited Shoreline, or Five Pebbles, this challenge type cannot be chosen
-            if (CurrentFilter == ChallengeFilterOptions.VisitedRegions && (!Plugin.RegionsVisited.Contains("SL") || !Plugin.RegionsVisited.Contains("SS")))
+            if (CurrentFilter == FilterOptions.VisitedRegions && (!Plugin.RegionsVisited.Contains("SL") || !Plugin.RegionsVisited.Contains("SS")))
                 return null;
 
             return orig(self);
