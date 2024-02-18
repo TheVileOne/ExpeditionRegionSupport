@@ -31,7 +31,20 @@ namespace ExpeditionRegionSupport
 
         public static bool SlugBaseEnabled;
         public static WorldState ActiveWorldState;
-        public static List<string> RegionsVisited;
+
+        private static List<string> _regionsVisited = new List<string>();
+        public static List<string> RegionsVisited
+        {
+            get => _regionsVisited;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                _regionsVisited.Clear();
+                _regionsVisited.AddRange(value);
+            }
+        }
 
         private SimpleButton settingsButton;
 
