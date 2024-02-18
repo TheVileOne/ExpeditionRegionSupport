@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using Expedition;
 using ExpeditionRegionSupport.Regions;
@@ -10,9 +8,9 @@ using Extensions;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 
-namespace ExpeditionRegionSupport.Challenges
+namespace ExpeditionRegionSupport.Filters
 {
-    public static class ChallengeFilter
+    public static class ChallengeFilterSettings
     {
         public static ChallengeFilterOptions CurrentFilter;
 
@@ -96,7 +94,7 @@ namespace ExpeditionRegionSupport.Challenges
             cursor.Emit(OpCodes.Ldloc_0); //Push list of challenge types onto stack
             applyEmptyListHandling<Challenge>(cursor);
 
-            while (cursor.TryGotoNext(MoveType.Before, x => x.MatchRet())) //Find the last return
+            while (cursor.TryGotoNext(MoveType.Before, x => x.MatchRet())) ; //Find the last return
 
             cursor.Emit(OpCodes.Dup);
             cursor.BranchStart(OpCodes.Brtrue); //Null check Challenge gen - This means challenge type cannot be selected

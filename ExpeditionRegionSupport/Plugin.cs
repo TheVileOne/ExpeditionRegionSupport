@@ -15,7 +15,7 @@ using ExpeditionRegionSupport.Settings;
 using Menu;
 using MoreSlugcats;
 using UnityEngine;
-using ExpeditionRegionSupport.Challenges;
+using ExpeditionRegionSupport.Filters;
 
 namespace ExpeditionRegionSupport
 {
@@ -169,11 +169,11 @@ namespace ExpeditionRegionSupport
 
         public void SettingsDialog_OnDialogClosed(ExpeditionSettingsDialog sender)
         {
-            ChallengeFilter.CurrentFilter = ChallengeFilterOptions.None;
+            ChallengeFilterSettings.CurrentFilter = ChallengeFilterOptions.None;
 
             if (ExpeditionSettings.Filters.VisitedRegionsOnly.Value)
             {
-                ChallengeFilter.CurrentFilter = ChallengeFilterOptions.VisitedRegions;
+                ChallengeFilterSettings.CurrentFilter = ChallengeFilterOptions.VisitedRegions;
                 UpdateRegionsVisited();
             }
 
@@ -341,7 +341,7 @@ namespace ExpeditionRegionSupport
 
             orig(self);
 
-            ChallengeFilter.ApplyHooks(); //This needs to be handled in PostModsInIt or Expedition.ChallengeTools breaks
+            ChallengeFilterSettings.ApplyHooks(); //This needs to be handled in PostModsInIt or Expedition.ChallengeTools breaks
             SlugBaseEnabled = ModManager.ActiveMods.Exists(m => m.id == "slime-cubed.slugbase");
         }
 
