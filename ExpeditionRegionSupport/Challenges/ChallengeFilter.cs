@@ -54,10 +54,10 @@ namespace ExpeditionRegionSupport.Challenges
             int outputIndex = cursor.Index; //Record the index where Generate pushes something onto the stack
 
             cursor.GotoPrev(MoveType.After, x => x.MatchBlt(out _));
-            
+
             ILLabel runGenerateAgain = cursor.MarkLabel();
             cursor.Index = outputIndex;
-            cursor.Emit(OpCodes.Dup); 
+            cursor.Emit(OpCodes.Dup);
             cursor.BranchStart(OpCodes.Brtrue); //Null check Challenge gen - This means challenge type cannot be selected
 
             cursor.Emit(OpCodes.Ldloc_0); //Push list containing selectable challenges onto the stack
@@ -65,7 +65,6 @@ namespace ExpeditionRegionSupport.Challenges
 
             cursor.Emit(OpCodes.Br, runGenerateAgain);
             cursor.BranchFinish();
-            
         }
 
         /// <summary>
@@ -97,8 +96,6 @@ namespace ExpeditionRegionSupport.Challenges
         {
             ILCursor cursor = new ILCursor(il);
 
-            MethodInfo getCountMethod = typeof(List<string>).GetMethod("get_Count");
-
             //Apply filter logic
 
             cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to end of loop
@@ -110,12 +107,7 @@ namespace ExpeditionRegionSupport.Challenges
             //Handle list post filter. An empty list will throw an exception
 
             cursor.Emit(OpCodes.Ldloc_0); //Push list back on the stack to check its count
-            cursor.Emit(OpCodes.Call, getCountMethod);
-            cursor.Emit(OpCodes.Ldc_I4_0);
-            cursor.BranchStart(OpCodes.Bgt); //Branch to main logic, or any additional mod-specific filters when list isn't empty
-            cursor.Emit(OpCodes.Ldnull); //Return null to indicate that no challenges of the current type can be chosen
-            cursor.Emit(OpCodes.Ret);
-            cursor.BranchFinish();
+            applyEmptyListHandling(cursor);
         }
 
         private static Challenge PearlDeliveryChallenge_Generate(On.Expedition.PearlDeliveryChallenge.orig_Generate orig, PearlDeliveryChallenge self)
@@ -194,14 +186,13 @@ namespace ExpeditionRegionSupport.Challenges
                 Plugin.Logger.LogWarning("Filter encountered an IndexOutOfRangeException");
                 return null; //Return null to indicate that no challenges of the current type can be chosen
             }
-}
+        }
 
         private static void PearlHoardChallenge_Generate(ILContext il)
         {
             ILCursor cursor = new ILCursor(il);
 
-            MethodInfo getCountMethod = typeof(List<string>).GetMethod("get_Count");
-            List<string> tempStorage = null;
+            //Apply filter logic
 
             cursor.GotoNext(MoveType.After, x => x.MatchStloc(1)); //Move to after array assignment
             cursor.BranchTo(OpCodes.Br, MoveType.Before, //Ignore check for HR. We need to use the list defined there
@@ -209,25 +200,19 @@ namespace ExpeditionRegionSupport.Challenges
                 x => x.Match(OpCodes.Call));
             cursor.GotoNext(MoveType.Before, x => x.MatchDup()); //Existing Dup removes HR
             cursor.Emit(OpCodes.Dup);
-            cursor.EmitDelegate<Func<List<string>, List<string>>>((list) =>
-            {
-                return tempStorage = list;
-            });
             cursor.EmitDelegate(applyPearlHoardChallengeFilter);
 
             //Handle list post filter. An empty list will throw an exception
 
-            /*cursor.GotoNext(MoveType.After, //Move to after HR is removed from list
-                x => x.Match(OpCodes.Callvirt),
-                x => x.MatchPop());*/
             cursor.GotoNext(MoveType.After, x => x.MatchStloc(1)); //Move to after array gets reformed
-            cursor.EmitReference(tempStorage); //Make sure list isn't consumed on the stack, as we need to check its count
-            cursor.Emit(OpCodes.Call, getCountMethod);
-            cursor.Emit(OpCodes.Ldc_I4_0);
-            cursor.BranchStart(OpCodes.Bgt); //Branch to main logic, or any additional mod-specific filters when list isn't empty
-            cursor.Emit(OpCodes.Ldnull); //Return null to indicate that no challenges of the current type can be chosen
-            cursor.Emit(OpCodes.Ret);
-            cursor.BranchFinish();
+            cursor.Emit(OpCodes.Ldloc_1); //Push array on the stack
+            cursor.EmitDelegate(convertToList); //Convert it to list for type compatibility
+            applyEmptyListHandling(cursor);
+        }
+
+        private static List<string> convertToList(string[] array)
+        {
+            return array.ToList();
         }
 
         private static void applyEchoChallengeFilter(List<string> allowedRegions)
@@ -252,6 +237,19 @@ namespace ExpeditionRegionSupport.Challenges
 
             if (CurrentFilter == ChallengeFilterOptions.VisitedRegions)
                 allowedRegions.RemoveAll(r => !Plugin.RegionsVisited.Contains(r));
+        }
+
+        private static void applyEmptyListHandling(ILCursor cursor)
+        {
+            //Check that list on the stack has at least one item
+            cursor.Emit(OpCodes.Call, typeof(List<string>).GetMethod("get_Count"));
+            cursor.Emit(OpCodes.Ldc_I4_0);
+
+            //Return null if list is empty
+            cursor.BranchStart(OpCodes.Bgt);
+            cursor.Emit(OpCodes.Ldnull);
+            cursor.Emit(OpCodes.Ret);
+            cursor.BranchFinish();
         }
     }
 
