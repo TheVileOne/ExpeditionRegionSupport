@@ -58,8 +58,13 @@ namespace ExpeditionRegionSupport.Filters
 
             allowedItems.RemoveAll(item =>
             {
-                return CompareValues.Contains(valueModifier == null ? item : valueModifier(item)) == compareCondition;
+                return Evaluate(item, compareCondition, valueModifier);
             });
+        }
+
+        public virtual bool Evaluate(T item, bool condition, Func<T, T> valueModifier = null)
+        {
+            return CompareValues.Contains(valueModifier == null ? item : valueModifier(item)) == condition;
         }
     }
 

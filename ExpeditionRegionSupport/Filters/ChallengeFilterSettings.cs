@@ -8,6 +8,8 @@ namespace ExpeditionRegionSupport.Filters
 {
     public static partial class ChallengeFilterSettings
     {
+        public static Dictionary<string, List<Filter>> Filters;
+
         public static FilterOptions CurrentFilter;
 
         /// <summary>
@@ -21,6 +23,41 @@ namespace ExpeditionRegionSupport.Filters
         /// A flag that indicates that not all assignment requests could be processed successfully
         /// </summary>
         public static bool FailedToAssign;
+
+        static ChallengeFilterSettings()
+        {
+            Filters = new Dictionary<string, List<Filter>>();
+
+            //Iterate through challenge types to populate challenge filters 
+            foreach (string name in ExpeditionGame.challengeNames.Keys)
+            {
+                List<Filter> filters = new List<Filter>();
+
+                Filter f = processFilter(name);
+                if (f != null)
+                    filters.Add(f);
+
+                Filters.Add(name, filters);
+            }
+        }
+
+        private static Filter processFilter(string name)
+        {
+            FilterOptions filterType = FilterOptions.VisitedRegions; //The only type managed by default
+
+            switch (name)
+            {
+                case CHALLENGE_NAME_ECHO:
+                case CHALLENGE_NAME_PEARL_DELIVERY:
+                case CHALLENGE_NAME_PEARL_HOARD:
+                case CHALLENGE_NAME_VISTA:
+                    return new ChallengeFilter(filterType);
+                case CHALLENGE_NAME_NEURON_DELIVERY:
+                    return new NeuronDeliveryChallengeFilter(filterType);
+            }
+
+            return null;
+        }
 
         private static void applyEchoChallengeFilter(List<string> allowedRegions)
         {

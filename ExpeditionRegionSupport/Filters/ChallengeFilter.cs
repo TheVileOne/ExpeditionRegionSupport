@@ -24,4 +24,22 @@ namespace ExpeditionRegionSupport.Filters
             return new List<string>();
         }
     }
+
+    public class NeuronDeliveryChallengeFilter : ChallengeFilter
+    {
+        public string DeliveryRegion;
+
+        public NeuronDeliveryChallengeFilter(FilterOptions filterID) : base (filterID)
+        {
+        }
+
+        /// <summary>
+        /// Check that delivery region isn't filtered
+        /// </summary>
+        /// <returns>Filter state (true means not filtered)</returns>
+        public override bool ConditionMet()
+        {
+            return Evaluate(DeliveryRegion, true);
+        }
+    }
 }
