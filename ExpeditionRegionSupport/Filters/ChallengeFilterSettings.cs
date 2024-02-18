@@ -62,6 +62,20 @@ namespace ExpeditionRegionSupport.Filters
             Plugin.Logger.LogInfo($"Challenge type {FilterTarget.ChallengeName()} could not be selected. Generating another");
             availableChallenges.Remove(FilterTarget);
         }
+
+        #region consts
+        public const string CHALLENGE_NAME_ACHIEVEMENT = "AchievementChallenge";
+        public const string CHALLENGE_NAME_CYCLE_SCORE = "CycleScoreChallenge";
+        public const string CHALLENGE_NAME_ECHO = "EchoChallenge";
+        public const string CHALLENGE_NAME_GLOBAL_SCORE = "GlobalScoreChallenge";
+        public const string CHALLENGE_NAME_HUNT = "HuntChallenge";
+        public const string CHALLENGE_NAME_ITEM_HOARD = "ItemHoardChallenge";
+        public const string CHALLENGE_NAME_NEURON_DELIVERY = "NeuronDeliveryChallenge";
+        public const string CHALLENGE_NAME_PEARL_DELIVERY = "PearlDeliveryChallenge";
+        public const string CHALLENGE_NAME_PEARL_HOARD = "PearlHoardChallenge";
+        public const string CHALLENGE_NAME_PIN = "PinChallenge";
+        public const string CHALLENGE_NAME_VISTA = "VistaChallenge";
+        #endregion
     }
 
     public enum FilterOptions
