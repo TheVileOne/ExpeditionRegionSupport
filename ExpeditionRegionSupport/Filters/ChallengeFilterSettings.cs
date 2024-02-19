@@ -94,7 +94,11 @@ namespace ExpeditionRegionSupport.Filters
         private static void onGenerationFailed(List<Challenge> availableChallenges)
         {
             Plugin.Logger.LogInfo($"Challenge type {FilterTarget.ChallengeName()} could not be selected. Generating another");
+
+            removedChallengeTypes.Add(FilterTarget);
             availableChallenges.Remove(FilterTarget);
+
+            FilterTarget = null;
         }
 
         #region consts

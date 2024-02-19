@@ -46,6 +46,11 @@ namespace ExpeditionRegionSupport
             }
         }
 
+        /// <summary>
+        /// Keep track of a separate list of types for restoring entries to the list in an exact order
+        /// </summary>
+        public static List<Challenge> ChallengeTypesBackup;
+
         private SimpleButton settingsButton;
 
         public void OnEnable()
@@ -123,6 +128,8 @@ namespace ExpeditionRegionSupport
         private void ExpeditionMenu_ctor(On.Menu.ExpeditionMenu.orig_ctor orig, ExpeditionMenu self, ProcessManager manager)
         {
             CurrentProgression = manager.rainWorld.progression; //This data is going to be overwritten in the constructor, but this mod still needs access to it.
+            ChallengeTypesBackup = new List<Challenge>(ChallengeOrganizer.availableChallengeTypes);
+            
             orig(self, manager);
 
             float y = (manager.rainWorld.options.ScreenSize.x != 1024f) ? 695f : 728f;

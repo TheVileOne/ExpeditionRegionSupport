@@ -16,6 +16,11 @@ namespace ExpeditionRegionSupport.Filters
     {
         private static ChallengeFilterExceptionHandler exceptionHandler = new ChallengeFilterExceptionHandler();
 
+        /// <summary>
+        /// A list of challenges that were determined to be unselectable due to selected filter options.
+        /// </summary>
+        private static List<Challenge> removedChallengeTypes = new List<Challenge>();
+
         public static void ApplyHooks()
         {
             try
@@ -48,16 +53,26 @@ namespace ExpeditionRegionSupport.Filters
 
         private static void ChallengeOrganizer_AssignChallenge(On.Expedition.ChallengeOrganizer.orig_AssignChallenge orig, int slot, bool hidden)
         {
-            if (FailedToAssign) return;
+            //if (FailedToAssign) return;
 
             orig(slot, hidden);
         }
 
         private static Challenge ChallengeOrganizer_RandomChallenge(On.Expedition.ChallengeOrganizer.orig_RandomChallenge orig, bool hidden)
         {
-            if (FailedToAssign) return null;
+            //Remove all challenges that we do not want the game to handle
+            ChallengeOrganizer.availableChallengeTypes.RemoveAll(removedChallengeTypes);
 
-            return orig(hidden);
+            Challenge challenge = orig(hidden);
+
+            //Add them back here
+            if (removedChallengeTypes.Count > 0)
+            {
+                ChallengeOrganizer.availableChallengeTypes.Clear();
+                ChallengeOrganizer.availableChallengeTypes.AddRange(Plugin.ChallengeTypesBackup);
+            }
+
+            return challenge;
         }
 
         private static void ChallengeOrganizer_AssignChallenge(ILContext il)
