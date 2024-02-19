@@ -16,11 +16,6 @@ namespace ExpeditionRegionSupport.Filters
     {
         private static ChallengeFilterExceptionHandler exceptionHandler = new ChallengeFilterExceptionHandler();
 
-        /// <summary>
-        /// A list of challenges that were determined to be unselectable due to selected filter options.
-        /// </summary>
-        private static List<Challenge> removedChallengeTypes = new List<Challenge>();
-
         public static void ApplyHooks()
         {
             try
@@ -53,26 +48,9 @@ namespace ExpeditionRegionSupport.Filters
 
         private static void ChallengeOrganizer_AssignChallenge(On.Expedition.ChallengeOrganizer.orig_AssignChallenge orig, int slot, bool hidden)
         {
-            //if (FailedToAssign) return;
-
+            ChallengeAssignment.OnAssignStart();
             orig(slot, hidden);
-        }
-
-        private static Challenge ChallengeOrganizer_RandomChallenge(On.Expedition.ChallengeOrganizer.orig_RandomChallenge orig, bool hidden)
-        {
-            //Remove all challenges that we do not want the game to handle
-            ChallengeOrganizer.availableChallengeTypes.RemoveAll(removedChallengeTypes);
-
-            Challenge challenge = orig(hidden);
-
-            //Add them back here
-            if (removedChallengeTypes.Count > 0)
-            {
-                ChallengeOrganizer.availableChallengeTypes.Clear();
-                ChallengeOrganizer.availableChallengeTypes.AddRange(Plugin.ChallengeTypesBackup);
-            }
-
-            return challenge;
+            ChallengeAssignment.OnAssignFinish();
         }
 
         private static void ChallengeOrganizer_AssignChallenge(ILContext il)
@@ -93,9 +71,18 @@ namespace ExpeditionRegionSupport.Filters
             {
                 cursor.Emit(OpCodes.Ldloc_1); //Challenge
                 cursor.EmitReference(failIndex); //Index at this stage in loop
-                cursor.EmitDelegate(onChallengeRejected);
+                cursor.EmitDelegate(ChallengeAssignment.OnChallengeRejected);
                 failIndex++;
             }
+        }
+
+        private static Challenge ChallengeOrganizer_RandomChallenge(On.Expedition.ChallengeOrganizer.orig_RandomChallenge orig, bool hidden)
+        {
+            ChallengeAssignment.OnChallengeSelect();
+            Challenge challenge = orig(hidden);
+
+            ChallengeAssignment.OnChallengeSelectFinish();
+            return challenge;
         }
 
         private static void ChallengeOrganizer_RandomChallenge(ILContext il)
@@ -116,7 +103,7 @@ namespace ExpeditionRegionSupport.Filters
             cursor.BranchStart(OpCodes.Brtrue); //Null check Challenge gen - This means challenge type cannot be selected
 
             cursor.Emit(OpCodes.Ldloc_0); //Push list containing selectable challenges onto the stack
-            cursor.EmitDelegate(onGenerationFailed);
+            cursor.EmitDelegate(ChallengeAssignment.OnGenerationFailed);
 
             cursor.Emit(OpCodes.Br, runGenerateAgain);
             cursor.BranchFinish();
