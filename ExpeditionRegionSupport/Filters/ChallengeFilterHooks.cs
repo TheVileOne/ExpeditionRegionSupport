@@ -120,7 +120,7 @@ namespace ExpeditionRegionSupport.Filters
             cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //After end of loop
 
             cursor.Emit(OpCodes.Ldloc_0); //Push list of region codes available for selection onto stack
-            cursor.EmitDelegate(applyEchoChallengeFilter);
+            cursor.EmitDelegate(ApplyFilter);
 
             //Handle list post filter. An empty list will throw an exception
 
@@ -154,10 +154,12 @@ namespace ExpeditionRegionSupport.Filters
             cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //After end of loop
 
             cursor.Emit(OpCodes.Ldloc_1); //Push list of region codes available for selection onto stack
-            cursor.EmitDelegate(applyPearlDeliveryChallengeFilter);
+            cursor.EmitDelegate(ApplyFilter);
 
             //Handle list post filter. An empty list will throw an exception
 
+            applyEmptyListHandling<string>(cursor);
+            /*
             cursor.Emit(OpCodes.Ldloc_1); //Push list back on the stack to check its count
             cursor.EmitDelegate<Func<List<string>, bool>>((allowedRegions) =>
             {
@@ -177,14 +179,14 @@ namespace ExpeditionRegionSupport.Filters
             cursor.Emit(OpCodes.Ldnull); //Return null to indicate that no challenges of the current type can be chosen
             cursor.Emit(OpCodes.Ret);
             cursor.BranchFinish();
+            */
         }
 
         private static Challenge NeuronDeliveryChallenge_Generate(On.Expedition.NeuronDeliveryChallenge.orig_Generate orig, NeuronDeliveryChallenge self)
         {
             FilterTarget = self;
 
-            //If player has not visited Shoreline, or Five Pebbles, this challenge type cannot be chosen
-            if (CurrentFilter == FilterOptions.VisitedRegions && (!Plugin.RegionsVisited.Contains("SL") || !Plugin.RegionsVisited.Contains("SS")))
+            if (!CheckConditions())
                 return null;
 
             return orig(self);
@@ -218,7 +220,7 @@ namespace ExpeditionRegionSupport.Filters
                 x => x.Match(OpCodes.Call));
             cursor.GotoNext(MoveType.Before, x => x.MatchDup()); //Existing Dup removes HR
             cursor.Emit(OpCodes.Dup);
-            cursor.EmitDelegate(applyPearlHoardChallengeFilter);
+            cursor.EmitDelegate(ApplyFilter);
 
             //Handle list post filter. An empty list will throw an exception
 
@@ -254,7 +256,7 @@ namespace ExpeditionRegionSupport.Filters
             cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //After end of loop
 
             cursor.Emit(OpCodes.Ldloc_3); //Push list of region codes available for selection onto stack
-            cursor.EmitDelegate(applyVistaChallengeFilter);
+            cursor.EmitDelegate(ApplyFilter);
 
             //Handle list post filter. An empty list will throw an exception
 

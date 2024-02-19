@@ -60,6 +60,35 @@ namespace ExpeditionRegionSupport.Filters
             return null;
         }
 
+
+        /// <summary>
+        /// Retrieves filters that are associated with the FilterTarget
+        /// </summary>
+        public static List<ChallengeFilter> GetFilters()
+        {
+            if (FilterTarget == null) return new List<ChallengeFilter>();
+
+            return Filters[FilterTarget.GetType().Name];
+        }
+
+        public static bool CheckConditions()
+        {
+            //Get the filters that apply to the target
+            List<ChallengeFilter> availableFilters = GetFilters();
+
+            return availableFilters.TrueForAll(f => f.ConditionMet());
+        }
+
+        public static void ApplyFilter(List<string> allowedRegions)
+        {
+            //Get the filters that apply to the target
+            List<ChallengeFilter> availableFilters = GetFilters();
+
+            foreach (ChallengeFilter filter in availableFilters)
+                filter.Apply(allowedRegions);
+        }
+
+        /*
         private static void applyEchoChallengeFilter(List<string> allowedRegions)
         {
             if (!HasFilter) return;
@@ -91,6 +120,7 @@ namespace ExpeditionRegionSupport.Filters
             if (CurrentFilter == FilterOptions.VisitedRegions)
                 allowedRegions.RemoveAll(r => !Plugin.RegionsVisited.Contains(r.Split('_')[0]));
         }
+        */
 
         /// <summary>
         /// Handle when a challenge was unable to be selected
