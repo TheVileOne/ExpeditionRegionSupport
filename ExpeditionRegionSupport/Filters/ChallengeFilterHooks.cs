@@ -94,6 +94,7 @@ namespace ExpeditionRegionSupport.Filters
             cursor.BranchFinish();
         }
 
+        #region Echo
         private static Challenge EchoChallenge_Generate(On.Expedition.EchoChallenge.orig_Generate orig, EchoChallenge self)
         {
             FilterTarget = self;
@@ -127,7 +128,9 @@ namespace ExpeditionRegionSupport.Filters
             cursor.Emit(OpCodes.Ldloc_0); //Push list back on the stack to check its count
             applyEmptyListHandling<string>(cursor);
         }
+        #endregion
 
+        #region Pearl Delivery
         private static Challenge PearlDeliveryChallenge_Generate(On.Expedition.PearlDeliveryChallenge.orig_Generate orig, PearlDeliveryChallenge self)
         {
             FilterTarget = self;
@@ -181,7 +184,9 @@ namespace ExpeditionRegionSupport.Filters
             cursor.BranchFinish();
             */
         }
+        #endregion
 
+        #region Neuron Delivery
         private static Challenge NeuronDeliveryChallenge_Generate(On.Expedition.NeuronDeliveryChallenge.orig_Generate orig, NeuronDeliveryChallenge self)
         {
             FilterTarget = self;
@@ -191,7 +196,9 @@ namespace ExpeditionRegionSupport.Filters
 
             return orig(self);
         }
+        #endregion
 
+        #region Pearl Hoarding
         private static Challenge PearlHoardChallenge_Generate(On.Expedition.PearlHoardChallenge.orig_Generate orig, PearlHoardChallenge self)
         {
             FilterTarget = self;
@@ -229,7 +236,9 @@ namespace ExpeditionRegionSupport.Filters
             cursor.EmitDelegate(convertToList); //Convert it to list for type compatibility
             applyEmptyListHandling<string>(cursor);
         }
+        #endregion
 
+        #region Vista
         private static Challenge VistaChallenge_Generate(On.Expedition.VistaChallenge.orig_Generate orig, VistaChallenge self)
         {
             FilterTarget = self;
@@ -263,6 +272,7 @@ namespace ExpeditionRegionSupport.Filters
             cursor.Emit(OpCodes.Ldloc_3); //Push list back on the stack to check its count
             applyEmptyListHandling<string>(cursor);
         }
+        #endregion
 
         private static List<string> convertToList(string[] array)
         {
