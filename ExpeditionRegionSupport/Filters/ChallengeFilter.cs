@@ -15,6 +15,7 @@ namespace ExpeditionRegionSupport.Filters
 
         public ChallengeFilter(FilterOptions filterID) : base(PrepareFilter(filterID))
         {
+            FilterID = filterID;
         }
 
         protected static List<string> PrepareFilter(FilterOptions filterID)
