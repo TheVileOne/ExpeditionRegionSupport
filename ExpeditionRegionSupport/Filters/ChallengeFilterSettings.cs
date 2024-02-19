@@ -17,8 +17,6 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static Challenge FilterTarget;
 
-        public static bool HasFilter => CurrentFilter != FilterOptions.None;
-
         /// <summary>
         /// A flag that indicates that not all assignment requests could be processed successfully
         /// </summary>
@@ -89,40 +87,6 @@ namespace ExpeditionRegionSupport.Filters
             foreach (ChallengeFilter filter in availableFilters)
                 filter.Apply(allowedRegions);
         }
-
-        /*
-        private static void applyEchoChallengeFilter(List<string> allowedRegions)
-        {
-            if (!HasFilter) return;
-
-            if (CurrentFilter == FilterOptions.VisitedRegions)
-                allowedRegions.RemoveAll(r => !Plugin.RegionsVisited.Contains(r));
-        }
-
-        private static void applyPearlDeliveryChallengeFilter(List<string> allowedRegions)
-        {
-            if (!HasFilter) return;
-
-            if (CurrentFilter == FilterOptions.VisitedRegions)
-                allowedRegions.RemoveAll(r => !Plugin.RegionsVisited.Contains(r));
-        }
-
-        private static void applyPearlHoardChallengeFilter(List<string> allowedRegions)
-        {
-            if (!HasFilter) return;
-
-            if (CurrentFilter == FilterOptions.VisitedRegions)
-                allowedRegions.RemoveAll(r => !Plugin.RegionsVisited.Contains(r));
-        }
-
-        private static void applyVistaChallengeFilter(List<string> allowedRegions)
-        {
-            if (!HasFilter) return;
-
-            if (CurrentFilter == FilterOptions.VisitedRegions)
-                allowedRegions.RemoveAll(r => !Plugin.RegionsVisited.Contains(r.Split('_')[0]));
-        }
-        */
 
         /// <summary>
         /// Handle when a challenge was unable to be selected
