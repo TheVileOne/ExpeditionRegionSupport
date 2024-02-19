@@ -101,6 +101,35 @@ namespace ExpeditionRegionSupport.Filters
             FilterTarget = null;
         }
 
+        /// <summary>
+        /// Processing a challenge that was generated and rejected by ChallengeOrganizer
+        /// </summary>
+        /// <param name="challenge">The Challenge rejected</param>
+        /// <param name="failCode">The code indicating the reason for rejection</param>
+        private static void onChallengeRejected(Challenge challenge, int failCode)
+        {
+            FailCode code = (FailCode)failCode;
+
+            //Plugin.Logger.LogDebug(code);
+
+            switch(code)
+            {
+                case FailCode.NotValidForSlugcat:
+                    break;
+                case FailCode.InvalidDuplication:
+                    break;
+                case FailCode.InvalidHidden:
+                    break;
+            }
+        }
+
+        private enum FailCode
+        {
+            NotValidForSlugcat = 0,
+            InvalidDuplication = 1,
+            InvalidHidden = 2,
+        };
+
         #region consts
         public const string CHALLENGE_NAME_ACHIEVEMENT = "AchievementChallenge";
         public const string CHALLENGE_NAME_CYCLE_SCORE = "CycleScoreChallenge";

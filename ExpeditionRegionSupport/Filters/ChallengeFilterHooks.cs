@@ -85,6 +85,17 @@ namespace ExpeditionRegionSupport.Filters
             cursor.EmitDelegate<Action>(() => FailedToAssign = true);
             cursor.Emit(OpCodes.Ret);
             cursor.BranchFinish();
+
+            int failIndex = 0;
+
+            //Each time the loop index is increased, track the index, and pass the index and the challenge into a method
+            while (cursor.TryGotoNext(MoveType.After, x => x.MatchAdd(), x => x.MatchStloc(0)))
+            {
+                cursor.Emit(OpCodes.Ldloc_1); //Challenge
+                cursor.EmitReference(failIndex); //Index at this stage in loop
+                cursor.EmitDelegate(onChallengeRejected);
+                failIndex++;
+            }
         }
 
         private static void ChallengeOrganizer_RandomChallenge(ILContext il)
