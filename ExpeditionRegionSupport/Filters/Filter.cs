@@ -39,6 +39,7 @@ namespace ExpeditionRegionSupport.Filters
     public class ListFilter<T> : Filter
     {
         public List<T> CompareValues;
+        public Func<T, T> ValueModifier;
 
         public ListFilter(List<T> compareValues, FilterCriteria criteria = FilterCriteria.MustInclude)
         {
@@ -51,7 +52,7 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         /// <param name="allowedItems">The list to check</param>
         /// <param name="valueModifier">A function used to apply formatting to a value</param>
-        public virtual void Apply(List<T> allowedItems, Func<T, T> valueModifier = null)
+        public virtual void Apply(List<T> allowedItems)
         {
             if (!Enabled) return;
 
@@ -60,13 +61,13 @@ namespace ExpeditionRegionSupport.Filters
 
             allowedItems.RemoveAll(item =>
             {
-                return Evaluate(item, compareCondition, valueModifier);
+                return Evaluate(item, compareCondition);
             });
         }
 
-        public virtual bool Evaluate(T item, bool condition, Func<T, T> valueModifier = null)
+        public virtual bool Evaluate(T item, bool condition)
         {
-            return CompareValues.Contains(valueModifier == null ? item : valueModifier(item)) == condition;
+            return CompareValues.Contains(ValueModifier == null ? item : ValueModifier(item)) == condition;
         }
     }
 

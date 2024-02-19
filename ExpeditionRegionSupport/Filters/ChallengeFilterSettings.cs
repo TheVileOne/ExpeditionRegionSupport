@@ -10,7 +10,6 @@ namespace ExpeditionRegionSupport.Filters
     {
         public static Dictionary<string, List<ChallengeFilter>> Filters;
 
-
         public static FilterOptions CurrentFilter;
 
         /// <summary>
@@ -51,15 +50,17 @@ namespace ExpeditionRegionSupport.Filters
                 case CHALLENGE_NAME_ECHO:
                 case CHALLENGE_NAME_PEARL_DELIVERY:
                 case CHALLENGE_NAME_PEARL_HOARD:
-                case CHALLENGE_NAME_VISTA:
                     return new ChallengeFilter(filterType);
+                case CHALLENGE_NAME_VISTA:
+                    return new ChallengeFilter(filterType)
+                    {
+                        ValueModifier = (v) => v.Split('_')[0] //This challenge stores room codes, which need underscore parsing
+                    };
                 case CHALLENGE_NAME_NEURON_DELIVERY:
                     return new NeuronDeliveryChallengeFilter(filterType);
             }
-
             return null;
         }
-
 
         /// <summary>
         /// Retrieves filters that are associated with the FilterTarget

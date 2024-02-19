@@ -34,7 +34,7 @@ namespace ExpeditionRegionSupport.Filters
         {
         }
 
-        public override void Apply(List<string> allowedRegions, Func<string, string> valueModifier = null)
+        public override void Apply(List<string> allowedRegions)
         {
             deliveryRegionFiltered = false; //Ensure value is never stale
 
@@ -50,7 +50,7 @@ namespace ExpeditionRegionSupport.Filters
                 return;
             }
 
-            base.Apply(allowedRegions, valueModifier);
+            base.Apply(allowedRegions);
         }
 
         /// <summary>
