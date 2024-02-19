@@ -161,6 +161,7 @@ namespace ExpeditionRegionSupport.Filters
 
             //Handle list post filter. An empty list will throw an exception
 
+            cursor.Emit(OpCodes.Ldloc_1); //Push list back on the stack to check its count
             applyEmptyListHandling<string>(cursor);
             /*
             cursor.Emit(OpCodes.Ldloc_1); //Push list back on the stack to check its count
