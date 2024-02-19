@@ -14,6 +14,8 @@ namespace ExpeditionRegionSupport.Filters
 {
     public static partial class ChallengeFilterSettings
     {
+        private static ChallengeFilterExceptionHandler exceptionHandler = new ChallengeFilterExceptionHandler();
+
         public static void ApplyHooks()
         {
             try
@@ -103,10 +105,9 @@ namespace ExpeditionRegionSupport.Filters
             {
                 return orig(self);
             }
-            catch (IndexOutOfRangeException)
+            catch (Exception ex)
             {
-                //This will trigger if the list is empty, and some mod didn't check the list count after applying a mod-specific filter
-                Plugin.Logger.LogWarning("Filter encountered an IndexOutOfRangeException");
+                exceptionHandler.HandleException(FilterTarget, ex);
                 return null; //Return null to indicate that no challenges of the current type can be chosen
             }
         }
@@ -139,10 +140,9 @@ namespace ExpeditionRegionSupport.Filters
             {
                 return orig(self);
             }
-            catch (IndexOutOfRangeException)
+            catch (Exception ex)
             {
-                //This will trigger if the list is empty, and some mod didn't check the list count after applying a mod-specific filter
-                Plugin.Logger.LogWarning("Filter encountered an IndexOutOfRangeException");
+                exceptionHandler.HandleException(FilterTarget, ex);
                 return null; //Return null to indicate that no challenges of the current type can be chosen
             }
         }
@@ -187,10 +187,9 @@ namespace ExpeditionRegionSupport.Filters
             {
                 return orig(self);
             }
-            catch (IndexOutOfRangeException)
+            catch (Exception ex)
             {
-                //This will trigger if the list is empty, and some mod didn't check the list count after applying a mod-specific filter
-                Plugin.Logger.LogWarning("Filter encountered an IndexOutOfRangeException");
+                exceptionHandler.HandleException(FilterTarget, ex);
                 return null; //Return null to indicate that no challenges of the current type can be chosen
             }
         }
@@ -227,10 +226,9 @@ namespace ExpeditionRegionSupport.Filters
             {
                 return orig(self);
             }
-            catch (IndexOutOfRangeException)
+            catch (Exception ex)
             {
-                //This will trigger if the list is empty, and some mod didn't check the list count after applying a mod-specific filter
-                Plugin.Logger.LogWarning("Filter encountered an IndexOutOfRangeException");
+                exceptionHandler.HandleException(FilterTarget, ex);
                 return null; //Return null to indicate that no challenges of the current type can be chosen
             }
         }
