@@ -44,7 +44,7 @@ namespace ExpeditionRegionSupport.Filters
             string deliveryRegion = RegionUtils.GetPearlDeliveryRegion(Plugin.ActiveWorldState);
 
             //We cannot choose this challenge type if we haven't visited the delivery region yet
-            if (!allowedRegions.Contains(deliveryRegion) || Evaluate(deliveryRegion, false))
+            if (!allowedRegions.Contains(deliveryRegion) || !Evaluate(deliveryRegion, true))
             {
                 deliveryRegionFiltered = true;
                 allowedRegions.Clear();

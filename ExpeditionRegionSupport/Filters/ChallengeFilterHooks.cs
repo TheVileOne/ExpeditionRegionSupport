@@ -163,27 +163,6 @@ namespace ExpeditionRegionSupport.Filters
 
             cursor.Emit(OpCodes.Ldloc_1); //Push list back on the stack to check its count
             applyEmptyListHandling<string>(cursor);
-            /*
-            cursor.Emit(OpCodes.Ldloc_1); //Push list back on the stack to check its count
-            cursor.EmitDelegate<Func<List<string>, bool>>((allowedRegions) =>
-            {
-                if (CurrentFilter == FilterOptions.VisitedRegions)
-                {
-                    string deliveryRegion = RegionUtils.GetPearlDeliveryRegion(Plugin.ActiveWorldState);
-
-                    //We cannot choose this challenge type if we haven't visited the delivery region yet
-                    if (!allowedRegions.Contains(deliveryRegion))
-                        return false;
-
-                    return allowedRegions.Count > 0;
-                }
-                return true;
-            });
-            cursor.BranchStart(OpCodes.Brtrue); //Branch to main logic, or any additional mod-specific filters when list isn't empty
-            cursor.Emit(OpCodes.Ldnull); //Return null to indicate that no challenges of the current type can be chosen
-            cursor.Emit(OpCodes.Ret);
-            cursor.BranchFinish();
-            */
         }
         #endregion
 

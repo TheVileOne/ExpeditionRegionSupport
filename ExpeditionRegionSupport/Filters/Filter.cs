@@ -56,18 +56,33 @@ namespace ExpeditionRegionSupport.Filters
         {
             if (!Enabled) return;
 
+            //Plugin.Logger.LogDebug(ChallengeFilterSettings.FilterTarget.ChallengeName() + " filter applied");
+
             //Determines if we check if Compare reference contains or does not contain an item
-            bool compareCondition = Criteria != FilterCriteria.MustExclude;
+            bool compareCondition = Criteria == FilterCriteria.MustInclude;
 
             allowedItems.RemoveAll(item =>
             {
-                return Evaluate(item, compareCondition);
+                return !Evaluate(item, compareCondition); //Evaluate needs to return false for items to be kept in the list
             });
+
+            /*
+            if (RainWorld.ShowLogs)
+            {
+                Plugin.Logger.LogDebug("Remaining regions");
+                foreach (var item in allowedItems)
+                    Plugin.Logger.LogDebug(item);
+            }
+            */
         }
 
         public virtual bool Evaluate(T item, bool condition)
         {
-            return CompareValues.Contains(ValueModifier == null ? item : ValueModifier(item)) == condition;
+            item = ValueModifier == null ? item : ValueModifier(item);
+
+            //if (RainWorld.ShowLogs)
+            //    Plugin.Logger.LogDebug("Comparing region: " + item + " Must be in list: " + condition);
+            return CompareValues.Contains(item) == condition;
         }
     }
 
