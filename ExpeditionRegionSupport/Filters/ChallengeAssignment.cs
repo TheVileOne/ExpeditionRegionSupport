@@ -28,12 +28,12 @@ namespace ExpeditionRegionSupport.Filters
         /// <summary>
         /// The number of valid challenges expected to be assigned
         /// </summary>
-        public static int ChallengesRequested;
+        public static int ChallengesRequested { get; private set; }
 
         /// <summary>
         /// The active amount of valid challenges processed
         /// </summary>
-        public static int ChallengesProcessed;
+        public static int ChallengesProcessed { get; private set; }
 
         /// <summary>
         /// The amount of attempts processed between process start and finish
@@ -46,15 +46,62 @@ namespace ExpeditionRegionSupport.Filters
         public const int REPORT_THRESHOLD = 30;
 
         /// <summary>
-        /// Challenges are actively being assigned
+        /// The process of choosing, or assigning an Expedition challenge has started, or is in progress
         /// </summary>
-        public static bool AssignmentsInProgress => ChallengesRequested > 0;
+        public static bool AssignmentInProgress
+        {
+            get => ChallengesRequested > 0;
+            set //Setter is only used for a specific use case in the code
+            {
+                if (AssignmentInProgress != value)
+                {
+                    if (value)
+                    {
+                        OnProcessStart(1); //We can only assume one challenge is requested
+                    }
+                    else if (AssignmentProcessedLate)
+                    {
+                        //Process must be handled by the same method that triggered it.
+                        //Assign stage process is handled in assign handlers. Creation stage process is handled in creation stage process.
+                        if (AssignmentStage == AssignmentStageLate || AssignmentStage == ProcessStage.Finishing)
+                            OnProcessFinish();
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Setter is only used for late assignments");
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Flag that ensures that AssignChallenge, or RandomChallenge cannot be called without invoking OnProcessStart, and OnProcessFinish 
+        /// </summary>
+        public static bool AssignmentProcessedLate { get; private set; }
+
+        /// <summary>
+        /// The current method handled during assignment
+        /// </summary>
+        public static ProcessStage AssignmentStage { get; private set; }
+
+        /// <summary>
+        /// The method handled during a late assignment
+        /// </summary>
+        public static ProcessStage AssignmentStageLate { get; private set; }
 
         /// <summary>
         /// Invoked before a challenge assignment batch is handled
+        /// Mods should invoke this before AssignChallenge is called, especially when assigning multiple challenges as a batch
         /// </summary>
         public static void OnProcessStart(int requestAmount)
         {
+            //Handle situations where OnProcessStart has not been called before AssignChallenge, or RandomChallenge is called
+            if (AssignmentStage != ProcessStage.None)
+            {
+                AssignmentProcessedLate = true;
+                AssignmentStageLate = AssignmentStage;
+            }
+
             LogUtils.LogBoth("Challenge Assignment IN PROGRESS");
             LogUtils.LogBoth($"{requestAmount} challenges requested");
 
@@ -64,9 +111,14 @@ namespace ExpeditionRegionSupport.Filters
 
         /// <summary>
         /// Invoked after a challenge assignment batch is handled
+        /// Mods should invoke this after challenge assignment processing is finished
         /// </summary>
         public static void OnProcessFinish()
         {
+            //Set back to default values
+            AssignmentProcessedLate = false;
+            AssignmentStage = AssignmentStageLate = ProcessStage.None;
+
             int failedToProcessAmount = ChallengesRequested - ChallengesProcessed;
 
             if (dataToReport())
@@ -98,6 +150,9 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static void OnAssignStart()
         {
+            AssignmentStage = ProcessStage.Assigning;
+            AssignmentInProgress = true;
+
             if (Plugin.byUpdate)
                 LogUtils.LogBoth("Source Update");
             else if (Plugin.bySignal)
@@ -111,6 +166,9 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static void OnAssignFinish()
         {
+            AssignmentStage = ProcessStage.Finishing;
+            AssignmentInProgress = false;
+            AssignmentStage = ProcessStage.None;
         }
 
         /// <summary>
@@ -118,6 +176,9 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static void OnChallengeSelect()
         {
+            AssignmentStage = ProcessStage.Creating;
+            AssignmentInProgress = true;
+
             //Remove all challenges that we do not want the game to handle
             ChallengeOrganizer.availableChallengeTypes.RemoveAll(RemovedChallengeTypes);
         }
@@ -133,6 +194,8 @@ namespace ExpeditionRegionSupport.Filters
                 ChallengeOrganizer.availableChallengeTypes.Clear();
                 ChallengeOrganizer.availableChallengeTypes.AddRange(ChallengeTypesBackup);
             }
+
+            AssignmentInProgress = false;
         }
 
         /// <summary>
@@ -178,5 +241,13 @@ namespace ExpeditionRegionSupport.Filters
             InvalidDuplication = 1,
             InvalidHidden = 2,
         };
+
+        public enum ProcessStage
+        {
+            None,
+            Assigning, //When AssignChallenge is called
+            Creating, //When RandomChallenge is called
+            Finishing //After challenge has been generated and returned back to AssignChallenge
+        }
     }
 }
