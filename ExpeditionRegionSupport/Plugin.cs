@@ -95,7 +95,35 @@ namespace ExpeditionRegionSupport
         private void ChallengeSelectPage_Singal(ILContext il)
         {
             ILCursor cursor = new ILCursor(il);
-            //problem
+
+            //Logic that handles replacing a single challenge slot
+            cursor.GotoNext(MoveType.After, x => x.MatchLdstr("CHA"));
+
+            cursor.GotoNext(MoveType.After, //Go to after 'bool hidden' is set
+                x => x.MatchLdfld<Challenge>(nameof(Challenge.hidden)),
+                x => x.MatchStloc(1));
+
+            cursor.EmitDelegate(ChallengeAssignment.OnProcessStart); //Wrap assignment process with start/finish handlers
+            cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
+            cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
+
+            //Logic that handles new Expedition assignment
+            cursor.GotoNext(MoveType.After, x => x.MatchLdstr("DESELECT"));
+
+            processOnLoopStart(cursor);
+
+            cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //Move after loop
+            cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
+
+            //Logic that handles the Random button
+            cursor.GotoNext(MoveType.After, x => x.MatchLdstr("RANDOM"));
+
+            processOnLoopStart(cursor);
+
+            cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //Move after loop
+            cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
+
+            /*
             //Individual slot handling
             cursor.GotoNext(MoveType.After, x => x.MatchStloc(1)); //Go to after 'bool hidden' is set
             cursor.Emit(OpCodes.Ldc_I4_1); //Singal assigns challenges one at a time
@@ -119,12 +147,21 @@ namespace ExpeditionRegionSupport
                 if (ChallengeAssignment.AssignmentInProgress)
                     ChallengeAssignment.OnProcessFinish();
             });
+            */
         }
 
         private void ChallengeSelectPage_Update(ILContext il)
         {
             ILCursor cursor = new ILCursor(il);
 
+            processOnLoopStart(cursor);
+
+            cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //Move after loop
+            cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
+        }
+
+        private static void processOnLoopStart(ILCursor cursor)
+        {
             //This is within a loop. We need to get the number of loop iterations expected, which is after the loop's contents
             cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
             cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to loop iterator
@@ -139,11 +176,8 @@ namespace ExpeditionRegionSupport
                 handled = true;
                 ChallengeAssignment.OnProcessStart(i);
             });
+        }
 
-            cursor.GotoNext(MoveType.Before, //Go to before SetUpSelectables call
-                x => x.MatchLdarg(0),
-                x => x.MatchCallOrCallvirt<CharacterSelectPage>(nameof(CharacterSelectPage.SetUpSelectables)));
-            cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
         }
 
         private void CharacterSelectPage_UpdateSelectedSlugcat(On.Menu.CharacterSelectPage.orig_UpdateSelectedSlugcat orig, CharacterSelectPage self, int slugcatIndex)
