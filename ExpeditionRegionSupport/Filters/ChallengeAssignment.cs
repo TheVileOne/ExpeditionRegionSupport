@@ -63,7 +63,7 @@ namespace ExpeditionRegionSupport.Filters
                     {
                         //Process must be handled by the same method that triggered it.
                         //Assign stage process is handled in assign handlers. Creation stage process is handled in creation stage process.
-                        if (AssignmentStage == AssignmentStageLate || AssignmentStage == ProcessStage.Finishing)
+                        if (AssignmentStage == AssignmentStageLate || AssignmentStage == ProcessStage.PostProcessing)
                             OnProcessFinish();
                     }
                     else
@@ -145,7 +145,7 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static void OnAssignStart()
         {
-            AssignmentStage = ProcessStage.Assigning;
+            AssignmentStage = ProcessStage.Assignment;
             AssignmentInProgress = true;
 
             if (Plugin.byUpdate)
@@ -161,7 +161,7 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static void OnAssignFinish()
         {
-            AssignmentStage = ProcessStage.Finishing;
+            AssignmentStage = ProcessStage.PostProcessing;
             AssignmentInProgress = false;
             AssignmentStage = ProcessStage.None;
         }
@@ -171,7 +171,7 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static void OnChallengeSelect()
         {
-            AssignmentStage = ProcessStage.Creating;
+            AssignmentStage = ProcessStage.Creation;
             AssignmentInProgress = true;
 
             //Remove all challenges that we do not want the game to handle
@@ -240,9 +240,9 @@ namespace ExpeditionRegionSupport.Filters
         public enum ProcessStage
         {
             None,
-            Assigning, //When AssignChallenge is called
-            Creating, //When RandomChallenge is called
-            Finishing //After challenge has been generated and returned back to AssignChallenge
+            Assignment, //When AssignChallenge is called
+            Creation, //When RandomChallenge is called
+            PostProcessing //After challenge has been generated and returned back to AssignChallenge
         }
     }
 }
