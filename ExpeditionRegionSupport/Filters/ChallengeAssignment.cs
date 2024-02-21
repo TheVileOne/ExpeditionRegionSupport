@@ -59,7 +59,7 @@ namespace ExpeditionRegionSupport.Filters
                     {
                         OnProcessStart(1); //We can only assume one challenge is requested
                     }
-                    else if (AssignmentProcessedLate)
+                    else if (LateStageProcessing)
                     {
                         //Process must be handled by the same method that triggered it.
                         //Assign stage process is handled in assign handlers. Creation stage process is handled in creation stage process.
@@ -75,9 +75,9 @@ namespace ExpeditionRegionSupport.Filters
         }
 
         /// <summary>
-        /// Flag that ensures that AssignChallenge, or RandomChallenge cannot be called without invoking OnProcessStart, and OnProcessFinish 
+        /// Indicates that AssignChallenge, or RandomChallenge has been called before OnProcessStart
         /// </summary>
-        public static bool AssignmentProcessedLate { get; private set; }
+        public static bool LateStageProcessing => AssignmentStageLate != ProcessStage.None;
 
         /// <summary>
         /// The current method handled during assignment
@@ -96,11 +96,7 @@ namespace ExpeditionRegionSupport.Filters
         public static void OnProcessStart(int requestAmount)
         {
             //Handle situations where OnProcessStart has not been called before AssignChallenge, or RandomChallenge is called
-            if (AssignmentStage != ProcessStage.None)
-            {
-                AssignmentProcessedLate = true;
-                AssignmentStageLate = AssignmentStage;
-            }
+            AssignmentStageLate = AssignmentStage;
 
             LogUtils.LogBoth("Challenge Assignment IN PROGRESS");
             LogUtils.LogBoth($"{requestAmount} challenges requested");
@@ -116,7 +112,6 @@ namespace ExpeditionRegionSupport.Filters
         public static void OnProcessFinish()
         {
             //Set back to default values
-            AssignmentProcessedLate = false;
             AssignmentStage = AssignmentStageLate = ProcessStage.None;
 
             int failedToProcessAmount = ChallengesRequested - ChallengesProcessed;
