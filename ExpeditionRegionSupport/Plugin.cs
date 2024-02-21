@@ -54,6 +54,9 @@ namespace ExpeditionRegionSupport
 
             try
             {
+                IL.Menu.ChallengeSelectPage.Singal += ChallengeSelectPage_Singal;
+                IL.Menu.CharacterSelectPage.Update += ChallengeSelectPage_Update;
+
                 //User Interface
                 On.Menu.ExpeditionMenu.ctor += ExpeditionMenu_ctor;
                 On.Menu.ExpeditionMenu.Update += ExpeditionMenu_Update;
@@ -87,6 +90,60 @@ namespace ExpeditionRegionSupport
             {
                 Logger.LogError(ex);
             }
+        }
+
+        private void ChallengeSelectPage_Singal(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+            //problem
+            //Individual slot handling
+            cursor.GotoNext(MoveType.After, x => x.MatchStloc(1)); //Go to after 'bool hidden' is set
+            cursor.Emit(OpCodes.Ldc_I4_1); //Singal assigns challenges one at a time
+            cursor.EmitDelegate(ChallengeAssignment.OnProcessStart); //Wrap assignment process with start/finish handlers
+            cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
+            cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
+
+            //Multiple slot handling (Random)
+            cursor.GotoNext(MoveType.Before, //Go to before loop index 
+                x => x.MatchLdcI4(0),
+                x => x.MatchStloc(4));
+
+            cursor.EmitDelegate(() =>
+            {
+                if (ExpeditionData.challengeList.Count > 1) //Count - 1 is the index limit for this loop
+                    ChallengeAssignment.OnProcessStart(ExpeditionData.challengeList.Count - 1);
+            });
+            cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //Move to after the loop
+            cursor.EmitDelegate(() =>
+            {
+                if (ChallengeAssignment.AssignmentInProgress)
+                    ChallengeAssignment.OnProcessFinish();
+            });
+        }
+
+        private void ChallengeSelectPage_Update(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            //This is within a loop. We need to get the number of loop iterations expected, which is after the loop's contents
+            cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
+            cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to loop iterator
+            cursor.GotoNext(MoveType.Before, x => x.MatchBlt(out _));
+
+            bool handled = false;
+            cursor.Emit(OpCodes.Dup);
+            cursor.EmitDelegate<Action<int>>((i) => //Pass loop index limiter into delegate
+            {
+                if (handled) return; //This delegate is forced to be part of the loop. Only handle once
+
+                handled = true;
+                ChallengeAssignment.OnProcessStart(i);
+            });
+
+            cursor.GotoNext(MoveType.Before, //Go to before SetUpSelectables call
+                x => x.MatchLdarg(0),
+                x => x.MatchCallOrCallvirt<CharacterSelectPage>(nameof(CharacterSelectPage.SetUpSelectables)));
+            cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
         }
 
         private void CharacterSelectPage_UpdateSelectedSlugcat(On.Menu.CharacterSelectPage.orig_UpdateSelectedSlugcat orig, CharacterSelectPage self, int slugcatIndex)
