@@ -66,10 +66,6 @@ namespace ExpeditionRegionSupport.Filters
                         if (AssignmentStage == AssignmentStageLate || AssignmentStage == ProcessStage.PostProcessing)
                             OnProcessFinish();
                     }
-                    else
-                    {
-                        throw new InvalidOperationException("Setter is only used for late assignments");
-                    }
                 }
             }
         }
@@ -163,7 +159,6 @@ namespace ExpeditionRegionSupport.Filters
         {
             AssignmentStage = ProcessStage.PostProcessing;
             AssignmentInProgress = false;
-            AssignmentStage = ProcessStage.None;
         }
 
         /// <summary>
