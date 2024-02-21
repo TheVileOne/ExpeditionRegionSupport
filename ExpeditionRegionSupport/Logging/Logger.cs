@@ -1,5 +1,5 @@
 ﻿using BepInEx.Logging;
-using LogUtils;
+using ExpeditionRegionSupport.Logging.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -586,107 +586,129 @@ namespace ExpeditionRegionSupport.Logging
             return string.Empty;
         }
     }
-}
 
-namespace LogUtils
-{
-    public static class LogPath
+    namespace Utils
     {
-        public static bool ComparePaths(string path1, string path2)
+        public static class LogPath
         {
-            if (path1 == null)
-                return path2 == null;
-
-            if (path2 == null)
-                return false;
-
-            path1 = Path.GetFullPath(path1).TrimEnd('\\');
-            path2 = Path.GetFullPath(path2).TrimEnd('\\');
-
-            Debug.Log("Comparing paths");
-
-            bool pathsAreEqual = string.Equals(path1, path2, StringComparison.InvariantCultureIgnoreCase);
-
-            if (pathsAreEqual)
-                Debug.Log("Paths are equal");
-            else
+            public static bool ComparePaths(string path1, string path2)
             {
-                Debug.Log("Comparing path: " + path1);
-                Debug.Log("Comparing path: " + path2);
+                if (path1 == null)
+                    return path2 == null;
 
-                Debug.Log("Paths are not equal");
+                if (path2 == null)
+                    return false;
+
+                path1 = Path.GetFullPath(path1).TrimEnd('\\');
+                path2 = Path.GetFullPath(path2).TrimEnd('\\');
+
+                Debug.Log("Comparing paths");
+
+                bool pathsAreEqual = string.Equals(path1, path2, StringComparison.InvariantCultureIgnoreCase);
+
+                if (pathsAreEqual)
+                    Debug.Log("Paths are equal");
+                else
+                {
+                    Debug.Log("Comparing path: " + path1);
+                    Debug.Log("Comparing path: " + path2);
+
+                    Debug.Log("Paths are not equal");
+                }
+
+                return pathsAreEqual;
+            }
+        }
+
+        public class LogFileMover
+        {
+            private string sourcePath, destPath;
+
+            /// <summary>
+            /// Creates an object capable of moving, or copying log files to a new destination
+            /// </summary>
+            /// <param name="sourceLogPath">The full path to the log file that needs to be moved (including filename + ext)</param>
+            /// <param name="destLogPath">The full path to the destination of the log file. Log filename is optional.</param>
+            public LogFileMover(string sourceLogPath, string destLogPath)
+            {
+                sourcePath = sourceLogPath;
+                destPath = destLogPath;
             }
 
-            return pathsAreEqual;
-        }
-    }
-
-    public class LogFileMover
-    {
-        private string sourcePath, destPath;
-
-        /// <summary>
-        /// Creates an object capable of moving, or copying log files to a new destination
-        /// </summary>
-        /// <param name="sourceLogPath">The full path to the log file that needs to be moved (including filename + ext)</param>
-        /// <param name="destLogPath">The full path to the destination of the log file. Log filename is optional.</param>
-        public LogFileMover(string sourceLogPath, string destLogPath)
-        {
-            sourcePath = sourceLogPath;
-            destPath = destLogPath;
-        }
-
-        /// <summary>
-        /// Moves a log file from one place to another. Allows file renaming.
-        /// </summary>
-        public FileStatus MoveFile()
-        {
-            LogValidator logValidator = new LogValidator(sourcePath, destPath);
-
-            if (logValidator.Validate())
+            /// <summary>
+            /// Moves a log file from one place to another. Allows file renaming.
+            /// </summary>
+            public FileStatus MoveFile()
             {
-                FileStatus status;
-                try
-                {
-                    status = PrepareToMoveFile(logValidator);
+                LogValidator logValidator = new LogValidator(sourcePath, destPath);
 
-                    if (status == FileStatus.MoveRequired)
+                if (logValidator.Validate())
+                {
+                    FileStatus status;
+                    try
                     {
-                        FileInfo sourceFilePath = logValidator.SourceFile;
-                        FileInfo destFilePath = logValidator.DestinationFile;
+                        status = PrepareToMoveFile(logValidator);
 
-                        sourceFilePath.MoveTo(destFilePath.FullName);
-                        return FileStatus.MoveComplete;
+                        if (status == FileStatus.MoveRequired)
+                        {
+                            FileInfo sourceFilePath = logValidator.SourceFile;
+                            FileInfo destFilePath = logValidator.DestinationFile;
+
+                            sourceFilePath.MoveTo(destFilePath.FullName);
+                            return FileStatus.MoveComplete;
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    logMoveError(ex);
-                    status = _CopyFile(logValidator);
+                    catch (Exception ex)
+                    {
+                        logMoveError(ex);
+                        status = _CopyFile(logValidator);
+                    }
+
+                    return status;
                 }
 
-                return status;
+                return FileStatus.ValidationFailed;
             }
 
-            return FileStatus.ValidationFailed;
-        }
-
-        /// <summary>
-        /// Copies a log file from one place to another. Allows file renaming.
-        /// </summary>
-        public FileStatus CopyFile()
-        {
-            LogValidator logValidator = new LogValidator(sourcePath, destPath);
-
-            if (logValidator.Validate())
+            /// <summary>
+            /// Copies a log file from one place to another. Allows file renaming.
+            /// </summary>
+            public FileStatus CopyFile()
             {
+                LogValidator logValidator = new LogValidator(sourcePath, destPath);
+
+                if (logValidator.Validate())
+                {
+                    FileStatus status;
+                    try
+                    {
+                        status = PrepareToMoveFile(logValidator);
+
+                        if (status == FileStatus.MoveRequired)
+                            return _CopyFile(logValidator);
+                    }
+                    catch (Exception ex)
+                    {
+                        logCopyError(ex);
+                        status = FileStatus.Error;
+                    }
+
+                    return status;
+                }
+
+                return FileStatus.ValidationFailed;
+            }
+
+            internal FileStatus _CopyFile(LogValidator logValidator)
+            {
+                FileInfo sourceFilePath = logValidator.SourceFile;
+                FileInfo destFilePath = logValidator.DestinationFile;
+
                 FileStatus status;
                 try
                 {
-                    status = PrepareToMoveFile(logValidator);
-
-                    if (status == FileStatus.MoveRequired)
-                        return _CopyFile(logValidator);
+                    sourceFilePath.CopyTo(destFilePath.FullName, true);
+                    status = FileStatus.CopyComplete;
                 }
                 catch (Exception ex)
                 {
@@ -697,210 +719,211 @@ namespace LogUtils
                 return status;
             }
 
-            return FileStatus.ValidationFailed;
-        }
-
-        internal FileStatus _CopyFile(LogValidator logValidator)
-        {
-            FileInfo sourceFilePath = logValidator.SourceFile;
-            FileInfo destFilePath = logValidator.DestinationFile;
-
-            FileStatus status;
-            try
+            /// <summary>
+            /// Handles FileSystem operations that are necessary before a move/copy operation can be possible
+            /// </summary>
+            internal FileStatus PrepareToMoveFile(LogValidator logValidator)
             {
-                sourceFilePath.CopyTo(destFilePath.FullName, true);
-                status = FileStatus.CopyComplete;
-            }
-            catch (Exception ex)
-            {
-                logCopyError(ex);
-                status = FileStatus.Error;
-            }
+                FileInfo sourceFilePath = logValidator.SourceFile;
+                FileInfo destFilePath = logValidator.DestinationFile;
 
-            return status;
-        }
+                DirectoryInfo sourceFileDir = sourceFilePath.Directory;
+                DirectoryInfo destFileDir = destFilePath.Directory;
 
-        /// <summary>
-        /// Handles FileSystem operations that are necessary before a move/copy operation can be possible
-        /// </summary>
-        internal FileStatus PrepareToMoveFile(LogValidator logValidator)
-        {
-            FileInfo sourceFilePath = logValidator.SourceFile;
-            FileInfo destFilePath = logValidator.DestinationFile;
-
-            DirectoryInfo sourceFileDir = sourceFilePath.Directory;
-            DirectoryInfo destFileDir = destFilePath.Directory;
-
-            //Files are in the same folder
-            if (sourceFileDir.FullName == destFileDir.FullName)
-            {
-                string sourceFilename = sourceFilePath.Name;
-                string destFilename = destFilePath.Name;
-
-                if (LogValidator.ExtensionsMatch(sourceFilename, destFilename) && sourceFilename == destFilename)
-                    return FileStatus.NoActionRequired; //Same file, no copy necessary
-
-                destFilePath.Delete(); //Move will fail if a file already exists
-            }
-            else if (destFileDir.Exists)
-            {
-                destFilePath.Delete();
-            }
-            else
-            {
-                destFileDir.Create(); //Make sure the directory exists at the destination
-            }
-
-            return FileStatus.MoveRequired;
-        }
-
-        private void logMoveError(Exception ex)
-        {
-            Debug.LogError("Unable to move file. Attempt copy instead");
-            Debug.LogError(ex);
-        }
-
-        private void logCopyError(Exception ex)
-        {
-            Debug.LogError("Unable to copy file");
-            Debug.LogError(ex);
-        }
-    }
-
-    public enum FileStatus
-    {
-        AwaitingStatus,
-        NoActionRequired,
-        MoveRequired,
-        MoveComplete,
-        CopyComplete,
-        ValidationFailed,
-        Error
-    }
-
-    public class LogValidator
-    {
-        public FileInfo SourceFile;
-        public FileInfo DestinationFile;
-
-        internal string UnvalidatedSourcePath, UnvalidatedDestinationPath;
-
-        public LogValidator(string sourceLogPath, string destLogPath)
-        {
-            UnvalidatedSourcePath = sourceLogPath;
-            UnvalidatedDestinationPath = destLogPath;
-        }
-
-        public bool Validate()
-        {
-            string sourcePath = UnvalidatedSourcePath ?? SourceFile.FullName;
-            string destPath = UnvalidatedDestinationPath ?? DestinationFile.FullName;
-
-            UnvalidatedSourcePath = UnvalidatedDestinationPath = null;
-            SourceFile = DestinationFile = null;
-
-            if (!IsValidLogFileExt(sourcePath)) return false; //We don't want to handle random filetypes
-
-            //A valid filetype is all we need to validate the source path
-            SourceFile = new FileInfo(sourcePath);
-
-
-            //Should we treat it as a directory, or a file
-            if (Path.HasExtension(destPath))
-            {
-                string destFilename = Path.GetFileName(destPath);
-
-                if (!ExtensionsMatch(SourceFile.Name, destFilename) && !IsValidLogFileExt(destFilename))
-                    return false; //We can only replace log files
-
-                DestinationFile = new FileInfo(destPath);
-            }
-            else
-            {
-                DestinationFile = new FileInfo(Path.Combine(destPath, SourceFile.Name));
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Returns true if filename has either .log, or .txt as a file extension
-        /// </summary>
-        public static bool IsValidLogFileExt(string filename)
-        {
-            string fileExt = Path.GetExtension(filename); //Case-insensitive file extensions not supported
-
-            return fileExt == ".log" || fileExt == ".txt";
-        }
-
-        public static bool ExtensionsMatch(string filename, string filename2)
-        {
-            string fileExt = Path.GetExtension(filename);
-            string fileExt2 = Path.GetExtension(filename2);
-
-            return fileExt == fileExt2;
-        }
-    }
-
-    /// <summary>
-    /// Stores two versions of a log path allowing logs to be moved between two stored locations
-    /// </summary>
-    public class LogFileSwitcher
-    {
-        public PathSwitchMode SwitchMode;
-
-        /// <summary>
-        /// Determines which side of the KeyValuePair to move from. True means left.
-        /// </summary>
-        public bool SwitchStartPosition = true;
-
-        public List<ValuePairToggle> PathStrings = new List<ValuePairToggle>();
-
-        public LogFileSwitcher(PathSwitchMode mode)
-        {
-            SwitchMode = mode;
-        }
-
-        public void AddPaths(string path1, string path2)
-        {
-            ValuePairToggle valuePair = new ValuePairToggle(path1, path2);
-
-            if (SwitchMode == PathSwitchMode.Collective)
-                valuePair.ToggleFlag = SwitchStartPosition;
-
-            PathStrings.Add(valuePair);
-        }
-
-        public void AddPaths(string path1, string path2, bool toggleValue)
-        {
-            if (SwitchMode == PathSwitchMode.Collective)
-                throw new InvalidOperationException();
-
-            PathStrings.Add(new ValuePairToggle(path1, path2)
-            {
-                ToggleFlag = toggleValue
-            });
-        }
-
-        /// <summary>
-        /// Moves all files to their alternate location at once
-        /// </summary>
-        public void SwitchPaths()
-        {
-            if (SwitchMode == PathSwitchMode.Singular)
-                throw new InvalidOperationException();
-
-            string path1, path2;
-            foreach (ValuePairToggle valuePair in PathStrings)
-            {
-                //Retrieve our paths
-                path1 = valuePair.ActiveValue;
-                path2 = valuePair.InactiveValue;
-
-                //If last move was unsuccessful, it is okay to do nothing here 
-                if (valuePair.ToggleFlag == SwitchStartPosition)
+                //Files are in the same folder
+                if (sourceFileDir.FullName == destFileDir.FullName)
                 {
-                    valuePair.Status = ExpeditionRegionSupport.Logging.Logger.MoveLog(path1, path2);
+                    string sourceFilename = sourceFilePath.Name;
+                    string destFilename = destFilePath.Name;
+
+                    if (LogValidator.ExtensionsMatch(sourceFilename, destFilename) && sourceFilename == destFilename)
+                        return FileStatus.NoActionRequired; //Same file, no copy necessary
+
+                    destFilePath.Delete(); //Move will fail if a file already exists
+                }
+                else if (destFileDir.Exists)
+                {
+                    destFilePath.Delete();
+                }
+                else
+                {
+                    destFileDir.Create(); //Make sure the directory exists at the destination
+                }
+
+                return FileStatus.MoveRequired;
+            }
+
+            private void logMoveError(Exception ex)
+            {
+                Debug.LogError("Unable to move file. Attempt copy instead");
+                Debug.LogError(ex);
+            }
+
+            private void logCopyError(Exception ex)
+            {
+                Debug.LogError("Unable to copy file");
+                Debug.LogError(ex);
+            }
+        }
+
+        public enum FileStatus
+        {
+            AwaitingStatus,
+            NoActionRequired,
+            MoveRequired,
+            MoveComplete,
+            CopyComplete,
+            ValidationFailed,
+            Error
+        }
+
+        public class LogValidator
+        {
+            public FileInfo SourceFile;
+            public FileInfo DestinationFile;
+
+            internal string UnvalidatedSourcePath, UnvalidatedDestinationPath;
+
+            public LogValidator(string sourceLogPath, string destLogPath)
+            {
+                UnvalidatedSourcePath = sourceLogPath;
+                UnvalidatedDestinationPath = destLogPath;
+            }
+
+            public bool Validate()
+            {
+                string sourcePath = UnvalidatedSourcePath ?? SourceFile.FullName;
+                string destPath = UnvalidatedDestinationPath ?? DestinationFile.FullName;
+
+                UnvalidatedSourcePath = UnvalidatedDestinationPath = null;
+                SourceFile = DestinationFile = null;
+
+                if (!IsValidLogFileExt(sourcePath)) return false; //We don't want to handle random filetypes
+
+                //A valid filetype is all we need to validate the source path
+                SourceFile = new FileInfo(sourcePath);
+
+
+                //Should we treat it as a directory, or a file
+                if (Path.HasExtension(destPath))
+                {
+                    string destFilename = Path.GetFileName(destPath);
+
+                    if (!ExtensionsMatch(SourceFile.Name, destFilename) && !IsValidLogFileExt(destFilename))
+                        return false; //We can only replace log files
+
+                    DestinationFile = new FileInfo(destPath);
+                }
+                else
+                {
+                    DestinationFile = new FileInfo(Path.Combine(destPath, SourceFile.Name));
+                }
+
+                return true;
+            }
+
+            /// <summary>
+            /// Returns true if filename has either .log, or .txt as a file extension
+            /// </summary>
+            public static bool IsValidLogFileExt(string filename)
+            {
+                string fileExt = Path.GetExtension(filename); //Case-insensitive file extensions not supported
+
+                return fileExt == ".log" || fileExt == ".txt";
+            }
+
+            public static bool ExtensionsMatch(string filename, string filename2)
+            {
+                string fileExt = Path.GetExtension(filename);
+                string fileExt2 = Path.GetExtension(filename2);
+
+                return fileExt == fileExt2;
+            }
+        }
+
+        /// <summary>
+        /// Stores two versions of a log path allowing logs to be moved between two stored locations
+        /// </summary>
+        public class LogFileSwitcher
+        {
+            public PathSwitchMode SwitchMode;
+
+            /// <summary>
+            /// Determines which side of the KeyValuePair to move from. True means left.
+            /// </summary>
+            public bool SwitchStartPosition = true;
+
+            public List<ValuePairToggle> PathStrings = new List<ValuePairToggle>();
+
+            public LogFileSwitcher(PathSwitchMode mode)
+            {
+                SwitchMode = mode;
+            }
+
+            public void AddPaths(string path1, string path2)
+            {
+                ValuePairToggle valuePair = new ValuePairToggle(path1, path2);
+
+                if (SwitchMode == PathSwitchMode.Collective)
+                    valuePair.ToggleFlag = SwitchStartPosition;
+
+                PathStrings.Add(valuePair);
+            }
+
+            public void AddPaths(string path1, string path2, bool toggleValue)
+            {
+                if (SwitchMode == PathSwitchMode.Collective)
+                    throw new InvalidOperationException();
+
+                PathStrings.Add(new ValuePairToggle(path1, path2)
+                {
+                    ToggleFlag = toggleValue
+                });
+            }
+
+            /// <summary>
+            /// Moves all files to their alternate location at once
+            /// </summary>
+            public void SwitchPaths()
+            {
+                if (SwitchMode == PathSwitchMode.Singular)
+                    throw new InvalidOperationException();
+
+                string path1, path2;
+                foreach (ValuePairToggle valuePair in PathStrings)
+                {
+                    //Retrieve our paths
+                    path1 = valuePair.ActiveValue;
+                    path2 = valuePair.InactiveValue;
+
+                    //If last move was unsuccessful, it is okay to do nothing here 
+                    if (valuePair.ToggleFlag == SwitchStartPosition)
+                    {
+                        valuePair.Status = Logger.MoveLog(path1, path2);
+
+                        //Don't allow file position to get desynced with toggle position due to move fail
+                        if (valuePair.LastMoveSuccessful)
+                            valuePair.Toggle();
+                    }
+                }
+
+                SwitchStartPosition = !SwitchStartPosition;
+            }
+
+            /// <summary>
+            /// Looks for a matching path, and attempts to move log file to that path
+            /// </summary>
+            public void SwitchToPath(string path)
+            {
+                if (SwitchMode == PathSwitchMode.Collective)
+                    throw new InvalidOperationException();
+
+                //Retrieve our path
+                ValuePairToggle valuePair = PathStrings.Find(vp => vp.ActiveValue == path || vp.InactiveValue == path);
+
+                if (valuePair != null && valuePair.ActiveValue != path)
+                {
+                    valuePair.Status = Logger.MoveLog(valuePair.ActiveValue, path);
 
                     //Don't allow file position to get desynced with toggle position due to move fail
                     if (valuePair.LastMoveSuccessful)
@@ -908,89 +931,66 @@ namespace LogUtils
                 }
             }
 
-            SwitchStartPosition = !SwitchStartPosition;
-        }
-
-        /// <summary>
-        /// Looks for a matching path, and attempts to move log file to that path
-        /// </summary>
-        public void SwitchToPath(string path)
-        {
-            if (SwitchMode == PathSwitchMode.Collective)
-                throw new InvalidOperationException();
-
-            //Retrieve our path
-            ValuePairToggle valuePair = PathStrings.Find(vp => vp.ActiveValue == path || vp.InactiveValue == path);
-
-            if (valuePair != null && valuePair.ActiveValue != path)
+            /// <summary>
+            /// Changes the directory of all paths on the right side of the value toggles
+            /// </summary>
+            public void UpdateTogglePath(string pathDir)
             {
-                valuePair.Status = ExpeditionRegionSupport.Logging.Logger.MoveLog(valuePair.ActiveValue, path);
-
-                //Don't allow file position to get desynced with toggle position due to move fail
-                if (valuePair.LastMoveSuccessful)
-                    valuePair.Toggle();
-            }
-        }
-
-        /// <summary>
-        /// Changes the directory of all paths on the right side of the value toggles
-        /// </summary>
-        public void UpdateTogglePath(string pathDir)
-        {
-            foreach (ValuePairToggle valuePair in PathStrings)
-                valuePair.ValuePair = new KeyValuePair<string, string>(valuePair.ValuePair.Key, Path.Combine(pathDir, Path.GetFileName(valuePair.ValuePair.Value)));
-        }
-
-        public class ValuePairToggle
-        {
-            /// <summary>
-            /// Determines which side of the KeyValuePair to move from. True means left.
-            /// </summary>
-            public bool ToggleFlag = true;
-
-            /// <summary>
-            /// Stores data for ValuePairToggle
-            /// </summary>
-            public KeyValuePair<string, string> ValuePair;
-
-            public string ActiveValue => ToggleFlag ? ValuePair.Key : ValuePair.Value;
-            public string InactiveValue => ToggleFlag ? ValuePair.Value : ValuePair.Key;
-
-            /// <summary>
-            /// The status of the last file move attempt. This is stored in case a failed move creates a desync
-            /// </summary>
-            public FileStatus Status = FileStatus.AwaitingStatus;
-
-            public bool LastMoveSuccessful => Status != FileStatus.Error && Status != FileStatus.ValidationFailed;
-
-            public ValuePairToggle(string value1, string value2)
-            {
-                ValuePair = new KeyValuePair<string, string>(value1, value2);
+                foreach (ValuePairToggle valuePair in PathStrings)
+                    valuePair.ValuePair = new KeyValuePair<string, string>(valuePair.ValuePair.Key, Path.Combine(pathDir, Path.GetFileName(valuePair.ValuePair.Value)));
             }
 
-            public void Toggle()
+            public class ValuePairToggle
             {
-                ToggleFlag = !ToggleFlag;
-            }
-        }
+                /// <summary>
+                /// Determines which side of the KeyValuePair to move from. True means left.
+                /// </summary>
+                public bool ToggleFlag = true;
 
-        public enum PathSwitchMode
-        {
-            Singular,
-            Collective
+                /// <summary>
+                /// Stores data for ValuePairToggle
+                /// </summary>
+                public KeyValuePair<string, string> ValuePair;
+
+                public string ActiveValue => ToggleFlag ? ValuePair.Key : ValuePair.Value;
+                public string InactiveValue => ToggleFlag ? ValuePair.Value : ValuePair.Key;
+
+                /// <summary>
+                /// The status of the last file move attempt. This is stored in case a failed move creates a desync
+                /// </summary>
+                public FileStatus Status = FileStatus.AwaitingStatus;
+
+                public bool LastMoveSuccessful => Status != FileStatus.Error && Status != FileStatus.ValidationFailed;
+
+                public ValuePairToggle(string value1, string value2)
+                {
+                    ValuePair = new KeyValuePair<string, string>(value1, value2);
+                }
+
+                public void Toggle()
+                {
+                    ToggleFlag = !ToggleFlag;
+                }
+            }
+
+            public enum PathSwitchMode
+            {
+                Singular,
+                Collective
+            }
         }
     }
-}
 
-public static class ExtendedILogListener
-{
-    /// <summary>
-    /// Fetches signal data produced by a custom ILogListener
-    /// </summary>
-    public static string GetSignal(this ILogListener self)
+    public static class ExtendedILogListener
     {
-        string stringToProcess = self.ToString();
+        /// <summary>
+        /// Fetches signal data produced by a custom ILogListener
+        /// </summary>
+        public static string GetSignal(this ILogListener self)
+        {
+            string stringToProcess = self.ToString();
 
-        return stringToProcess.StartsWith("Signal") ? stringToProcess : null;
+            return stringToProcess.StartsWith("Signal") ? stringToProcess : null;
+        }
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Expedition;
+using ExpeditionRegionSupport.Logging.Utils;
 
 namespace ExpeditionRegionSupport.Filters
 {
@@ -54,9 +55,8 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static void OnProcessStart(int requestAmount)
         {
-            string msg = "Challenge Assignment IN PROGRESS";
-            ExpLog.Log(msg);
-            Plugin.Logger.LogInfo(msg);
+            LogUtils.LogBoth("Challenge Assignment IN PROGRESS");
+            LogUtils.LogBoth($"{requestAmount} challenges requested");
 
             ChallengesRequested = requestAmount;
             ValidRegions = SlugcatStats.getSlugcatStoryRegions(ExpeditionData.slugcatPlayer).ToList();
@@ -71,29 +71,17 @@ namespace ExpeditionRegionSupport.Filters
 
             if (dataToReport())
             {
-                string msg = "~_ ASSIGNMENT REPORT _~";
-                ExpLog.Log(msg);
-                Plugin.Logger.LogInfo(msg);
+                LogUtils.LogBoth("~_ ASSIGNMENT REPORT _~");
 
                 if (failedToProcessAmount > 0)
-                {
-                    msg = $"Unable to process {failedToProcessAmount} challenge" + (failedToProcessAmount > 1 ? "s" : string.Empty);
-                    ExpLog.Log(msg);
-                    Plugin.Logger.LogInfo(msg);
-                }
+                    LogUtils.LogBoth($"Unable to process {failedToProcessAmount} challenge" + (failedToProcessAmount > 1 ? "s" : string.Empty));
 
                 if (TotalAttemptsProcessed >= REPORT_THRESHOLD)
-                {
-                    msg = "Excessive amount of challenge attempts handled";
-                    ExpLog.Log(msg);
-                    Plugin.Logger.LogInfo(msg);
-                }
+                    LogUtils.LogBoth("Excessive amount of challenge attempts handled");
             }
             else
             {
-                string msg = "Challenge Assignment COMPLETE";
-                ExpLog.Log(msg);
-                Plugin.Logger.LogInfo(msg);
+                LogUtils.LogBoth("Challenge Assignment COMPLETE");
             }
 
             ChallengesRequested = ChallengesProcessed = TotalAttemptsProcessed = 0;
@@ -111,11 +99,11 @@ namespace ExpeditionRegionSupport.Filters
         public static void OnAssignStart()
         {
             if (Plugin.byUpdate)
-                ExpLog.Log("Source Update");
+                LogUtils.LogBoth("Source Update");
             else if (Plugin.bySignal)
-                ExpLog.Log("Source Signal");
+                LogUtils.LogBoth("Source Signal");
             else if (Plugin.byConstructor)
-                ExpLog.Log("Source Constructor");
+                LogUtils.LogBoth("Source Constructor");
         }
 
         /// <summary>
