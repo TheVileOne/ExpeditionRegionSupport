@@ -57,6 +57,12 @@ namespace ExpeditionRegionSupport
                 IL.Menu.ChallengeSelectPage.Singal += ChallengeSelectPage_Singal;
                 IL.Menu.CharacterSelectPage.Update += ChallengeSelectPage_Update;
 
+                //Experimental
+
+                On.Menu.ChallengeSelectPage.ctor += ChallengeSelectPage_ctor;
+                On.Menu.ChallengeSelectPage.Update += ChallengeSelectPage_Update;
+                On.Menu.ChallengeSelectPage.Singal += ChallengeSelectPage_Singal;
+
                 //User Interface
                 On.Menu.ExpeditionMenu.ctor += ExpeditionMenu_ctor;
                 On.Menu.ExpeditionMenu.Update += ExpeditionMenu_Update;
@@ -178,6 +184,29 @@ namespace ExpeditionRegionSupport
             });
         }
 
+        public static bool byUpdate;
+        public static bool bySignal;
+        public static bool byConstructor;
+
+        private void ChallengeSelectPage_ctor(On.Menu.ChallengeSelectPage.orig_ctor orig, ChallengeSelectPage self, Menu.Menu menu, MenuObject owner, Vector2 pos)
+        {
+            byUpdate = true;
+            orig(self, menu, owner, pos);
+            byUpdate = false;
+        }
+
+        private void ChallengeSelectPage_Singal(On.Menu.ChallengeSelectPage.orig_Singal orig, ChallengeSelectPage self, MenuObject sender, string message)
+        {
+            bySignal = true;
+            orig(self, sender, message);
+            bySignal = false;
+        }
+
+        private void ChallengeSelectPage_Update(On.Menu.ChallengeSelectPage.orig_Update orig, ChallengeSelectPage self)
+        {
+            byConstructor = true;
+            orig(self);
+            byConstructor = false;
         }
 
         private void CharacterSelectPage_UpdateSelectedSlugcat(On.Menu.CharacterSelectPage.orig_UpdateSelectedSlugcat orig, CharacterSelectPage self, int slugcatIndex)
