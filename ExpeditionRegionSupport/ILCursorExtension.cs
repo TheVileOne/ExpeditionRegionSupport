@@ -1,4 +1,6 @@
-﻿using Mono.Cecil.Cil;
+﻿using BepInEx.Logging;
+using ExpeditionRegionSupport;
+using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using System;
 using System.Collections.Generic;
@@ -82,5 +84,14 @@ namespace Extensions
             //Pop a pending ILLabel off the stack
             cursor.MarkLabel(PendingBranchLabels.Pop());
         }
+
+        public static ILCursor EmitLog(this ILCursor cursor, string message, LogLevel logLevel = LogLevel.Info)
+        {
+            cursor.EmitReference(message);
+            cursor.EmitReference(logLevel);
+            cursor.EmitDelegate<Action<string, LogLevel>>(Plugin.Logger.Log);
+            return cursor;
+        }
+
     }
 }
