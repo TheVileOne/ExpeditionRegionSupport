@@ -143,13 +143,6 @@ namespace ExpeditionRegionSupport.Filters
         {
             AssignmentStage = ProcessStage.Assignment;
             AssignmentInProgress = true;
-
-            if (Plugin.byUpdate)
-                LogUtils.LogBoth("Source Update");
-            else if (Plugin.bySignal)
-                LogUtils.LogBoth("Source Signal");
-            else if (Plugin.byConstructor)
-                LogUtils.LogBoth("Source Constructor");
         }
 
         /// <summary>
