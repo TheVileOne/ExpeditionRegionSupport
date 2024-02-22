@@ -16,6 +16,7 @@ using Menu;
 using MoreSlugcats;
 using UnityEngine;
 using ExpeditionRegionSupport.Filters;
+//using System.Reflection;
 
 namespace ExpeditionRegionSupport
 {
@@ -168,6 +169,8 @@ namespace ExpeditionRegionSupport
 
         private static void processOnLoopStart(ILCursor cursor)
         {
+            //InvokeOnceHandler handler = new InvokeOnceHandler(ChallengeAssignment.OnProcessStart);
+
             //This is within a loop. We need to get the number of loop iterations expected, which is after the loop's contents
             cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
             cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to loop iterator
@@ -175,6 +178,10 @@ namespace ExpeditionRegionSupport
 
             bool handled = false;
             cursor.Emit(OpCodes.Dup);
+
+            //cursor.EmitReference(handler);
+            //cursor.EmitDelegate<Action<int>>(InvokeOnceHandler.GetInvokeSignature(false));//typeof(InvokeOnceHandler).GetMethods().Where(m => m.Name == "Invoke" && m.ReturnType == typeof(void)).First()); //new Type[] { typeof(object[]) }, m));
+            
             cursor.EmitDelegate<Action<int>>((i) => //Pass loop index limiter into delegate
             {
                 if (handled) return; //This delegate is forced to be part of the loop. Only handle once
@@ -182,6 +189,8 @@ namespace ExpeditionRegionSupport
                 handled = true;
                 ChallengeAssignment.OnProcessStart(i);
             });
+           
+            //handler = null;
         }
 
         public static bool byUpdate;
