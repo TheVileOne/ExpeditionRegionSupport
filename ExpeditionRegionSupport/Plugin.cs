@@ -126,13 +126,23 @@ namespace ExpeditionRegionSupport
             },
             after => after.EmitDelegate(ChallengeAssignment.OnProcessFinish));
 
+            //The order that these methods are called is important
+            applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.CHALLENGE_REPLACE, false, wrapper);
+            applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.DESELECT_MISSION, true, wrapper);
+            applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.CHALLENGE_RANDOM, true, wrapper);
+            applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.ADD_SLOT, false, wrapper);
+            applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.CHALLENGE_HIDDEN, false, wrapper);
+
             //Logic that handles replacing a single challenge slot
+
+            /*
             cursor.GotoNext(MoveType.After, x => x.MatchLdstr(ExpeditionConsts.Signals.CHALLENGE_REPLACE));
 
             cursor.GotoNext(MoveType.Before, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
-            wrapper.Apply(cursor);
+            wrapper.Apply(cursor);         
 
             //Logic that handles new Expedition assignment
+
             cursor.GotoNext(MoveType.After, x => x.MatchLdstr(ExpeditionConsts.Signals.DESELECT_MISSION));
 
             processOnLoopStart(cursor);
@@ -157,6 +167,27 @@ namespace ExpeditionRegionSupport
 
             cursor.GotoNext(MoveType.Before, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
             wrapper.Apply(cursor);
+            */
+        }
+
+        /// <summary>
+        /// Challenge assignment is handled in multiple places with the same emit logic
+        /// </summary>
+        private static void applyChallengeAssignmentIL(ILCursor cursor, string signalText, bool isLoop, ILWrapper wrapper)
+        {
+            cursor.GotoNext(MoveType.After, x => x.MatchLdstr(signalText));
+
+            if (isLoop) //Process for a loop is slightly more complicated versus a single request
+            {
+                processOnLoopStart(cursor);
+
+                cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //Move after loop
+                cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
+            }
+            else
+            {
+                wrapper.Apply(cursor);
+            }
         }
 
         private void ChallengeSelectPage_Update(ILContext il)
