@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Expedition;
+using ExpeditionRegionSupport.Filters;
+using ExpeditionRegionSupport.HookUtils;
 using ExpeditionRegionSupport.Interface;
 using ExpeditionRegionSupport.Regions;
 using ExpeditionRegionSupport.Regions.Restrictions;
@@ -15,8 +17,6 @@ using ExpeditionRegionSupport.Settings;
 using Menu;
 using MoreSlugcats;
 using UnityEngine;
-using ExpeditionRegionSupport.Filters;
-using System.Reflection;
 
 namespace ExpeditionRegionSupport
 {
@@ -117,16 +117,20 @@ namespace ExpeditionRegionSupport
         {
             ILCursor cursor = new ILCursor(il);
 
+            //Wrap assignment process with start/finish handlers
+            ILWrapper wrapper = new ILWrapper(
+            before =>
+            {
+                before.Emit(OpCodes.Ldc_I4_1); //Push expected challenge request amount onto stack
+                before.EmitDelegate(ChallengeAssignment.OnProcessStart);
+            },
+            after => after.EmitDelegate(ChallengeAssignment.OnProcessFinish));
+
             //Logic that handles replacing a single challenge slot
             cursor.GotoNext(MoveType.After, x => x.MatchLdstr(ExpeditionConsts.Signals.CHALLENGE_REPLACE));
 
             cursor.GotoNext(MoveType.Before, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
-
-            //Wrap assignment process with start/finish handlers
-            cursor.Emit(OpCodes.Ldc_I4_1); //Push expected challenge request amount onto stack
-            cursor.EmitDelegate(ChallengeAssignment.OnProcessStart);
-            cursor.Index++; //Pass over AssignChallenge
-            cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
+            wrapper.Apply(cursor);
 
             //Logic that handles new Expedition assignment
             cursor.GotoNext(MoveType.After, x => x.MatchLdstr(ExpeditionConsts.Signals.DESELECT_MISSION));
@@ -147,22 +151,12 @@ namespace ExpeditionRegionSupport
             cursor.GotoNext(MoveType.After, x => x.MatchLdstr(ExpeditionConsts.Signals.ADD_SLOT));
 
             cursor.GotoNext(MoveType.Before, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
-
-            //Wrap assignment process with start/finish handlers
-            cursor.Emit(OpCodes.Ldc_I4_1); //Push expected challenge request amount onto stack
-            cursor.EmitDelegate(ChallengeAssignment.OnProcessStart);
-            cursor.Index++; //Pass over AssignChallenge
-            cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
+            wrapper.Apply(cursor);
 
             cursor.GotoNext(MoveType.After, x => x.MatchLdstr(ExpeditionConsts.Signals.CHALLENGE_HIDDEN));
 
             cursor.GotoNext(MoveType.Before, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
-
-            //Wrap assignment process with start/finish handlers
-            cursor.Emit(OpCodes.Ldc_I4_1); //Push expected challenge request amount onto stack
-            cursor.EmitDelegate(ChallengeAssignment.OnProcessStart);
-            cursor.Index++; //Pass over AssignChallenge
-            cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
+            wrapper.Apply(cursor);
         }
 
         private void ChallengeSelectPage_Update(ILContext il)
