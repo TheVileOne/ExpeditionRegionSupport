@@ -16,7 +16,7 @@ using Menu;
 using MoreSlugcats;
 using UnityEngine;
 using ExpeditionRegionSupport.Filters;
-//using System.Reflection;
+using System.Reflection;
 
 namespace ExpeditionRegionSupport
 {
@@ -97,12 +97,18 @@ namespace ExpeditionRegionSupport
         private void ChallengeSelectPage_Singal(On.Menu.ChallengeSelectPage.orig_Singal orig, ChallengeSelectPage self, MenuObject sender, string message)
         {
             //Debug log messages for assignment signals
-            if (message == "CHA")
+            if (message.StartsWith("CHA"))
                 Logger.LogInfo("REPLACE");
             else if (message == "DESELECT")
                 Logger.LogInfo("DESELECT");
             else if (message == "RANDOM")
                 Logger.LogInfo("RANDOM");
+            else if (message == "MINUS")
+                Logger.LogInfo("ONE LESS");
+            else if (message == "PLUS")
+                Logger.LogInfo("ONE MORE");
+            else if (message.StartsWith("HIDDEN"))
+                Logger.LogInfo("HIDDEN TOGGLE");
 
             orig(self, sender, message);
         }
@@ -114,12 +120,12 @@ namespace ExpeditionRegionSupport
             //Logic that handles replacing a single challenge slot
             cursor.GotoNext(MoveType.After, x => x.MatchLdstr("CHA"));
 
-            cursor.GotoNext(MoveType.After, //Go to after 'bool hidden' is set
-                x => x.MatchLdfld<Challenge>(nameof(Challenge.hidden)),
-                x => x.MatchStloc(1));
+            cursor.GotoNext(MoveType.Before, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
 
-            cursor.EmitDelegate(ChallengeAssignment.OnProcessStart); //Wrap assignment process with start/finish handlers
-            cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
+            //Wrap assignment process with start/finish handlers
+            cursor.Emit(OpCodes.Ldc_I4_1); //Push expected challenge request amount onto stack
+            cursor.EmitDelegate(ChallengeAssignment.OnProcessStart);
+            cursor.Index++; //Pass over AssignChallenge
             cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
 
             //Logic that handles new Expedition assignment
@@ -138,31 +144,25 @@ namespace ExpeditionRegionSupport
             cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //Move after loop
             cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
 
-            /*
-            //Individual slot handling
-            cursor.GotoNext(MoveType.After, x => x.MatchStloc(1)); //Go to after 'bool hidden' is set
-            cursor.Emit(OpCodes.Ldc_I4_1); //Singal assigns challenges one at a time
-            cursor.EmitDelegate(ChallengeAssignment.OnProcessStart); //Wrap assignment process with start/finish handlers
-            cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
+            cursor.GotoNext(MoveType.After, x => x.MatchLdstr("PLUS"));
+
+            cursor.GotoNext(MoveType.Before, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
+
+            //Wrap assignment process with start/finish handlers
+            cursor.Emit(OpCodes.Ldc_I4_1); //Push expected challenge request amount onto stack
+            cursor.EmitDelegate(ChallengeAssignment.OnProcessStart);
+            cursor.Index++; //Pass over AssignChallenge
             cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
 
-            //Multiple slot handling (Random)
-            cursor.GotoNext(MoveType.Before, //Go to before loop index 
-                x => x.MatchLdcI4(0),
-                x => x.MatchStloc(4));
+            cursor.GotoNext(MoveType.After, x => x.MatchLdstr("HIDDEN"));
 
-            cursor.EmitDelegate(() =>
-            {
-                if (ExpeditionData.challengeList.Count > 1) //Count - 1 is the index limit for this loop
-                    ChallengeAssignment.OnProcessStart(ExpeditionData.challengeList.Count - 1);
-            });
-            cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //Move to after the loop
-            cursor.EmitDelegate(() =>
-            {
-                if (ChallengeAssignment.AssignmentInProgress)
-                    ChallengeAssignment.OnProcessFinish();
-            });
-            */
+            cursor.GotoNext(MoveType.Before, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
+
+            //Wrap assignment process with start/finish handlers
+            cursor.Emit(OpCodes.Ldc_I4_1); //Push expected challenge request amount onto stack
+            cursor.EmitDelegate(ChallengeAssignment.OnProcessStart);
+            cursor.Index++; //Pass over AssignChallenge
+            cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
         }
 
         private void ChallengeSelectPage_Update(ILContext il)
@@ -438,7 +438,7 @@ namespace ExpeditionRegionSupport
                 hasProcessedRooms = true;
             }
 
-            Plugin.Logger.LogInfo("LOGGING");
+            Logger.LogInfo("LOGGING");
 
             RegionSelector.Instance.RegionsAvailable.ForEach(r => Logger.LogInfo(r.RegionCode + " " + r.AvailableRooms.Count));
 
