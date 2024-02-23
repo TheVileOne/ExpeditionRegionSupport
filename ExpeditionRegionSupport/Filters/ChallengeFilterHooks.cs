@@ -1,6 +1,6 @@
 ﻿using Expedition;
+using ExpeditionRegionSupport.HookUtils;
 using ExpeditionRegionSupport.Regions;
-using Extensions;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using System;

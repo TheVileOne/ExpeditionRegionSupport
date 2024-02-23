@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Extensions
+namespace ExpeditionRegionSupport.HookUtils
 {
     public static class ILCursorExtension
     {
@@ -39,7 +39,7 @@ namespace Extensions
         {
             cursor.BranchTo(branchCode, MoveType.After, matchPredicates);
         }
-        
+
         /// <summary>
         /// Generates a conditional branch statement at current cursor index to the instruction returned by matchPredicates
         /// Cursor position will be moved to before, or after branch target instruction depending on specified MoveType on successful branch emit
@@ -93,5 +93,28 @@ namespace Extensions
             return cursor;
         }
 
+        /*
+        public static ILCursor GotoNext(this ILCursor cursor, MoveType moveType, Func<Func<Instruction, bool>[]> matchLastPredicates, params Func<Instruction, bool>[] findAfter)
+        {
+            var matchPredicates = matchLastPredicates();
+
+            bool matchFound = false;
+            while (cursor.TryGotoNext(moveType, matchPredicates))
+            {
+                matchFound = true;
+                if (moveType == MoveType.Before)
+                    cursor.Index++;
+            }
+
+            if (matchFound)
+            {
+                if (moveType == MoveType.Before)
+                    cursor.Index--;
+                return cursor;
+            }
+
+            throw new KeyNotFoundException();
+        }
+        */
     }
 }
