@@ -52,42 +52,6 @@ namespace ExpeditionRegionSupport
             applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.CHALLENGE_RANDOM, true, wrapper);
             applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.ADD_SLOT, false, wrapper);
             applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.CHALLENGE_HIDDEN, false, wrapper);
-
-            //Logic that handles replacing a single challenge slot
-
-            /*
-            cursor.GotoNext(MoveType.After, x => x.MatchLdstr(ExpeditionConsts.Signals.CHALLENGE_REPLACE));
-
-            cursor.GotoNext(MoveType.Before, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
-            wrapper.Apply(cursor);         
-
-            //Logic that handles new Expedition assignment
-
-            cursor.GotoNext(MoveType.After, x => x.MatchLdstr(ExpeditionConsts.Signals.DESELECT_MISSION));
-
-            processOnLoopStart(cursor);
-
-            cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //Move after loop
-            cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
-
-            //Logic that handles the Random button
-            cursor.GotoNext(MoveType.After, x => x.MatchLdstr(ExpeditionConsts.Signals.CHALLENGE_RANDOM));
-
-            processOnLoopStart(cursor);
-
-            cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //Move after loop
-            cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
-
-            cursor.GotoNext(MoveType.After, x => x.MatchLdstr(ExpeditionConsts.Signals.ADD_SLOT));
-
-            cursor.GotoNext(MoveType.Before, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
-            wrapper.Apply(cursor);
-
-            cursor.GotoNext(MoveType.After, x => x.MatchLdstr(ExpeditionConsts.Signals.CHALLENGE_HIDDEN));
-
-            cursor.GotoNext(MoveType.Before, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
-            wrapper.Apply(cursor);
-            */
         }
 
         /// <summary>
