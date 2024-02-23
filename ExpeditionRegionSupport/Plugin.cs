@@ -97,17 +97,17 @@ namespace ExpeditionRegionSupport
         private void ChallengeSelectPage_Singal(On.Menu.ChallengeSelectPage.orig_Singal orig, ChallengeSelectPage self, MenuObject sender, string message)
         {
             //Debug log messages for assignment signals
-            if (message.StartsWith("CHA"))
+            if (message.StartsWith(ExpeditionConsts.Signals.CHALLENGE_REPLACE))
                 Logger.LogInfo("REPLACE");
-            else if (message == "DESELECT")
+            else if (message == ExpeditionConsts.Signals.DESELECT_MISSION)
                 Logger.LogInfo("DESELECT");
-            else if (message == "RANDOM")
+            else if (message == ExpeditionConsts.Signals.CHALLENGE_RANDOM)
                 Logger.LogInfo("RANDOM");
-            else if (message == "MINUS")
+            else if (message == ExpeditionConsts.Signals.REMOVE_SLOT)
                 Logger.LogInfo("ONE LESS");
-            else if (message == "PLUS")
+            else if (message == ExpeditionConsts.Signals.ADD_SLOT)
                 Logger.LogInfo("ONE MORE");
-            else if (message.StartsWith("HIDDEN"))
+            else if (message.StartsWith(ExpeditionConsts.Signals.CHALLENGE_HIDDEN))
                 Logger.LogInfo("HIDDEN TOGGLE");
 
             orig(self, sender, message);
@@ -118,7 +118,7 @@ namespace ExpeditionRegionSupport
             ILCursor cursor = new ILCursor(il);
 
             //Logic that handles replacing a single challenge slot
-            cursor.GotoNext(MoveType.After, x => x.MatchLdstr("CHA"));
+            cursor.GotoNext(MoveType.After, x => x.MatchLdstr(ExpeditionConsts.Signals.CHALLENGE_REPLACE));
 
             cursor.GotoNext(MoveType.Before, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
 
@@ -129,7 +129,7 @@ namespace ExpeditionRegionSupport
             cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
 
             //Logic that handles new Expedition assignment
-            cursor.GotoNext(MoveType.After, x => x.MatchLdstr("DESELECT"));
+            cursor.GotoNext(MoveType.After, x => x.MatchLdstr(ExpeditionConsts.Signals.DESELECT_MISSION));
 
             processOnLoopStart(cursor);
 
@@ -137,14 +137,14 @@ namespace ExpeditionRegionSupport
             cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
 
             //Logic that handles the Random button
-            cursor.GotoNext(MoveType.After, x => x.MatchLdstr("RANDOM"));
+            cursor.GotoNext(MoveType.After, x => x.MatchLdstr(ExpeditionConsts.Signals.CHALLENGE_RANDOM));
 
             processOnLoopStart(cursor);
 
             cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //Move after loop
             cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
 
-            cursor.GotoNext(MoveType.After, x => x.MatchLdstr("PLUS"));
+            cursor.GotoNext(MoveType.After, x => x.MatchLdstr(ExpeditionConsts.Signals.ADD_SLOT));
 
             cursor.GotoNext(MoveType.Before, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
 
@@ -154,7 +154,7 @@ namespace ExpeditionRegionSupport
             cursor.Index++; //Pass over AssignChallenge
             cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
 
-            cursor.GotoNext(MoveType.After, x => x.MatchLdstr("HIDDEN"));
+            cursor.GotoNext(MoveType.After, x => x.MatchLdstr(ExpeditionConsts.Signals.CHALLENGE_HIDDEN));
 
             cursor.GotoNext(MoveType.Before, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
 
@@ -251,7 +251,7 @@ namespace ExpeditionRegionSupport
 
             Vector2 settingsButtonOrigPos = new Vector2(menu.rightAnchor - 150f, y - 40);
 
-            return new SimpleButton(menu, page, menu.Translate("SETTINGS"), "SETTINGS", settingsButtonOrigPos, new Vector2(100f, 30f));
+            return new SimpleButton(menu, page, menu.Translate("SETTINGS"), ExpeditionConsts.Signals.OPEN_SETTINGS_DIALOG, settingsButtonOrigPos, new Vector2(100f, 30f));
         }
 
         private void ExpeditionMenu_Update(On.Menu.ExpeditionMenu.orig_Update orig, ExpeditionMenu self)
@@ -275,7 +275,7 @@ namespace ExpeditionRegionSupport
 
         private void ExpeditionMenu_Singal(On.Menu.ExpeditionMenu.orig_Singal orig, ExpeditionMenu self, MenuObject sender, string message)
         {
-            if (message == "SETTINGS")
+            if (message == ExpeditionConsts.Signals.OPEN_SETTINGS_DIALOG)
             {
                 try
                 {

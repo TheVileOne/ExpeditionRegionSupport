@@ -68,9 +68,9 @@ namespace ExpeditionRegionSupport.Interface
 
             factory.ObjectCreated += (b) => b.GetCWT().CenterInParent = true; //Keeps button position correct on resize
 
-            reloadFromFileButton = factory.Create("Reload Expedition Files", ExpeditionSignal.RELOAD_MOD_FILES);
-            cancelChangesButton = factory.Create("Restore Defaults", ExpeditionSignal.RESTORE_DEFAULTS);
-            customizeSpawnsButton = factory.Create("Customize Spawns", ExpeditionSignal.OPEN_SPAWN_DIALOG);
+            reloadFromFileButton = factory.Create("Reload Expedition Files", ExpeditionConsts.Signals.RELOAD_MOD_FILES);
+            cancelChangesButton = factory.Create("Restore Defaults", ExpeditionConsts.Signals.RESTORE_DEFAULTS);
+            customizeSpawnsButton = factory.Create("Customize Spawns", ExpeditionConsts.Signals.OPEN_SPAWN_DIALOG);
 
             List<SimpleButton> buttons = factory.ObjectsCreated;
             
@@ -108,17 +108,17 @@ namespace ExpeditionRegionSupport.Interface
         {
             switch (signal)
             {
-                case ExpeditionSignal.RESTORE_DEFAULTS:
+                case ExpeditionConsts.Signals.RESTORE_DEFAULTS:
                     {
                         ExpeditionSettings.RestoreToDefaults();
                         return;
                     }
-                case ExpeditionSignal.RELOAD_MOD_FILES:
+                case ExpeditionConsts.Signals.RELOAD_MOD_FILES:
                     {
                         ReloadFiles();
                         return;
                     }
-                case ExpeditionSignal.OPEN_SPAWN_DIALOG:
+                case ExpeditionConsts.Signals.OPEN_SPAWN_DIALOG:
                     {
                         //Not implemented yet
                         return;
