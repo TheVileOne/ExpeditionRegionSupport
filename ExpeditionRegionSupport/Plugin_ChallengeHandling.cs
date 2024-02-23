@@ -106,6 +106,7 @@ namespace ExpeditionRegionSupport
             }
             else
             {
+                cursor.GotoNext(MoveType.Before, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
                 wrapper.Apply(cursor);
             }
         }
