@@ -14,23 +14,12 @@ namespace ExpeditionRegionSupport
 {
     public partial class Plugin
     {
-        private void ChallengeSelectPage_Singal(On.Menu.ChallengeSelectPage.orig_Singal orig, ChallengeSelectPage self, MenuObject sender, string message)
+        private void ChallengeSelectPage_Singal(On.Menu.ChallengeSelectPage.orig_Singal orig, ChallengeSelectPage self, MenuObject sender, string signalText)
         {
-            //Debug log messages for assignment signals
-            if (message.StartsWith(ExpeditionConsts.Signals.CHALLENGE_REPLACE))
-                Logger.LogInfo("REPLACE");
-            else if (message == ExpeditionConsts.Signals.DESELECT_MISSION)
-                Logger.LogInfo("DESELECT");
-            else if (message == ExpeditionConsts.Signals.CHALLENGE_RANDOM)
-                Logger.LogInfo("RANDOM");
-            else if (message == ExpeditionConsts.Signals.REMOVE_SLOT)
-                Logger.LogInfo("ONE LESS");
-            else if (message == ExpeditionConsts.Signals.ADD_SLOT)
-                Logger.LogInfo("ONE MORE");
-            else if (message.StartsWith(ExpeditionConsts.Signals.CHALLENGE_HIDDEN))
-                Logger.LogInfo("HIDDEN TOGGLE");
+            //Log any signals that get triggers as their const name
+            Logger.LogInfo(ExpeditionConsts.Signals.GetName(signalText).Replace('_', ' '));
 
-            orig(self, sender, message);
+            orig(self, sender, signalText);
         }
 
         private void ChallengeSelectPage_Singal(ILContext il)
