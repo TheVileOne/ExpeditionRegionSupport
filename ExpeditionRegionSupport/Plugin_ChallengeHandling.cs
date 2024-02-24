@@ -26,8 +26,23 @@ namespace ExpeditionRegionSupport
         {
             ILCursor cursor = new ILCursor(il);
 
+            //The order that these methods are called is important
+            applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.CHALLENGE_REPLACE, false);
+            applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.DESELECT_MISSION, true);
+            applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.CHALLENGE_RANDOM, true);
+            applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.ADD_SLOT, false);
+            applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.CHALLENGE_HIDDEN, false);
+        }
+
+        private static ILWrapper challengeWrapper;
+        private static ILWrapper challengeWrapperLoop;
+
+        private static void assignWrappers()
+        {
+            if (challengeWrapper != null) return; //Only need to create wrappers once
+
             //Wrap assignment process with start/finish handlers
-            ILWrapper wrapper = new ILWrapper(
+            challengeWrapper = new ILWrapper(
             before =>
             {
                 before.Emit(OpCodes.Ldc_I4_1); //Push expected challenge request amount onto stack
@@ -35,32 +50,51 @@ namespace ExpeditionRegionSupport
             },
             after => after.EmitDelegate(ChallengeAssignment.OnProcessFinish));
 
-            //The order that these methods are called is important
-            applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.CHALLENGE_REPLACE, false, wrapper);
-            applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.DESELECT_MISSION, true, wrapper);
-            applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.CHALLENGE_RANDOM, true, wrapper);
-            applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.ADD_SLOT, false, wrapper);
-            applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.CHALLENGE_HIDDEN, false, wrapper);
+            bool handled = false;
+            challengeWrapperLoop = new ILWrapper(
+            before =>
+            {
+                before.Emit(OpCodes.Dup);
+                before.EmitDelegate<Action<int>>((requestAmount) => //Pass loop index limiter into delegate
+                {
+                    if (handled) return; //This delegate is forced to be part of the loop. Only handle once
+
+                    handled = true;
+                    ChallengeAssignment.OnProcessStart(requestAmount);
+                });
+            },
+            after =>
+            {
+                after.EmitDelegate(() =>
+                {
+                    handled = false; //Reset flag for the next loop
+                    ChallengeAssignment.OnProcessFinish();
+                });
+            });
         }
 
         /// <summary>
         /// Challenge assignment is handled in multiple places with the same emit logic
         /// </summary>
-        private static void applyChallengeAssignmentIL(ILCursor cursor, string signalText, bool isLoop, ILWrapper wrapper)
+        private static void applyChallengeAssignmentIL(ILCursor cursor, string signalText, bool isLoop)
         {
-            cursor.GotoNext(MoveType.After, x => x.MatchLdstr(signalText));
+            assignWrappers();
+
+            if (signalText != null)
+                cursor.GotoNext(MoveType.After, x => x.MatchLdstr(signalText));
 
             if (isLoop) //Process for a loop is slightly more complicated versus a single request
             {
-                processOnLoopStart(cursor);
-
-                cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //Move after loop
-                cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
+                //The cursor will be moved to just after the index limit for the loop
+                cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
+                cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to loop iterator
+                cursor.GotoNext(MoveType.Before, x => x.MatchBlt(out _));
+                challengeWrapperLoop.Apply(cursor);
             }
             else
             {
                 cursor.GotoNext(MoveType.Before, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
-                wrapper.Apply(cursor);
+                challengeWrapper.Apply(cursor);
             }
         }
 
@@ -68,28 +102,7 @@ namespace ExpeditionRegionSupport
         {
             ILCursor cursor = new ILCursor(il);
 
-            processOnLoopStart(cursor);
-
-            cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //Move after loop
-            cursor.EmitDelegate(ChallengeAssignment.OnProcessFinish);
-        }
-
-        private static void processOnLoopStart(ILCursor cursor)
-        {
-            //This is within a loop. We need to get the number of loop iterations expected, which is after the loop's contents
-            cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
-            cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to loop iterator
-            cursor.GotoNext(MoveType.Before, x => x.MatchBlt(out _));
-
-            bool handled = false;
-            cursor.Emit(OpCodes.Dup);
-            cursor.EmitDelegate<Action<int>>((i) => //Pass loop index limiter into delegate
-            {
-                if (handled) return; //This delegate is forced to be part of the loop. Only handle once
-
-                handled = true;
-                ChallengeAssignment.OnProcessStart(i);
-            });
+            applyChallengeAssignmentIL(cursor, null, true);
         }
     }
 }
