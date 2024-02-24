@@ -73,6 +73,20 @@ namespace ExpeditionRegionSupport
             Handled = true;
         }
 
+        public void Invoke(params object[] args)
+        {
+            if (Handled || Target == null) return;
+
+            try
+            {
+                Target.DynamicInvoke(args);
+            }
+            finally
+            {
+                Handled = true;
+            }
+        }
+
         public rtnType Invoke<rtnType>(params object[] args)
         {
             if (Handled || Target == null) return default;
@@ -85,6 +99,11 @@ namespace ExpeditionRegionSupport
             {
                 Handled = true;
             }
+        }
+
+        public void Reset()
+        {
+            Handled = false;
         }
 
         public static IEnumerable<MethodInfo> GetHandlers(MethodInfo[] handlerMethods, string handlerName)
