@@ -10,6 +10,26 @@ namespace ExpeditionRegionSupport.Filters
 {
     public static class ChallengeAssignment
     {
+        public static List<ChallengeRequestInfo> Requests = new List<ChallengeRequestInfo>();
+
+        public static int RequestsProcessed => Requests.Count;
+
+        /// <summary>
+        /// A challenge request before it is processed, and validated
+        /// </summary>
+        private static ChallengeRequestInfo requestInProgress;
+
+        public static ChallengeRequestInfo CurrentRequest
+        {
+            get
+            {
+                if (requestInProgress != null)
+                    return requestInProgress;
+
+                return RequestsProcessed > 0 ? Requests[RequestsProcessed - 1] : null;
+            }
+        }
+
         /// <summary>
         /// A cached list of regions used for challenge assignment  
         /// </summary>
@@ -51,21 +71,33 @@ namespace ExpeditionRegionSupport.Filters
         public static bool AssignmentInProgress
         {
             get => ChallengesRequested > 0;
-            set //Setter is only used for a specific use case in the code
+            set
             {
-                if (AssignmentInProgress != value)
+                if (value)
                 {
-                    if (value)
-                    {
+                    //Handles late stage assignment
+                    if (AssignmentInProgress != value)
                         OnProcessStart(1); //We can only assume one challenge is requested
-                    }
-                    else if (LateStageProcessing)
+
+                    //Establish the request info - intended to be checked each time property is set to true
+                    if (requestInProgress == null)
+                        requestInProgress = new ChallengeRequestInfo();
+                }
+                else if (LateStageProcessing)
+                {
+                    //Process must be handled by the same method that triggered it
+                    bool canFinishAtThisStage = AssignmentStage == AssignmentStageLate || AssignmentStage == ProcessStage.PostProcessing;
+
+                    if (AssignmentInProgress != value && canFinishAtThisStage)
                     {
-                        //Process must be handled by the same method that triggered it.
-                        //Assign stage process is handled in assign handlers. Creation stage process is handled in creation stage process.
-                        if (AssignmentStage == AssignmentStageLate || AssignmentStage == ProcessStage.PostProcessing)
-                            OnProcessFinish();
+                        OnRequestHandled();
+                        OnProcessFinish();
                     }
+                }
+                else
+                {
+                    //This could be part of a batch. Only handle the current request
+                    OnRequestHandled();
                 }
             }
         }
@@ -123,6 +155,11 @@ namespace ExpeditionRegionSupport.Filters
             //Set back to default values
             AssignmentStage = AssignmentStageLate = ProcessStage.None;
 
+            LogUtils.LogBoth("Challenge Assignment COMPLETE");
+
+            if (ChallengesRequested != RequestsProcessed)
+                LogUtils.LogBoth("Request counts did not fall within expected range");
+
             int failedToProcessAmount = ChallengesRequested - ChallengesProcessed;
 
             if (dataToReport())
@@ -135,10 +172,6 @@ namespace ExpeditionRegionSupport.Filters
                 if (TotalAttemptsProcessed >= REPORT_THRESHOLD)
                     LogUtils.LogBoth("Excessive amount of challenge attempts handled");
             }
-            else
-            {
-                LogUtils.LogBoth("Challenge Assignment COMPLETE");
-            }
 
             ChallengesRequested = ChallengesProcessed = TotalAttemptsProcessed = 0;
             ValidRegions.Clear();
@@ -147,6 +180,7 @@ namespace ExpeditionRegionSupport.Filters
             {
                 return failedToProcessAmount > 0 || TotalAttemptsProcessed >= REPORT_THRESHOLD;
             }
+            Requests.Clear();
         }
 
         /// <summary>
@@ -229,6 +263,16 @@ namespace ExpeditionRegionSupport.Filters
                 case FailCode.InvalidHidden:
                     break;
             }
+
+            CurrentRequest.FailedAttempts++;
+        }
+
+        internal static void OnRequestHandled()
+        {
+            if (requestInProgress == null) return;
+
+            Requests.Add(requestInProgress);
+            requestInProgress = null;
         }
 
         private enum FailCode
