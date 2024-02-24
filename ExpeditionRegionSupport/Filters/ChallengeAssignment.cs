@@ -145,31 +145,38 @@ namespace ExpeditionRegionSupport.Filters
             //Set back to default values
             AssignmentStage = AssignmentStageLate = ProcessStage.None;
 
-            LogUtils.LogBoth("Challenge Assignment COMPLETE");
+            StringBuilder sb = new StringBuilder();
+
+            sb.AppendLine("~_ ASSIGNMENT REPORT _~");
+            sb.AppendLine();
+            sb.AppendLine("REQUESTS PROCESSED " +  RequestsProcessed);
 
             if (ChallengesRequested != RequestsProcessed)
-                LogUtils.LogBoth("Request counts did not fall within expected range");
+                sb.AppendLine("REQUESTS ABORTED " + (ChallengesRequested - RequestsProcessed));
 
-            int failedToProcessAmount = ChallengesRequested - ChallengesProcessed;
+            StringBuilder sbChallenges = new StringBuilder();
 
-            if (dataToReport())
+            int totalAttempts = 0;
+            int totalFailedAttempts = 0;
+            foreach (ChallengeRequestInfo request in Requests)
             {
-                LogUtils.LogBoth("~_ ASSIGNMENT REPORT _~");
+                totalFailedAttempts += request.FailedAttempts;
+                totalAttempts += request.TotalAttempts;
 
-                if (failedToProcessAmount > 0)
-                    LogUtils.LogBoth($"Unable to process {failedToProcessAmount} challenge" + (failedToProcessAmount > 1 ? "s" : string.Empty));
-
-                if (TotalAttemptsProcessed >= REPORT_THRESHOLD)
-                    LogUtils.LogBoth("Excessive amount of challenge attempts handled");
+                sbChallenges.AppendLine(request.ToString());
             }
 
-            ChallengesRequested = ChallengesProcessed = TotalAttemptsProcessed = 0;
-            ValidRegions.Clear();
+            sb.AppendLine("FAILED ATTEMPTS " + totalFailedAttempts);
 
-            bool dataToReport()
-            {
-                return failedToProcessAmount > 0 || TotalAttemptsProcessed >= REPORT_THRESHOLD;
-            }
+            if (totalFailedAttempts >= REPORT_THRESHOLD)
+                sb.AppendLine("Excessive amount of challenge attempts handled");
+
+            sb.AppendLine("CHALLENGES");
+
+            //Include individual challenge information
+            sb.AppendLine(sbChallenges.ToString().TrimEnd(Environment.NewLine.ToCharArray()));
+
+            LogUtils.LogBoth(sb.ToString());
 
             ChallengesRequested = 0;
             ValidRegions.Clear();
@@ -248,7 +255,7 @@ namespace ExpeditionRegionSupport.Filters
         /// <summary>
         /// Processing a challenge that was generated and rejected by ChallengeOrganizer
         /// </summary>
-        /// <param name="challenge">The Challenge rejected</param>
+        /// <param name="challenge">The challenge rejected</param>
         /// <param name="failCode">The code indicating the reason for rejection</param>
         public static void OnChallengeRejected(Challenge challenge, int failCode)
         {
