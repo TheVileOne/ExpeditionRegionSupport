@@ -85,17 +85,30 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static ProcessStage AssignmentStageLate { get; private set; }
 
+        public static bool AllowLateStageProcessing = true;
+
         /// <summary>
         /// Invoked before a challenge assignment batch is handled
         /// Mods should invoke this before AssignChallenge is called, especially when assigning multiple challenges as a batch
         /// </summary>
         public static void OnProcessStart(int requestAmount)
         {
+            if (AssignmentInProgress)
+                throw new InvalidOperationException("Process must be ended before another one can begin.");
+
             //Handle situations where OnProcessStart has not been called before AssignChallenge, or RandomChallenge is called
             AssignmentStageLate = AssignmentStage;
 
             LogUtils.LogBoth("Challenge Assignment IN PROGRESS");
             LogUtils.LogBoth($"{requestAmount} challenges requested");
+
+            if (LateStageProcessing)
+            {
+                LogUtils.LogBoth("Processing late");
+
+                if (!AllowLateStageProcessing)
+                    throw new InvalidOperationException("Late stage processing has been disabled");
+            }
 
             ChallengesRequested = requestAmount;
             ValidRegions = SlugcatStats.getSlugcatStoryRegions(ExpeditionData.slugcatPlayer).ToList();
