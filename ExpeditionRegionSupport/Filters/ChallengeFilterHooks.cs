@@ -49,6 +49,7 @@ namespace ExpeditionRegionSupport.Filters
         private static void ChallengeOrganizer_AssignChallenge(On.Expedition.ChallengeOrganizer.orig_AssignChallenge orig, int slot, bool hidden)
         {
             ChallengeAssignment.OnAssignStart();
+            ChallengeAssignment.CurrentRequest.Slot = slot;
             orig(slot, hidden);
             ChallengeAssignment.OnAssignFinish();
         }
@@ -74,6 +75,10 @@ namespace ExpeditionRegionSupport.Filters
                 cursor.EmitDelegate(ChallengeAssignment.OnChallengeRejected);
                 failIndex++;
             }
+
+            cursor.GotoNext(MoveType.Before, x => x.MatchRet());
+            cursor.Emit(OpCodes.Ldloc_1); //Challenge
+            cursor.EmitDelegate(ChallengeAssignment.OnChallengeAccepted);
         }
 
         private static Challenge ChallengeOrganizer_RandomChallenge(On.Expedition.ChallengeOrganizer.orig_RandomChallenge orig, bool hidden)

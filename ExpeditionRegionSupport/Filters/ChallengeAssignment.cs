@@ -84,7 +84,7 @@ namespace ExpeditionRegionSupport.Filters
                         OnProcessFinish();
                     }
                 }
-                else
+                else if (AssignmentStage != ProcessStage.Creation) //Prevent request from being handled twice
                 {
                     //This could be part of a batch. Only handle the current request
                     OnRequestHandled();
@@ -170,6 +170,9 @@ namespace ExpeditionRegionSupport.Filters
             {
                 return failedToProcessAmount > 0 || TotalAttemptsProcessed >= REPORT_THRESHOLD;
             }
+
+            ChallengesRequested = 0;
+            ValidRegions.Clear();
             Requests.Clear();
         }
 
@@ -234,6 +237,15 @@ namespace ExpeditionRegionSupport.Filters
         }
 
         /// <summary>
+        /// Processing a challenge that was generated and accepted by ChallengeOrganizer
+        /// </summary>
+        /// <param name="challenge">The challenge accepted</param>
+        public static void OnChallengeAccepted(Challenge challenge)
+        {
+            CurrentRequest.Challenge = challenge;
+        }
+
+        /// <summary>
         /// Processing a challenge that was generated and rejected by ChallengeOrganizer
         /// </summary>
         /// <param name="challenge">The Challenge rejected</param>
@@ -260,6 +272,9 @@ namespace ExpeditionRegionSupport.Filters
         internal static void OnRequestHandled()
         {
             if (requestInProgress == null) return;
+
+            if (Requests.Count == ChallengesRequested)
+                throw new InvalidOperationException("Too many requests handled");
 
             Requests.Add(requestInProgress);
             requestInProgress = null;
