@@ -51,16 +51,6 @@ namespace ExpeditionRegionSupport.Filters
         public static int ChallengesRequested { get; private set; }
 
         /// <summary>
-        /// The active amount of valid challenges processed
-        /// </summary>
-        public static int ChallengesProcessed { get; private set; }
-
-        /// <summary>
-        /// The amount of attempts processed between process start and finish
-        /// </summary>
-        public static int TotalAttemptsProcessed = 0;
-
-        /// <summary>
         /// The amount of process attempts to handle before logging process amount
         /// </summary>
         public const int REPORT_THRESHOLD = 30;

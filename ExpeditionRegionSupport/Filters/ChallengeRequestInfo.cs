@@ -13,7 +13,6 @@ namespace ExpeditionRegionSupport.Filters
         public int FailedAttempts;
 
         public bool Success => Challenge != null;
-        public bool Hidden;
         
         public Challenge Challenge;
     }
