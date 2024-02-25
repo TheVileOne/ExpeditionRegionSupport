@@ -142,7 +142,6 @@ namespace ExpeditionRegionSupport.Filters
             }
 
             ChallengesRequested = requestAmount;
-            ValidRegions = SlugcatStats.getSlugcatStoryRegions(ExpeditionData.slugcatPlayer).ToList();
         }
 
         /// <summary>
@@ -188,7 +187,6 @@ namespace ExpeditionRegionSupport.Filters
             LogUtils.LogBoth(sb.ToString());
 
             ChallengesRequested = 0;
-            ValidRegions.Clear();
             Requests.Clear();
         }
 

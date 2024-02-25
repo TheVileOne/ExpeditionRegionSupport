@@ -105,6 +105,8 @@ namespace ExpeditionRegionSupport
 
                 if (ExpeditionSettings.Filters.VisitedRegionsOnly.Value)
                     UpdateRegionsVisited();
+
+                ChallengeAssignment.ValidRegions = SlugcatStats.getSlugcatStoryRegions(ExpeditionData.slugcatPlayer).ToList();
             }
         }
 
