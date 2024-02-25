@@ -4,15 +4,24 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Expedition;
+using ExpeditionRegionSupport.Filters.Utils;
 using ExpeditionRegionSupport.Regions.Restrictions;
 
 namespace ExpeditionRegionSupport.Regions
 {
     public static class RegionUtils
     {
+        public static Dictionary<Challenge, FilterApplicator<string>> RegionFilterCache = new Dictionary<Challenge, FilterApplicator<string>>();
+
+        public static CachedFilterApplicator<string> ActiveRegionFilter;
+
+        /// <summary>
+        /// A flag that indicates that 
+        /// </summary>
         public static bool CacheAvailableRegions;
 
-        public static string[] AvailableRegionCache; 
+        public static string[] AvailableRegionCache;
 
         public static Dictionary<string, List<string>> RegionsVisited => Plugin.CurrentProgression.miscProgressionData.regionsVisited;
 
@@ -24,6 +33,26 @@ namespace ExpeditionRegionSupport.Regions
 
             Plugin.Logger.LogInfo("RegionCode detected that isn't part of RegionsVisited dictionary");
             return false;
+        }
+
+        public static List<string> GetAvailableRegions(SlugcatStats.Name slugcat)
+        {
+            //TODO: This logic should not be limited to story regions
+            if (!CacheAvailableRegions)
+            {
+                AvailableRegionCache = null;
+                return SlugcatStats.getSlugcatStoryRegions(slugcat).ToList();
+            }
+
+            //Active filters take priority over the standard cache
+            if (ActiveRegionFilter != null)
+                return ActiveRegionFilter.Cache;
+
+            //Make sure cache is applied
+            if (AvailableRegionCache == null)
+                AvailableRegionCache = SlugcatStats.getSlugcatOptionalRegions(slugcat);
+
+            return AvailableRegionCache.ToList();
         }
 
         public static List<string> GetVisitedRegions(SlugcatStats.Name slugcat)

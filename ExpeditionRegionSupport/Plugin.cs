@@ -97,6 +97,7 @@ namespace ExpeditionRegionSupport
 
         private string[] SlugcatStats_getSlugcatStoryRegions(On.SlugcatStats.orig_getSlugcatStoryRegions orig, SlugcatStats.Name name)
         {
+            /*
             if (RegionUtils.CacheAvailableRegions && RegionUtils.AvailableRegionCache != null)
                 return RegionUtils.AvailableRegionCache;
 
@@ -107,6 +108,9 @@ namespace ExpeditionRegionSupport
                 RegionUtils.AvailableRegionCache = availableStoryRegions;
 
             return availableStoryRegions;
+            */
+
+            return orig(name);
         }
 
         private void CharacterSelectPage_UpdateSelectedSlugcat(On.Menu.CharacterSelectPage.orig_UpdateSelectedSlugcat orig, CharacterSelectPage self, int slugcatIndex)
