@@ -26,6 +26,8 @@ namespace ExpeditionRegionSupport.Filters
                 On.Expedition.ChallengeOrganizer.RandomChallenge += ChallengeOrganizer_RandomChallenge;
                 IL.Expedition.ChallengeOrganizer.RandomChallenge += ChallengeOrganizer_RandomChallenge;
 
+                On.Expedition.ChallengeOrganizer.SetupChallengeTypes += ChallengeOrganizer_SetupChallengeTypes;
+
                 On.Expedition.EchoChallenge.Generate += EchoChallenge_Generate;
                 IL.Expedition.EchoChallenge.Generate += EchoChallenge_Generate;
 
@@ -44,6 +46,15 @@ namespace ExpeditionRegionSupport.Filters
             {
                 Plugin.Logger.LogError(ex);
             }
+        }
+
+        private static void ChallengeOrganizer_SetupChallengeTypes(On.Expedition.ChallengeOrganizer.orig_SetupChallengeTypes orig)
+        {
+            bool challengeTypesPopulated = ChallengeOrganizer.availableChallengeTypes != null;
+            orig();
+
+            if (!challengeTypesPopulated)
+                ChallengeAssignment.ChallengeRemover = new FilterApplicator<Challenge>(ChallengeOrganizer.availableChallengeTypes);
         }
 
         private static void ChallengeOrganizer_AssignChallenge(On.Expedition.ChallengeOrganizer.orig_AssignChallenge orig, int slot, bool hidden)

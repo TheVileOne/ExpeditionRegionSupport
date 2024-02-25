@@ -30,6 +30,9 @@ namespace ExpeditionRegionSupport.Filters
             }
         }
 
+        public static FilterApplicator<Challenge> ChallengeRemover;
+        public static FilterApplicator<string> RegionFilter;
+
         /// <summary>
         /// A cached list of regions used for challenge assignment  
         /// </summary>
@@ -142,6 +145,18 @@ namespace ExpeditionRegionSupport.Filters
             }
 
             ChallengesRequested = requestAmount;
+            RegionFilter = new FilterApplicator<string>(ValidRegions); //TODO: Decide if this should be created here
+
+            //Apply any filters that should apply to all challenge assignments
+            foreach (Challenge challenge in ChallengeOrganizer.availableChallengeTypes)
+            {
+                if (challenge is ItemHoardChallenge || challenge is AchievementChallenge) continue; //This challenge cannot be determined based on slugcat alone
+
+                if (!challenge.ValidForThisSlugcat(ExpeditionData.slugcatPlayer))
+                    ChallengeRemover.ItemsToRemove.Add(challenge);
+            }
+
+            ChallengeRemover.Apply();
         }
 
         /// <summary>
@@ -256,6 +271,31 @@ namespace ExpeditionRegionSupport.Filters
         /// <param name="challenge">The challenge accepted</param>
         public static void OnChallengeAccepted(Challenge challenge)
         {
+            string challengeName = challenge.GetTypeName();
+
+            switch (challengeName)
+            {
+                //These challenge types do not have any challenge specific filtering by default
+                case ExpeditionConsts.ChallengeNames.NEURON_DELIVERY:
+                case ExpeditionConsts.ChallengeNames.GLOBAL_SCORE:
+                case ExpeditionConsts.ChallengeNames.CYCLE_SCORE:
+                case ExpeditionConsts.ChallengeNames.PEARL_HOARD:
+                case ExpeditionConsts.ChallengeNames.PIN:
+                    ChallengeRemover.ItemsToRemove.Add(ChallengeUtils.GetChallengeType(challenge));
+                    break;
+                case ExpeditionConsts.ChallengeNames.ECHO:
+                    List<string> availableRegions = RegionFilter.ApplyTemp(ExpeditionData.challengeList,
+                        challenge => challenge is EchoChallenge,
+                        challenge =>
+                        {
+                            EchoChallenge echoChallenge = (EchoChallenge)challenge;
+                            return echoChallenge.ghost.value;
+                        });
+
+                    if (availableRegions.Count == 0)
+                        ChallengeRemover.ItemsToRemove.Add(ChallengeUtils.GetChallengeType(challenge));
+                    break;
+            }
             CurrentRequest.Challenge = challenge;
         }
 
@@ -273,8 +313,19 @@ namespace ExpeditionRegionSupport.Filters
             switch (code)
             {
                 case FailCode.NotValidForSlugcat:
+                    if (!(challenge is ItemHoardChallenge || challenge is AchievementChallenge))
+                        ChallengeRemover.ItemsToRemove.Add(ChallengeUtils.GetChallengeType(challenge));
                     break;
                 case FailCode.InvalidDuplication:
+                    {
+                        //These challenge types do not have any challenge specific filtering by default
+                        if (challenge is NeuronDeliveryChallenge
+                         || challenge is GlobalScoreChallenge
+                         || challenge is CycleScoreChallenge
+                         || challenge is PearlHoardChallenge
+                         || challenge is PinChallenge)
+                            ChallengeRemover.ItemsToRemove.Add(ChallengeUtils.GetChallengeType(challenge));
+                    }
                     break;
                 case FailCode.InvalidHidden:
                     break;
