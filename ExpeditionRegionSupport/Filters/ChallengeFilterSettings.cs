@@ -45,17 +45,17 @@ namespace ExpeditionRegionSupport.Filters
 
             switch (name)
             {
-                case CHALLENGE_NAME_ECHO:
-                case CHALLENGE_NAME_PEARL_HOARD:
+                case ExpeditionConsts.ChallengeNames.ECHO:
+                case ExpeditionConsts.ChallengeNames.PEARL_HOARD:
                     return new ChallengeFilter(filterType);
-                case CHALLENGE_NAME_VISTA:
+                case ExpeditionConsts.ChallengeNames.VISTA:
                     return new ChallengeFilter(filterType)
                     {
                         ValueModifier = (v) => v.Split('_')[0] //This challenge stores room codes, which need underscore parsing
                     };
-                case CHALLENGE_NAME_PEARL_DELIVERY:
+                case ExpeditionConsts.ChallengeNames.PEARL_DELIVERY:
                     return new PearlDeliveryChallengeFilter(filterType);
-                case CHALLENGE_NAME_NEURON_DELIVERY:
+                case ExpeditionConsts.ChallengeNames.NEURON_DELIVERY:
                     return new NeuronDeliveryChallengeFilter(filterType);
             }
             return null;
@@ -87,20 +87,6 @@ namespace ExpeditionRegionSupport.Filters
             foreach (ChallengeFilter filter in availableFilters)
                 filter.Apply(allowedRegions);
         }
-
-        #region consts
-        public const string CHALLENGE_NAME_ACHIEVEMENT = "AchievementChallenge";
-        public const string CHALLENGE_NAME_CYCLE_SCORE = "CycleScoreChallenge";
-        public const string CHALLENGE_NAME_ECHO = "EchoChallenge";
-        public const string CHALLENGE_NAME_GLOBAL_SCORE = "GlobalScoreChallenge";
-        public const string CHALLENGE_NAME_HUNT = "HuntChallenge";
-        public const string CHALLENGE_NAME_ITEM_HOARD = "ItemHoardChallenge";
-        public const string CHALLENGE_NAME_NEURON_DELIVERY = "NeuronDeliveryChallenge";
-        public const string CHALLENGE_NAME_PEARL_DELIVERY = "PearlDeliveryChallenge";
-        public const string CHALLENGE_NAME_PEARL_HOARD = "PearlHoardChallenge";
-        public const string CHALLENGE_NAME_PIN = "PinChallenge";
-        public const string CHALLENGE_NAME_VISTA = "VistaChallenge";
-        #endregion
     }
 
     public enum FilterOptions

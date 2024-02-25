@@ -78,5 +78,20 @@ namespace ExpeditionRegionSupport
                 return signalText;
             }
         }
+
+        public static class ChallengeNames
+        {
+            public const string ACHIEVEMENT = "AchievementChallenge";
+            public const string CYCLE_SCORE = "CycleScoreChallenge";
+            public const string ECHO = "EchoChallenge";
+            public const string GLOBAL_SCORE = "GlobalScoreChallenge";
+            public const string HUNT = "HuntChallenge";
+            public const string ITEM_HOARD = "ItemHoardChallenge";
+            public const string NEURON_DELIVERY = "NeuronDeliveryChallenge";
+            public const string PEARL_DELIVERY = "PearlDeliveryChallenge";
+            public const string PEARL_HOARD = "PearlHoardChallenge";
+            public const string PIN = "PinChallenge";
+            public const string VISTA = "VistaChallenge";
+        }
     }
 }
