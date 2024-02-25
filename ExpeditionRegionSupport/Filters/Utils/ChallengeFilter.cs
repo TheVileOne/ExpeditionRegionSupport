@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ExpeditionRegionSupport.Filters
+namespace ExpeditionRegionSupport.Filters.Utils
 {
     public class ChallengeFilter : ListFilter<string>
     {
@@ -77,7 +77,7 @@ namespace ExpeditionRegionSupport.Filters
         public override bool ConditionMet()
         {
             //If player has not visited Shoreline, or Five Pebbles, this challenge type cannot be chosen
-            return !Enabled || (Evaluate("SL", true) && Evaluate("SS", true));
+            return !Enabled || Evaluate("SL", true) && Evaluate("SS", true);
         }
     }
 }

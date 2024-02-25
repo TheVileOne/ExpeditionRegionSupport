@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Expedition;
+using ExpeditionRegionSupport.Filters.Utils;
 
 namespace ExpeditionRegionSupport.Filters
 {

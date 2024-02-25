@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ExpeditionRegionSupport.Filters
+namespace ExpeditionRegionSupport.Filters.Utils
 {
     public static class ChallengeUtils
     {

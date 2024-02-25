@@ -1,5 +1,5 @@
 ﻿using Expedition;
-using ExpeditionRegionSupport.Filters;
+using ExpeditionRegionSupport.Filters.Utils;
 using ExpeditionRegionSupport.HookUtils;
 using ExpeditionRegionSupport.Interface.Components;
 using Extensions;
@@ -138,7 +138,7 @@ namespace ExpeditionRegionSupport.Interface
                 x => x.MatchLdarg(0),
                 x => x.MatchLdfld<FilterDialog>(nameof(FilterDialog.cancelButton)));
 
-            //Go to before loop processing Challenge filters. ExpeditionSettingsDialog doesn't need any of this login in the loop to run
+            //Go to before loop processing Challenge filters. ExpeditionSettingsDialog doesn't need any of this logic in the loop to run
             cursor.GotoNext(MoveType.Before,
                 x => x.MatchLdcI4(0),
                 x => x.MatchStloc(6));

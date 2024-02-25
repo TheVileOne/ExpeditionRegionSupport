@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Expedition;
+using ExpeditionRegionSupport.Filters.Utils;
 using ExpeditionRegionSupport.Logging.Utils;
 
 namespace ExpeditionRegionSupport.Filters
