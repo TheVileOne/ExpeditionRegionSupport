@@ -68,7 +68,7 @@ namespace ExpeditionRegionSupport.Filters
         {
             if (FilterTarget == null) return new List<ChallengeFilter>();
 
-            return Filters[FilterTarget.GetType().Name];
+            return Filters[FilterTarget.GetTypeName()];
         }
 
         public static bool CheckConditions()

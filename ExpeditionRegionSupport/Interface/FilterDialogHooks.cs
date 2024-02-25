@@ -1,4 +1,5 @@
 ﻿using Expedition;
+using ExpeditionRegionSupport.Filters;
 using ExpeditionRegionSupport.HookUtils;
 using ExpeditionRegionSupport.Interface.Components;
 using Extensions;
@@ -11,6 +12,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using FilterOptions = ExpeditionRegionSupport.Interface.Components.FilterOptions;
 using Vector2 = UnityEngine.Vector2;
 
 namespace ExpeditionRegionSupport.Interface
@@ -276,7 +278,7 @@ namespace ExpeditionRegionSupport.Interface
                     foreach (string challengeType in ChallengeOrganizer.filterChallengeTypes)
                     {
                         CheckBox box = null;
-                        if (ChallengeOrganizer.availableChallengeTypes.Exists(ch => ch.GetType().Name == challengeType))
+                        if (ChallengeOrganizer.availableChallengeTypes.Exists(ch => ch.GetTypeName() == challengeType))
                             (box = dialog.checkBoxes.Find(ch => ch.IDString == challengeType)).Checked = false;
 
                         /*

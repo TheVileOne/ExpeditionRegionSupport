@@ -19,6 +19,11 @@ namespace ExpeditionRegionSupport
                 self.Remove(item);
         }
 
+        public static T FindType<T>(this List<T> self, T item)
+        {
+            return self.Find(i => i.GetType().Equals(item.GetType()));
+        }
+
         public class ConstrainedList<T> : List<T>
         {
             /// <summary>
