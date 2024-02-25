@@ -65,12 +65,21 @@ namespace ExpeditionRegionSupport.Filters
             {
                 if (value)
                 {
+                    bool firstProcess;
+
                     //Handles late stage assignment
                     if (AssignmentInProgress != value)
+                    {
                         OnProcessStart(1); //We can only assume one challenge is requested
+                        firstProcess = true;
+                    }
+                    else
+                    {
+                        firstProcess = AssignmentStage == ProcessStage.Assignment;
+                    }
 
-                    //Establish the request info - intended to be checked each time property is set to true
-                    if (requestInProgress == null)
+                    //Any code that needs to run at the start of the challenge request process goes here
+                    if (firstProcess)
                         requestInProgress = new ChallengeRequestInfo();
                 }
                 else if (LateStageProcessing)
