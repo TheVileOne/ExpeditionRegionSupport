@@ -82,6 +82,7 @@ namespace ExpeditionRegionSupport
                 IL.SaveState.setDenPosition += SaveState_setDenPosition;
 
                 //Misc.
+                On.SlugcatStats.getSlugcatStoryRegions += SlugcatStats_getSlugcatStoryRegions;
                 On.RegionGate.customOEGateRequirements += RegionGate_customOEGateRequirements;
                 On.RainWorld.PostModsInit += RainWorld_PostModsInit;
 
@@ -92,6 +93,20 @@ namespace ExpeditionRegionSupport
             {
                 Logger.LogError(ex);
             }
+        }
+
+        private string[] SlugcatStats_getSlugcatStoryRegions(On.SlugcatStats.orig_getSlugcatStoryRegions orig, SlugcatStats.Name name)
+        {
+            if (RegionUtils.CacheAvailableRegions && RegionUtils.AvailableRegionCache != null)
+                return RegionUtils.AvailableRegionCache;
+
+            string[] availableStoryRegions = orig(name);
+
+            RegionUtils.AvailableRegionCache = null;
+            if (RegionUtils.CacheAvailableRegions)
+                RegionUtils.AvailableRegionCache = availableStoryRegions;
+
+            return availableStoryRegions;
         }
 
         private void CharacterSelectPage_UpdateSelectedSlugcat(On.Menu.CharacterSelectPage.orig_UpdateSelectedSlugcat orig, CharacterSelectPage self, int slugcatIndex)

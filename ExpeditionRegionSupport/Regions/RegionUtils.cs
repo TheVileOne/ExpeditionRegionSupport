@@ -10,6 +10,10 @@ namespace ExpeditionRegionSupport.Regions
 {
     public static class RegionUtils
     {
+        public static bool CacheAvailableRegions;
+
+        public static string[] AvailableRegionCache; 
+
         public static Dictionary<string, List<string>> RegionsVisited => Plugin.CurrentProgression.miscProgressionData.regionsVisited;
 
         public static bool HasVisitedRegion(SlugcatStats.Name slugcat, string regionCode)
