@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Expedition;
 using ExpeditionRegionSupport.Filters.Utils;
 using ExpeditionRegionSupport.Logging.Utils;
+using ExpeditionRegionSupport.Regions;
 
 namespace ExpeditionRegionSupport.Filters
 {
@@ -145,6 +146,8 @@ namespace ExpeditionRegionSupport.Filters
                     throw new InvalidOperationException("Late stage processing has been disabled");
             }
 
+            RegionUtils.CacheAvailableRegions = true;
+
             ChallengesRequested = requestAmount;
             RegionFilter = new FilterApplicator<string>(ValidRegions); //TODO: Decide if this should be created here
 
@@ -169,38 +172,9 @@ namespace ExpeditionRegionSupport.Filters
             //Set back to default values
             AssignmentStage = AssignmentStageLate = ProcessStage.None;
 
-            StringBuilder sb = new StringBuilder();
+            RegionUtils.CacheAvailableRegions = false;
 
-            sb.AppendLine("~_ ASSIGNMENT REPORT _~");
-            sb.AppendLine();
-            sb.AppendLine("REQUESTS PROCESSED " +  RequestsProcessed);
-
-            if (ChallengesRequested != RequestsProcessed)
-                sb.AppendLine("REQUESTS ABORTED " + (ChallengesRequested - RequestsProcessed));
-
-            StringBuilder sbChallenges = new StringBuilder();
-
-            int totalAttempts = 0;
-            int totalFailedAttempts = 0;
-            foreach (ChallengeRequestInfo request in Requests)
-            {
-                totalFailedAttempts += request.FailedAttempts;
-                totalAttempts += request.TotalAttempts;
-
-                sbChallenges.AppendLine(request.ToString());
-            }
-
-            sb.AppendLine("FAILED ATTEMPTS " + totalFailedAttempts);
-
-            if (totalFailedAttempts >= REPORT_THRESHOLD)
-                sb.AppendLine("Excessive amount of challenge attempts handled");
-
-            sb.AppendLine("CHALLENGES");
-
-            //Include individual challenge information
-            sb.AppendLine(sbChallenges.ToString().TrimEnd(Environment.NewLine.ToCharArray()));
-
-            LogUtils.LogBoth(sb.ToString());
+            LogUtils.LogBoth(createAssignmentReport());
 
             ChallengesRequested = 0;
             Requests.Clear();
@@ -344,6 +318,45 @@ namespace ExpeditionRegionSupport.Filters
 
             Requests.Add(requestInProgress);
             requestInProgress = null;
+        }
+
+        /// <summary>
+        /// Creates a formatted string containing information about processed requests
+        /// </summary>
+        private static string createAssignmentReport()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            sb.AppendLine("~_ ASSIGNMENT REPORT _~");
+            sb.AppendLine();
+            sb.AppendLine("REQUESTS PROCESSED " + RequestsProcessed);
+
+            if (ChallengesRequested != RequestsProcessed)
+                sb.AppendLine("REQUESTS ABORTED " + (ChallengesRequested - RequestsProcessed));
+
+            StringBuilder sbChallenges = new StringBuilder();
+
+            int totalAttempts = 0;
+            int totalFailedAttempts = 0;
+            foreach (ChallengeRequestInfo request in Requests)
+            {
+                totalFailedAttempts += request.FailedAttempts;
+                totalAttempts += request.TotalAttempts;
+
+                sbChallenges.AppendLine(request.ToString());
+            }
+
+            sb.AppendLine("FAILED ATTEMPTS " + totalFailedAttempts);
+
+            if (totalFailedAttempts >= REPORT_THRESHOLD)
+                sb.AppendLine("Excessive amount of challenge attempts handled");
+
+            sb.AppendLine("CHALLENGES");
+
+            //Include individual challenge information
+            sb.AppendLine(sbChallenges.ToString().TrimEnd(Environment.NewLine.ToCharArray()));
+
+            return sb.ToString();
         }
 
         private enum FailCode
