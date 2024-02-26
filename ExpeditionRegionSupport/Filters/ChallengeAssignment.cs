@@ -248,7 +248,11 @@ namespace ExpeditionRegionSupport.Filters
         /// <param name="challenge">The challenge accepted</param>
         public static void OnChallengeAccepted(Challenge challenge)
         {
+            if (challenge == null)
+                throw new ArgumentNullException(nameof(challenge), "Challenge handler received null parameter");
+
             string challengeName = challenge.GetTypeName();
+            Challenge challengeType = ChallengeUtils.GetChallengeType(challenge);
 
             switch (challengeName)
             {
@@ -258,7 +262,7 @@ namespace ExpeditionRegionSupport.Filters
                 case ExpeditionConsts.ChallengeNames.CYCLE_SCORE:
                 case ExpeditionConsts.ChallengeNames.PEARL_HOARD:
                 case ExpeditionConsts.ChallengeNames.PIN:
-                    ChallengeRemover.ItemsToRemove.Add(ChallengeUtils.GetChallengeType(challenge));
+                    ChallengeRemover.ItemsToRemove.Add(challengeType);
                     break;
                 case ExpeditionConsts.ChallengeNames.ECHO:
                     List<string> availableRegions = RegionFilter.ApplyTemp(ExpeditionData.challengeList,
@@ -270,7 +274,7 @@ namespace ExpeditionRegionSupport.Filters
                         });
 
                     if (availableRegions.Count == 0)
-                        ChallengeRemover.ItemsToRemove.Add(ChallengeUtils.GetChallengeType(challenge));
+                        ChallengeRemover.ItemsToRemove.Add(challengeType);
                     break;
             }
             CurrentRequest.Challenge = challenge;
@@ -283,6 +287,9 @@ namespace ExpeditionRegionSupport.Filters
         /// <param name="failCode">The code indicating the reason for rejection</param>
         public static void OnChallengeRejected(Challenge challenge, int failCode)
         {
+            if (challenge == null)
+                throw new ArgumentNullException(nameof(challenge), "Challenge handler received null parameter");
+
             FailCode code = (FailCode)failCode;
 
             //Plugin.Logger.LogDebug(code);
