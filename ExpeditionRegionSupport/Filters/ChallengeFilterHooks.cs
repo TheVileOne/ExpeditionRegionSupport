@@ -4,6 +4,7 @@ using ExpeditionRegionSupport.HookUtils;
 using ExpeditionRegionSupport.Regions;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using MoreSlugcats;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -146,10 +147,16 @@ namespace ExpeditionRegionSupport.Filters
         {
             ILCursor cursor = new ILCursor(il);
 
+            cursor.GotoNext(MoveType.After, x => x.MatchStloc(0));
+            cursor.EmitDelegate(processFilterEcho); //Replace it with filtered list
+            cursor.Emit(OpCodes.Stloc_0);
+            cursor.BranchStart(OpCodes.Br); //Original filter logic is bad, and has been replaced
+
             //Apply filter logic
 
             cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to end of loop
             cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //After end of loop
+            cursor.BranchFinish();
 
             cursor.Emit(OpCodes.Ldloc_0); //Push list of region codes available for selection onto stack
             cursor.EmitDelegate(ApplyFilter);
@@ -159,6 +166,30 @@ namespace ExpeditionRegionSupport.Filters
             cursor.Emit(OpCodes.Ldloc_0); //Push list back on the stack to check its count
             applyEmptyListHandling<string>(cursor);
         }
+
+        private static List<string> processFilterEcho()
+        {
+            CachedFilterApplicator<string> echoFilter = new CachedFilterApplicator<string>(ExtEnum<GhostWorldPresence.GhostID>.values.entries);
+
+            echoFilter.ItemsToRemove.Add("NoGhost");
+
+            if (ModManager.MSC)
+            {
+                echoFilter.ItemsToRemove.Add("MS");
+
+                //Remove echoes that only apply to Saint
+                if (ExpeditionData.slugcatPlayer != MoreSlugcatsEnums.SlugcatStatsName.Saint)
+                    echoFilter.ItemsToRemove.Add("SL");
+            }
+
+            echoFilter.Apply();
+
+            List<string> availableRegions = RegionUtils.GetAvailableRegions(ExpeditionData.slugcatPlayer);
+
+            //Returns echoes that have valid assigned regions
+            return echoFilter.Cache.Intersect(availableRegions).ToList();
+        }
+
         #endregion
 
         #region Pearl Delivery
