@@ -8,6 +8,8 @@ namespace ExpeditionRegionSupport.Filters.Utils
 {
     public class FilterApplicator<T>
     {
+        public bool HasItemsRemoved => ItemsRemoved.Count > 0;
+
         protected List<T> Backup;
         protected List<T> Target;
 
