@@ -147,9 +147,9 @@ namespace ExpeditionRegionSupport.Filters
             }
 
             RegionUtils.CacheAvailableRegions = true;
+            RegionUtils.ActiveRegionFilter = new CachedFilterApplicator<string>(RegionUtils.GetAvailableRegions(ExpeditionData.slugcatPlayer));
 
             ChallengesRequested = requestAmount;
-            RegionFilter = new FilterApplicator<string>(ValidRegions); //TODO: Decide if this should be created here
 
             //Apply any filters that should apply to all challenge assignments
             foreach (Challenge challenge in ChallengeOrganizer.availableChallengeTypes)
@@ -172,10 +172,12 @@ namespace ExpeditionRegionSupport.Filters
             //Set back to default values
             AssignmentStage = AssignmentStageLate = ProcessStage.None;
 
-            RegionUtils.CacheAvailableRegions = false;
-
             LogUtils.LogBoth(createAssignmentReport());
 
+            RegionUtils.CacheAvailableRegions = false;
+            RegionUtils.ActiveRegionFilter = null;
+
+            ChallengeRemover.Restore();
             ChallengesRequested = 0;
             Requests.Clear();
         }

@@ -21,7 +21,7 @@ namespace ExpeditionRegionSupport.Regions
         /// </summary>
         public static bool CacheAvailableRegions;
 
-        public static string[] AvailableRegionCache;
+        public static List<string> AvailableRegionCache;
 
         public static Dictionary<string, List<string>> RegionsVisited => Plugin.CurrentProgression.miscProgressionData.regionsVisited;
 
@@ -50,9 +50,9 @@ namespace ExpeditionRegionSupport.Regions
 
             //Make sure cache is applied
             if (AvailableRegionCache == null)
-                AvailableRegionCache = SlugcatStats.getSlugcatOptionalRegions(slugcat);
+                AvailableRegionCache = SlugcatStats.getSlugcatOptionalRegions(slugcat).ToList();
 
-            return AvailableRegionCache.ToList();
+            return AvailableRegionCache;
         }
 
         public static List<string> GetVisitedRegions(SlugcatStats.Name slugcat)
