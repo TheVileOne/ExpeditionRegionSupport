@@ -98,6 +98,13 @@ namespace ExpeditionRegionSupport
             }
         }
 
+        private void ChallengeSelectPage_ctor(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            applyChallengeAssignmentIL(cursor, null, false);
+        }
+
         private void ChallengeSelectPage_Update(ILContext il)
         {
             ILCursor cursor = new ILCursor(il);
