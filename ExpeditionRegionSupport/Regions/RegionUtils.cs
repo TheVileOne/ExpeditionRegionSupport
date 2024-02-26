@@ -50,7 +50,7 @@ namespace ExpeditionRegionSupport.Regions
 
             //Make sure cache is applied
             if (AvailableRegionCache == null)
-                AvailableRegionCache = SlugcatStats.getSlugcatOptionalRegions(slugcat).ToList();
+                AvailableRegionCache = SlugcatStats.getSlugcatStoryRegions(slugcat).ToList();
 
             return AvailableRegionCache;
         }
