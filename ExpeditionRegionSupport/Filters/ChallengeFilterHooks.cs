@@ -152,11 +152,11 @@ namespace ExpeditionRegionSupport.Filters
             cursor.Emit(OpCodes.Stloc_0);
             cursor.BranchStart(OpCodes.Br); //Original filter logic is bad, and has been replaced
 
-            //Apply filter logic
-
             cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to end of loop
             cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //After end of loop
             cursor.BranchFinish();
+
+            //Apply filter logic
 
             cursor.Emit(OpCodes.Ldloc_0); //Push list of region codes available for selection onto stack
             cursor.EmitDelegate(ApplyFilter);
