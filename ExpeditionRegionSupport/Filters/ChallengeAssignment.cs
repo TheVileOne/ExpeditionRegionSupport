@@ -33,12 +33,6 @@ namespace ExpeditionRegionSupport.Filters
         }
 
         public static FilterApplicator<Challenge> ChallengeRemover;
-        public static FilterApplicator<string> RegionFilter;
-
-        /// <summary>
-        /// A cached list of regions used for challenge assignment  
-        /// </summary>
-        public static List<string> ValidRegions;
 
         /// <summary>
         /// Keep track of a separate list of types for restoring entries to the list in an exact order
@@ -146,8 +140,9 @@ namespace ExpeditionRegionSupport.Filters
                     throw new InvalidOperationException("Late stage processing has been disabled");
             }
 
+            //Enable caching and create the primary region filter
             RegionUtils.CacheAvailableRegions = true;
-            RegionUtils.ActiveRegionFilter = new CachedFilterApplicator<string>(RegionUtils.GetAvailableRegions(ExpeditionData.slugcatPlayer));
+            RegionUtils.AssignFilter(ExpeditionData.slugcatPlayer);
 
             ChallengesRequested = requestAmount;
 
@@ -175,7 +170,7 @@ namespace ExpeditionRegionSupport.Filters
             LogUtils.LogBoth(createAssignmentReport());
 
             RegionUtils.CacheAvailableRegions = false;
-            RegionUtils.ActiveRegionFilter = null;
+            RegionUtils.AppliedFilters.Clear();
 
             ChallengeRemover.Restore();
             ChallengesRequested = 0;
@@ -265,7 +260,7 @@ namespace ExpeditionRegionSupport.Filters
                     ChallengeRemover.ItemsToRemove.Add(challengeType);
                     break;
                 case ExpeditionConsts.ChallengeNames.ECHO:
-                    List<string> availableRegions = RegionFilter.ApplyTemp(ExpeditionData.challengeList,
+                    List<string> availableRegions = RegionUtils.CurrentFilter.ApplyTemp(ExpeditionData.challengeList,
                         challenge => challenge is EchoChallenge,
                         challenge =>
                         {

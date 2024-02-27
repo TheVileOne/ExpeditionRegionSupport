@@ -14,10 +14,15 @@ namespace ExpeditionRegionSupport.Regions
     {
         public static Dictionary<Challenge, FilterApplicator<string>> RegionFilterCache = new Dictionary<Challenge, FilterApplicator<string>>();
 
-        public static CachedFilterApplicator<string> ActiveRegionFilter;
+        public static CachedFilterStack<string> AppliedFilters = new CachedFilterStack<string>();
 
         /// <summary>
-        /// A flag that indicates that 
+        /// The most recent region filter assigned 
+        /// </summary>
+        public static CachedFilterApplicator<string> CurrentFilter => AppliedFilters.CurrentFilter;
+
+        /// <summary>
+        /// A flag that indicates that regions should be stored in a mod managed list upon retrieval
         /// </summary>
         public static bool CacheAvailableRegions;
 
@@ -44,9 +49,9 @@ namespace ExpeditionRegionSupport.Regions
                 return SlugcatStats.getSlugcatStoryRegions(slugcat).ToList();
             }
 
-            //Active filters take priority over the standard cache
-            if (ActiveRegionFilter != null)
-                return ActiveRegionFilter.Cache;
+            //Applied filters take priority over the standard cache
+            if (AppliedFilters.BaseFilter != null)
+                return CurrentFilter.Cache;
 
             //Make sure cache is applied
             if (AvailableRegionCache == null)
@@ -130,6 +135,31 @@ namespace ExpeditionRegionSupport.Regions
 
             Plugin.Logger.LogDebug("Returning " + state.ToString());
             return state;
+        }
+
+        public static void AssignFilter(SlugcatStats.Name name)
+        {
+            AppliedFilters.AssignBase(new CachedFilterApplicator<string>(GetAvailableRegions(name)));
+        }
+
+        /// <summary>
+        /// Retrieves a filter from the filter cache if one exists. Creates a new filter if it doesn't exist.
+        /// </summary>
+        public static void AssignFilter(Challenge challenge)
+        {
+            Challenge challengeType = ChallengeUtils.GetChallengeType(challenge);
+
+            FilterApplicator<string> challengeFilter;
+            if (RegionFilterCache.TryGetValue(challenge, out challengeFilter))
+            {
+                AppliedFilters.Assign((CachedFilterApplicator<string>)challengeFilter);
+            }
+            else if (AppliedFilters.BaseFilter != null)
+            {
+
+                //AssignNew automatically inherits from the previous filter
+                RegionFilterCache.Add(challengeType, AppliedFilters.AssignNew());
+            }
         }
 
         public static bool IsVanillaRegion(string regionCode)
