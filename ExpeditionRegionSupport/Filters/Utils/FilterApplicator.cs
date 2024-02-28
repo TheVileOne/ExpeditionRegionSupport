@@ -33,6 +33,28 @@ namespace ExpeditionRegionSupport.Filters.Utils
             ItemsToRemove.Clear();
         }
 
+        public void Apply(Func<T, bool> excludeCondition)
+        {
+            int loopIndex = 0;
+            int loopCount = Target.Count;
+
+            while (loopIndex < loopCount)
+            {
+                T item = Target[loopIndex];
+
+                if (!excludeCondition(item))
+                {
+                    ItemsRemoved.Add(item);
+                    Target.Remove(item);
+                    loopCount--; //For each item removed, the index limit must change
+                }
+                else
+                {
+                    loopCount++;
+                }
+            }
+        }
+
         public List<T> ApplyTemp(IEnumerable<T> itemsNotWanted)
         {
             return Target.Except(itemsNotWanted).ToList();
