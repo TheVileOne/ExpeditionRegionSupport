@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -326,19 +327,87 @@ namespace ExpeditionRegionSupport.Filters
         {
             ILCursor cursor = new ILCursor(il);
 
+            cursor.GotoNext(MoveType.After, x => x.MatchStloc(3)); //Go to after list is created
+            cursor.Emit(OpCodes.Ldloc_3); //Push it back onto the stack
+            cursor.EmitDelegate(populateVistasFromCache); //Send it to method for population
+
+            cursor.BranchStart(OpCodes.Brtrue); //Branch over processing logic if list was populated from the cache
+            cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(SlugcatStats).GetMethod("getSlugcatStoryRegions")));
+            cursor.Emit(OpCodes.Pop);
+            cursor.EmitDelegate(() => //Replace reference with mod managed regions array
+            {
+                return RegionUtils.GetAvailableRegions(ExpeditionData.slugcatPlayer).ToArray();
+            });
+
             //Apply filter logic
 
             cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to end of loop
             cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //After end of loop
 
             cursor.Emit(OpCodes.Ldloc_3); //Push list of region codes available for selection onto stack
-            cursor.EmitDelegate(ApplyFilter);
+            cursor.EmitDelegate<Action<List<string>>>(allowedVistas =>
+            {
+                ApplyFilter(allowedVistas);
+                allowedVistasCache = allowedVistas;
+
+                ChallengeAssignment.HandleOnProcessComplete += clearAllowedVistas;
+            });
+            cursor.BranchFinish();
 
             //Handle list post filter. An empty list will throw an exception
 
             cursor.Emit(OpCodes.Ldloc_3); //Push list back on the stack to check its count
             applyEmptyListHandling<string>(cursor);
         }
+
+        private static List<string> allowedVistasCache;
+
+        private static bool populateVistasFromCache(List<string> list)
+        {
+            if (allowedVistasCache != null)
+            {
+                list.AddRange(allowedVistasCache);
+                return true;
+            }
+            return false;
+        }
+
+        private static void clearAllowedVistas()
+        {
+            allowedVistasCache = null;
+            ChallengeAssignment.HandleOnProcessComplete -= clearAllowedVistas;
+        }
+
+        /*
+        private static List<string> processFilterVista()
+        {
+            if (vistaLocationsCache == null)
+            {
+                vistaLocationsCache = ChallengeTools.VistaLocations.Keys.ToList();
+                FilterApplicator<string> vistaFilter = new CachedFilterApplicator<string>(vistaLocationsCache);
+
+                List<string> availableRegions = RegionUtils.GetAvailableRegions(ExpeditionData.slugcatPlayer);
+
+                //Check each vista against available regions
+                vistaFilter.Apply((vista) =>
+                {
+                    string regionCode = Regex.Split(vista, "_")[0];
+
+                    return !availableRegions.Contains(regionCode);
+                });
+
+                ChallengeAssignment.HandleOnProcessComplete += clearVistaCache;
+            }
+
+            void clearVistaCache()
+            {
+                vistaLocationsCache = null;
+                ChallengeAssignment.HandleOnProcessComplete -= clearVistaCache;
+            }
+
+            return vistaLocationsCache;
+        }
+        */
         #endregion
 
         private static List<string> convertToList(string[] array)

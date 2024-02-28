@@ -117,6 +117,8 @@ namespace ExpeditionRegionSupport.Filters
 
         public static bool AllowLateStageProcessing = true;
 
+        public static Action HandleOnProcessComplete;
+
         /// <summary>
         /// Invoked before a challenge assignment batch is handled
         /// Mods should invoke this before AssignChallenge is called, especially when assigning multiple challenges as a batch
@@ -164,6 +166,8 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static void OnProcessFinish()
         {
+            HandleOnProcessComplete?.Invoke();
+
             //Set back to default values
             AssignmentStage = AssignmentStageLate = ProcessStage.None;
 
