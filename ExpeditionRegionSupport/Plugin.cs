@@ -132,7 +132,6 @@ namespace ExpeditionRegionSupport
         private void ExpeditionMenu_ctor(On.Menu.ExpeditionMenu.orig_ctor orig, ExpeditionMenu self, ProcessManager manager)
         {
             CurrentProgression = manager.rainWorld.progression; //This data is going to be overwritten in the constructor, but this mod still needs access to it.
-            ChallengeAssignment.ChallengeTypesBackup = new List<Challenge>(ChallengeOrganizer.availableChallengeTypes);
 
             if (ChallengeAssignment.ChallengeRemover == null)
                 ChallengeAssignment.ChallengeRemover = new FilterApplicator<Challenge>(ChallengeOrganizer.availableChallengeTypes);

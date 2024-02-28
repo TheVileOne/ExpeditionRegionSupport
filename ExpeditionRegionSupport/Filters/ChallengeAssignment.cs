@@ -35,16 +35,6 @@ namespace ExpeditionRegionSupport.Filters
         public static FilterApplicator<Challenge> ChallengeRemover;
 
         /// <summary>
-        /// Keep track of a separate list of types for restoring entries to the list in an exact order
-        /// </summary>
-        public static List<Challenge> ChallengeTypesBackup;
-
-        /// <summary>
-        /// A list of challenges that were determined to be unselectable due to selected filter options.
-        /// </summary>
-        public static List<Challenge> RemovedChallengeTypes = new List<Challenge>();
-
-        /// <summary>
         /// The number of valid challenges expected to be assigned
         /// </summary>
         public static int ChallengesRequested { get; private set; }
@@ -206,9 +196,6 @@ namespace ExpeditionRegionSupport.Filters
         {
             AssignmentStage = ProcessStage.Creation;
             AssignmentInProgress = true;
-
-            //Remove all challenges that we do not want the game to handle
-            ChallengeOrganizer.availableChallengeTypes.RemoveAll(RemovedChallengeTypes);
         }
 
         /// <summary>
@@ -216,13 +203,6 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static void OnChallengeSelectFinish()
         {
-            //Add them back here
-            if (RemovedChallengeTypes.Count > 0)
-            {
-                ChallengeOrganizer.availableChallengeTypes.Clear();
-                ChallengeOrganizer.availableChallengeTypes.AddRange(ChallengeTypesBackup);
-            }
-
             AssignmentInProgress = false;
         }
 
@@ -235,8 +215,8 @@ namespace ExpeditionRegionSupport.Filters
 
             Plugin.Logger.LogInfo($"Challenge type { target.ChallengeName()} could not be selected. Generating another");
 
-            RemovedChallengeTypes.Add(target);
-            availableChallenges.Remove(target);
+            ChallengeRemover.ItemsToRemove.Add(target);
+            ChallengeRemover.Apply();
 
             ChallengeFilterSettings.FilterTarget = null;
         }
