@@ -174,7 +174,7 @@ namespace ExpeditionRegionSupport.Filters
             LogUtils.LogBoth(createAssignmentReport());
 
             RegionUtils.CacheAvailableRegions = false;
-            RegionUtils.AppliedFilters.Clear();
+            RegionUtils.ClearFilters();
 
             ChallengeRemover.Restore();
             ChallengesRequested = 0;

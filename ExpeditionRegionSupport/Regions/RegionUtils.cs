@@ -156,10 +156,15 @@ namespace ExpeditionRegionSupport.Regions
             }
             else if (AppliedFilters.BaseFilter != null)
             {
-
                 //AssignNew automatically inherits from the previous filter
                 RegionFilterCache.Add(challengeType, AppliedFilters.AssignNew());
             }
+        }
+
+        public static void ClearFilters()
+        {
+            AppliedFilters.Clear();
+            RegionFilterCache.Clear();
         }
 
         public static bool IsVanillaRegion(string regionCode)
