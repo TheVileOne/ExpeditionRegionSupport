@@ -276,9 +276,20 @@ namespace ExpeditionRegionSupport.Filters
         {
             ILCursor cursor = new ILCursor(il);
 
+            /*
+            cursor.GotoNext(MoveType.After,
+                x => x.MatchLdsfld(typeof(ExpeditionData).GetField("slugcatPlayer")),
+                x => x.MatchCall(typeof(SlugcatStats).GetMethod("getSlugcatStoryRegions")));
+            */
+            cursor.GotoNext(MoveType.After, x => x.MatchStloc(1)); //Move to after regions array assignment
+            cursor.EmitDelegate(() => //Replace reference with mod managed regions array
+            {
+                return RegionUtils.GetAvailableRegions(ExpeditionData.slugcatPlayer).ToArray();
+            });
+            cursor.Emit(OpCodes.Stloc_1);
+
             //Apply filter logic
 
-            cursor.GotoNext(MoveType.After, x => x.MatchStloc(1)); //Move to after array assignment
             cursor.BranchTo(OpCodes.Br, MoveType.Before, //Ignore check for HR. We need to use the list defined there
                 x => x.MatchLdloc(1),
                 x => x.Match(OpCodes.Call));
