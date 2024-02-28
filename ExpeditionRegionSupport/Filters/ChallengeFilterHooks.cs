@@ -199,6 +199,16 @@ namespace ExpeditionRegionSupport.Filters
 
             try
             {
+                RegionUtils.AssignFilter(FilterTarget);
+
+                var regionFilter = RegionUtils.AppliedFilters.Pop();
+
+                if (!regionFilter.HasItemsRemoved) //Indicates that a new filter was created for this challenge
+                {
+                    regionFilter.ItemsToRemove.AddRange(ChallengeTools.PearlRegionBlackList);
+                    regionFilter.Apply();
+                }
+
                 return orig(self);
             }
             catch (Exception ex)
@@ -212,10 +222,17 @@ namespace ExpeditionRegionSupport.Filters
         {
             ILCursor cursor = new ILCursor(il);
 
-            //Apply filter logic
+            cursor.GotoNext(MoveType.After, x => x.MatchStloc(1)); //Go to after list is instantiated
+            cursor.EmitReference(ExpeditionData.slugcatPlayer);
+            cursor.EmitDelegate(RegionUtils.GetAvailableRegions); //Get regions and store them directly into the list
+            cursor.Emit(OpCodes.Stloc_1);
+            cursor.BranchStart(OpCodes.Br); //The filter logic in the loop is no longer necessary
 
             cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to end of loop
             cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //After end of loop
+            cursor.BranchFinish();
+
+            //Apply filter logic
 
             cursor.Emit(OpCodes.Ldloc_1); //Push list of region codes available for selection onto stack
             cursor.EmitDelegate(ApplyFilter);
