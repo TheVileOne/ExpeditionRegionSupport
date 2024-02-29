@@ -25,11 +25,11 @@ namespace ExpeditionRegionSupport.Filters
         {
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendLine($"[{Slot}]");
-            sb.AppendLine("Challenge Type");
+            sb.AppendLine(FormatSlot(Slot));
 
             if (Success)
             {
+                sb.AppendLine("Challenge Type");
                 sb.Append(Challenge.ChallengeName());
 
                 if (FailedAttempts > 0)
@@ -40,10 +40,16 @@ namespace ExpeditionRegionSupport.Filters
             }
             else
             {
+                sb.AppendLine("Challenge Status");
                 sb.Append("ABORTED");
             }
 
             return sb.ToString();
+        }
+
+        public static string FormatSlot(int slot)
+        {
+            return $"[{slot}]";
         }
     }
 }

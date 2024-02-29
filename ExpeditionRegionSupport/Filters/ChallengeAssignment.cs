@@ -365,8 +365,13 @@ namespace ExpeditionRegionSupport.Filters
             sb.AppendLine();
             sb.AppendLine("REQUESTS PROCESSED " + RequestsProcessed);
 
-            if (ChallengesRequested != RequestsProcessed)
-                sb.AppendLine("REQUESTS ABORTED " + (ChallengesRequested - RequestsProcessed));
+            int totalAbortedRequests = 0;
+
+            if (Aborted)
+            {
+                totalAbortedRequests = ChallengesRequested - RequestsProcessed;
+                sb.AppendLine("REQUESTS ABORTED " + totalAbortedRequests);
+            }
 
             StringBuilder sbChallenges = new StringBuilder();
 
@@ -378,6 +383,25 @@ namespace ExpeditionRegionSupport.Filters
                 totalAttempts += request.TotalAttempts;
 
                 sbChallenges.AppendLine(request.ToString());
+            }
+
+            if (Aborted)
+            {
+                //This request was not handled and is not stored with the other requests
+                ChallengeRequestInfo abortedRequest = CurrentRequest;
+
+                totalFailedAttempts += abortedRequest.FailedAttempts;
+                totalAttempts += abortedRequest.TotalAttempts;
+
+                sbChallenges.AppendLine(abortedRequest.ToString());
+
+                //Technically it is possible for the slot indexes to not match, but this wouldn't be the case for default Expedition behavior
+                for (int i = 0; i < totalAbortedRequests - 1; i++)
+                {
+                    sbChallenges.AppendLine(ChallengeRequestInfo.FormatSlot(abortedRequest.Slot + 1 + i));
+                    sbChallenges.AppendLine("Challenge Status");
+                    sbChallenges.AppendLine("NOT PROCESSED");
+                }
             }
 
             sb.AppendLine("FAILED ATTEMPTS " + totalFailedAttempts);
