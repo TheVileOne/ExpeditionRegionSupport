@@ -62,20 +62,31 @@ namespace ExpeditionRegionSupport.Filters
 
         private static void ChallengeOrganizer_AssignChallenge(On.Expedition.ChallengeOrganizer.orig_AssignChallenge orig, int slot, bool hidden)
         {
-            ChallengeAssignment.OnAssignStart();
-            ChallengeAssignment.CurrentRequest.Slot = slot;
-            orig(slot, hidden);
-            ChallengeAssignment.OnAssignFinish();
+            ChallengeAssignment.AssignSlot(slot);
+
+            if (!ChallengeAssignment.Aborted)
+            {
+                ChallengeAssignment.OnAssignStart();
+                orig(slot, hidden);
+                ChallengeAssignment.OnAssignFinish();
+            }
         }
 
         private static void ChallengeOrganizer_AssignChallenge(ILContext il)
         {
             ILCursor cursor = new ILCursor(il);
 
+            cursor.GotoNext(MoveType.After,
+                x => x.MatchBlt(out _),
+                x => x.Match(OpCodes.Ldstr)); //This is the Too many attempts string that logs
+            cursor.GotoNext(MoveType.Before, x => x.MatchRet()); //Move to just before the return
+            cursor.EmitDelegate<Action>(() => ChallengeAssignment.Aborted = true); //Notify that no more changes should be assigned
+
+            //The logic after is unrelated to the abort logic above
             cursor.GotoNext(MoveType.After, x => x.MatchStloc(1)); //Move to after challenge is assigned
             cursor.Emit(OpCodes.Ldloc_1);
             cursor.BranchStart(OpCodes.Brtrue); //Null check
-            cursor.EmitDelegate<Action>(() => FailedToAssign = true);
+            cursor.EmitDelegate<Action>(() => FailedToAssign = true); //Notify that an entire challenge group has failed to return valid results
             cursor.Emit(OpCodes.Ret);
             cursor.BranchFinish();
 

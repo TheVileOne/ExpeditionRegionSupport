@@ -40,6 +40,21 @@ namespace ExpeditionRegionSupport.Filters
         public static int ChallengesRequested { get; private set; }
 
         /// <summary>
+        /// When the challenge assignment process reaches the maximum allowed attempts without success
+        /// </summary>
+        public static bool Aborted;
+
+        /// <summary>
+        /// The index of the slot that failed to generate a challenge
+        /// </summary>
+        public static int AbortSlotIndex = -1;
+
+        /// <summary>
+        /// A check that remains true as long as the challenge requests are more than one, and every request is in sequential order
+        /// </summary>
+        public static bool SlotsInOrder; 
+
+        /// <summary>
         /// The amount of process attempts to handle before logging process amount
         /// </summary>
         public const int REPORT_THRESHOLD = 30;
@@ -109,6 +124,24 @@ namespace ExpeditionRegionSupport.Filters
 
         public static Action HandleOnProcessComplete;
 
+
+        private static int assignedSlot = -1;
+
+        public static void AssignSlot(int slotToAssign)
+        {
+            if (assignedSlot < 0) //This should only be negative at the very start of the assignment process
+            {
+                assignedSlot = slotToAssign;
+                SlotsInOrder = ChallengesRequested > 1; //Setting this to true only makes sense with batched assignments
+                return;
+            }
+
+            if (SlotsInOrder) //Check that distance between each assigned slot differs by only one
+                SlotsInOrder = (slotToAssign - assignedSlot) == 1;
+
+            assignedSlot = slotToAssign;
+        }
+
         /// <summary>
         /// Invoked before a challenge assignment batch is handled
         /// Mods should invoke this before AssignChallenge is called, especially when assigning multiple challenges as a batch
@@ -163,12 +196,17 @@ namespace ExpeditionRegionSupport.Filters
 
             LogUtils.LogBoth(createAssignmentReport());
 
+            //Restores many things back to default values
             RegionUtils.CacheAvailableRegions = false;
             RegionUtils.ClearFilters();
 
             ChallengeRemover.Restore();
             ChallengesRequested = 0;
             Requests.Clear();
+            SlotsInOrder = false;
+            Aborted = false;
+            assignedSlot = AbortSlotIndex = -1;
+            requestInProgress = null;
         }
 
         /// <summary>
@@ -178,6 +216,8 @@ namespace ExpeditionRegionSupport.Filters
         {
             AssignmentStage = ProcessStage.Assignment;
             AssignmentInProgress = true;
+
+            CurrentRequest.Slot = assignedSlot; //This has to be placed after AssignmentInProgress is set
         }
 
         /// <summary>
@@ -185,6 +225,12 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static void OnAssignFinish()
         {
+            if (Aborted) //This should only be called once
+            {
+                Plugin.Logger.LogInfo("Challenge assignment aborted");
+                AbortSlotIndex = CurrentRequest.Slot;
+            }
+
             AssignmentStage = ProcessStage.PostProcessing;
             AssignmentInProgress = false;
         }
@@ -299,7 +345,7 @@ namespace ExpeditionRegionSupport.Filters
 
         internal static void OnRequestHandled()
         {
-            if (requestInProgress == null) return;
+            if (requestInProgress == null || Aborted) return;
 
             if (Requests.Count == ChallengesRequested)
                 throw new InvalidOperationException("Too many requests handled");
