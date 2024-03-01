@@ -196,6 +196,9 @@ namespace ExpeditionRegionSupport.Filters
 
             LogUtils.LogBoth(createAssignmentReport());
 
+            if (Aborted && SlotsInOrder)
+                updateSlotOrder();
+
             //Restores many things back to default values
             RegionUtils.CacheAvailableRegions = false;
             RegionUtils.ClearFilters();
@@ -352,6 +355,15 @@ namespace ExpeditionRegionSupport.Filters
 
             Requests.Add(requestInProgress);
             requestInProgress = null;
+        }
+
+        private static void updateSlotOrder()
+        {
+            int abortedSlot = CurrentRequest.Slot;
+
+            //We need to keep at least one slot enabled, and this may not behave as expected due to preexisting selection conflicts
+            if (abortedSlot > 0)
+                ExpeditionData.challengeList.RemoveRange(abortedSlot, ExpeditionData.challengeList.Count - abortedSlot);
         }
 
         /// <summary>
