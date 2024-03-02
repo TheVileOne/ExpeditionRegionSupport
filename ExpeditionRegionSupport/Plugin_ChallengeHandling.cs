@@ -105,7 +105,7 @@ namespace ExpeditionRegionSupport
             applyChallengeAssignmentIL(cursor, null, false);
         }
 
-        private void ChallengeSelectPage_Update(ILContext il)
+        private void CharacterSelectPage_Update(ILContext il)
         {
             ILCursor cursor = new ILCursor(il);
 

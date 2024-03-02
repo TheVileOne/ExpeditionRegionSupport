@@ -59,7 +59,7 @@ namespace ExpeditionRegionSupport
                 IL.Menu.ChallengeSelectPage.ctor += ChallengeSelectPage_ctor;
                 On.Menu.ChallengeSelectPage.Singal += ChallengeSelectPage_Singal;
                 IL.Menu.ChallengeSelectPage.Singal += ChallengeSelectPage_Singal;
-                IL.Menu.CharacterSelectPage.Update += ChallengeSelectPage_Update;
+                IL.Menu.CharacterSelectPage.Update += CharacterSelectPage_Update;
 
                 //User Interface
                 On.Menu.ExpeditionMenu.ctor += ExpeditionMenu_ctor;
