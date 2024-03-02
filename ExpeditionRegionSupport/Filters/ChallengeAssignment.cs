@@ -45,11 +45,6 @@ namespace ExpeditionRegionSupport.Filters
         public static bool Aborted;
 
         /// <summary>
-        /// The index of the slot that failed to generate a challenge
-        /// </summary>
-        public static int AbortSlotIndex = -1;
-
-        /// <summary>
         /// A check that remains true as long as the challenge requests are more than one, and every request is in sequential order
         /// </summary>
         public static bool SlotsInOrder; 
@@ -208,7 +203,7 @@ namespace ExpeditionRegionSupport.Filters
             Requests.Clear();
             SlotsInOrder = false;
             Aborted = false;
-            assignedSlot = AbortSlotIndex = -1;
+            assignedSlot = -1;
             requestInProgress = null;
         }
 
