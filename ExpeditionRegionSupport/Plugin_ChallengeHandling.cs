@@ -1,5 +1,6 @@
 ﻿using Expedition;
 using ExpeditionRegionSupport.Filters;
+using ExpeditionRegionSupport.Filters.Utils;
 using ExpeditionRegionSupport.HookUtils;
 using Menu;
 using Mono.Cecil.Cil;
@@ -110,6 +111,54 @@ namespace ExpeditionRegionSupport
             ILCursor cursor = new ILCursor(il);
 
             applyChallengeAssignmentIL(cursor, null, true);
+        }
+
+        private void ChallengeSelectPage_Update(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            cursor.GotoNext(MoveType.After, x => x.MatchStloc(3)); //Loop index is defined
+            cursor.GotoNext(MoveType.After, x => x.MatchBgt(out _)); //if statement checking index against challengeList count
+            cursor.Emit(OpCodes.Ldloc_3); //Push loop index onto stack
+            cursor.EmitDelegate<Func<int, bool>>(slotIndex => //Access Disabled flag from CWT. Color assignment needs to be avoided if true
+            {
+                if (slotIndex >= ChallengeSlot.SlotChallenges.Count)
+                    return false;
+
+                return ChallengeSlot.SlotChallenges[slotIndex].GetCWT().Disabled;
+            });
+            cursor.BranchTo(OpCodes.Brtrue, MoveType.After, //Bypasses rectColor set as it has already been handled
+                x => x.Match(OpCodes.Newobj),
+                x => x.Match(OpCodes.Newobj),
+                x => x.Match(OpCodes.Stfld));
+        }
+
+        private void ChallengeSelectPage_UpdateChallengeButtons(On.Menu.ChallengeSelectPage.orig_UpdateChallengeButtons orig, ChallengeSelectPage self)
+        {
+            ChallengeSlot.SlotButtons = self.challengeButtons;
+            orig(self);
+        }
+
+        private void ChallengeSelectPage_UpdateChallengeButtons(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            cursor.GotoNext(MoveType.After, //Move after logic that resets the greyed out status of a challenge button
+                x => x.MatchLdfld<ChallengeSelectPage>(nameof(ChallengeSelectPage.challengeButtons)),
+                x => x.MatchLdloc(1),
+                x => x.MatchLdelemRef(),
+                x => x.MatchLdfld<ButtonTemplate>(nameof(ButtonTemplate.buttonBehav)),
+                x => x.MatchLdcI4(0),
+                x => x.MatchStfld<ButtonBehavior>(nameof(ButtonBehavior.greyedOut)));
+
+            //Get closer to the target instruction, just before UpdateDescription is called
+            cursor.GotoNext(MoveType.After, x => x.MatchLdfld<Challenge>(nameof(Challenge.hidden)));
+            cursor.GotoNext(MoveType.After,
+                x => x.MatchStfld<BigSimpleButton>(nameof(BigSimpleButton.labelColor)),
+                x => x.MatchCall(typeof(ExpeditionData).GetMethod("get_challengeList")),
+                x => x.MatchLdloc(1));
+            cursor.Emit(OpCodes.Dup);
+            cursor.EmitDelegate(ChallengeSlot.UpdateSlotVisuals); //Send it to this method to apply extra slot processing logic
         }
     }
 }

@@ -192,7 +192,7 @@ namespace ExpeditionRegionSupport.Filters
             LogUtils.LogBoth(createAssignmentReport());
 
             if (Aborted && SlotsInOrder)
-                updateSlotOrder();
+                updateAbortedSlots();
 
             //Restores many things back to default values
             RegionUtils.CacheAvailableRegions = false;
@@ -347,6 +347,16 @@ namespace ExpeditionRegionSupport.Filters
 
             Requests.Add(requestInProgress);
             requestInProgress = null;
+        }
+
+        /// <summary>
+        /// Sets Disabled flag for all unprocessed challenges after an abort
+        /// </summary>
+        private static void updateAbortedSlots()
+        {
+            int abortedSlot = CurrentRequest.Slot;
+            for (int i = Math.Max(abortedSlot, 1); i < ChallengeSlot.SlotChallenges.Count; i++)
+                ChallengeSlot.SlotChallenges[i].GetCWT().Disabled = true;
         }
 
         private static void updateSlotOrder()

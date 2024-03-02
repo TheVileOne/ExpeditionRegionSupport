@@ -9,7 +9,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Expedition;
 using ExpeditionRegionSupport.Filters;
-using ExpeditionRegionSupport.HookUtils;
 using ExpeditionRegionSupport.Interface;
 using ExpeditionRegionSupport.Regions;
 using ExpeditionRegionSupport.Regions.Restrictions;
@@ -59,6 +58,9 @@ namespace ExpeditionRegionSupport
                 IL.Menu.ChallengeSelectPage.ctor += ChallengeSelectPage_ctor;
                 On.Menu.ChallengeSelectPage.Singal += ChallengeSelectPage_Singal;
                 IL.Menu.ChallengeSelectPage.Singal += ChallengeSelectPage_Singal;
+                IL.Menu.ChallengeSelectPage.Update += ChallengeSelectPage_Update;
+                On.Menu.ChallengeSelectPage.UpdateChallengeButtons += ChallengeSelectPage_UpdateChallengeButtons;
+                IL.Menu.ChallengeSelectPage.UpdateChallengeButtons += ChallengeSelectPage_UpdateChallengeButtons;
                 IL.Menu.CharacterSelectPage.Update += CharacterSelectPage_Update;
 
                 //User Interface
