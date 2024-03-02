@@ -417,47 +417,6 @@ namespace ExpeditionRegionSupport
             RegionSelector.Instance.AddRoom(roomInfo);
         }
 
-        public bool MineForGameComplete(SlugcatStats.Name name, RainWorld rainWorld)
-        {
-            if (!rainWorld.progression.IsThereASavedGame(name))
-                return false;
-            
-            if (rainWorld.progression.currentSaveState != null && rainWorld.progression.currentSaveState.saveStateNumber == name)
-                return rainWorld.progression.currentSaveState.deathPersistentSaveData.ascended || rainWorld.progression.currentSaveState.deathPersistentSaveData.altEnding;
-
-            string[] progLinesFromMemory = rainWorld.progression.GetProgLinesFromMemory();
-            if (progLinesFromMemory.Length == 0)
-                return false;
-
-            for (int i = 0; i < progLinesFromMemory.Length; i++)
-            {
-                string[] array = Regex.Split(progLinesFromMemory[i], "<progDivB>");
-                if (array.Length == 2 && array[0] == "SAVE STATE" && array[1][21].ToString() == name.value)
-                {
-                    List<SaveStateMiner.Target> list = new List<SaveStateMiner.Target>();
-                    list.Add(new SaveStateMiner.Target(">ASCENDED", null, "<dpA>", 20));
-                    list.Add(new SaveStateMiner.Target(">ALTENDING", null, "<dpA>", 20));
-                    List<SaveStateMiner.Result> list2 = SaveStateMiner.Mine(rainWorld, array[1], list);
-                    bool flag = false;
-                    bool flag2 = false;
-                    for (int j = 0; j < list2.Count; j++)
-                    {
-                        string name_ = list2[j].name;
-                        if (name_ == ">ASCENDED")
-                        {
-                            flag = true;
-                        }
-                        else if (name_ == ">ALTENDING")
-                        {
-                            flag2 = true;
-                        }
-                    }
-                    return flag || flag2;
-                }
-            }
-            return false;
-        }
-
         private bool checkRegionRequirements(string text, SlugcatStats.Name slugcat, string[] storyRegions)
         {
             if (ExpeditionGame.lastRandomRegion == text) return false;
