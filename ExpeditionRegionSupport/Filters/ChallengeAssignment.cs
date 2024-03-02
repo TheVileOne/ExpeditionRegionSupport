@@ -223,11 +223,8 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static void OnAssignFinish()
         {
-            if (Aborted) //This should only be called once
-            {
+            if (Aborted)
                 Plugin.Logger.LogInfo("Challenge assignment aborted");
-                AbortSlotIndex = CurrentRequest.Slot;
-            }
 
             AssignmentStage = ProcessStage.PostProcessing;
             AssignmentInProgress = false;
