@@ -17,6 +17,7 @@ using Menu;
 using MoreSlugcats;
 using UnityEngine;
 using ExpeditionRegionSupport.Filters.Utils;
+using Extensions;
 
 namespace ExpeditionRegionSupport
 {
@@ -67,6 +68,8 @@ namespace ExpeditionRegionSupport
                 On.Menu.ExpeditionMenu.ctor += ExpeditionMenu_ctor;
                 On.Menu.ExpeditionMenu.Update += ExpeditionMenu_Update;
                 On.Menu.ExpeditionMenu.UpdatePage += ExpeditionMenu_UpdatePage;
+                On.Menu.Menu.MenuColor += Menu_MenuColor;
+                On.Menu.ButtonTemplate.InterpColor += ButtonTemplate_InterpColor;
 
                 FilterDialogHooks.ApplyHooks();
 
@@ -97,6 +100,40 @@ namespace ExpeditionRegionSupport
                 Logger.LogError(ex);
             }
         }
+
+        private HSLColor Menu_MenuColor(On.Menu.Menu.orig_MenuColor orig, Menu.Menu.MenuColors color)
+        {
+            if (color == ChallengeSlot.DISABLED_HOVER)
+                return ChallengeSlot.DISABLE_HIGHLIGHT_COLOR;
+            return orig(color);
+        }
+
+        private Color ButtonTemplate_InterpColor(On.Menu.ButtonTemplate.orig_InterpColor orig, ButtonTemplate self, float timeStacker, HSLColor baseColor)
+        {
+            var cwt = self.GetCWT();
+
+            if (self.buttonBehav.greyedOut || self.inactive || cwt.HighlightColor == Menu.Menu.MenuColors.White)
+                return orig(self, timeStacker, baseColor);
+
+            //Original code except using a cwt stored value
+            float num = Mathf.Lerp(self.buttonBehav.lastCol, self.buttonBehav.col, timeStacker);
+            num = Mathf.Max(num, Mathf.Lerp(self.buttonBehav.lastFlash, self.buttonBehav.flash, timeStacker));
+            return HSLColor.Lerp(baseColor, Menu.Menu.MenuColor(cwt.HighlightColor), num).rgb;
+        }
+
+        /*
+        private void ButtonTemplate_InterpColor(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            cursor.GotoNext(MoveType.After,
+                x => x.MatchLdarg(2),
+                x => x.MatchLdsfld(typeof(Menu.Menu.MenuColors).GetField(nameof(Menu.Menu.MenuColors.White))));
+            cursor.Emit(OpCodes.Pop);
+            cursor.Emit(OpCodes.Ldarg_0); //Push the button onto stack
+            cursor.EmitDelegate<Func<ButtonTemplate, Menu.Menu.MenuColors>>(button => button.GetCWT().HighlightColor);
+        }
+        */
 
         private void CharacterSelectPage_UpdateSelectedSlugcat(On.Menu.CharacterSelectPage.orig_UpdateSelectedSlugcat orig, CharacterSelectPage self, int slugcatIndex)
         {
@@ -222,7 +259,7 @@ namespace ExpeditionRegionSupport
                 Logger.LogInfo(region);
         }
 
-        private void ChallengeSelectPage_StartButton_OnPressDone(On.Menu.ChallengeSelectPage.orig_StartButton_OnPressDone orig, Menu.ChallengeSelectPage self, Menu.Remix.MixedUI.UIfocusable trigger)
+        private void ChallengeSelectPage_StartButton_OnPressDone(On.Menu.ChallengeSelectPage.orig_StartButton_OnPressDone orig, ChallengeSelectPage self, Menu.Remix.MixedUI.UIfocusable trigger)
         {
             ActiveWorldState = RegionUtils.GetWorldStateFromStoryRegions(ExpeditionData.slugcatPlayer);
 

@@ -94,6 +94,22 @@ namespace Extensions
             self.label.color = color;
         }
 
+        //Buttons
+
+        public class ButtonTemplateCWT
+        {
+            public static readonly Menu.Menu.MenuColors DEFAULT_HIGHLIGHT_COLOR = Menu.Menu.MenuColors.White;
+
+            /// <summary>
+            /// The color of a button when hovered, or selected
+            /// </summary>
+            public Menu.Menu.MenuColors HighlightColor = DEFAULT_HIGHLIGHT_COLOR;
+        }
+
+        public static readonly ConditionalWeakTable<ButtonTemplate, ButtonTemplateCWT> buttonTemplateCWT = new();
+
+        public static ButtonTemplateCWT GetCWT(this ButtonTemplate self) => buttonTemplateCWT.GetValue(self, _ => new());
+
         public class SimpleButtonCWT
         {
             /// <summary>
