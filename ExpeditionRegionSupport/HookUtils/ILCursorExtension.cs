@@ -93,6 +93,15 @@ namespace ExpeditionRegionSupport.HookUtils
             return cursor;
         }
 
+        /// <summary>
+        /// Positions ILCursor at the instruction after the end of the nearest for loop using an add operation
+        /// </summary>
+        public static void GotoAfterForLoop(this ILCursor cursor)
+        {
+            cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to end of loop
+            cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //After end of loop
+        }
+
         /*
         public static ILCursor GotoNext(this ILCursor cursor, MoveType moveType, Func<Func<Instruction, bool>[]> matchLastPredicates, params Func<Instruction, bool>[] findAfter)
         {

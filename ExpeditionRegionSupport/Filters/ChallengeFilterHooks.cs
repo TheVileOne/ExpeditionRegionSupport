@@ -119,8 +119,7 @@ namespace ExpeditionRegionSupport.Filters
         {
             ILCursor cursor = new ILCursor(il);
 
-            cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to end of loop
-            cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //After end of loop
+            cursor.GotoAfterForLoop();
 
             ILLabel runGenerateAgain = cursor.MarkLabel();
 
@@ -162,10 +161,9 @@ namespace ExpeditionRegionSupport.Filters
             cursor.GotoNext(MoveType.After, x => x.MatchStloc(0));
             cursor.EmitDelegate(processFilterEcho); //Replace it with filtered list
             cursor.Emit(OpCodes.Stloc_0);
-            cursor.BranchStart(OpCodes.Br); //Original filter logic is bad, and has been replaced
 
-            cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to end of loop
-            cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //After end of loop
+            cursor.BranchStart(OpCodes.Br); //Original filter logic is bad, and has been replaced
+            cursor.GotoAfterForLoop();
             cursor.BranchFinish();
 
             //Apply filter logic
@@ -238,10 +236,9 @@ namespace ExpeditionRegionSupport.Filters
             cursor.EmitReference(ExpeditionData.slugcatPlayer);
             cursor.EmitDelegate(RegionUtils.GetAvailableRegions); //Get regions and store them directly into the list
             cursor.Emit(OpCodes.Stloc_1);
-            cursor.BranchStart(OpCodes.Br); //The filter logic in the loop is no longer necessary
 
-            cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to end of loop
-            cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //After end of loop
+            cursor.BranchStart(OpCodes.Br); //The filter logic in the loop is no longer necessary
+            cursor.GotoAfterForLoop();
             cursor.BranchFinish();
 
             //Apply filter logic
@@ -288,11 +285,6 @@ namespace ExpeditionRegionSupport.Filters
         {
             ILCursor cursor = new ILCursor(il);
 
-            /*
-            cursor.GotoNext(MoveType.After,
-                x => x.MatchLdsfld(typeof(ExpeditionData).GetField("slugcatPlayer")),
-                x => x.MatchCall(typeof(SlugcatStats).GetMethod("getSlugcatStoryRegions")));
-            */
             cursor.GotoNext(MoveType.After, x => x.MatchStloc(1)); //Move to after regions array assignment
             cursor.EmitDelegate(() => //Replace reference with mod managed regions array
             {
@@ -352,8 +344,7 @@ namespace ExpeditionRegionSupport.Filters
 
             //Apply filter logic
 
-            cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to end of loop
-            cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //After end of loop
+            cursor.GotoAfterForLoop();
 
             cursor.Emit(OpCodes.Ldloc_3); //Push list of region codes available for selection onto stack
             cursor.EmitDelegate<Action<List<string>>>(allowedVistas =>
