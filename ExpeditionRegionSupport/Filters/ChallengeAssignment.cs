@@ -354,9 +354,14 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         private static void updateAbortedSlots()
         {
-            int abortedSlot = CurrentRequest.Slot;
-            for (int i = Math.Max(abortedSlot, 1); i < ChallengeSlot.SlotChallenges.Count; i++)
-                ChallengeSlot.SlotChallenges[i].GetCWT().Disabled = true;
+            int firstPlayableSlot = ChallengeSlot.FirstPlayableSlot();
+            int firstAbortedSlot = CurrentRequest.Slot;
+
+            if (firstPlayableSlot > 0 && firstAbortedSlot > firstPlayableSlot) //Ensure there is at least one playable slot
+            {
+                for (int slotIndex = firstAbortedSlot; slotIndex < ChallengeSlot.SlotChallenges.Count; slotIndex++)
+                    ChallengeSlot.SlotChallenges[slotIndex].GetCWT().Disabled = true;
+            }
         }
 
         private static void updateSlotOrder()

@@ -33,6 +33,14 @@ namespace ExpeditionRegionSupport.Filters
         public static readonly HSLColor DISABLE_HIGHLIGHT_COLOR = new HSLColor(0.033333335f, 0.65f, 0.4f);
         public static readonly HSLColor HIDDEN_COLOR = new HSLColor(0.12f, 0.8f, 0.55f);
 
+        /// <summary>
+        /// Returns the earliest index of a non-hidden slot
+        /// </summary>
+        public static int FirstPlayableSlot()
+        {
+            return SlotChallenges.FindIndex(c => !c.hidden);
+        }
+
         public static void UpdateSlotVisuals(int slot)
         {
             BigSimpleButton slotButton = SlotButtons[slot];
