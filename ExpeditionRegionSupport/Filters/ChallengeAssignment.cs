@@ -359,8 +359,18 @@ namespace ExpeditionRegionSupport.Filters
 
             if (firstPlayableSlot >= 0 && firstAbortedSlot > firstPlayableSlot) //Ensure there is at least one playable slot
             {
+                int disabledCount = 0;
                 for (int slotIndex = firstAbortedSlot; slotIndex < ChallengeSlot.SlotChallenges.Count; slotIndex++)
+                {
                     ChallengeSlot.SlotChallenges[slotIndex].GetCWT().Disabled = true;
+                    disabledCount++;
+                }
+
+                if (disabledCount > 0)
+                {
+                    Plugin.Logger.LogInfo("PLAYABLE SLOTS " + (ChallengeSlot.SlotChallenges.Count - disabledCount));
+                    Plugin.Logger.LogInfo("FROZEN SLOTS " + disabledCount);
+                }
             }
         }
 
