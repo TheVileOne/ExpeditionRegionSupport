@@ -357,7 +357,7 @@ namespace ExpeditionRegionSupport.Filters
             int firstPlayableSlot = ChallengeSlot.FirstPlayableSlot();
             int firstAbortedSlot = CurrentRequest.Slot;
 
-            if (firstPlayableSlot > 0 && firstAbortedSlot > firstPlayableSlot) //Ensure there is at least one playable slot
+            if (firstPlayableSlot >= 0 && firstAbortedSlot > firstPlayableSlot) //Ensure there is at least one playable slot
             {
                 for (int slotIndex = firstAbortedSlot; slotIndex < ChallengeSlot.SlotChallenges.Count; slotIndex++)
                     ChallengeSlot.SlotChallenges[slotIndex].GetCWT().Disabled = true;
