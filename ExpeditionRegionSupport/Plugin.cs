@@ -116,9 +116,10 @@ namespace ExpeditionRegionSupport
                 return orig(self, timeStacker, baseColor);
 
             //Original code except using a cwt stored value
-            float num = Mathf.Lerp(self.buttonBehav.lastCol, self.buttonBehav.col, timeStacker);
-            num = Mathf.Max(num, Mathf.Lerp(self.buttonBehav.lastFlash, self.buttonBehav.flash, timeStacker));
-            return HSLColor.Lerp(baseColor, Menu.Menu.MenuColor(cwt.HighlightColor), num).rgb;
+            float colorLerp = Mathf.Lerp(self.buttonBehav.lastCol, self.buttonBehav.col, timeStacker);
+            float flashLerp = Mathf.Lerp(self.buttonBehav.lastFlash, self.buttonBehav.flash, timeStacker);
+
+            return HSLColor.Lerp(baseColor, Menu.Menu.MenuColor(cwt.HighlightColor), Mathf.Max(colorLerp, flashLerp)).rgb;
         }
 
         /*
