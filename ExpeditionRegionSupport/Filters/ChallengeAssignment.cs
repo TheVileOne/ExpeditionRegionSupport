@@ -195,6 +195,12 @@ namespace ExpeditionRegionSupport.Filters
             //Set back to default values
             AssignmentStage = AssignmentStageLate = ProcessStage.None;
 
+            if (ChallengeFilterSettings.FailedToAssign)
+            {
+                Plugin.Logger.LogWarning("No challenges available");
+                ChallengeFilterSettings.FailedToAssign = false;
+            }
+
             LogUtils.LogBoth(createAssignmentReport());
 
             if (Aborted && SlotsInOrder)
