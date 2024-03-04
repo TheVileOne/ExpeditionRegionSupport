@@ -13,8 +13,8 @@ namespace ExpeditionRegionSupport.Filters.Utils
         protected List<T> Backup;
         protected List<T> Target;
 
-        protected List<T> ItemsRemoved = new List<T>();
-        public List<T> ItemsToRemove = new List<T>();
+        public readonly List<T> ItemsRemoved = new List<T>();
+        public readonly List<T> ItemsToRemove = new List<T>();
 
         public FilterApplicator(List<T> target)
         {
