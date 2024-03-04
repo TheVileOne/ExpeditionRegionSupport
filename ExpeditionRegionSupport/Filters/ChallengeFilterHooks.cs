@@ -143,10 +143,15 @@ namespace ExpeditionRegionSupport.Filters
         private static Challenge ChallengeOrganizer_RandomChallenge(On.Expedition.ChallengeOrganizer.orig_RandomChallenge orig, bool hidden)
         {
             ChallengeAssignment.OnChallengeSelect();
-            Challenge challenge = orig(hidden);
 
-            ChallengeAssignment.OnChallengeSelectFinish();
-            return challenge;
+            try
+            {
+                return orig(hidden);
+            }
+            finally
+            {
+                ChallengeAssignment.OnChallengeSelectFinish();
+            }
         }
 
         private static void ChallengeOrganizer_RandomChallenge(ILContext il)
