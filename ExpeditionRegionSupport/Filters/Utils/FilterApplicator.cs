@@ -88,5 +88,10 @@ namespace ExpeditionRegionSupport.Filters.Utils
             Target.Clear();
             Target.AddRange(Backup);
         }
+
+        public bool IsItemRemoved(T item)
+        {
+            return ItemsRemoved.Contains(item);
+        }
     }
 }
