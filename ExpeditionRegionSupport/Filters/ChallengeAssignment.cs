@@ -195,12 +195,6 @@ namespace ExpeditionRegionSupport.Filters
             //Set back to default values
             AssignmentStage = AssignmentStageLate = ProcessStage.None;
 
-            if (ChallengeFilterSettings.FailedToAssign)
-            {
-                Plugin.Logger.LogWarning("NO CHALLENGES AVAILABLE");
-                ChallengeFilterSettings.FailedToAssign = false;
-            }
-
             LogUtils.LogBoth(createAssignmentReport());
 
             if (Aborted && SlotsInOrder)
@@ -209,6 +203,8 @@ namespace ExpeditionRegionSupport.Filters
             //Restores many things back to default values
             RegionUtils.CacheAvailableRegions = false;
             RegionUtils.ClearFilters();
+
+            ChallengeFilterSettings.FilterTarget = null;
 
             ChallengeRemover.Restore();
             ChallengesRequested = 0;
@@ -267,12 +263,14 @@ namespace ExpeditionRegionSupport.Filters
         {
             Challenge target = ChallengeFilterSettings.FilterTarget;
 
-            //if (ChallengeRemover.IsItemRemoved(target))
-            //    throw new InvalidOperationException("Target already removed");
+            if (ChallengeRemover.IsItemRemoved(target))
+                throw new InvalidOperationException("Target already removed");
 
-            Plugin.Logger.LogInfo($"Challenge type { target.ChallengeName()} could not be selected. Generating another");
+            Plugin.Logger.LogInfo($"Challenge type {target.ChallengeName()} could not be selected. Generating another");
 
-            ChallengeFilterSettings.FailedToAssign = true;
+            ChallengeRemover.ItemsToRemove.Add(target);
+            ChallengeRemover.Apply();
+
             ChallengeFilterSettings.FilterTarget = null;
         }
 

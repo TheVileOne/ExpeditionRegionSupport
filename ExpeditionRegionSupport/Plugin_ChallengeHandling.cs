@@ -28,15 +28,11 @@ namespace ExpeditionRegionSupport
             {
                 Logger.LogError(ex);
 
-                if (ex.Message == "Target already removed")
-                {
-                    //After logging error, reapply the filter
-                    ChallengeFilterSettings.FailedToAssign = true;
-                    ChallengeFilterSettings.FilterTarget = null;
-                }
-
                 if (ChallengeAssignment.AssignmentInProgress)
+                {
+                    ChallengeAssignment.Aborted = true;
                     ChallengeAssignment.OnProcessFinish();
+                }
 
                 self.menu.PlaySound(SoundID.MENU_Error_Ping);
             }
