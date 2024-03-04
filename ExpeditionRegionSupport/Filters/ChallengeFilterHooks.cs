@@ -8,10 +8,6 @@ using MoreSlugcats;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace ExpeditionRegionSupport.Filters
 {
@@ -74,6 +70,45 @@ namespace ExpeditionRegionSupport.Filters
 
         private static void ChallengeOrganizer_AssignChallenge(ILContext il)
         {
+            limitDuplicationCheck(il);
+            attachAssignmentEvents(il);
+        }
+
+        /// <summary>
+        /// Avoids checking the entire list of slot challenges when determining if a duplication is present.
+        /// Only up the first playable slot, or the last processed request, whichever is greater is necessary.
+        /// </summary>
+        private static void limitDuplicationCheck(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            cursor.GotoNext(MoveType.After, x => x.MatchCallOrCallvirt<Challenge>(nameof(Challenge.Duplicable))); //Move to Duplication check
+            cursor.GotoForLoopLimit(); //Access the index limiter
+
+            //Replace it with a new value
+            cursor.Emit(OpCodes.Pop);
+            cursor.EmitDelegate(() =>
+            {
+                //Behavior only makes sense with requests that affect more than one challenge
+                if (ChallengeAssignment.ChallengesRequested > 1)
+                {
+                    //At this point, the CurrentRequest is still being processed and not stored in Requests
+
+                    //Limits check range to only processed challenges - only applies during a full process
+                    if (ChallengeAssignment.FullProcess)
+                        return Math.Max(ChallengeAssignment.CurrentRequest.Slot, ChallengeSlot.FirstPlayableSlot());
+
+                    return ChallengeSlot.SlotChallenges.Count; //Any other situation should check the entie challenge list for duplicates
+                }
+                return 1;
+            });
+        }
+
+        /// <summary>
+        /// Establishes methods for processing fail/success events during the challenge assignment process
+        /// </summary>
+        private static void attachAssignmentEvents(ILContext il)
+        {
             ILCursor cursor = new ILCursor(il);
 
             cursor.GotoNext(MoveType.After,
@@ -90,6 +125,7 @@ namespace ExpeditionRegionSupport.Filters
             cursor.Emit(OpCodes.Ret);
             cursor.BranchFinish();
 
+            //Handle invalid challenges
             int failIndex = 0;
 
             //Each time the loop index is increased, track the index, and pass the index and the challenge into a method
@@ -101,6 +137,7 @@ namespace ExpeditionRegionSupport.Filters
                 failIndex++;
             }
 
+            //Handle valid challenges
             cursor.GotoNext(MoveType.Before, x => x.MatchRet());
             cursor.Emit(OpCodes.Ldloc_1); //Challenge
             cursor.EmitDelegate(ChallengeAssignment.OnChallengeAccepted);

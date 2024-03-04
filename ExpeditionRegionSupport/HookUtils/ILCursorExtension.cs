@@ -102,6 +102,15 @@ namespace ExpeditionRegionSupport.HookUtils
             cursor.GotoNext(MoveType.After, x => x.MatchBlt(out _)); //After end of loop
         }
 
+        /// <summary>
+        /// Positions ILCursor at the instruction after the end of the nearest for loop using an add operation
+        /// </summary>
+        public static void GotoForLoopLimit(this ILCursor cursor)
+        {
+            cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to end of loop
+            cursor.GotoNext(MoveType.Before, x => x.MatchBlt(out _)); //End of loop instruction, where loop index limiter is pushed onto stack
+        }
+
         /*
         public static ILCursor GotoNext(this ILCursor cursor, MoveType moveType, Func<Func<Instruction, bool>[]> matchLastPredicates, params Func<Instruction, bool>[] findAfter)
         {

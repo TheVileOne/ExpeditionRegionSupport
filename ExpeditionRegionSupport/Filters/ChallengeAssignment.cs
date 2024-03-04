@@ -40,6 +40,11 @@ namespace ExpeditionRegionSupport.Filters
         public static int ChallengesRequested { get; private set; }
 
         /// <summary>
+        /// The number of challenges request matches or exceeded the number of available challenge slots
+        /// </summary>
+        public static bool FullProcess;
+
+        /// <summary>
         /// When the challenge assignment process reaches the maximum allowed attempts without success
         /// </summary>
         public static bool Aborted;
@@ -165,6 +170,7 @@ namespace ExpeditionRegionSupport.Filters
             RegionUtils.AssignFilter(ExpeditionData.slugcatPlayer);
 
             ChallengesRequested = requestAmount;
+            FullProcess = ChallengesRequested >= ChallengeSlot.SlotChallenges.Count;
 
             //Apply any filters that should apply to all challenge assignments
             foreach (Challenge challenge in ChallengeOrganizer.availableChallengeTypes)
@@ -202,6 +208,7 @@ namespace ExpeditionRegionSupport.Filters
             ChallengesRequested = 0;
             Requests.Clear();
             SlotsInOrder = false;
+            FullProcess = false;
             Aborted = false;
             assignedSlot = -1;
             requestInProgress = null;
