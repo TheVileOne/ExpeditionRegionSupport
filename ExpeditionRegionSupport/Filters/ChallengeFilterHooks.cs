@@ -87,20 +87,13 @@ namespace ExpeditionRegionSupport.Filters
 
             //Replace it with a new value
             cursor.Emit(OpCodes.Pop);
-            cursor.EmitDelegate(() =>
+            cursor.EmitDelegate(() => //At this point, the CurrentRequest is still being processed and not stored in Requests
             {
-                //Behavior only makes sense with requests that affect more than one challenge
-                if (ChallengeAssignment.ChallengesRequested > 1)
-                {
-                    //At this point, the CurrentRequest is still being processed and not stored in Requests
+                //Limits check range to only processed challenges - only applies during a full process
+                if (ChallengeAssignment.ChallengesRequested > 1 && ChallengeAssignment.FullProcess)
+                    return Math.Max(ChallengeAssignment.CurrentRequest.Slot, ChallengeSlot.FirstPlayableSlot());
 
-                    //Limits check range to only processed challenges - only applies during a full process
-                    if (ChallengeAssignment.FullProcess)
-                        return Math.Max(ChallengeAssignment.CurrentRequest.Slot, ChallengeSlot.FirstPlayableSlot());
-
-                    return ChallengeSlot.SlotChallenges.Count; //Any other situation should check the entie challenge list for duplicates
-                }
-                return 1;
+                return ChallengeSlot.SlotChallenges.Count; //Any other situation should check the entie challenge list for duplicates
             });
         }
 
