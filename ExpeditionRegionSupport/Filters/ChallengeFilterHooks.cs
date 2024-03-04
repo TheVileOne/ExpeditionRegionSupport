@@ -104,19 +104,7 @@ namespace ExpeditionRegionSupport.Filters
         {
             ILCursor cursor = new ILCursor(il);
 
-            cursor.GotoNext(MoveType.After,
-                x => x.MatchBlt(out _),
-                x => x.Match(OpCodes.Ldstr)); //This is the Too many attempts string that logs
-            cursor.GotoNext(MoveType.Before, x => x.MatchRet()); //Move to just before the return
-            cursor.EmitDelegate<Action>(() => ChallengeAssignment.Aborted = true); //Notify that no more changes should be assigned
-
-            //The logic after is unrelated to the abort logic above
-            cursor.GotoNext(MoveType.After, x => x.MatchStloc(1)); //Move to after challenge is assigned
-            cursor.Emit(OpCodes.Ldloc_1);
-            cursor.BranchStart(OpCodes.Brtrue); //Null check
-            cursor.EmitDelegate<Action>(() => FailedToAssign = true); //Notify that an entire challenge group has failed to return valid results
-            cursor.Emit(OpCodes.Ret);
-            cursor.BranchFinish();
+            handleAbortConditions(cursor);
 
             //Handle invalid challenges
             int failIndex = 0;
@@ -134,6 +122,22 @@ namespace ExpeditionRegionSupport.Filters
             cursor.GotoNext(MoveType.Before, x => x.MatchRet());
             cursor.Emit(OpCodes.Ldloc_1); //Challenge
             cursor.EmitDelegate(ChallengeAssignment.OnChallengeAccepted);
+        }
+
+        private static void handleAbortConditions(ILCursor cursor)
+        {
+            cursor.GotoNext(MoveType.After,
+                x => x.MatchBlt(out _),
+                x => x.Match(OpCodes.Ldstr)); //This is the Too many attempts string that logs
+            cursor.GotoNext(MoveType.Before, x => x.MatchRet()); //Move to just before the return
+            cursor.EmitDelegate<Action>(() => ChallengeAssignment.Aborted = true); //Notify that no more changes should be assigned
+
+            cursor.GotoNext(MoveType.After, x => x.MatchStloc(1)); //Move to after challenge is assigned
+            cursor.Emit(OpCodes.Ldloc_1);
+            cursor.BranchStart(OpCodes.Brtrue); //Null check
+            cursor.EmitDelegate<Action>(() => ChallengeAssignment.Aborted = true); //Notify that an entire challenge group has failed to return valid results
+            cursor.Emit(OpCodes.Ret);
+            cursor.BranchFinish();
         }
 
         private static Challenge ChallengeOrganizer_RandomChallenge(On.Expedition.ChallengeOrganizer.orig_RandomChallenge orig, bool hidden)
