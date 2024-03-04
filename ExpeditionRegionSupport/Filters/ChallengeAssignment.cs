@@ -263,7 +263,7 @@ namespace ExpeditionRegionSupport.Filters
         /// <summary>
         /// Handle when a challenge was unable to be selected
         /// </summary>
-        public static void OnGenerationFailed(List<Challenge> availableChallenges)
+        public static void OnGenerationFailed()
         {
             Challenge target = ChallengeFilterSettings.FilterTarget;
 
