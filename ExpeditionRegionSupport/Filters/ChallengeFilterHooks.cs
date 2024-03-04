@@ -165,7 +165,12 @@ namespace ExpeditionRegionSupport.Filters
             cursor.Emit(OpCodes.Dup);
             cursor.BranchStart(OpCodes.Brtrue); //Null check Challenge gen - This means challenge type cannot be selected
 
-            cursor.EmitDelegate(ChallengeAssignment.OnGenerationFailed);
+            cursor.Emit(OpCodes.Ldloc_0); //Push list of filtered options onto stack
+            cursor.EmitDelegate<Action<List<Challenge>>>((list) =>
+            {
+                list.Remove(FilterTarget);
+                ChallengeAssignment.OnGenerationFailed();
+            });
             cursor.Emit(OpCodes.Br, runGenerateAgain);
             cursor.BranchFinish();
         }
