@@ -44,19 +44,6 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static bool FailedToAssign;
 
-        public static void LogFilter()
-        {
-            Plugin.Logger.LogInfo("TARGET " + FilterTarget?.ChallengeName());
-
-            Plugin.Logger.LogInfo("FILTERED CHALLENGES (Should not be available)");
-            foreach (var challenge in ChallengeAssignment.ChallengeRemover.ItemsRemoved)
-                Plugin.Logger.LogInfo(challenge.ChallengeName());
-
-            Plugin.Logger.LogInfo("AVAILABLE CHALLENGES");
-            foreach (var challenge in ChallengeOrganizer.availableChallengeTypes)
-                Plugin.Logger.LogInfo(challenge.ChallengeName());
-        }
-
         static ChallengeFilterSettings()
         {
             Filters = new Dictionary<string, List<ChallengeFilter>>();

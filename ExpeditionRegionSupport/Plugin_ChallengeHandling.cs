@@ -30,8 +30,6 @@ namespace ExpeditionRegionSupport
 
                 if (ex.Message == "Target already removed")
                 {
-                    ChallengeFilterSettings.LogFilter();
-
                     //After logging error, reapply the filter
                     ChallengeFilterSettings.FailedToAssign = true;
                     ChallengeFilterSettings.FilterTarget = null;
