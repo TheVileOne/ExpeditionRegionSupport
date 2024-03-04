@@ -197,7 +197,7 @@ namespace ExpeditionRegionSupport.Filters
 
             if (ChallengeFilterSettings.FailedToAssign)
             {
-                Plugin.Logger.LogWarning("No challenges available");
+                Plugin.Logger.LogWarning("NO CHALLENGES AVAILABLE");
                 ChallengeFilterSettings.FailedToAssign = false;
             }
 
@@ -267,14 +267,12 @@ namespace ExpeditionRegionSupport.Filters
         {
             Challenge target = ChallengeFilterSettings.FilterTarget;
 
-            if (ChallengeRemover.IsItemRemoved(target))
-                throw new InvalidOperationException("Target already removed");
+            //if (ChallengeRemover.IsItemRemoved(target))
+            //    throw new InvalidOperationException("Target already removed");
 
             Plugin.Logger.LogInfo($"Challenge type { target.ChallengeName()} could not be selected. Generating another");
 
-            ChallengeRemover.ItemsToRemove.Add(target);
-            ChallengeRemover.Apply();
-
+            ChallengeFilterSettings.FailedToAssign = true;
             ChallengeFilterSettings.FilterTarget = null;
         }
 

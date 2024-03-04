@@ -13,15 +13,49 @@ namespace ExpeditionRegionSupport.Filters
 
         public static FilterOptions CurrentFilter;
 
+        private static Challenge filterTarget;
         /// <summary>
         /// The Expedition challenge that the filter is handling, or is about to handle
         /// </summary>
-        public static Challenge FilterTarget;
+        public static Challenge FilterTarget
+        {
+            get => filterTarget;
+            set
+            {
+                if (FailedToAssign)
+                {
+                    ChallengeAssignment.ChallengeRemover.ItemsToRemove.Add(value);
+                    ChallengeAssignment.ChallengeRemover.Apply();
+                    FailedToAssign = false;
+                }
+
+                if (value != null && ChallengeAssignment.ChallengeRemover.IsItemRemoved(value))
+                {
+                    Plugin.Logger.LogError("EXCEPTION TARGET " + filterTarget);
+                    throw new InvalidOperationException("Target already removed");
+                }
+
+                filterTarget = value;
+            }
+        }
 
         /// <summary>
         /// A flag that indicates that not all assignment requests could be processed successfully
         /// </summary>
         public static bool FailedToAssign;
+
+        public static void LogFilter()
+        {
+            Plugin.Logger.LogInfo("TARGET " + FilterTarget?.ChallengeName());
+
+            Plugin.Logger.LogInfo("FILTERED CHALLENGES (Should not be available)");
+            foreach (var challenge in ChallengeAssignment.ChallengeRemover.ItemsRemoved)
+                Plugin.Logger.LogInfo(challenge.ChallengeName());
+
+            Plugin.Logger.LogInfo("AVAILABLE CHALLENGES");
+            foreach (var challenge in ChallengeOrganizer.availableChallengeTypes)
+                Plugin.Logger.LogInfo(challenge.ChallengeName());
+        }
 
         static ChallengeFilterSettings()
         {

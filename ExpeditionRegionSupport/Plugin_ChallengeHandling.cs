@@ -17,10 +17,31 @@ namespace ExpeditionRegionSupport
     {
         private void ChallengeSelectPage_Singal(On.Menu.ChallengeSelectPage.orig_Singal orig, ChallengeSelectPage self, MenuObject sender, string signalText)
         {
-            //Log any signals that get triggers as their const name
-            Logger.LogInfo(ExpeditionConsts.Signals.GetName(signalText).Replace('_', ' '));
+            try
+            {
+                //Log any signals that get triggers as their const name
+                Logger.LogInfo(ExpeditionConsts.Signals.GetName(signalText).Replace('_', ' '));
 
-            orig(self, sender, signalText);
+                orig(self, sender, signalText);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Logger.LogError(ex);
+
+                if (ex.Message == "Target already removed")
+                {
+                    ChallengeFilterSettings.LogFilter();
+
+                    //After logging error, reapply the filter
+                    ChallengeFilterSettings.FailedToAssign = true;
+                    ChallengeFilterSettings.FilterTarget = null;
+                }
+
+                if (ChallengeAssignment.AssignmentInProgress)
+                    ChallengeAssignment.OnProcessFinish();
+
+                self.menu.PlaySound(SoundID.MENU_Error_Ping);
+            }
         }
 
         private void ChallengeSelectPage_Singal(ILContext il)
