@@ -201,7 +201,7 @@ namespace ExpeditionRegionSupport.Filters
 
             LogUtils.LogBoth(createAssignmentReport());
 
-            if (Aborted && SlotsInOrder)
+            if (Aborted)
                 updateAbortedSlots();
 
             //Restores many things back to default values
@@ -380,6 +380,8 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         private static void updateAbortedSlots()
         {
+            if (!SlotsInOrder) return; //This prevents single requests from being handled, as well as batched requests that may have gaps
+
             int firstPlayableSlot = ChallengeSlot.FirstPlayableSlot();
             int firstAbortedSlot = CurrentRequest.Slot;
 
