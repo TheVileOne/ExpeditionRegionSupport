@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
 using Expedition;
 using ExpeditionRegionSupport.Filters.Utils;
 using ExpeditionRegionSupport.Logging.Utils;
@@ -124,6 +124,8 @@ namespace ExpeditionRegionSupport.Filters
 
         public static Action HandleOnProcessComplete;
 
+        private static Stopwatch processTimer = new Stopwatch();
+        private static Stopwatch requestTimer = new Stopwatch();
 
         private static int assignedSlot = -1;
 
@@ -148,6 +150,8 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static void OnProcessStart(int requestAmount)
         {
+            processTimer.Start();
+
             if (AssignmentInProgress)
                 throw new InvalidOperationException("Process must be ended before another one can begin.");
 
@@ -214,6 +218,10 @@ namespace ExpeditionRegionSupport.Filters
             Aborted = false;
             assignedSlot = -1;
             requestInProgress = null;
+
+            //Report the time it took to complete the entire assignment process
+            Plugin.Logger.LogInfo($"Entire process took {processTimer.ElapsedMilliseconds} ms");
+            processTimer.Reset();
         }
 
         /// <summary>
@@ -221,6 +229,8 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static void OnAssignStart()
         {
+            requestTimer.Start();
+
             AssignmentStage = ProcessStage.Assignment;
             AssignmentInProgress = true;
 
@@ -237,6 +247,10 @@ namespace ExpeditionRegionSupport.Filters
 
             AssignmentStage = ProcessStage.PostProcessing;
             AssignmentInProgress = false;
+
+            //Report the time it took to complete the entire assignment process
+            Plugin.Logger.LogInfo($"Challenge request took {requestTimer.ElapsedMilliseconds} ms");
+            requestTimer.Reset();
         }
 
         /// <summary>
