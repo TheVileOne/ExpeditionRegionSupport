@@ -34,6 +34,19 @@ namespace ExpeditionRegionSupport.Filters
         public static readonly HSLColor HIDDEN_COLOR = new HSLColor(0.12f, 0.8f, 0.55f);
 
         /// <summary>
+        /// The number of aborted slots to display in the slot collection 
+        /// </summary>
+        public static int AbortedSlotCount;
+
+        /// <summary>
+        /// Checks that slot is within the aborted slot range. (This range is always after the list of challenges)
+        /// </summary>
+        public static bool IsAbortedSlot(int slot)
+        {
+            return AbortedSlotCount > 0 && slot >= SlotChallenges.Count && slot < SlotChallenges.Count + AbortedSlotCount;
+        }
+
+        /// <summary>
         /// Returns the earliest index of a non-hidden slot
         /// </summary>
         public static int FirstPlayableSlot()
@@ -44,8 +57,24 @@ namespace ExpeditionRegionSupport.Filters
         public static void UpdateSlotVisuals(int slot)
         {
             BigSimpleButton slotButton = SlotButtons[slot];
-            Challenge slotChallenge = SlotChallenges[slot];
+            //Challenge slotChallenge = SlotChallenges[slot];
 
+            if (IsAbortedSlot(slot))
+            {
+                slotButton.inactive = false;
+                slotButton.buttonBehav.greyedOut = false;
+                slotButton.GetCWT().HighlightColor = DISABLED_HOVER;
+                slotButton.labelColor = DISABLE_COLOR;
+                slotButton.rectColor = DISABLE_COLOR;
+            }
+            else if (slotButton.rectColor.HasValue && slotButton.rectColor.Value.Equals(DISABLE_COLOR))
+            {
+                slotButton.GetCWT().HighlightColor = ExtensionMethods.ButtonTemplateCWT.DEFAULT_HIGHLIGHT_COLOR;
+                slotButton.labelColor = DEFAULT_COLOR;
+                slotButton.rectColor = DEFAULT_COLOR;
+            }
+
+            /*
             if (slotChallenge.GetCWT().Disabled)
             {
                 slotButton.inactive = false;
@@ -60,6 +89,12 @@ namespace ExpeditionRegionSupport.Filters
                 slotButton.labelColor = slotChallenge.hidden ? HIDDEN_COLOR : DEFAULT_COLOR;
                 slotButton.rectColor = DEFAULT_COLOR;
             }
+            */
+        }
+
+        public static void ClearAbortedSlots()
+        {
+            AbortedSlotCount = 0;
         }
     }
 }

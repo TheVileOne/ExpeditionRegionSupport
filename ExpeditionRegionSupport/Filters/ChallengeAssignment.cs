@@ -385,12 +385,17 @@ namespace ExpeditionRegionSupport.Filters
             int firstPlayableSlot = ChallengeSlot.FirstPlayableSlot();
             int firstAbortedSlot = CurrentRequest.Slot;
 
+            ChallengeSlot.ClearAbortedSlots();
+
             if (firstPlayableSlot >= 0 && firstAbortedSlot > firstPlayableSlot) //Ensure there is at least one playable slot
             {
                 int disabledCount = 0;
                 for (int slotIndex = firstAbortedSlot; slotIndex < ChallengeSlot.SlotChallenges.Count; slotIndex++)
                 {
-                    ChallengeSlot.SlotChallenges[slotIndex].GetCWT().Disabled = true;
+                    Challenge challenge = ChallengeSlot.SlotChallenges[slotIndex];
+
+                    challenge.GetCWT().Disabled = true;
+                    challenge.hidden = false; //Hidden doesn't apply to disabled challenges
                     disabledCount++;
                 }
 
@@ -399,6 +404,11 @@ namespace ExpeditionRegionSupport.Filters
                     Plugin.Logger.LogInfo("PLAYABLE SLOTS " + (ChallengeSlot.SlotChallenges.Count - disabledCount));
                     Plugin.Logger.LogInfo("FROZEN SLOTS " + disabledCount);
                 }
+
+                ChallengeSlot.AbortedSlotCount = ChallengesRequested - RequestsProcessed;
+
+                //Remove challenges that are no longer available for the current Expedition
+                ChallengeSlot.SlotChallenges.RemoveRange(ChallengeSlot.SlotChallenges.Count - ChallengeSlot.AbortedSlotCount, ChallengeSlot.AbortedSlotCount);
             }
         }
 

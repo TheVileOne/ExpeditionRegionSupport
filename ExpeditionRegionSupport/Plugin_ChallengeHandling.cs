@@ -174,6 +174,18 @@ namespace ExpeditionRegionSupport
                 x => x.MatchLdloc(1));
             cursor.Emit(OpCodes.Dup);
             cursor.EmitDelegate(ChallengeSlot.UpdateSlotVisuals); //Send it to this method to apply extra slot processing logic
+            
+            //This is in the else branch, where we need to handle frozen slots
+            cursor.GotoNext(MoveType.After, x => x.MatchLdstr("EMPTY"));
+            cursor.Emit(OpCodes.Ldloc_1); //Push loop index onto stack
+            cursor.EmitDelegate<Func<string, int, string>>((slotMessage, slotIndex) => //Send both into a delegate
+            {
+                ChallengeSlot.UpdateSlotVisuals(slotIndex); //Changes the appearance of disabled/frozen slots to distinguish them from open slots
+
+                if (ChallengeSlot.IsAbortedSlot(slotIndex))
+                    return "UNAVAILABLE";
+                return slotMessage;
+            });
         }
     }
 }
