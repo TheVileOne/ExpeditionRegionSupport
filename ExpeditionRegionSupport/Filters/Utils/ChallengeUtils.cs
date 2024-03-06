@@ -22,6 +22,14 @@ namespace ExpeditionRegionSupport.Filters.Utils
 
         public static ChallengeCWT GetCWT(this Challenge self) => challengeCWT.GetValue(self, _ => new());
 
+        public static List<Challenge> GetChallenges(SlugcatStats.Name challengeOwner)
+        {
+            if (!ExpeditionData.allChallengeLists.ContainsKey(challengeOwner))
+                ExpeditionData.allChallengeLists[challengeOwner] = new List<Challenge>();
+
+            return ExpeditionData.allChallengeLists[challengeOwner];
+        }
+
         /// <summary>
         /// Gets the challenge reference used by ChallengeOrganizer to manage challenge assignment
         /// </summary>
