@@ -16,6 +16,8 @@ namespace ExpeditionRegionSupport.Filters
 
         public static int RequestsProcessed => Requests.Count;
 
+        public static int RequestsRemaining => ChallengesRequested - RequestsProcessed;
+
         /// <summary>
         /// A challenge request before it is processed, and validated
         /// </summary>
@@ -52,7 +54,12 @@ namespace ExpeditionRegionSupport.Filters
         /// <summary>
         /// A check that remains true as long as the challenge requests are more than one, and every request is in sequential order
         /// </summary>
-        public static bool SlotsInOrder; 
+        public static bool SlotsInOrder;
+
+        /// <summary>
+        /// The challenge count before challenge requests are handled
+        /// </summary>
+        private static int lastChallengeCount = 0;
 
         /// <summary>
         /// The amount of process attempts to handle before logging process amount
@@ -173,6 +180,8 @@ namespace ExpeditionRegionSupport.Filters
             RegionUtils.CacheAvailableRegions = true;
             RegionUtils.AssignFilter(ExpeditionData.slugcatPlayer);
 
+            lastChallengeCount = ChallengeSlot.SlotChallenges.Count;
+
             ChallengesRequested = requestAmount;
             FullProcess = ChallengesRequested >= ChallengeSlot.SlotChallenges.Count;
 
@@ -201,8 +210,12 @@ namespace ExpeditionRegionSupport.Filters
 
             LogUtils.LogBoth(createAssignmentReport());
 
-            if (Aborted)
-                updateAbortedSlots();
+            int currentChallengeCount = ChallengeSlot.SlotChallenges.Count;
+
+            int changeSinceLastCount = currentChallengeCount - lastChallengeCount; //Positive value means slots were added, negative means slots were removed
+
+            //This should get called regardless if action was aborted this frame
+            ChallengeSlot.UpdateAbortedSlots(changeSinceLastCount);
 
             //Restores many things back to default values
             RegionUtils.CacheAvailableRegions = false;
@@ -373,52 +386,6 @@ namespace ExpeditionRegionSupport.Filters
 
             Requests.Add(requestInProgress);
             requestInProgress = null;
-        }
-
-        /// <summary>
-        /// Sets Disabled flag for all unprocessed challenges after an abort
-        /// </summary>
-        private static void updateAbortedSlots()
-        {
-            if (!SlotsInOrder) return; //This prevents single requests from being handled, as well as batched requests that may have gaps
-
-            int firstPlayableSlot = ChallengeSlot.FirstPlayableSlot();
-            int firstAbortedSlot = CurrentRequest.Slot;
-
-            ChallengeSlot.ClearAbortedSlots();
-
-            if (firstPlayableSlot >= 0 && firstAbortedSlot > firstPlayableSlot) //Ensure there is at least one playable slot
-            {
-                int disabledCount = 0;
-                for (int slotIndex = firstAbortedSlot; slotIndex < ChallengeSlot.SlotChallenges.Count; slotIndex++)
-                {
-                    Challenge challenge = ChallengeSlot.SlotChallenges[slotIndex];
-
-                    challenge.GetCWT().Disabled = true;
-                    challenge.hidden = false; //Hidden doesn't apply to disabled challenges
-                    disabledCount++;
-                }
-
-                if (disabledCount > 0)
-                {
-                    Plugin.Logger.LogInfo("PLAYABLE SLOTS " + (ChallengeSlot.SlotChallenges.Count - disabledCount));
-                    Plugin.Logger.LogInfo("FROZEN SLOTS " + disabledCount);
-                }
-
-                ChallengeSlot.AbortedSlotCount = ChallengesRequested - RequestsProcessed;
-
-                //Remove challenges that are no longer available for the current Expedition
-                ChallengeSlot.SlotChallenges.RemoveRange(ChallengeSlot.SlotChallenges.Count - ChallengeSlot.AbortedSlotCount, ChallengeSlot.AbortedSlotCount);
-            }
-        }
-
-        private static void updateSlotOrder()
-        {
-            int abortedSlot = CurrentRequest.Slot;
-
-            //We need to keep at least one slot enabled, and this may not behave as expected due to preexisting selection conflicts
-            if (abortedSlot > 0)
-                ExpeditionData.challengeList.RemoveRange(abortedSlot, ExpeditionData.challengeList.Count - abortedSlot);
         }
 
         /// <summary>

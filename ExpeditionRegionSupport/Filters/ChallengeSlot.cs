@@ -92,9 +92,78 @@ namespace ExpeditionRegionSupport.Filters
             */
         }
 
+        public static void AdjustAbortedSlots(int replaceAmt)
+        {
+            AbortedSlotCount = RWCustom.Custom.IntClamp(AbortedSlotCount + replaceAmt, 0, SlotChallenges.Count - 1);
+        }
+
         public static void ClearAbortedSlots()
         {
             AbortedSlotCount = 0;
+        }
+
+        /// <summary>
+        /// Maintains the number of unavilable slots to show to the player
+        /// </summary>
+        public static void UpdateAbortedSlots(int slotCountDelta)
+        {
+            if (ChallengeAssignment.Aborted)
+            {
+                if (ChallengeAssignment.ChallengesRequested <= 1) return; //Ignore like the request never happened
+
+                if (!ChallengeAssignment.SlotsInOrder) //Unusual situation - vanilla Expedition doesn't make non-consecuative batched challenge requests
+                {
+                    ClearAbortedSlots(); //Since this mod doesn't currently support aborted slot handling, clear the slot count is fine
+                    return;
+                }
+
+                //This logic typically gets run when the random option is called, and not all requests were handled successfully
+                int firstPlayableSlot = FirstPlayableSlot();
+                int firstAbortedSlot = ChallengeAssignment.CurrentRequest.Slot;
+
+                if (firstPlayableSlot >= 0 && firstAbortedSlot > firstPlayableSlot) //Ensure there is at least one playable slot
+                {
+                    int disabledCount = 0;
+                    for (int slotIndex = firstAbortedSlot; slotIndex < SlotChallenges.Count; slotIndex++)
+                    {
+                        Challenge challenge = SlotChallenges[slotIndex];
+
+                        //challenge.GetCWT().Disabled = true;
+                        challenge.hidden = false; //Hidden doesn't apply to disabled challenges
+                        disabledCount++;
+                    }
+
+                    if (disabledCount > 0)
+                    {
+                        Plugin.Logger.LogInfo("PLAYABLE SLOTS " + (SlotChallenges.Count - disabledCount));
+                        Plugin.Logger.LogInfo("FROZEN SLOTS " + disabledCount);
+                    }
+
+                    AbortedSlotCount = ChallengeAssignment.RequestsRemaining;
+
+                    //Remove challenges that are no longer available for the current Expedition
+                    SlotChallenges.RemoveRange(SlotChallenges.Count - AbortedSlotCount, AbortedSlotCount);
+                }
+                else //The behavior when there is no valid playable slots. Hidden slots are not considered playable at the start of an Expedition.
+                {
+                    //Ultimately, the abort process will be ignored under this condition, and any successful requests handled will be kept along with
+                    //the prexisting challenges that couldn't be replaced. Unavailable slots from previous requests will be unaffected.
+                    Plugin.Logger.LogInfo("Request could not be handled due to current filter conditions. No playable slot was available.");
+                }
+            }
+            else if (AbortedSlotCount > 0) //Nothing to worry about if there is no aborted slots!
+            {
+                if (slotCountDelta > 0) //Behavior for plus button
+                {
+                    AdjustAbortedSlots(slotCountDelta);
+                }
+                else if (slotCountDelta < 0) //Behavior for minus button. Do not leave an open gap. Do not add more unavailable slots to fill gap.
+                {
+                    ClearAbortedSlots();
+                }
+                //A delta of zero means that a change was made that did not impact the number of available slots.
+                //These actions should not affect the unavailable slot count.
+            }
         }
     }
 }
