@@ -15,7 +15,11 @@ namespace ExpeditionRegionSupport.Filters
     /// </summary>
     public static class ChallengeSlot
     {
-        public static readonly Menu.Menu.MenuColors DISABLED_HOVER = new Menu.Menu.MenuColors("DISABLE HOVER", true); 
+        public static readonly Menu.Menu.MenuColors DISABLED_HOVER = new Menu.Menu.MenuColors("DISABLE HOVER", true);
+
+        public static int MaxSlotsAllowedCustom = -1;
+
+        public static int MaxSlotsAllowed => MaxSlotsAllowedCustom == -1 ? 5 : MaxSlotsAllowedCustom;
 
         /// <summary>
         /// A fixed array of buttons that Expedition uses to store mission challenges. These are stored in a ChallengeSelectPage instance.

@@ -138,6 +138,9 @@ namespace ExpeditionRegionSupport.Filters
 
         public static void AssignSlot(int slotToAssign)
         {
+            if (slotToAssign >= ChallengeSlot.MaxSlotsAllowed)
+                throw new IndexOutOfRangeException("Tried to assign to an invalid slot index");
+
             if (assignedSlot < 0) //This should only be negative at the very start of the assignment process
             {
                 assignedSlot = slotToAssign;
