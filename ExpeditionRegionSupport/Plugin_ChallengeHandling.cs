@@ -101,10 +101,72 @@ namespace ExpeditionRegionSupport
 
             if (isLoop) //Process for a loop is slightly more complicated versus a single request
             {
+                if (signalText == ExpeditionConsts.Signals.CHALLENGE_RANDOM)
+                {
+
+                    cursor.GotoNext(MoveType.After, //Move to just after loop iteration begins
+                        x => x.MatchStloc(4),
+                        x => x.MatchBr(out _));
+                    cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(ExpeditionData).GetMethod("get_challengeList")));
+                    cursor.Emit(OpCodes.Ldloc, 4); //Push index onto stack
+                                                   //x => x.MatchLdloc(4)); //Move to just before the get_Item call
+
+                    //Account for a possible index out of range exception by checking hidden status through a delegate
+                    cursor.EmitDelegate<Func<List<Challenge>, int, bool>>((challengeList, index) =>
+                    {
+                        if (index < challengeList.Count)
+                            return challengeList[index].hidden;
+                        return false;
+                    });
+                    cursor.Emit(OpCodes.Stloc, 5); //Store it in local variable
+
+                    //Branch over exception causing logic. Give local variable the value returned from earlier
+                    cursor.BranchTo(OpCodes.Br, MoveType.After, x => x.MatchStloc(5));
+                    /*cursor.Emit(OpCodes.Ldloc, 4); //Push index onto stack
+                                                   //x => x.MatchLdloc(4)); //Move to just before the get_Item call
+
+                    //Account for a possible index out of range exception by checking hidden status through a delegate
+                    cursor.EmitDelegate<Func<int, bool>>(index =>
+                    {
+                        if (index < ChallengeSlot.SlotChallenges.Count)
+                            return ChallengeSlot.SlotChallenges[index].hidden;
+                        return false;
+                    });*/
+                    /*
+                    cursor.Emit(OpCodes.Ldloc, 4); //Push index onto stack
+                    cursor.EmitDelegate<Func<int, bool>>(loopIndex => //Ensure it is in-range - it will crash if we don't
+                    {
+                        Logger.LogDebug("I " + loopIndex);
+                        return loopIndex < ExpeditionData.challengeList.Count;//ChallengeSlot.SlotChallenges.Count;
+                    });
+                    cursor.BranchTo(OpCodes.Brfalse, MoveType.After, x => x.MatchStloc(5)); //Move to when 'hidden' local variable is defined
+                    cursor.EmitDelegate<Func<int, bool>>(loopIndex => //Repeat the check - this time we need to push a couple values onto the stack
+                    {
+                        Logger.LogDebug("I " + loopIndex);
+                         return loopIndex < ExpeditionData.challengeList.Count;
+                        //return loopIndex < ChallengeSlot.SlotChallenges.Count;
+                    });
+
+                    cursor.BranchStart(OpCodes.Brtrue); //Push values on the stack that will be skipped over through branching
+                    cursor.Emit(OpCodes.Ldloc, 4);
+                    cursor.Emit(OpCodes.Ldc_I4_0); //hidden = false
+                    cursor.Emit(OpCodes.Stloc, 5);
+                    cursor.BranchFinish();
+                    */
+                }
+
                 //The cursor will be moved to just after the index limit for the loop
                 cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
                 cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to loop iterator
                 cursor.GotoNext(MoveType.Before, x => x.MatchBlt(out _));
+
+                if (signalText == ExpeditionConsts.Signals.CHALLENGE_RANDOM)
+                {
+                    cursor.EmitDelegate<Func<int, int>>(challengesWanted => challengesWanted + ChallengeSlot.AbortedSlotCount);
+                    //cursor.Emit(OpCodes.Ldsfld, typeof(ChallengeSlot).GetField("AbortedSlotCount"));
+                    //cursor.Emit(OpCodes.Add); //Include aborted slots as part of the random selection
+                }
+
                 challengeWrapperLoop.Apply(cursor);
             }
             else
