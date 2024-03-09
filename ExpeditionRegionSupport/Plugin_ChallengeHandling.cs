@@ -22,6 +22,38 @@ namespace ExpeditionRegionSupport
                 //Log any signals that get triggers as their const name
                 Logger.LogInfo(ExpeditionConsts.Signals.GetName(signalText).Replace('_', ' '));
 
+                if (signalText.StartsWith(ExpeditionConsts.Signals.CHALLENGE_REPLACE))
+                {
+                    if (ExpeditionData.activeMission != string.Empty)
+                    {
+                        self.menu.PlaySound(SoundID.MENU_Error_Ping);
+                        return;
+                    }
+
+                    int slotIndex; //Not zero-based
+                    int.TryParse(signalText.Remove(0, 3), NumberStyles.Any, CultureInfo.InvariantCulture, out slotIndex);
+
+                    Logger.LogInfo($"Slot {slotIndex} targeted");
+
+                    if (ChallengeSlot.AbortedSlotCount > 0)
+                    {
+                        if (slotIndex - 1 >= ChallengeSlot.MaxSlotsAllowed)
+                            throw new IndexOutOfRangeException("Tried to assign to an invalid slot index");
+
+                        if (ChallengeSlot.IsAbortedSlot(slotIndex - 1))
+                        {
+                            int challengeCount = ChallengeSlot.SlotChallenges.Count; //Challenge count may change during assignment
+                            int slotsToUnlock = slotIndex - challengeCount;
+
+                            ChallengeAssignment.OnProcessStart(slotsToUnlock);
+                            for (int slotOffset = 0; slotOffset < slotsToUnlock; slotOffset++)
+                                ChallengeOrganizer.AssignChallenge(challengeCount + slotOffset, false); //Assign challenges to slots up to and including targeted slot
+                            ChallengeAssignment.OnProcessFinish();
+                            return;
+                        }
+                    }
+                }
+
                 orig(self, sender, signalText);
             }
             catch (InvalidOperationException ex)
