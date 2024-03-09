@@ -127,20 +127,12 @@ namespace ExpeditionRegionSupport.Filters
 
                 if (firstPlayableSlot >= 0 && firstAbortedSlot > firstPlayableSlot) //Ensure there is at least one playable slot
                 {
-                    int disabledCount = 0;
                     for (int slotIndex = firstAbortedSlot; slotIndex < SlotChallenges.Count; slotIndex++)
                     {
                         Challenge challenge = SlotChallenges[slotIndex];
 
                         //challenge.GetCWT().Disabled = true;
                         challenge.hidden = false; //Hidden doesn't apply to disabled challenges
-                        disabledCount++;
-                    }
-
-                    if (disabledCount > 0)
-                    {
-                        Plugin.Logger.LogInfo("PLAYABLE SLOTS " + (SlotChallenges.Count - disabledCount));
-                        Plugin.Logger.LogInfo("FROZEN SLOTS " + disabledCount);
                     }
 
                     AbortedSlotCount = ChallengeAssignment.RequestsRemaining;
@@ -167,6 +159,12 @@ namespace ExpeditionRegionSupport.Filters
                 }
                 //A delta of zero means that a change was made that did not impact the number of available slots.
                 //These actions should not affect the unavailable slot count.
+            }
+
+            if (AbortedSlotCount > 0)
+            {
+                Plugin.Logger.LogInfo("PLAYABLE SLOTS " + (SlotChallenges.Count - AbortedSlotCount));
+                Plugin.Logger.LogInfo("FROZEN SLOTS " + AbortedSlotCount);
             }
         }
     }
