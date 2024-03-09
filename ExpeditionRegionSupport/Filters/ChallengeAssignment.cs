@@ -183,6 +183,7 @@ namespace ExpeditionRegionSupport.Filters
             RegionUtils.CacheAvailableRegions = true;
             RegionUtils.AssignFilter(ExpeditionData.slugcatPlayer);
 
+            ChallengeSlot.Info.NewProcess();
             lastChallengeCount = ChallengeSlot.SlotChallenges.Count;
 
             ChallengesRequested = requestAmount;

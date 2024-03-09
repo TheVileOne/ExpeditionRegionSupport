@@ -197,6 +197,23 @@ namespace ExpeditionRegionSupport.Filters
                 }
             }
 
+            /// <summary>
+            /// Prepares object to receive new process information
+            /// </summary>
+            public void NewProcess()
+            {
+                LastSlotCount.Challenges = SlotCount.Challenges;
+                LastSlotCount.Empty = SlotCount.Empty;
+                LastSlotCount.Unavailable = SlotCount.Unavailable;
+
+                SlotCount.Challenges = SlotCount.Empty = SlotCount.Unavailable = 0;
+
+                SlotChanges.Added.Clear();
+                SlotChanges.HiddenReveal.Clear();
+                SlotChanges.Removed.Clear();
+                SlotChanges.Replaced.Clear();
+            }
+
             public void AnalyzeChanges()
             {
                 analyzeCount("CHALLENGE SLOTS", SlotCount.Challenges - LastSlotCount.Challenges);
