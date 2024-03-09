@@ -216,13 +216,7 @@ namespace ExpeditionRegionSupport
             cursor.GotoNext(MoveType.After, x => x.MatchStloc(3)); //Loop index is defined
             cursor.GotoNext(MoveType.After, x => x.MatchBgt(out _)); //if statement checking index against challengeList count
             cursor.Emit(OpCodes.Ldloc_3); //Push loop index onto stack
-            cursor.EmitDelegate<Func<int, bool>>(slotIndex => //Access Disabled flag from CWT. Color assignment needs to be avoided if true
-            {
-                if (slotIndex >= ChallengeSlot.SlotChallenges.Count)
-                    return false;
-
-                return ChallengeSlot.SlotChallenges[slotIndex].GetCWT().Disabled;
-            });
+            cursor.EmitDelegate(ChallengeSlot.IsAbortedSlot);
             cursor.BranchTo(OpCodes.Brtrue, MoveType.After, //Bypasses rectColor set as it has already been handled
                 x => x.Match(OpCodes.Newobj),
                 x => x.Match(OpCodes.Newobj),
@@ -257,7 +251,7 @@ namespace ExpeditionRegionSupport
                 x => x.MatchLdloc(1));
             cursor.Emit(OpCodes.Dup);
             cursor.EmitDelegate(ChallengeSlot.UpdateSlot); //Send it to this method to apply extra slot processing logic
-            
+
             //This is in the else branch, where we need to handle frozen slots
             cursor.GotoNext(MoveType.After, x => x.MatchLdstr("EMPTY"));
             cursor.Emit(OpCodes.Ldloc_1); //Push loop index onto stack

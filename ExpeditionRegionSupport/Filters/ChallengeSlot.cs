@@ -108,23 +108,6 @@ namespace ExpeditionRegionSupport.Filters
                 slotButton.labelColor = DEFAULT_COLOR;
                 slotButton.rectColor = DEFAULT_COLOR;
             }
-
-            /*
-            if (slotChallenge.GetCWT().Disabled)
-            {
-                slotButton.inactive = false;
-                slotButton.buttonBehav.greyedOut = false;
-                slotButton.GetCWT().HighlightColor = DISABLED_HOVER;
-                slotButton.labelColor = DISABLE_COLOR;
-                slotButton.rectColor = DISABLE_COLOR;
-            }
-            else if (slotButton.rectColor.HasValue && slotButton.rectColor.Value.Equals(DISABLE_COLOR))
-            {
-                slotButton.GetCWT().HighlightColor = ExtensionMethods.ButtonTemplateCWT.DEFAULT_HIGHLIGHT_COLOR;
-                slotButton.labelColor = slotChallenge.hidden ? HIDDEN_COLOR : DEFAULT_COLOR;
-                slotButton.rectColor = DEFAULT_COLOR;
-            }
-            */
         }
 
         public static void AdjustAbortedSlots(int replaceAmt)
@@ -158,14 +141,6 @@ namespace ExpeditionRegionSupport.Filters
 
                 if (firstPlayableSlot >= 0 && firstAbortedSlot > firstPlayableSlot) //Ensure there is at least one playable slot
                 {
-                    for (int slotIndex = firstAbortedSlot; slotIndex < SlotChallenges.Count; slotIndex++)
-                    {
-                        Challenge challenge = SlotChallenges[slotIndex];
-
-                        //challenge.GetCWT().Disabled = true;
-                        challenge.hidden = false; //Hidden doesn't apply to disabled challenges
-                    }
-
                     AbortedSlotCount = ChallengeAssignment.RequestsRemaining;
 
                     //Remove challenges that are no longer available for the current Expedition

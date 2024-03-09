@@ -10,18 +10,6 @@ namespace ExpeditionRegionSupport.Filters.Utils
 {
     public static class ChallengeUtils
     {
-        public class ChallengeCWT
-        {
-            /// <summary>
-            /// A flag that indicates that this challenge cannot be chosen for an active mission
-            /// </summary>
-            public bool Disabled = false;
-        }
-
-        public static readonly ConditionalWeakTable<Challenge, ChallengeCWT> challengeCWT = new();
-
-        public static ChallengeCWT GetCWT(this Challenge self) => challengeCWT.GetValue(self, _ => new());
-
         public static List<Challenge> GetChallenges(SlugcatStats.Name challengeOwner)
         {
             if (!ExpeditionData.allChallengeLists.ContainsKey(challengeOwner))
