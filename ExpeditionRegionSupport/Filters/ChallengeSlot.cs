@@ -248,12 +248,18 @@ namespace ExpeditionRegionSupport.Filters
 
             public void AnalyzeChanges()
             {
+                bool firstProcess = true;
                 analyzeCount("CHALLENGE SLOTS", SlotCount.Challenges - LastSlotCount.Challenges);
                 analyzeCount("UNAVAILABLE SLOTS", SlotCount.Unavailable - LastSlotCount.Unavailable);
                 analyzeCount("EMPTY SLOTS", SlotCount.Empty - LastSlotCount.Empty);
 
                 void analyzeCount(string header, int countDelta)
                 {
+                    if (firstProcess)
+                    {
+                        Plugin.Logger.LogInfo("--------------");
+                        firstProcess = false;
+                    }
                     Plugin.Logger.LogInfo(header);
 
                     if (countDelta == 0)
@@ -262,6 +268,7 @@ namespace ExpeditionRegionSupport.Filters
                         Plugin.Logger.LogInfo($"INCREASED BY {countDelta}");
                     else
                         Plugin.Logger.LogInfo($"DECREASED BY {Math.Abs(countDelta)}");
+                    Plugin.Logger.LogInfo("--------------");
                 }
             }
 
