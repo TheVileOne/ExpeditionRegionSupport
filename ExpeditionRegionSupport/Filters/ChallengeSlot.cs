@@ -247,6 +247,18 @@ namespace ExpeditionRegionSupport.Filters
                 analyzeCount("UNAVAILABLE SLOTS", SlotCount.Unavailable - LastSlotCount.Unavailable);
                 analyzeCount("EMPTY SLOTS", SlotCount.Empty - LastSlotCount.Empty);
 
+                if (SlotChanges.Added.Count > 0)
+                    logInfo("Added", SlotChanges.Added.Count);
+
+                if (SlotChanges.Removed.Count > 0)
+                    logInfo("Removed", SlotChanges.Removed.Count);
+                
+                if (SlotChanges.HiddenReveal.Count > 0)
+                    logInfo("Revealed", SlotChanges.HiddenReveal.Count);
+                
+                if (SlotChanges.Replaced.Count > 0)
+                    logInfo("Replaced", SlotChanges.Replaced.Count);
+
                 void analyzeCount(string header, int countDelta)
                 {
                     if (firstProcess)
@@ -263,6 +275,11 @@ namespace ExpeditionRegionSupport.Filters
                     else
                         Plugin.Logger.LogInfo($"DECREASED BY {Math.Abs(countDelta)}");
                     Plugin.Logger.LogInfo("--------------");
+                }
+
+                void logInfo(string dataID, int dataCount)
+                {
+                    Plugin.Logger.LogInfo($"Challenges {dataID}: {dataCount}");
                 }
             }
 
