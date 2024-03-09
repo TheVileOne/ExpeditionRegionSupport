@@ -419,7 +419,6 @@ namespace ExpeditionRegionSupport.Filters
         private static void clearAllowedVistas()
         {
             allowedVistasCache = null;
-            ChallengeAssignment.HandleOnProcessComplete -= clearAllowedVistas;
         }
 
         /*

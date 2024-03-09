@@ -129,6 +129,9 @@ namespace ExpeditionRegionSupport.Filters
 
         public static bool AllowLateStageProcessing = true;
 
+        /// <summary>
+        /// A delegate handler that will invoke once on process complete
+        /// </summary>
         public static Action HandleOnProcessComplete;
 
         private static Stopwatch processTimer = new Stopwatch();
@@ -207,7 +210,11 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static void OnProcessFinish()
         {
-            HandleOnProcessComplete?.Invoke();
+            if (HandleOnProcessComplete != null)
+            {
+                HandleOnProcessComplete.Invoke();
+                HandleOnProcessComplete = null;
+            }
 
             //Set back to default values
             AssignmentStage = AssignmentStageLate = ProcessStage.None;
