@@ -142,7 +142,12 @@ namespace ExpeditionRegionSupport.Filters
                     AbortedSlotCount = ChallengeAssignment.RequestsRemaining;
 
                     //Remove challenges that are no longer available for the current Expedition
-                    SlotChallenges.RemoveRange(SlotChallenges.Count - AbortedSlotCount, AbortedSlotCount);
+                    if (firstAbortedSlot < SlotChallenges.Count) //Make sure that slot range is involves active challenges before removal
+                    {
+                        int challengeRemoveCount = SlotChallenges.Count - firstAbortedSlot;
+
+                        SlotChallenges.RemoveRange(firstAbortedSlot, challengeRemoveCount);
+                    }
                 }
                 else //The behavior when there is no valid playable slots. Hidden slots are not considered playable at the start of an Expedition.
                 {
