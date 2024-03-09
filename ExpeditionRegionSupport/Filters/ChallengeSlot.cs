@@ -32,6 +32,8 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static List<Challenge> SlotChallenges => ExpeditionData.challengeList;
 
+        public static SlotInfo Info = new SlotInfo();
+
         public static readonly HSLColor DEFAULT_COLOR = new HSLColor(0f, 0f, 0.7f);
         public static readonly HSLColor DISABLE_COLOR = Menu.Menu.MenuColor(Menu.Menu.MenuColors.DarkRed);
         public static readonly HSLColor DISABLE_HIGHLIGHT_COLOR = new HSLColor(0.033333335f, 0.65f, 0.4f);
@@ -58,10 +60,12 @@ namespace ExpeditionRegionSupport.Filters
             return SlotChallenges.FindIndex(c => !c.hidden);
         }
 
-        public static void UpdateSlotVisuals(int slot)
+        /// <summary>
+        /// Handles any logic that needs to run when slot changes are processed
+        /// </summary>
+        public static void UpdateSlot(int slot)
         {
             BigSimpleButton slotButton = SlotButtons[slot];
-            //Challenge slotChallenge = SlotChallenges[slot];
 
             if (IsAbortedSlot(slot))
             {
@@ -167,5 +171,80 @@ namespace ExpeditionRegionSupport.Filters
                 Plugin.Logger.LogInfo("FROZEN SLOTS " + AbortedSlotCount);
             }
         }
+
+        public class SlotInfo
+        {
+            public SlotCountInfo SlotCount = new SlotCountInfo();
+            public SlotCountInfo LastSlotCount = new SlotCountInfo();
+            public SlotChangeInfo SlotChanges = new SlotChangeInfo();
+
+            public void NotifyChange(int slot, SlotChange changeType)
+            {
+                switch (changeType)
+                {
+                    case SlotChange.Add:
+                        SlotChanges.Added.Add(slot);
+                        break;
+                    case SlotChange.HiddenReveal:
+                        SlotChanges.HiddenReveal.Add(slot);
+                        break;
+                    case SlotChange.Remove:
+                        SlotChanges.Removed.Add(slot);
+                        break;
+                    case SlotChange.Replace:
+                        SlotChanges.Replaced.Add(slot);
+                        break;
+                }
+            }
+
+            public void AnalyzeChanges()
+            {
+                analyzeCount("CHALLENGE SLOTS", SlotCount.Challenges - LastSlotCount.Challenges);
+                analyzeCount("UNAVAILABLE SLOTS", SlotCount.Unavailable - LastSlotCount.Unavailable);
+                analyzeCount("EMPTY SLOTS", SlotCount.Empty - LastSlotCount.Empty);
+
+                void analyzeCount(string header, int countDelta)
+                {
+                    Plugin.Logger.LogInfo(header);
+
+                    if (countDelta == 0)
+                        Plugin.Logger.LogInfo("UNCHANGED");
+                    else if (countDelta > 0)
+                        Plugin.Logger.LogInfo($"INCREASED BY {countDelta}");
+                    else
+                        Plugin.Logger.LogInfo($"DECREASED BY {Math.Abs(countDelta)}");
+                }
+            }
+
+            public class SlotCountInfo
+            {
+                public int Empty;
+                public int Challenges; //Hidden + Playable
+                public int Unavailable;
+            }
+
+            public class SlotChangeInfo
+            {
+                public List<int> Added = new List<int>();
+                public List<int> Removed = new List<int>();
+                public List<int> Replaced = new List<int>();
+                public List<int> HiddenReveal = new List<int>();
+            }
+        }
+    }
+
+    public enum SlotStatus
+    {
+        Empty,
+        Filled,
+        Unavailable
+    }
+
+    public enum SlotChange
+    {
+        Add,
+        HiddenReveal,
+        Remove,
+        Replace
     }
 }
