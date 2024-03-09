@@ -182,9 +182,24 @@ namespace ExpeditionRegionSupport
 
                 if (signalText == ExpeditionConsts.Signals.CHALLENGE_RANDOM)
                 {
-                    cursor.EmitDelegate<Func<int, int>>(challengesWanted => challengesWanted + ChallengeSlot.AbortedSlotCount);
-                    //cursor.Emit(OpCodes.Ldsfld, typeof(ChallengeSlot).GetField("AbortedSlotCount"));
-                    //cursor.Emit(OpCodes.Add); //Include aborted slots as part of the random selection
+                    int challengesRequested = 0;
+
+                    //The random function has been modified to maintain the slot count even if not all slots can be filled
+                    cursor.EmitDelegate<Func<int, int>>(challengeCount =>
+                    {
+                        Logger.LogDebug("Challenge count: " + challengeCount);
+                        Logger.LogDebug("Aborted slots: " + ChallengeSlot.AbortedSlotCount);
+
+                        if (challengesRequested == 0)
+                        {
+                            challengesRequested = challengeCount + ChallengeSlot.AbortedSlotCount;
+                            ChallengeAssignment.HandleOnProcessComplete += () =>
+                            {
+                                challengesRequested = 0;
+                            };
+                        }
+                        return challengesRequested;
+                    });
                 }
 
                 challengeWrapperLoop.Apply(cursor);
