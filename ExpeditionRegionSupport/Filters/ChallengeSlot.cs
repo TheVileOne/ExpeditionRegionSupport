@@ -196,12 +196,6 @@ namespace ExpeditionRegionSupport.Filters
                 //A delta of zero means that a change was made that did not impact the number of available slots.
                 //These actions should not affect the unavailable slot count.
             }
-
-            if (AbortedSlotCount > 0)
-            {
-                Plugin.Logger.LogInfo("PLAYABLE SLOTS " + (SlotChallenges.Count - AbortedSlotCount));
-                Plugin.Logger.LogInfo("FROZEN SLOTS " + AbortedSlotCount);
-            }
         }
 
         public class SlotInfo
