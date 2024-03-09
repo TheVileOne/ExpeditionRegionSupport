@@ -107,52 +107,38 @@ namespace ExpeditionRegionSupport
                     cursor.GotoNext(MoveType.After, //Move to just after loop iteration begins
                         x => x.MatchStloc(4),
                         x => x.MatchBr(out _));
-                    cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(ExpeditionData).GetMethod("get_challengeList")));
-                    cursor.Emit(OpCodes.Ldloc, 4); //Push index onto stack
-                                                   //x => x.MatchLdloc(4)); //Move to just before the get_Item call
+                    cursor.GotoNext(MoveType.After,
+                        x => x.MatchCall(typeof(ExpeditionData).GetMethod("get_challengeList")),
+                        x => x.MatchLdloc(4));
+
+                    int restoreIndex = cursor.Index;
+                    ILCursor locateCursor = new ILCursor(cursor);
+
+                    locateCursor.GotoNext(MoveType.Before, x => x.MatchLdstr(ExpeditionConsts.Signals.REMOVE_SLOT));
+                    Instruction nextSignalInst = locateCursor.Context.Instrs[locateCursor.Index];
+
+                    if (cursor.TryGotoNext(MoveType.Before, //Check for problmatic instructions
+                        x => x.Match(OpCodes.Callvirt),
+                        x => x.MatchLdfld<Challenge>(nameof(Challenge.hidden))))
+                    {
+                        if (cursor.IsBefore(nextSignalInst)) //Ensure that our instruction match isn't a false positive
+                        {
+                            cursor.RemoveRange(2); //Remove conflicting IL - store returned value on stack using existing stloc
+                        }
+                        else
+                        {
+                            cursor.Index = restoreIndex; //Reset index, the conflicting IL instructions are not there anymore
+                        }
+                    }
 
                     //Account for a possible index out of range exception by checking hidden status through a delegate
                     cursor.EmitDelegate<Func<List<Challenge>, int, bool>>((challengeList, index) =>
                     {
+                        bool hidden = false;
                         if (index < challengeList.Count)
-                            return challengeList[index].hidden;
-                        return false;
+                            hidden = challengeList[index].hidden;
+                        return hidden;
                     });
-                    cursor.Emit(OpCodes.Stloc, 5); //Store it in local variable
-
-                    //Branch over exception causing logic. Give local variable the value returned from earlier
-                    cursor.BranchTo(OpCodes.Br, MoveType.After, x => x.MatchStloc(5));
-                    /*cursor.Emit(OpCodes.Ldloc, 4); //Push index onto stack
-                                                   //x => x.MatchLdloc(4)); //Move to just before the get_Item call
-
-                    //Account for a possible index out of range exception by checking hidden status through a delegate
-                    cursor.EmitDelegate<Func<int, bool>>(index =>
-                    {
-                        if (index < ChallengeSlot.SlotChallenges.Count)
-                            return ChallengeSlot.SlotChallenges[index].hidden;
-                        return false;
-                    });*/
-                    /*
-                    cursor.Emit(OpCodes.Ldloc, 4); //Push index onto stack
-                    cursor.EmitDelegate<Func<int, bool>>(loopIndex => //Ensure it is in-range - it will crash if we don't
-                    {
-                        Logger.LogDebug("I " + loopIndex);
-                        return loopIndex < ExpeditionData.challengeList.Count;//ChallengeSlot.SlotChallenges.Count;
-                    });
-                    cursor.BranchTo(OpCodes.Brfalse, MoveType.After, x => x.MatchStloc(5)); //Move to when 'hidden' local variable is defined
-                    cursor.EmitDelegate<Func<int, bool>>(loopIndex => //Repeat the check - this time we need to push a couple values onto the stack
-                    {
-                        Logger.LogDebug("I " + loopIndex);
-                         return loopIndex < ExpeditionData.challengeList.Count;
-                        //return loopIndex < ChallengeSlot.SlotChallenges.Count;
-                    });
-
-                    cursor.BranchStart(OpCodes.Brtrue); //Push values on the stack that will be skipped over through branching
-                    cursor.Emit(OpCodes.Ldloc, 4);
-                    cursor.Emit(OpCodes.Ldc_I4_0); //hidden = false
-                    cursor.Emit(OpCodes.Stloc, 5);
-                    cursor.BranchFinish();
-                    */
                 }
 
                 //The cursor will be moved to just after the index limit for the loop
