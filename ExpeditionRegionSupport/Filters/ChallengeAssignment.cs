@@ -388,6 +388,14 @@ namespace ExpeditionRegionSupport.Filters
             if (Requests.Count == ChallengesRequested)
                 throw new InvalidOperationException("Too many requests handled");
 
+            var slotChangeInfo = ChallengeSlot.Info;
+
+            //Replace requests are always handled before add requests. This allows us to assume that a difference in count always means an add request here
+            if (slotChangeInfo.SlotChanges.Added.Count > 0 || slotChangeInfo.LastSlotCount.Challenges < ChallengeSlot.SlotChallenges.Count)
+                slotChangeInfo.NotifyChange(CurrentRequest.Slot, SlotChange.Add);
+            else //Requests only handle add and replace requests. Remove, and hidden reveals are handled in a different area of the mod
+                slotChangeInfo.NotifyChange(CurrentRequest.Slot, SlotChange.Replace);
+
             Requests.Add(requestInProgress);
             requestInProgress = null;
         }

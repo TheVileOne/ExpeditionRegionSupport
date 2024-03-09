@@ -79,6 +79,7 @@ namespace ExpeditionRegionSupport
             applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.CHALLENGE_REPLACE, false);
             applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.DESELECT_MISSION, true);
             applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.CHALLENGE_RANDOM, true);
+            applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.REMOVE_SLOT, false);
             applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.ADD_SLOT, false);
             applyChallengeAssignmentIL(cursor, ExpeditionConsts.Signals.CHALLENGE_HIDDEN, false);
         }
@@ -188,8 +189,48 @@ namespace ExpeditionRegionSupport
 
                 challengeWrapperLoop.Apply(cursor);
             }
+            else if (signalText == ExpeditionConsts.Signals.REMOVE_SLOT) //Does not call AssignChallenge
+            {
+                cursor.GotoNext(MoveType.Before,
+                    x => x.MatchLdarg(0), //Move to just before challenge buttons are updated
+                    x => x.MatchCall<ChallengeSelectPage>(nameof(ChallengeSelectPage.UpdateChallengeButtons)));
+                cursor.EmitDelegate(() =>
+                {
+                    int removedSlot = ChallengeSlot.SlotChallenges.Count + 1; //It was already removed at this stage from the end of the list
+
+                    //Begin a new change process, notify of the change event, and make sure unavailable slots are processed
+                    ChallengeSlot.Info.NewProcess();
+                    ChallengeSlot.Info.NotifyChange(removedSlot, SlotChange.Remove);
+                    ChallengeSlot.UpdateAbortedSlots(-1);
+                });
+            }
             else
             {
+                if (signalText == ExpeditionConsts.Signals.CHALLENGE_HIDDEN)
+                {
+                    cursor.GotoNext(MoveType.After, x => x.MatchStloc(9)); //The instruction is unimportant, it just has to be after slot target is set
+                    cursor.Emit(OpCodes.Ldloc, 8); //Push slot target onto stack
+                    cursor.Emit(OpCodes.Ldc_I4_1);
+                    cursor.Emit(OpCodes.Sub); //Subtract one - value not zero-based
+                    //Expedition doesn't check if index is in range before accessing it
+                    cursor.EmitDelegate<Func<int, bool>>(slotTarget => slotTarget < ChallengeSlot.SlotChallenges.Count);
+                    cursor.BranchTo(OpCodes.Brfalse, MoveType.Before, //When out of range, branch to preexisting error handling code
+                        x => x.MatchLdarg(0),
+                        x => x.MatchLdfld<MenuObject>(nameof(MenuObject.menu)),
+                        x => x.MatchLdsfld(typeof(SoundID).GetField(nameof(SoundID.MENU_Error_Ping))));
+                    cursor.GotoPrev(MoveType.After, x => x.MatchStfld<Challenge>(nameof(Challenge.hidden))); //Go back to just after the `hidden` field is set to false
+                    cursor.Emit(OpCodes.Ldloc, 8); //Push slot target onto stack
+                    cursor.Emit(OpCodes.Ldc_I4_1);
+                    cursor.Emit(OpCodes.Sub); //Subtract one - value not zero-based
+                    cursor.EmitDelegate<Action<int>>(slotTarget =>
+                    {
+                        //Begin a new change process, notify of the change event, and make sure unavailable slots are processed
+                        ChallengeSlot.Info.NewProcess();
+                        ChallengeSlot.Info.NotifyChange(slotTarget, SlotChange.HiddenReveal);
+                        ChallengeSlot.UpdateAbortedSlots(0);
+                    });
+                }
+
                 cursor.GotoNext(MoveType.Before, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
                 challengeWrapper.Apply(cursor);
             }

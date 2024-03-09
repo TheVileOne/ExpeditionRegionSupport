@@ -149,6 +149,9 @@ namespace ExpeditionRegionSupport.Filters
                         int challengeRemoveCount = SlotChallenges.Count - firstAbortedSlot;
 
                         SlotChallenges.RemoveRange(firstAbortedSlot, challengeRemoveCount);
+
+                        for (int i = 0; i < challengeRemoveCount; i++)
+                            Info.NotifyChange(firstAbortedSlot + i, SlotChange.Remove);
                     }
                 }
                 else //The behavior when there is no valid playable slots. Hidden slots are not considered playable at the start of an Expedition.
