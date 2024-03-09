@@ -49,7 +49,19 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static bool IsAbortedSlot(int slot)
         {
-            return AbortedSlotCount > 0 && slot >= SlotChallenges.Count && slot < SlotChallenges.Count + AbortedSlotCount;
+            return GetSlotStatus(slot) == SlotStatus.Unavailable;
+        }
+
+        public static SlotStatus GetSlotStatus(int slot)
+        {
+            SlotStatus status;
+            if (slot < SlotChallenges.Count)
+                status = SlotStatus.Filled;
+            else if (AbortedSlotCount > 0 && slot < SlotChallenges.Count + AbortedSlotCount)
+                status = SlotStatus.Unavailable;
+            else
+                status = SlotStatus.Empty;
+            return status;
         }
 
         /// <summary>
@@ -67,7 +79,22 @@ namespace ExpeditionRegionSupport.Filters
         {
             BigSimpleButton slotButton = SlotButtons[slot];
 
-            if (IsAbortedSlot(slot))
+            SlotStatus status = GetSlotStatus(slot);
+
+            switch (status)
+            {
+                case SlotStatus.Filled:
+                    Info.SlotCount.Challenges++;
+                    break;
+                case SlotStatus.Empty:
+                    Info.SlotCount.Empty++;
+                    break;
+                case SlotStatus.Unavailable:
+                    Info.SlotCount.Unavailable++;
+                    break;
+            }
+
+            if (status == SlotStatus.Unavailable)
             {
                 slotButton.inactive = false;
                 slotButton.buttonBehav.greyedOut = false;
