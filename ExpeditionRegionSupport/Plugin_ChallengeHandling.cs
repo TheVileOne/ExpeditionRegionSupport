@@ -233,6 +233,8 @@ namespace ExpeditionRegionSupport
         {
             ChallengeSlot.SlotButtons = self.challengeButtons;
             orig(self);
+
+            ChallengeSlot.Info.AnalyzeChanges();
         }
 
         private void ChallengeSelectPage_UpdateChallengeButtons(ILContext il)
