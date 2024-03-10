@@ -225,6 +225,10 @@ namespace ExpeditionRegionSupport.Filters
                 analyzeCount("UNAVAILABLE SLOTS", SlotCount.Unavailable - LastSlotCount.Unavailable);
                 analyzeCount("EMPTY SLOTS", SlotCount.Empty - LastSlotCount.Empty);
 
+                Plugin.Logger.LogInfo("Challenge Slots: " + SlotCount.Challenges);
+                Plugin.Logger.LogInfo("Unavailable Slots: " + SlotCount.Unavailable);
+                Plugin.Logger.LogInfo("Empty Slots: " + SlotCount.Empty);
+
                 if (SlotChanges.Added.Count > 0)
                     logInfo("Added", SlotChanges.Added.Count);
 
