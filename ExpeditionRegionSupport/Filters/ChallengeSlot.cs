@@ -130,7 +130,14 @@ namespace ExpeditionRegionSupport.Filters
         {
             if (ChallengeAssignment.Aborted)
             {
-                if (ChallengeAssignment.ChallengesRequested <= 1) return; //Ignore like the request never happened
+                if (ChallengeAssignment.ChallengesRequested <= 1)
+                {
+                    //Hacky solution: Prevents toggling hidden, or rerolling specific slots from affecting unavailable slots.
+                    //For some reason these actions are sometimes creating garbage slot info such as reporting an add event on abort.
+                    //This solution restores last counts, and clears Add/Remove events, but keeps replace event reports intact, and it seems to work.
+                    Info.Restore();
+                    return; //Ignore like the request never happened
+                }
 
                 if (!ChallengeAssignment.SlotsInOrder) //Unusual situation - vanilla Expedition doesn't make non-consecuative batched challenge requests
                 {
@@ -228,6 +235,16 @@ namespace ExpeditionRegionSupport.Filters
                 SlotChanges.HiddenReveal.Clear();
                 SlotChanges.Removed.Clear();
                 SlotChanges.Replaced.Clear();
+            }
+
+            public void Restore()
+            {
+                SlotCount.Challenges = LastSlotCount.Challenges;
+                SlotCount.Empty = LastSlotCount.Empty;
+                SlotCount.Unavailable = LastSlotCount.Unavailable;
+
+                SlotChanges.Added.Clear();
+                SlotChanges.Removed.Clear();
             }
 
             public void AnalyzeChanges()
