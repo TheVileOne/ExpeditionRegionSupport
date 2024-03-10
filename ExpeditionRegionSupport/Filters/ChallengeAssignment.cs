@@ -57,11 +57,6 @@ namespace ExpeditionRegionSupport.Filters
         public static bool SlotsInOrder;
 
         /// <summary>
-        /// The challenge count before challenge requests are handled
-        /// </summary>
-        private static int lastChallengeCount = 0;
-
-        /// <summary>
         /// The amount of process attempts to handle before logging process amount
         /// </summary>
         public const int REPORT_THRESHOLD = 30;
@@ -187,7 +182,6 @@ namespace ExpeditionRegionSupport.Filters
             RegionUtils.AssignFilter(ExpeditionData.slugcatPlayer);
 
             ChallengeSlot.Info.NewProcess();
-            lastChallengeCount = ChallengeSlot.SlotChallenges.Count;
 
             ChallengesRequested = requestAmount;
             FullProcess = ChallengesRequested >= ChallengeSlot.SlotChallenges.Count;
@@ -221,12 +215,8 @@ namespace ExpeditionRegionSupport.Filters
 
             LogUtils.LogBoth(createAssignmentReport());
 
-            int currentChallengeCount = ChallengeSlot.SlotChallenges.Count;
-
-            int changeSinceLastCount = currentChallengeCount - lastChallengeCount; //Positive value means slots were added, negative means slots were removed
-
             //This should get called regardless if action was aborted this frame
-            ChallengeSlot.UpdateAbortedSlots(changeSinceLastCount);
+            ChallengeSlot.UpdateAbortedSlots();
 
             //Restores many things back to default values
             RegionUtils.CacheAvailableRegions = false;

@@ -110,9 +110,12 @@ namespace ExpeditionRegionSupport.Filters
             }
         }
 
-        public static void AdjustAbortedSlots(int replaceAmt)
+        /// <summary>
+        /// Adjusts the value of AbortedSlotCount by a positive, or negative amount
+        /// </summary>
+        public static void AdjustAbortedSlots(int countDelta)
         {
-            AbortedSlotCount = RWCustom.Custom.IntClamp(AbortedSlotCount + replaceAmt, 0, SlotChallenges.Count - 1);
+            AbortedSlotCount = RWCustom.Custom.IntClamp(AbortedSlotCount + countDelta, 0, SlotChallenges.Count - 1);
         }
 
         public static void ClearAbortedSlots()
@@ -123,7 +126,7 @@ namespace ExpeditionRegionSupport.Filters
         /// <summary>
         /// Maintains the number of unavilable slots to show to the player
         /// </summary>
-        public static void UpdateAbortedSlots(int slotCountDelta)
+        public static void UpdateAbortedSlots()
         {
             if (ChallengeAssignment.Aborted)
             {
@@ -161,19 +164,28 @@ namespace ExpeditionRegionSupport.Filters
                     Plugin.Logger.LogInfo("Request could not be handled due to current filter conditions. No playable slot was available.");
                 }
             }
-            else if (AbortedSlotCount > 0) //Nothing to worry about if there is no aborted slots!
+            else if (AbortedSlotCount > 0)
             {
+                int slotCountDelta = 0;
+                if (Info.SlotChanges.Added.Count > 0)
+                    slotCountDelta = Info.SlotChanges.Added.Count;
+                else if (Info.SlotChanges.Removed.Count > 0)
+                    slotCountDelta = Info.SlotChanges.Removed.Count * -1;
+
                 if (slotCountDelta > 0) //Behavior for plus button
                 {
-                    AdjustAbortedSlots(slotCountDelta * -1);
+                    AdjustAbortedSlots(slotCountDelta * -1); //There is an inverse relation between the overall slot change delta and the aborted one
                 }
-                else if (slotCountDelta < 0) //Behavior for minus button. Do not leave an open gap. Do not add more unavailable slots to fill gap.
+                else if (slotCountDelta < 0) //Behavior for minus button. Do not leave an open gap.
                 {
+                    //AdjustAbortedSlots(slotCountDelta * -1);
                     ClearAbortedSlots();
                 }
                 //A delta of zero means that a change was made that did not impact the number of available slots.
                 //These actions should not affect the unavailable slot count.
             }
+
+            //Plugin.Logger.LogDebug("ABORTED COUNT: " + AbortedSlotCount);
         }
 
         public class SlotInfo

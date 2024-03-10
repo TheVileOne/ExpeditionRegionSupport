@@ -211,7 +211,7 @@ namespace ExpeditionRegionSupport
                     //Begin a new change process, notify of the change event, and make sure unavailable slots are processed
                     ChallengeSlot.Info.NewProcess();
                     ChallengeSlot.Info.NotifyChange(removedSlot, SlotChange.Remove);
-                    ChallengeSlot.UpdateAbortedSlots(-1);
+                    ChallengeSlot.UpdateAbortedSlots();
                 });
             }
             else
@@ -237,7 +237,7 @@ namespace ExpeditionRegionSupport
                         //Begin a new change process, notify of the change event, and make sure unavailable slots are processed
                         ChallengeSlot.Info.NewProcess();
                         ChallengeSlot.Info.NotifyChange(slotTarget, SlotChange.HiddenReveal);
-                        ChallengeSlot.UpdateAbortedSlots(0);
+                        ChallengeSlot.UpdateAbortedSlots();
                     });
                 }
 
