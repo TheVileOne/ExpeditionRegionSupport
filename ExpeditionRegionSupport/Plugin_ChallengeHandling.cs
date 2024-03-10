@@ -135,9 +135,20 @@ namespace ExpeditionRegionSupport
 
             if (isLoop) //Process for a loop is slightly more complicated versus a single request
             {
+                int challengesRequested = 0;
                 if (signalText == ExpeditionConsts.Signals.CHALLENGE_RANDOM)
                 {
+                    //Establish how many loop iterations are necessary
+                    cursor.GotoNext(MoveType.After, x => x.MatchBrfalse(out _)); //This Brfalse checks the signal equality
+                    cursor.EmitDelegate(() =>
+                    {
+                        //This is set before the loop starts. Trying to set this when the loop starts has proven to be error prone
+                        challengesRequested = ChallengeSlot.SlotChallenges.Count + ChallengeSlot.AbortedSlotCount;
 
+                        Logger.LogInfo("EXPECTED AMOUNT " + challengesRequested);
+                    });
+
+                    //Move inside the loop to get rid of incompatible IL
                     cursor.GotoNext(MoveType.After, //Move to just after loop iteration begins
                         x => x.MatchStloc(4),
                         x => x.MatchBr(out _));
@@ -177,29 +188,13 @@ namespace ExpeditionRegionSupport
 
                 //The cursor will be moved to just after the index limit for the loop
                 cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(ChallengeOrganizer).GetMethod("AssignChallenge")));
-                cursor.GotoNext(MoveType.After, x => x.MatchAdd()); //Get closer to loop iterator
-                cursor.GotoNext(MoveType.Before, x => x.MatchBlt(out _));
+                cursor.GotoForLoopLimit();
 
                 if (signalText == ExpeditionConsts.Signals.CHALLENGE_RANDOM)
                 {
-                    int challengesRequested = 0;
-
                     //The random function has been modified to maintain the slot count even if not all slots can be filled
-                    cursor.EmitDelegate<Func<int, int>>(challengeCount =>
-                    {
-                        Logger.LogDebug("Challenge count: " + challengeCount);
-                        Logger.LogDebug("Aborted slots: " + ChallengeSlot.AbortedSlotCount);
-
-                        if (challengesRequested == 0)
-                        {
-                            challengesRequested = challengeCount + ChallengeSlot.AbortedSlotCount;
-                            ChallengeAssignment.HandleOnProcessComplete += () =>
-                            {
-                                challengesRequested = 0;
-                            };
-                        }
-                        return challengesRequested;
-                    });
+                    cursor.Emit(OpCodes.Pop); //Remove count pushed onto stack
+                    cursor.EmitDelegate(() => challengesRequested); //Replace it with a more stable count
                 }
 
                 challengeWrapperLoop.Apply(cursor);

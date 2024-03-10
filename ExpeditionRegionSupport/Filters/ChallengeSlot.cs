@@ -165,7 +165,7 @@ namespace ExpeditionRegionSupport.Filters
             {
                 if (slotCountDelta > 0) //Behavior for plus button
                 {
-                    AdjustAbortedSlots(slotCountDelta);
+                    AdjustAbortedSlots(slotCountDelta * -1);
                 }
                 else if (slotCountDelta < 0) //Behavior for minus button. Do not leave an open gap. Do not add more unavailable slots to fill gap.
                 {
