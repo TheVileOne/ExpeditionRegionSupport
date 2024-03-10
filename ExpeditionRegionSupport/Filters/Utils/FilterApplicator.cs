@@ -22,6 +22,16 @@ namespace ExpeditionRegionSupport.Filters.Utils
             Target = target;
         }
 
+        /// <summary>
+        /// Checks whether the target still matches a given object reference. Replaces Target if the references do not match. 
+        /// </summary>
+        /// <param name="targetRef">The reference to compare Target with</param>
+        public void ValidateTarget(List<T> targetRef)
+        {
+            if (Target != targetRef)
+                Target = targetRef;
+        }
+
         public void Apply()
         {
             foreach (var item in ItemsToRemove)

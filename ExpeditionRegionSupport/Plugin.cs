@@ -173,9 +173,6 @@ namespace ExpeditionRegionSupport
         {
             CurrentProgression = manager.rainWorld.progression; //This data is going to be overwritten in the constructor, but this mod still needs access to it.
 
-            if (ChallengeAssignment.ChallengeRemover == null)
-                ChallengeAssignment.ChallengeRemover = new FilterApplicator<Challenge>(ChallengeOrganizer.availableChallengeTypes);
-
             orig(self, manager);
 
             float y = (manager.rainWorld.options.ScreenSize.x != 1024f) ? 695f : 728f;

@@ -34,7 +34,12 @@ namespace ExpeditionRegionSupport.Filters
             }
         }
 
-        public static FilterApplicator<Challenge> ChallengeRemover;
+        private static FilterApplicator<Challenge> challengeRemover;
+
+        /// <summary>
+        /// The primary filter for removing challenge types in Expedition
+        /// </summary>
+        public static FilterApplicator<Challenge> ChallengeRemover => challengeRemover ?? new FilterApplicator<Challenge>(ChallengeOrganizer.availableChallengeTypes);
 
         /// <summary>
         /// The number of valid challenges expected to be assigned
@@ -176,6 +181,8 @@ namespace ExpeditionRegionSupport.Filters
                 if (!AllowLateStageProcessing)
                     throw new InvalidOperationException("Late stage processing has been disabled");
             }
+
+            ChallengeRemover.ValidateTarget(ChallengeOrganizer.availableChallengeTypes);
 
             //Enable caching and create the primary region filter
             RegionUtils.CacheAvailableRegions = true;
