@@ -73,6 +73,29 @@ namespace ExpeditionRegionSupport.Filters
         }
 
         /// <summary>
+        /// This shouldn't be necessary.
+        /// TODO: Figure out why counts are going out of sync
+        /// </summary>
+        public static void RefreshSlotCounts()
+        {
+            Info.SlotCount.Challenges = 0;
+            Info.SlotCount.Empty = 0;
+            Info.SlotCount.Unavailable = 0;
+
+            foreach (var slot in SlotButtons)
+            {
+                if (slot.menuLabel.text == "EMPTY")
+                    Info.SlotCount.Empty++;
+                else if (slot.menuLabel.text == "UNAVAILABLE")
+                    Info.SlotCount.Unavailable++;
+                else
+                    Info.SlotCount.Challenges++;
+            }
+
+            AbortedSlotCount = Info.SlotCount.Unavailable;
+        }
+
+        /// <summary>
         /// Handles any logic that needs to run when slot changes are processed
         /// </summary>
         public static void UpdateSlot(int slot)

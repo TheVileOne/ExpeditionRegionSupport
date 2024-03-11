@@ -20,6 +20,8 @@ namespace ExpeditionRegionSupport
         {
             try
             {
+                ChallengeSlot.RefreshSlotCounts(); //Ensure that slot counts are current
+
                 //Log any signals that get triggers as their const name
                 Logger.LogInfo(ExpeditionConsts.Signals.GetName(signalText).Replace('_', ' '));
 
@@ -36,6 +38,9 @@ namespace ExpeditionRegionSupport
 
                     Logger.LogInfo($"Slot {slotIndex} targeted");
 
+                    Logger.LogInfo("Challenges " + ChallengeSlot.SlotChallenges.Count);
+                    Logger.LogInfo("Aborted " + ChallengeSlot.AbortedSlotCount);
+
                     if (ChallengeSlot.AbortedSlotCount > 0)
                     {
                         if (slotIndex - 1 >= ChallengeSlot.MaxSlotsAllowed)
@@ -43,6 +48,7 @@ namespace ExpeditionRegionSupport
 
                         if (ChallengeSlot.IsAbortedSlot(slotIndex - 1))
                         {
+                            Logger.LogDebug("SELECTED ABORTED SLOT");
                             int challengeCount = ChallengeSlot.SlotChallenges.Count; //Challenge count may change during assignment
                             int slotsToUnlock = slotIndex - challengeCount;
 
@@ -145,7 +151,7 @@ namespace ExpeditionRegionSupport
                         //This is set before the loop starts. Trying to set this when the loop starts has proven to be error prone
                         challengesRequested = ChallengeSlot.SlotChallenges.Count + ChallengeSlot.AbortedSlotCount;
 
-                        Logger.LogInfo("EXPECTED AMOUNT " + challengesRequested);
+                        //Logger.LogInfo("EXPECTED AMOUNT " + challengesRequested);
                     });
 
                     //Move inside the loop to get rid of incompatible IL
