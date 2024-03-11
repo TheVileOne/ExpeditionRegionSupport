@@ -278,6 +278,22 @@ namespace ExpeditionRegionSupport
                 x => x.Match(OpCodes.Newobj),
                 x => x.Match(OpCodes.Newobj),
                 x => x.Match(OpCodes.Stfld));
+
+            cursor.GotoNext(MoveType.After,
+                x => x.MatchLdarg(0),
+                x => x.MatchLdfld<MenuObject>(nameof(MenuObject.menu)),
+                x => x.MatchLdfld<Menu.Menu>(nameof(Menu.Menu.infoLabel)));
+            cursor.Emit(OpCodes.Dup);
+            cursor.EmitDelegate<Action<FLabel>>(label =>
+            {
+                if (label == null) return;
+
+                if (label._text == null)
+                {
+                    label._text = string.Empty;
+                    Logger.LogWarning("Info label has a null text field");
+                }
+            });
         }
 
         private void ChallengeSelectPage_UpdateChallengeButtons(On.Menu.ChallengeSelectPage.orig_UpdateChallengeButtons orig, ChallengeSelectPage self)
