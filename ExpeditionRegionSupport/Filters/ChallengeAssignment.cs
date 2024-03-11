@@ -39,7 +39,17 @@ namespace ExpeditionRegionSupport.Filters
         /// <summary>
         /// The primary filter for removing challenge types in Expedition
         /// </summary>
-        public static FilterApplicator<Challenge> ChallengeRemover => challengeRemover ?? new FilterApplicator<Challenge>(ChallengeOrganizer.availableChallengeTypes);
+        public static FilterApplicator<Challenge> ChallengeRemover
+        {
+            get
+            {
+                if (challengeRemover == null)
+                    challengeRemover = new FilterApplicator<Challenge>(ChallengeOrganizer.availableChallengeTypes);
+                return challengeRemover;
+            }
+
+            set => challengeRemover = value;
+        }
 
         /// <summary>
         /// The number of valid challenges expected to be assigned
