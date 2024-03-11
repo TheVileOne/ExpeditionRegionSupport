@@ -92,12 +92,15 @@ namespace ExpeditionRegionSupport.Interface
 
         private static void FilterDialog_ctor(On.Menu.FilterDialog.orig_ctor orig, FilterDialog self, ProcessManager manager, ChallengeSelectPage owner)
         {
-            if (ChallengeOrganizer.filterChallengeTypes.Count == 0)
-                Plugin.Logger.LogInfo("NO ACTIVE FILTERS");
-            else
+            if (Plugin.DebugMode)
             {
-                Plugin.Logger.LogInfo("ACTIVE FILTERS");
-                ChallengeOrganizer.filterChallengeTypes.ForEach(Plugin.Logger.LogInfo);
+                if (ChallengeOrganizer.filterChallengeTypes.Count == 0)
+                    Plugin.Logger.LogInfo("NO ACTIVE FILTERS");
+                else
+                {
+                    Plugin.Logger.LogInfo("ACTIVE FILTERS");
+                    ChallengeOrganizer.filterChallengeTypes.ForEach(Plugin.Logger.LogInfo);
+                }
             }
 
             var cwt = self.GetCWT();

@@ -1,14 +1,7 @@
 ﻿using ExpeditionRegionSupport;
-using ExpeditionRegionSupport.Interface;
 using Menu;
-using Mono.Cecil.Cil;
-using MonoMod.Cil;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Extensions
@@ -104,6 +97,8 @@ namespace Extensions
             /// The color of a button when hovered, or selected
             /// </summary>
             public Menu.Menu.MenuColors HighlightColor = DEFAULT_HIGHLIGHT_COLOR;
+
+            public bool IsChallengeSlot;
         }
 
         public static readonly ConditionalWeakTable<ButtonTemplate, ButtonTemplateCWT> buttonTemplateCWT = new();

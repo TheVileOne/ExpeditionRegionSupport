@@ -127,7 +127,7 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static ProcessStage AssignmentStageLate { get; private set; }
 
-        public static bool AllowLateStageProcessing = true;
+        public static bool AllowLateStageProcessing => !Plugin.DebugMode;
 
         /// <summary>
         /// A delegate handler that will invoke once on process complete
@@ -163,7 +163,8 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static void OnProcessStart(int requestAmount)
         {
-            processTimer.Start();
+            if (Plugin.DebugMode)
+                processTimer.Start();
 
             if (AssignmentInProgress)
                 throw new InvalidOperationException("Process must be ended before another one can begin.");
@@ -240,9 +241,12 @@ namespace ExpeditionRegionSupport.Filters
             assignedSlot = -1;
             requestInProgress = null;
 
-            //Report the time it took to complete the entire assignment process
-            Plugin.Logger.LogInfo($"Entire process took {processTimer.ElapsedMilliseconds} ms");
-            processTimer.Reset();
+            if (Plugin.DebugMode)
+            {
+                //Report the time it took to complete the entire assignment process
+                Plugin.Logger.LogInfo($"Entire process took {processTimer.ElapsedMilliseconds} ms");
+                processTimer.Reset();
+            }
         }
 
         /// <summary>
@@ -250,7 +254,8 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static void OnAssignStart()
         {
-            requestTimer.Start();
+            if (Plugin.DebugMode)
+                requestTimer.Start();
 
             AssignmentStage = ProcessStage.Assignment;
             AssignmentInProgress = true;
@@ -269,9 +274,12 @@ namespace ExpeditionRegionSupport.Filters
             AssignmentStage = ProcessStage.PostProcessing;
             AssignmentInProgress = false;
 
-            //Report the time it took to complete the entire assignment process
-            Plugin.Logger.LogInfo($"Challenge request took {requestTimer.ElapsedMilliseconds} ms");
-            requestTimer.Reset();
+            if (Plugin.DebugMode)
+            {
+                //Report the time it took to complete the entire assignment process
+                Plugin.Logger.LogInfo($"Challenge request took {requestTimer.ElapsedMilliseconds} ms");
+                requestTimer.Reset();
+            }
         }
 
         /// <summary>
@@ -296,6 +304,7 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static void OnGenerationFailed()
         {
+            //TODO: AssignmentStage is set to PostProcessing. Be careful though as request may be processed a second time if this is changed
             Challenge target = ChallengeFilterSettings.FilterTarget;
 
             if (ChallengeRemover.IsItemRemoved(target))

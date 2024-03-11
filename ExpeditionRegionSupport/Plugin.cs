@@ -6,7 +6,6 @@ using MonoMod.Cil;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Expedition;
 using ExpeditionRegionSupport.Filters;
 using ExpeditionRegionSupport.Interface;
@@ -16,7 +15,6 @@ using ExpeditionRegionSupport.Settings;
 using Menu;
 using MoreSlugcats;
 using UnityEngine;
-using ExpeditionRegionSupport.Filters.Utils;
 using Extensions;
 
 namespace ExpeditionRegionSupport
@@ -27,7 +25,13 @@ namespace ExpeditionRegionSupport
     {
         public const string PLUGIN_GUID = "fluffball.expeditionregionsupport";
         public const string PLUGIN_NAME = "Expedition Region Support";
-        public const string PLUGIN_VERSION = "0.9.4";
+        public const string PLUGIN_VERSION = "0.9.5";
+
+        public static bool DebugMode
+        {
+            get => ExpeditionData.devMode;
+            set => ExpeditionData.devMode = value;
+        }
 
         public static new Logging.Logger Logger;
 
@@ -53,6 +57,7 @@ namespace ExpeditionRegionSupport
         public void OnEnable()
         {
             Logger = new Logging.Logger(base.Logger);
+            DebugMode = false;
 
             try
             {
@@ -102,7 +107,6 @@ namespace ExpeditionRegionSupport
             }
         }
 
-
         private void ChallengeSelectPage_Update(On.Menu.ChallengeSelectPage.orig_Update orig, ChallengeSelectPage self)
         {
             try
@@ -126,7 +130,7 @@ namespace ExpeditionRegionSupport
         {
             var cwt = self.GetCWT();
 
-            if (self.buttonBehav.greyedOut || self.inactive || cwt.HighlightColor == Menu.Menu.MenuColors.White)
+            if (self.buttonBehav.greyedOut || (!cwt.IsChallengeSlot && self.inactive) || cwt.HighlightColor == Menu.Menu.MenuColors.White)
                 return orig(self, timeStacker, baseColor);
 
             //Original code except using a cwt stored value
@@ -135,20 +139,6 @@ namespace ExpeditionRegionSupport
 
             return HSLColor.Lerp(baseColor, Menu.Menu.MenuColor(cwt.HighlightColor), Mathf.Max(colorLerp, flashLerp)).rgb;
         }
-
-        /*
-        private void ButtonTemplate_InterpColor(ILContext il)
-        {
-            ILCursor cursor = new ILCursor(il);
-
-            cursor.GotoNext(MoveType.After,
-                x => x.MatchLdarg(2),
-                x => x.MatchLdsfld(typeof(Menu.Menu.MenuColors).GetField(nameof(Menu.Menu.MenuColors.White))));
-            cursor.Emit(OpCodes.Pop);
-            cursor.Emit(OpCodes.Ldarg_0); //Push the button onto stack
-            cursor.EmitDelegate<Func<ButtonTemplate, Menu.Menu.MenuColors>>(button => button.GetCWT().HighlightColor);
-        }
-        */
 
         private void CharacterSelectPage_UpdateSelectedSlugcat(On.Menu.CharacterSelectPage.orig_UpdateSelectedSlugcat orig, CharacterSelectPage self, int slugcatIndex)
         {
@@ -161,8 +151,6 @@ namespace ExpeditionRegionSupport
 
                 if (ExpeditionSettings.Filters.VisitedRegionsOnly.Value)
                     UpdateRegionsVisited();
-
-                //ChallengeAssignment.ValidRegions = SlugcatStats.getSlugcatStoryRegions(ExpeditionData.slugcatPlayer).ToList();
             }
         }
 
@@ -282,10 +270,13 @@ namespace ExpeditionRegionSupport
 
         private bool RegionGate_customOEGateRequirements(On.RegionGate.orig_customOEGateRequirements orig, RegionGate self)
         {
-            if (ModManager.MSC && (/*self.room.world.name == "OE" ||*/ ModManager.Expedition && self.room.game.rainWorld.ExpeditionMode
-                                                                    && (ActiveWorldState & (WorldState.Vanilla | WorldState.Gourmand)) != 0
-                                                                    && ExpeditionGame.unlockedExpeditionSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Gourmand)))
+            if (ModManager.MSC
+            && (/*self.room.world.name == "OE" ||*/ ModManager.Expedition && self.room.game.rainWorld.ExpeditionMode
+            && (ActiveWorldState & (WorldState.Vanilla | WorldState.Gourmand)) != 0
+            && ExpeditionGame.unlockedExpeditionSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Gourmand)))
+            {
                 return true;
+            }
 
             return orig(self);
         }

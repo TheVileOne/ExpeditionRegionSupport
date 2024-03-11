@@ -117,17 +117,26 @@ namespace ExpeditionRegionSupport.Filters
                     break;
             }
 
+            var cwt = slotButton.GetCWT();
+
+            cwt.IsChallengeSlot = true;
+
             if (status == SlotStatus.Unavailable)
             {
-                slotButton.inactive = false;
+                slotButton.inactive = true; //Prevents selection
                 slotButton.buttonBehav.greyedOut = false;
-                slotButton.GetCWT().HighlightColor = DISABLED_HOVER;
+
+                //Update hover, and display colors
+                cwt.HighlightColor = DISABLED_HOVER;
                 slotButton.labelColor = DISABLE_COLOR;
                 slotButton.rectColor = DISABLE_COLOR;
             }
             else if (slotButton.rectColor.HasValue && slotButton.rectColor.Value.Equals(DISABLE_COLOR))
             {
-                slotButton.GetCWT().HighlightColor = ExtensionMethods.ButtonTemplateCWT.DEFAULT_HIGHLIGHT_COLOR;
+                slotButton.inactive = false;
+
+                //Update hover, and display colors
+                cwt.HighlightColor = ExtensionMethods.ButtonTemplateCWT.DEFAULT_HIGHLIGHT_COLOR;
                 slotButton.labelColor = DEFAULT_COLOR;
                 slotButton.rectColor = DEFAULT_COLOR;
             }
@@ -196,19 +205,21 @@ namespace ExpeditionRegionSupport.Filters
             }
             else if (AbortedSlotCount > 0)
             {
+                //The number of challenge slots added, or removed since the last slot button update 
                 int slotCountDelta = 0;
                 if (Info.SlotChanges.Added.Count > 0)
                     slotCountDelta = Info.SlotChanges.Added.Count;
                 else if (Info.SlotChanges.Removed.Count > 0)
                     slotCountDelta = Info.SlotChanges.Removed.Count * -1;
 
+                //Plugin.Logger.LogDebug("DELTA: " + slotCountDelta);
                 if (slotCountDelta > 0) //Behavior for plus button
                 {
                     AdjustAbortedSlots(slotCountDelta * -1); //There is an inverse relation between the overall slot change delta and the aborted one
                 }
                 else if (slotCountDelta < 0) //Behavior for minus button. Do not leave an open gap.
-                {
-                    //AdjustAbortedSlots(slotCountDelta * -1);
+                {                  
+                    //AdjustAbortedSlots(Math.Abs(slotCountDelta));
                     ClearAbortedSlots();
                 }
                 //A delta of zero means that a change was made that did not impact the number of available slots.

@@ -72,6 +72,12 @@ namespace ExpeditionRegionSupport.Interface
             cancelChangesButton = factory.Create("Restore Defaults", ExpeditionConsts.Signals.RESTORE_DEFAULTS);
             customizeSpawnsButton = factory.Create("Customize Spawns", ExpeditionConsts.Signals.OPEN_SPAWN_DIALOG);
 
+            if (!Plugin.DebugMode)
+            {
+                reloadFromFileButton.buttonBehav.greyedOut = true;
+                customizeSpawnsButton.buttonBehav.greyedOut = true;
+            }
+
             List<SimpleButton> buttons = factory.ObjectsCreated;
             
             buttons.ForEach(MainPage.AddSubObject);

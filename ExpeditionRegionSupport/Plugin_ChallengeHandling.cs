@@ -1,6 +1,5 @@
 ﻿using Expedition;
 using ExpeditionRegionSupport.Filters;
-using ExpeditionRegionSupport.Filters.Utils;
 using ExpeditionRegionSupport.HookUtils;
 using Menu;
 using Mono.Cecil.Cil;
@@ -22,8 +21,11 @@ namespace ExpeditionRegionSupport
             {
                 ChallengeSlot.RefreshSlotCounts(); //Ensure that slot counts are current
 
-                //Log any signals that get triggers as their const name
-                Logger.LogInfo(ExpeditionConsts.Signals.GetName(signalText).Replace('_', ' '));
+                if (DebugMode)
+                {
+                    //Log any signals that get triggers as their const name
+                    Logger.LogInfo(ExpeditionConsts.Signals.GetName(signalText).Replace('_', ' '));
+                }
 
                 if (signalText.StartsWith(ExpeditionConsts.Signals.CHALLENGE_REPLACE))
                 {
@@ -38,17 +40,24 @@ namespace ExpeditionRegionSupport
 
                     Logger.LogInfo($"Slot {slotIndex} targeted");
 
-                    Logger.LogInfo("Challenges " + ChallengeSlot.SlotChallenges.Count);
-                    Logger.LogInfo("Aborted " + ChallengeSlot.AbortedSlotCount);
+                    if (DebugMode)
+                    {
+                        Logger.LogInfo("Challenges " + ChallengeSlot.SlotChallenges.Count);
+                        Logger.LogInfo("Aborted " + ChallengeSlot.AbortedSlotCount);
+                    }
 
                     if (ChallengeSlot.AbortedSlotCount > 0)
                     {
+                        if (!DebugMode) return;
+
                         if (slotIndex - 1 >= ChallengeSlot.MaxSlotsAllowed)
                             throw new IndexOutOfRangeException("Tried to assign to an invalid slot index");
 
                         if (ChallengeSlot.IsAbortedSlot(slotIndex - 1))
                         {
-                            Logger.LogDebug("SELECTED ABORTED SLOT");
+                            if (DebugMode)
+                                Logger.LogDebug("SELECTED ABORTED SLOT");
+                            
                             int challengeCount = ChallengeSlot.SlotChallenges.Count; //Challenge count may change during assignment
                             int slotsToUnlock = slotIndex - challengeCount;
 
@@ -301,7 +310,8 @@ namespace ExpeditionRegionSupport
             ChallengeSlot.SlotButtons = self.challengeButtons;
             orig(self);
 
-            ChallengeSlot.Info.AnalyzeChanges();
+            if (DebugMode)
+                ChallengeSlot.Info.AnalyzeChanges();
         }
 
         private void ChallengeSelectPage_UpdateChallengeButtons(ILContext il)
@@ -325,12 +335,12 @@ namespace ExpeditionRegionSupport
             cursor.Emit(OpCodes.Dup);
             cursor.EmitDelegate(ChallengeSlot.UpdateSlot); //Send it to this method to apply extra slot processing logic
 
-            //This is in the else branch, where we need to handle frozen slots
+            //This is in the else branch, where we need to handle unavailable slots
             cursor.GotoNext(MoveType.After, x => x.MatchLdstr("EMPTY"));
             cursor.Emit(OpCodes.Ldloc_1); //Push loop index onto stack
             cursor.EmitDelegate<Func<string, int, string>>((slotMessage, slotIndex) => //Send both into a delegate
             {
-                ChallengeSlot.UpdateSlot(slotIndex); //Changes the appearance of disabled/frozen slots to distinguish them from open slots
+                ChallengeSlot.UpdateSlot(slotIndex); //Changes the appearance of unavailable slots to distinguish them from open slots
 
                 if (ChallengeSlot.IsAbortedSlot(slotIndex))
                     return "UNAVAILABLE";

@@ -49,7 +49,8 @@ namespace ExpeditionRegionSupport.Interface.Components
 
         public void AddOption(FilterCheckBox option)
         {
-            Plugin.Logger.LogInfo("Added Option: " + option.label.myText);
+            if (Plugin.DebugMode)
+                Plugin.Logger.LogInfo("Added Option: " + option.label.myText);
 
             Boxes.Add(option);
             Filters.Add(option.label);
@@ -120,7 +121,8 @@ namespace ExpeditionRegionSupport.Interface.Components
 
         public void SetChecked(CheckBox box, bool checkState)
         {
-            Plugin.Logger.LogInfo(box.label.text + (checkState ? " filter removed" : " filter applied"));
+            if (Plugin.DebugMode)
+                Plugin.Logger.LogInfo(box.label.text + (checkState ? " filter removed" : " filter applied"));
 
             //Basic CheckBox validation is handled before this logic is run
 
@@ -275,7 +277,8 @@ namespace ExpeditionRegionSupport.Interface.Components
         /// </summary>
         public void SetChecked(bool checkState)
         {
-            Plugin.Logger.LogInfo("Check state set to " + checkState);
+            if (Plugin.DebugMode)
+                Plugin.Logger.LogInfo("Check state set to " + checkState);
             Checked = checkState;
         }
 
