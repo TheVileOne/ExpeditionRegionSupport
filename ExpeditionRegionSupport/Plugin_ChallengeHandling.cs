@@ -65,6 +65,8 @@ namespace ExpeditionRegionSupport
                             for (int slotOffset = 0; slotOffset < slotsToUnlock; slotOffset++)
                                 ChallengeOrganizer.AssignChallenge(challengeCount + slotOffset, false); //Assign challenges to slots up to and including targeted slot
                             ChallengeAssignment.OnProcessFinish();
+
+                            self.UpdateChallengeButtons();
                             return;
                         }
                     }
