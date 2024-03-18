@@ -1,16 +1,10 @@
 C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\ExpeditionRegionSupport.dll
 C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\ExpeditionRegionSupport.pdb
 C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\0Harmony.dll
-C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\0Harmony20.dll
 C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\BepInEx.dll
-C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\BepInEx.Harmony.dll
 C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\BepInEx.Preloader.dll
 C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\HOOKS-Assembly-CSharp.dll
 C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\Mono.Cecil.dll
-C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\Mono.Cecil.Mdb.dll
-C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\Mono.Cecil.Pdb.dll
-C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\Mono.Cecil.Rocks.dll
-C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\MonoMod.Common.dll
 C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\MonoMod.RuntimeDetour.dll
 C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\MonoMod.Utils.dll
 C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\PUBLIC-Assembly-CSharp.dll
@@ -20,7 +14,6 @@ C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Releas
 C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\HarmonyXInterop.dll
 C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\UnityEngine.SharedInternalsModule.dll
 C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\0Harmony.xml
-C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\BepInEx.Harmony.xml
 C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\BepInEx.Preloader.xml
 C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\MonoMod.RuntimeDetour.xml
 C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\MonoMod.Utils.xml
