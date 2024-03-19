@@ -86,8 +86,7 @@ namespace ExpeditionRegionSupport
                 On.Menu.CharacterSelectPage.UpdateSelectedSlugcat += CharacterSelectPage_UpdateSelectedSlugcat;
 
                 //Random Spawn hooks
-                On.Menu.ChallengeSelectPage.StartButton_OnPressDone += ChallengeSelectPage_StartButton_OnPressDone;
-                IL.Menu.ChallengeSelectPage.StartButton_OnPressDone += ChallengeSelectPage_StartButton_OnPressDone;
+                On.Menu.ChallengeSelectPage.StartGame += ChallengeSelectPage_StartGame;
 
                 On.Expedition.ExpeditionGame.ExpeditionRandomStarts += ExpeditionGame_ExpeditionRandomStarts;
                 IL.Expedition.ExpeditionGame.ExpeditionRandomStarts += ExpeditionGame_ExpeditionRandomStarts;
@@ -259,13 +258,12 @@ namespace ExpeditionRegionSupport
                 Logger.LogInfo(region);
         }
 
-        private void ChallengeSelectPage_StartButton_OnPressDone(On.Menu.ChallengeSelectPage.orig_StartButton_OnPressDone orig, ChallengeSelectPage self, Menu.Remix.MixedUI.UIfocusable trigger)
+        private void ChallengeSelectPage_StartGame(On.Menu.ChallengeSelectPage.orig_StartGame orig, ChallengeSelectPage self)
         {
             ActiveWorldState = RegionUtils.GetWorldStateFromStoryRegions(ExpeditionData.slugcatPlayer);
 
             Logger.LogInfo("WS " + ActiveWorldState);
-
-            orig(self, trigger);
+            orig(self);
         }
 
         private bool RegionGate_customOEGateRequirements(On.RegionGate.orig_customOEGateRequirements orig, RegionGate self)
@@ -324,30 +322,6 @@ namespace ExpeditionRegionSupport
         private bool checkForExpeditionDen()
         {
             return ExpeditionData.startingDen != null;
-        }
-
-        /// <summary>
-        /// This hook changes Expedition.startingDen to null instead of generating a new starting den.
-        /// </summary>
-        private void ChallengeSelectPage_StartButton_OnPressDone(ILContext il)
-        {
-            ILCursor cursor = new ILCursor(il);
-
-            cursor.GotoNext(x => x.MatchCallvirt<PlayerProgression>(nameof(PlayerProgression.WipeSaveState))); //Go to save wipe logic
-            cursor.GotoNext(x => x.Match(OpCodes.Ldstr)); //Go to a String.Empty check after save wipe logic. (A point before the Ldarg used by the method call)
-            cursor.GotoNext(MoveType.Before, x => x.Match(OpCodes.Ldarg_0)); //This should be where data is pushed onto the stack for the method call.
-
-            int cursorIndex = cursor.Index;
-            cursor.GotoNext(MoveType.Before, x => x.Match(OpCodes.Stsfld)); //The field we want to modify value assignment with
-            
-            ILLabel jumpLabel = il.DefineLabel();
-            cursor.MarkLabel(jumpLabel); //Label after the method call.
-            cursor.Emit(OpCodes.Pop); //This removes pointer information off the stack. Hook will fail without this.
-            cursor.Emit(OpCodes.Ldnull); //Push a null reference onto the stack instead.
-
-            cursor.Index = cursorIndex;
-            //cursor.GotoPrev(MoveType.Before, x => x.Match(OpCodes.Ldarg_0)); //Go to before method arguments are loaded onto the stack.
-            cursor.Emit(OpCodes.Br_S, jumpLabel); //Jump over method arguments and method call.
         }
 
         private bool hasProcessedRooms;

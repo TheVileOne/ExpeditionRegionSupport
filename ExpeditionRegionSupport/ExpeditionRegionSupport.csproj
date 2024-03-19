@@ -13,9 +13,6 @@
 		<Reference Include="BepInEx">
 			<HintPath>..\..\..\..\OneDrive\Desktop\RW Modding\BepInEx.dll</HintPath>
 		</Reference>
-		<Reference Include="BepInEx.Preloader">
-			<HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\BepInEx\core\BepInEx.Preloader.dll</HintPath>
-		</Reference>
 		<Reference Include="HOOKS-Assembly-CSharp">
 			<HintPath>..\..\..\..\OneDrive\Desktop\RW Modding\HOOKS-Assembly-CSharp.dll</HintPath>
 		</Reference>
@@ -36,6 +33,9 @@
 		</Reference>
 		<Reference Include="UnityEngine.InputLegacyModule">
 			<HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.InputModule">
+		  <HintPath>..\..\..\..\OneDrive\Desktop\RW Modding\UnityEngine.InputModule.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 

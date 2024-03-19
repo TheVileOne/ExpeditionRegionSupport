@@ -46,7 +46,7 @@ namespace ExpeditionRegionSupport.Regions
             if (!CacheAvailableRegions)
             {
                 AvailableRegionCache = null;
-                return SlugcatStats.getSlugcatStoryRegions(slugcat).ToList();
+                return SlugcatStats.SlugcatStoryRegions(slugcat);
             }
 
             //Applied filters take priority over the standard cache
@@ -55,7 +55,7 @@ namespace ExpeditionRegionSupport.Regions
 
             //Make sure cache is applied
             if (AvailableRegionCache == null)
-                AvailableRegionCache = SlugcatStats.getSlugcatStoryRegions(slugcat).ToList();
+                AvailableRegionCache = SlugcatStats.SlugcatStoryRegions(slugcat);
 
             return AvailableRegionCache;
         }
@@ -96,10 +96,10 @@ namespace ExpeditionRegionSupport.Regions
             return state != WorldState.Artificer ? "SL" : "SS";
         }
 
-        public static WorldState GetWorldStateFromStoryRegions(SlugcatStats.Name name, string[] storyRegions = null)
+        public static WorldState GetWorldStateFromStoryRegions(SlugcatStats.Name name, List<string> storyRegions = null)
         {
             if (storyRegions == null)
-                storyRegions = SlugcatStats.getSlugcatStoryRegions(name);
+                storyRegions = SlugcatStats.SlugcatStoryRegions(name);
 
             WorldState state = WorldState.Any;
 

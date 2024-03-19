@@ -247,7 +247,7 @@ namespace ExpeditionRegionSupport.Filters
 
                 if (!regionFilter.HasItemsRemoved) //Indicates that a new filter was created for this challenge
                 {
-                    regionFilter.ItemsToRemove.AddRange(ChallengeTools.PearlRegionBlackList);
+                    regionFilter.ItemsToRemove.AddRange(ChallengeTools.PearlRegionBlackList());
                     regionFilter.Apply();
                 }
 
@@ -318,26 +318,21 @@ namespace ExpeditionRegionSupport.Filters
             ILCursor cursor = new ILCursor(il);
 
             cursor.GotoNext(MoveType.After, x => x.MatchStloc(1)); //Move to after regions array assignment
-            cursor.EmitDelegate(() => //Replace reference with mod managed regions array
+            cursor.EmitDelegate(() => //Replace reference with mod managed regions list
             {
-                return RegionUtils.GetAvailableRegions(ExpeditionData.slugcatPlayer).ToArray();
+                return RegionUtils.GetAvailableRegions(ExpeditionData.slugcatPlayer);
             });
             cursor.Emit(OpCodes.Stloc_1);
 
             //Apply filter logic
 
-            cursor.BranchTo(OpCodes.Br, MoveType.Before, //Ignore check for HR. We need to use the list defined there
-                x => x.MatchLdloc(1),
-                x => x.Match(OpCodes.Call));
-            cursor.GotoNext(MoveType.Before, x => x.MatchDup()); //Existing Dup removes HR
-            cursor.Emit(OpCodes.Dup);
+            cursor.Emit(OpCodes.Ldloc_1); //Push list of region codes onto stack to apply filter
             cursor.EmitDelegate(ApplyFilter);
 
             //Handle list post filter. An empty list will throw an exception
 
-            cursor.GotoNext(MoveType.After, x => x.MatchStloc(1)); //Move to after array gets reformed
-            cursor.Emit(OpCodes.Ldloc_1); //Push array on the stack
-            cursor.EmitDelegate(convertToList); //Convert it to list for type compatibility
+            cursor.GotoNext(MoveType.After, x => x.MatchPop()); //This matches after the HR remove logic on the stack
+            cursor.Emit(OpCodes.Ldloc_1); //Push list back on the stack to check its count
             applyEmptyListHandling<string>(cursor);
         }
         #endregion
@@ -367,36 +362,33 @@ namespace ExpeditionRegionSupport.Filters
             cursor.EmitDelegate(populateVistasFromCache); //Send it to method for population
 
             cursor.BranchStart(OpCodes.Brtrue); //Branch over processing logic if list was populated from the cache
-            cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(SlugcatStats).GetMethod("getSlugcatStoryRegions")));
+            cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(SlugcatStats).GetMethod("SlugcatStoryRegions")));
             cursor.Emit(OpCodes.Pop);
-            cursor.EmitDelegate(() => //Replace reference with mod managed regions array
+            cursor.EmitDelegate(() => //Replace reference with mod managed regions list
             {
-                return RegionUtils.GetAvailableRegions(ExpeditionData.slugcatPlayer).ToArray();
+                return RegionUtils.GetAvailableRegions(ExpeditionData.slugcatPlayer);
             });
 
             //Apply filter logic
 
-            cursor.GotoAfterForLoop();
-
+            cursor.GotoNext(MoveType.After, x => x.MatchEndfinally());
+            cursor.GotoNext(MoveType.After, x => x.MatchEndfinally()); //This should be at the end of the loops in this method
+            cursor.GotoNext(MoveType.After, x => x.MatchLdloc(3)); //Get closer to where we want to assign cache. Do so after log statement
+            cursor.GotoNext(MoveType.Before,
+                x => x.MatchLdloc(3),
+                x => x.MatchLdcI4(0));
             cursor.Emit(OpCodes.Ldloc_3); //Push list of region codes available for selection onto stack
-            cursor.EmitDelegate<Action<List<string>>>(allowedVistas =>
-            {
-                ApplyFilter(allowedVistas);
-                allowedVistasCache = allowedVistas;
-
-                ChallengeAssignment.HandleOnProcessComplete += clearAllowedVistas;
-            });
+            cursor.EmitDelegate(assignCache);
             cursor.BranchFinish();
 
             //Handle list post filter. An empty list will throw an exception
-
             cursor.Emit(OpCodes.Ldloc_3); //Push list back on the stack to check its count
-            applyEmptyListHandling<string>(cursor);
+            applyEmptyListHandling<ValueTuple<string, string>>(cursor);
         }
 
-        private static List<string> allowedVistasCache;
+        private static List<ValueTuple<string, string>> allowedVistasCache;
 
-        private static bool populateVistasFromCache(List<string> list)
+        private static bool populateVistasFromCache(List<ValueTuple<string, string>> list)
         {
             if (allowedVistasCache != null)
             {
@@ -404,6 +396,13 @@ namespace ExpeditionRegionSupport.Filters
                 return true;
             }
             return false;
+        }
+
+        private static void assignCache(List<ValueTuple<string, string>> list)
+        {
+            allowedVistasCache = list;
+
+            ChallengeAssignment.HandleOnProcessComplete += clearAllowedVistas;
         }
 
         private static void clearAllowedVistas()
@@ -442,11 +441,6 @@ namespace ExpeditionRegionSupport.Filters
         }
         */
         #endregion
-
-        private static List<string> convertToList(string[] array)
-        {
-            return array.ToList();
-        }
 
         private static void applyEmptyListHandling<T>(ILCursor cursor)
         {

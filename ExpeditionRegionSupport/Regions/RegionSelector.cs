@@ -72,8 +72,8 @@ namespace ExpeditionRegionSupport.Regions
             }
 
             //These methods are already curated to the provided slugcat, and account for MSC being enabled
-            string[] availableStoryRegions = SlugcatStats.getSlugcatStoryRegions(ActiveSlugcat);
-            string[] availableOptionalRegions = SlugcatStats.getSlugcatOptionalRegions(ActiveSlugcat);
+            List<string> availableStoryRegions = SlugcatStats.SlugcatStoryRegions(ActiveSlugcat);
+            List<string> availableOptionalRegions = SlugcatStats.SlugcatOptionalRegions(ActiveSlugcat);
 
             ActiveWorldState = RegionUtils.GetWorldStateFromStoryRegions(ActiveSlugcat, availableStoryRegions);
 

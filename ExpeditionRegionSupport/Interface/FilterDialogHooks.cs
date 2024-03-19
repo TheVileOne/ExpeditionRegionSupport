@@ -54,8 +54,8 @@ namespace ExpeditionRegionSupport.Interface
                 cwt.Options = new FilterOptions(dialog, cwt.Page, cwt.Page.pos);
 
                 cwt.Page.subObjects.Add(cwt.Options);
-
-                dialog.pages.Add(cwt.Page);
+                
+                dialog.dialogPage = cwt.Page;
                 handled = true;
             }
 
@@ -76,13 +76,11 @@ namespace ExpeditionRegionSupport.Interface
             cursor.Emit(OpCodes.Ldarg_0);
             cursor.EmitDelegate(initializePage); //Initializes page when handling FilterDailogs, returns handled state
 
-            //Branch over existing page creation logic when page has already been handled 
+            //Branch over existing page creation logic when page has already been handled
             cursor.BranchTo(OpCodes.Brtrue, MoveType.After,
-                x => x.MatchNewobj(typeof(Page)),
-                x => x.Match(OpCodes.Callvirt));
+                x => x.MatchStfld<Dialog>(nameof(Dialog.dialogPage)));
 
             //Container assignment of darkSprite is changed from Page container to Dialog container
-
             cursor.GotoNext(MoveType.After, x => x.MatchLdfld<Menu.Menu>(nameof(Menu.Menu.pages)));
             cursor.GotoNext(MoveType.After, x => x.MatchCallOrCallvirt(typeof(MenuObject).GetMethod("get_Container")));
             cursor.Emit(OpCodes.Pop);
@@ -403,7 +401,7 @@ namespace ExpeditionRegionSupport.Interface
                 return;
             }
 
-            if (!cwt.PauseButtonHandled && RWInput.CheckPauseButton(0, self.manager.rainWorld))
+            if (!cwt.PauseButtonHandled && RWInput.CheckPauseButton(0))
             {
                 self.CloseFilterDialog();
                 cwt.PauseButtonHandled = true;
