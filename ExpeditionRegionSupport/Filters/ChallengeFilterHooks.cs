@@ -372,12 +372,23 @@ namespace ExpeditionRegionSupport.Filters
             //Apply filter logic
 
             cursor.GotoNext(MoveType.After, x => x.MatchEndfinally());
+
+            ILLabel leaveTarget = null;
+            cursor.GotoNext(x => x.MatchLeaveS(out leaveTarget)); //The break target of a foreach loop
+            cursor.GotoLabel(leaveTarget);
+
+            //Old IL code that no longer works
+            /*
             cursor.GotoNext(MoveType.After, x => x.MatchEndfinally()); //This should be at the end of the loops in this method
             cursor.GotoNext(MoveType.After, x => x.MatchLdloc(3)); //Get closer to where we want to assign cache. Do so after log statement
+
             cursor.GotoNext(MoveType.Before,
                 x => x.MatchLdloc(3),
                 x => x.MatchLdcI4(0));
-            cursor.Emit(OpCodes.Ldloc_3); //Push list of region codes available for selection onto stack
+            */
+
+            //This emit will set the new leave target
+            cursor.Emit(OpCodes.Ldloc_3); //Push list of vista locations available for selection onto stack
             cursor.EmitDelegate(assignCache);
             cursor.BranchFinish();
 
@@ -392,6 +403,7 @@ namespace ExpeditionRegionSupport.Filters
         {
             if (allowedVistasCache != null)
             {
+                Plugin.Logger.LogInfo("Vista location cache present");
                 list.AddRange(allowedVistasCache);
                 return true;
             }
@@ -400,6 +412,7 @@ namespace ExpeditionRegionSupport.Filters
 
         private static void assignCache(List<ValueTuple<string, string>> list)
         {
+            Plugin.Logger.LogInfo("Caching vista locations");
             allowedVistasCache = list;
 
             ChallengeAssignment.HandleOnProcessComplete += clearAllowedVistas;
@@ -407,6 +420,7 @@ namespace ExpeditionRegionSupport.Filters
 
         private static void clearAllowedVistas()
         {
+            Plugin.Logger.LogInfo("Clearing vista locations");
             allowedVistasCache = null;
         }
 
