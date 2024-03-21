@@ -54,13 +54,20 @@ namespace ExpeditionRegionSupport.Filters.Utils
 
                 if (!excludeCondition(item))
                 {
-                    ItemsRemoved.Add(item);
-                    Target.Remove(item);
-                    loopCount--; //For each item removed, the index limit must change
+                    if (Target.Remove(item))
+                    {
+                        ItemsRemoved.Add(item);
+                        loopCount--; //For each item removed, the index limit must change
+                    }
+                    else //Inf loop prevention
+                    {
+                        Plugin.Logger.LogWarning("Item could not be removed from target");
+                        loopIndex++;
+                    }
                 }
                 else
                 {
-                    loopCount++;
+                    loopIndex++;
                 }
             }
         }
