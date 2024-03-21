@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Expedition;
 using ExpeditionRegionSupport.Filters.Utils;
 using ExpeditionRegionSupport.Regions.Restrictions;
+using ExpeditionRegionSupport.Settings;
 
 namespace ExpeditionRegionSupport.Regions
 {
@@ -137,9 +138,21 @@ namespace ExpeditionRegionSupport.Regions
             return state;
         }
 
+        /// <summary>
+        /// Assigns the VisitedRegion filter as the BaseFilter to a list of currently available region codes and applies the filter
+        /// </summary>
+        /// <param name="name">The slugcat name used to retrieve visited region data</param>
         public static void AssignFilter(SlugcatStats.Name name)
         {
+            Plugin.Logger.LogInfo("Applying region filter");
             AppliedFilters.AssignBase(new CachedFilterApplicator<string>(GetAvailableRegions(name)));
+
+            //The filter is not yet applied, lets handle that logic here
+            if (ExpeditionSettings.Filters.VisitedRegionsOnly.Value)
+            {
+                List<string> visitedRegions = GetVisitedRegions(name);
+                CurrentFilter.Apply(visitedRegions.Contains); //Filters all unvisited regions and stores it in a list cache
+            }
         }
 
         /// <summary>
@@ -163,6 +176,7 @@ namespace ExpeditionRegionSupport.Regions
 
         public static void ClearFilters()
         {
+            Plugin.Logger.LogInfo("Clearing filters");
             AppliedFilters.Clear();
             RegionFilterCache.Clear();
         }
