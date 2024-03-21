@@ -1,13 +1,13 @@
 {
   "id": "fluffball.expeditionregionsupport",
   "name": "Expedition Region Support",
-  "version": "0.7.5",
-  "target_game_version": "v1.9",
+  "version": "0.9.55",
+  "target_game_version": "v1.9.15",
   "authors": "Fluffball",
-  "description": "TODO",
+  "description": "[BETA] Allows for custom regions to be used for random spawns for Expedition mode.",
   "youtube_trailer_id": "",
   "requirements": [ "expedition" ],
   "requirements_names": [ "Expedition" ],
-  "tags": [ "TODO" ],
+  "tags": [ "Expedition", "Gameplay", "CRS", "Custom" ],
   "checksum_override_version": false
 }
