@@ -358,7 +358,7 @@ namespace ExpeditionRegionSupport
                 if (spawnLocation == string.Empty || attemptsToFindDenSpawn >= max_attempts_allowed) //These is no hope for finding a new room
                 {
                     Logger.LogWarning("Using fallback");
-                    return SaveState.GetFinalFallbackShelter(activeMenuSlugcat);
+                    return SaveState.GetStoryDenPosition(activeMenuSlugcat, out _);
                 }
 
                 return ExpeditionGame.ExpeditionRandomStarts(rainWorld, activeMenuSlugcat);
