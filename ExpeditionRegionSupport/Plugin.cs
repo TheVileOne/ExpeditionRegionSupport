@@ -249,7 +249,7 @@ namespace ExpeditionRegionSupport
         {
             ActiveWorldState = RegionUtils.GetWorldStateFromStoryRegions(ExpeditionData.slugcatPlayer);
 
-            Logger.LogInfo("WS " + ActiveWorldState);
+            Logger.LogInfo("World State " + ActiveWorldState);
             orig(self);
         }
 
