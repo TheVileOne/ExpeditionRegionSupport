@@ -64,7 +64,6 @@ namespace ExpeditionRegionSupport
                 IL.Menu.ChallengeSelectPage.ctor += ChallengeSelectPage_ctor;
                 On.Menu.ChallengeSelectPage.Singal += ChallengeSelectPage_Singal;
                 IL.Menu.ChallengeSelectPage.Singal += ChallengeSelectPage_Singal;
-                On.Menu.ChallengeSelectPage.Update += ChallengeSelectPage_Update;
                 IL.Menu.ChallengeSelectPage.Update += ChallengeSelectPage_Update;
                 On.Menu.ChallengeSelectPage.UpdateChallengeButtons += ChallengeSelectPage_UpdateChallengeButtons;
                 IL.Menu.ChallengeSelectPage.UpdateChallengeButtons += ChallengeSelectPage_UpdateChallengeButtons;
@@ -103,18 +102,6 @@ namespace ExpeditionRegionSupport
             catch (Exception ex)
             {
                 Logger.LogError(ex);
-            }
-        }
-
-        private void ChallengeSelectPage_Update(On.Menu.ChallengeSelectPage.orig_Update orig, ChallengeSelectPage self)
-        {
-            try
-            {
-                orig(self);
-            }
-            catch (NullReferenceException nullEx)
-            {
-                Logger.LogError(nullEx);
             }
         }
 
