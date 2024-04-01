@@ -111,3 +111,5 @@
 /.vs/RandomStartsFix/FileContentIndex/fb9927a1-c2cd-4057-b5a4-b3616d9a9cfb.vsidx
 /.vs/ExpeditionRegionSupport/FileContentIndex/42579b9a-261c-428d-af0c-7849e4a7f4cc.vsidx
 /.vs
+/lib/HOOKS-Assembly-CSharp.dll
+/lib/PUBLIC-Assembly-CSharp.dll

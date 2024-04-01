@@ -7,36 +7,21 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Reference Include="Assembly-CSharp">
-			<HintPath>..\..\..\..\OneDrive\Desktop\RW Modding\PUBLIC-Assembly-CSharp.dll</HintPath>
-		</Reference>
-		<Reference Include="BepInEx">
-			<HintPath>..\..\..\..\OneDrive\Desktop\RW Modding\BepInEx.dll</HintPath>
-		</Reference>
-		<Reference Include="HOOKS-Assembly-CSharp">
-			<HintPath>..\..\..\..\OneDrive\Desktop\RW Modding\HOOKS-Assembly-CSharp.dll</HintPath>
-		</Reference>
-		<Reference Include="Mono.Cecil">
-			<HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\Mono.Cecil.dll</HintPath>
-		</Reference>
-		<Reference Include="MonoMod.RuntimeDetour">
-			<HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\BepInEx\core\MonoMod.RuntimeDetour.dll</HintPath>
-		</Reference>
-		<Reference Include="MonoMod.Utils">
-			<HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\BepInEx\core\MonoMod.Utils.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine">
-			<HintPath>..\..\..\..\OneDrive\Desktop\RW Modding\UnityEngine.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.CoreModule">
-			<HintPath>..\..\..\..\OneDrive\Desktop\RW Modding\UnityEngine.CoreModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.InputLegacyModule">
-			<HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.InputModule">
-		  <HintPath>..\..\..\..\OneDrive\Desktop\RW Modding\UnityEngine.InputModule.dll</HintPath>
+		<Reference Include="../lib/*.dll">
+			<Private>false</Private>
 		</Reference>
 	</ItemGroup>
 
+	<Target Name="GenerateMod" AfterTargets="PostBuildEvent">
+		<ItemGroup>
+			<RemovePlugins Include="../mod/plugins/*.dll" />
+			<RemovePDBs Include="$(OutDir)*.pdb" />
+		</ItemGroup>
+		<ItemGroup>
+			<CopyPlugins Include="$(TargetPath)" />
+			<CopyPDBs Include="$(OutDir)*.pdb" />
+		</ItemGroup>
+		<Delete Files="@(RemovePlugins)" />
+		<Copy SourceFiles="@(CopyPlugins);@(CopyPDBs)" DestinationFolder="../mod/plugins/" />
+	</Target>
 </Project>
