@@ -11,7 +11,7 @@ namespace ExpeditionRegionSupport
     {
         public static bool MineForGameComplete(SlugcatStats.Name name)
         {
-            var playerProgression = Plugin.CurrentProgression;
+            var playerProgression = ProgressionData.PlayerData.ProgressData;
 
             if (!playerProgression.IsThereASavedGame(name))
                 return false;

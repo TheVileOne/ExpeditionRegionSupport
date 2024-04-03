@@ -160,23 +160,18 @@ namespace ExpeditionRegionSupport
         }
 
         /// <summary>
-        /// A reference to the PlayerProgression outside of Expedition mode
-        /// </summary>
-        public static PlayerProgression CurrentProgression;
-
-        /// <summary>
         /// This hook stores save data needed to validate region spawning, and sets a button for custom dialogue page.
         /// </summary>
         private void ExpeditionMenu_ctor(On.Menu.ExpeditionMenu.orig_ctor orig, ExpeditionMenu self, ProcessManager manager)
         {
-            CurrentProgression = manager.rainWorld.progression; //This data is going to be overwritten in the constructor, but this mod still needs access to it.
+            ProgressionData.PlayerData.ProgressData = manager.rainWorld.progression; //This data is going to be overwritten in the constructor, but this mod still needs access to it.
 
             orig(self, manager);
 
-            float y = (manager.rainWorld.options.ScreenSize.x != 1024f) ? 695f : 728f;
-
-            settingsButton = createSettingsButton(self, self.pages[1]);// new SimpleButton(self, self.pages[1], self.Translate("SETTINGS"), "SETTINGS", new Vector2(self.rightAnchor - 150f, y - 40), new Vector2(100f, 30f));
+            settingsButton = createSettingsButton(self, self.pages[1]);
             self.pages[1].subObjects.Add(settingsButton);
+
+            ProgressionData.ExpeditionPlayerData.ProgressData = manager.rainWorld.progression;
         }
 
         private SimpleButton createSettingsButton(ExpeditionMenu menu, Page page)

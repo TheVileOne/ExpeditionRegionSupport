@@ -29,7 +29,10 @@ namespace ExpeditionRegionSupport.Regions
 
         public static List<string> AvailableRegionCache;
 
-        public static Dictionary<string, List<string>> RegionsVisited => Plugin.CurrentProgression.miscProgressionData.regionsVisited;
+        /// <summary>
+        /// A dictionary of regions visited, with a RegionCode as a key, and a list of slugcat names as data outside of Expedition
+        /// </summary>
+        public static Dictionary<string, List<string>> RegionsVisited => ProgressionData.Regions.Visited;
 
         public static bool HasVisitedRegion(SlugcatStats.Name slugcat, string regionCode)
         {
