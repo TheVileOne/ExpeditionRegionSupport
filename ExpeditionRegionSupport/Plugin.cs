@@ -38,17 +38,26 @@ namespace ExpeditionRegionSupport
         public static bool SlugBaseEnabled;
         public static WorldState ActiveWorldState;
 
-        private static List<string> _regionsVisited = new List<string>();
+        /// <summary>
+        /// This is true when there is a reason to believe RegionsVisited is no longer accurate
+        /// </summary>
+        public static bool HasStaleRegionsCache = true;
+
+        private static List<string> _regionsVisited;
+
+        /// <summary>
+        /// Cached list of regions visited by the currently selected slugcat in Expedition mode
+        /// </summary>
         public static List<string> RegionsVisited
         {
-            get => _regionsVisited;
-            set
+            get
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
-
-                _regionsVisited.Clear();
-                _regionsVisited.AddRange(value);
+                if (HasStaleRegionsCache)
+                {
+                    _regionsVisited = RegionUtils.GetVisitedRegions(ExpeditionData.slugcatPlayer);
+                    HasStaleRegionsCache = false;
+                }
+                return _regionsVisited;
             }
         }
 
@@ -134,9 +143,10 @@ namespace ExpeditionRegionSupport
             if (lastSelected != ExpeditionData.slugcatPlayer)
             {
                 ActiveWorldState = RegionUtils.GetWorldStateFromStoryRegions(ExpeditionData.slugcatPlayer);
+                HasStaleRegionsCache = true;
 
                 if (ExpeditionSettings.Filters.VisitedRegionsOnly.Value)
-                    UpdateRegionsVisited();
+                    logRegionsVisited();
             }
         }
 
@@ -223,10 +233,7 @@ namespace ExpeditionRegionSupport
             ChallengeFilterSettings.CurrentFilter = FilterOptions.None;
 
             if (ExpeditionSettings.Filters.VisitedRegionsOnly.Value)
-            {
                 ChallengeFilterSettings.CurrentFilter = FilterOptions.VisitedRegions;
-                UpdateRegionsVisited();
-            }
 
             if (ExpeditionSettings.DetectShelterSpawns.Value)
             {
@@ -234,15 +241,6 @@ namespace ExpeditionRegionSupport
             }
 
             sender.OnDialogClosed -= SettingsDialog_OnDialogClosed;
-        }
-
-        public void UpdateRegionsVisited()
-        {
-            RegionsVisited = RegionUtils.GetVisitedRegions(ExpeditionData.slugcatPlayer);
-
-            Logger.LogInfo(RegionsVisited.Count + " regions visited detected");
-            foreach (string region in RegionsVisited)
-                Logger.LogInfo(region);
         }
 
         private void ChallengeSelectPage_StartGame(On.Menu.ChallengeSelectPage.orig_StartGame orig, ChallengeSelectPage self)
@@ -445,6 +443,15 @@ namespace ExpeditionRegionSupport
                 checkFlag = true;
 
             return checkFlag;
+        }
+
+        private static void logRegionsVisited()
+        {
+            var regionsVisited = RegionUtils.GetVisitedRegions(ExpeditionData.slugcatPlayer);
+
+            Logger.LogInfo(regionsVisited.Count + " regions visited detected");
+            foreach (string region in regionsVisited)
+                Logger.LogInfo(region);
         }
     }
 }
