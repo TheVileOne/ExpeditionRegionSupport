@@ -44,11 +44,6 @@ namespace ExpeditionRegionSupport.Filters
                 case ExpeditionConsts.ChallengeNames.ECHO:
                 case ExpeditionConsts.ChallengeNames.PEARL_HOARD:
                     return new ChallengeFilter(filterType);
-                case ExpeditionConsts.ChallengeNames.VISTA:
-                    return new ChallengeFilter(filterType)
-                    {
-                        ValueModifier = (v) => v.Split('_')[0] //This challenge stores room codes, which need underscore parsing
-                    };
                 case ExpeditionConsts.ChallengeNames.PEARL_DELIVERY:
                     return new PearlDeliveryChallengeFilter(filterType);
                 case ExpeditionConsts.ChallengeNames.NEURON_DELIVERY:
