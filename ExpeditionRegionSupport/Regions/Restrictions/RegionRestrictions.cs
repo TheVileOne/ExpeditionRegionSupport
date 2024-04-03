@@ -74,7 +74,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                 Slugcats = new SlugcatRestrictions()
                 {
                     Allowed = new List<SlugcatStats.Name>(Slugcats.Allowed),
-                    NotAllowed =new List<SlugcatStats.Name>(Slugcats.NotAllowed)
+                    NotAllowed = new List<SlugcatStats.Name>(Slugcats.NotAllowed)
                 },
                 RoomRestrictions = new List<RoomRestrictions>(RoomRestrictions),
                 ProgressionRestriction = ProgressionRestriction

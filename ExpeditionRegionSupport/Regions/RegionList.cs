@@ -151,7 +151,6 @@ namespace ExpeditionRegionSupport.Regions
 
         public readonly RegionRestrictions Restrictions;
 
-
         public RegionKey(string regionCode)
         {
             RegionCode = regionCode;

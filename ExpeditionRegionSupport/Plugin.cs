@@ -214,7 +214,7 @@ namespace ExpeditionRegionSupport
 
                     settingsDialog.OnDialogClosed += SettingsDialog_OnDialogClosed;
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Logger.LogError(ex);
                 }
