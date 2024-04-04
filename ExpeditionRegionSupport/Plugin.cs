@@ -225,15 +225,10 @@ namespace ExpeditionRegionSupport
 
         public void SettingsDialog_OnDialogClosed(ExpeditionSettingsDialog sender)
         {
-            ChallengeFilterSettings.CurrentFilter = FilterOptions.None;
+            ChallengeFilterSettings.CurrentFilter = FilterOption.None;
 
             if (RegionFilterSettings.VisitedRegionsOnly.Value)
-                ChallengeFilterSettings.CurrentFilter = FilterOptions.VisitedRegions;
-
-            if (RegionFilterSettings.DetectShelterSpawns.Value)
-            {
-
-            }
+                ChallengeFilterSettings.CurrentFilter = FilterOption.VisitedRegionsOnly;
 
             sender.OnDialogClosed -= SettingsDialog_OnDialogClosed;
         }

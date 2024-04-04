@@ -1,4 +1,5 @@
-﻿using ExpeditionRegionSupport.Regions;
+﻿using ExpeditionRegionSupport.Filters.Settings;
+using ExpeditionRegionSupport.Regions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,18 +10,18 @@ namespace ExpeditionRegionSupport.Filters.Utils
 {
     public class ChallengeFilter : ListFilter<string>
     {
-        public FilterOptions FilterID;
+        public FilterOption FilterID;
 
         public override bool Enabled => ChallengeFilterSettings.CurrentFilter == FilterID;
 
-        public ChallengeFilter(FilterOptions filterID) : base(PrepareFilter(filterID))
+        public ChallengeFilter(FilterOption filterID) : base(PrepareFilter(filterID))
         {
             FilterID = filterID;
         }
 
-        protected static List<string> PrepareFilter(FilterOptions filterID)
+        protected static List<string> PrepareFilter(FilterOption filterID)
         {
-            if (filterID == FilterOptions.VisitedRegions)
+            if (filterID == FilterOption.VisitedRegionsOnly)
                 return Plugin.RegionsVisited;
 
             return new List<string>();
@@ -31,7 +32,7 @@ namespace ExpeditionRegionSupport.Filters.Utils
     {
         private bool deliveryRegionFiltered;
 
-        public PearlDeliveryChallengeFilter(FilterOptions filterID) : base(filterID)
+        public PearlDeliveryChallengeFilter(FilterOption filterID) : base(filterID)
         {
         }
 
@@ -66,7 +67,7 @@ namespace ExpeditionRegionSupport.Filters.Utils
 
     public class NeuronDeliveryChallengeFilter : ChallengeFilter
     {
-        public NeuronDeliveryChallengeFilter(FilterOptions filterID) : base(filterID)
+        public NeuronDeliveryChallengeFilter(FilterOption filterID) : base(filterID)
         {
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Expedition;
+using ExpeditionRegionSupport.Filters.Settings;
 using ExpeditionRegionSupport.Filters.Utils;
 
 namespace ExpeditionRegionSupport.Filters
@@ -11,7 +12,7 @@ namespace ExpeditionRegionSupport.Filters
     {
         public static Dictionary<string, List<ChallengeFilter>> Filters;
 
-        public static FilterOptions CurrentFilter;
+        public static FilterOption CurrentFilter;
 
         /// <summary>
         /// The Expedition challenge that the filter is handling, or is about to handle
@@ -37,7 +38,7 @@ namespace ExpeditionRegionSupport.Filters
 
         private static ChallengeFilter processFilter(string name)
         {
-            FilterOptions filterType = FilterOptions.VisitedRegions; //The only type managed by default
+            FilterOption filterType = FilterOption.VisitedRegionsOnly; //The only type managed by default
 
             switch (name)
             {
@@ -78,11 +79,5 @@ namespace ExpeditionRegionSupport.Filters
             foreach (ChallengeFilter filter in availableFilters)
                 filter.Apply(allowedRegions);
         }
-    }
-
-    public enum FilterOptions
-    {
-        None,
-        VisitedRegions
     }
 }
