@@ -8,10 +8,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Expedition;
 using ExpeditionRegionSupport.Filters;
+using ExpeditionRegionSupport.Filters.Settings;
 using ExpeditionRegionSupport.Interface;
 using ExpeditionRegionSupport.Regions;
 using ExpeditionRegionSupport.Regions.Restrictions;
-using ExpeditionRegionSupport.Settings;
 using Menu;
 using MoreSlugcats;
 using UnityEngine;
@@ -145,7 +145,7 @@ namespace ExpeditionRegionSupport
                 ActiveWorldState = RegionUtils.GetWorldStateFromStoryRegions(ExpeditionData.slugcatPlayer);
                 HasStaleRegionsCache = true;
 
-                if (ExpeditionSettings.Filters.VisitedRegionsOnly.Value)
+                if (RegionFilterSettings.VisitedRegionsOnly.Value)
                     logRegionsVisited();
             }
         }
@@ -227,10 +227,10 @@ namespace ExpeditionRegionSupport
         {
             ChallengeFilterSettings.CurrentFilter = FilterOptions.None;
 
-            if (ExpeditionSettings.Filters.VisitedRegionsOnly.Value)
+            if (RegionFilterSettings.VisitedRegionsOnly.Value)
                 ChallengeFilterSettings.CurrentFilter = FilterOptions.VisitedRegions;
 
-            if (ExpeditionSettings.DetectShelterSpawns.Value)
+            if (RegionFilterSettings.DetectShelterSpawns.Value)
             {
 
             }
@@ -367,7 +367,7 @@ namespace ExpeditionRegionSupport
 
             orig(self);
 
-            ChallengeFilterSettings.ApplyHooks(); //This needs to be handled in PostModsInIt or Expedition.ChallengeTools breaks
+            ChallengeFilterHooks.ApplyHooks(); //This needs to be handled in PostModsInIt or Expedition.ChallengeTools breaks
             SlugBaseEnabled = ModManager.ActiveMods.Exists(m => m.id == "slime-cubed.slugbase");
         }
 

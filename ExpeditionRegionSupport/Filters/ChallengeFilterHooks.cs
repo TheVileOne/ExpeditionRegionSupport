@@ -12,7 +12,7 @@ using System.Linq;
 
 namespace ExpeditionRegionSupport.Filters
 {
-    public static partial class ChallengeFilterSettings
+    public static class ChallengeFilterHooks
     {
         private static ChallengeFilterExceptionHandler exceptionHandler = new ChallengeFilterExceptionHandler();
 
@@ -163,7 +163,7 @@ namespace ExpeditionRegionSupport.Filters
             cursor.Emit(OpCodes.Ldloc_0); //Push list of filtered options onto stack
             cursor.EmitDelegate<Action<List<Challenge>>>((list) =>
             {
-                list.Remove(FilterTarget);
+                list.Remove(ChallengeFilterSettings.FilterTarget);
                 ChallengeAssignment.OnGenerationFailed();
             });
             cursor.Emit(OpCodes.Br, runGenerateAgain);
@@ -173,7 +173,7 @@ namespace ExpeditionRegionSupport.Filters
         #region Echo
         private static Challenge EchoChallenge_Generate(On.Expedition.EchoChallenge.orig_Generate orig, EchoChallenge self)
         {
-            FilterTarget = self;
+            ChallengeFilterSettings.FilterTarget = self;
 
             try
             {
@@ -181,7 +181,7 @@ namespace ExpeditionRegionSupport.Filters
             }
             catch (Exception ex)
             {
-                exceptionHandler.HandleException(FilterTarget, ex);
+                exceptionHandler.HandleException(ChallengeFilterSettings.FilterTarget, ex);
                 return null; //Return null to indicate that no challenges of the current type can be chosen
             }
         }
@@ -201,7 +201,7 @@ namespace ExpeditionRegionSupport.Filters
             //Apply filter logic
 
             cursor.Emit(OpCodes.Ldloc_0); //Push list of region codes available for selection onto stack
-            cursor.EmitDelegate(ApplyFilter);
+            cursor.EmitDelegate(ChallengeFilterSettings.ApplyFilter);
 
             //Handle list post filter. An empty list will throw an exception
 
@@ -237,11 +237,11 @@ namespace ExpeditionRegionSupport.Filters
         #region Pearl Delivery
         private static Challenge PearlDeliveryChallenge_Generate(On.Expedition.PearlDeliveryChallenge.orig_Generate orig, PearlDeliveryChallenge self)
         {
-            FilterTarget = self;
+            ChallengeFilterSettings.FilterTarget = self;
 
             try
             {
-                RegionUtils.AssignFilter(FilterTarget);
+                RegionUtils.AssignFilter(ChallengeFilterSettings.FilterTarget);
 
                 var regionFilter = RegionUtils.AppliedFilters.Pop();
 
@@ -255,7 +255,7 @@ namespace ExpeditionRegionSupport.Filters
             }
             catch (Exception ex)
             {
-                exceptionHandler.HandleException(FilterTarget, ex);
+                exceptionHandler.HandleException(ChallengeFilterSettings.FilterTarget, ex);
                 return null; //Return null to indicate that no challenges of the current type can be chosen
             }
         }
@@ -276,7 +276,7 @@ namespace ExpeditionRegionSupport.Filters
             //Apply filter logic
 
             cursor.Emit(OpCodes.Ldloc_1); //Push list of region codes available for selection onto stack
-            cursor.EmitDelegate(ApplyFilter);
+            cursor.EmitDelegate(ChallengeFilterSettings.ApplyFilter);
 
             //Handle list post filter. An empty list will throw an exception
 
@@ -288,9 +288,9 @@ namespace ExpeditionRegionSupport.Filters
         #region Neuron Delivery
         private static Challenge NeuronDeliveryChallenge_Generate(On.Expedition.NeuronDeliveryChallenge.orig_Generate orig, NeuronDeliveryChallenge self)
         {
-            FilterTarget = self;
+            ChallengeFilterSettings.FilterTarget = self;
 
-            if (!CheckConditions())
+            if (!ChallengeFilterSettings.CheckConditions())
                 return null;
 
             return orig(self);
@@ -300,7 +300,7 @@ namespace ExpeditionRegionSupport.Filters
         #region Pearl Hoarding
         private static Challenge PearlHoardChallenge_Generate(On.Expedition.PearlHoardChallenge.orig_Generate orig, PearlHoardChallenge self)
         {
-            FilterTarget = self;
+            ChallengeFilterSettings.FilterTarget = self;
 
             try
             {
@@ -308,7 +308,7 @@ namespace ExpeditionRegionSupport.Filters
             }
             catch (Exception ex)
             {
-                exceptionHandler.HandleException(FilterTarget, ex);
+                exceptionHandler.HandleException(ChallengeFilterSettings.FilterTarget, ex);
                 return null; //Return null to indicate that no challenges of the current type can be chosen
             }
         }
@@ -327,7 +327,7 @@ namespace ExpeditionRegionSupport.Filters
             //Apply filter logic
 
             cursor.Emit(OpCodes.Ldloc_1); //Push list of region codes onto stack to apply filter
-            cursor.EmitDelegate(ApplyFilter);
+            cursor.EmitDelegate(ChallengeFilterSettings.ApplyFilter);
 
             //Handle list post filter. An empty list will throw an exception
 
@@ -340,7 +340,7 @@ namespace ExpeditionRegionSupport.Filters
         #region Vista
         private static Challenge VistaChallenge_Generate(On.Expedition.VistaChallenge.orig_Generate orig, VistaChallenge self)
         {
-            FilterTarget = self;
+            ChallengeFilterSettings.FilterTarget = self;
 
             try
             {
@@ -348,7 +348,7 @@ namespace ExpeditionRegionSupport.Filters
             }
             catch (Exception ex)
             {
-                exceptionHandler.HandleException(FilterTarget, ex);
+                exceptionHandler.HandleException(ChallengeFilterSettings.FilterTarget, ex);
                 return null; //Return null to indicate that no challenges of the current type can be chosen
             }
         }

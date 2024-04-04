@@ -5,9 +5,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Expedition;
+using ExpeditionRegionSupport.Filters.Settings;
 using ExpeditionRegionSupport.Filters.Utils;
 using ExpeditionRegionSupport.Regions.Restrictions;
-using ExpeditionRegionSupport.Settings;
 
 namespace ExpeditionRegionSupport.Regions
 {
@@ -151,7 +151,7 @@ namespace ExpeditionRegionSupport.Regions
             AppliedFilters.AssignBase(new CachedFilterApplicator<string>(GetAvailableRegions(name)));
 
             //The filter is not yet applied, lets handle that logic here
-            if (ExpeditionSettings.Filters.VisitedRegionsOnly.Value)
+            if (RegionFilterSettings.VisitedRegionsOnly.Value)
             {
                 List<string> visitedRegions = GetVisitedRegions(name);
                 CurrentFilter.Apply(visitedRegions.Contains); //Filters all unvisited regions and stores it in a list cache

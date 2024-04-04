@@ -1,5 +1,5 @@
-﻿using ExpeditionRegionSupport.Interface.Components;
-using ExpeditionRegionSupport.Settings;
+﻿using ExpeditionRegionSupport.Filters.Settings;
+using ExpeditionRegionSupport.Interface.Components;
 using Extensions;
 using Menu;
 using System;
@@ -95,14 +95,14 @@ namespace ExpeditionRegionSupport.Interface
                 Spacer = new PositionSpacer(new Vector2(793f, 577f), FilterCheckBoxFactory.CHECKBOX_HEIGHT, 2f)
             };
 
-            regionFilterVanilla = factory.Create("Vanilla Regions", ExpeditionSettings.Filters.AllowVanillaRegions, "VANILLA");
-            regionFilterMoreSlugcats = factory.Create("More Slugcats Regions", ExpeditionSettings.Filters.AllowMoreSlugcatsRegions, "MORE SLUGCATS");
-            regionFilterCustom = factory.Create("Custom Regions", ExpeditionSettings.Filters.AllowCustomRegions, "CUSTOM");
-            regionFilterVisitedOnly = factory.Create("Visited Regions Only", ExpeditionSettings.Filters.VisitedRegionsOnly, "VISITED ONLY");
+            regionFilterVanilla = factory.Create("Vanilla Regions", RegionFilterSettings.AllowVanillaRegions, "VANILLA");
+            regionFilterMoreSlugcats = factory.Create("More Slugcats Regions", RegionFilterSettings.AllowMoreSlugcatsRegions, "MORE SLUGCATS");
+            regionFilterCustom = factory.Create("Custom Regions", RegionFilterSettings.AllowCustomRegions, "CUSTOM");
+            regionFilterVisitedOnly = factory.Create("Visited Regions Only", RegionFilterSettings.VisitedRegionsOnly, "VISITED ONLY");
 
             Vector2 nextPos = factory.Spacer.NextPosition - new Vector2(0, 80f);
 
-            shelterDetectionCheckBox = factory.Create("Enable Shelter Detection", ExpeditionSettings.DetectShelterSpawns, "SHELTER_DETECTION", nextPos);
+            shelterDetectionCheckBox = factory.Create("Enable Shelter Detection", RegionFilterSettings.DetectShelterSpawns, "SHELTER_DETECTION", nextPos);
 
             regionFilterVisitedOnly.FilterImmune = true;
             shelterDetectionCheckBox.FilterImmune = true;
@@ -116,7 +116,7 @@ namespace ExpeditionRegionSupport.Interface
             {
                 case ExpeditionConsts.Signals.RESTORE_DEFAULTS:
                     {
-                        ExpeditionSettings.RestoreToDefaults();
+                        RegionFilterSettings.RestoreToDefaults();
                         return;
                     }
                 case ExpeditionConsts.Signals.RELOAD_MOD_FILES:

@@ -1,4 +1,4 @@
-﻿using ExpeditionRegionSupport.Settings;
+﻿using ExpeditionRegionSupport.Filters.Settings;
 using Extensions;
 using Menu;
 using System;
