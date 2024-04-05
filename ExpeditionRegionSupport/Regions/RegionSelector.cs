@@ -1,4 +1,6 @@
-﻿using ExpeditionRegionSupport.Regions.Restrictions;
+﻿using ExpeditionRegionSupport.Filters.Settings;
+using ExpeditionRegionSupport.Filters.Utils;
+using ExpeditionRegionSupport.Regions.Restrictions;
 using MoreSlugcats;
 using System;
 using System.Collections;
@@ -41,10 +43,14 @@ namespace ExpeditionRegionSupport.Regions
         /// </summary>
         public RegionList RegionsExcluded;
 
+        public RegionList RegionsFiltered;
+
         /// <summary>
         /// A list of custom regions requiring the player to visit (discover a shelter) before becoming available.
         /// </summary>
         public RegionList RestrictedRegions;
+
+        public List<Predicate<string>> ActiveFilters;
 
         public RegionKey LastRandomRegion;
 
@@ -52,6 +58,8 @@ namespace ExpeditionRegionSupport.Regions
         {
             RegionsAvailable = new RegionList();
             RegionsExcluded = new RegionList();
+            RegionsFiltered = new RegionList();
+
             RestrictedRegions = new RegionList();
             ActiveSlugcat = activeSlugcat;
         }
@@ -70,6 +78,8 @@ namespace ExpeditionRegionSupport.Regions
             {
                 Plugin.Logger.LogError(ex);
             }
+
+            InitilizeFilters();
 
             //These methods are already curated to the provided slugcat, and account for MSC being enabled
             List<string> availableStoryRegions = SlugcatStats.SlugcatStoryRegions(ActiveSlugcat);
@@ -114,7 +124,6 @@ namespace ExpeditionRegionSupport.Regions
                 if (ActiveSlugcat == SlugcatStats.Name.Red && !handleRestrictedRegion("OE", false))
                     handleOptionalRegion("OE");
 
-
                 //SlugBase may not return a full list of available regions. Regions.txt is a more reliable place to get regions.
                 if (Plugin.SlugBaseEnabled && ModManager.ModdedRegionsEnabled && File.Exists(path))
                 {
@@ -150,7 +159,7 @@ namespace ExpeditionRegionSupport.Regions
                     if (availableOptionalRegions.Contains(regionCode) && handleOptionalRegion(regionCode)) //A mod may add regions to this. It could still return false.
                         continue;
 
-                    if (RainWorld.ShowLogs && !RegionUtils.IsVanillaRegion(regionCode) && !RegionUtils.IsMSCRegion(regionCode))
+                    if (RainWorld.ShowLogs && RegionUtils.IsCustomRegion(regionCode))
                         Plugin.Logger.LogInfo("Custom Region: " + regionCode);
 
                     Plugin.Logger.LogInfo(regionCode);
@@ -252,16 +261,16 @@ namespace ExpeditionRegionSupport.Regions
         }
 
         /// <summary>
-        /// Check for and handle restricted regions based on whether a shelter has been visited on the current save slot
-        /// Valid regions for modcats should be already be handled by SlugBase at this point.
+        /// Certain regions are specific to a world state. Room codes related to those regions, as well as room codes with other
+        /// restrictions applied are handled here. Filter checks are also handled here.
         /// </summary>
         /// <returns>Region code was handled by the method</returns>
         private bool handleRestrictedRegion(string regionCode, bool regionStatusUnknown)
         {
-            bool regionExcluded = false;
+            bool regionExcluded = applyFilters(regionCode);
 
             //If we know this, we already know that this is valid region for the active WorldState, and slugcat
-            if (regionStatusUnknown)
+            if (!regionExcluded && regionStatusUnknown)
             {
                 Plugin.Logger.LogInfo("STATUS UNKNOWN");
 
@@ -372,6 +381,59 @@ namespace ExpeditionRegionSupport.Regions
 
                 RestrictedRegions.ForEach(r => r.LogRestrictions());
             }
+        }
+
+        public void InitilizeFilters()
+        {
+            Plugin.Logger.LogInfo("Initializing filters");
+
+            ActiveFilters = new List<Predicate<string>>();
+
+            List<FilterOption> activeFilterOptions = RegionFilterSettings.GetActiveFilters();
+
+            foreach (FilterOption filterOption in activeFilterOptions)
+            {
+                Predicate<string> filter = null;
+                switch (filterOption)
+                {
+                    case FilterOption.VisitedRegionsOnly:
+                        filter = new Predicate<string>((r) =>
+                        {
+                            return !RegionUtils.HasVisitedRegion(ActiveSlugcat, r);
+                        });
+                        break;
+                    case FilterOption.NoVanilla:
+                        filter = new Predicate<string>(RegionUtils.IsVanillaRegion);
+                        break;
+                    case FilterOption.NoMSC:
+                        filter = new Predicate<string>(RegionUtils.IsMSCRegion);
+                        break;
+                    case FilterOption.NoCustom:
+                        filter = new Predicate<string>(RegionUtils.IsCustomRegion);
+                        break;
+                    case FilterOption.AllShelters:
+                    case FilterOption.SheltersOnly:
+                    default:
+                        break;
+                }
+
+                if (filter != null)
+                    ActiveFilters.Add(filter);
+            }
+
+            Plugin.Logger.LogInfo($"{ActiveFilters.Count} active filters detected");
+        }
+
+        private bool applyFilters(string regionCode)
+        {
+            //Check every active filter here
+            if (ActiveFilters.Exists(filter => Filter.IsFiltered(filter, regionCode)))
+            {
+                Plugin.Logger.LogInfo($"Region {regionCode} filtered");
+                RegionsFiltered.Add(regionCode);
+                return true;
+            }
+            return false;
         }
 
         public RegionKey RandomRegion()

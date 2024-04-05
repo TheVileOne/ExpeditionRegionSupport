@@ -216,6 +216,11 @@ namespace ExpeditionRegionSupport.Regions
                 regionCode == "VS";   //Pipeyard
         }
 
+        public static bool IsCustomRegion(string regionCode)
+        {
+            return !IsVanillaRegion(regionCode) && !IsMSCRegion(regionCode);
+        }
+
         public static string[] ParseRoomName(string roomName, out string regionCode, out string roomCode)
         {
             string[] roomInfo = SplitRoomName(roomName);

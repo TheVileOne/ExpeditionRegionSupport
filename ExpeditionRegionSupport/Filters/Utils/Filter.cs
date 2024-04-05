@@ -34,6 +34,17 @@ namespace ExpeditionRegionSupport.Filters.Utils
         {
             return true;
         }
+
+        /// <summary>
+        /// Checks and returns whether a value satisfies the filter conditions provided by a predicate
+        /// </summary>
+        /// <typeparam name="T">The type of object to evaluate through the predicate</typeparam>
+        /// <param name="filter">The predicate containing the filter conditions</param>
+        /// <param name="value">The evaluation object</param>
+        public static bool IsFiltered<T>(Predicate<T> filter, T value)
+        {
+            return filter.Invoke(value);
+        }
     }
 
     public class ListFilter<T> : Filter
