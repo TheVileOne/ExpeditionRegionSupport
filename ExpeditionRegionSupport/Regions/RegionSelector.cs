@@ -224,38 +224,33 @@ namespace ExpeditionRegionSupport.Regions
         /// <returns>Region code was handled by the method</returns>
         private bool handleOptionalRegion(string regionCode)
         {
-            bool excludedRegion = false;
+            List<SlugcatStats.Name> unlockedSlugcats = Expedition.ExpeditionGame.unlockedExpeditionSlugcats;
+
+            bool excludeRegion = false;
             bool regionHandled = false;
             if (regionCode == "OE")
             {
-                if (!Expedition.ExpeditionGame.unlockedExpeditionSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Gourmand))
-                {
-                    RegionsExcluded.Add(regionCode);
-                    excludedRegion = true;
-                }
+                excludeRegion = !unlockedSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Gourmand);
                 regionHandled = true;
             }
             else if (regionCode == "LC")
             {
-                if (!Expedition.ExpeditionGame.unlockedExpeditionSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Artificer))
-                {
-                    RegionsExcluded.Add(regionCode);
-                    excludedRegion = true;
-                }
+                excludeRegion = !unlockedSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Artificer);
                 regionHandled = true;
             }
             else if (regionCode == "MS")
             {
-                if (!Expedition.ExpeditionGame.unlockedExpeditionSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Rivulet))
-                {
-                    RegionsExcluded.Add(regionCode);
-                    excludedRegion = true;
-                }
+                excludeRegion = !unlockedSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Rivulet);
                 regionHandled = true;
             }
 
-            if (regionHandled && !excludedRegion)
-                RegionsAvailable.Add(regionCode);
+            if (regionHandled)
+            {
+                if (excludeRegion)
+                    RegionsExcluded.Add(regionCode);
+                else
+                    RegionsAvailable.Add(regionCode);
+            }
 
             return regionHandled;
         }
