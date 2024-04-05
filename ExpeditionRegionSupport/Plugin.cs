@@ -299,6 +299,9 @@ namespace ExpeditionRegionSupport
             return ExpeditionData.startingDen != null;
         }
 
+        /// <summary>
+        /// An internally used flag that limits room spawns from being processed from file each time a random spawn location is requested
+        /// </summary>
         private bool hasProcessedRooms;
 
         /// <summary>
@@ -313,15 +316,18 @@ namespace ExpeditionRegionSupport
 
         private string ExpeditionGame_ExpeditionRandomStarts(On.Expedition.ExpeditionGame.orig_ExpeditionRandomStarts orig, RainWorld rainWorld, SlugcatStats.Name activeMenuSlugcat)
         {
-            if (RegionSelector.Instance == null)
+            RegionSelector regionSelector = RegionSelector.Instance;
+
+            if (regionSelector == null)
+                regionSelector = RegionSelector.Instance = new RegionSelector(activeMenuSlugcat);
+            else
+                regionSelector.ActiveSlugcat = activeMenuSlugcat;
+
+            //Region list is only processed when the game requires it. The same is true with available room spawns.
+            if (regionSelector.ShouldBuildRegionList)
             {
+                regionSelector.InitializeRegionList();
                 hasProcessedRooms = false;
-                RegionSelector.Instance = new RegionSelector(activeMenuSlugcat);
-            }
-            else if (RegionSelector.Instance.ActiveSlugcat != activeMenuSlugcat)
-            {
-                hasProcessedRooms = false;
-                RegionSelector.Instance.ActiveSlugcat = activeMenuSlugcat;
             }
 
             if (!hasProcessedRooms)
@@ -329,12 +335,12 @@ namespace ExpeditionRegionSupport
                 orig(rainWorld, activeMenuSlugcat);
 
                 RegionSelector.Instance.RemoveEmptyRegions();
+
+                Logger.LogInfo("Available spawn counts");
+                RegionSelector.Instance.RegionsAvailable.ForEach(r => Logger.LogInfo(r.RegionCode + " " + r.AvailableRooms.Count));
+
                 hasProcessedRooms = true;
             }
-
-            Logger.LogInfo("LOGGING");
-
-            RegionSelector.Instance.RegionsAvailable.ForEach(r => Logger.LogInfo(r.RegionCode + " " + r.AvailableRooms.Count));
 
             string spawnLocation = RegionSelector.Instance.RandomRoom();
 
@@ -349,6 +355,7 @@ namespace ExpeditionRegionSupport
                     return SaveState.GetStoryDenPosition(activeMenuSlugcat, out _);
                 }
 
+                //Keep trying until we run out of attempts
                 return ExpeditionGame.ExpeditionRandomStarts(rainWorld, activeMenuSlugcat);
             }
 

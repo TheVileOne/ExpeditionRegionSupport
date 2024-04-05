@@ -24,10 +24,10 @@ namespace ExpeditionRegionSupport.Regions
             get => activeSlugcat;
             set
             {
-                if (value == activeSlugcat) return;
+                if (activeSlugcat == value) return;
 
                 activeSlugcat = value;
-                InitializeRegionList();
+                ShouldBuildRegionList = true;
             }
         }
 
@@ -51,6 +51,8 @@ namespace ExpeditionRegionSupport.Regions
         public RegionList RestrictedRegions;
 
         public List<Predicate<string>> ActiveFilters;
+
+        public bool ShouldBuildRegionList = true;
 
         public RegionKey LastRandomRegion;
 
@@ -201,6 +203,8 @@ namespace ExpeditionRegionSupport.Regions
                 if (logCount == 0)
                     Plugin.Logger.LogInfo("NONE");
             }
+
+            ShouldBuildRegionList = false;
         }
 
         private void handleStoryOrOptionalRegion(string regionCode, bool storyRegion)
