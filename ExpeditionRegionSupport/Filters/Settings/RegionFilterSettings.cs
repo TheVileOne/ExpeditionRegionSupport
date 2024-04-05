@@ -49,14 +49,39 @@ namespace ExpeditionRegionSupport.Filters.Settings
 
     public class SimpleToggle
     {
+        /// <summary>
+        /// Should events such as ValueChanged invoke, or be ignored
+        /// </summary>
+        public bool SuppressEvents;
+
+        public Action<SimpleToggle> ValueChanged;
+
         public bool DefaultValue;
-        public bool Value;
+
+        private bool _value;
+        public bool Value
+        {
+            get => _value;
+
+            set
+            {
+                if (_value != value)
+                {
+                    _value = value;
+
+                    if (!SuppressEvents)
+                        ValueChanged?.Invoke(this);
+                }
+            }
+        }
 
         public bool IsChanged => Value != DefaultValue;
 
         public SimpleToggle(bool defaultValue)
         {
+            SuppressEvents = true; //For the first time this value is set don't handle events
             Value = DefaultValue = defaultValue;
+            SuppressEvents = false;
         }
 
         public void RestoreDefault()
