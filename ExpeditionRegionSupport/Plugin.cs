@@ -238,6 +238,13 @@ namespace ExpeditionRegionSupport
             //There are setting changes made while the dialog was opened
             if (RegionFilterSettings.ChangedSettings.Count > 0)
             {
+                if (DebugMode)
+                {
+                    Logger.LogInfo("FILTERS CHANGED");
+                    foreach (FilterToggle toggle in RegionFilterSettings.ChangedSettings)
+                        Logger.LogInfo("Filter ID " + toggle.OptionID);
+                }
+
                 //The RegionSelector uses several of these settings to choose the spawn location
                 if (RegionSelector.Instance != null)
                     RegionSelector.Instance.ShouldBuildRegionList = true;

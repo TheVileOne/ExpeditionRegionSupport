@@ -251,8 +251,6 @@ namespace ExpeditionRegionSupport.Interface
 
         public static void onFilterDialogCreated(FilterDialog dialog)
         {
-            Plugin.Logger.LogDebug("Filter created");
-
             try
             {
                 var cwt = dialog.GetCWT();
