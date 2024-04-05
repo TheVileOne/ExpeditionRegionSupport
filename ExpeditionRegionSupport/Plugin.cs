@@ -235,10 +235,18 @@ namespace ExpeditionRegionSupport
 
         public void SettingsDialog_OnDialogClosed(ExpeditionSettingsDialog sender)
         {
-            ChallengeFilterSettings.CurrentFilter = FilterOption.None;
+            //There are setting changes made while the dialog was opened
+            if (RegionFilterSettings.ChangedSettings.Count > 0)
+            {
+                //The RegionSelector uses several of these settings to choose the spawn location
+                if (RegionSelector.Instance != null)
+                    RegionSelector.Instance.ShouldBuildRegionList = true;
 
-            if (RegionFilterSettings.VisitedRegionsOnly.Value)
-                ChallengeFilterSettings.CurrentFilter = FilterOption.VisitedRegionsOnly;
+                ChallengeFilterSettings.CurrentFilter = FilterOption.None;
+
+                if (RegionFilterSettings.VisitedRegionsOnly.Value)
+                    ChallengeFilterSettings.CurrentFilter = FilterOption.VisitedRegionsOnly;
+            }
 
             sender.OnDialogClosed -= SettingsDialog_OnDialogClosed;
         }
