@@ -8,20 +8,49 @@ namespace ExpeditionRegionSupport.Filters.Settings
 {
     public static class RegionFilterSettings
     {
-        public static FilterToggle AllowVanillaRegions = new FilterToggle(FilterOption.NoVanilla, true);
-        public static FilterToggle AllowMoreSlugcatsRegions = new FilterToggle(FilterOption.NoMSC, true);
-        public static FilterToggle AllowCustomRegions = new FilterToggle(FilterOption.NoCustom, true);
-        public static FilterToggle VisitedRegionsOnly = new FilterToggle(FilterOption.VisitedRegionsOnly, false);
-        public static FilterToggle ShelterSpawnsOnly = new FilterToggle(FilterOption.SheltersOnly, false);
-        public static FilterToggle DetectShelterSpawns = new FilterToggle(FilterOption.AllShelters, false);
+        public static readonly FilterToggle AllowVanillaRegions;
+        public static readonly FilterToggle AllowMoreSlugcatsRegions;
+        public static readonly FilterToggle AllowCustomRegions;
+        public static readonly FilterToggle VisitedRegionsOnly;
+        public static readonly FilterToggle ShelterSpawnsOnly;
+        public static readonly FilterToggle DetectShelterSpawns;
 
-        public static List<FilterToggle> Settings = new List<FilterToggle>()
+        /// <summary>
+        /// The setting toggles that are managed by ExpeditionSettingDialog
+        /// </summary>
+        public static List<FilterToggle> Settings = new List<FilterToggle>();
+
+        /// <summary>
+        /// The setting toggles that have been changed since the last time ExpeditionSettingDialog was opened 
+        /// </summary>
+        public static List<SimpleToggle> ChangedSettings = new List<SimpleToggle>();
+
+        static RegionFilterSettings()
         {
-            AllowVanillaRegions, AllowMoreSlugcatsRegions, AllowCustomRegions,
-            VisitedRegionsOnly,
-            ShelterSpawnsOnly, //Currently unused
-            DetectShelterSpawns //Adds every shelter as a spawnable location for custom (and vanilla) regions
-        };
+            SimpleToggle.OnCreate += onToggleCreated;
+
+            AllowVanillaRegions = new FilterToggle(FilterOption.NoVanilla, true);
+            AllowMoreSlugcatsRegions = new FilterToggle(FilterOption.NoMSC, true);
+            AllowCustomRegions = new FilterToggle(FilterOption.NoCustom, true);
+            VisitedRegionsOnly = new FilterToggle(FilterOption.VisitedRegionsOnly, false);
+            ShelterSpawnsOnly = new FilterToggle(FilterOption.SheltersOnly, false);
+            DetectShelterSpawns = new FilterToggle(FilterOption.AllShelters, false);
+
+            SimpleToggle.OnCreate -= onToggleCreated;
+
+            static void onToggleCreated(SimpleToggle toggle)
+            {
+                toggle.ValueChanged += onValueChanged;
+                Settings.Add((FilterToggle)toggle);
+            }
+
+            static void onValueChanged(SimpleToggle toggle)
+            {
+                //We want the toggle to removed, or added every time the value changes
+                if (!ChangedSettings.Remove(toggle))
+                    ChangedSettings.Add(toggle);
+            }
+        }
 
         /// <summary>
         /// Searches through all filter option settings and returns the filter options that are enabled
@@ -49,6 +78,11 @@ namespace ExpeditionRegionSupport.Filters.Settings
 
     public class SimpleToggle
     {
+        /// <summary>
+        /// An event that applies each time the SimpleToggle constructor is invoked
+        /// </summary>
+        public static Action<SimpleToggle> OnCreate;
+
         /// <summary>
         /// Should events such as ValueChanged invoke, or be ignored
         /// </summary>
@@ -81,6 +115,8 @@ namespace ExpeditionRegionSupport.Filters.Settings
         {
             SuppressEvents = true; //For the first time this value is set don't handle events
             Value = DefaultValue = defaultValue;
+
+            OnCreate?.Invoke(this);
             SuppressEvents = false;
         }
 

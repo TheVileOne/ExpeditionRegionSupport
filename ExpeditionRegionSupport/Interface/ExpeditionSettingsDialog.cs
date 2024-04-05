@@ -46,6 +46,9 @@ namespace ExpeditionRegionSupport.Interface
 
         public ExpeditionSettingsDialog(ProcessManager manager, ChallengeSelectPage owner) : base(manager, owner)
         {
+            //Each time ExpeditionSettingsDialog is open, we need to clear the change list 
+            RegionFilterSettings.ChangedSettings.Clear();
+
             heading.text = "REGION FILTER";
             description.text = "Filter spawnable region categories when randomising";
 
