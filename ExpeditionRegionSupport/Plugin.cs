@@ -155,7 +155,7 @@ namespace ExpeditionRegionSupport
                 ActiveWorldState = RegionUtils.GetWorldStateFromStoryRegions(ExpeditionData.slugcatPlayer);
                 HasStaleRegionsCache = true;
 
-                if (RegionFilterSettings.VisitedRegionsOnly.Value)
+                if (RegionFilterSettings.IsFilterActive(FilterOption.VisitedRegionsOnly))
                     logRegionsVisited();
             }
         }
@@ -251,7 +251,7 @@ namespace ExpeditionRegionSupport
 
                 ChallengeFilterSettings.CurrentFilter = FilterOption.None;
 
-                if (RegionFilterSettings.VisitedRegionsOnly.Value)
+                if (RegionFilterSettings.IsFilterActive(FilterOption.VisitedRegionsOnly))
                     ChallengeFilterSettings.CurrentFilter = FilterOption.VisitedRegionsOnly;
             }
 

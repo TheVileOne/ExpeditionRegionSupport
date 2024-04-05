@@ -29,12 +29,12 @@ namespace ExpeditionRegionSupport.Filters.Settings
         {
             SimpleToggle.OnCreate += onToggleCreated;
 
-            AllowVanillaRegions = new FilterToggle(FilterOption.NoVanilla, true);
-            AllowMoreSlugcatsRegions = new FilterToggle(FilterOption.NoMSC, true);
-            AllowCustomRegions = new FilterToggle(FilterOption.NoCustom, true);
-            VisitedRegionsOnly = new FilterToggle(FilterOption.VisitedRegionsOnly, false);
-            ShelterSpawnsOnly = new FilterToggle(FilterOption.SheltersOnly, false);
-            DetectShelterSpawns = new FilterToggle(FilterOption.AllShelters, false);
+            AllowVanillaRegions = new FilterToggle(FilterOption.NoVanilla, true, false);
+            AllowMoreSlugcatsRegions = new FilterToggle(FilterOption.NoMSC, true, false);
+            AllowCustomRegions = new FilterToggle(FilterOption.NoCustom, true, false);
+            VisitedRegionsOnly = new FilterToggle(FilterOption.VisitedRegionsOnly, false, true);
+            ShelterSpawnsOnly = new FilterToggle(FilterOption.SheltersOnly, false, true);
+            DetectShelterSpawns = new FilterToggle(FilterOption.AllShelters, false, true);
 
             SimpleToggle.OnCreate -= onToggleCreated;
 
@@ -52,12 +52,17 @@ namespace ExpeditionRegionSupport.Filters.Settings
             }
         }
 
+        public static bool IsFilterActive(FilterOption filterOption)
+        {
+            return Settings.Find(f => f.OptionID == filterOption).Enabled;
+        }
+
         /// <summary>
         /// Searches through all filter option settings and returns the filter options that are enabled
         /// </summary>
         public static List<FilterOption> GetActiveFilters()
         {
-            return Settings.FindAll(s => s.IsChanged).Select(s => s.OptionID).ToList();
+            return Settings.FindAll(s => s.Enabled).Select(s => s.OptionID).ToList();
         }
 
         public static void RestoreToDefaults()
@@ -70,9 +75,17 @@ namespace ExpeditionRegionSupport.Filters.Settings
     {
         public FilterOption OptionID;
 
-        public FilterToggle(FilterOption optionID, bool defaultValue) : base(defaultValue)
+        /// <summary>
+        /// The state that determines whether a filter is enabled
+        /// </summary>
+        public readonly bool FilterEnableState;
+
+        public bool Enabled => Value == FilterEnableState;
+
+        public FilterToggle(FilterOption optionID, bool defaultValue, bool enableState) : base(defaultValue)
         {
             OptionID = optionID;
+            FilterEnableState = enableState;
         }
     }
 

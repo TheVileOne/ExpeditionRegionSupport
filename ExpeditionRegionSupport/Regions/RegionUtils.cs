@@ -151,7 +151,7 @@ namespace ExpeditionRegionSupport.Regions
             AppliedFilters.AssignBase(new CachedFilterApplicator<string>(GetAvailableRegions(name)));
 
             //The filter is not yet applied, lets handle that logic here
-            if (RegionFilterSettings.VisitedRegionsOnly.Value)
+            if (RegionFilterSettings.IsFilterActive(FilterOption.VisitedRegionsOnly))
             {
                 List<string> visitedRegions = GetVisitedRegions(name);
                 CurrentFilter.Apply(visitedRegions.Contains); //Filters all unvisited regions and stores it in a list cache
