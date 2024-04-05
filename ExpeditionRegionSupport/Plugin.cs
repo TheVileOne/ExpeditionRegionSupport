@@ -114,6 +114,16 @@ namespace ExpeditionRegionSupport
             }
         }
 
+        private void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)
+        {
+            Logger = new Logging.Logger("ErsLog", true); //Override BepInEx logger
+
+            orig(self);
+
+            ChallengeFilterHooks.ApplyHooks(); //This needs to be handled in PostModsInIt or Expedition.ChallengeTools breaks
+            SlugBaseEnabled = ModManager.ActiveMods.Exists(m => m.id == "slime-cubed.slugbase");
+        }
+
         private HSLColor Menu_MenuColor(On.Menu.Menu.orig_MenuColor orig, Menu.Menu.MenuColors color)
         {
             if (color == ChallengeSlot.DISABLED_HOVER)
@@ -361,16 +371,6 @@ namespace ExpeditionRegionSupport
 
             attemptsToFindDenSpawn = 0;
             return spawnLocation;
-        }
-
-        private void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)
-        {
-            Logger = new Logging.Logger("ErsLog", true); //Override BepInEx logger
-
-            orig(self);
-
-            ChallengeFilterHooks.ApplyHooks(); //This needs to be handled in PostModsInIt or Expedition.ChallengeTools breaks
-            SlugBaseEnabled = ModManager.ActiveMods.Exists(m => m.id == "slime-cubed.slugbase");
         }
 
         private void ExpeditionGame_ExpeditionRandomStarts(ILContext il)
