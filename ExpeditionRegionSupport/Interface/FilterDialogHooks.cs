@@ -46,16 +46,11 @@ namespace ExpeditionRegionSupport.Interface
         {
             bool handled = false;
 
-            if (dialog is FilterDialog)
+            FilterDialog filterDialog = dialog as FilterDialog;
+
+            if (filterDialog != null)
             {
-                var cwt = (dialog as FilterDialog).GetCWT();
-
-                cwt.Page = new ScrollablePage(dialog, null, "main", 0);
-                cwt.Options = new FilterOptions(dialog, cwt.Page, cwt.Page.pos);
-
-                cwt.Page.subObjects.Add(cwt.Options);
-                
-                dialog.dialogPage = cwt.Page;
+                filterDialog.InitializePage();
                 handled = true;
             }
 
@@ -74,7 +69,7 @@ namespace ExpeditionRegionSupport.Interface
                 x => x.Match(OpCodes.Ldsfld),
                 x => x.Match(OpCodes.Call));
             cursor.Emit(OpCodes.Ldarg_0);
-            cursor.EmitDelegate(initializePage); //Initializes page when handling FilterDailogs, returns handled state
+            cursor.EmitDelegate(initializePage); //Initializes page when handling FilterDialogs, returns handled state
 
             //Branch over existing page creation logic when page has already been handled
             cursor.BranchTo(OpCodes.Brtrue, MoveType.After,

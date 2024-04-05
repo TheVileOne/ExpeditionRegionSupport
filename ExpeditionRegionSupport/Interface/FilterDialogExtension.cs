@@ -1,4 +1,5 @@
 ﻿using ExpeditionRegionSupport.Interface.Components;
+using Extensions;
 using Menu;
 using System;
 using System.Collections.Generic;
@@ -39,7 +40,9 @@ namespace ExpeditionRegionSupport.Interface
             cwt.Page = new ScrollablePage(self, null, "main", 0);
             cwt.Options = new FilterOptions(self, cwt.Page, cwt.Page.pos);
 
-            cwt.Page.subObjects.Add(cwt.Options);
+            cwt.Page.AddSubObject(cwt.Options);
+
+            self.dialogPage = cwt.Page;
         }
 
         /// <summary>
