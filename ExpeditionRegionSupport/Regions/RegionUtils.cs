@@ -137,7 +137,12 @@ namespace ExpeditionRegionSupport.Regions
                     state = WorldState.Other;
             }
 
-            Plugin.Logger.LogDebug("Returning " + state.ToString());
+            string stateString = state.ToString();
+
+            if (stateString == "Hunter" || stateString == "Survivor" || stateString == "Monk")
+                stateString = "Vanilla";
+
+            Plugin.Logger.LogInfo("World State " + stateString);
             return state;
         }
 

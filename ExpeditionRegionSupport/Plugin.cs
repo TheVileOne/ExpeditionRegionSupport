@@ -261,8 +261,6 @@ namespace ExpeditionRegionSupport
         private void ChallengeSelectPage_StartGame(On.Menu.ChallengeSelectPage.orig_StartGame orig, ChallengeSelectPage self)
         {
             ActiveWorldState = RegionUtils.GetWorldStateFromStoryRegions(ExpeditionData.slugcatPlayer);
-
-            Logger.LogInfo("World State " + ActiveWorldState);
             orig(self);
         }
 
