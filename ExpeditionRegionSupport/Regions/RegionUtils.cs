@@ -49,6 +49,11 @@ namespace ExpeditionRegionSupport.Regions
             return false;
         }
 
+        public static List<string> GetAllRegions()
+        {
+            return ProgressionData.PlayerData.ProgressData.regionNames.ToList();
+        }
+
         public static List<string> GetAvailableRegions(SlugcatStats.Name slugcat)
         {
             //TODO: This logic should not be limited to story regions

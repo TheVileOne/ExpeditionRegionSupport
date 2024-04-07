@@ -90,76 +90,30 @@ namespace ExpeditionRegionSupport.Regions
 
             ActiveWorldState = RegionUtils.GetWorldStateFromStoryRegions(ActiveSlugcat, availableStoryRegions);
 
-            string path = AssetManager.ResolveFilePath(Path.Combine("World", "regions.txt"));
+            //Story regions are valid as long as they aren't being restricted
+            foreach (string regionCode in availableStoryRegions)
+                handleStoryOrOptionalRegion(regionCode, true);
 
-            bool fallbackActive = false;
-        fallback:
-            //Modded regions have to be detected by reading from the file containing the default optional and story regions.
-            //No reason to add optional and story regions from memory if they are going to be read from file.
-            if (Plugin.SlugBaseEnabled || !ModManager.ModdedRegionsEnabled || fallbackActive || !File.Exists(path))
+            //Check available optional regions to see if they are unlocked
+            foreach (string regionCode in availableOptionalRegions)
+                handleStoryOrOptionalRegion(regionCode, false);
+
+            //Metropolis is not returned as an optional region, but should be handled as one for certain characters.
+            if (!handleRestrictedRegion("LC", false))
+                handleOptionalRegion("LC");
+
+            if (ActiveSlugcat == SlugcatStats.Name.Red && !handleRestrictedRegion("OE", false))
+                handleOptionalRegion("OE");
+
+            if (ModManager.ModdedRegionsEnabled)
             {
-                //Story regions are valid as long as they aren't being restricted
-                foreach (string regionCode in availableStoryRegions)
-                    handleStoryOrOptionalRegion(regionCode, true);
+                List<string> regions = RegionUtils.GetAllRegions();
 
-                //Check available optional regions to see if they are unlocked
-                foreach (string regionCode in availableOptionalRegions)
-                    handleStoryOrOptionalRegion(regionCode, false);
-
-                //Metropolis is not returned as an optional region, but should be handled as one for certain characters.
-                if (!handleRestrictedRegion("LC", false))
-                    handleOptionalRegion("LC");
-
-                if (ActiveSlugcat == SlugcatStats.Name.Red && !handleRestrictedRegion("OE", false))
-                    handleOptionalRegion("OE");
-
-                //SlugBase may not return a full list of available regions. Regions.txt is a more reliable place to get regions.
-                if (Plugin.SlugBaseEnabled && ModManager.ModdedRegionsEnabled && File.Exists(path))
+                foreach (string regionCode in regions)
                 {
-                    string[] array = File.ReadAllLines(path);
-
-                    //if (RegionsAvailable.Count >= array.Length) //In a perfect world, this should mean all regions have been processed
-                    {
-                        foreach (string text in array)
-                        {
-                            Plugin.Logger.LogInfo(text);
-                            string regionCode = text.Trim();
-
-                            if (!RegionsExcluded.Contains(regionCode) && !RegionsAvailable.Contains(regionCode) && !handleRestrictedRegion(regionCode, true))
-                            {
-                                //This should refer to an unrestricted region that is safe to be added to the list.
-                                RegionsAvailable.Add(regionCode);
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            {
-                //Retrieve regions from file
-                foreach (string text in File.ReadAllLines(path))
-                {
-                    string regionCode = text.Trim();
-
-                    if (handleRestrictedRegion(regionCode, true))
-                        continue;
-
-                    //Check available optional regions to see if they are unlocked
-                    if (availableOptionalRegions.Contains(regionCode) && handleOptionalRegion(regionCode)) //A mod may add regions to this. It could still return false.
-                        continue;
-
-                    if (RainWorld.ShowLogs && RegionUtils.IsCustomRegion(regionCode))
-                        Plugin.Logger.LogInfo("Custom Region: " + regionCode);
-
-                    Plugin.Logger.LogInfo(regionCode);
-                    RegionsAvailable.Add(regionCode);
-                }
-
-                if (RegionsAvailable.Count == 0)
-                {
-                    Plugin.Logger.LogWarning("Regions.txt file data returned zero valid regions. Using fallback method.");
-                    fallbackActive = true;
-                    goto fallback;
+                    //This should refer to an unrestricted region that is safe to be added to the list.
+                    if (!RegionsExcluded.Contains(regionCode) && !RegionsAvailable.Contains(regionCode) && !handleRestrictedRegion(regionCode, true))
+                        RegionsAvailable.Add(regionCode);
                 }
             }
 
