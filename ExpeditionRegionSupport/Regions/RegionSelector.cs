@@ -566,14 +566,6 @@ namespace ExpeditionRegionSupport.Regions
                         //Check that player has registered the region in their save data
                         if (!RegionUtils.HasVisitedRegion(ActiveSlugcat, regionCode))
                             return true;
-                        
-                        /*
-                        List<string> visitorRecord;
-                        if (RegionUtils.RegionsVisited.TryGetValue(regionCode, out visitorRecord) && visitorRecord.Count == 0)
-                        {
-                            return true;
-                        }
-                        */
                     }
                     else if (restrictions.ProgressionRestriction == ProgressionRequirements.CampaignFinish)
                     {

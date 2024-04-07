@@ -38,29 +38,6 @@ namespace ExpeditionRegionSupport
         public static bool SlugBaseEnabled;
         public static WorldState ActiveWorldState;
 
-        /// <summary>
-        /// This is true when there is a reason to believe RegionsVisited is no longer accurate
-        /// </summary>
-        public static bool HasStaleRegionsCache = true;
-
-        private static List<string> _regionsVisited;
-
-        /// <summary>
-        /// Cached list of regions visited by the currently selected slugcat in Expedition mode
-        /// </summary>
-        public static List<string> RegionsVisited
-        {
-            get
-            {
-                if (HasStaleRegionsCache)
-                {
-                    _regionsVisited = RegionUtils.GetVisitedRegions(ExpeditionData.slugcatPlayer);
-                    HasStaleRegionsCache = false;
-                }
-                return _regionsVisited;
-            }
-        }
-
         private SimpleButton settingsButton;
 
         public void OnEnable()
@@ -151,13 +128,7 @@ namespace ExpeditionRegionSupport
             orig(self, slugcatIndex);
 
             if (lastSelected != ExpeditionData.slugcatPlayer)
-            {
                 ActiveWorldState = RegionUtils.GetWorldStateFromStoryRegions(ExpeditionData.slugcatPlayer);
-                HasStaleRegionsCache = true;
-
-                if (RegionFilterSettings.IsFilterActive(FilterOption.VisitedRegionsOnly))
-                    logRegionsVisited();
-            }
         }
 
         private void ExpeditionMenu_UpdatePage(On.Menu.ExpeditionMenu.orig_UpdatePage orig, ExpeditionMenu self, int pageIndex)
@@ -174,14 +145,15 @@ namespace ExpeditionRegionSupport
         /// </summary>
         private void ExpeditionMenu_ctor(On.Menu.ExpeditionMenu.orig_ctor orig, ExpeditionMenu self, ProcessManager manager)
         {
-            ProgressionData.PlayerData.ProgressData = manager.rainWorld.progression; //This data is going to be overwritten in the constructor, but this mod still needs access to it.
+            ProgressionData.PlayerData = new ProgressionData(manager.rainWorld.progression); //This data is going to be overwritten in the constructor, but this mod still needs access to it.
 
             orig(self, manager);
 
             settingsButton = createSettingsButton(self, self.pages[1]);
             self.pages[1].subObjects.Add(settingsButton);
 
-            ProgressionData.ExpeditionPlayerData.ProgressData = manager.rainWorld.progression;
+            ProgressionData.ExpeditionPlayerData = new ProgressionData(manager.rainWorld.progression);
+            ProgressionData.Regions.HasStaleRegionCache = true;
         }
 
         private SimpleButton createSettingsButton(ExpeditionMenu menu, Page page)

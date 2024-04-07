@@ -29,6 +29,8 @@ namespace ExpeditionRegionSupport.Regions
 
         public static List<string> AvailableRegionCache;
 
+        public static VisitedRegionsCache RegionsVisitedCache = new VisitedRegionsCache();
+
         /// <summary>
         /// A dictionary of regions visited, with a RegionCode as a key, and a list of slugcat names as data outside of Expedition
         /// </summary>
@@ -36,6 +38,9 @@ namespace ExpeditionRegionSupport.Regions
 
         public static bool HasVisitedRegion(SlugcatStats.Name slugcat, string regionCode)
         {
+            if (RegionsVisitedCache.LastAccessed == slugcat)
+                return RegionsVisitedCache.RegionsVisited.Contains(regionCode);
+
             List<string> visitorList;
             if (RegionsVisited.TryGetValue(regionCode, out visitorList))
                 return visitorList.Contains(slugcat.value);
@@ -66,6 +71,9 @@ namespace ExpeditionRegionSupport.Regions
 
         public static List<string> GetVisitedRegions(SlugcatStats.Name slugcat)
         {
+            if (RegionsVisitedCache.LastAccessed == slugcat)
+                return RegionsVisitedCache.RegionsVisited;
+
             var enumerator = RegionsVisited.GetEnumerator();
 
             List<string> visitedRegions = new List<string>();
@@ -78,21 +86,9 @@ namespace ExpeditionRegionSupport.Regions
                     visitedRegions.Add(regionCode);
             }
 
+            RegionsVisitedCache.LastAccessed = slugcat;
+            RegionsVisitedCache.RegionsVisited = visitedRegions;
             return visitedRegions;
-
-            /*
-            foreach (ConditionalShelterData conditionalShelterData in Plugin.CurrentProgression.miscProgressionData.ConditionalShelterDiscovery)
-            {
-                if (conditionalShelterData.checkSlugcatIndex(slugcat))
-                {
-                    string shelterRegion = conditionalShelterData.GetShelterRegion();
-
-                    if (!visitedRegions.Contains(shelterRegion))
-                        visitedRegions.Add(shelterRegion);
-                }
-            }
-            return visitedRegions;
-            */
         }
 
         public static string GetPearlDeliveryRegion(WorldState state)
