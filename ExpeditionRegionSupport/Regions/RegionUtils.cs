@@ -45,7 +45,7 @@ namespace ExpeditionRegionSupport.Regions
             if (RegionsVisited.TryGetValue(regionCode, out visitorList))
                 return visitorList.Contains(slugcat.value);
 
-            Plugin.Logger.LogInfo("RegionCode detected that isn't part of RegionsVisited dictionary");
+            Plugin.Logger.LogWarning("Unexpected region detected that isn't part of RegionsVisited dictionary");
             return false;
         }
 

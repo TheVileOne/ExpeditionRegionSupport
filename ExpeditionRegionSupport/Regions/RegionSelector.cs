@@ -1,5 +1,6 @@
 ﻿using ExpeditionRegionSupport.Filters.Settings;
 using ExpeditionRegionSupport.Filters.Utils;
+using ExpeditionRegionSupport.Logging.Utils;
 using ExpeditionRegionSupport.Regions.Restrictions;
 using MoreSlugcats;
 using System;
@@ -89,25 +90,11 @@ namespace ExpeditionRegionSupport.Regions
 
             ActiveWorldState = RegionUtils.GetWorldStateFromStoryRegions(ActiveSlugcat, availableStoryRegions);
 
-            string path = AssetManager.ResolveFilePath("World" + Path.DirectorySeparatorChar + "regions.txt");
+            string path = AssetManager.ResolveFilePath(Path.Combine("World", "regions.txt"));
 
             bool fallbackActive = false;
         fallback:
-
-            /*string[] array = File.ReadAllLines(path);
-            foreach (string text in array)
-            {
-                Plugin.Logger.LogInfo(text);
-                string regionCode = text.Trim();
-
-                if (!RegionsExcluded.Contains(regionCode) && !RegionsAvailable.Contains(regionCode) && !handleRestrictedRegion(regionCode))
-                {
-                    //This should refer to an unrestricted region that is safe to be added to the list.
-                    RegionsAvailable.Add(regionCode);
-                }
-            }*/
-
-            //Modded regions have to be detected by a read from file containing the default optional and story regions.
+            //Modded regions have to be detected by reading from the file containing the default optional and story regions.
             //No reason to add optional and story regions from memory if they are going to be read from file.
             if (Plugin.SlugBaseEnabled || !ModManager.ModdedRegionsEnabled || fallbackActive || !File.Exists(path))
             {
@@ -266,13 +253,18 @@ namespace ExpeditionRegionSupport.Regions
         /// <returns>Region code was handled by the method</returns>
         private bool handleRestrictedRegion(string regionCode, bool regionStatusUnknown)
         {
-            bool regionExcluded = applyFilters(regionCode);
+            bool regionExcluded = false,
+                 regionFiltered = false;
+
+            if (applyFilters(regionCode))
+            {
+                regionExcluded = true;
+                regionFiltered = true;
+            }
 
             //If we know this, we already know that this is valid region for the active WorldState, and slugcat
             if (!regionExcluded && regionStatusUnknown)
             {
-                Plugin.Logger.LogInfo("STATUS UNKNOWN");
-
                 //Prevent invalid regions from being selected based on WorldState
                 if (regionCode == "SL") //Shoreline
                 {
@@ -312,45 +304,6 @@ namespace ExpeditionRegionSupport.Regions
                 }
 
                 //GameFeatures.WorldState.TryGet(player, out SlugcatStats.Name[] characters)
-
-                /*
-                if (regionCode == "SL")
-                {
-                    regionExcluded = ActiveSlugcat == MoreSlugcatsEnums.SlugcatStatsName.Spear || ActiveSlugcat == MoreSlugcatsEnums.SlugcatStatsName.Artificer;
-                }
-                else if (regionCode == "SS") //Five Pebbles
-                {
-                    regionExcluded = ActiveSlugcat == MoreSlugcatsEnums.SlugcatStatsName.Rivulet || ActiveSlugcat == MoreSlugcatsEnums.SlugcatStatsName.Saint;
-                }
-                else if (regionCode == "OE")
-                {
-                    regionExcluded = !ModManager.MSC || ActiveSlugcat != MoreSlugcatsEnums.SlugcatStatsName.Gourmand;
-                }
-                else if (regionCode == "LC")
-                {
-                    regionExcluded = !ModManager.MSC || ActiveSlugcat != MoreSlugcatsEnums.SlugcatStatsName.Artificer;
-                }
-                else if (regionCode == "LM")
-                {
-                    regionExcluded = !ModManager.MSC || (ActiveSlugcat != MoreSlugcatsEnums.SlugcatStatsName.Spear && ActiveSlugcat != MoreSlugcatsEnums.SlugcatStatsName.Artificer);
-                }
-                else if (regionCode == "DM")
-                {
-                    regionExcluded = !ModManager.MSC || ActiveSlugcat != MoreSlugcatsEnums.SlugcatStatsName.Spear;
-                }
-                else if (regionCode == "RM" || regionCode == "MS")
-                {
-                    regionExcluded = !ModManager.MSC || ActiveSlugcat != MoreSlugcatsEnums.SlugcatStatsName.Rivulet;
-                }
-                else if (regionCode == "HR" || regionCode == "CL" || regionCode == "UG")
-                {
-                    regionExcluded = !ModManager.MSC || ActiveSlugcat != MoreSlugcatsEnums.SlugcatStatsName.Saint;
-                }
-                else if (regionCode == "DS" || regionCode == "SH" || regionCode == "UW")
-                {
-                    return !ModManager.MSC || ActiveSlugcat == MoreSlugcatsEnums.SlugcatStatsName.Saint;
-                }
-                */
             }
 
             RegionKey regionKey;
@@ -361,7 +314,7 @@ namespace ExpeditionRegionSupport.Regions
 
             if (regionExcluded && !RegionsExcluded.Contains(regionCode))
             {
-                Plugin.Logger.LogInfo($"Region {regionCode} excluded based on a restriction match");
+                Plugin.Logger.LogInfo($"Region {regionCode} excluded based on a {(regionFiltered ? "filter" : "restriction")} match");
                 RegionsExcluded.Add(regionCode);
             }
 
@@ -370,6 +323,8 @@ namespace ExpeditionRegionSupport.Regions
 
         public void InitializeRestrictions()
         {
+            Plugin.Logger.LogInfo("Checking for restrictions");
+
             RegionsRestricted.ForEach(r => r.Restrictions.ResetToDefaults());
             RegionsRestricted = RestrictionProcessor.Process();
 
@@ -384,7 +339,7 @@ namespace ExpeditionRegionSupport.Regions
 
         public void InitilizeFilters()
         {
-            Plugin.Logger.LogInfo("Initializing filters");
+            Plugin.Logger.LogInfo("Checking for filters");
 
             ActiveFilters = new List<Predicate<string>>();
 
@@ -428,7 +383,6 @@ namespace ExpeditionRegionSupport.Regions
             //Check every active filter here
             if (ActiveFilters.Exists(filter => Filter.IsFiltered(filter, regionCode)))
             {
-                Plugin.Logger.LogInfo($"Region {regionCode} filtered");
                 RegionsFiltered.Add(regionCode);
                 return true;
             }
@@ -531,55 +485,65 @@ namespace ExpeditionRegionSupport.Regions
         /// <returns>True, if room or region should not be used</returns>
         private bool checkRestrictions(string regionCode, RegionRestrictions restrictions, bool isRoomCheck)
         {
-            Plugin.Logger.LogInfo("Checking for restrictions");
+            StringHandler logBuffer = new StringHandler();
 
-            if (restrictions == null)
-            {
-                Plugin.Logger.LogInfo("No restrictions found");
-                return false;
-            }
+            logBuffer.AddString("Checking for restrictions");
 
             try
             {
-                if (!isRoomCheck && restrictions.WorldState != WorldState.Any)
+                if (restrictions == null)
                 {
-                    Plugin.Logger.LogInfo("Handling World state restriction");
-
-                    if ((ActiveWorldState & restrictions.WorldState) == 0)
-                        return true;
+                    logBuffer.AddString("No restrictions found");
+                    return false;
                 }
 
-                if (!restrictions.Slugcats.IsEmpty)
+                try
                 {
-                    Plugin.Logger.LogInfo("Handling Slugcat restriction");
-
-                    if (!restrictions.Slugcats.Allowed.Contains(ActiveSlugcat) || restrictions.Slugcats.NotAllowed.Contains(ActiveSlugcat))
-                        return true;
-                }
-
-                if (restrictions.ProgressionRestriction != ProgressionRequirements.None)
-                {
-                    Plugin.Logger.LogInfo("Handling Progression restriction");
-
-                    if (restrictions.ProgressionRestriction == ProgressionRequirements.OnVisit)
+                    if (!isRoomCheck && restrictions.WorldState != WorldState.Any)
                     {
-                        //Check that player has registered the region in their save data
-                        if (!RegionUtils.HasVisitedRegion(ActiveSlugcat, regionCode))
+                        logBuffer.AddString("Handling World state restriction");
+
+                        if ((ActiveWorldState & restrictions.WorldState) == 0)
                             return true;
                     }
-                    else if (restrictions.ProgressionRestriction == ProgressionRequirements.CampaignFinish)
+
+                    if (!restrictions.Slugcats.IsEmpty)
                     {
-                        //TODO: Implement
+                        logBuffer.AddString("Handling Slugcat restriction");
+
+                        if (!restrictions.Slugcats.Allowed.Contains(ActiveSlugcat) || restrictions.Slugcats.NotAllowed.Contains(ActiveSlugcat))
+                            return true;
+                    }
+
+                    if (restrictions.ProgressionRestriction != ProgressionRequirements.None)
+                    {
+                        logBuffer.AddString("Handling Progression restriction");
+
+                        if (restrictions.ProgressionRestriction == ProgressionRequirements.OnVisit)
+                        {
+                            //Check that player has registered the region in their save data
+                            if (!RegionUtils.HasVisitedRegion(ActiveSlugcat, regionCode))
+                                return true;
+                        }
+                        else if (restrictions.ProgressionRestriction == ProgressionRequirements.CampaignFinish)
+                        {
+                            //TODO: Implement
+                        }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Plugin.Logger.LogError(ex);
-            }
+                catch (Exception ex)
+                {
+                    Plugin.Logger.LogError(ex);
+                }
 
-            Plugin.Logger.LogInfo("No restrictions found");
-            return false;
+                logBuffer.AddString("No restrictions found");
+                return false;
+            }
+            finally
+            {
+                if (Plugin.DebugMode)
+                    Plugin.Logger.LogInfo(logBuffer.ToString());
+            }
         }
 
         /// <summary>
