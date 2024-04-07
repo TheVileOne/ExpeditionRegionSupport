@@ -585,7 +585,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                     int worldStateValue = (int)worldStateToInclude;
                     if (worldStateValue < 0 || worldStateValue > 64)
                     {
-                        Plugin.Logger.LogWarning($"Unrecognized WorldState detected [{state}]");
+                        Plugin.Logger.LogWarning($"Unrecognized WorldState detected [{state.Trim()}]");
 
                         if (worldStateValue < -1)
                             worldStateToInclude = WorldState.Invalid;

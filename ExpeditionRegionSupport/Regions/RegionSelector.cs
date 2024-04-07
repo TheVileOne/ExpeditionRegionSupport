@@ -117,17 +117,19 @@ namespace ExpeditionRegionSupport.Regions
                 }
             }
 
-            if (RainWorld.ShowLogs)
+            if (Plugin.DebugMode || RainWorld.ShowLogs)
             {
-                Plugin.Logger.LogInfo("Active Regions");
+                StringHandler logBuffer = new StringHandler();
+
+                logBuffer.AddString("Active Regions");
                 foreach (string region in availableStoryRegions)
-                    Plugin.Logger.LogInfo(region);
+                    logBuffer.AddString(region);
 
-                Plugin.Logger.LogInfo("Optional Regions");
+                logBuffer.AddString("Optional Regions");
                 foreach (string region in availableOptionalRegions)
-                    Plugin.Logger.LogInfo(region);
+                    logBuffer.AddString(region);
 
-                Plugin.Logger.LogInfo("Other Regions");
+                logBuffer.AddString("Other Regions");
 
                 int logCount = 0;
                 foreach (RegionKey regionKey in RegionsAvailable)
@@ -136,13 +138,15 @@ namespace ExpeditionRegionSupport.Regions
 
                     if (!availableStoryRegions.Contains(region) && !availableOptionalRegions.Contains(region))
                     {
-                        Plugin.Logger.LogInfo(region);
+                        logBuffer.AddString(region);
                         logCount++;
                     }
                 }
 
                 if (logCount == 0)
-                    Plugin.Logger.LogInfo("NONE");
+                    logBuffer.AddString("NONE");
+
+                Plugin.Logger.LogInfo(logBuffer.ToString());
             }
 
             ShouldBuildRegionList = false;
@@ -282,7 +286,7 @@ namespace ExpeditionRegionSupport.Regions
             RegionsRestricted.ForEach(r => r.Restrictions.ResetToDefaults());
             RegionsRestricted = RestrictionProcessor.Process();
 
-            if (RainWorld.ShowLogs)
+            if (Plugin.DebugMode || RainWorld.ShowLogs)
             {
                 Plugin.Logger.LogDebug("Restriction Info");
                 Plugin.Logger.LogDebug("COUNT: " + RegionsRestricted.Count);
@@ -509,11 +513,9 @@ namespace ExpeditionRegionSupport.Regions
             int i = 0;
             while (i < RegionsAvailable.Count)
             {
-                Plugin.Logger.LogInfo(RegionsAvailable[i].AvailableRooms.Count);
-
                 if (RegionsAvailable[i].AvailableRooms.Count == 0)
                 {
-                    Plugin.Logger.LogDebug("Removing region: " + RegionsAvailable[i].RegionCode);
+                    Plugin.Logger.LogInfo("Removing empty region: " + RegionsAvailable[i].RegionCode);
                     RegionsExcluded.Add(RegionsAvailable[i]);
                     RegionsAvailable.RemoveAt(i);
                     i--;
