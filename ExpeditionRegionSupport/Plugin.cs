@@ -336,8 +336,11 @@ namespace ExpeditionRegionSupport
 
                 RegionSelector.Instance.RemoveEmptyRegions();
 
-                Logger.LogInfo("Available spawn counts");
-                RegionSelector.Instance.RegionsAvailable.ForEach(r => Logger.LogInfo(r.RegionCode + " " + r.AvailableRooms.Count));
+                if (RegionSelector.Instance.RegionsAvailable.Count > 0)
+                {
+                    Logger.LogInfo("Available spawn counts");
+                    RegionSelector.Instance.RegionsAvailable.ForEach(r => Logger.LogInfo(r.RegionCode + " " + r.AvailableRooms.Count));
+                }
 
                 hasProcessedRooms = true;
             }
@@ -346,12 +349,15 @@ namespace ExpeditionRegionSupport
 
             if (!RegionUtils.RoomExists(spawnLocation))
             {
-                Logger.LogWarning($"Room {spawnLocation} does not exist");
+                if (spawnLocation == string.Empty)
+                    Logger.LogInfo("No available rooms to spawn in");
+                else
+                    Logger.LogWarning($"Room {spawnLocation} does not exist");
 
                 attemptsToFindDenSpawn++; //Tracks all attempts, not just reattempts
                 if (spawnLocation == string.Empty || attemptsToFindDenSpawn >= max_attempts_allowed) //These is no hope for finding a new room
                 {
-                    Logger.LogWarning("Using fallback");
+                    Logger.LogInfo("Using fallback spawn location");
                     return SaveState.GetStoryDenPosition(activeMenuSlugcat, out _);
                 }
 
