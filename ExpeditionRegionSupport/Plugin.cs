@@ -426,14 +426,5 @@ namespace ExpeditionRegionSupport
 
             return checkFlag;
         }
-
-        private static void logRegionsVisited()
-        {
-            var regionsVisited = RegionUtils.GetVisitedRegions(ExpeditionData.slugcatPlayer);
-
-            Logger.LogInfo(regionsVisited.Count + " regions visited detected");
-            foreach (string region in regionsVisited)
-                Logger.LogInfo(region);
-        }
     }
 }

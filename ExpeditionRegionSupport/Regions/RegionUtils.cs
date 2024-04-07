@@ -86,6 +86,20 @@ namespace ExpeditionRegionSupport.Regions
                     visitedRegions.Add(regionCode);
             }
 
+            if (Plugin.DebugMode)
+            {
+                Plugin.Logger.LogInfo("Visited regions for " + slugcat.value);
+                Plugin.Logger.LogInfo(visitedRegions.Count + " region" + (visitedRegions.Count != 1 ? "s" : string.Empty) + " detected");
+
+                if (visitedRegions.Count > 0)
+                {
+                    StringBuilder sb = new StringBuilder("Regions ");
+                    foreach (string region in visitedRegions)
+                        sb.Append(region).Append(" ,");
+                    Plugin.Logger.LogInfo(sb.ToString().TrimEnd(','));
+                }
+            }
+
             RegionsVisitedCache.LastAccessed = slugcat;
             RegionsVisitedCache.RegionsVisited = visitedRegions;
             return visitedRegions;
