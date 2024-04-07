@@ -154,6 +154,11 @@ namespace ExpeditionRegionSupport
 
             ProgressionData.ExpeditionPlayerData = new ProgressionData(manager.rainWorld.progression);
             ProgressionData.Regions.HasStaleRegionCache = true;
+
+            RegionUtils.RegionsVisitedCache.LastAccessed = null; //This will force the cache to be refreshed
+
+            if (RegionSelector.Instance != null)
+                RegionSelector.Instance.ShouldBuildRegionList = true; //Not a convenient way of telling when list is stale here
         }
 
         private SimpleButton createSettingsButton(ExpeditionMenu menu, Page page)
