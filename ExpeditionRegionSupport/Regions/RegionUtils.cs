@@ -95,8 +95,8 @@ namespace ExpeditionRegionSupport.Regions
                 {
                     StringBuilder sb = new StringBuilder("Regions ");
                     foreach (string region in visitedRegions)
-                        sb.Append(region).Append(" ,");
-                    Plugin.Logger.LogInfo(sb.ToString().TrimEnd(','));
+                        sb.Append(region).Append(", ");
+                    Plugin.Logger.LogInfo(sb.ToString().TrimEnd().TrimEnd(','));
                 }
             }
 
