@@ -325,18 +325,29 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                     //Fetch RoomRestrictions that apply to this region code
                     regionRestrictions.RoomRestrictions = getRoomRestrictions(regionCode, regionRestrictions);
 
-                    Plugin.Logger.LogDebug("Rooms detected");
-
-                    int count = 0;
-                    foreach (var res in regionRestrictions.RoomRestrictions)
+                    if (regionRestrictions.RoomRestrictions.Count > 0)
                     {
-                        Plugin.Logger.LogDebug($"[{count}]");
-                        foreach (string room in res.Rooms)
-                            Plugin.Logger.LogDebug(room);
-                        count++;
+                        Plugin.Logger.LogInfo("Rooms detected");
+
+                        int count = 0;
+                        foreach (var res in regionRestrictions.RoomRestrictions)
+                        {
+                            Plugin.Logger.LogInfo($"[{count}]");
+                            foreach (string room in res.Rooms)
+                                Plugin.Logger.LogInfo(room);
+                            count++;
+                        }
+                    }
+                    else
+                    {
+                        Plugin.Logger.LogInfo("No room restrictions detected");
                     }
 
-                    if (!regionRestrictions.HasEntries) continue; //These isn't a point in processing something without entries
+                    if (!regionRestrictions.HasEntries)
+                    {
+                        Plugin.Logger.LogInfo("No entries detected");
+                        continue; //These isn't a point in processing something without entries
+                    }
 
                     Plugin.Logger.LogDebug("Rooms inherit from me: " + regionRestrictions.IsRoomSpecific);
 
@@ -364,7 +375,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
 
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Plugin.Logger.LogError("Error during region code processing");
                     Plugin.Logger.LogError(ex);
