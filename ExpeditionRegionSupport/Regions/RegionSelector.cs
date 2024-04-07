@@ -48,7 +48,7 @@ namespace ExpeditionRegionSupport.Regions
         /// <summary>
         /// A list of custom regions requiring the player to visit (discover a shelter) before becoming available.
         /// </summary>
-        public RegionList RestrictedRegions;
+        public RegionList RegionsRestricted;
 
         public List<Predicate<string>> ActiveFilters;
 
@@ -62,7 +62,7 @@ namespace ExpeditionRegionSupport.Regions
             RegionsExcluded = new RegionList();
             RegionsFiltered = new RegionList();
 
-            RestrictedRegions = new RegionList();
+            RegionsRestricted = new RegionList();
             ActiveSlugcat = activeSlugcat;
         }
 
@@ -70,7 +70,7 @@ namespace ExpeditionRegionSupport.Regions
         {
             RegionsAvailable.Clear();
             RegionsExcluded.Clear();
-            RestrictedRegions.Clear();
+            RegionsRestricted.Clear();
 
             try
             {
@@ -354,7 +354,7 @@ namespace ExpeditionRegionSupport.Regions
             }
 
             RegionKey regionKey;
-            if (!regionExcluded && RestrictedRegions.TryFind(regionCode, out regionKey) && regionKey.IsRegionRestricted)
+            if (!regionExcluded && RegionsRestricted.TryFind(regionCode, out regionKey) && regionKey.IsRegionRestricted)
             {
                 regionExcluded = checkRestrictions(regionCode, regionKey.Restrictions, false);
             }
@@ -370,15 +370,15 @@ namespace ExpeditionRegionSupport.Regions
 
         public void InitializeRestrictions()
         {
-            RestrictedRegions.ForEach(r => r.Restrictions.ResetToDefaults());
-            RestrictedRegions = RestrictionProcessor.Process();
+            RegionsRestricted.ForEach(r => r.Restrictions.ResetToDefaults());
+            RegionsRestricted = RestrictionProcessor.Process();
 
             if (RainWorld.ShowLogs)
             {
                 Plugin.Logger.LogDebug("Restriction Info");
-                Plugin.Logger.LogDebug("COUNT: " + RestrictedRegions.Count);
+                Plugin.Logger.LogDebug("COUNT: " + RegionsRestricted.Count);
 
-                RestrictedRegions.ForEach(r => r.LogRestrictions());
+                RegionsRestricted.ForEach(r => r.LogRestrictions());
             }
         }
 
@@ -518,7 +518,7 @@ namespace ExpeditionRegionSupport.Regions
             //Region cannot be excluded, and must be detectable as a valid region. It also must not be a hardcoded restricted room.
             if (RegionsExcluded.Contains(regionCode) || !RegionsAvailable.Contains(regionCode) || regionCode == "MS" && roomCode == "S07") return true;
 
-            RegionKey regionKey = RestrictedRegions.Find(regionCode);
+            RegionKey regionKey = RegionsRestricted.Find(regionCode);
 
             //Region-specific restrictions have already been processed at this point. Check for room restrictions. 
             return checkRestrictions(regionCode, regionKey.GetRoomRestrictions(roomCode, false), true);
