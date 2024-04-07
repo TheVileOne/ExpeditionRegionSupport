@@ -575,8 +575,48 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
             {
                 array = Regex.Split(array[1], ",");
 
+                bool excludeAllWorldStates = false; //Only allowed through user input
+                WorldState pendingWorldStateChanges = WorldState.None;
+
                 foreach (string state in array)
-                    regionRestrictions.WorldState |= parseWorldState(state.Trim()); //WORLD STATE: Saint
+                {
+                    WorldState worldStateToInclude = parseWorldState(state.Trim()); //WORLD STATE: Saint
+
+                    int worldStateValue = (int)worldStateToInclude;
+                    if (worldStateValue < 0 || worldStateValue > 64)
+                    {
+                        Plugin.Logger.LogWarning($"Unrecognized WorldState detected [{state}]");
+
+                        if (worldStateValue < -1)
+                            worldStateToInclude = WorldState.Invalid;
+
+                        if (worldStateToInclude == WorldState.Invalid) //Unrecognized is probably fine, but invalid should be ignored
+                            continue;
+                    }
+
+                    //The WorldState.None flag does not take priority over any other WorldState flag
+                    if (pendingWorldStateChanges != WorldState.None || worldStateToInclude != WorldState.None)
+                    {
+                        pendingWorldStateChanges |= worldStateToInclude; //Combine the flag with any flags already processed
+                        excludeAllWorldStates = false;
+                    }
+                    else
+                        excludeAllWorldStates = true;
+                }
+
+                if (excludeAllWorldStates)
+                {
+                    Plugin.Logger.LogInfo("Restriction will prevent access to this region/room unless overwritten by other restrictions");
+                    regionRestrictions.WorldState = WorldState.None;
+                }
+                else if (pendingWorldStateChanges != WorldState.None) //This will be None if no changes, or only invalid changes were processed
+                {
+                    if (regionRestrictions.WorldState == WorldState.Any) //Flag must not be set to Any before restricted flags can be applied
+                        regionRestrictions.WorldState = WorldState.None;
+
+                    regionRestrictions.WorldState |= pendingWorldStateChanges;
+                    Plugin.Logger.LogInfo(regionRestrictions.WorldState);
+                }
             }
         }
 
@@ -663,7 +703,6 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
 
         private static WorldState parseWorldState(string data)
         {
-            //TODO: This switch statement may not be required
             switch (data.ToLower())
             {
                 case "vanilla":
@@ -713,12 +752,16 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                     {
                         return WorldState.Any;
                     }
+                case "none":
+                    {
+                        return WorldState.None;
+                    }
             }
 
-            WorldState value;
-            Enum.TryParse(data, true, out value);
+            if (Enum.TryParse(data, true, out WorldState value))
+                return value;
 
-            return value;
+            return WorldState.Invalid; //Do not let bad data parse to a normal enum value
         }
 
         private static void LogRestrictions()

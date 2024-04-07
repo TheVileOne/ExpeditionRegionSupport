@@ -454,6 +454,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
     [Flags]
     public enum WorldState
     {
+        Invalid = -1,
         None = 0,
         Any = Vanilla | MSC | Other,
         Vanilla = 1, //Regions for Monk, Survivor, Hunter and any other campaign that has the same regions.

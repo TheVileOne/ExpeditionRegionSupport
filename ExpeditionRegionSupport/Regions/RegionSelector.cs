@@ -457,6 +457,7 @@ namespace ExpeditionRegionSupport.Regions
                     {
                         logBuffer.AddString("Handling World state restriction");
 
+                        //Checks that WorldState restrictions include the current WorldState
                         if ((ActiveWorldState & restrictions.WorldState) == 0)
                             return true;
                     }
