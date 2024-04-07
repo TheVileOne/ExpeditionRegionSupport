@@ -4,13 +4,8 @@ using ExpeditionRegionSupport.Logging.Utils;
 using ExpeditionRegionSupport.Regions.Restrictions;
 using MoreSlugcats;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace ExpeditionRegionSupport.Regions
@@ -122,12 +117,16 @@ namespace ExpeditionRegionSupport.Regions
                 StringHandler logBuffer = new StringHandler();
 
                 logBuffer.AddString("Active Regions");
-                foreach (string region in availableStoryRegions)
-                    logBuffer.AddString(region);
+                var enumerator = availableStoryRegions.Where(r => !RegionsExcluded.Contains(r)).GetEnumerator();
+
+                while (enumerator.MoveNext())
+                    logBuffer.AddString(enumerator.Current);
 
                 logBuffer.AddString("Optional Regions");
-                foreach (string region in availableOptionalRegions)
-                    logBuffer.AddString(region);
+                enumerator = availableOptionalRegions.Where(r => !RegionsExcluded.Contains(r)).GetEnumerator();
+
+                while (enumerator.MoveNext())
+                    logBuffer.AddString(enumerator.Current);
 
                 logBuffer.AddString("Other Regions");
 
