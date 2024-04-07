@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ExpeditionRegionSupport.Regions.Restrictions
 {
-    public partial class RegionRestrictions : ICloneable
+    public partial class RegionRestrictions
     {
         public WorldState WorldState = WorldState.Any;
         public ProgressionRequirements ProgressionRestriction = ProgressionRequirements.None;
@@ -64,21 +64,6 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
         public bool CompareWithoutRoomRestrictions(RegionRestrictions restrictions)
         {
             return WorldState == restrictions.WorldState && ProgressionRestriction == restrictions.ProgressionRestriction && Slugcats.Equals(restrictions.Slugcats);
-        }
-
-        public object Clone()
-        {
-            return new RegionRestrictions()
-            {
-                WorldState = WorldState,
-                Slugcats = new SlugcatRestrictions()
-                {
-                    Allowed = new List<SlugcatStats.Name>(Slugcats.Allowed),
-                    NotAllowed = new List<SlugcatStats.Name>(Slugcats.NotAllowed)
-                },
-                RoomRestrictions = new List<RoomRestrictions>(RoomRestrictions),
-                ProgressionRestriction = ProgressionRestriction
-            };
         }
 
         /// <summary>
