@@ -457,10 +457,10 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
         Invalid = -1,
         None = 0,
         Any = Vanilla | MSC | Other,
+        Monk = 1,
+        Survivor = 1,
+        Hunter = 1,
         Vanilla = 1, //Regions for Monk, Survivor, Hunter and any other campaign that has the same regions.
-        Monk = Vanilla,
-        Survivor = Vanilla,
-        Hunter = Vanilla,
         SpearMaster = 2,
         Artificer = 4,
         OldWorld = SpearMaster | Artificer,
