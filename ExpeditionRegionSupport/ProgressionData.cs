@@ -58,11 +58,16 @@ namespace ExpeditionRegionSupport
                 regionsVisitedMain = PlayerData.MiscProgressData.regionsVisited;
                 regionsVisitedExpedition = ExpeditionPlayerData.MiscProgressData.regionsVisited;
 
-                Visited.Clear();
-                Visited.AddRange(regionsVisitedMain);
+                visited.Clear();
+                visited.AddRange(regionsVisitedMain);
 
-                foreach (var entry in regionsVisitedExpedition.Except(regionsVisitedMain))
-                    Visited.Add(entry.Key, entry.Value);
+                foreach (var entry in regionsVisitedExpedition)
+                {
+                    if (visited.TryGetValue(entry.Key, out List<string> values))
+                        values.AddRange(entry.Value.Except(values)); //Add the list items not stored from the first dictionary
+                    else
+                        visited.Add(entry.Key, entry.Value); //New entry
+                }
             }
         }
     }
