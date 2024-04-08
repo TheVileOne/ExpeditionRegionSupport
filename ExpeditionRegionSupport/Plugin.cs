@@ -80,6 +80,7 @@ namespace ExpeditionRegionSupport
 
                 //Misc.
                 On.HardmodeStart.SinglePlayerUpdate += HardmodeStart_SinglePlayerUpdate;
+                On.Room.Loaded += Room_Loaded;
                 On.RegionGate.customOEGateRequirements += RegionGate_customOEGateRequirements;
                 On.RainWorld.PostModsInit += RainWorld_PostModsInit;
 
@@ -240,6 +241,52 @@ namespace ExpeditionRegionSupport
         {
             ActiveWorldState = RegionUtils.GetWorldStateFromStoryRegions(ExpeditionData.slugcatPlayer);
             orig(self);
+        }
+
+        /// <summary>
+        /// This hook spawns in an Energy Cell when the spawn location is in Submerged Superstructure
+        /// </summary>
+        private void Room_Loaded(On.Room.orig_Loaded orig, Room self)
+        {
+            orig(self);
+
+            if (ModManager.Expedition && ModManager.MSC //Check for Expedition and MoreSlugcats mods
+             && self.game != null
+             && self.game.rainWorld.ExpeditionMode
+             && self.abstractRoom != null
+             && self.abstractRoom.shelter
+             && self.abstractRoom.name == ExpeditionData.startingDen
+             && self.abstractRoom.name.StartsWith("MS_") //Check for Submerged Superstructure
+             && self.game.rainWorld.progression.currentSaveState.cycleNumber == 0 //Starting shelter on cycle zero - Should be the first load
+             && self.game.world?.rainCycle.CycleProgression <= 0f)
+            {
+                IntVector2 playerSpawnPos = self.shelterDoor.playerSpawnPos;
+                WorldCoordinate playerSpawnCoords = new WorldCoordinate(self.abstractRoom.index, playerSpawnPos.x, playerSpawnPos.y, 0);
+
+                //Define an abstract energy cell
+                AbstractPhysicalObject abstractCell = new AbstractPhysicalObject(
+                    self.world, MoreSlugcatsEnums.AbstractObjectType.EnergyCell, null, playerSpawnCoords, self.game.GetNewID())
+                {
+                    destroyOnAbstraction = true
+                };
+
+                //Realize energy cell
+                self.abstractRoom.AddEntity(abstractCell);
+                abstractCell.Realize();
+
+                EnergyCell realizedCell;
+
+                realizedCell = abstractCell.realizedObject as EnergyCell;
+
+                if (realizedCell != null)
+                {
+                    realizedCell.firstChunk.pos = self.MiddleOfTile(playerSpawnPos);
+                    realizedCell.customAnimation = true;
+                    realizedCell.SetLocalGravity(0f);
+                    realizedCell.canBeHitByWeapons = false;
+                    realizedCell.FXCounter = 10000f;
+                }
+            }
         }
 
         private void HardmodeStart_SinglePlayerUpdate(On.HardmodeStart.orig_SinglePlayerUpdate orig, HardmodeStart self)
