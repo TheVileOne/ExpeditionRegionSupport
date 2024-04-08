@@ -79,6 +79,7 @@ namespace ExpeditionRegionSupport
                 IL.SaveState.setDenPosition += SaveState_setDenPosition;
 
                 //Misc.
+                On.HardmodeStart.SinglePlayerUpdate += HardmodeStart_SinglePlayerUpdate;
                 On.RegionGate.customOEGateRequirements += RegionGate_customOEGateRequirements;
                 On.RainWorld.PostModsInit += RainWorld_PostModsInit;
 
@@ -239,6 +240,21 @@ namespace ExpeditionRegionSupport
         {
             ActiveWorldState = RegionUtils.GetWorldStateFromStoryRegions(ExpeditionData.slugcatPlayer);
             orig(self);
+        }
+
+        private void HardmodeStart_SinglePlayerUpdate(On.HardmodeStart.orig_SinglePlayerUpdate orig, HardmodeStart self)
+        {
+            Player player = self.room.game.Players[0].realizedCreature as Player;
+
+            bool expeditionMode = RWCustom.Custom.rainWorld.ExpeditionMode;
+
+            if (expeditionMode)
+                self.nshSwarmer = null;
+
+            orig(self);
+
+            if (expeditionMode && player != null)
+                player.playerState.foodInStomach = 0;
         }
 
         private bool RegionGate_customOEGateRequirements(On.RegionGate.orig_customOEGateRequirements orig, RegionGate self)
