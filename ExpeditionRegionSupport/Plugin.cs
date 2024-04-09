@@ -16,6 +16,7 @@ using Menu;
 using MoreSlugcats;
 using UnityEngine;
 using Extensions;
+using RWCustom;
 
 namespace ExpeditionRegionSupport
 {
@@ -25,7 +26,7 @@ namespace ExpeditionRegionSupport
     {
         public const string PLUGIN_GUID = "fluffball.expeditionregionsupport";
         public const string PLUGIN_NAME = "Expedition Region Support";
-        public const string PLUGIN_VERSION = "0.9.55";
+        public const string PLUGIN_VERSION = "0.9.7";
 
         public static bool DebugMode
         {
@@ -43,7 +44,6 @@ namespace ExpeditionRegionSupport
         public void OnEnable()
         {
             Logger = new Logging.Logger(base.Logger);
-            DebugMode = false;
 
             try
             {
