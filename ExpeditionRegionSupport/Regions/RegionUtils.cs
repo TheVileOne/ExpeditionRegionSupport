@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -35,6 +36,11 @@ namespace ExpeditionRegionSupport.Regions
         /// A dictionary of regions visited, with a RegionCode as a key, and a list of slugcat names as data outside of Expedition
         /// </summary>
         public static Dictionary<string, List<string>> RegionsVisited => ProgressionData.Regions.Visited;
+
+        /// <summary>
+        /// A dictionary of shelters sorted by RegionCode
+        /// </summary>
+        public static Dictionary<string, List<string>> Shelters = new Dictionary<string, List<string>>();
 
         public static bool HasVisitedRegion(SlugcatStats.Name slugcat, string regionCode)
         {
@@ -108,6 +114,64 @@ namespace ExpeditionRegionSupport.Regions
             RegionsVisitedCache.LastAccessed = slugcat;
             RegionsVisitedCache.RegionsVisited = visitedRegions;
             return visitedRegions;
+        }
+
+        public static List<string> GetAllShelters()
+        {
+            List<string> allShelters = new List<string>();
+
+            foreach (string regionCode in GetAllRegions())
+                allShelters.AddRange(GetShelters(regionCode));
+            return allShelters;
+        }
+
+        public static List<string> GetShelters(string regionCode)
+        {
+            if (Shelters.TryGetValue(regionCode, out List<string> shelterCache))
+                return shelterCache;
+
+            string regionFile = AssetManager.ResolveFilePath(Path.Combine("world", regionCode, string.Format("world_{0}.txt", regionCode.ToLower())));
+
+            if (!File.Exists(regionFile))
+            {
+                Plugin.Logger.LogInfo("World file missing");
+                Plugin.Logger.LogInfo(regionFile);
+                return new List<string>();
+            }
+
+            List<string> shelters = new List<string>();
+            Shelters[regionCode] = shelters;
+
+            using (TextReader stream = new StreamReader(regionFile))
+            {
+                string line;
+                bool roomsProcessed = false;
+                bool roomsHeaderFound = false;
+                while (!roomsProcessed && (line = stream.ReadLine()) != null)
+                {
+                    if (roomsHeaderFound)
+                    {
+                        bool isShelterRoom = line.EndsWith("SHELTER");
+
+                        if (isShelterRoom)
+                        {
+                            int sepIndex = line.IndexOf(':'); //Expects format "SL_S09:SL_C05:SHELTER
+
+                            if (sepIndex != -1) //Format is okay
+                                shelters.Add(line.Substring(0, sepIndex));
+                        }
+                        else if (line.StartsWith("END ROOMS") || line.StartsWith("CREATURES"))
+                        {
+                            roomsProcessed = true; //We have the data we were looking for
+                        }
+                    }
+                    else if (line.StartsWith("ROOMS")) //Rooms header found - we can start checking for room data
+                    {
+                        roomsHeaderFound = true;
+                    }
+                }
+            }
+            return shelters;
         }
 
         public static string GetPearlDeliveryRegion(WorldState state)
