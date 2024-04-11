@@ -120,8 +120,6 @@ namespace ExpeditionRegionSupport.Regions
         {
             List<ShelterInfo> allShelters = new List<ShelterInfo>();
 
-            ShelterInfo.BrokenShelters.Clear();
-
             foreach (string regionCode in GetAllRegions())
                 allShelters.AddRange(GetShelters(regionCode));
             return allShelters;
@@ -232,9 +230,6 @@ namespace ExpeditionRegionSupport.Regions
                                         if (SlugcatUtils.TryParse(slugcat, out SlugcatStats.Name found))
                                             shelter.BrokenForTheseSlugcats.Add(found);
                                     }
-
-                                    if (isNewShelter && !ShelterInfo.BrokenShelters.Contains(shelter))
-                                        ShelterInfo.BrokenShelters.Add(shelter);
 
                                     //This shelter is likely registered as broken, but unsure how the game handles it without slugcat info
                                     if (shelter.BrokenForTheseSlugcats.Count == 0)
