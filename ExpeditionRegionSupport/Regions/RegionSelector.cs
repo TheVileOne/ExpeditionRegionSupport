@@ -429,8 +429,8 @@ namespace ExpeditionRegionSupport.Regions
         /// /// <returns>True, if room should not be used</returns>
         private bool checkRestrictions(string regionCode, string roomCode)
         {
-            //Region cannot be excluded, and must be detectable as a valid region. It also must not be a hardcoded restricted room.
-            if (RegionsExcluded.Contains(regionCode) || !RegionsAvailable.Contains(regionCode) || regionCode == "MS" && roomCode == "S07") return true;
+            //Region cannot be excluded, and must be detectable as a valid region
+            if (RegionsExcluded.Contains(regionCode) || !RegionsAvailable.Contains(regionCode)) return true;
 
             RegionKey regionKey = RegionsRestricted.Find(regionCode);
 
