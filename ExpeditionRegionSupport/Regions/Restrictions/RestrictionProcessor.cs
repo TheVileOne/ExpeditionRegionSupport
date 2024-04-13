@@ -641,16 +641,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                 return;
             }
 
-            //Are there multiple entries on this line?
-            if (data.Contains(','))
-            {
-                string[] array = Regex.Split(data, ",");
-
-                foreach (string name in array)
-                    processSlugcat(name);
-            }
-            else //Field data is being processed per line
-                processSlugcat(data);
+            parseSlugcatData(data, processSlugcat);
         }
 
         /// <summary>
@@ -705,10 +696,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
             }
             else if ((regionRestrictions.ProgressionRestriction & ProgressionRequirements.OnSlugcatUnlocked) != 0)
             {
-                string[] array = Regex.Split(data, ",");
-
-                foreach (string name in array)
-                    regionRestrictions.Slugcats.SetUnlockRequirement(name.Trim());
+                parseSlugcatData(data, regionRestrictions.Slugcats.SetUnlockRequirement);
             }
         }
 
@@ -773,6 +761,20 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                 return value;
 
             return WorldState.Invalid; //Do not let bad data parse to a normal enum value
+        }
+
+        private static void parseSlugcatData(string data, Action<string> slugcatHandler)
+        {
+            //Are there multiple entries on this line?
+            if (data.Contains(','))
+            {
+                string[] array = Regex.Split(data, ",");
+
+                foreach (string name in array)
+                    slugcatHandler.Invoke(name);
+            }
+            else //Field data is being processed per line
+                slugcatHandler.Invoke(data);
         }
 
         private static void LogRestrictions()

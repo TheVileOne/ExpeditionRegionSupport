@@ -220,22 +220,13 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
             return true;
         }
 
-        public bool AddRooms(string[] rooms)
+        public bool AddRooms(IEnumerable<string> rooms)
         {
-            bool flag = false;
+            bool roomAdded = false;
             foreach (string room in rooms)
-                flag |= AddRoom(room);
+                roomAdded |= AddRoom(room);
 
-            return flag;
-        }
-
-        public bool AddRooms(List<string> rooms)
-        {
-            bool flag = false;
-            foreach (string room in rooms)
-                flag |= AddRoom(room);
-
-            return flag;
+            return roomAdded;
         }
 
         /// <summary>
@@ -311,8 +302,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
 
         public void Allow(string name)
         {
-            SlugcatStats.Name found;
-            if (SlugcatUtils.TryParse(name, out found))
+            if (SlugcatUtils.TryParse(name, out SlugcatStats.Name found))
             {
                 Allow(found);
                 return;
@@ -335,8 +325,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
 
         public void Disallow(string name)
         {
-            SlugcatStats.Name found;
-            if (SlugcatUtils.TryParse(name, out found))
+            if (SlugcatUtils.TryParse(name, out SlugcatStats.Name found))
             {
                 Disallow(found);
                 return;
@@ -359,13 +348,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
 
         public void SetUnlockRequirement(string name)
         {
-            SlugcatStats.Name found;
-            if (!SlugcatUtils.TryParse(name, out found))
-            {
-                Plugin.Logger.LogInfo("Unrecognized slugcat processed");
-                found = new SlugcatStats.Name(name);
-            }
-            SetUnlockRequirement(found);
+            SetUnlockRequirement(SlugcatUtils.GetOrCreate(name));
         }
 
         public bool SetUnlockRequirement(SlugcatStats.Name name)
@@ -388,83 +371,70 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
         public void MergeValues(SlugcatRestrictions r)
         {
             bool hasChanged = false;
-            foreach (SlugcatStats.Name name in r.Allowed)
-            {
-                Plugin.Logger.LogInfo("[ALLOW]" + name);
-                hasChanged |= Allow(name);
-            }
 
-            foreach (SlugcatStats.Name name in r.NotAllowed)
-            {
-                Plugin.Logger.LogInfo("[DISALLOW]" + name);
-                hasChanged |= Disallow(name);
-            }
-
-            foreach (SlugcatStats.Name name in r.UnlockRequired)
-            {
-                Plugin.Logger.LogInfo("[UNLOCK REQUIRED]" + name);
-                hasChanged |= SetUnlockRequirement(name);
-            }
+            //Each list from the incoming restriction set needs to be combined with its corresponding list
+            hasChanged |= applyMerge(r.Allowed, Allow, "ALLOW");
+            hasChanged |= applyMerge(r.NotAllowed, Disallow, "DISALLOW");
+            hasChanged |= applyMerge(r.UnlockRequired, SetUnlockRequirement, "UNLOCK REQUIRED");
 
             if (hasChanged)
                 Plugin.Logger.LogInfo("SLUGCATS updated");
+        }
+
+        /// <summary>
+        /// Takes a list of SlugcatStats.Name objects, and processes each object through a handler
+        /// </summary>
+        private bool applyMerge(List<SlugcatStats.Name> mergeValues, Func<SlugcatStats.Name, bool> mergeHandler, string logHeader)
+        {
+            bool hasChanged = false;
+            foreach (SlugcatStats.Name name in mergeValues)
+            {
+                Plugin.Logger.LogInfo($"[{logHeader}]" + name);
+                hasChanged |= mergeHandler.Invoke(name);
+            }
+            return hasChanged;
         }
 
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
 
-            if (Allowed.Count == 0)
-            {
-                sb.Append("Slugcats Allowed: ALL");
-                sb.Append(Environment.NewLine);
-            }
-            else
-            {
-                sb.Append("Slugcats Allowed");
-                sb.Append(Environment.NewLine);
+            string hasEntryString, noEntryString;
 
-                foreach (SlugcatStats.Name name in Allowed)
+            hasEntryString = "Slugcats Allowed";
+            noEntryString = "Slugcats Allowed: ALL";
+
+            buildStrings(Allowed);
+
+            hasEntryString = "Slugcats Not Allowed";
+            noEntryString = "Slugcats Not Allowed: NONE";
+
+            buildStrings(NotAllowed);
+
+            hasEntryString = "Unlock Required";
+            noEntryString = "Unlock Required: NONE";
+
+            buildStrings(UnlockRequired);
+
+            void buildStrings(List<SlugcatStats.Name> slugcatNames)
+            {
+                if (slugcatNames.Count == 0)
                 {
-                    sb.Append(name.value);
+                    sb.Append(noEntryString);
                     sb.Append(Environment.NewLine);
                 }
-            }
-
-            if (NotAllowed.Count == 0)
-            {
-                sb.Append("Slugcats Not Allowed: NONE");
-                sb.Append(Environment.NewLine);
-            }
-            else
-            {
-                sb.Append("Slugcats Not Allowed");
-                sb.Append(Environment.NewLine);
-
-                foreach (SlugcatStats.Name name in NotAllowed)
+                else
                 {
-                    sb.Append(name.value);
+                    sb.Append(hasEntryString);
                     sb.Append(Environment.NewLine);
+
+                    foreach (SlugcatStats.Name name in slugcatNames)
+                    {
+                        sb.Append(name.value);
+                        sb.Append(Environment.NewLine);
+                    }
                 }
             }
-
-            if (UnlockRequired.Count == 0)
-            {
-                sb.Append("Unlock Required: NONE");
-                sb.Append(Environment.NewLine);
-            }
-            else
-            {
-                sb.Append("Unlock Required");
-                sb.Append(Environment.NewLine);
-
-                foreach (SlugcatStats.Name name in UnlockRequired)
-                {
-                    sb.Append(name.value);
-                    sb.Append(Environment.NewLine);
-                }
-            }
-
             return sb.ToString();
         }
 

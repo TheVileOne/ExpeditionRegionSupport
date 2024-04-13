@@ -7,12 +7,25 @@ namespace ExpeditionRegionSupport
 {
     public static class SlugcatUtils
     {
+        /// <summary>
+        /// Gets the SlugcatStats.Name associated with a name string, or creates one if not registered
+        /// </summary>
+        /// <param name="name">The slugcat name (ExtEnum value field)</param>
+        public static SlugcatStats.Name GetOrCreate(string name)
+        {
+            if (TryParse(name, out SlugcatStats.Name found))
+                return found;
+
+            Plugin.Logger.LogInfo("Unrecognized slugcat processed");
+            return new SlugcatStats.Name(name.Trim());
+        }
+
         public static bool TryParse(string name, out SlugcatStats.Name found)
         {
             name = NameFromAlias(name.Trim());
 
             ExtEnumBase extBase;
-            if (ExtEnumBase.TryParse(typeof(SlugcatStats.Name), name.Trim(), true, out extBase))
+            if (ExtEnumBase.TryParse(typeof(SlugcatStats.Name), name, true, out extBase))
             {
                 found = (SlugcatStats.Name)extBase;
                 return true;
