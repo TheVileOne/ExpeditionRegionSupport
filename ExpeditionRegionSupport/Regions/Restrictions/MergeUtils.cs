@@ -49,9 +49,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
 
             if (r1.ProgressionRestriction != r2.ProgressionRestriction)
             {
-                if (r1.ProgressionRestriction == ProgressionRequirements.None)
-                    target.ProgressionRestriction = r2.ProgressionRestriction;
-
+                target.ProgressionRestriction = r1.ProgressionRestriction | r2.ProgressionRestriction;
                 Plugin.Logger.LogInfo("Progression Requirement updated");
             }
 
