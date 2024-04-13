@@ -225,10 +225,10 @@ namespace ExpeditionRegionSupport.Regions
             //If we know this, we already know that this is valid region for the active WorldState, and slugcat
             if (!regionExcluded && regionStatusUnknown)
             {
-                //Prevent invalid regions from being selected based on WorldState
+                //Check that the region code belongs to the active WorldState
                 if (regionCode == "SL") //Shoreline
                 {
-                    regionExcluded = ModManager.MSC && (ActiveWorldState & WorldState.OldWorld) == 0;
+                    regionExcluded = ModManager.MSC && (ActiveWorldState & WorldState.OldWorld) != 0;
                 }
                 else if (regionCode == "SS") //Five Pebbles
                 {
