@@ -48,6 +48,11 @@ namespace ExpeditionRegionSupport.Regions
 
         public List<Predicate<string>> ActiveFilters;
 
+        /// <summary>
+        /// A list of slugcats that meet an unlock condition for the active game mode. (Expedition is the only supported game mode so far)
+        /// </summary>
+        public List<SlugcatStats.Name> UnlockedSlugcats = new List<SlugcatStats.Name>();
+
         public bool ShouldBuildRegionList = true;
 
         public RegionKey LastRandomRegion;
@@ -172,23 +177,21 @@ namespace ExpeditionRegionSupport.Regions
         /// <returns>Region code was handled by the method</returns>
         private bool handleOptionalRegion(string regionCode)
         {
-            List<SlugcatStats.Name> unlockedSlugcats = Expedition.ExpeditionGame.unlockedExpeditionSlugcats;
-
             bool excludeRegion = false;
             bool regionHandled = false;
             if (regionCode == "OE")
             {
-                excludeRegion = !unlockedSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Gourmand);
+                excludeRegion = !UnlockedSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Gourmand);
                 regionHandled = true;
             }
             else if (regionCode == "LC")
             {
-                excludeRegion = !unlockedSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Artificer);
+                excludeRegion = !UnlockedSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Artificer);
                 regionHandled = true;
             }
             else if (regionCode == "MS")
             {
-                excludeRegion = !unlockedSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Rivulet);
+                excludeRegion = !UnlockedSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Rivulet);
                 regionHandled = true;
             }
 
@@ -458,7 +461,7 @@ namespace ExpeditionRegionSupport.Regions
                 {
                     if (!isRoomCheck && restrictions.WorldState != WorldState.Any)
                     {
-                        logBuffer.AddString("Handling World state restriction");
+                        logBuffer.AddString("Handling World State restriction");
 
                         //Checks that WorldState restrictions include the current WorldState
                         if ((ActiveWorldState & restrictions.WorldState) == 0)
@@ -483,9 +486,10 @@ namespace ExpeditionRegionSupport.Regions
                             if (!RegionUtils.HasVisitedRegion(ActiveSlugcat, regionCode))
                                 return true;
                         }
-                        else if (restrictions.ProgressionRestriction == ProgressionRequirements.CampaignFinish)
+                        else if (restrictions.ProgressionRestriction == ProgressionRequirements.OnSlugcatUnlocked)
                         {
-                            //TODO: Implement
+                            if (!restrictions.Slugcats.UnlockRequired.TrueForAll(UnlockedSlugcats.Contains))
+                                return true;
                         }
                     }
                 }

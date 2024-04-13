@@ -160,7 +160,10 @@ namespace ExpeditionRegionSupport
             RegionUtils.RegionsVisitedCache.LastAccessed = null; //This will force the cache to be refreshed
 
             if (RegionSelector.Instance != null)
+            {
                 RegionSelector.Instance.ShouldBuildRegionList = true; //Not a convenient way of telling when list is stale here
+                RegionSelector.Instance.UnlockedSlugcats = ExpeditionGame.unlockedExpeditionSlugcats;
+            }
         }
 
         private SimpleButton createSettingsButton(ExpeditionMenu menu, Page page)
@@ -382,7 +385,12 @@ namespace ExpeditionRegionSupport
             RegionSelector regionSelector = RegionSelector.Instance;
 
             if (regionSelector == null)
-                regionSelector = RegionSelector.Instance = new RegionSelector(activeMenuSlugcat);
+            {
+                regionSelector = RegionSelector.Instance = new RegionSelector(activeMenuSlugcat)
+                {
+                    UnlockedSlugcats = ExpeditionGame.unlockedExpeditionSlugcats
+                };
+            }
             else
                 regionSelector.ActiveSlugcat = activeMenuSlugcat;
 

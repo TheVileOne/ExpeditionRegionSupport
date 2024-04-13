@@ -685,20 +685,31 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
 
         private static void parseField_ProgressionRestrictions(string data, RegionRestrictions regionRestrictions)
         {
-            bool fieldProcessed = false;
-            if (data.StartsWith("ProgressionRestriction.OnVisit", StringComparison.InvariantCultureIgnoreCase))
+            //Check whether we are processing a ProgressionRestriction flag, or associated data values
+            if (data.StartsWith("ProgressionRestriction"))
             {
-                regionRestrictions.ProgressionRestriction = ProgressionRequirements.OnVisit;
-                fieldProcessed = true;
-            }
-            else if (data.StartsWith("ProgressionRestriction.CampaignFinish", StringComparison.InvariantCultureIgnoreCase))
-            {
-                regionRestrictions.ProgressionRestriction = ProgressionRequirements.CampaignFinish;
-                fieldProcessed = true;
-            }
+                bool fieldProcessed = false;
+                if (data.EndsWith("OnVisit", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    regionRestrictions.ProgressionRestriction |= ProgressionRequirements.OnVisit;
+                    fieldProcessed = true;
+                }
+                else if (data.EndsWith("OnSlugcatUnlocked", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    regionRestrictions.ProgressionRestriction |= ProgressionRequirements.OnSlugcatUnlocked;
+                    fieldProcessed = true;
+                }
 
-            if (!fieldProcessed)
-                Plugin.Logger.LogWarning("Unrecognized ProgressionRestriction detected");
+                if (!fieldProcessed)
+                    Plugin.Logger.LogWarning("Unrecognized ProgressionRestriction detected");
+            }
+            else if ((regionRestrictions.ProgressionRestriction & ProgressionRequirements.OnSlugcatUnlocked) != 0)
+            {
+                string[] array = Regex.Split(data, ",");
+
+                foreach (string name in array)
+                    regionRestrictions.Slugcats.SetUnlockRequirement(name.Trim());
+            }
         }
 
         private static WorldState parseWorldState(string data)

@@ -50,7 +50,8 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
             Slugcats = new SlugcatRestrictions()
             {
                 Allowed = new List<SlugcatStats.Name>(r.Slugcats.Allowed),
-                NotAllowed = new List<SlugcatStats.Name>(r.Slugcats.NotAllowed)
+                NotAllowed = new List<SlugcatStats.Name>(r.Slugcats.NotAllowed),
+                UnlockRequired = new List<SlugcatStats.Name>(r.Slugcats.UnlockRequired)
             };
 
             if (!noRooms)
@@ -302,10 +303,11 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
     /// </summary>
     public class SlugcatRestrictions
     {
-        public bool IsEmpty => Allowed.Count == 0 && NotAllowed.Count == 0;
+        public bool IsEmpty => Allowed.Count == 0 && NotAllowed.Count == 0 && UnlockRequired.Count == 0;
 
         public List<SlugcatStats.Name> Allowed = new List<SlugcatStats.Name>();
         public List<SlugcatStats.Name> NotAllowed = new List<SlugcatStats.Name>();
+        public List<SlugcatStats.Name> UnlockRequired = new List<SlugcatStats.Name>();
 
         public void Allow(string name)
         {
@@ -319,7 +321,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
             Plugin.Logger.LogWarning("Unable to process slugcat name " + name.Trim());
         }
 
-        public bool Allow (SlugcatStats.Name name)
+        public bool Allow(SlugcatStats.Name name)
         {
             NotAllowed.Remove(name);
 
@@ -355,10 +357,32 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
             return false;
         }
 
+        public void SetUnlockRequirement(string name)
+        {
+            SlugcatStats.Name found;
+            if (!SlugcatUtils.TryParse(name, out found))
+            {
+                Plugin.Logger.LogInfo("Unrecognized slugcat processed");
+                found = new SlugcatStats.Name(name);
+            }
+            SetUnlockRequirement(found);
+        }
+
+        public bool SetUnlockRequirement(SlugcatStats.Name name)
+        {
+            if (!UnlockRequired.Contains(name))
+            {
+                UnlockRequired.Add(name);
+                return true;
+            }
+            return false;
+        }
+
         public void Clear()
         {
             Allowed.Clear();
             NotAllowed.Clear();
+            UnlockRequired.Clear();
         }
 
         public void MergeValues(SlugcatRestrictions r)
@@ -374,6 +398,12 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
             {
                 Plugin.Logger.LogInfo("[DISALLOW]" + name);
                 hasChanged |= Disallow(name);
+            }
+
+            foreach (SlugcatStats.Name name in r.UnlockRequired)
+            {
+                Plugin.Logger.LogInfo("[UNLOCK REQUIRED]" + name);
+                hasChanged |= SetUnlockRequirement(name);
             }
 
             if (hasChanged)
@@ -418,6 +448,23 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                 }
             }
 
+            if (UnlockRequired.Count == 0)
+            {
+                sb.Append("Unlock Required: NONE");
+                sb.Append(Environment.NewLine);
+            }
+            else
+            {
+                sb.Append("Unlock Required");
+                sb.Append(Environment.NewLine);
+
+                foreach (SlugcatStats.Name name in UnlockRequired)
+                {
+                    sb.Append(name.value);
+                    sb.Append(Environment.NewLine);
+                }
+            }
+
             return sb.ToString();
         }
 
@@ -428,13 +475,17 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
             if (restrictions != null)
             {
                 //Counts do not match
-                if (this.Allowed.Count != restrictions.Allowed.Count || this.NotAllowed.Count != restrictions.NotAllowed.Count)
+                if (this.Allowed.Count != restrictions.Allowed.Count
+                 || this.NotAllowed.Count != restrictions.NotAllowed.Count
+                 || this.UnlockRequired.Count != restrictions.UnlockRequired.Count)
                 {
                     return false;
                 }
 
                 //Slugcats do not match
-                if (this.Allowed.Exists(s => !restrictions.Allowed.Contains(s)) || this.NotAllowed.Exists(s => !restrictions.NotAllowed.Contains(s)))
+                if (this.Allowed.Exists(s => !restrictions.Allowed.Contains(s))
+                 || this.NotAllowed.Exists(s => !restrictions.NotAllowed.Contains(s))
+                 || this.UnlockRequired.Exists(s => !restrictions.UnlockRequired.Contains(s)))
                 {
                     return false;
                 }
@@ -444,11 +495,12 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
         }
     }
 
+    [Flags]
     public enum ProgressionRequirements
     {
-        None,
-        OnVisit,
-        CampaignFinish //Not yet supported
+        None = 0,
+        OnVisit = 1,
+        OnSlugcatUnlocked = 2
     }
 
     [Flags]
