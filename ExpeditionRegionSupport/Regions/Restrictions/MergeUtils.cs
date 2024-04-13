@@ -55,12 +55,6 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                 Plugin.Logger.LogInfo("Progression Requirement updated");
             }
 
-            Plugin.Logger.LogDebug("SLUGCATS MERGE");
-            foreach (var name in target.Slugcats.Allowed)
-            {
-                Plugin.Logger.LogDebug("[MERGE ALLOW] " + name);
-            }
-
             target.Slugcats.MergeValues(r2.Slugcats);
         }
 

@@ -64,12 +64,6 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                         //All duplicate entries can be moved into an existing object
                         if (existingRestrictions != null)
                         {
-                            Plugin.Logger.LogDebug("SLUGCATS POST POST OUTPUT");
-                            foreach (var name in existingRestrictions.Restrictions.Slugcats.Allowed)
-                            {
-                                Plugin.Logger.LogDebug("[MERGE ALLOW] " + name);
-                            }
-
                             restrictionsTarget = existingRestrictions;
 
                             //The list that gets duplicate entries removed will be the list that doesn't match
@@ -126,12 +120,6 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
         {
             //The output is the merge result between the two restrictions sets
             RegionRestrictions output = MergeUtils.GetMergedValues(r1, r2);
-
-            Plugin.Logger.LogDebug("SLUGCATS POST OUTPUT");
-            foreach (var name in output.Slugcats.Allowed)
-            {
-                Plugin.Logger.LogDebug("[MERGE ALLOW] " + name);
-            }
 
             return FindRestrictionMatch(output); //Find an existing RoomRestrictions object with the same restrictions if it exists
         }
