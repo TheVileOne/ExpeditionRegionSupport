@@ -472,7 +472,8 @@ namespace ExpeditionRegionSupport.Regions
                     {
                         logBuffer.AddString("Handling Slugcat restriction");
 
-                        if (!restrictions.Slugcats.Allowed.Contains(ActiveSlugcat) || restrictions.Slugcats.NotAllowed.Contains(ActiveSlugcat))
+                        if ((restrictions.Slugcats.Allowed.Count > 0 && !restrictions.Slugcats.Allowed.Contains(ActiveSlugcat))
+                          || restrictions.Slugcats.NotAllowed.Contains(ActiveSlugcat))
                             return true;
                     }
 
