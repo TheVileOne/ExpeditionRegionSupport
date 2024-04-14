@@ -388,7 +388,8 @@ namespace ExpeditionRegionSupport
             {
                 regionSelector = RegionSelector.Instance = new RegionSelector(activeMenuSlugcat)
                 {
-                    UnlockedSlugcats = ExpeditionGame.unlockedExpeditionSlugcats
+                    UnlockedSlugcats = ExpeditionGame.unlockedExpeditionSlugcats,
+                    ActiveRestrictionChecks = RegionUtils.RestrictionChecks
                 };
             }
             else

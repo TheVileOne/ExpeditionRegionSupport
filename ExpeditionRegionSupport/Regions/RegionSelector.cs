@@ -49,6 +49,11 @@ namespace ExpeditionRegionSupport.Regions
         public List<Predicate<string>> ActiveFilters;
 
         /// <summary>
+        /// A list of restrictions added through code mods
+        /// </summary>
+        public List<RestrictionCheck> ActiveRestrictionChecks = new List<RestrictionCheck>();
+
+        /// <summary>
         /// A list of slugcats that meet an unlock condition for the active game mode. (Expedition is the only supported game mode so far)
         /// </summary>
         public List<SlugcatStats.Name> UnlockedSlugcats = new List<SlugcatStats.Name>();
@@ -222,6 +227,11 @@ namespace ExpeditionRegionSupport.Regions
                 regionFiltered = true;
             }
 
+            if (!regionExcluded)
+            {
+                regionExcluded = applyRestrictionChecks(regionCode);
+            }
+
             //If we know this, we already know that this is valid region for the active WorldState, and slugcat
             if (!regionExcluded && regionStatusUnknown)
             {
@@ -284,6 +294,7 @@ namespace ExpeditionRegionSupport.Regions
         public void InitializeRestrictions()
         {
             Plugin.Logger.LogInfo("Checking for restrictions");
+            Plugin.Logger.LogInfo($"Detected {ActiveRestrictionChecks.Count} restriction checks");
 
             RegionsRestricted.ForEach(r => r.Restrictions.ResetToDefaults());
             RegionsRestricted = RestrictionProcessor.Process();
@@ -347,6 +358,12 @@ namespace ExpeditionRegionSupport.Regions
                 return true;
             }
             return false;
+        }
+
+        public bool applyRestrictionChecks(string regionCode)
+        {
+            //All checks for a given region must pass or region will be excluded
+            return ActiveRestrictionChecks.Exists(r => r.RegionCode == regionCode && !r.CheckRegion());
         }
 
         public RegionKey RandomRegion()

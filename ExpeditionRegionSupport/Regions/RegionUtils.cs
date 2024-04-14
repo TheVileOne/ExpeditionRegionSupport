@@ -14,6 +14,8 @@ namespace ExpeditionRegionSupport.Regions
 {
     public static class RegionUtils
     {
+        public static readonly List<RestrictionCheck> RestrictionChecks = new List<RestrictionCheck>();
+
         public static Dictionary<Challenge, FilterApplicator<string>> RegionFilterCache = new Dictionary<Challenge, FilterApplicator<string>>();
 
         public static CachedFilterStack<string> AppliedFilters = new CachedFilterStack<string>();
@@ -298,6 +300,14 @@ namespace ExpeditionRegionSupport.Regions
 
             Plugin.Logger.LogInfo("World State " + state);
             return state;
+        }
+
+        /// <summary>
+        /// Assigns a code based restriction check that will be used to evaluate available region spawns during region selection  
+        /// </summary>
+        public static void AssignRestriction(RestrictionCheck restriction)
+        {
+            RestrictionChecks.Add(restriction);
         }
 
         /// <summary>
