@@ -1,0 +1,13 @@
+$OE
+WORLDSTATE: Vanilla, Gourmand
+$LC
+WORLDSTATE: Vanilla, Artificer
+$NF
+WORLDSTATE: Saint
+$LM
+WORLDSTATE: Vanilla, OldWorld
+$MS
+SLUGCATS: Rivulet
+//ROOMS: MS_S07
+//SLUGCATS:
+//NOTALLOW: Survivor, Monk
