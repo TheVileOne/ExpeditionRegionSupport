@@ -113,3 +113,4 @@
 /.vs
 /lib/HOOKS-Assembly-CSharp.dll
 /lib/PUBLIC-Assembly-CSharp.dll
+/mod/debug/
