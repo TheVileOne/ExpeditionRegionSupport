@@ -480,34 +480,5 @@ namespace ExpeditionRegionSupport
             Logger.LogDebug(roomInfo);
             RegionSelector.Instance.AddRoom(roomInfo);
         }
-
-        private bool checkRegionRequirements(string text, SlugcatStats.Name slugcat, string[] storyRegions)
-        {
-            if (ExpeditionGame.lastRandomRegion == text) return false;
-
-            bool checkFlag = false;
-
-            if (storyRegions.Contains(text))
-                checkFlag = true;
-            else if (ModManager.MSC && (slugcat == SlugcatStats.Name.White || slugcat == SlugcatStats.Name.Yellow))
-            {
-                if (text == "OE" && ExpeditionGame.unlockedExpeditionSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Gourmand))
-                {
-                    checkFlag = true;
-                }
-                else if (text == "LC" && ExpeditionGame.unlockedExpeditionSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Artificer))
-                {
-                    checkFlag = true;
-                }
-                else if (text == "MS" && ExpeditionGame.unlockedExpeditionSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Rivulet))
-                {
-                    checkFlag = true;
-                }
-            }
-            else //Likely a custom region that has already been validated. Good to go!
-                checkFlag = true;
-
-            return checkFlag;
-        }
     }
 }

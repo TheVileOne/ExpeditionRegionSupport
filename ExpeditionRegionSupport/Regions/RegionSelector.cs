@@ -42,7 +42,7 @@ namespace ExpeditionRegionSupport.Regions
         public RegionList RegionsFiltered;
 
         /// <summary>
-        /// A list of custom regions requiring the player to visit (discover a shelter) before becoming available.
+        /// A list of regions that contain active restrictions
         /// </summary>
         public RegionList RegionsRestricted;
 
@@ -103,7 +103,7 @@ namespace ExpeditionRegionSupport.Regions
             foreach (string regionCode in availableOptionalRegions)
                 handleStoryOrOptionalRegion(regionCode, false);
 
-            //Metropolis is not returned as an optional region, but should be handled as one for certain characters.
+            //Metropolis is not returned as an optional region, but should be handled as one for certain characters
             if (!handleRestrictedRegion("LC", false))
                 handleOptionalRegion("LC");
 
@@ -116,7 +116,7 @@ namespace ExpeditionRegionSupport.Regions
 
                 foreach (string regionCode in regions)
                 {
-                    //This should refer to an unrestricted region that is safe to be added to the list.
+                    //This should refer to an unrestricted region that is safe to be added to the list
                     if (!RegionsExcluded.Contains(regionCode) && !RegionsAvailable.Contains(regionCode) && !handleRestrictedRegion(regionCode, true))
                         RegionsAvailable.Add(regionCode);
                 }
@@ -126,6 +126,7 @@ namespace ExpeditionRegionSupport.Regions
             {
                 StringHandler logBuffer = new StringHandler();
 
+                //Log every region available for selection. Some regions may be empty and will be removed later in the selection process
                 logBuffer.AddString("Active Regions");
                 var enumerator = availableStoryRegions.Where(r => !RegionsExcluded.Contains(r)).GetEnumerator();
 
@@ -349,6 +350,11 @@ namespace ExpeditionRegionSupport.Regions
             Plugin.Logger.LogInfo($"{ActiveFilters.Count} active filters detected");
         }
 
+        /// <summary>
+        /// Checks active filters applied to regions
+        /// </summary>
+        /// <param name="regionCode">The region code to check</param>
+        /// <returns>Whether the region code should be excluded</returns>
         private bool applyFilters(string regionCode)
         {
             //Check every active filter here
@@ -360,6 +366,11 @@ namespace ExpeditionRegionSupport.Regions
             return false;
         }
 
+        /// <summary>
+        /// Checks code applied conditional restrictions applied to regions. This list would be accessed and used by other code mods defining custom restriction conditions.
+        /// </summary>
+        /// <param name="regionCode">The region code to check</param>
+        /// <returns>Whether the region code should be excluded</returns>
         public bool applyRestrictionChecks(string regionCode)
         {
             //All checks for a given region must pass or region will be excluded
