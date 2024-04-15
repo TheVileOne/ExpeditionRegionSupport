@@ -9,7 +9,7 @@ namespace ExpeditionRegionSupport.Filters.Settings
     public static class RegionFilterSettings
     {
         public static readonly FilterToggle AllowVanillaRegions;
-        public static readonly FilterToggle AllowMoreSlugcatsRegions;
+        public static readonly FilterToggle AllowDownpourRegions;
         public static readonly FilterToggle AllowCustomRegions;
         public static readonly FilterToggle VisitedRegionsOnly;
         public static readonly FilterToggle ShelterSpawnsOnly;
@@ -30,7 +30,7 @@ namespace ExpeditionRegionSupport.Filters.Settings
             SimpleToggle.OnCreate += onToggleCreated;
 
             AllowVanillaRegions = new FilterToggle(FilterOption.NoVanilla, true, false);
-            AllowMoreSlugcatsRegions = new FilterToggle(FilterOption.NoMSC, true, false);
+            AllowDownpourRegions = new FilterToggle(FilterOption.NoDownpour, true, false);
             AllowCustomRegions = new FilterToggle(FilterOption.NoCustom, true, false);
             VisitedRegionsOnly = new FilterToggle(FilterOption.VisitedRegionsOnly, false, true);
             ShelterSpawnsOnly = new FilterToggle(FilterOption.SheltersOnly, false, true);
@@ -146,7 +146,7 @@ namespace ExpeditionRegionSupport.Filters.Settings
         SheltersOnly,
         VisitedRegionsOnly,
         NoVanilla,
-        NoMSC,
+        NoDownpour,
         NoCustom
     }
 }

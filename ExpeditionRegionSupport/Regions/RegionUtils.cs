@@ -370,7 +370,7 @@ namespace ExpeditionRegionSupport.Regions
                 regionCode == "SB";   //Subterranean
         }
 
-        public static bool IsMSCRegion(string regionCode)
+        public static bool IsDownpourRegion(string regionCode)
         {
             return
                 regionCode == "MS" || //Submerged Superstructure
@@ -387,7 +387,7 @@ namespace ExpeditionRegionSupport.Regions
 
         public static bool IsCustomRegion(string regionCode)
         {
-            return !IsVanillaRegion(regionCode) && !IsMSCRegion(regionCode);
+            return !IsVanillaRegion(regionCode) && !IsDownpourRegion(regionCode);
         }
 
         /// <summary>

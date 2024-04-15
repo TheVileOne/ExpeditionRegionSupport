@@ -33,7 +33,7 @@ namespace ExpeditionRegionSupport.Interface
         private SimpleButton customizeSpawnsButton;
 
         private FilterCheckBox regionFilterVanilla;
-        private FilterCheckBox regionFilterMoreSlugcats;
+        private FilterCheckBox regionFilterDownpour;
         private FilterCheckBox regionFilterCustom;
         private FilterCheckBox regionFilterVisitedOnly;
 
@@ -100,7 +100,7 @@ namespace ExpeditionRegionSupport.Interface
 
             regionFilterVanilla = factory.Create("Vanilla Regions", RegionFilterSettings.AllowVanillaRegions, "VANILLA");
             if (ModManager.MSC)
-                regionFilterMoreSlugcats = factory.Create("More Slugcats Regions", RegionFilterSettings.AllowMoreSlugcatsRegions, "MORE SLUGCATS");
+                regionFilterDownpour = factory.Create("Downpour Regions", RegionFilterSettings.AllowDownpourRegions, "DOWNPOUR");
             regionFilterCustom = factory.Create("Custom Regions", RegionFilterSettings.AllowCustomRegions, "CUSTOM");
             regionFilterVisitedOnly = factory.Create("Visited Regions Only", RegionFilterSettings.VisitedRegionsOnly, "VISITED ONLY");
 

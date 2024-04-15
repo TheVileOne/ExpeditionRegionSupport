@@ -331,8 +331,8 @@ namespace ExpeditionRegionSupport.Regions
                     case FilterOption.NoVanilla:
                         filter = new Predicate<string>(RegionUtils.IsVanillaRegion);
                         break;
-                    case FilterOption.NoMSC:
-                        filter = new Predicate<string>(RegionUtils.IsMSCRegion);
+                    case FilterOption.NoDownpour:
+                        filter = new Predicate<string>(RegionUtils.IsDownpourRegion);
                         break;
                     case FilterOption.NoCustom:
                         filter = new Predicate<string>(RegionUtils.IsCustomRegion);
