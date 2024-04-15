@@ -99,7 +99,8 @@ namespace ExpeditionRegionSupport.Interface
             };
 
             regionFilterVanilla = factory.Create("Vanilla Regions", RegionFilterSettings.AllowVanillaRegions, "VANILLA");
-            regionFilterMoreSlugcats = factory.Create("More Slugcats Regions", RegionFilterSettings.AllowMoreSlugcatsRegions, "MORE SLUGCATS");
+            if (ModManager.MSC)
+                regionFilterMoreSlugcats = factory.Create("More Slugcats Regions", RegionFilterSettings.AllowMoreSlugcatsRegions, "MORE SLUGCATS");
             regionFilterCustom = factory.Create("Custom Regions", RegionFilterSettings.AllowCustomRegions, "CUSTOM");
             regionFilterVisitedOnly = factory.Create("Visited Regions Only", RegionFilterSettings.VisitedRegionsOnly, "VISITED ONLY");
 
