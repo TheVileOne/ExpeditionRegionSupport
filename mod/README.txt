@@ -11,7 +11,7 @@ Region Restrictions: How to use
 - Create a folder named [ modify ] in the base folder of your mod.
 - Inside that folder create a [ restricted-regions.txt ] file.
 - Use the syntax, and formatting specified below to establish restrictions to regions, or rooms.
-- Each line must begin with merge header syntax. [ADD] is the most common.
+- Each line must begin with a merge prefix such as [ADD].
 - See https://rainworldmodding.miraheze.org/wiki/Downpour_Reference/Modification_Files for more information.
 
 Comments must be on separate lines and are implemented using the double forward slash (//).
@@ -62,6 +62,13 @@ The line following an OnSlugcatUnlocked restriction should contain slugcat names
 When more than one slugcat is listed here, all listed slugcats must be unlocked.
 
 Instructions:
+Adding player spawns to Expedition:
+- Create a [ randomstarts.txt ] file inside the modify folder.
+- Room codes should be prefixed with [ADD], one room per line. (Use uppercase format for room codes)
+
+Shelters are the preferred spawn areas in Expedition. Player spawns are not only limited to shelters,
+as almost any room can serve as a spawn area in Expedition.
+
 Limiting region access until campaign completion for a specific slugcat
 
 The easiest way to handle this is to unlock your slugcat for Expedition play when campaign completion conditions are met.
@@ -81,18 +88,18 @@ is used to evaluate your region's unlock conditions.
 
 - Traduzido para PT BR por: Slugg
 
-Informação do mod
+Informações sobre mods
 
 - Fornece suporte para spawns de regiões personalizadas no modo Expedição.
-- Como nenhuma região personalizada tem suporte por padrão, para realmente gerar em uma região, o arquivo [ randomstarts.txt ] precisa ser editado diretamente com os nomes das salas.
+- Como nenhuma região personalizada tem suporte por padrão e para realmente gerar em uma região, o arquivo [ randomstarts.txt ] precisa ser editado diretamente com os nomes das salas.
 - Este mod altera a forma como as regiões são selecionadas, e o método de aplicação é diferente para regiões sem modificação, regiões modificadas estão habilitadas e slugbase está habilitado.
 
 Restrições de região: como usar
 
 - Crie uma pasta chamada [ modify ] na pasta base do seu mod.
-- Dentro dessa pasta crie um arquivo [ restricted-regions.txt ].
+- Dentro dessa pasta, crie um arquivo [ restricted-regions.txt ].
 - Use a sintaxe e a formatação especificadas abaixo para estabelecer restrições a regiões ou salas.
-- Cada linha deve começar com a sintaxe do cabeçalho de mesclagem. [ADD] é o mais comum.
+- Cada linha deve começar com um prefixo de mesclagem como [ADD].
 - Consulte https://rainworldmodding.miraheze.org/wiki/Downpour_Reference/Modification_Files para obter mais informações.
 
 Os comentários devem estar em linhas separadas e são implementados usando a barra dupla (//).
@@ -103,7 +110,7 @@ Os comentários devem estar em linhas separadas e são implementados usando a ba
 $XX
 XX restrições aqui
 $XY
-XY Restrições aqui
+XY restrições aqui
 
 Formatos válidos
 
@@ -130,10 +137,10 @@ WORLD STATE - Somente um slugcat que tem acesso a um determinado estado mundial 
 Valores válidos: Vanilla, Gourmand, Rivulet, Spearmaster, Artificer, Saint, Other, OldWorld, MSC, Any, None
 
 SLUGCATS - Somente os nomes de slugcat listados aqui terão acesso, ou serão impedidos de acessar
-Inclua ALLOW/NOTALLOW para especificar o comportamento.
+Inclua [ ALLOW/NOTALLOW ] para especificar o comportamento.
 Valores válidos: qualquer nome de slugcat, incluindo nomes alternativos (White e Survivor funcionam)
 
-ROOMS - Salas designados para terem restrições específicas aplicadas a eles. Se nenhuma restrição for definida no cabeçalho ROOMS,
+ROOMS - Quartos designados para terem restrições específicas aplicadas a eles. Se nenhuma restrição for definida no cabeçalho ROOMS,
 as restrições definidas para a região serão aplicadas aos quartos listados.
 
 ProgressionRestriction - Especifica a progressão que o jogador deve alcançar para ter acesso.
@@ -142,19 +149,25 @@ Valores válidos: OnVisit, OnSlugcatUnlocked
 A linha após uma restrição OnSlugcatUnlocked deve conter nomes de slugcat delimitados por vírgulas (,).
 Quando mais de um slugcat estiver listado aqui, todos os slugcats listados deverão ser desbloqueados.
 
- Instruções:
+Instruções:
+ Adicionando spawns de jogadores à Expedição:
+- Crie um arquivo [ randomstarts.txt ] dentro da pasta [ modify ].
+- Os códigos dos quartos devem ser prefixados com [ADD], uma sala por linha. (Use formato maiúsculo para códigos de quarto)
+
+Abrigos são as áreas de desova preferidas na Expedição. A geração de jogadores não se limita apenas a abrigos,
+já que quase qualquer sala pode servir como área de spawn na Expedição.
 
 Limitando o acesso à região até a conclusão da campanha para um slugcat específico
 
 A maneira mais fácil de lidar com isso é desbloquear seu slugcat para o jogo Expedition quando as condições de conclusão da campanha forem atendidas.
-Estabeleça uma restrição ProgressionRestriction.OnSlugcatUnlocked para desbloquear sua região.
+Estabeleça uma restrição [ ProgressionRestriction.OnSlugcatUnlocked ] para desbloquear sua região.
 
-  Restrições de mod de código:
+Restrições de mod de código:
 As regiões podem ser restritas usando lógica personalizada por meio de um mod de código. Embora seja preferível que seja tratado através de um arquivo
 quando possível.
 
 - Seu mod precisará ter este mod como referência de projeto para acessar classes controladas por mod.
 - As restrições de código são tratadas por meio de [ ExpeditionRegionSupport.Regions.RegionUtils.AssignRestriction() ] (sujeito a alterações).
-- Sua restrição será armazenada em um objeto RestrictionCheck, que especifica um código de região e aceita um delegado que
-é usado para avaliar as condições de desbloqueio da sua região.
+- Sua restrição será armazenada em um objeto RestrictionCheck, que especifica um código de região e aceita um delegado qu é usado para 
+avaliar as condições de desbloqueio da sua região.
 - Opcionalmente, você pode restringir sua região por slugcat desbloqueado ou para um slugcat específico sem a necessidade de um delegado.
