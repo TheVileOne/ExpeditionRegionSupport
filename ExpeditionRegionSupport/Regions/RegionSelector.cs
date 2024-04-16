@@ -141,11 +141,15 @@ namespace ExpeditionRegionSupport.Regions
                                 .Where(s => !s.IsBrokenFor(ActiveSlugcat))
                                 .Select(s => s.RoomCode);
 
+                            int shelterCount = 0;
                             foreach (string shelter in customShelters)
                             {
-                                Plugin.Logger.LogInfo(shelter);
+                                if (Plugin.DebugMode)
+                                    Plugin.Logger.LogInfo(shelter);
                                 AddRoom(shelter);
+                                shelterCount++;
                             }
+                            Plugin.Logger.LogInfo(shelterCount + " shelters found");
                         }
                     }
                 }

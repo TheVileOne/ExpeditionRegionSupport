@@ -477,7 +477,9 @@ namespace ExpeditionRegionSupport
 
         private void handleRandomStarts(string roomInfo)
         {
-            Logger.LogDebug(roomInfo);
+            if (DebugMode)
+                Logger.LogInfo(roomInfo);
+
             RegionSelector.Instance.AddRoom(roomInfo);
         }
     }
