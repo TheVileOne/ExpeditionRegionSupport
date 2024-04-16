@@ -12,8 +12,7 @@ namespace ExpeditionRegionSupport.Filters.Settings
         public static readonly FilterToggle AllowDownpourRegions;
         public static readonly FilterToggle AllowCustomRegions;
         public static readonly FilterToggle VisitedRegionsOnly;
-        public static readonly FilterToggle ShelterSpawnsOnly;
-        public static readonly FilterToggle DetectShelterSpawns;
+        public static readonly FilterToggle DetectCustomShelters;
 
         /// <summary>
         /// The setting toggles that are managed by ExpeditionSettingDialog
@@ -33,8 +32,7 @@ namespace ExpeditionRegionSupport.Filters.Settings
             AllowDownpourRegions = new FilterToggle(FilterOption.NoDownpour, true, false);
             AllowCustomRegions = new FilterToggle(FilterOption.NoCustom, true, false);
             VisitedRegionsOnly = new FilterToggle(FilterOption.VisitedRegionsOnly, false, true);
-            ShelterSpawnsOnly = new FilterToggle(FilterOption.SheltersOnly, false, true);
-            DetectShelterSpawns = new FilterToggle(FilterOption.AllShelters, false, true);
+            DetectCustomShelters = new FilterToggle(FilterOption.InheritCustomShelters, false, true);
 
             SimpleToggle.OnCreate -= onToggleCreated;
 
@@ -142,8 +140,7 @@ namespace ExpeditionRegionSupport.Filters.Settings
     public enum FilterOption
     {
         None,
-        AllShelters,
-        SheltersOnly,
+        InheritCustomShelters,
         VisitedRegionsOnly,
         NoVanilla,
         NoDownpour,

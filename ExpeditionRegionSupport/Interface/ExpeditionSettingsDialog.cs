@@ -37,7 +37,7 @@ namespace ExpeditionRegionSupport.Interface
         private FilterCheckBox regionFilterCustom;
         private FilterCheckBox regionFilterVisitedOnly;
 
-        private FilterCheckBox shelterDetectionCheckBox;
+        private FilterCheckBox customSheltersCheckBox;
 
         public event Action<ExpeditionSettingsDialog> OnDialogClosed;
 
@@ -106,10 +106,11 @@ namespace ExpeditionRegionSupport.Interface
 
             Vector2 nextPos = factory.Spacer.NextPosition - new Vector2(0, 80f);
 
-            shelterDetectionCheckBox = factory.Create("Enable Shelter Detection", RegionFilterSettings.DetectShelterSpawns, "SHELTER_DETECTION", nextPos);
+            customSheltersCheckBox = factory.Create("Detect Custom Shelters", RegionFilterSettings.DetectCustomShelters, "CUSTOM SHELTERS", nextPos);
+            customSheltersCheckBox.buttonBehav.greyedOut = !Plugin.DebugMode; //Only enable this feature in Debug mode
 
             regionFilterVisitedOnly.FilterImmune = true;
-            shelterDetectionCheckBox.FilterImmune = true;
+            customSheltersCheckBox.FilterImmune = true;
 
             MenuUtils.SetSelectables(options.Boxes, cancelButton);
         }

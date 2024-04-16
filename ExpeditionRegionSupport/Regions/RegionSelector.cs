@@ -58,6 +58,11 @@ namespace ExpeditionRegionSupport.Regions
         /// </summary>
         public List<SlugcatStats.Name> UnlockedSlugcats = new List<SlugcatStats.Name>();
 
+        /// <summary>
+        /// A flag that tells the selector to add shelters as valid player spawns for all custom regions
+        /// </summary>
+        public bool IncludeCustomShelters;
+
         public bool ShouldBuildRegionList = true;
 
         public RegionKey LastRandomRegion;
@@ -116,9 +121,33 @@ namespace ExpeditionRegionSupport.Regions
 
                 foreach (string regionCode in regions)
                 {
-                    //This should refer to an unrestricted region that is safe to be added to the list
-                    if (!RegionsExcluded.Contains(regionCode) && !RegionsAvailable.Contains(regionCode) && !handleRestrictedRegion(regionCode, true))
-                        RegionsAvailable.Add(regionCode);
+                    if (!RegionsExcluded.Contains(regionCode))
+                    {
+                        if (!RegionsAvailable.Contains(regionCode))
+                        {
+                            if (handleRestrictedRegion(regionCode, true))
+                                continue;
+
+                            //This should refer to an unrestricted region that is safe to be added to the list
+                            RegionsAvailable.Add(regionCode);
+                        }
+
+                        if (IncludeCustomShelters && RegionUtils.IsCustomRegion(regionCode))
+                        {
+                            Plugin.Logger.LogInfo("Finding shelters for region " + regionCode);
+
+                            //Find all custom shelters that aren't broken for this slugcat
+                            IEnumerable<string> customShelters = RegionUtils.GetShelters(regionCode)
+                                .Where(s => !s.IsBrokenFor(ActiveSlugcat))
+                                .Select(s => s.RoomCode);
+
+                            foreach (string shelter in customShelters)
+                            {
+                                Plugin.Logger.LogInfo(shelter);
+                                AddRoom(shelter);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -314,6 +343,7 @@ namespace ExpeditionRegionSupport.Regions
             Plugin.Logger.LogInfo("Checking for filters");
 
             ActiveFilters = new List<Predicate<string>>();
+            IncludeCustomShelters = false;
 
             List<FilterOption> activeFilterOptions = RegionFilterSettings.GetActiveFilters();
 
@@ -337,8 +367,9 @@ namespace ExpeditionRegionSupport.Regions
                     case FilterOption.NoCustom:
                         filter = new Predicate<string>(RegionUtils.IsCustomRegion);
                         break;
-                    case FilterOption.AllShelters:
-                    case FilterOption.SheltersOnly:
+                    case FilterOption.InheritCustomShelters:
+                        IncludeCustomShelters = true;
+                        break;
                     default:
                         break;
                 }
