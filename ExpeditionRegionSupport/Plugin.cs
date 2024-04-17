@@ -9,6 +9,7 @@ using System.Linq;
 using Expedition;
 using ExpeditionRegionSupport.Filters;
 using ExpeditionRegionSupport.Filters.Settings;
+using ExpeditionRegionSupport.HookUtils;
 using ExpeditionRegionSupport.Interface;
 using ExpeditionRegionSupport.Regions;
 using ExpeditionRegionSupport.Regions.Restrictions;
@@ -38,6 +39,11 @@ namespace ExpeditionRegionSupport
 
         public static bool SlugBaseEnabled;
         public static WorldState ActiveWorldState;
+
+        /// <summary>
+        /// A flag indicating that an Expedition game process is initiating
+        /// </summary>
+        private bool expeditionGameStarting;
 
         private SimpleButton settingsButton;
 
@@ -72,6 +78,7 @@ namespace ExpeditionRegionSupport
 
                 //Random Spawn hooks
                 On.Menu.ChallengeSelectPage.StartGame += ChallengeSelectPage_StartGame;
+                IL.Menu.ChallengeSelectPage.StartGame += ChallengeSelectPage_StartGame;
 
                 On.Expedition.ExpeditionGame.ExpeditionRandomStarts += ExpeditionGame_ExpeditionRandomStarts;
                 IL.Expedition.ExpeditionGame.ExpeditionRandomStarts += ExpeditionGame_ExpeditionRandomStarts;
@@ -242,8 +249,42 @@ namespace ExpeditionRegionSupport
 
         private void ChallengeSelectPage_StartGame(On.Menu.ChallengeSelectPage.orig_StartGame orig, ChallengeSelectPage self)
         {
+            expeditionGameStarting = true;
             ActiveWorldState = RegionUtils.GetWorldStateFromStoryRegions(ExpeditionData.slugcatPlayer);
-            orig(self);
+
+            if (ExpeditionData.activeMission == string.Empty)
+            {
+                string startingDen = ExpeditionGame.ExpeditionRandomStarts(self.menu.manager.rainWorld, ExpeditionData.slugcatPlayer);
+
+                if (!AbortGameStart)
+                    ExpeditionData.startingDen = startingDen;
+            }
+
+            try
+            {
+                if (AbortGameStart) //Return, don't call orig, like it never even happened
+                {
+                    AbortGameStart = false;
+                    return;
+                }
+
+                orig(self);
+            }
+            finally
+            {
+                expeditionGameStarting = false;
+            }
+        }
+
+        private void ChallengeSelectPage_StartGame(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            cursor.GotoNext(MoveType.Before, x => x.MatchCall(typeof(ExpeditionGame).GetMethod("ExpeditionRandomStarts")));
+
+            //Intercept the den spawn finder code, consume the values on the stack, and branch over method call. It was already handled earlier.
+            cursor.EmitDelegate<Action<RainWorld, SlugcatStats.Name>>((rw, sc) => { });
+            cursor.BranchTo(x => x.MatchStsfld(typeof(ExpeditionData).GetField("startingDen")));
         }
 
         /// <summary>
@@ -380,6 +421,11 @@ namespace ExpeditionRegionSupport
         /// </summary>
         private const short max_attempts_allowed = 3;
 
+        /// <summary>
+        /// A flag that indicates that attempt to enter game should be cancelled
+        /// </summary>
+        private bool AbortGameStart;
+
         private string ExpeditionGame_ExpeditionRandomStarts(On.Expedition.ExpeditionGame.orig_ExpeditionRandomStarts orig, RainWorld rainWorld, SlugcatStats.Name activeMenuSlugcat)
         {
             RegionSelector regionSelector = RegionSelector.Instance;
@@ -402,39 +448,61 @@ namespace ExpeditionRegionSupport
                 hasProcessedRooms = false;
             }
 
+            if (regionSelector.RegionsAvailable.Count == 0) //There is no regions available. Time to abort before we waste time processing rooms from file
+            {
+                AbortGameStart = expeditionGameStarting; //The only time we want to abort is while initiating from the menu 
+                hasProcessedRooms = true; //No rooms to process - orig wont get called
+            }
+
             if (!hasProcessedRooms)
             {
                 orig(rainWorld, activeMenuSlugcat);
 
-                RegionSelector.Instance.RemoveEmptyRegions();
+                regionSelector.RemoveEmptyRegions();
 
-                if (RegionSelector.Instance.RegionsAvailable.Count > 0)
+                if (regionSelector.RegionsAvailable.Count > 0)
                 {
                     Logger.LogInfo("Available spawn counts");
-                    RegionSelector.Instance.RegionsAvailable.ForEach(r => Logger.LogInfo(r.RegionCode + " " + r.AvailableRooms.Count));
+                    regionSelector.RegionsAvailable.ForEach(r => Logger.LogInfo(r.RegionCode + " " + r.AvailableRooms.Count));
+                }
+                else
+                {
+                    AbortGameStart = expeditionGameStarting;
                 }
 
                 hasProcessedRooms = true;
             }
 
-            string spawnLocation = RegionSelector.Instance.RandomRoom();
+            string spawnLocation = string.Empty;
 
-            if (!RegionUtils.RoomExists(spawnLocation))
+            if (!AbortGameStart)
             {
-                if (spawnLocation == string.Empty)
-                    Logger.LogInfo("No available rooms to spawn in");
-                else
-                    Logger.LogWarning($"Room {spawnLocation} does not exist");
+                spawnLocation = regionSelector.RandomRoom();
 
-                attemptsToFindDenSpawn++; //Tracks all attempts, not just reattempts
-                if (spawnLocation == string.Empty || attemptsToFindDenSpawn >= max_attempts_allowed) //These is no hope for finding a new room
+                if (!RegionUtils.RoomExists(spawnLocation))
                 {
-                    Logger.LogInfo("Using fallback spawn location");
-                    return SaveState.GetStoryDenPosition(activeMenuSlugcat, out _);
-                }
+                    if (spawnLocation == string.Empty)
+                        Logger.LogInfo("No available rooms to spawn in");
+                    else
+                        Logger.LogWarning($"Room {spawnLocation} does not exist");
 
-                //Keep trying until we run out of attempts
-                return ExpeditionGame.ExpeditionRandomStarts(rainWorld, activeMenuSlugcat);
+                    attemptsToFindDenSpawn++; //Tracks all attempts, not just reattempts
+                    if (spawnLocation == string.Empty || attemptsToFindDenSpawn >= max_attempts_allowed) //These is no hope for finding a new room
+                    {
+                        Logger.LogInfo("Using fallback player spawn");
+                        return SaveState.GetStoryDenPosition(activeMenuSlugcat, out _);
+                    }
+
+                    //Keep trying until we run out of attempts
+                    return ExpeditionGame.ExpeditionRandomStarts(rainWorld, activeMenuSlugcat);
+                }
+            }
+            else
+            {
+                DialogNotify abortStartDialog = new DialogNotify("No available spawn regions. Check filter settings.", rainWorld.processManager, () => { });
+
+                rainWorld.processManager.ShowDialog(abortStartDialog);
+                spawnLocation = SaveState.GetStoryDenPosition(activeMenuSlugcat, out _); //Wont be used for anything, but it is more proper than returning nothing
             }
 
             attemptsToFindDenSpawn = 0;
