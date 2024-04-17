@@ -264,7 +264,7 @@ namespace ExpeditionRegionSupport
             {
                 if (AbortGameStart) //Return, don't call orig, like it never even happened
                 {
-                    AbortGameStart = false;
+                    AbortGameStart = self.pendingStart = self.pressedStartButton = false;
                     return;
                 }
 
