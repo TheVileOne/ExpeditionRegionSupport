@@ -4,8 +4,6 @@ using DependencyFlags = BepInEx.BepInDependency.DependencyFlags;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Expedition;
 using ExpeditionRegionSupport.Filters;
 using ExpeditionRegionSupport.Filters.Settings;
@@ -13,11 +11,12 @@ using ExpeditionRegionSupport.HookUtils;
 using ExpeditionRegionSupport.Interface;
 using ExpeditionRegionSupport.Regions;
 using ExpeditionRegionSupport.Regions.Restrictions;
-using Menu;
-using MoreSlugcats;
-using UnityEngine;
 using Extensions;
+using Menu;
+using Menu.Remix.MixedUI;
+using MoreSlugcats;
 using RWCustom;
+using UnityEngine;
 
 namespace ExpeditionRegionSupport
 {
@@ -499,7 +498,21 @@ namespace ExpeditionRegionSupport
             }
             else
             {
-                DialogNotify abortStartDialog = new DialogNotify("No available spawn regions. Check filter settings.", rainWorld.processManager, () => { });
+                ExpeditionMenu expeditionMenu = (ExpeditionMenu)rainWorld.processManager.currentMainLoop;
+
+                OpHoldButton expeditionStartButton = expeditionMenu.challengeSelect.startButton;
+                OpHoldButton expeditionPerksButton = expeditionMenu.challengeSelect.unlocksButton;
+
+                expeditionStartButton.greyedOut = true;
+                expeditionPerksButton.greyedOut = true; //This button shouldn't need to be reset unlike the start button
+
+                DialogNotify abortStartDialog = new DialogNotify("No available spawn regions. Check filter settings.", rainWorld.processManager, () =>
+                {
+                    expeditionStartButton.Reset(); //If we don't reset, progress on button will still be full when leaving dialog
+
+                    expeditionStartButton.greyedOut = false;
+                    expeditionPerksButton.greyedOut = false;
+                });
 
                 rainWorld.processManager.ShowDialog(abortStartDialog);
                 spawnLocation = SaveState.GetStoryDenPosition(activeMenuSlugcat, out _); //Wont be used for anything, but it is more proper than returning nothing
