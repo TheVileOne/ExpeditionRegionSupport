@@ -398,6 +398,23 @@ namespace ExpeditionRegionSupport.Regions
             return AssetManager.ResolveDirectory(Path.Combine("world", regionCode));
         }
 
+        /// <summary>
+        /// Gets full path to the world file for a specified region
+        /// </summary>
+        public static string GetWorldFilePath(string regionCode)
+        {
+            string regionFolderPath = GetRegionFolderPath(regionCode);
+            return Path.Combine(regionFolderPath, FormatWorldFile(regionCode));
+        }
+
+        /// <summary>
+        /// Formats region code to the standardized world file format
+        /// </summary>
+        public static string FormatWorldFile(string regionCode)
+        {
+            return string.Format("world_{0}.txt", regionCode.ToLower());
+        }
+
         public static string[] ParseRoomName(string roomName, out string regionCode, out string roomCode)
         {
             string[] roomInfo = SplitRoomName(roomName);
