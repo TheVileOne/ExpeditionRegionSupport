@@ -132,50 +132,28 @@ namespace ExpeditionRegionSupport.Regions
             if (Shelters.TryGetValue(regionCode, out List<ShelterInfo> shelterCache))
                 return shelterCache;
 
-            string regionFolderPath = GetRegionFolderPath(regionCode);
+            RegionDataMiner regionMiner = new RegionDataMiner();
 
-            string regionFile = Path.Combine(regionFolderPath, string.Format("world_{0}.txt", regionCode.ToLower()));
-            string propertiesFile = Path.Combine(regionFolderPath, "properties.txt"); 
+            IEnumerable<string> roomData = regionMiner.GetRoomLines(regionCode);
 
-            if (!File.Exists(regionFile))
-            {
-                Plugin.Logger.LogInfo("World file missing");
-                Plugin.Logger.LogInfo(regionFile);
+            if (roomData == null)
                 return new List<ShelterInfo>();
-            }
 
             List<ShelterInfo> shelters = new List<ShelterInfo>();
+
             Shelters[regionCode] = shelters;
 
-            using (TextReader stream = new StreamReader(regionFile))
+            //TODO: Need to detect non-broken conditional shelters
+            foreach (string shelterLine in roomData.Where(roomLine => roomLine.EndsWith("SHELTER")))
             {
-                string line;
-                bool roomsProcessed = false;
-                bool roomsHeaderFound = false;
-                while (!roomsProcessed && (line = stream.ReadLine()) != null)
-                {
-                    if (roomsHeaderFound)
-                    {
-                        bool isShelterRoom = line.EndsWith("SHELTER");
+                int sepIndex = shelterLine.IndexOf(':'); //Expects format "SL_S09:SL_C05:SHELTER
 
-                        if (isShelterRoom)
-                        {
-                            int sepIndex = line.IndexOf(':'); //Expects format "SL_S09:SL_C05:SHELTER
-
-                            if (sepIndex != -1) //Format is okay
-                                shelters.Add(new ShelterInfo(line.Substring(0, sepIndex)));
-                        }
-                        else if (line.StartsWith("END ROOMS") || line.StartsWith("CREATURES"))
-                        {
-                            roomsProcessed = true; //We have the data we were looking for
-                        }
-                    }
-                    else if (line.StartsWith("ROOMS")) //Rooms header found - we can start checking for room data
-                    {
-                        roomsHeaderFound = true;
-                    }
-                }
+                if (sepIndex != -1) //Format is okay
+                    shelters.Add(new ShelterInfo(shelterLine.Substring(0, sepIndex)));
             }
+
+            string regionFile = GetWorldFilePath(regionCode);
+            string propertiesFile = GetFilePath(regionCode, "properties.txt");
 
             //Look for broken shelter info
             if (shelters.Count > 0 && File.Exists(propertiesFile))
@@ -203,7 +181,7 @@ namespace ExpeditionRegionSupport.Regions
                     ShelterInfo lastShelterProcessed = default;
                     foreach (string shelterDataRaw in brokenShelterData)
                     {
-                        string[] shelterData = shelterDataRaw.Split(':'); //Expected " White: SL_S11" (whitespace is expected)
+                        string[] shelterData = shelterDataRaw.Split(':'); //Expects " White: SL_S11" (whitespace is expected)
 
                         if (shelterData.Length >= 2) //Expected length - Something is unusual is there if it is anything else
                         {
