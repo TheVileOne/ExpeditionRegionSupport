@@ -23,6 +23,11 @@ namespace ExpeditionRegionSupport.Regions
             }
         }
 
+        public const string SECTION_BAT_MIGRATION_BLOCKAGES = "BAT MIGRATION BLOCKAGES";
+        public const string SECTION_CONDITIONAL_LINKS = "CONDITIONAL LINKS";
+        public const string SECTION_CREATURES = "CREATURES";
+        public const string SECTION_ROOMS = "ROOMS";
+
         public RegionDataMiner()
         {
         }
@@ -49,7 +54,27 @@ namespace ExpeditionRegionSupport.Regions
             }
         }
 
+        public IEnumerable<string> GetBatMigrationLines(string regionCode)
+        {
+            return GetLines(regionCode, SECTION_BAT_MIGRATION_BLOCKAGES);
+        }
+
+        public IEnumerable<string> GetConditionalLinkLines(string regionCode)
+        {
+            return GetLines(regionCode, SECTION_CONDITIONAL_LINKS);
+        }
+
+        public IEnumerable<string> GetCreatureLines(string regionCode)
+        {
+            return GetLines(regionCode, SECTION_CREATURES);
+        }
+
         public IEnumerable<string> GetRoomLines(string regionCode)
+        {
+            return GetLines(regionCode, SECTION_ROOMS);
+        }
+
+        internal IEnumerable<string> GetLines(string regionCode, string sectionName)
         {
             using TextReader stream = GetStreamReader(regionCode); //Using statement wont dispose stream until yield breaks
 
@@ -58,7 +83,7 @@ namespace ExpeditionRegionSupport.Regions
             if (stream != null)
             {
                 string line;
-                bool roomsHeaderFound = false;
+                bool sectionHeaderFound = false;
                 do
                 {
                     line = stream.ReadLine()?.Trim();
@@ -66,7 +91,7 @@ namespace ExpeditionRegionSupport.Regions
                     if (line == null) //End of file has been reached
                         yield break;
 
-                    if (roomsHeaderFound)
+                    if (sectionHeaderFound)
                     {
                         if (line.StartsWith("//") || line == string.Empty) //Empty or commented out lines
                             continue;
@@ -75,8 +100,8 @@ namespace ExpeditionRegionSupport.Regions
 
                         yield return line;
                     }
-                    else if (line.StartsWith("ROOMS"))
-                        roomsHeaderFound = true; //The header doesn't need to be yielded
+                    else if (line.StartsWith(sectionName))
+                        sectionHeaderFound = true; //The header doesn't need to be yielded
                 }
                 while (line != null);
             }
