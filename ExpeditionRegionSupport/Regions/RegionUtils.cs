@@ -391,20 +391,19 @@ namespace ExpeditionRegionSupport.Regions
         }
 
         /// <summary>
-        /// Gets full path where region files are stored for a specified region
-        /// </summary>
-        public static string GetRegionFolderPath(string regionCode)
-        {
-            return AssetManager.ResolveDirectory(Path.Combine("world", regionCode));
-        }
-
-        /// <summary>
         /// Gets full path to the world file for a specified region
         /// </summary>
         public static string GetWorldFilePath(string regionCode)
         {
-            string regionFolderPath = GetRegionFolderPath(regionCode);
-            return Path.Combine(regionFolderPath, FormatWorldFile(regionCode));
+            return GetFilePath(regionCode, FormatWorldFile(regionCode));
+        }
+
+        /// <summary>
+        /// Gets full path to a file stored in the world/<regionCode> directory
+        /// </summary>
+        public static string GetFilePath(string regionCode, string fileWanted)
+        {
+            return AssetManager.ResolveFilePath(Path.Combine("world", regionCode, fileWanted));
         }
 
         /// <summary>
