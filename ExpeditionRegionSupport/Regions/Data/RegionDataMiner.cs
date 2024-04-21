@@ -13,12 +13,17 @@ namespace ExpeditionRegionSupport.Regions.Data
             private set
             {
                 //Close old stream - once we lose the reference, the stream wont be disposed
-                if (_activeStream != null && _activeStream != value)
-                    _activeStream.Close();
+                if (!KeepStreamOpen && _activeStream != null && _activeStream != value)
+                    CloseStream();
 
                 _activeStream = value;
             }
         }
+
+        /// <summary>
+        /// The stream wont be closed when a read process finished. Stream will be disposed when RegionDataMiner is destroyed.
+        /// </summary>
+        public bool KeepStreamOpen;
 
         public const string SECTION_BAT_MIGRATION_BLOCKAGES = "BAT MIGRATION BLOCKAGES";
         public const string SECTION_CONDITIONAL_LINKS = "CONDITIONAL LINKS";
@@ -73,40 +78,49 @@ namespace ExpeditionRegionSupport.Regions.Data
 
         internal IEnumerable<string> GetLines(string regionCode, string sectionName)
         {
-            using TextReader stream = GetStreamReader(regionCode); //Using statement wont dispose stream until yield breaks
-
-            ActiveStream = stream;
-
-            if (stream != null)
+            try
             {
-                string line;
-                bool sectionHeaderFound = false;
-                do
+                TextReader stream = GetStreamReader(regionCode);
+                
+                ActiveStream = stream;
+
+                if (stream != null)
                 {
-                    line = stream.ReadLine()?.Trim();
-
-                    if (line == null) //End of file has been reached
-                        yield break;
-
-                    if (sectionHeaderFound)
+                    string line;
+                    bool sectionHeaderFound = false;
+                    do
                     {
-                        if (line.StartsWith("//") || line == string.Empty) //Empty or commented out lines
-                            continue;
-                        if (line.StartsWith("END ")) //I hope all world files end their blocks with an end line
+                        line = stream.ReadLine()?.Trim();
+
+                        if (line == null) //End of file has been reached
                             yield break;
 
-                        yield return line;
+                        if (sectionHeaderFound)
+                        {
+                            if (line.StartsWith("//") || line == string.Empty) //Empty or commented out lines
+                                continue;
+                            if (line.StartsWith("END ")) //I hope all world files end their blocks with an end line
+                                yield break;
+
+                            yield return line;
+                        }
+                        else if (line.StartsWith(sectionName))
+                            sectionHeaderFound = true; //The header doesn't need to be yielded
                     }
-                    else if (line.StartsWith(sectionName))
-                        sectionHeaderFound = true; //The header doesn't need to be yielded
+                    while (line != null);
                 }
-                while (line != null);
+            }
+            finally
+            {
+                if (!KeepStreamOpen)
+                    CloseStream();
             }
         }
 
         public void CloseStream()
         {
-            ActiveStream = null;
+            KeepStreamOpen = false;
+            ActiveStream?.Close();
         }
 
         ~RegionDataMiner()
