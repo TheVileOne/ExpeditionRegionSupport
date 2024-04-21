@@ -33,7 +33,7 @@ namespace ExpeditionRegionSupport.Regions.Data
 
             string[] gateCodeData = RoomCode.Split('_'); //Expected format: GATE_SI_SL
 
-            if (gateCodeData.Length < 2)
+            if (gateCodeData.Length < 3)
             {
                 Plugin.Logger.LogWarning($"Invalid region gate format detected [{RoomCode}]");
                 return;
