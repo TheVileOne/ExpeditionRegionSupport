@@ -141,37 +141,13 @@ namespace ExpeditionRegionSupport.Regions
             if (adjustRegionCode)
                 regionCode = Region.GetProperRegionAcronym(slugcat, regionCode);
 
+            List<GateInfo> gates = GetRegionGates(regionCode);
+
             List<string> foundRegions = new List<string>();
-
-            RegionDataMiner regionMiner = new RegionDataMiner();
-
-            IEnumerable<string> conditionalLinkData = regionMiner.GetConditionalLinkLines(regionCode);
-            IEnumerable<string> roomData = regionMiner.GetRoomLines(regionCode);
-
-            if (roomData != null)
+            foreach (GateInfo gate in gates)
             {
-                foreach (string roomLine in roomData.Where(r => r.Trim().EndsWith("GATE")))
-                {
-                    string gateCode = roomLine.Substring(0, roomLine.IndexOf(':')).Trim();
-
-                    //if (!GateActiveForSlugcat(gateCode, slugcat)) //Check that gate applies to this slugcat
-                    //    continue;
-
-                    string[] gateCodeData = gateCode.Split('_'); //Expected format: GATE_SI_SL - Region codes can be in either position
-
-                    if (gateCodeData.Length < 2)
-                    {
-                        Plugin.Logger.LogWarning($"Could not check region gate [{gateCode}]"); //This should never trigger
-                        continue;
-                    }
-
-                    string regionCode1 = Region.GetProperRegionAcronym(slugcat, gateCodeData[1]);
-
-                    if (regionCode1 == regionCode) //The border region is in the slot opposite the current region
-                        regionCode1 = Region.GetProperRegionAcronym(slugcat, gateCodeData[2]);
-
-                    foundRegions.Add(regionCode1);
-                }
+                if (gate.IsActiveFor(slugcat))
+                    foundRegions.Add(gate.OtherConnection(regionCode, Region.GetProperRegionAcronym(slugcat, regionCode)));
             }
 
             return foundRegions;
@@ -241,7 +217,7 @@ namespace ExpeditionRegionSupport.Regions
             //TODO: Need to detect non-broken conditional shelters
             foreach (string shelterLine in roomData.Where(roomLine => roomLine.EndsWith("SHELTER")))
             {
-                int sepIndex = shelterLine.IndexOf(':'); //Expects format "SL_S09:SL_C05:SHELTER
+                int sepIndex = shelterLine.IndexOf(':'); //Expected format: "SL_S09:SL_C05:SHELTER
 
                 if (sepIndex != -1) //Format is okay
                     shelters.Add(new ShelterInfo(shelterLine.Substring(0, sepIndex)));
@@ -327,6 +303,33 @@ namespace ExpeditionRegionSupport.Regions
             }
 
             return shelters;
+        }
+
+        public static List<GateInfo> GetRegionGates(string regionCode)
+        {
+            RegionDataMiner regionMiner = new RegionDataMiner();
+
+            IEnumerable<string> roomData = regionMiner.GetRoomLines(regionCode);
+
+            if (roomData == null)
+                return new List<GateInfo>();
+
+            IEnumerable<string> conditionalLinkData = regionMiner.GetConditionalLinkLines(regionCode);
+
+            List<GateInfo> gates = new List<GateInfo>();
+
+            foreach (string roomLine in roomData.Where(r => r.Trim().EndsWith("GATE")))
+            {
+                GateInfo gate = new GateInfo(roomLine.Substring(0, roomLine.IndexOf(':')));
+
+                //Handle conditional link information
+                foreach (string conditionalLink in conditionalLinkData.Where(r => r.Contains("EXCLUSIVEROOM") && r.TrimEnd().EndsWith(gate.RoomCode)))
+                    gate.ConditionalAccess.Add(SlugcatUtils.GetOrCreate(conditionalLink.Substring(0, conditionalLink.IndexOf(':')))); //The first section is the slugcat
+
+                gates.Add(gate);
+            }
+
+            return gates;
         }
 
         public static string GetPearlDeliveryRegion(WorldState state)
