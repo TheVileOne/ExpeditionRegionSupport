@@ -138,8 +138,10 @@ namespace ExpeditionRegionSupport.Regions
         /// <param name="adjustRegionCode">The proper region code will be used instead of the default when this is true</param>
         public static List<string> GetBorderRegions(string regionCode, SlugcatStats.Name slugcat, bool adjustRegionCode = true)
         {
+            string adjustedRegionCode = Region.GetProperRegionAcronym(slugcat, regionCode);
+
             if (adjustRegionCode)
-                regionCode = Region.GetProperRegionAcronym(slugcat, regionCode);
+                regionCode = adjustedRegionCode;
 
             List<GateInfo> gates = GetRegionGates(regionCode);
 
@@ -147,7 +149,7 @@ namespace ExpeditionRegionSupport.Regions
             foreach (GateInfo gate in gates)
             {
                 if (gate.IsActiveFor(slugcat))
-                    foundRegions.Add(gate.OtherConnection(regionCode, Region.GetProperRegionAcronym(slugcat, regionCode)));
+                    foundRegions.Add(gate.OtherConnection(regionCode, adjustedRegionCode));
             }
 
             return foundRegions;
