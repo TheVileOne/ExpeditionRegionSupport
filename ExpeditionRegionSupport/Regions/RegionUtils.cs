@@ -82,6 +82,101 @@ namespace ExpeditionRegionSupport.Regions
             return AvailableRegionCache;
         }
 
+        /// <summary>
+        /// Stores a list of regions accesible from a region (stored as the key)
+        /// </summary>
+        public static RegionsCache RegionAccessibilityCache;
+
+        /// <summary>
+        /// Returns all active regions that can theoretically be accessed from a given region
+        /// </summary>
+        public static List<string> GetAccessibleRegions(string regionCode, SlugcatStats.Name slugcat)
+        {
+            if (RegionAccessibilityCache == null || RegionAccessibilityCache.LastAccessed != slugcat)
+            {
+                RegionAccessibilityCache = new RegionsCache();
+                RegionAccessibilityCache.LastAccessed = slugcat;
+
+                //Store the translated region code, so bordering region checks don't end up checking the wrong region
+                RegionAccessibilityCache.Regions.Add(Region.GetProperRegionAcronym(slugcat, regionCode));
+            }
+            else if (RegionAccessibilityCache.Regions.Contains(regionCode)) //Do we already have a list stored
+                return RegionAccessibilityCache.Regions;
+
+            List<string> accessibleRegions = RegionAccessibilityCache.Regions;
+
+            foreach (string borderRegion in GetBorderRegions(regionCode, slugcat))
+            {
+                accessibleRegions.Add(borderRegion); //Region cache is guaranteed to be empty - and a region cannot connect to the same region twice
+                GetAccessibleRegionsRecursive(borderRegion, slugcat);
+            }
+
+            return accessibleRegions;
+        }
+
+        internal static void GetAccessibleRegionsRecursive(string regionCode, SlugcatStats.Name slugcat)
+        {
+            List<string> accessibleRegions = RegionAccessibilityCache.Regions;
+
+            foreach (string borderRegion in GetBorderRegions(regionCode, slugcat, true)) //Region codes from gates need to be translated 
+            {
+                string regionAdjusted = Region.GetProperRegionAcronym(slugcat, borderRegion);
+
+                if (!accessibleRegions.Contains(regionAdjusted))
+                {
+                    accessibleRegions.Add(regionAdjusted);
+                    GetAccessibleRegionsRecursive(regionAdjusted, slugcat);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Finds the list of regions that border a given region based on the active gates defined in that region's world file 
+        /// </summary>
+        /// <param name="regionCode">The region to check</param>
+        /// <param name="slugcat">The slugcat to check (in the case of conditional links)</param>
+        /// <param name="adjustRegionCode">The proper region code will be used instead of the default when this is true</param>
+        public static List<string> GetBorderRegions(string regionCode, SlugcatStats.Name slugcat, bool adjustRegionCode = true)
+        {
+            if (adjustRegionCode)
+                regionCode = Region.GetProperRegionAcronym(slugcat, regionCode);
+
+            List<string> foundRegions = new List<string>();
+
+            RegionDataMiner regionMiner = new RegionDataMiner();
+
+            IEnumerable<string> conditionalLinkData = regionMiner.GetConditionalLinkLines(regionCode);
+            IEnumerable<string> roomData = regionMiner.GetRoomLines(regionCode);
+
+            if (roomData != null)
+            {
+                foreach (string roomLine in roomData.Where(r => r.Trim().EndsWith("GATE")))
+                {
+                    string gateCode = roomLine.Substring(0, roomLine.IndexOf(':')).Trim();
+
+                    //if (!GateActiveForSlugcat(gateCode, slugcat)) //Check that gate applies to this slugcat
+                    //    continue;
+
+                    string[] gateCodeData = gateCode.Split('_'); //Expected format: GATE_SI_SL - Region codes can be in either position
+
+                    if (gateCodeData.Length < 2)
+                    {
+                        Plugin.Logger.LogWarning($"Could not check region gate [{gateCode}]"); //This should never trigger
+                        continue;
+                    }
+
+                    string regionCode1 = Region.GetProperRegionAcronym(slugcat, gateCodeData[1]);
+
+                    if (regionCode1 == regionCode) //The border region is in the slot opposite the current region
+                        regionCode1 = Region.GetProperRegionAcronym(slugcat, gateCodeData[2]);
+
+                    foundRegions.Add(regionCode1);
+                }
+            }
+
+            return foundRegions;
+        }
+
         public static List<string> GetVisitedRegions(SlugcatStats.Name slugcat)
         {
             if (RegionsVisitedCache.LastAccessed == slugcat)
