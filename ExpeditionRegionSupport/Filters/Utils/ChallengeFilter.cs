@@ -22,7 +22,7 @@ namespace ExpeditionRegionSupport.Filters.Utils
         protected static List<string> PrepareFilter(FilterOption filterID)
         {
             if (filterID == FilterOption.VisitedRegionsOnly)
-                return RegionUtils.RegionsVisitedCache.RegionsVisited;
+                return RegionUtils.RegionsVisitedCache.Regions;
 
             return new List<string>();
         }

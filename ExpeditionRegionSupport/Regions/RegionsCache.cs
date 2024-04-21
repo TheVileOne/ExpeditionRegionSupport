@@ -6,23 +6,23 @@ using System.Threading.Tasks;
 
 namespace ExpeditionRegionSupport.Regions
 {
-    public class VisitedRegionsCache //Cannot be a struct due to challenge filters requiring an unchanging list to reference
+    public class RegionsCache //Cannot be a struct due to challenge filters requiring an unchanging list to reference
     {
         public SlugcatStats.Name LastAccessed;
 
-        private readonly List<string> _regionsVisited = new List<string>();
+        private readonly List<string> _regions = new List<string>();
 
-        public List<string> RegionsVisited
+        public List<string> Regions
         {
-            get => _regionsVisited;
+            get => _regions;
             set
             {
                 if (value == null)
                     throw new ArgumentNullException();
 
                 //This reference should not be overwritten. Transfer values to existing reference instead.
-                _regionsVisited.Clear();
-                _regionsVisited.AddRange(value);
+                _regions.Clear();
+                _regions.AddRange(value);
             }
         }
     }

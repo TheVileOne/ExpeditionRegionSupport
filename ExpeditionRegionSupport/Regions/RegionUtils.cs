@@ -32,7 +32,7 @@ namespace ExpeditionRegionSupport.Regions
 
         public static List<string> AvailableRegionCache;
 
-        public static VisitedRegionsCache RegionsVisitedCache = new VisitedRegionsCache();
+        public static RegionsCache RegionsVisitedCache = new RegionsCache();
 
         /// <summary>
         /// A dictionary of regions visited, with a RegionCode as a key, and a list of slugcat names as data outside of Expedition
@@ -47,7 +47,7 @@ namespace ExpeditionRegionSupport.Regions
         public static bool HasVisitedRegion(SlugcatStats.Name slugcat, string regionCode)
         {
             if (RegionsVisitedCache.LastAccessed == slugcat)
-                return RegionsVisitedCache.RegionsVisited.Contains(regionCode);
+                return RegionsVisitedCache.Regions.Contains(regionCode);
 
             List<string> visitorList;
             if (RegionsVisited.TryGetValue(regionCode, out visitorList))
@@ -85,7 +85,7 @@ namespace ExpeditionRegionSupport.Regions
         public static List<string> GetVisitedRegions(SlugcatStats.Name slugcat)
         {
             if (RegionsVisitedCache.LastAccessed == slugcat)
-                return RegionsVisitedCache.RegionsVisited;
+                return RegionsVisitedCache.Regions;
 
             var enumerator = RegionsVisited.GetEnumerator();
 
@@ -114,7 +114,7 @@ namespace ExpeditionRegionSupport.Regions
             }
 
             RegionsVisitedCache.LastAccessed = slugcat;
-            RegionsVisitedCache.RegionsVisited = visitedRegions;
+            RegionsVisitedCache.Regions = visitedRegions;
             return visitedRegions;
         }
 
