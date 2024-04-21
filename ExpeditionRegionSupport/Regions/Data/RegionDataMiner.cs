@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ExpeditionRegionSupport.Regions
+namespace ExpeditionRegionSupport.Regions.Data
 {
     public class RegionDataMiner
     {

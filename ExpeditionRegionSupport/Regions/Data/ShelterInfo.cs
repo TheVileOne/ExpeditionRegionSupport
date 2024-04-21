@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ExpeditionRegionSupport.Regions
+namespace ExpeditionRegionSupport.Regions.Data
 {
     public readonly struct ShelterInfo
     {
@@ -14,6 +14,7 @@ namespace ExpeditionRegionSupport.Regions
         public ShelterInfo(string roomCode)
         {
             RoomCode = roomCode.Trim();
+            Plugin.Logger.LogInfo("Shelter Info created for " + RoomCode);
         }
     }
 }

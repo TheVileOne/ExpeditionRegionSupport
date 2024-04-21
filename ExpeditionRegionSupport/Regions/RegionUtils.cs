@@ -4,10 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Expedition;
 using ExpeditionRegionSupport.Filters.Settings;
 using ExpeditionRegionSupport.Filters.Utils;
+using ExpeditionRegionSupport.Regions.Data;
 using ExpeditionRegionSupport.Regions.Restrictions;
 
 namespace ExpeditionRegionSupport.Regions
