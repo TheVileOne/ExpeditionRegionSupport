@@ -148,7 +148,14 @@ namespace ExpeditionRegionSupport.Regions
             foreach (GateInfo gate in gates)
             {
                 if (gate.IsActiveFor(slugcat))
-                    foundRegions.Add(gate.OtherConnection(regionCode, adjustedRegionCode));
+                {
+                    string foundRegion = gate.OtherConnection(regionCode, adjustedRegionCode);
+
+                    if (foundRegion != null)
+                        foundRegions.Add(foundRegion);
+                    else
+                        Plugin.Logger.LogInfo("Gate ignored: " + gate.RoomCode);
+                }
             }
 
             return foundRegions;
