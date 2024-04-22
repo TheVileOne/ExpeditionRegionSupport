@@ -217,12 +217,12 @@ namespace ExpeditionRegionSupport.Regions
             Shelters[regionCode] = shelters;
 
             //TODO: Need to detect non-broken conditional shelters
-            foreach (string shelterLine in roomData.Where(roomLine => roomLine.EndsWith("SHELTER")))
+            foreach (string roomLine in roomData)
             {
-                int sepIndex = shelterLine.IndexOf(':'); //Expected format: "SL_S09:SL_C05:SHELTER
+                string shelterCode = GetShelterCodeWithValidation(roomLine);
 
-                if (sepIndex != -1) //Format is okay
-                    shelters.Add(new ShelterInfo(shelterLine.Substring(0, sepIndex)));
+                if (shelterCode != null)
+                    shelters.Add(new ShelterInfo(shelterCode));
             }
 
             string regionFile = GetWorldFilePath(regionCode);
@@ -570,6 +570,19 @@ namespace ExpeditionRegionSupport.Regions
             if (data.Length < 4) return false; //XX_X - Lowest amount of characters for a valid roomname
 
             return data[2] == '_' || data[3] == '_';
+        }
+
+        public static string GetShelterCodeWithValidation(string data)
+        {
+            int lastSepIndex = data.LastIndexOf(':');
+
+            //Either the last data position, or next to last data position is checked for the 'SHELTER' keyword
+            if (data.Substring(lastSepIndex + 1).EndsWith(" SHELTER")
+             || data.Substring(0, lastSepIndex).TrimEnd().EndsWith(" SHELTER")) //The whitespace is intentional - room codes cannot have whitespace
+            {
+                return data.Substring(0, data.IndexOf(':')).Trim();
+            }
+            return null;
         }
 
         public static string GetGateCodeWithValidation(string data)
