@@ -322,15 +322,28 @@ namespace ExpeditionRegionSupport.Regions
 
             List<GateInfo> gates = new List<GateInfo>();
 
-            foreach (string roomLine in roomData.Where(r => r.Trim().EndsWith("GATE")))
+            foreach (string roomLine in roomData)
             {
-                GateInfo gate = new GateInfo(roomLine.Substring(0, roomLine.IndexOf(':')));
+                string gateCode = GetGateCodeWithValidation(roomLine);
 
-                //Handle conditional link information
-                foreach (string conditionalLink in conditionalLinkData.Where(r => r.Contains("EXCLUSIVEROOM") && r.TrimEnd().EndsWith(gate.RoomCode)))
-                    gate.ConditionalAccess.Add(SlugcatUtils.GetOrCreate(conditionalLink.Substring(0, conditionalLink.IndexOf(':')))); //The first section is the slugcat
+                if (gateCode != null)
+                {
+                    GateInfo gate = new GateInfo(gateCode);
 
-                gates.Add(gate);
+                    //Handle conditional link information
+                    foreach (string conditionalLink in conditionalLinkData.Where(r => r.Contains("EXCLUSIVEROOM") && r.TrimEnd().EndsWith(gate.RoomCode)))
+                        gate.ConditionalAccess.Add(SlugcatUtils.GetOrCreate(conditionalLink.Substring(0, conditionalLink.IndexOf(':')))); //The first section is the slugcat
+
+                    /*
+                    if (gate.ConditionalAccess.Count > 0)
+                    {
+                        Plugin.Logger.LogInfo("CONDITIONAL INFO");
+                        foreach (SlugcatStats.Name slugcat in gate.ConditionalAccess)
+                            Plugin.Logger.LogInfo(slugcat);
+                    }
+                    */
+                    gates.Add(gate);
+                }
             }
 
             regionMiner.KeepStreamOpen = false;
@@ -557,6 +570,42 @@ namespace ExpeditionRegionSupport.Regions
             if (data.Length < 4) return false; //XX_X - Lowest amount of characters for a valid roomname
 
             return data[2] == '_' || data[3] == '_';
+        }
+
+        public static string GetGateCodeWithValidation(string data)
+        {
+            if (data.StartsWith("GATE"))
+            {
+                string[] regionGateData = data.Split(':');
+
+                if (ContainsGateData(regionGateData))
+                    return regionGateData[0].Trim();
+            }
+            else if (data.EndsWith(" GATE")) //The whitespace is intentional - room codes cannot have whitespace
+            {
+                return data.Substring(0, data.IndexOf(':')).Trim();
+            }
+            return null;
+        }
+
+        public static bool ContainsGateData(string[] data)
+        {
+            return HasRoomKeyword(data, "GATE", false); //Gate must have a name, at least one valid connection, and end with GATE
+        }
+
+        public static bool HasRoomKeyword(string[] data, string keyword, bool isConditionalLink)
+        {
+            if (isConditionalLink)
+                return data.Length >= 2 && data[1].Trim() == keyword; //Conditional links store the keyword in the 2nd data position
+
+            if (data.Length < 3) return false; //All room data that has keywords with have it stored at the 3rd data position or later
+
+            for (int i = data.Length - 1; i >= 2; i--)
+            {
+                if (data[i].Trim() == keyword)
+                    return true;
+            }
+            return false;
         }
     }
 }

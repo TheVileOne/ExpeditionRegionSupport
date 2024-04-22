@@ -31,7 +31,7 @@ namespace ExpeditionRegionSupport.Regions.Data
         {
             RoomCode = roomCode.Trim();
 
-            string[] gateCodeData = RoomCode.Split('_'); //Expected format: GATE_SI_SL
+            string[] gateCodeData = RegionUtils.SplitRoomName(RoomCode); //Expected format: GATE_SI_SL
 
             if (gateCodeData.Length < 3)
             {
