@@ -8,7 +8,7 @@ namespace ExpeditionRegionSupport.Logging.Utils
 {
     public class StringHandler
     {
-        private StringBuilder stringBuilder = new StringBuilder();
+        private readonly StringBuilder stringBuilder = new StringBuilder();
 
         public void AddString(string data)
         {

@@ -49,8 +49,7 @@ namespace ExpeditionRegionSupport.Regions
             if (RegionsVisitedCache.LastAccessed == slugcat)
                 return RegionsVisitedCache.Regions.Contains(regionCode);
 
-            List<string> visitorList;
-            if (RegionsVisited.TryGetValue(regionCode, out visitorList))
+            if (RegionsVisited.TryGetValue(regionCode, out List<string> visitorList))
                 return visitorList.Contains(slugcat.value);
 
             Plugin.Logger.LogWarning("Unexpected region detected that isn't part of RegionsVisited dictionary");
@@ -428,8 +427,7 @@ namespace ExpeditionRegionSupport.Regions
         {
             Challenge challengeType = ChallengeUtils.GetChallengeType(challenge);
 
-            FilterApplicator<string> challengeFilter;
-            if (RegionFilterCache.TryGetValue(challenge, out challengeFilter))
+            if (RegionFilterCache.TryGetValue(challenge, out FilterApplicator<string> challengeFilter))
             {
                 AppliedFilters.Assign((CachedFilterApplicator<string>)challengeFilter);
             }

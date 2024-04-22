@@ -24,8 +24,7 @@ namespace ExpeditionRegionSupport
         {
             name = NameFromAlias(name.Trim());
 
-            ExtEnumBase extBase;
-            if (ExtEnumBase.TryParse(typeof(SlugcatStats.Name), name, true, out extBase))
+            if (ExtEnumBase.TryParse(typeof(SlugcatStats.Name), name, true, out ExtEnumBase extBase))
             {
                 found = (SlugcatStats.Name)extBase;
                 return true;

@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using static ModManager;
 using Vector2 = UnityEngine.Vector2;
 
 namespace ExpeditionRegionSupport.Interface
@@ -41,8 +40,7 @@ namespace ExpeditionRegionSupport.Interface
 
         public event Action<ExpeditionSettingsDialog> OnDialogClosed;
 
-        //TODO:
-        //Show custom regions available in Expedition?
+        //TODO Show custom regions available in Expedition?
 
         public ExpeditionSettingsDialog(ProcessManager manager, ChallengeSelectPage owner) : base(manager, owner)
         {
