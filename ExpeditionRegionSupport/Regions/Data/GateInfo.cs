@@ -48,10 +48,10 @@ namespace ExpeditionRegionSupport.Regions.Data
         public string OtherConnection(string regionCode, string adjustedRegionCode)
         {
             if (ConnectingRegions.Item1 == regionCode || ConnectingRegions.Item1 == adjustedRegionCode)
-                return ConnectingRegions.Item1;
+                return ConnectingRegions.Item2;
 
             if (ConnectingRegions.Item2 == regionCode || ConnectingRegions.Item2 == adjustedRegionCode)
-                return ConnectingRegions.Item2;
+                return ConnectingRegions.Item1;
 
             return null;
         }
