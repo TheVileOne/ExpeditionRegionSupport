@@ -309,14 +309,16 @@ namespace ExpeditionRegionSupport.Regions
 
         public static List<GateInfo> GetRegionGates(string regionCode)
         {
-            RegionDataMiner regionMiner = new RegionDataMiner();
+            RegionDataMiner regionMiner = new RegionDataMiner()
+            {
+                KeepStreamOpen = true
+            };
 
+            IEnumerable<string> conditionalLinkData = regionMiner.GetConditionalLinkLines(regionCode);
             IEnumerable<string> roomData = regionMiner.GetRoomLines(regionCode);
 
             if (roomData == null)
                 return new List<GateInfo>();
-
-            IEnumerable<string> conditionalLinkData = regionMiner.GetConditionalLinkLines(regionCode);
 
             List<GateInfo> gates = new List<GateInfo>();
 
@@ -331,6 +333,7 @@ namespace ExpeditionRegionSupport.Regions
                 gates.Add(gate);
             }
 
+            regionMiner.KeepStreamOpen = false;
             return gates;
         }
 
