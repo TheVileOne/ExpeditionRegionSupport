@@ -25,5 +25,15 @@ namespace ExpeditionRegionSupport.Regions
                 _regions.AddRange(value);
             }
         }
+
+        public static RegionsCache GetOrCreate(RegionsCache regionCache, SlugcatStats.Name slugcat)
+        {
+            if (regionCache == null || regionCache.LastAccessed != slugcat)
+            {
+                regionCache = new RegionsCache();
+                regionCache.LastAccessed = slugcat;
+            }
+            return regionCache;
+        }
     }
 }

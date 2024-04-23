@@ -45,12 +45,12 @@ namespace ExpeditionRegionSupport.Regions.Data
         /// <summary>
         /// Returns the region code connection that does not match the given region code. If neither code matches, this method returns null
         /// </summary>
-        public string OtherConnection(string regionCode, string adjustedRegionCode)
+        public string OtherConnection(string baseRegionCode, string actualRegionCode)
         {
-            if (ConnectingRegions.Item1 == regionCode || ConnectingRegions.Item1 == adjustedRegionCode)
+            if (ConnectingRegions.Item1 == baseRegionCode || ConnectingRegions.Item1 == actualRegionCode)
                 return ConnectingRegions.Item2;
 
-            if (ConnectingRegions.Item2 == regionCode || ConnectingRegions.Item2 == adjustedRegionCode)
+            if (ConnectingRegions.Item2 == baseRegionCode || ConnectingRegions.Item2 == actualRegionCode)
                 return ConnectingRegions.Item1;
 
             return null;

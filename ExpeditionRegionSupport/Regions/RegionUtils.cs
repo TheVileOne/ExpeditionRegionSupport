@@ -91,40 +91,32 @@ namespace ExpeditionRegionSupport.Regions
         /// </summary>
         public static List<string> GetAccessibleRegions(string regionCode, SlugcatStats.Name slugcat)
         {
-            if (RegionAccessibilityCache == null || RegionAccessibilityCache.LastAccessed != slugcat)
-            {
-                RegionAccessibilityCache = new RegionsCache();
-                RegionAccessibilityCache.LastAccessed = slugcat;
+            RegionsCache regionCache = RegionsCache.GetOrCreate(RegionAccessibilityCache, slugcat);
 
-                //Store the translated region code, so bordering region checks don't end up checking the wrong region
-                RegionAccessibilityCache.Regions.Add(Region.GetProperRegionAcronym(slugcat, regionCode));
-            }
-            else if (RegionAccessibilityCache.Regions.Contains(regionCode)) //Do we already have a list stored
-                return RegionAccessibilityCache.Regions;
+            string slugcatEquivalentRegion = GetSlugcatEquivalentRegion(regionCode, slugcat); //Checking incompatible world state is not yet supported
 
-            List<string> accessibleRegions = RegionAccessibilityCache.Regions;
+            if (regionCache.Regions.Contains(slugcatEquivalentRegion))
+                return regionCache.Regions;
 
-            foreach (string borderRegion in GetBorderRegions(regionCode, slugcat))
-            {
-                accessibleRegions.Add(borderRegion); //Region cache is guaranteed to be empty - and a region cannot connect to the same region twice
-                GetAccessibleRegionsRecursive(borderRegion, slugcat);
-            }
+            regionCache.Regions.Add(slugcatEquivalentRegion);
+            FindAllConnectingRegionsRecursive(regionCache.Regions, slugcatEquivalentRegion, slugcat);
 
-            return accessibleRegions;
+            RegionAccessibilityCache = regionCache;
+            return regionCache.Regions;
         }
 
-        internal static void GetAccessibleRegionsRecursive(string regionCode, SlugcatStats.Name slugcat)
+        internal static void FindAllConnectingRegionsRecursive(List<string> connectedRegions, string regionCode, SlugcatStats.Name slugcat, bool firstPass = true)
         {
-            List<string> accessibleRegions = RegionAccessibilityCache.Regions;
-
-            foreach (string borderRegion in GetBorderRegions(regionCode, slugcat, true)) //Region codes from gates need to be translated 
+            //Get all region codes that connect with this region, and are accessible for the given slugcat
+            foreach (string connectedRegion in GetConnectingRegions(regionCode, slugcat, !firstPass))
             {
-                string regionAdjusted = Region.GetProperRegionAcronym(slugcat, borderRegion);
-
-                if (!accessibleRegions.Contains(regionAdjusted))
+                //No connecting region will have been comapred against the slugcat at this stage
+                string slugcatEquivalentRegion = GetSlugcatEquivalentRegion(connectedRegion, slugcat); //The region this slugcat will load from a region gate
+                if (!connectedRegions.Contains(slugcatEquivalentRegion))
                 {
-                    accessibleRegions.Add(regionAdjusted);
-                    GetAccessibleRegionsRecursive(regionAdjusted, slugcat);
+                    //Add the equivalent region, and then check its connecting regions
+                    connectedRegions.Add(slugcatEquivalentRegion);
+                    FindAllConnectingRegionsRecursive(connectedRegions, slugcatEquivalentRegion, slugcat, false);
                 }
             }
         }
@@ -134,31 +126,63 @@ namespace ExpeditionRegionSupport.Regions
         /// </summary>
         /// <param name="regionCode">The region to check</param>
         /// <param name="slugcat">The slugcat to check (in the case of conditional links)</param>
-        /// <param name="adjustRegionCode">The proper region code will be used instead of the default when this is true</param>
-        public static List<string> GetBorderRegions(string regionCode, SlugcatStats.Name slugcat, bool adjustRegionCode = true)
+        /// <param name="adjustForSlugcatEquivalences">The proper region code will be used instead of the default when this is true</param>
+        public static List<string> GetConnectingRegions(string regionCode, SlugcatStats.Name slugcat, bool adjustForSlugcatEquivalences)
         {
-            string adjustedRegionCode = Region.GetProperRegionAcronym(slugcat, regionCode);
+            string slugcatEquivalentRegion = GetSlugcatEquivalentRegion(regionCode, slugcat, adjustForSlugcatEquivalences, out string regionBaseEquivalent);
 
-            if (adjustRegionCode)
-                regionCode = adjustedRegionCode;
+            //Plugin.Logger.LogInfo("Searching for border regions");
+            //Plugin.Logger.LogInfo("TARGET " + regionCode);
 
-            List<GateInfo> gates = GetRegionGates(regionCode);
-
-            List<string> foundRegions = new List<string>();
-            foreach (GateInfo gate in gates)
+            List<string> connectedRegions = new List<string>();
+            foreach (GateInfo gate in GetRegionGates(slugcatEquivalentRegion))
             {
-                if (gate.IsActiveFor(slugcat))
-                {
-                    string foundRegion = gate.OtherConnection(regionCode, adjustedRegionCode);
+                if (!gate.IsActiveFor(slugcat)) continue;
 
-                    if (foundRegion != null)
-                        foundRegions.Add(foundRegion);
-                    else
-                        Plugin.Logger.LogInfo("Gate ignored: " + gate.RoomCode);
-                }
+                string connectedRegion = gate.OtherConnection(regionBaseEquivalent, slugcatEquivalentRegion);
+
+                if (connectedRegion != null) //Null indicates that gate region codes do not match region code parameters
+                    connectedRegions.Add(connectedRegion);
+                else
+                    Plugin.Logger.LogInfo("Gate ignored: " + gate.RoomCode);
             }
 
-            return foundRegions;
+            return connectedRegions;
+        }
+
+        /// <summary>
+        /// Gets the proper region equivalent of the region code for a particular slugcat
+        /// </summary>
+        /// <param name="adjustForSlugcatEquivalences">A flag to control the slugcat equivalence check</param>
+        /// <param name="regionBaseEquivalent">The slugcat independent region code equivalent</param>
+        /// <returns></returns>
+        public static string GetSlugcatEquivalentRegion(string regionCode, SlugcatStats.Name slugcat, bool adjustForSlugcatEquivalences, out string regionBaseEquivalent)
+        {
+            if (!adjustForSlugcatEquivalences)
+            {
+                regionBaseEquivalent = regionCode;
+                return regionCode;
+            }
+            return GetSlugcatEquivalentRegion(regionCode, slugcat, out regionBaseEquivalent);
+        }
+
+        /// <summary>
+        /// Gets the proper region equivalent of the region code for a particular slugcat
+        /// </summary>
+        /// <param name="regionBaseEquivalent">The slugcat independent region code equivalent</param>
+        public static string GetSlugcatEquivalentRegion(string regionCode, SlugcatStats.Name slugcat, out string regionBaseEquivalent)
+        {
+            regionBaseEquivalent = Region.GetVanillaEquivalentRegionAcronym(regionCode); //This is needed to return the correct default output
+            return Region.GetProperRegionAcronym(slugcat, regionBaseEquivalent);
+        }
+
+        /// <summary>
+        /// Gets the proper region equivalent of the region code for a particular slugcat
+        /// </summary>
+        public static string GetSlugcatEquivalentRegion(string regionCode, SlugcatStats.Name slugcat)
+        {
+            string regionBaseEquivalent = Region.GetVanillaEquivalentRegionAcronym(regionCode); //This is needed to return the correct default output
+            return Region.GetProperRegionAcronym(slugcat, regionBaseEquivalent);
         }
 
         public static List<string> GetVisitedRegions(SlugcatStats.Name slugcat)
