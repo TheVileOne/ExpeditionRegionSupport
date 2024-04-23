@@ -95,8 +95,15 @@ namespace ExpeditionRegionSupport.Regions
 
             string slugcatEquivalentRegion = GetSlugcatEquivalentRegion(regionCode, slugcat); //Checking incompatible world state is not yet supported
 
+            //The region will either exist in the cache, or belong to an entirely new series of regions
             if (regionCache.Regions.Contains(slugcatEquivalentRegion))
                 return regionCache.Regions;
+
+            if (regionCache.Regions.Count > 0) //Do not clear old cache data here - Allow cache to be stored and compared by reference
+            {
+                regionCache = new RegionsCache();
+                regionCache.LastAccessed = slugcat;
+            }
 
             regionCache.Regions.Add(slugcatEquivalentRegion);
             FindAllConnectingRegionsRecursive(regionCache.Regions, slugcatEquivalentRegion, slugcat);
