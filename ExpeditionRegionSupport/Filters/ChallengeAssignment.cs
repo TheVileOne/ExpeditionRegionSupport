@@ -7,6 +7,7 @@ using Expedition;
 using ExpeditionRegionSupport.Filters.Utils;
 using ExpeditionRegionSupport.Logging.Utils;
 using ExpeditionRegionSupport.Regions;
+using ExpeditionRegionSupport.Tools;
 
 namespace ExpeditionRegionSupport.Filters
 {
@@ -144,8 +145,8 @@ namespace ExpeditionRegionSupport.Filters
         /// </summary>
         public static Action HandleOnProcessComplete;
 
-        private static Stopwatch processTimer = new Stopwatch();
-        private static Stopwatch requestTimer = new Stopwatch();
+        private static DebugTimer processTimer = new DebugTimer();
+        private static DebugTimer requestTimer = new DebugTimer();
 
         private static int assignedSlot = -1;
 
@@ -254,7 +255,7 @@ namespace ExpeditionRegionSupport.Filters
             if (Plugin.DebugMode)
             {
                 //Report the time it took to complete the entire assignment process
-                Plugin.Logger.LogInfo($"Entire process took {processTimer.ElapsedMilliseconds} ms");
+                processTimer.ReportTime("Entire process");
                 processTimer.Reset();
             }
         }
@@ -287,7 +288,7 @@ namespace ExpeditionRegionSupport.Filters
             if (Plugin.DebugMode)
             {
                 //Report the time it took to complete the entire assignment process
-                Plugin.Logger.LogInfo($"Challenge request took {requestTimer.ElapsedMilliseconds} ms");
+                requestTimer.ReportTime("Challenge request");
                 requestTimer.Reset();
             }
         }
