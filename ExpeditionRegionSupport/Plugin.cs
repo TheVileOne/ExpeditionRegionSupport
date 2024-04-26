@@ -84,6 +84,10 @@ namespace ExpeditionRegionSupport
 
                 IL.SaveState.setDenPosition += SaveState_setDenPosition;
 
+                //ModMerger
+                On.ModManager.ModMerger.PendingApply.CollectModifications += PendingApply_CollectModifications;
+                IL.ModManager.ModMerger.PendingApply.CollectModifications += PendingApply_CollectModifications;
+
                 //Misc.
                 On.HardmodeStart.SinglePlayerUpdate += HardmodeStart_SinglePlayerUpdate;
                 On.Room.Loaded += Room_Loaded;
@@ -107,6 +111,60 @@ namespace ExpeditionRegionSupport
 
             ChallengeFilterHooks.ApplyHooks(); //This needs to be handled in PostModsInIt or Expedition.ChallengeTools breaks
             SlugBaseEnabled = ModManager.ActiveMods.Exists(m => m.id == "slime-cubed.slugbase");
+        }
+
+        private static bool restrictionFileMergePending;
+
+        /// <summary>
+        /// A flag that indicates that a ModMerger tag has been read from file
+        /// </summary>
+        private static bool hasDetectedModMergerTag;
+
+        private void PendingApply_CollectModifications(On.ModManager.ModMerger.PendingApply.orig_CollectModifications orig, ModManager.ModMerger.PendingApply self)
+        {
+            restrictionFileMergePending = self.filePath.EndsWith("restricted-regions.txt"); //Check that we are handling the right file
+            try
+            {
+                orig(self);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex);
+                Logger.LogError(ex.StackTrace);
+            }
+            hasDetectedModMergerTag = false;
+            restrictionFileMergePending = false;
+        }
+
+        private void PendingApply_CollectModifications(ILContext il)
+        {
+            try
+            {
+                ILCursor cursor = new ILCursor(il);
+
+                //First, we need to establish a way of checking each line handled by ModMerger
+                cursor.GotoNext(MoveType.AfterLabel, x => x.MatchLdloc(7)); //This is a flag, and we need the first time it is loaded onto the stack
+                cursor.Emit(OpCodes.Ldloc, 6); //Push array containing file data onto stack
+                cursor.Emit(OpCodes.Ldloc, 8); //Push current index in array onto stack
+                cursor.EmitDelegate<Action<string[], int>>((fileDataArray, fileDataArrayIndex) =>
+                {
+                    processModMergerLine(ref fileDataArray[fileDataArrayIndex]);
+                });
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex);
+                Logger.LogError(ex.StackTrace);
+            }
+        }
+
+        private static void processModMergerLine(ref string pendingApplyLine)
+        {
+            hasDetectedModMergerTag |= pendingApplyLine.StartsWith("[");
+
+            //Add modifications can be processed without an [ADD] tag once per file, and before any other tags are processed
+            if (restrictionFileMergePending && !hasDetectedModMergerTag && !pendingApplyLine.StartsWith("//") && !string.IsNullOrWhiteSpace(pendingApplyLine))
+                pendingApplyLine = "[ADD]" + pendingApplyLine;
         }
 
         private HSLColor Menu_MenuColor(On.Menu.Menu.orig_MenuColor orig, Menu.Menu.MenuColors color)
