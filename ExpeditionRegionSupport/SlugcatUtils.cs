@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MoreSlugcats;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,6 +8,27 @@ namespace ExpeditionRegionSupport
 {
     public static class SlugcatUtils
     {
+        public static readonly SlugcatStats.Name[] VanillaSlugcats =
+        {
+            SlugcatStats.Name.Yellow,
+            SlugcatStats.Name.White,
+            SlugcatStats.Name.Red
+        };
+
+        /// <summary>
+        /// For useful purposes, Downpour slugcats are not considered modded
+        /// </summary>
+        public static bool IsModcat(SlugcatStats.Name slugcat)
+        {
+            return !IsVanillaSlugcat(slugcat) && !SlugcatStats.IsSlugcatFromMSC(slugcat)
+                && !slugcat.Equals(SlugcatStats.Name.Night) && !slugcat.Equals(MoreSlugcatsEnums.SlugcatStatsName.Slugpup);
+        }
+
+        public static bool IsVanillaSlugcat(SlugcatStats.Name slugcat)
+        {
+            return VanillaSlugcats.Contains(slugcat);
+        }
+
         /// <summary>
         /// Gets the SlugcatStats.Name associated with a name string, or creates one if not registered
         /// </summary>
