@@ -65,6 +65,11 @@ namespace ExpeditionRegionSupport.Regions
 
         public bool ShouldBuildRegionList = true;
 
+        /// <summary>
+        /// A flag that controls whether a slugcat can spawn in a region equivalent version of another region that does not match the region version for that slugcat
+        /// </summary>
+        public bool EnforceRegionEquivalencies = true;
+
         public RegionKey LastRandomRegion;
 
         public RegionSelector(SlugcatStats.Name activeSlugcat)
@@ -268,6 +273,19 @@ namespace ExpeditionRegionSupport.Regions
             {
                 //Check region restrictions handled by RestrictionProcessor (read from file)
                 regionExcluded = checkRestrictions(regionCode, regionKey.Restrictions, false);
+            }
+
+            if (!regionExcluded)
+            {
+                //Modcats need an equivalency check for every region, other characters need one for custom regions only
+                bool shouldEnforceRegionEquivalencies = EnforceRegionEquivalencies
+                    && (SlugcatUtils.IsModcat(ActiveSlugcat) || (ModManager.ModdedRegionsEnabled && RegionUtils.IsCustomRegion(regionCode)));
+
+                if (shouldEnforceRegionEquivalencies)
+                {
+                    //Disallows slugcats from spawning in alternate versions of regions unless they are allowed to spawn in that region
+                    regionExcluded = regionCode != RegionUtils.GetSlugcatEquivalentRegion(regionCode, ActiveSlugcat);
+                }
             }
 
             if (regionExcluded && !RegionsExcluded.Contains(regionCode))
