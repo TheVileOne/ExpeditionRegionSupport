@@ -161,32 +161,25 @@ namespace ExpeditionRegionSupport.Regions
 
                 //Log every region available for selection. Some regions may be empty and will be removed later in the selection process
                 logBuffer.AddString("Active Regions");
-                var enumerator = availableStoryRegions.Where(r => !RegionsExcluded.Contains(r)).GetEnumerator();
-
-                while (enumerator.MoveNext())
-                    logBuffer.AddString(enumerator.Current);
+                logBuffer.AddFrom(availableStoryRegions.Where(r => !RegionsExcluded.Contains(r)));
 
                 logBuffer.AddString("Optional Regions");
-                enumerator = availableOptionalRegions.Where(r => !RegionsExcluded.Contains(r)).GetEnumerator();
-
-                while (enumerator.MoveNext())
-                    logBuffer.AddString(enumerator.Current);
+                logBuffer.AddFrom(availableOptionalRegions.Where(r => !RegionsExcluded.Contains(r)));
 
                 logBuffer.AddString("Other Regions");
 
-                int logCount = 0;
+                bool hasOtherRegions = false;
                 foreach (RegionKey regionKey in RegionsAvailable)
                 {
                     string region = regionKey.RegionCode;
-
                     if (!availableStoryRegions.Contains(region) && !availableOptionalRegions.Contains(region))
                     {
                         logBuffer.AddString(region);
-                        logCount++;
+                        hasOtherRegions = true;
                     }
                 }
 
-                if (logCount == 0)
+                if (!hasOtherRegions)
                     logBuffer.AddString("NONE");
 
                 Plugin.Logger.LogInfo(logBuffer.ToString());
