@@ -242,70 +242,31 @@ namespace ExpeditionRegionSupport.Regions
         /// Certain regions are specific to a world state. Room codes related to those regions, as well as room codes with other
         /// restrictions applied are handled here. Filter checks are also handled here.
         /// </summary>
+        /// <param name="regionCode">The region code to check</param>
+        /// <param name="regionStatusUnknown">Whether or not we know the region code is a story/optional region</param>
         /// <returns>Region code was handled by the method</returns>
         private bool handleRestrictedRegion(string regionCode, bool regionStatusUnknown)
         {
             bool regionExcluded = false,
                  regionFiltered = false;
 
-            if (applyFilters(regionCode))
+            if (applyFilters(regionCode)) //Apply any region filters
             {
                 regionExcluded = true;
                 regionFiltered = true;
             }
-
-            if (!regionExcluded)
+            else if (applyRestrictionChecks(regionCode)) //Apply any code-enabled restrictions
             {
-                regionExcluded = applyRestrictionChecks(regionCode);
+                regionExcluded = true;
             }
-
-            //If we know this, we already know that this is valid region for the active WorldState, and slugcat
-            if (!regionExcluded && regionStatusUnknown)
+            else if (regionStatusUnknown && applyWorldStateChecks(regionCode)) //Check that active WorldState is consistent with region 
             {
-                //Check that the region code belongs to the active WorldState
-                if (regionCode == "SL") //Shoreline
-                {
-                    regionExcluded = ModManager.MSC && (ActiveWorldState & WorldState.OldWorld) != 0;
-                }
-                else if (regionCode == "SS") //Five Pebbles
-                {
-                    regionExcluded = ModManager.MSC && (ActiveWorldState & (WorldState.Rivulet | WorldState.Saint)) != 0; //Rivulet has The Rot. Saint has Silent Construct.
-                }
-                else if (regionCode == "OE") //Outer Expanse
-                {
-                    regionExcluded = !ModManager.MSC || (ActiveWorldState & WorldState.Gourmand) == 0;
-                }
-                else if (regionCode == "LC") //Metropolis
-                {
-                    regionExcluded = !ModManager.MSC || (ActiveWorldState & WorldState.Artificer) == 0;
-                }
-                else if (regionCode == "LM") //Waterfront Facility
-                {
-                    regionExcluded = !ModManager.MSC || (ActiveWorldState & WorldState.OldWorld) == 0;
-                }
-                else if (regionCode == "DM") //Looks to the Moon (Spearmaster)
-                {
-                    regionExcluded = !ModManager.MSC || (ActiveWorldState & WorldState.SpearMaster) == 0;
-                }
-                else if (regionCode == "RM" || regionCode == "MS") //The Rot, Submerged Superstructure
-                {
-                    regionExcluded = !ModManager.MSC || (ActiveWorldState & WorldState.Rivulet) == 0;
-                }
-                else if (regionCode == "HR" || regionCode == "CL" || regionCode == "UG") //Rubicon, Silent Construct, Undergrowth
-                {
-                    regionExcluded = !ModManager.MSC || (ActiveWorldState & WorldState.Saint) == 0;
-                }
-                else if (regionCode == "DS" || regionCode == "SH" || regionCode == "UW") //Drainage Systems, Shaded Citadel, The Exterior
-                {
-                    regionExcluded = !ModManager.MSC || (ActiveWorldState & WorldState.Saint) != 0;
-                }
-
-                //GameFeatures.WorldState.TryGet(player, out SlugcatStats.Name[] characters)
+                //Known story and optional regions have already been handled when this check runs 
+                regionExcluded = true;
             }
-
-            RegionKey regionKey;
-            if (!regionExcluded && RegionsRestricted.TryFind(regionCode, out regionKey) && regionKey.IsRegionRestricted)
+            else if (RegionsRestricted.TryFind(regionCode, out RegionKey regionKey) && regionKey.IsRegionRestricted)
             {
+                //Check region restrictions handled by RestrictionProcessor (read from file)
                 regionExcluded = checkRestrictions(regionCode, regionKey.Restrictions, false);
             }
 
@@ -399,10 +360,60 @@ namespace ExpeditionRegionSupport.Regions
         /// </summary>
         /// <param name="regionCode">The region code to check</param>
         /// <returns>Whether the region code should be excluded</returns>
-        public bool applyRestrictionChecks(string regionCode)
+        private bool applyRestrictionChecks(string regionCode)
         {
             //All checks for a given region must pass or region will be excluded
             return ActiveRestrictionChecks.Exists(r => r.RegionCode == regionCode && !r.CheckRegion());
+        }
+
+        /// <summary>
+        /// Check that the region code belongs to the active WorldState. This mainly compares differences between MSC character regions
+        /// </summary>
+        /// <param name="regionCode">The region code to check</param>
+        /// <returns>Whether the region code should be excluded</returns>
+        private bool applyWorldStateChecks(string regionCode)
+        {
+            bool regionExcluded = false;
+
+            if (regionCode == "SL") //Shoreline
+            {
+                regionExcluded = ModManager.MSC && (ActiveWorldState & WorldState.OldWorld) != 0;
+            }
+            else if (regionCode == "SS") //Five Pebbles
+            {
+                regionExcluded = ModManager.MSC && (ActiveWorldState & (WorldState.Rivulet | WorldState.Saint)) != 0; //Rivulet has The Rot. Saint has Silent Construct.
+            }
+            else if (regionCode == "OE") //Outer Expanse
+            {
+                regionExcluded = !ModManager.MSC || (ActiveWorldState & WorldState.Gourmand) == 0;
+            }
+            else if (regionCode == "LC") //Metropolis
+            {
+                regionExcluded = !ModManager.MSC || (ActiveWorldState & WorldState.Artificer) == 0;
+            }
+            else if (regionCode == "LM") //Waterfront Facility
+            {
+                regionExcluded = !ModManager.MSC || (ActiveWorldState & WorldState.OldWorld) == 0;
+            }
+            else if (regionCode == "DM") //Looks to the Moon (Spearmaster)
+            {
+                regionExcluded = !ModManager.MSC || (ActiveWorldState & WorldState.SpearMaster) == 0;
+            }
+            else if (regionCode == "RM" || regionCode == "MS") //The Rot, Submerged Superstructure
+            {
+                regionExcluded = !ModManager.MSC || (ActiveWorldState & WorldState.Rivulet) == 0;
+            }
+            else if (regionCode == "HR" || regionCode == "CL" || regionCode == "UG") //Rubicon, Silent Construct, Undergrowth
+            {
+                regionExcluded = !ModManager.MSC || (ActiveWorldState & WorldState.Saint) == 0;
+            }
+            else if (regionCode == "DS" || regionCode == "SH" || regionCode == "UW") //Drainage Systems, Shaded Citadel, The Exterior
+            {
+                regionExcluded = !ModManager.MSC || (ActiveWorldState & WorldState.Saint) != 0;
+            }
+
+            //GameFeatures.WorldState.TryGet(player, out SlugcatStats.Name[] characters)
+            return regionExcluded;
         }
 
         public RegionKey RandomRegion()
