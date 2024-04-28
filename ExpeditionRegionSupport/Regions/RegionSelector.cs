@@ -122,7 +122,7 @@ namespace ExpeditionRegionSupport.Regions
 
             if (ModManager.ModdedRegionsEnabled)
             {
-                List<string> regions = RegionUtils.GetAllRegions();
+                string[] regions = RegionUtils.GetAllRegions();
 
                 foreach (string regionCode in regions)
                 {

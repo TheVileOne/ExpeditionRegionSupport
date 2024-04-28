@@ -56,9 +56,9 @@ namespace ExpeditionRegionSupport.Regions
             return false;
         }
 
-        public static List<string> GetAllRegions()
+        public static string[] GetAllRegions()
         {
-            return ProgressionData.PlayerData.ProgressData.regionNames.ToList();
+            return ProgressionData.PlayerData.ProgressData.regionNames;
         }
 
         public static List<string> GetAvailableRegions(SlugcatStats.Name slugcat)
