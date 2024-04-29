@@ -483,6 +483,84 @@ namespace ExpeditionRegionSupport.Regions
             RegionFilterCache.Clear();
         }
 
+        public static RegionProfile[] EquivalentRegions;
+
+        /// <summary>
+        /// Reads all equivalences.txt files and compiles lines into a dictionary for quick access
+        /// </summary>
+        public static void CacheEquivalentRegions()
+        {
+            Plugin.Logger.LogInfo("Caching equivalent regions");
+
+            string[] regions = GetAllRegions();
+
+            EquivalentRegions = new RegionProfile[regions.Length];
+            for (int i = 0; i < regions.Length; i++)
+                EquivalentRegions[i] = new RegionProfile(regions[i]);
+
+            foreach (string path in GetFilePathFromAllSources("equivalences.txt"))
+            {
+                Plugin.Logger.LogInfo("Reading from " + path);
+
+                //The region code stored here replaces any region mentioned in the equivalences.txt file
+                string targetRegion = Path.GetFileName(Path.GetDirectoryName(path)).ToUpper(); //Get region code from containing directory
+
+                string[] fileData = File.ReadAllText(path).Trim().Split(','); //Split into sections
+
+                foreach (string line in fileData)
+                {
+                    int sepIndex = line.IndexOf('-'); //Either will be SU, SU-Spear, or Spear-SU
+
+                    bool appliesToAllSlugcats = sepIndex == -1; //This will get overwritten by any conflicting values
+
+                    string replaceTarget;
+                    if (appliesToAllSlugcats)
+                        replaceTarget = line.Trim().ToUpper();
+                    else
+                    {
+                        //One of these values is the region code, and the other is a slugcat name
+                        string valueA = line.Substring(0, sepIndex).Trim();
+                        string valueB = line.Substring(sepIndex + 1).Trim();
+
+                        SlugcatStats.Name slugcat;
+                        if (valueA.Length <= 2)
+                        {
+                            slugcat = equivalentRegionsCacheHelper(regions, valueA, valueB, out replaceTarget);
+                        }
+                        else if (valueB.Length <= 2)
+                        {
+                            slugcat = equivalentRegionsCacheHelper(regions, valueB, valueA, out replaceTarget);
+                        }
+                        else //Neither are standard length for a region
+                        {
+                            slugcat = equivalentRegionsCacheHelper(regions, valueA, valueB, out replaceTarget);
+                        }
+                    }
+
+                    if (replaceTarget == null) continue; //The region is likely part of an unloaded mod
+
+                    RegionProfile equivalentRegion = Array.Find(EquivalentRegions, r => r.Equals(replaceTarget));
+                }
+            }
+        }
+
+        private static SlugcatStats.Name equivalentRegionsCacheHelper(string[] regions, string valueA, string valueB, out string regionCode)
+        {
+            regionCode = Array.Find(regions, r => r == valueA.ToUpper());
+
+            SlugcatStats.Name slugcat = null;
+            if (regionCode != null)
+                slugcat = SlugcatUtils.GetOrCreate(valueB);
+            else
+            {
+                regionCode = Array.Find(regions, r => r == valueB.ToUpper());
+
+                if (regionCode != null)
+                    slugcat = SlugcatUtils.GetOrCreate(valueA);
+            }
+            return slugcat;
+        }
+
         public static bool IsVanillaRegion(string regionCode)
         {
             return
@@ -534,6 +612,17 @@ namespace ExpeditionRegionSupport.Regions
         public static string GetFilePath(string regionCode, string fileWanted)
         {
             return AssetManager.ResolveFilePath(Path.Combine("world", regionCode, fileWanted));
+        }
+
+        /// <summary>
+        /// Gets all version of a file from the toplevel World directory from all locations (expensive)
+        /// </summary>
+        public static IEnumerable<string> GetFilePathFromAllSources(string fileWanted)
+        {
+            return AssetManager.ListDirectory("World", true).Select(path =>
+            {
+                return AssetManager.ResolveFilePath(Path.Combine("World", Path.GetFileName(path), fileWanted));
+            }).Where(File.Exists);
         }
 
         /// <summary>
