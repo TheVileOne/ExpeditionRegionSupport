@@ -494,16 +494,66 @@ namespace ExpeditionRegionSupport.Regions
 
             string[] regions = GetAllRegions();
 
+            //MSC regions with conditional equivalencies
+            RegionProfile profile_DS, profile_SH, profile_SL, profile_SS, //Vanilla profiles
+                          profile_UG, profile_CL, profile_LM, profile_RM; //MSC profiles
+
+            profile_DS = profile_SH = profile_SL = profile_SS = default;
+            profile_UG = profile_CL = profile_LM = profile_RM = default;
+
             EquivalentRegions = new RegionProfile[regions.Length];
             for (int i = 0; i < regions.Length; i++)
+            {
                 EquivalentRegions[i] = new RegionProfile(regions[i]);
+
+                if (ModManager.MSC)
+                {
+                    switch (regions[i])
+                    {
+                        case "DS":
+                            profile_DS = EquivalentRegions[i];
+                            break;
+                        case "SH":
+                            profile_SH = EquivalentRegions[i];
+                            break;
+                        case "SL":
+                            profile_SL = EquivalentRegions[i];
+                            break;
+                        case "SS":
+                            profile_SS = EquivalentRegions[i];
+                            break;
+                        case "UG":
+                            profile_UG = EquivalentRegions[i];
+                            break;
+                        case "CL":
+                            profile_CL = EquivalentRegions[i];
+                            break;
+                        case "LM":
+                            profile_LM = EquivalentRegions[i];
+                            break;
+                        case "RM":
+                            profile_RM = EquivalentRegions[i];
+                            break;
+                    }
+                }
+            }
+
+            //Apply known MSC equivalencies here
+            if (ModManager.MSC)
+            {
+                profile_DS.EquivalentRegions.Add(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Saint, profile_UG);
+                profile_SH.EquivalentRegions.Add(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Saint, profile_CL);
+                profile_SL.EquivalentRegions.Add(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Spear, profile_LM);
+                profile_SL.EquivalentRegions.Add(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Artificer, profile_LM);
+                profile_SS.EquivalentRegions.Add(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Rivulet, profile_RM);
+            }
 
             foreach (string path in GetFilePathFromAllSources("equivalences.txt"))
             {
                 Plugin.Logger.LogInfo("Reading from " + path);
 
                 //The region code stored here replaces any region mentioned in the equivalences.txt file
-                string targetRegion = Path.GetFileName(Path.GetDirectoryName(path)).ToUpper(); //Get region code from containing directory
+                RegionProfile targetRegion = Array.Find(EquivalentRegions, r => r.Equals(Path.GetFileName(Path.GetDirectoryName(path)).ToUpper())); //Get region code from containing directory
 
                 string[] fileData = File.ReadAllText(path).Trim().Split(','); //Split into sections
 
@@ -514,15 +564,18 @@ namespace ExpeditionRegionSupport.Regions
                     bool appliesToAllSlugcats = sepIndex == -1; //This will get overwritten by any conflicting values
 
                     string replaceTarget;
+                    SlugcatStats.Name slugcat;
                     if (appliesToAllSlugcats)
+                    {
                         replaceTarget = line.Trim().ToUpper();
+                        slugcat = new SlugcatStats.Name("ANY");
+                    }
                     else
                     {
                         //One of these values is the region code, and the other is a slugcat name
                         string valueA = line.Substring(0, sepIndex).Trim();
                         string valueB = line.Substring(sepIndex + 1).Trim();
 
-                        SlugcatStats.Name slugcat;
                         if (valueA.Length <= 2)
                         {
                             slugcat = equivalentRegionsCacheHelper(regions, valueA, valueB, out replaceTarget);
@@ -539,7 +592,8 @@ namespace ExpeditionRegionSupport.Regions
 
                     if (replaceTarget == null) continue; //The region is likely part of an unloaded mod
 
-                    RegionProfile equivalentRegion = Array.Find(EquivalentRegions, r => r.Equals(replaceTarget));
+                    RegionProfile slugcatEquivalentRegion = Array.Find(EquivalentRegions, r => r.Equals(replaceTarget));
+                    targetRegion.RegisterEquivalency(slugcat, slugcatEquivalentRegion);
                 }
             }
         }

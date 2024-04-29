@@ -35,6 +35,13 @@ namespace ExpeditionRegionSupport.Regions.Data
             EquivalentRegions = new Dictionary<SlugcatStats.Name, RegionProfile>();
         }
 
+        public void RegisterEquivalency(SlugcatStats.Name slugcat, RegionProfile region)
+        {
+            if (region.Equals(this) || region.IsDefault) return;
+
+            EquivalentRegions[slugcat] = region;
+        }
+
         public RegionProfile GetSlugcatEquivalentRegion(SlugcatStats.Name slugcat)
         {
             RegionProfile baseEquivalentRegion = GetEquivalentBaseRegion(slugcat); //Region candidacy checking should start at a base equivalent region
