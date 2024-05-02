@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ExpeditionRegionSupport.Regions.Data
 {
-    public struct RegionProfile
+    public readonly struct RegionProfile
     {
         public readonly string RegionCode;
 
@@ -26,6 +26,11 @@ namespace ExpeditionRegionSupport.Regions.Data
         /// </summary>
         public readonly bool IsBaseRegion => EquivalentBaseRegions.Count == 0;
 
+        /// <summary>
+        /// This region should not be assigned any base equivalent regions even if it serves as a substitute for another region  
+        /// </summary>
+        public readonly bool IsPermanentBaseRegion;
+
         public bool IsDefault => Equals(default(RegionProfile));
 
         public RegionProfile(string regionCode)
@@ -33,19 +38,83 @@ namespace ExpeditionRegionSupport.Regions.Data
             RegionCode = regionCode;
             EquivalentBaseRegions = new List<RegionProfile>();
             EquivalentRegions = new Dictionary<SlugcatStats.Name, RegionProfile>();
+
+            IsPermanentBaseRegion = RegionUtils.IsVanillaRegion(RegionCode)
+                                 || RegionCode == "OE" || RegionCode == "VS" || RegionCode == "HR" || RegionCode == "MS" || RegionCode == "LC";
         }
 
+        /// <summary>
+        /// Establish an equivalent relationship with another RegionProfile
+        /// </summary>
+        /// <param name="slugcat">The slugcat conditions for loading a specific equivalent region</param>
+        /// <param name="region">The equivalent region that will be loaded based on a specific slugcat</param>
         public void RegisterEquivalency(SlugcatStats.Name slugcat, RegionProfile region)
         {
-            if (region.Equals(this) || region.IsDefault) return;
+            if (region.Equals(this) || region.IsDefault || EquivalentBaseRegions.Contains(region)) return;
 
-            EquivalentRegions[slugcat] = region;
+            //Check that this region already has an equivalent region assigned to this slugcat
+            if (EquivalentRegions.TryGetValue(slugcat, out RegionProfile existingProfile))
+            {
+                //Don't process if region has already been assigned, or equivalency condition would be less specific
+                if (existingProfile.Equals(region) || slugcat == SlugcatUtils.AnySlugcat) return;
+
+                if (!HasIllegalRelationships(region, slugcat))
+                {
+                    Plugin.Logger.LogInfo("Changing equivalent region targetting " + RegionCode);
+                    EquivalentRegions[slugcat] = region;
+
+                    if (!region.IsPermanentBaseRegion) //Prevent certain regions from having base equivalencies
+                        region.EquivalentBaseRegions.Add(this);
+                }
+            }
+
+            if (slugcat != SlugcatUtils.AnySlugcat)
+            {
+                EquivalentRegions.Remove(SlugcatUtils.AnySlugcat); //Region either applies to anyone, or only certain slugcats
+                region.EquivalentBaseRegions.Add(this);
+            }
+            else if (!EquivalentRegions.Any())
+                EquivalentRegions[slugcat] = region;
+        }
+
+        /// <summary>
+        /// Check for situations that would make an equivalency relationship with this region redundant, or incompatible 
+        /// </summary>
+        public bool HasIllegalRelationships(RegionProfile region, SlugcatStats.Name slugcat)
+        {
+            if (region.IsDefault) return false;
+
+            RegionProfile compareRegion = region;
+
+            bool continueLoop = true;
+            bool hasIllegalRelationships = false;
+            do
+            {
+                RegionProfile regionCheck = region.GetRegionCandidate(slugcat);
+
+                if (regionCheck.IsDefault) //The slugcat is not associated with any additional equivalent regions
+                {
+                    continueLoop = false;
+                }
+                else if (regionCheck.Equals(this) || regionCheck.Equals(compareRegion)) //Illegal loop detected
+                {
+                    hasIllegalRelationships = true;
+                    continueLoop = false;
+                }
+                else
+                {
+                    region = regionCheck; //Set as next region to evaluate
+                }
+            }
+            while (continueLoop);
+
+            return hasIllegalRelationships;
         }
 
         public RegionProfile GetSlugcatEquivalentRegion(SlugcatStats.Name slugcat)
         {
             RegionProfile baseEquivalentRegion = GetEquivalentBaseRegion(slugcat); //Region candidacy checking should start at a base equivalent region
-            return baseEquivalentRegion.GetRegionCandidate(slugcat, new HashSet<string>() { RegionCode });
+            return baseEquivalentRegion.GetRegionCandidateRecursive(slugcat, new HashSet<string>() { RegionCode });
         }
 
         /// <summary>
@@ -85,14 +154,21 @@ namespace ExpeditionRegionSupport.Regions.Data
             return EquivalentBaseRegions[0].GetEquivalentBaseRegion(slugcat); //Default to the first registered base
         }
 
-        internal RegionProfile GetRegionCandidate(SlugcatStats.Name slugcat, HashSet<string> checkedRegions)
+        internal RegionProfile GetRegionCandidate(SlugcatStats.Name slugcat)
         {
             //Check that there is an equivalent region specific to this slugcat
             EquivalentRegions.TryGetValue(slugcat, out RegionProfile equivalentRegion);
 
             //If there are no slugcat specific equivalent regions, check for any unspecific equivalent regions
             if (equivalentRegion.IsDefault)
-                EquivalentRegions.TryGetValue(new SlugcatStats.Name("ANY"), out equivalentRegion);
+                EquivalentRegions.TryGetValue(SlugcatUtils.AnySlugcat, out equivalentRegion);
+
+            return equivalentRegion;
+        }
+
+        internal RegionProfile GetRegionCandidateRecursive(SlugcatStats.Name slugcat, HashSet<string> checkedRegions)
+        {
+            RegionProfile equivalentRegion = GetRegionCandidate(slugcat);
 
             if (!equivalentRegion.IsDefault)
             {
@@ -100,7 +176,7 @@ namespace ExpeditionRegionSupport.Regions.Data
                 if (!checkedRegions.Contains(equivalentRegion.RegionCode))
                 {
                     checkedRegions.Add(equivalentRegion.RegionCode);
-                    equivalentRegion = equivalentRegion.GetRegionCandidate(slugcat, checkedRegions);
+                    equivalentRegion = equivalentRegion.GetRegionCandidateRecursive(slugcat, checkedRegions);
                 }
                 return equivalentRegion;
             }

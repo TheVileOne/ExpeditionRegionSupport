@@ -8,6 +8,11 @@ namespace ExpeditionRegionSupport
 {
     public static class SlugcatUtils
     {
+        /// <summary>
+        /// Represents a group inclusive SlugcatStats.Name instance 
+        /// </summary>
+        public static SlugcatStats.Name AnySlugcat = new SlugcatStats.Name("ANY");
+
         public static readonly SlugcatStats.Name[] VanillaSlugcats =
         {
             SlugcatStats.Name.Yellow,

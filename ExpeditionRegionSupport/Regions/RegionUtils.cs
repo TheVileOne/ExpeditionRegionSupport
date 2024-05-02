@@ -568,7 +568,7 @@ namespace ExpeditionRegionSupport.Regions
                     if (appliesToAllSlugcats)
                     {
                         replaceTarget = line.Trim().ToUpper();
-                        slugcat = new SlugcatStats.Name("ANY");
+                        slugcat = SlugcatUtils.AnySlugcat;
                     }
                     else
                     {
