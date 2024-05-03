@@ -65,6 +65,13 @@ namespace ExpeditionRegionSupport
             return sb.ToString();
         }
 
+        public static bool Exists<T>(this IEnumerable<T> self, Func<T, bool> predicate)
+        {
+            T result = self.FirstOrDefault(predicate);
+
+            return result?.Equals(default(T)) ?? false;
+        }
+
         public class ConstrainedList<T> : List<T>
         {
             /// <summary>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -33,11 +34,17 @@ namespace ExpeditionRegionSupport.Regions.Data
 
         public bool IsDefault => Equals(default(RegionProfile));
 
+        /// <summary>
+        /// Stores the RegionProfile requesting to be made an equivalency to another RegionProfile
+        /// </summary>
+        public readonly StrongBox<RegionProfile> PendingEquivalency;
+
         public RegionProfile(string regionCode)
         {
             RegionCode = regionCode;
             EquivalentBaseRegions = new List<RegionProfile>();
             EquivalentRegions = new Dictionary<SlugcatStats.Name, RegionProfile>();
+            PendingEquivalency = new StrongBox<RegionProfile>();
 
             IsPermanentBaseRegion = RegionUtils.IsVanillaRegion(RegionCode)
                                  || RegionCode == "OE" || RegionCode == "VS" || RegionCode == "HR" || RegionCode == "MS" || RegionCode == "LC";
@@ -52,11 +59,14 @@ namespace ExpeditionRegionSupport.Regions.Data
         {
             if (region.Equals(this) || region.IsDefault || EquivalentBaseRegions.Contains(region)) return;
 
+            PendingEquivalency.Value = region;
+
             //Check that this region already has an equivalent region assigned to this slugcat
-            if (EquivalentRegions.TryGetValue(slugcat, out RegionProfile existingProfile))
+            if (EquivalentRegions.TryGetValue(slugcat, out RegionProfile existingProfile)
+             || EquivalentRegions.TryGetValue(SlugcatUtils.AnySlugcat, out existingProfile))
             {
-                //Don't process if region has already been assigned, or equivalency condition would be less specific
-                if (existingProfile.Equals(region) || slugcat == SlugcatUtils.AnySlugcat) return;
+                //Don't process if region has already been assigned for this slugcat
+                if (existingProfile.Equals(region)) return;
 
                 if (!HasIllegalRelationships(region, slugcat))
                 {
@@ -82,7 +92,17 @@ namespace ExpeditionRegionSupport.Regions.Data
         /// </summary>
         public bool HasIllegalRelationships(RegionProfile region, SlugcatStats.Name slugcat)
         {
-            if (region.IsDefault) return false;
+            //This is stored in the registering RegionProfile (the callback region), and is required to ensure complicated, but possible loop relationships are detected
+            if (!region.PendingEquivalency.Value.IsDefault && (slugcat == SlugcatUtils.AnySlugcat || !EquivalentRegions.ContainsKey(slugcat)))
+                region = region.PendingEquivalency.Value;
+
+            //The AnySlugcat specification requires all slugcat relationships to be checked for illegal relationships
+            if (slugcat == SlugcatUtils.AnySlugcat)
+            {
+                //Checks the equivalent region data of the region we want to process to see if it can reach the callback region, which would form an illegal loop 
+                RegionProfile callbackRegion = this;
+                return region.EquivalentRegions.Exists(equivalencyEntry => callbackRegion.HasIllegalRelationships(equivalencyEntry.Value, equivalencyEntry.Key));
+            }
 
             RegionProfile compareRegion = region;
 
@@ -156,6 +176,12 @@ namespace ExpeditionRegionSupport.Regions.Data
 
         internal RegionProfile GetRegionCandidate(SlugcatStats.Name slugcat)
         {
+            if (slugcat == SlugcatUtils.AnySlugcat)
+            {
+                Plugin.Logger.LogInfo("Returning a region candidate for any slugcat. Is this intentional?");
+                return EquivalentRegions.FirstOrDefault().Value;
+            }
+
             //Check that there is an equivalent region specific to this slugcat
             EquivalentRegions.TryGetValue(slugcat, out RegionProfile equivalentRegion);
 
