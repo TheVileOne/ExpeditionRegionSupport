@@ -394,7 +394,7 @@ namespace ExpeditionRegionSupport
         {
             Player player = self.room.game.Players[0].realizedCreature as Player;
 
-            bool expeditionMode = RWCustom.Custom.rainWorld.ExpeditionMode;
+            bool expeditionMode = Custom.rainWorld.ExpeditionMode;
 
             if (expeditionMode)
                 self.nshSwarmer = null;

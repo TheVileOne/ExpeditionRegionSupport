@@ -141,15 +141,13 @@ namespace ExpeditionRegionSupport.Regions.Data
                 {
                     continueLoop = false;
                 }
-                else if (regionCheck.Equals(this) || regionCheck.Equals(compareRegion)) //Illegal loop detected
+                else if (regionCheck.Equals(this) || regionCheck.Equals(compareRegion)) //Compare each subsequent region to either the callback region, or its pending equivalency
                 {
-                    hasIllegalRelationships = true;
-                    continueLoop = false;
+                    hasIllegalRelationships = true; //Illegal loop detected - Actually there is a form of loop that wouldn't be illegal, but could lead to a different region being
+                    continueLoop = false;           //loaded when the region code gets changes to its base equivalent region profile.
                 }
-                else
-                {
-                    region = regionCheck; //Set as next region to evaluate
-                }
+
+                region = regionCheck; //Set the next profile to evaluate
             }
             while (continueLoop);
 
