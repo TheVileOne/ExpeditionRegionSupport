@@ -3,16 +3,40 @@ using ExpeditionRegionSupport.Regions.Data;
 using ExpeditionRegionSupport.Tools;
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace ExpeditionRegionSupport
 {
     public static class DebugMethods
     {
+        public static List<DebugTimer> RegisteredTimers = new List<DebugTimer>();
+
+        public static DebugTimer CreateTimer(bool registerTimer, bool allowResultLogging = true)
+        {
+            DebugTimer timer = new DebugTimer(allowResultLogging);
+
+            if (registerTimer)
+                RegisteredTimers.Add(timer);
+            return timer;
+        }
+
+        public static MultiUseTimer CreateMultiUseTimer(bool registerTimer, bool allowResultLogging = true)
+        {
+            MultiUseTimer timer = new MultiUseTimer(allowResultLogging);
+
+            if (registerTimer)
+                RegisteredTimers.Add(timer);
+            return timer;
+        }
+
         public static void ProcessAllAccessibleRegions(SlugcatStats.Name slugcat)
         {
-            DebugTimer fullProcessTimer = new DebugTimer();
+            RegisteredTimers.Clear();
 
-            fullProcessTimer.Start();
+            DebugTimer mainProcessTimer;
+
+            mainProcessTimer = CreateTimer(true, false);
+            mainProcessTimer.Start();
 
             RegionsCache largestRegionCache = null; //Stores the biggest cache by size
             foreach (string regionCode in RegionUtils.GetAllRegions())
@@ -23,8 +47,9 @@ namespace ExpeditionRegionSupport
                 Plugin.Logger.LogDebug("REGION " + regionCode);
                 Plugin.Logger.LogDebug("ACCESSIBILITY LIST");
 
-                DebugTimer processTimer = new DebugTimer();
+                DebugTimer processTimer;
 
+                processTimer = CreateTimer(true, false);
                 processTimer.Start();
 
                 List<string> accessibleRegions = RegionUtils.GetAccessibleRegions(regionCode, slugcat);
@@ -42,8 +67,15 @@ namespace ExpeditionRegionSupport
                 processTimer.Stop();
             }
 
-            fullProcessTimer.ReportTime("Entire process");
-            fullProcessTimer.Stop();
+            mainProcessTimer.ReportTime("Entire process");
+            mainProcessTimer.Stop();
+
+            StringBuilder sb = new StringBuilder();
+            foreach (DebugTimer timer in RegisteredTimers)
+                sb.AppendLine(timer.ToString());
+
+            Plugin.Logger.LogDebug(sb.ToString());
+            RegisteredTimers.Clear();
         }
 
         public static void TestRegionMiner()

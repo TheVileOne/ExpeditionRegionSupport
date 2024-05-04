@@ -9,6 +9,8 @@ using ExpeditionRegionSupport.Filters.Settings;
 using ExpeditionRegionSupport.Filters.Utils;
 using ExpeditionRegionSupport.Regions.Data;
 using ExpeditionRegionSupport.Regions.Restrictions;
+using ExpeditionRegionSupport.Tools;
+using RWCustom;
 
 namespace ExpeditionRegionSupport.Regions
 {
@@ -58,7 +60,25 @@ namespace ExpeditionRegionSupport.Regions
 
         public static string[] GetAllRegions()
         {
-            return ProgressionData.PlayerData.ProgressData.regionNames;
+            string[] regions = null;
+            if (Custom.rainWorld != null)
+            {
+                if (Custom.rainWorld.progression != null)
+                    regions = Custom.rainWorld.progression.regionNames;
+                else
+                    regions = ProgressionData.PlayerData?.ProgressData?.regionNames;
+            }
+
+            if (regions == null)
+            {
+                Plugin.Logger.LogInfo("Getting regions from file");
+
+                string path = AssetManager.ResolveFilePath(Path.Combine("World", "regions.txt"));
+                if (File.Exists(path))
+                    regions = File.ReadAllLines(path);
+            }
+
+            return regions;
         }
 
         public static List<string> GetAvailableRegions(SlugcatStats.Name slugcat)
@@ -114,6 +134,14 @@ namespace ExpeditionRegionSupport.Regions
 
         internal static void FindAllConnectingRegionsRecursive(List<string> connectedRegions, string regionCode, SlugcatStats.Name slugcat, bool firstPass = true)
         {
+            DebugTimer processTimer = null;
+            if (Plugin.DebugMode)
+            {
+                processTimer = DebugMethods.CreateTimer(true, false);
+                processTimer.Start();
+            }
+
+            Plugin.Logger.LogDebug("Getting connecting regions for " + regionCode);
             //Get all region codes that connect with this region, and are accessible for the given slugcat
             foreach (string connectedRegion in GetConnectingRegions(regionCode, slugcat, !firstPass))
             {
@@ -126,6 +154,12 @@ namespace ExpeditionRegionSupport.Regions
                     FindAllConnectingRegionsRecursive(connectedRegions, slugcatEquivalentRegion, slugcat, false);
                 }
             }
+
+            if (Plugin.DebugMode)
+            {
+                processTimer.ReportTime(regionCode);
+                processTimer.Stop();
+            }
         }
 
         /// <summary>
@@ -136,10 +170,14 @@ namespace ExpeditionRegionSupport.Regions
         /// <param name="adjustForSlugcatEquivalences">The proper region code will be used instead of the default when this is true</param>
         public static List<string> GetConnectingRegions(string regionCode, SlugcatStats.Name slugcat, bool adjustForSlugcatEquivalences)
         {
-            string slugcatEquivalentRegion = GetSlugcatEquivalentRegion(regionCode, slugcat, adjustForSlugcatEquivalences, out string regionBaseEquivalent);
+            DebugTimer processTimer = null;
+            if (Plugin.DebugMode)
+            {
+                processTimer = DebugMethods.CreateTimer(true, false);
+                processTimer.Start();
+            }
 
-            //Plugin.Logger.LogInfo("Searching for border regions");
-            //Plugin.Logger.LogInfo("TARGET " + regionCode);
+            string slugcatEquivalentRegion = GetSlugcatEquivalentRegion(regionCode, slugcat, adjustForSlugcatEquivalences, out string regionBaseEquivalent);
 
             List<string> connectedRegions = new List<string>();
             foreach (GateInfo gate in GetRegionGates(slugcatEquivalentRegion))
@@ -154,6 +192,11 @@ namespace ExpeditionRegionSupport.Regions
                     Plugin.Logger.LogInfo("Gate ignored: " + gate.RoomCode);
             }
 
+            if (Plugin.DebugMode)
+            {
+                processTimer.ReportTime("Finding connections");
+                processTimer.Stop();
+            }
             return connectedRegions;
         }
 
@@ -162,7 +205,6 @@ namespace ExpeditionRegionSupport.Regions
         /// </summary>
         /// <param name="adjustForSlugcatEquivalences">A flag to control the slugcat equivalence check</param>
         /// <param name="regionBaseEquivalent">The slugcat independent region code equivalent</param>
-        /// <returns></returns>
         public static string GetSlugcatEquivalentRegion(string regionCode, SlugcatStats.Name slugcat, bool adjustForSlugcatEquivalences, out string regionBaseEquivalent)
         {
             if (!adjustForSlugcatEquivalences)
@@ -179,8 +221,23 @@ namespace ExpeditionRegionSupport.Regions
         /// <param name="regionBaseEquivalent">The slugcat independent region code equivalent</param>
         public static string GetSlugcatEquivalentRegion(string regionCode, SlugcatStats.Name slugcat, out string regionBaseEquivalent)
         {
+            RegionProfile regionProfile = EquivalentRegions.FirstOrDefault(r => r.RegionCode == regionCode);
+
+            if (!regionProfile.IsDefault)
+            {
+                RegionProfile baseProfile = regionProfile.GetEquivalentBaseRegion(slugcat);
+
+                regionBaseEquivalent = baseProfile.RegionCode;
+                return baseProfile.GetSlugcatEquivalentRegion(slugcat).RegionCode;
+            }
+            regionBaseEquivalent = regionCode;
+            return regionCode;
+
+            //Old implementation
+            /*
             regionBaseEquivalent = Region.GetVanillaEquivalentRegionAcronym(regionCode); //This is needed to return the correct default output
             return Region.GetProperRegionAcronym(slugcat, regionBaseEquivalent);
+            */
         }
 
         /// <summary>
@@ -188,8 +245,36 @@ namespace ExpeditionRegionSupport.Regions
         /// </summary>
         public static string GetSlugcatEquivalentRegion(string regionCode, SlugcatStats.Name slugcat)
         {
-            string regionBaseEquivalent = Region.GetVanillaEquivalentRegionAcronym(regionCode); //This is needed to return the correct default output
-            return Region.GetProperRegionAcronym(slugcat, regionBaseEquivalent);
+            DebugTimer processTimer = null;
+            if (Plugin.DebugMode)
+            {
+                processTimer = DebugMethods.CreateTimer(true, false);
+                processTimer.Start();
+            }
+
+            try
+            {
+                RegionProfile regionProfile = EquivalentRegions.FirstOrDefault(r => r.RegionCode == regionCode);
+
+                if (!regionProfile.IsDefault)
+                    return regionProfile.GetSlugcatEquivalentRegion(slugcat).RegionCode;
+
+                return regionCode;
+
+                //Old implementation
+                /*
+                string regionBaseEquivalent = Region.GetVanillaEquivalentRegionAcronym(regionCode); //This is needed to return the correct default output
+                return Region.GetProperRegionAcronym(slugcat, regionBaseEquivalent);
+                */
+            }
+            finally
+            {
+                if (Plugin.DebugMode)
+                {
+                    processTimer.ReportTime("Equivalent region check for " + regionCode);
+                    processTimer.Stop();
+                }
+            }
         }
 
         public static List<string> GetVisitedRegions(SlugcatStats.Name slugcat)
@@ -346,6 +431,13 @@ namespace ExpeditionRegionSupport.Regions
 
         public static List<GateInfo> GetRegionGates(string regionCode)
         {
+            DebugTimer processTimer = null;
+            if (Plugin.DebugMode)
+            {
+                processTimer = DebugMethods.CreateMultiUseTimer(true, false);
+                processTimer.Start();
+            }
+
             RegionDataMiner regionMiner = new RegionDataMiner()
             {
                 KeepStreamOpen = true
@@ -354,8 +446,17 @@ namespace ExpeditionRegionSupport.Regions
             IEnumerable<string> conditionalLinkData = regionMiner.GetConditionalLinkLines(regionCode);
             IEnumerable<string> roomData = regionMiner.GetRoomLines(regionCode);
 
+            if (Plugin.DebugMode)
+            {
+                processTimer.ReportTime("File read time for " + regionCode);
+                processTimer.Reset();
+            }
+
             if (roomData == null)
                 return new List<GateInfo>();
+
+            if (Plugin.DebugMode)
+                processTimer.Start();
 
             List<GateInfo> gates = new List<GateInfo>();
 
@@ -381,6 +482,12 @@ namespace ExpeditionRegionSupport.Regions
                     */
                     gates.Add(gate);
                 }
+            }
+
+            if (Plugin.DebugMode)
+            {
+                processTimer.ReportTime("Gate process time for " + regionCode);
+                processTimer.Stop();
             }
 
             regionMiner.KeepStreamOpen = false;
