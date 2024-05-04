@@ -63,6 +63,9 @@ namespace ExpeditionRegionSupport.Regions.Data
         /// <param name="region">The equivalent region that will be loaded based on a specific slugcat</param>
         public void RegisterEquivalency(SlugcatStats.Name slugcat, RegionProfile region)
         {
+            if (slugcat == null)
+                throw new ArgumentNullException(nameof(slugcat), nameof(RegisterEquivalency) + " encountered an exception: Slugcat cannot be null");
+
             if (region.Equals(this) || region.IsDefault || EquivalentBaseRegions.Contains(region)) return;
 
             //Check that this region already has an equivalent region assigned to this slugcat
