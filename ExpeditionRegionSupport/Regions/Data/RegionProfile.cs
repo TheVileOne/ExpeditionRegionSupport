@@ -157,7 +157,7 @@ namespace ExpeditionRegionSupport.Regions.Data
         public RegionProfile GetSlugcatEquivalentRegion(SlugcatStats.Name slugcat)
         {
             RegionProfile baseEquivalentRegion = GetEquivalentBaseRegion(slugcat); //Region candidacy checking should start at a base equivalent region
-            return baseEquivalentRegion.GetRegionCandidateRecursive(slugcat, new HashSet<string>() { RegionCode });
+            return baseEquivalentRegion.GetRegionCandidateRecursive(slugcat);
         }
 
         /// <summary>
@@ -215,19 +215,14 @@ namespace ExpeditionRegionSupport.Regions.Data
             return equivalentRegion;
         }
 
-        internal RegionProfile GetRegionCandidateRecursive(SlugcatStats.Name slugcat, HashSet<string> checkedRegions)
+        internal RegionProfile GetRegionCandidateRecursive(SlugcatStats.Name slugcat)
         {
             RegionProfile equivalentRegion = GetRegionCandidate(slugcat);
 
             if (!equivalentRegion.IsDefault)
             {
                 //We found a valid equivalent region, but we're not finished. Check if that equivalent region has equivalent regions
-                if (!checkedRegions.Contains(equivalentRegion.RegionCode))
-                {
-                    checkedRegions.Add(equivalentRegion.RegionCode);
-                    equivalentRegion = equivalentRegion.GetRegionCandidateRecursive(slugcat, checkedRegions);
-                }
-                return equivalentRegion;
+                return equivalentRegion.GetRegionCandidateRecursive(slugcat);
             }
             return this; //Return this when this is the most valid equivalent region
         }
