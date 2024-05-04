@@ -39,12 +39,18 @@ namespace ExpeditionRegionSupport.Regions.Data
         /// </summary>
         public readonly StrongBox<RegionProfile> PendingEquivalency;
 
+        /// <summary>
+        /// This RegionProfile is part of a recursive validation check
+        /// </summary>
+        public readonly StrongBox<bool> ValidationInProgress;
+
         public RegionProfile(string regionCode)
         {
             RegionCode = regionCode;
             EquivalentBaseRegions = new List<RegionProfile>();
             EquivalentRegions = new Dictionary<SlugcatStats.Name, RegionProfile>();
             PendingEquivalency = new StrongBox<RegionProfile>();
+            ValidationInProgress = new StrongBox<bool>();
 
             IsPermanentBaseRegion = RegionUtils.IsVanillaRegion(RegionCode)
                                  || RegionCode == "OE" || RegionCode == "VS" || RegionCode == "HR" || RegionCode == "MS" || RegionCode == "LC";
@@ -99,9 +105,26 @@ namespace ExpeditionRegionSupport.Regions.Data
             //The AnySlugcat specification requires all slugcat relationships to be checked for illegal relationships
             if (slugcat == SlugcatUtils.AnySlugcat)
             {
-                //Checks the equivalent region data of the region we want to process to see if it can reach the callback region, which would form an illegal loop 
-                RegionProfile callbackRegion = this;
-                return region.EquivalentRegions.Exists(equivalencyEntry => callbackRegion.HasIllegalRelationships(equivalencyEntry.Value, equivalencyEntry.Key));
+                try
+                {
+                    /* 
+                     * Encountering this flag already set to true indicates that this RegionProfile has already had its AnySlugcat relationship check earlier in the recursive process
+                     * This situation is always invalid as this indicates there is an illegal loop formed by AnySlugcat equivalency relationships. It will also cause this algorithm to
+                     * endlessly check the same regions if we don't return here.
+                     */
+                    if (ValidationInProgress.Value)
+                        return true;
+
+                    ValidationInProgress.Value = true;
+
+                    //Checks the equivalent region data of the region we want to process to see if it can reach the callback region, which would form an illegal loop 
+                    RegionProfile callbackRegion = this;
+                    return region.EquivalentRegions.Exists(equivalencyEntry => callbackRegion.HasIllegalRelationships(equivalencyEntry.Value, equivalencyEntry.Key));
+                }
+                finally
+                {
+                    ValidationInProgress.Value = false;
+                }
             }
 
             RegionProfile compareRegion = region;
