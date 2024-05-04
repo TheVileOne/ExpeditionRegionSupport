@@ -21,6 +21,11 @@ namespace ExpeditionRegionSupport
         };
 
         /// <summary>
+        /// Indicates that all vanilla, and MSC slugcats have had their ExtEnum field initialized
+        /// </summary>
+        public static bool SlugcatsInitialized;
+
+        /// <summary>
         /// For useful purposes, Downpour slugcats are not considered modded
         /// </summary>
         public static bool IsModcat(SlugcatStats.Name slugcat)

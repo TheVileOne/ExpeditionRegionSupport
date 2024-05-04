@@ -52,6 +52,10 @@ namespace ExpeditionRegionSupport
 
             try
             {
+                On.RainWorld.OnModsInit += RainWorld_OnModsInit;
+                On.RainWorld.PostModsInit += RainWorld_PostModsInit;
+
+                //ChallengeSelectPage
                 IL.Menu.ChallengeSelectPage.ctor += ChallengeSelectPage_ctor;
                 On.Menu.ChallengeSelectPage.Singal += ChallengeSelectPage_Singal;
                 IL.Menu.ChallengeSelectPage.Singal += ChallengeSelectPage_Singal;
@@ -88,11 +92,15 @@ namespace ExpeditionRegionSupport
                 On.ModManager.ModMerger.PendingApply.CollectModifications += PendingApply_CollectModifications;
                 IL.ModManager.ModMerger.PendingApply.CollectModifications += PendingApply_CollectModifications;
 
+                //Equivalency Cache
+                On.ModManager.RefreshModsLists += ModManager_RefreshModsLists;
+                On.MoreSlugcats.MoreSlugcats.OnInit += MoreSlugcats_OnInit;
+                On.PlayerProgression.ReloadRegionsList += PlayerProgression_ReloadRegionsList;
+
                 //Misc.
                 On.HardmodeStart.SinglePlayerUpdate += HardmodeStart_SinglePlayerUpdate;
                 On.Room.Loaded += Room_Loaded;
                 On.RegionGate.customOEGateRequirements += RegionGate_customOEGateRequirements;
-                On.RainWorld.PostModsInit += RainWorld_PostModsInit;
 
                 //Allow communication with Log Manager
                 Logging.Logger.ApplyHooks();
@@ -101,6 +109,36 @@ namespace ExpeditionRegionSupport
             {
                 Logger.LogError(ex);
             }
+        }
+
+        private void ModManager_RefreshModsLists(On.ModManager.orig_RefreshModsLists orig, RainWorld rainWorld)
+        {
+            SlugcatUtils.SlugcatsInitialized = false;
+            orig(rainWorld);
+
+            //Apply this init flag as early as we can
+            if (!ModManager.MSC)
+                SlugcatUtils.SlugcatsInitialized = true;
+        }
+
+        private void MoreSlugcats_OnInit(On.MoreSlugcats.MoreSlugcats.orig_OnInit orig)
+        {
+            orig();
+            SlugcatUtils.SlugcatsInitialized = true;
+        }
+
+        private void PlayerProgression_ReloadRegionsList(On.PlayerProgression.orig_ReloadRegionsList orig, PlayerProgression self)
+        {
+            orig(self);
+            if (SlugcatUtils.SlugcatsInitialized)
+                RegionUtils.CacheEquivalentRegions();
+        }
+
+        private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
+        {
+            orig(self);
+            if (!SlugcatUtils.SlugcatsInitialized)
+                RegionUtils.CacheEquivalentRegions();
         }
 
         private void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)
