@@ -65,32 +65,34 @@ namespace ExpeditionRegionSupport.Regions.Data
         {
             if (region.Equals(this) || region.IsDefault || EquivalentBaseRegions.Contains(region)) return;
 
-            PendingEquivalency.Value = region;
-
             //Check that this region already has an equivalent region assigned to this slugcat
-            if (EquivalentRegions.TryGetValue(slugcat, out RegionProfile existingProfile)
-             || EquivalentRegions.TryGetValue(SlugcatUtils.AnySlugcat, out existingProfile))
+            if (EquivalentRegions.TryGetValue(slugcat, out RegionProfile existingProfile))
             {
                 //Don't process if region has already been assigned for this slugcat
-                if (existingProfile.Equals(region)) return;
-
-                if (!HasIllegalRelationships(region, slugcat))
+                if (!existingProfile.IsDefault)
                 {
-                    Plugin.Logger.LogInfo("Changing equivalent region targetting " + RegionCode);
-                    EquivalentRegions[slugcat] = region;
-
-                    if (!region.IsPermanentBaseRegion) //Prevent certain regions from having base equivalencies
-                        region.EquivalentBaseRegions.Add(this);
+                    //Current code does not support overwriting equivalences
+                    string reportMessage = existingProfile.Equals(region) ? "Skipping duplicate equivalency" : "Applying equivalency would overwrite existing entry";
+                    Plugin.Logger.LogInfo(reportMessage);
+                    return;
                 }
+
+                Plugin.Logger.LogWarning("EquivalentRegions should not have empty values");
+                EquivalentRegions.Remove(slugcat);
             }
 
-            if (slugcat != SlugcatUtils.AnySlugcat)
+            PendingEquivalency.Value = region;
+
+            if (!HasIllegalRelationships(region, slugcat))
             {
-                EquivalentRegions.Remove(SlugcatUtils.AnySlugcat); //Region either applies to anyone, or only certain slugcats
-                region.EquivalentBaseRegions.Add(this);
-            }
-            else if (!EquivalentRegions.Any())
+                Plugin.Logger.LogInfo("Changing equivalent region targetting " + RegionCode);
                 EquivalentRegions[slugcat] = region;
+
+                if (!region.IsPermanentBaseRegion) //Prevent certain regions from having base equivalencies
+                    region.EquivalentBaseRegions.Add(this);
+            }
+
+            PendingEquivalency.Value = default;
         }
 
         /// <summary>
