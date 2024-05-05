@@ -30,7 +30,7 @@ namespace ExpeditionRegionSupport
 
         public static bool DebugMode
         {
-            get => ExpeditionData.devMode;
+            get => ExpeditionData.devMode && !ExpeditionRegionSupport.DebugMode.EmulateReleaseConditions;
             set => ExpeditionData.devMode = value;
         }
 

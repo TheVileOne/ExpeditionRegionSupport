@@ -14,6 +14,11 @@ namespace ExpeditionRegionSupport
         /// </summary>
         public static bool RunningDebugProcess;
 
+        /// <summary>
+        /// Set to true to minimize logging, and other processes triggered by DebugMode
+        /// </summary>
+        public static bool EmulateReleaseConditions;
+
         public static List<DebugTimer> RegisteredTimers = new List<DebugTimer>();
 
         public static DebugTimer CreateTimer(bool registerTimer, bool allowResultLogging = true)
