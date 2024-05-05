@@ -54,14 +54,16 @@ namespace ExpeditionRegionSupport
             mainProcessTimer = CreateTimer(true, false);
             mainProcessTimer.Start();
 
+            string[] regions = RegionUtils.GetAllRegions();
+            RegionsCache[] regionLists = new RegionsCache[regions.Length];
+
             RegionsCache largestRegionCache = null; //Stores the biggest cache by size
-            foreach (string regionCode in RegionUtils.GetAllRegions())
+            for (int regionIndex = 0; regionIndex < regions.Length; regionIndex++)
             {
+                string regionCode = regions[regionIndex];
+
                 if (largestRegionCache != null)
                     RegionUtils.RegionAccessibilityCache = largestRegionCache;
-
-                Plugin.Logger.LogDebug("REGION " + regionCode);
-                Plugin.Logger.LogDebug("ACCESSIBILITY LIST");
 
                 DebugTimer processTimer;
                 processTimer = CreateTimer(true, false);
@@ -70,13 +72,9 @@ namespace ExpeditionRegionSupport
                 List<string> accessibleRegions = RegionUtils.GetAccessibleRegions(regionCode, slugcat);
 
                 if (largestRegionCache == null || largestRegionCache.Regions.Count < RegionUtils.RegionAccessibilityCache.Regions.Count)
-                {
-                    Plugin.Logger.LogDebug("New largest cache detected");
                     largestRegionCache = RegionUtils.RegionAccessibilityCache;
-                }
 
-                string reportString = accessibleRegions.Count > 0 ? accessibleRegions.FormatToString(',') : "NONE";
-                Plugin.Logger.LogDebug(reportString);
+                regionLists[regionIndex] = new RegionsCache(regionCode, accessibleRegions);
 
                 processTimer.ReportTime();
                 processTimer.Stop();
@@ -86,6 +84,24 @@ namespace ExpeditionRegionSupport
             mainProcessTimer.Stop();
 
             StringBuilder sb = new StringBuilder();
+
+            sb.AppendLine("Process results")
+              .AppendLine($"{RegisteredTimers.Count} registered timers")
+              .AppendLine(mainProcessTimer.Results.ToString());
+
+            RegisteredTimers.Remove(mainProcessTimer); //Easier to process the results if we remove the main timer here
+
+            for (int regionIndex = 0; regionIndex < regionLists.Length; regionIndex++)
+            {
+                RegionsCache regionAccessList = regionLists[regionIndex];
+
+                sb.AppendLine("REGION " + regionAccessList.RegionCode)
+                  .AppendLine("ACCESSIBILITY LIST");
+
+                string reportString = regionAccessList.Regions.Count > 0 ? regionAccessList.Regions.FormatToString(',') : "NONE";
+                sb.AppendLine(reportString);
+            }
+
             foreach (DebugTimer timer in RegisteredTimers)
                 sb.AppendLine(timer.ToString());
 

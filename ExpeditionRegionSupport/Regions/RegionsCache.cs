@@ -9,6 +9,7 @@ namespace ExpeditionRegionSupport.Regions
     public class RegionsCache //Cannot be a struct due to challenge filters requiring an unchanging list to reference
     {
         public SlugcatStats.Name LastAccessed;
+        public string RegionCode;
 
         private readonly List<string> _regions = new List<string>();
 
@@ -24,6 +25,16 @@ namespace ExpeditionRegionSupport.Regions
                 _regions.Clear();
                 _regions.AddRange(value);
             }
+        }
+
+        public RegionsCache()
+        {
+        }
+
+        public RegionsCache(string regionCode, IEnumerable<string> regions)
+        {
+            RegionCode = regionCode;
+            Regions = regions.ToList();
         }
 
         public static RegionsCache GetOrCreate(RegionsCache regionCache, SlugcatStats.Name slugcat)
