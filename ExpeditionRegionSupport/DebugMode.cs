@@ -30,9 +30,9 @@ namespace ExpeditionRegionSupport
             return timer;
         }
 
-        public static MultiUseTimer CreateMultiUseTimer(bool registerTimer, bool allowResultLogging = true)
+        public static MultiUseTimer CreateMultiUseTimer(bool registerTimer, TimerOutput outputFormat, bool allowResultLogging = true)
         {
-            MultiUseTimer timer = new MultiUseTimer(allowResultLogging);
+            MultiUseTimer timer = new MultiUseTimer(outputFormat, allowResultLogging);
 
             if (registerTimer)
                 RegisteredTimers.Add(timer);
@@ -81,7 +81,7 @@ namespace ExpeditionRegionSupport
 
                 regionLists[regionIndex] = new RegionsCache(regionCode, accessibleRegions);
 
-                processTimer.ReportTime();
+                processTimer.ReportTime("Finding accessible regions");
                 processTimer.Stop();
             }
 
@@ -92,17 +92,23 @@ namespace ExpeditionRegionSupport
 
             sb.AppendLine("Process results")
               .AppendLine($"{RegisteredTimers.Count} registered timers")
-              .AppendLine(mainProcessTimer.Results.ToString());
+              .AppendLine(mainProcessTimer.ToString());
 
             RegisteredTimers.Remove(mainProcessTimer); //Easier to process the results if we remove the main timer here
 
+            int regionTimerIndex = 0;
             for (int regionIndex = 0; regionIndex < regionLists.Length; regionIndex++)
             {
                 RegionsCache regionAccessList = regionLists[regionIndex];
 
                 sb.AppendLine("REGION " + regionAccessList.RegionCode)
                   .AppendLine("ACCESSIBILITY LIST")
-                  .AppendLine(regionAccessList.Regions.FormatToString(','));
+                  .AppendLine(regionAccessList.Regions.FormatToString(','))
+                  .AppendLine(RegisteredTimers[regionTimerIndex].ToString()) //Total process time for a single region
+                  .AppendLine("BREAKDOWN");
+
+                regionTimerIndex++;
+                sb.AppendLine(RegisteredTimers[regionTimerIndex].ToString());
             }
 
             foreach (DebugTimer timer in RegisteredTimers)

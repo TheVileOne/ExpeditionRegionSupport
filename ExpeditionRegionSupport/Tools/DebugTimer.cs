@@ -46,6 +46,27 @@ namespace ExpeditionRegionSupport.Tools
     {
         public HashSet<TimerResults> AllResults = new HashSet<TimerResults>();
 
+        public string TotalTimeHeader = "Entire process";
+
+        public TimerResults TotalTimeReported
+        {
+            get
+            {
+                return new TimerResults(TotalTimeHeader, Results.ElapsedTime);
+
+                if (AllResults.Count == 0)
+                    return new TimerResults(TotalTimeHeader, 0);
+
+
+
+                if (AllResults.Count == 1 || OutputFormat != TimerOutput.RelativeIncrements)
+                    return new TimerResults(TotalTimeHeader, Results.ElapsedTime); //Results will always represent the total time reported here
+
+                return ConvertToRelative(Results, AllResults.First(), TotalTimeHeader);
+            }
+        }
+
+        public bool ReportTotalTime;
         public TimerOutput OutputFormat;
 
         /// <summary>
@@ -56,6 +77,7 @@ namespace ExpeditionRegionSupport.Tools
         public MultiUseTimer(TimerOutput outputFormat, bool allowResultLogging) : base(allowResultLogging)
         {
             OutputFormat = outputFormat;
+            ReportTotalTime = OutputFormat != TimerOutput.AbsoluteTime;
         }
 
         /// <summary>
@@ -106,12 +128,16 @@ namespace ExpeditionRegionSupport.Tools
                     sb.AppendLine(results.ToString());
                 lastResults = results;
             }
+
+            if (ReportTotalTime)
+                sb.AppendLine(TotalTimeReported.ToString());
+
             return sb.ToString();
         }
 
-        public TimerResults ConvertToRelative(TimerResults laterResult, TimerResults earlierResult)
+        public TimerResults ConvertToRelative(TimerResults laterResult, TimerResults earlierResult, string header = null)
         {
-            return new TimerResults(laterResult.Header, laterResult.ElapsedTime - earlierResult.ElapsedTime);
+            return new TimerResults(header ?? laterResult.Header, laterResult.ElapsedTime - earlierResult.ElapsedTime);
         }
     }
 

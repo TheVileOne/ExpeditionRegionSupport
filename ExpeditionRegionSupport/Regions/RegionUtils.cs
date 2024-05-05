@@ -137,8 +137,9 @@ namespace ExpeditionRegionSupport.Regions
             MultiUseTimer processTimer = null;
             if (Plugin.DebugMode)
             {
-                processTimer = DebugMode.CreateMultiUseTimer(DebugMode.RunningDebugProcess, false);
-                processTimer.OutputFormat = TimerOutput.RelativeIncrements;
+                processTimer = DebugMode.CreateMultiUseTimer(DebugMode.RunningDebugProcess, TimerOutput.RelativeIncrements, false);
+                processTimer.ReportTotalTime = true;
+                processTimer.TotalTimeHeader = $"Getting all connecting regions for {regionCode} (" + (firstPass ? "TOP" : "SUB") + ")";
                 processTimer.Start();
             }
 
@@ -158,14 +159,7 @@ namespace ExpeditionRegionSupport.Regions
             }
 
             if (Plugin.DebugMode)
-            {
-                if (processTimer.OutputFormat == TimerOutput.AbsoluteTime) //Relative increments does not report this total correctly
-                {
-                    string reportHeader = $"Getting all connecting regions for {regionCode} (" + (firstPass ? "TOP" : "SUB") + ")";
-                    processTimer.ReportTime(reportHeader);
-                }
                 processTimer.Stop();
-            }
         }
 
         /// <summary>
@@ -439,7 +433,7 @@ namespace ExpeditionRegionSupport.Regions
             DebugTimer processTimer = null;
             if (Plugin.DebugMode)
             {
-                processTimer = DebugMode.CreateMultiUseTimer(DebugMode.RunningDebugProcess, false);
+                processTimer = DebugMode.CreateMultiUseTimer(DebugMode.RunningDebugProcess, TimerOutput.AbsoluteTime, false);
                 processTimer.Start();
             }
 
