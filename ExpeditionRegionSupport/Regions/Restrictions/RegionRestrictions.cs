@@ -463,6 +463,16 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
             }
             return false;
         }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 1549165079;
+            hashCode = hashCode * -1521134295 + IsEmpty.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<List<SlugcatStats.Name>>.Default.GetHashCode(Allowed);
+            hashCode = hashCode * -1521134295 + EqualityComparer<List<SlugcatStats.Name>>.Default.GetHashCode(NotAllowed);
+            hashCode = hashCode * -1521134295 + EqualityComparer<List<SlugcatStats.Name>>.Default.GetHashCode(UnlockRequired);
+            return hashCode;
+        }
     }
 
     [Flags]

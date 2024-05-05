@@ -217,5 +217,10 @@ namespace ExpeditionRegionSupport.Regions
 
             Restrictions.LogData();
         }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
 }
