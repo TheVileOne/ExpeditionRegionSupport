@@ -96,10 +96,8 @@ namespace ExpeditionRegionSupport
                 RegionsCache regionAccessList = regionLists[regionIndex];
 
                 sb.AppendLine("REGION " + regionAccessList.RegionCode)
-                  .AppendLine("ACCESSIBILITY LIST");
-
-                string reportString = regionAccessList.Regions.Count > 0 ? regionAccessList.Regions.FormatToString(',') : "NONE";
-                sb.AppendLine(reportString);
+                  .AppendLine("ACCESSIBILITY LIST")
+                  .AppendLine(regionAccessList.Regions.FormatToString(','));
             }
 
             foreach (DebugTimer timer in RegisteredTimers)
