@@ -143,7 +143,6 @@ namespace ExpeditionRegionSupport.Regions
                 processTimer.Start();
             }
 
-            Plugin.Logger.LogDebug("Getting connecting regions for " + regionCode);
             //Get all region codes that connect with this region, and are accessible for the given slugcat
             foreach (string connectedRegion in GetConnectingRegions(regionCode, slugcat, !firstPass))
             {
@@ -154,8 +153,8 @@ namespace ExpeditionRegionSupport.Regions
                     //Add the equivalent region, and then check its connecting regions
                     connectedRegions.Add(slugcatEquivalentRegion);
                     FindAllConnectingRegionsRecursive(connectedRegions, slugcatEquivalentRegion, slugcat, false);
+                    processTimer.ReportTime("Getting connecting regions for " + slugcatEquivalentRegion);
                 }
-                processTimer.ReportTime("Getting connecting regions for " + slugcatEquivalentRegion);
             }
 
             if (Plugin.DebugMode)
@@ -178,6 +177,13 @@ namespace ExpeditionRegionSupport.Regions
             }
 
             string slugcatEquivalentRegion = GetSlugcatEquivalentRegion(regionCode, slugcat, adjustForSlugcatEquivalences, out string regionBaseEquivalent);
+
+            string reportString = $"Getting connecting regions for {slugcatEquivalentRegion}";
+
+            if (adjustForSlugcatEquivalences && regionCode != slugcatEquivalentRegion)
+                reportString += $" (Changed from {regionCode})";
+
+            Plugin.Logger.LogInfo(reportString);
 
             List<string> connectedRegions = new List<string>();
             foreach (GateInfo gate in GetRegionGates(slugcatEquivalentRegion))
