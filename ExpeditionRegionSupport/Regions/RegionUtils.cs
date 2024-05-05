@@ -134,10 +134,11 @@ namespace ExpeditionRegionSupport.Regions
 
         internal static void FindAllConnectingRegionsRecursive(List<string> connectedRegions, string regionCode, SlugcatStats.Name slugcat, bool firstPass = true)
         {
-            DebugTimer processTimer = null;
+            MultiUseTimer processTimer = null;
             if (Plugin.DebugMode)
             {
-                processTimer = DebugMode.CreateTimer(DebugMode.RunningDebugProcess, false);
+                processTimer = DebugMode.CreateMultiUseTimer(DebugMode.RunningDebugProcess, false);
+                processTimer.OutputFormat = TimerOutput.RelativeIncrements;
                 processTimer.Start();
             }
 
@@ -153,11 +154,16 @@ namespace ExpeditionRegionSupport.Regions
                     connectedRegions.Add(slugcatEquivalentRegion);
                     FindAllConnectingRegionsRecursive(connectedRegions, slugcatEquivalentRegion, slugcat, false);
                 }
+                processTimer.ReportTime("Getting connecting regions for " + slugcatEquivalentRegion);
             }
 
             if (Plugin.DebugMode)
             {
-                processTimer.ReportTime(regionCode);
+                if (processTimer.OutputFormat == TimerOutput.AbsoluteTime) //Relative increments does not report this total correctly
+                {
+                    string reportHeader = $"Getting all connecting regions for {regionCode} (" + (firstPass ? "TOP" : "SUB") + ")";
+                    processTimer.ReportTime(reportHeader);
+                }
                 processTimer.Stop();
             }
         }
@@ -245,12 +251,14 @@ namespace ExpeditionRegionSupport.Regions
         /// </summary>
         public static string GetSlugcatEquivalentRegion(string regionCode, SlugcatStats.Name slugcat)
         {
+            /*
             DebugTimer processTimer = null;
             if (Plugin.DebugMode)
             {
                 processTimer = DebugMode.CreateTimer(DebugMode.RunningDebugProcess, false);
                 processTimer.Start();
             }
+            */
 
             try
             {
@@ -269,11 +277,13 @@ namespace ExpeditionRegionSupport.Regions
             }
             finally
             {
+                /*
                 if (Plugin.DebugMode)
                 {
                     processTimer.ReportTime("Equivalent region check for " + regionCode);
                     processTimer.Stop();
                 }
+                */
             }
         }
 

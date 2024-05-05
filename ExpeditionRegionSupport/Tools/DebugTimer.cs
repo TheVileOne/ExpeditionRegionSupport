@@ -44,25 +44,74 @@ namespace ExpeditionRegionSupport.Tools
 
     public class MultiUseTimer : DebugTimer
     {
-        public HashSet<TimerResults> AllResults = new HashSet<TimerResults>(); 
+        public HashSet<TimerResults> AllResults = new HashSet<TimerResults>();
 
-        public MultiUseTimer(bool allowResultLogging) : base(allowResultLogging)
+        public TimerOutput OutputFormat;
+
+        /// <summary>
+        /// Create an instance of a MultiUseTimer
+        /// </summary>
+        /// <param name="outputFormat">Determines how results are output as a string</param>
+        /// <param name="allowResultLogging">Should results log immediately to file</param>
+        public MultiUseTimer(TimerOutput outputFormat, bool allowResultLogging) : base(allowResultLogging)
+        {
+            OutputFormat = outputFormat;
+        }
+
+        /// <summary>
+        /// Create an instance of a MultiUseTimer
+        /// </summary>
+        /// <param name="allowResultLogging">Should results log immediately to file</param>
+        public MultiUseTimer(bool allowResultLogging) : this(TimerOutput.AbsoluteTime, allowResultLogging)
         {
         }
 
         public override void ReportTime(string reportHeader = "Process")
         {
+            bool wasLoggingAllowed = AllowResultLogging;
+
+            if (AllResults.Count > 0 && OutputFormat == TimerOutput.RelativeIncrements)
+                AllowResultLogging = false; //Base method will log the wrong value to file
+
             base.ReportTime(reportHeader);
+
+            AllowResultLogging = wasLoggingAllowed;
+
+            if (AllowResultLogging && AllResults.Count > 0 && OutputFormat == TimerOutput.RelativeIncrements)
+            {
+                TimerResults lastResult = AllResults.Last();
+                TimerResults relativeResult = ConvertToRelative(Results, lastResult);
+                Plugin.Logger.LogDebug(relativeResult);
+            }
+
             AllResults.Add(Results);
         }
 
         public override string ToString()
         {
+            if (AllResults.Count == 0)
+                return "No time data available";
+
             StringBuilder sb = new StringBuilder();
 
+            TimerResults lastResults = new TimerResults();
             foreach (TimerResults results in AllResults)
-                sb.AppendLine(results.ToString());
+            {
+                if (OutputFormat == TimerOutput.RelativeIncrements)
+                {
+                    TimerResults relativeResult = ConvertToRelative(results, lastResults);
+                    sb.AppendLine(relativeResult.ToString());
+                }
+                else
+                    sb.AppendLine(results.ToString());
+                lastResults = results;
+            }
             return sb.ToString();
+        }
+
+        public TimerResults ConvertToRelative(TimerResults laterResult, TimerResults earlierResult)
+        {
+            return new TimerResults(laterResult.Header, laterResult.ElapsedTime - earlierResult.ElapsedTime);
         }
     }
 
@@ -84,5 +133,11 @@ namespace ExpeditionRegionSupport.Tools
 
             return $"{Header} took {ElapsedTime} ms";
         }
+    }
+
+    public enum TimerOutput
+    {
+        AbsoluteTime, //The time is formatted to string as reported in the TimerResults
+        RelativeIncrements //The time is formatted to string as the increment difference from the last reported TimerResults, absolute timing for first result
     }
 }
