@@ -300,12 +300,7 @@ namespace ExpeditionRegionSupport.Regions
                 Plugin.Logger.LogInfo(visitedRegions.Count + " region" + (visitedRegions.Count != 1 ? "s" : string.Empty) + " detected");
 
                 if (visitedRegions.Count > 0)
-                {
-                    StringBuilder sb = new StringBuilder("Regions ");
-                    foreach (string region in visitedRegions)
-                        sb.Append(region).Append(", ");
-                    Plugin.Logger.LogInfo(sb.ToString().TrimEnd().TrimEnd(','));
-                }
+                    Plugin.Logger.LogInfo("Regions " + visitedRegions.FormatToString(','));
             }
 
             RegionsVisitedCache.LastAccessed = slugcat;
