@@ -648,11 +648,11 @@ namespace ExpeditionRegionSupport.Regions
             //Apply known MSC equivalencies here
             if (ModManager.MSC)
             {
-                profile_DS.EquivalentRegions.Add(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Saint, profile_UG);
-                profile_SH.EquivalentRegions.Add(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Saint, profile_CL);
-                profile_SL.EquivalentRegions.Add(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Spear, profile_LM);
-                profile_SL.EquivalentRegions.Add(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Artificer, profile_LM);
-                profile_SS.EquivalentRegions.Add(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Rivulet, profile_RM);
+                profile_DS.RegisterEquivalency(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Saint, profile_UG);
+                profile_SH.RegisterEquivalency(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Saint, profile_CL);
+                profile_SL.RegisterEquivalency(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Spear, profile_LM);
+                profile_SL.RegisterEquivalency(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Artificer, profile_LM);
+                profile_SS.RegisterEquivalency(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Rivulet, profile_RM);
             }
 
             foreach (string path in GetFilePathFromAllSources("equivalences.txt"))
