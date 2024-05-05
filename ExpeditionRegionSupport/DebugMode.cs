@@ -9,6 +9,11 @@ namespace ExpeditionRegionSupport
 {
     public static class DebugMode
     {
+        /// <summary>
+        /// Set to true when running some type of debug event in order to make the mod aware that the process is running
+        /// </summary>
+        public static bool RunningDebugProcess;
+
         public static List<DebugTimer> RegisteredTimers = new List<DebugTimer>();
 
         public static DebugTimer CreateTimer(bool registerTimer, bool allowResultLogging = true)
@@ -29,12 +34,23 @@ namespace ExpeditionRegionSupport
             return timer;
         }
 
+        public static void StartDebugProcess()
+        {
+            RunningDebugProcess = true;
+            RegisteredTimers.Clear();
+        }
+
+        public static void FinishDebugProcess()
+        {
+            RunningDebugProcess = false;
+            RegisteredTimers.Clear();
+        }
+
         public static void ProcessAllAccessibleRegions(SlugcatStats.Name slugcat)
         {
-            RegisteredTimers.Clear();
+            StartDebugProcess();
 
             DebugTimer mainProcessTimer;
-
             mainProcessTimer = CreateTimer(true, false);
             mainProcessTimer.Start();
 
@@ -48,7 +64,6 @@ namespace ExpeditionRegionSupport
                 Plugin.Logger.LogDebug("ACCESSIBILITY LIST");
 
                 DebugTimer processTimer;
-
                 processTimer = CreateTimer(true, false);
                 processTimer.Start();
 
@@ -75,11 +90,13 @@ namespace ExpeditionRegionSupport
                 sb.AppendLine(timer.ToString());
 
             Plugin.Logger.LogDebug(sb.ToString());
-            RegisteredTimers.Clear();
+            FinishDebugProcess();
         }
 
         public static void TestRegionMiner()
         {
+            StartDebugProcess();
+
             var logger = Plugin.Logger;
 
             RegionDataMiner regionMiner = new RegionDataMiner();
@@ -120,6 +137,7 @@ namespace ExpeditionRegionSupport
 
             foreach (string roomData in roomData_SI)
                 logger.LogInfo(roomData);
+            FinishDebugProcess();
         }
     }
 }
