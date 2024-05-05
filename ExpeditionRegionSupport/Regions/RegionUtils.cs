@@ -137,7 +137,7 @@ namespace ExpeditionRegionSupport.Regions
             DebugTimer processTimer = null;
             if (Plugin.DebugMode)
             {
-                processTimer = DebugMethods.CreateTimer(true, false);
+                processTimer = DebugMode.CreateTimer(true, false);
                 processTimer.Start();
             }
 
@@ -173,7 +173,7 @@ namespace ExpeditionRegionSupport.Regions
             DebugTimer processTimer = null;
             if (Plugin.DebugMode)
             {
-                processTimer = DebugMethods.CreateTimer(true, false);
+                processTimer = DebugMode.CreateTimer(true, false);
                 processTimer.Start();
             }
 
@@ -248,7 +248,7 @@ namespace ExpeditionRegionSupport.Regions
             DebugTimer processTimer = null;
             if (Plugin.DebugMode)
             {
-                processTimer = DebugMethods.CreateTimer(true, false);
+                processTimer = DebugMode.CreateTimer(true, false);
                 processTimer.Start();
             }
 
@@ -434,7 +434,7 @@ namespace ExpeditionRegionSupport.Regions
             DebugTimer processTimer = null;
             if (Plugin.DebugMode)
             {
-                processTimer = DebugMethods.CreateMultiUseTimer(true, false);
+                processTimer = DebugMode.CreateMultiUseTimer(true, false);
                 processTimer.Start();
             }
 

@@ -7,7 +7,7 @@ using System.Text;
 
 namespace ExpeditionRegionSupport
 {
-    public static class DebugMethods
+    public static class DebugMode
     {
         public static List<DebugTimer> RegisteredTimers = new List<DebugTimer>();
 
