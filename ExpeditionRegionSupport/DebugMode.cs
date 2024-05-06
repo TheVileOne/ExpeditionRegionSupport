@@ -101,10 +101,8 @@ namespace ExpeditionRegionSupport
 
             var timers = RegisteredTimers.GetEnumerator();
             DebugTimer timer = null;
-            for (int regionIndex = 0; regionIndex < regionLists.Length; regionIndex++)
+            foreach (RegionsCache regionAccessList in regionLists)
             {
-                RegionsCache regionAccessList = regionLists[regionIndex];
-
                 sb.AppendLine("REGION " + regionAccessList.RegionCode)
                   .AppendLine("ACCESSIBILITY LIST")
                   .AppendLine(regionAccessList.Regions.FormatToString(','));
