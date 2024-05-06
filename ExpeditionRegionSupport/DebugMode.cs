@@ -97,7 +97,7 @@ namespace ExpeditionRegionSupport
 
             RegisteredTimers.Remove(mainProcessTimer); //Easier to process the results if we remove the main timer here
 
-            int infLoopCheck = 1000; //TODO: Fix this
+            bool allTimersProcessed = false;
 
             var timers = RegisteredTimers.GetEnumerator();
             DebugTimer timer = null;
@@ -107,11 +107,24 @@ namespace ExpeditionRegionSupport
                   .AppendLine("ACCESSIBILITY LIST")
                   .AppendLine(regionAccessList.Regions.FormatToString(','));
 
+                if (allTimersProcessed)
+                {
+                    sb.AppendLine("All timers processed before every region cache could be checked");
+                    continue;
+                }
+
                 bool regionHandled = false;
-                while (!regionHandled && infLoopCheck > 0)
+                while (!regionHandled)
                 {
                     if (timer == null || timer.ID != "Region Access")
                         timer = findNextIdentifiedTimer();
+
+                    if (timer == null)
+                    {
+                        allTimersProcessed = true;
+                        sb.AppendLine("End of data reached");
+                        break;
+                    }
 
                     if (timer != null)
                     {
@@ -131,12 +144,8 @@ namespace ExpeditionRegionSupport
                                 break;
                         }
                     }
-                    infLoopCheck--;
                 }
             }
-
-            if (infLoopCheck <= 0)
-                sb.AppendLine("Infinite loop triggered");
 
             //foreach (DebugTimer timer in RegisteredTimers)
             //    sb.AppendLine(timer.ToString());
