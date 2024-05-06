@@ -16,6 +16,11 @@ namespace ExpeditionRegionSupport.Tools
         /// </summary>
         public bool AllowResultLogging;
 
+        /// <summary>
+        /// A general purpose field for identifying the timer
+        /// </summary>
+        public string ID;
+
         public TimerResults Results { get; protected set; }
 
         public DebugTimer(bool allowResultLogging = true)

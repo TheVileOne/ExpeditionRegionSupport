@@ -72,6 +72,7 @@ namespace ExpeditionRegionSupport
 
                 DebugTimer processTimer;
                 processTimer = CreateTimer(true, false);
+                processTimer.ID = "Region Access";
                 processTimer.Start();
 
                 List<string> accessibleRegions = RegionUtils.GetAccessibleRegions(regionCode, slugcat);
@@ -96,26 +97,96 @@ namespace ExpeditionRegionSupport
 
             RegisteredTimers.Remove(mainProcessTimer); //Easier to process the results if we remove the main timer here
 
-            int regionTimerIndex = 0;
+            int infLoopCheck = 1000; //TODO: Fix this
+
+            var timers = RegisteredTimers.GetEnumerator();
+            DebugTimer timer = null;
             for (int regionIndex = 0; regionIndex < regionLists.Length; regionIndex++)
             {
                 RegionsCache regionAccessList = regionLists[regionIndex];
 
                 sb.AppendLine("REGION " + regionAccessList.RegionCode)
                   .AppendLine("ACCESSIBILITY LIST")
-                  .AppendLine(regionAccessList.Regions.FormatToString(','))
-                  .AppendLine(RegisteredTimers[regionTimerIndex].ToString()) //Total process time for a single region
-                  .AppendLine("BREAKDOWN");
+                  .AppendLine(regionAccessList.Regions.FormatToString(','));
 
-                regionTimerIndex++;
-                sb.AppendLine(RegisteredTimers[regionTimerIndex].ToString());
+                bool regionHandled = false;
+                while (!regionHandled && infLoopCheck > 0)
+                {
+                    if (timer == null || timer.ID != "Region Access")
+                        timer = findNextIdentifiedTimer();
+
+                    if (timer != null)
+                    {
+                        if (timer.ID != null)
+                            sb.AppendLine(timer.ID);
+
+                        switch (timer.ID)
+                        {
+                            case "Region Access":
+                                sb.AppendLine(timer.ToString()) //Total process time for a single region
+                                  .AppendLine("BREAKDOWN");
+                                timer = null; //Set to null, so Region Connections may be found
+                                break;
+                            case "Region Connections":
+                                processResultBreakdown();
+                                regionHandled = true;
+                                break;
+                        }
+                    }
+                    infLoopCheck--;
+                }
             }
 
-            foreach (DebugTimer timer in RegisteredTimers)
-                sb.AppendLine(timer.ToString());
+            if (infLoopCheck <= 0)
+                sb.AppendLine("Infinite loop triggered");
+
+            //foreach (DebugTimer timer in RegisteredTimers)
+            //    sb.AppendLine(timer.ToString());
 
             Plugin.Logger.LogDebug(sb.ToString());
             FinishDebugProcess();
+
+            DebugTimer findNextIdentifiedTimer()
+            {
+                while (timers.MoveNext() && string.IsNullOrEmpty(timers.Current.ID))
+                    sb.AppendLine(timers.Current.ToString());
+
+                return timers.Current;
+            }
+
+            void processResultBreakdown()
+            {
+                DebugTimer timer = timers.Current;
+
+                if (timer.ID == "Region Connections")
+                {
+                    MultiUseTimer regionConnectionTimer = (MultiUseTimer)timer;
+                    sb.AppendLine(regionConnectionTimer.ToString());
+
+                    //Handle any recursively processed regions
+                    int expectedSubTimers = regionConnectionTimer.AllResults.Count;
+                    sb.AppendLine("Checking sub-timers: " + expectedSubTimers);
+                    for (int i = 0; i < expectedSubTimers; i++)
+                    {
+                        timer = findNextIdentifiedTimer();
+
+                        if (timer == null)
+                        {
+                            sb.AppendLine("End of data reached");
+                            break;
+                        }
+
+                        if (timer.ID != "Region Connections")
+                        {
+                            sb.AppendLine("Unexpected ID detected");
+                            break;
+                        }
+
+                        sb.AppendLine(timer.ID);
+                        processResultBreakdown();
+                    }
+                }
+            }
         }
 
         public static void TestRegionMiner()

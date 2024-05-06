@@ -138,6 +138,7 @@ namespace ExpeditionRegionSupport.Regions
             if (Plugin.DebugMode)
             {
                 processTimer = DebugMode.CreateMultiUseTimer(DebugMode.RunningDebugProcess, TimerOutput.RelativeIncrements, false);
+                processTimer.ID = "Region Connections";
                 processTimer.ReportTotalTime = true;
                 processTimer.TotalTimeHeader = $"Getting all connecting regions for {regionCode} (" + (firstPass ? "TOP" : "SUB") + ")";
                 processTimer.Start();

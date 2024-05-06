@@ -48,7 +48,6 @@ namespace ExpeditionRegionSupport
             if (TryParse(name, out SlugcatStats.Name found))
                 return found;
 
-            Plugin.Logger.LogInfo("Unrecognized slugcat processed");
             return new SlugcatStats.Name(name.Trim());
         }
 
