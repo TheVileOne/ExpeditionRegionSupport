@@ -107,11 +107,7 @@ namespace ExpeditionRegionSupport
                   .AppendLine("ACCESSIBILITY LIST")
                   .AppendLine(regionAccessList.Regions.FormatToString(','));
 
-                if (allTimersProcessed)
-                {
-                    sb.AppendLine("All timers processed before every region cache could be checked");
-                    continue;
-                }
+                if (allTimersProcessed) continue; //This is normal due to how the region caches are processed
 
                 bool regionHandled = false;
                 while (!regionHandled)
