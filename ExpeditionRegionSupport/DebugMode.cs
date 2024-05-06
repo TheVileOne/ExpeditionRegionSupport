@@ -159,35 +159,30 @@ namespace ExpeditionRegionSupport
 
             void processResultBreakdown()
             {
-                DebugTimer timer = timers.Current;
+                MultiUseTimer regionConnectionTimer = (MultiUseTimer)timers.Current;
+                sb.AppendLine(regionConnectionTimer.ToString());
 
-                if (timer.ID == "Region Connections")
+                //Handle any recursively processed regions
+                int expectedSubTimers = regionConnectionTimer.AllResults.Count;
+                sb.AppendLine("Checking sub-timers: " + expectedSubTimers);
+                for (int i = 0; i < expectedSubTimers; i++)
                 {
-                    MultiUseTimer regionConnectionTimer = (MultiUseTimer)timer;
-                    sb.AppendLine(regionConnectionTimer.ToString());
+                    timer = findNextIdentifiedTimer();
 
-                    //Handle any recursively processed regions
-                    int expectedSubTimers = regionConnectionTimer.AllResults.Count;
-                    sb.AppendLine("Checking sub-timers: " + expectedSubTimers);
-                    for (int i = 0; i < expectedSubTimers; i++)
+                    if (timer == null)
                     {
-                        timer = findNextIdentifiedTimer();
-
-                        if (timer == null)
-                        {
-                            sb.AppendLine("End of data reached");
-                            break;
-                        }
-
-                        if (timer.ID != "Region Connections")
-                        {
-                            sb.AppendLine("Unexpected ID detected");
-                            break;
-                        }
-
-                        sb.AppendLine(timer.ID);
-                        processResultBreakdown();
+                        sb.AppendLine("End of data reached");
+                        break;
                     }
+
+                    if (timer.ID != "Region Connections")
+                    {
+                        sb.AppendLine("Unexpected ID detected");
+                        break;
+                    }
+
+                    sb.AppendLine(timer.ID);
+                    processResultBreakdown();
                 }
             }
         }
