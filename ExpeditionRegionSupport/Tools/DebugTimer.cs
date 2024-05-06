@@ -48,23 +48,7 @@ namespace ExpeditionRegionSupport.Tools
 
         public string TotalTimeHeader = "Entire process";
 
-        public TimerResults TotalTimeReported
-        {
-            get
-            {
-                return new TimerResults(TotalTimeHeader, Results.ElapsedTime);
-
-                if (AllResults.Count == 0)
-                    return new TimerResults(TotalTimeHeader, 0);
-
-
-
-                if (AllResults.Count == 1 || OutputFormat != TimerOutput.RelativeIncrements)
-                    return new TimerResults(TotalTimeHeader, Results.ElapsedTime); //Results will always represent the total time reported here
-
-                return ConvertToRelative(Results, AllResults.First(), TotalTimeHeader);
-            }
-        }
+        public TimerResults TotalTimeReported => new TimerResults(TotalTimeHeader, Results.ElapsedTime);
 
         public bool ReportTotalTime;
         public TimerOutput OutputFormat;
