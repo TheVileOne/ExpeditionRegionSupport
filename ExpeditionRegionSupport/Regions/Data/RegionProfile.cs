@@ -263,8 +263,6 @@ namespace ExpeditionRegionSupport.Regions.Data
                 Tree regionTree = new Tree(this);
                 regionTree.LogData();
             }
-
-            //TODO: Forward equivalences need to be logged
         }
 
         public override string ToString()
@@ -275,6 +273,13 @@ namespace ExpeditionRegionSupport.Regions.Data
         public IEnumerable<ITreeNode> GetChildNodes()
         {
             return EquivalentBaseRegions.Select(node => node as ITreeNode);
+        }
+
+        public static void LogEquivalencyRelationships()
+        {
+            //Only handle regions that are at the top of their equivalency chain - May not be failproof in all cases
+            foreach (RegionProfile region in RegionUtils.EquivalentRegions.Where(r => !r.EquivalentRegions.Any()))
+                region.LogEquivalences();
         }
     }
 }

@@ -709,6 +709,8 @@ namespace ExpeditionRegionSupport.Regions
                     targetRegion.RegisterEquivalency(slugcat, slugcatEquivalentRegion);
                 }
             }
+
+            //RegionProfile.LogEquivalencyRelationships();
         }
 
         private static SlugcatStats.Name equivalentRegionsCacheHelper(string[] regions, string valueA, string valueB, out string regionCode)
