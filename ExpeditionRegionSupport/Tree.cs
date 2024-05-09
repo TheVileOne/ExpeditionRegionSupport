@@ -9,6 +9,11 @@ namespace ExpeditionRegionSupport
     public class Tree
     {
         /// <summary>
+        /// The zero-based length of the longest branch beginning at SourceNode
+        /// </summary>
+        public int HighestNodeDepth => GetNodesByDepth().Count();
+
+        /// <summary>
         /// The starting point for tree data
         /// </summary>
         public ITreeNode SourceNode;
@@ -45,6 +50,17 @@ namespace ExpeditionRegionSupport
             {
                 yield return currentLevel;
                 currentLevel = currentLevel.SelectMany(node => node.GetChildNodes()); //Stores all child nodes of current nodes into a single IEnumerable 
+            }
+        }
+
+        public void LogData()
+        {
+            int nodeDepth = 0;
+            foreach (IEnumerable<ITreeNode> nodesAtThisLevel in GetNodesByDepth())
+            {
+                Plugin.Logger.LogInfo($"--- NODE DEPTH {nodeDepth} ---");
+                Plugin.Logger.LogInfo(nodesAtThisLevel.FormatToString(',')); //All nodes at this depth separated by commas
+                nodeDepth++;
             }
         }
     }

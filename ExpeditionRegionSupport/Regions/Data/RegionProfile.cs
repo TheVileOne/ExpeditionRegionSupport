@@ -25,12 +25,14 @@ namespace ExpeditionRegionSupport.Regions.Data
         /// <summary>
         /// This region does not replace any other equivalent regions
         /// </summary>
-        public readonly bool IsBaseRegion => EquivalentBaseRegions.Count == 0;
+        public bool IsBaseRegion => EquivalentBaseRegions.Count == 0;
 
         /// <summary>
         /// This region should not be assigned any base equivalent regions even if it serves as a substitute for another region  
         /// </summary>
         public readonly bool IsPermanentBaseRegion;
+
+        public bool HasEquivalentRegions => !IsBaseRegion || EquivalentRegions.Any();
 
         public bool IsDefault => Equals(default(RegionProfile));
 
@@ -247,39 +249,27 @@ namespace ExpeditionRegionSupport.Regions.Data
 
         public void LogEquivalences()
         {
-            StringBuilder sb = new StringBuilder();
+            Plugin.Logger.LogInfo("Equivalency info for " + RegionCode);
 
-            sb.AppendLine("Equivalency info for region " + RegionCode);
+            if (!HasEquivalentRegions)
+            {
+                Plugin.Logger.LogInfo("NONE");
+                return;
+            }
 
             if (!IsBaseRegion)
             {
-                //Get one branch of the base equivalency tree
-                GetAllEquivalentBaseRegions(0, out RegionProfile[][] baseRegionMap);
-
-                RegionProfile[][] multiRegionBases = Array.FindAll(baseRegionMap, rm => rm.Length > 1);
-
-                if (multiRegionBases[0].Any())
-                {
-                    sb.AppendLine("");
-                }
-
-                int tierCount = baseRegionMap[0].Length;
-
-
-                sb.AppendLine("Base equivalences: " + EquivalentBaseRegions.Select(r => r.RegionCode).FormatToString(','));
-                sb.AppendLine("Has base equivalency with equivalency: " + EquivalentBaseRegions.Exists(r => r.EquivalentRegions.Count > 1));
-
-                RegionProfile[] test = new RegionProfile[4];
-                for (int i = 0; i < 4; i++)
-                {
-                    processEquivalencyBranch(test[i]);
-                }
-
-                void processEquivalencyBranch(RegionProfile profile)
-                {
-                    processEquivalencyBranch(profile);
-                }
+                Plugin.Logger.LogInfo("Base equivalences");
+                Tree regionTree = new Tree(this);
+                regionTree.LogData();
             }
+
+            //TODO: Forward equivalences need to be logged
+        }
+
+        public override string ToString()
+        {
+            return RegionCode;
         }
 
         public IEnumerable<ITreeNode> GetChildNodes()
