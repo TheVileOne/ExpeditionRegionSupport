@@ -177,6 +177,21 @@ namespace ExpeditionRegionSupport.Regions.Data
             return EquivalentBaseRegions[0].GetEquivalentBaseRegion(); //Default to the first registered base
         }
 
+        public void GetAllEquivalentBaseRegions(int recursiveSteps, out RegionProfile[][] baseRegionMap)
+        {
+            recursiveSteps++;
+            if (IsBaseRegion)
+            {
+                baseRegionMap = new RegionProfile[recursiveSteps][];
+                return;
+            }
+
+            EquivalentBaseRegions[0].GetAllEquivalentBaseRegions(recursiveSteps, out baseRegionMap);
+
+            int currentBaseTier = baseRegionMap[0].Length - recursiveSteps; //Equivalency tiers start at the lowest base, and increase by 1 with each additional step 
+            baseRegionMap[currentBaseTier] = EquivalentBaseRegions.ToArray();
+        }
+
         /// <summary>
         /// Gets the base equivalent region that most closely associated with a vanilla/downpour region for a specified slugcat.
         /// This will probably return the same result in most cases. The main difference is that this method prioritizes base regions
@@ -228,6 +243,43 @@ namespace ExpeditionRegionSupport.Regions.Data
                 return equivalentRegion.GetRegionCandidateRecursive(slugcat);
             }
             return this; //Return this when this is the most valid equivalent region
+        }
+
+        public void LogEquivalences()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            sb.AppendLine("Equivalency info for region " + RegionCode);
+
+            if (!IsBaseRegion)
+            {
+                //Get one branch of the base equivalency tree
+                GetAllEquivalentBaseRegions(0, out RegionProfile[][] baseRegionMap);
+
+                RegionProfile[][] multiRegionBases = Array.FindAll(baseRegionMap, rm => rm.Length > 1);
+
+                if (multiRegionBases[0].Any())
+                {
+                    sb.AppendLine("");
+                }
+
+                int tierCount = baseRegionMap[0].Length;
+
+
+                sb.AppendLine("Base equivalences: " + EquivalentBaseRegions.Select(r => r.RegionCode).FormatToString(','));
+                sb.AppendLine("Has base equivalency with equivalency: " + EquivalentBaseRegions.Exists(r => r.EquivalentRegions.Count > 1));
+
+                RegionProfile[] test = new RegionProfile[4];
+                for (int i = 0; i < 4; i++)
+                {
+                    processEquivalencyBranch(test[i]);
+                }
+
+                void processEquivalencyBranch(RegionProfile profile)
+                {
+                    processEquivalencyBranch(profile);
+                }
+            }
         }
 
         public IEnumerable<ITreeNode> GetChildNodes()
