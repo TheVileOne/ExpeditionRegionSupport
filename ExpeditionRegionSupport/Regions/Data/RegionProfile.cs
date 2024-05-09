@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ExpeditionRegionSupport.Regions.Data
 {
-    public readonly struct RegionProfile
+    public readonly struct RegionProfile : ITreeNode
     {
         public readonly string RegionCode;
 
@@ -228,6 +228,11 @@ namespace ExpeditionRegionSupport.Regions.Data
                 return equivalentRegion.GetRegionCandidateRecursive(slugcat);
             }
             return this; //Return this when this is the most valid equivalent region
+        }
+
+        public IEnumerable<ITreeNode> GetChildNodes()
+        {
+            return EquivalentBaseRegions.Select(node => node as ITreeNode);
         }
     }
 }
