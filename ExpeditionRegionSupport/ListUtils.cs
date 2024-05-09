@@ -24,9 +24,9 @@ namespace ExpeditionRegionSupport
             return self.Find(i => i.GetType().Equals(item.GetType()));
         }
 
-        public static string FormatToString<T>(this List<T> self, char separator, string stringIfEmpty = "NONE")
+        public static string FormatToString<T>(this IEnumerable<T> self, char separator, string stringIfEmpty = "NONE")
         {
-            return self != null ? self.Count > 0 ? string.Join(separator + " ", self) : stringIfEmpty : null;
+            return self != null ? self.Any() ? string.Join(separator + " ", self) : stringIfEmpty : null;
         }
 
         public static bool Exists<T>(this IEnumerable<T> self, Func<T, bool> predicate)
