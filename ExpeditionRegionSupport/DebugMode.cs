@@ -51,6 +51,15 @@ namespace ExpeditionRegionSupport
             RegisteredTimers.Clear();
         }
 
+        public static void ProcessAllAccessibleRegionsAllSlugcats()
+        {
+            foreach (SlugcatStats.Name slugcat in ExtEnumBase.GetNames(typeof(SlugcatStats.Name)).Select(s => new SlugcatStats.Name(s)))
+            {
+                Plugin.Logger.LogDebug("Processing accessible regions for " + slugcat.value);
+                ProcessAllAccessibleRegions(slugcat);
+            }
+        }
+
         public static void ProcessAllAccessibleRegions(SlugcatStats.Name slugcat)
         {
             StartDebugProcess();
