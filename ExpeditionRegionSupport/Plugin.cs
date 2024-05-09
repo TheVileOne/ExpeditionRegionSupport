@@ -62,7 +62,6 @@ namespace ExpeditionRegionSupport
                 IL.Menu.ChallengeSelectPage.Update += ChallengeSelectPage_Update;
                 On.Menu.ChallengeSelectPage.UpdateChallengeButtons += ChallengeSelectPage_UpdateChallengeButtons;
                 IL.Menu.ChallengeSelectPage.UpdateChallengeButtons += ChallengeSelectPage_UpdateChallengeButtons;
-                IL.Menu.CharacterSelectPage.Update += CharacterSelectPage_Update;
 
                 //User Interface
                 On.Menu.ExpeditionMenu.ctor += ExpeditionMenu_ctor;
@@ -78,6 +77,7 @@ namespace ExpeditionRegionSupport
 
                 //CharacterSelect
                 On.Menu.CharacterSelectPage.UpdateSelectedSlugcat += CharacterSelectPage_UpdateSelectedSlugcat;
+                IL.Menu.CharacterSelectPage.Update += CharacterSelectPage_Update;
 
                 //Random Spawn hooks
                 On.Menu.ChallengeSelectPage.StartGame += ChallengeSelectPage_StartGame;

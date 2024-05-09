@@ -3,6 +3,7 @@ using ExpeditionRegionSupport.Regions.Data;
 using ExpeditionRegionSupport.Tools;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace ExpeditionRegionSupport
@@ -151,9 +152,6 @@ namespace ExpeditionRegionSupport
                     }
                 }
             }
-
-            //foreach (DebugTimer timer in RegisteredTimers)
-            //    sb.AppendLine(timer.ToString());
 
             Plugin.Logger.LogDebug(sb.ToString());
             FinishDebugProcess();
