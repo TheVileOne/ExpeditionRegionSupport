@@ -247,24 +247,25 @@ namespace ExpeditionRegionSupport.Regions.Data
             return this; //Return this when this is the most valid equivalent region
         }
 
-        public void LogEquivalences()
+        public void LogEquivalences(bool logOnlyIfDataExists)
         {
-            Plugin.Logger.LogInfo("Equivalency info for " + RegionCode);
-
-            if (!HasEquivalentRegions)
+            if (IsBaseRegion)
             {
-                Plugin.Logger.LogInfo("NONE");
+                bool hasData = EquivalentRegions.Count > 0;
+                if (hasData || !logOnlyIfDataExists)
+                {
+                    Plugin.Logger.LogInfo("Equivalency info for " + RegionCode);
+                    Plugin.Logger.LogInfo(hasData ? "Has slugcat conditions" : "NONE");
+                }
                 return;
             }
 
-            if (!IsBaseRegion)
-            {
-                Plugin.Logger.LogInfo("Base equivalences");
-                Tree regionTree = new Tree(this);
-                regionTree.OnDataLogged += onDataLogged; //There is specific information that we want to know that doesn't get logged through Tree
+            Plugin.Logger.LogInfo("Equivalency info for " + RegionCode);
+            Plugin.Logger.LogInfo("Base equivalences");
+            Tree regionTree = new Tree(this);
+            regionTree.OnDataLogged += onDataLogged; //There is specific information that we want to know that doesn't get logged through Tree
 
-                regionTree.LogData();
-            }
+            regionTree.LogData();
         }
 
         public override string ToString()
@@ -295,7 +296,7 @@ namespace ExpeditionRegionSupport.Regions.Data
         {
             //Only handle regions that are at the top of their equivalency chain - May not be failproof in all cases
             foreach (RegionProfile region in RegionUtils.EquivalentRegions.Where(r => !r.EquivalentRegions.Any()))
-                region.LogEquivalences();
+                region.LogEquivalences(true);
         }
     }
 }
