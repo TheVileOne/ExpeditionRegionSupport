@@ -93,7 +93,7 @@ namespace ExpeditionRegionSupport.Regions.Data
                 Plugin.Logger.LogInfo("Changing equivalent region targetting " + RegionCode);
                 EquivalentRegions[slugcat] = region;
 
-                if (!region.IsPermanentBaseRegion) //Prevent certain regions from having base equivalencies
+                if (!region.IsPermanentBaseRegion && !region.EquivalentBaseRegions.Contains(this)) //Prevent certain regions from having base equivalencies
                     region.EquivalentBaseRegions.Add(this);
             }
 
