@@ -710,7 +710,8 @@ namespace ExpeditionRegionSupport.Regions
                 }
             }
 
-            //RegionProfile.LogEquivalencyRelationships();
+            if (Plugin.DebugMode)
+                RegionProfile.LogEquivalencyRelationships();
         }
 
         private static SlugcatStats.Name equivalentRegionsCacheHelper(string[] regions, string valueA, string valueB, out string regionCode)
