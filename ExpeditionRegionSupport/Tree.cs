@@ -23,6 +23,13 @@ namespace ExpeditionRegionSupport
         /// </summary>
         public IEnumerable<ITreeNode> SourceChildren => SourceNode.GetChildNodes();
 
+        public delegate void ProcessNodesAtDepthDelegate(IEnumerable<ITreeNode> nodesAtThisDepth, int nodeDepth);
+
+        /// <summary>
+        /// This is invoked each time a node depth is processed allowing extra details to be logged at each stage of the logging process
+        /// </summary>
+        public ProcessNodesAtDepthDelegate OnDataLogged;
+
         public Tree(ITreeNode sourceNode)
         {
             SourceNode = sourceNode;
@@ -60,6 +67,8 @@ namespace ExpeditionRegionSupport
             {
                 Plugin.Logger.LogInfo($"--- NODE DEPTH {nodeDepth} ---");
                 Plugin.Logger.LogInfo(nodesAtThisLevel.FormatToString(',')); //All nodes at this depth separated by commas
+
+                OnDataLogged?.Invoke(nodesAtThisLevel, nodeDepth);
                 nodeDepth++;
             }
         }

@@ -261,6 +261,8 @@ namespace ExpeditionRegionSupport.Regions.Data
             {
                 Plugin.Logger.LogInfo("Base equivalences");
                 Tree regionTree = new Tree(this);
+                regionTree.OnDataLogged += onDataLogged; //There is specific information that we want to know that doesn't get logged through Tree
+
                 regionTree.LogData();
             }
         }
@@ -273,6 +275,20 @@ namespace ExpeditionRegionSupport.Regions.Data
         public IEnumerable<ITreeNode> GetChildNodes()
         {
             return EquivalentBaseRegions.Select(node => node as ITreeNode);
+        }
+
+        private void onDataLogged(IEnumerable<ITreeNode> nodesAtThisDepth, int nodeDepth)
+        {
+            if (nodeDepth == 0 || !nodesAtThisDepth.Any()) return; //At depth 0, EquivalentRegions will always be empty
+
+            int nodeCount = nodesAtThisDepth.Count();
+            foreach (RegionProfile node in nodesAtThisDepth)
+            {
+                string conditionsHeader = nodeCount == 1 ? "Slugcat Conditions" : $"Slugcat Conditions ({node.RegionCode})";
+
+                Plugin.Logger.LogInfo(conditionsHeader);
+                Plugin.Logger.LogInfo(node.EquivalentRegions.Select(r => r.Key).FormatToString(','));
+            }
         }
 
         public static void LogEquivalencyRelationships()
