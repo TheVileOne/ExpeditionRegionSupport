@@ -666,7 +666,15 @@ namespace ExpeditionRegionSupport.Regions
                 Plugin.Logger.LogInfo("Reading from " + path);
 
                 //The region code stored here replaces any region mentioned in the equivalences.txt file
-                RegionProfile targetRegion = Array.Find(EquivalentRegions, r => r.Equals(Path.GetFileName(Path.GetDirectoryName(path)).ToUpper())); //Get region code from containing directory
+                string regionCodeFromDirectory = Path.GetFileName(Path.GetDirectoryName(path)).ToUpper(); //Get region code from containing directory
+
+                RegionProfile targetRegion = FindEquivalencyProfile(regionCodeFromDirectory);
+
+                if (targetRegion.IsDefault)
+                {
+                    Plugin.Logger.LogInfo("Region code is unrecognized");
+                    continue;
+                }
 
                 string[] fileData = File.ReadAllText(path).Trim().Split(','); //Split into sections
 
@@ -676,11 +684,11 @@ namespace ExpeditionRegionSupport.Regions
 
                     bool appliesToAllSlugcats = sepIndex == -1; //This will get overwritten by any conflicting values
 
-                    string replaceTarget;
+                    string registerTarget;
                     SlugcatStats.Name slugcat;
                     if (appliesToAllSlugcats)
                     {
-                        replaceTarget = line.Trim().ToUpper();
+                        registerTarget = line.Trim().ToUpper();
                         slugcat = SlugcatUtils.AnySlugcat;
                     }
                     else
@@ -691,21 +699,21 @@ namespace ExpeditionRegionSupport.Regions
 
                         if (valueA.Length <= 2)
                         {
-                            slugcat = equivalentRegionsCacheHelper(regions, valueA, valueB, out replaceTarget);
+                            slugcat = equivalentRegionsCacheHelper(regions, valueA, valueB, out registerTarget);
                         }
                         else if (valueB.Length <= 2)
                         {
-                            slugcat = equivalentRegionsCacheHelper(regions, valueB, valueA, out replaceTarget);
+                            slugcat = equivalentRegionsCacheHelper(regions, valueB, valueA, out registerTarget);
                         }
                         else //Neither are standard length for a region
                         {
-                            slugcat = equivalentRegionsCacheHelper(regions, valueA, valueB, out replaceTarget);
+                            slugcat = equivalentRegionsCacheHelper(regions, valueA, valueB, out registerTarget);
                         }
                     }
 
-                    if (replaceTarget == null) continue; //The region is likely part of an unloaded mod
+                    if (registerTarget == null) continue; //The region is likely part of an unloaded mod
 
-                    RegionProfile slugcatEquivalentRegion = Array.Find(EquivalentRegions, r => r.Equals(replaceTarget));
+                    RegionProfile slugcatEquivalentRegion = FindEquivalencyProfile(registerTarget);
                     targetRegion.RegisterEquivalency(slugcat, slugcatEquivalentRegion);
                 }
             }
@@ -729,6 +737,11 @@ namespace ExpeditionRegionSupport.Regions
                     slugcat = SlugcatUtils.GetOrCreate(valueA);
             }
             return slugcat;
+        }
+
+        public static RegionProfile FindEquivalencyProfile(string regionCode)
+        {
+            return Array.Find(EquivalentRegions, r => r.RegionCode == regionCode);
         }
 
         public static bool IsVanillaRegion(string regionCode)
