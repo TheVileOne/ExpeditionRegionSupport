@@ -95,5 +95,12 @@ namespace ExpeditionRegionSupport
 
             return name;
         }
+
+        public static void LogAllSlugcats()
+        {
+            Plugin.Logger.LogInfo("Registered slugcats");
+            foreach (string slugcat in ExtEnumBase.GetNames(typeof(SlugcatStats.Name)))
+                Plugin.Logger.LogInfo(slugcat);
+        }
     }
 }
