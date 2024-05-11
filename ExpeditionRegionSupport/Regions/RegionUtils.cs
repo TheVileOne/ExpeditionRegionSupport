@@ -676,45 +676,50 @@ namespace ExpeditionRegionSupport.Regions
                     continue;
                 }
 
-                string[] fileData = File.ReadAllText(path).Trim().Split(','); //Split into sections
+                string[] fileData = File.ReadAllLines(path);
 
                 foreach (string line in fileData)
                 {
-                    int sepIndex = line.IndexOf('-'); //Either will be SU, SU-Spear, or Spear-SU
+                    string[] dataValues = line.Trim().Split(','); //Entries are separated by commas
 
-                    bool appliesToAllSlugcats = sepIndex == -1; //This will get overwritten by any conflicting values
-
-                    string registerTarget;
-                    SlugcatStats.Name slugcat;
-                    if (appliesToAllSlugcats)
+                    foreach (string equivalencyEntry in dataValues)
                     {
-                        registerTarget = line.Trim().ToUpper();
-                        slugcat = SlugcatUtils.AnySlugcat;
+                        int sepIndex = equivalencyEntry.IndexOf('-'); //Either will be SU, SU-Spear, or Spear-SU
+
+                        bool appliesToAllSlugcats = sepIndex == -1; //This will get overwritten by any conflicting values
+
+                        string registerTarget;
+                        SlugcatStats.Name slugcat;
+                        if (appliesToAllSlugcats)
+                        {
+                            registerTarget = equivalencyEntry.Trim().ToUpper();
+                            slugcat = SlugcatUtils.AnySlugcat;
+                        }
+                        else
+                        {
+                            //One of these values is the region code, and the other is a slugcat name
+                            string valueA = equivalencyEntry.Substring(0, sepIndex).Trim();
+                            string valueB = equivalencyEntry.Substring(sepIndex + 1).Trim();
+
+                            if (valueA.Length <= 2)
+                            {
+                                slugcat = equivalentRegionsCacheHelper(regions, valueA, valueB, out registerTarget);
+                            }
+                            else if (valueB.Length <= 2)
+                            {
+                                slugcat = equivalentRegionsCacheHelper(regions, valueB, valueA, out registerTarget);
+                            }
+                            else //Neither are standard length for a region
+                            {
+                                slugcat = equivalentRegionsCacheHelper(regions, valueA, valueB, out registerTarget);
+                            }
+                        }
+
+                        if (registerTarget == null) continue; //The region is likely part of an unloaded mod
+
+                        RegionProfile slugcatEquivalentRegion = FindEquivalencyProfile(registerTarget);
+                        targetRegion.RegisterEquivalency(slugcat, slugcatEquivalentRegion);
                     }
-                    else
-                    {
-                        //One of these values is the region code, and the other is a slugcat name
-                        string valueA = line.Substring(0, sepIndex).Trim();
-                        string valueB = line.Substring(sepIndex + 1).Trim();
-
-                        if (valueA.Length <= 2)
-                        {
-                            slugcat = equivalentRegionsCacheHelper(regions, valueA, valueB, out registerTarget);
-                        }
-                        else if (valueB.Length <= 2)
-                        {
-                            slugcat = equivalentRegionsCacheHelper(regions, valueB, valueA, out registerTarget);
-                        }
-                        else //Neither are standard length for a region
-                        {
-                            slugcat = equivalentRegionsCacheHelper(regions, valueA, valueB, out registerTarget);
-                        }
-                    }
-
-                    if (registerTarget == null) continue; //The region is likely part of an unloaded mod
-
-                    RegionProfile slugcatEquivalentRegion = FindEquivalencyProfile(registerTarget);
-                    targetRegion.RegisterEquivalency(slugcat, slugcatEquivalentRegion);
                 }
             }
 
