@@ -1,9 +1,9 @@
+//Downpour regions
 $OE
 WORLDSTATE: Vanilla, Gourmand
 $LC
 WORLDSTATE: Vanilla, Artificer
-$NF
-WORLDSTATE: Saint
+ProgressionRestriction.OnVisit
 $LM
 WORLDSTATE: Vanilla, OldWorld
 $MS
@@ -11,3 +11,42 @@ SLUGCATS: Rivulet
 //ROOMS: MS_S07
 //SLUGCATS:
 //NOTALLOW: Survivor, Monk
+//Neuron Forest
+$NF
+WORLDSTATE: Saint
+ProgressionRestriction.OnVisit
+//Hunter Expansion region (One-way region)
+$NSH
+WORLDSTATE: None
+//Undersea
+$US
+SLUGCATS:
+NOTALLOW: Artificer
+//Crystal Cave
+$CY
+WORLDSTATE: Vanilla, Gourmand
+ProgressionRestriction.OnSlugcatUnlocked
+Gourmand
+//Transit System
+$T1
+SLUGCATS: Pearlcat
+//Deserted Wasteland, Testing Simulation
+$DW, $TZ
+WORLDSTATE: Vanilla
+//Scorched District, Howling Rift, Moss Fields, Lush Mire
+$SD, $HC, $MF, $LW, $US
+SLUGCATS:
+NOTALLOW
+Saint
+//Lost Cranny
+$XD
+SLUGCATS: Monk
+//Technomancer regions
+$TL
+SLUGCATS: technomancer
+$IN
+//ROOMS: IN_LAMPSHELTER TODO:Fix this
+WORLDSTATE: None
+//Begonia regions
+$CE, $RP
+SLUGCATS: Begonia
