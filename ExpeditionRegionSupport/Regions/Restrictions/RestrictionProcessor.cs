@@ -677,7 +677,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
         private static void parseField_ProgressionRestrictions(string data, RegionRestrictions regionRestrictions)
         {
             //Check whether we are processing a ProgressionRestriction flag, or associated data values
-            if (data.StartsWith("ProgressionRestriction"))
+            if (data.StartsWith("ProgressionRestriction", StringComparison.InvariantCultureIgnoreCase))
             {
                 bool fieldProcessed = false;
                 if (data.EndsWith("OnVisit", StringComparison.InvariantCultureIgnoreCase))
