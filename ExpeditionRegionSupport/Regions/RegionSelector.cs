@@ -544,7 +544,7 @@ namespace ExpeditionRegionSupport.Regions
 
                 try
                 {
-                    if (!isRoomCheck && restrictions.WorldState != WorldState.Any)
+                    if (restrictions.WorldState != WorldState.Any)
                     {
                         logBuffer.AddString("Handling World State restriction");
 

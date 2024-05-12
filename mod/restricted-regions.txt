@@ -45,7 +45,7 @@ SLUGCATS: Monk
 $TL
 SLUGCATS: technomancer
 $IN
-//ROOMS: IN_LAMPSHELTER TODO:Fix this
+ROOMS: IN_LAMPSHELTER
 WORLDSTATE: None
 //Begonia regions
 $CE, $RP
