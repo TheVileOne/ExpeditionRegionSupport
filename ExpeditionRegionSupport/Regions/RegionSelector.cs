@@ -495,7 +495,11 @@ namespace ExpeditionRegionSupport.Regions
             RegionUtils.ParseRoomName(roomName, out regionCode, out roomCode);
 
             //Check for valid format, and check for restrictions that might apply to this room
-            if (roomCode == null || checkRestrictions(regionCode, roomCode)) return;
+            if (roomCode == null || checkRestrictions(regionCode, roomCode))
+            {
+                Plugin.Logger.LogInfo($"Room {roomName} is not available due to a restriction match");
+                return;
+            }
 
             RegionKey regionKey;
             if (RegionsAvailable.TryFind(regionCode, out regionKey)) //Retrieve region associated with room
