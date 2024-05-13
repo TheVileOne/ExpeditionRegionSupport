@@ -353,8 +353,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
 
                     //Fetch existing RegionRestrictions if one exists
                     //Merge recently processed restrictions with it if it does, create a new one otherwise
-                    RegionKey found;
-                    if (regionsRestricted.TryFind(regionCode, out found))
+                    if (regionsRestricted.TryFind(regionCode, out RegionKey found))
                     {
                         Plugin.Logger.LogInfo("Existing restrictions found");
                         found.Restrictions.MergeValues(regionRestrictions);

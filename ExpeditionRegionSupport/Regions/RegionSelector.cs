@@ -305,7 +305,7 @@ namespace ExpeditionRegionSupport.Regions
             RegionsRestricted.ForEach(r => r.Restrictions.ResetToDefaults());
             RegionsRestricted = RestrictionProcessor.Process();
 
-            if (Plugin.DebugMode || RainWorld.ShowLogs)
+            if (Plugin.DebugMode)
             {
                 Plugin.Logger.LogDebug("Restriction Info");
                 Plugin.Logger.LogDebug("COUNT: " + RegionsRestricted.Count);

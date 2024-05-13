@@ -120,14 +120,9 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                     foreach (RoomRestrictions rs in r2.RoomRestrictions)
                     {
                         Plugin.Logger.LogDebug("SLUGCATS PRIMARY");
-                        foreach (var name in r1.Slugcats.Allowed)
-                        {
-                            Plugin.Logger.LogDebug("[MERGE PRIMARY 1] " + name);
-                        }
-                        foreach (var name in r2.Slugcats.Allowed)
-                        {
-                            Plugin.Logger.LogDebug("[MERGE PRIMARY 2] " + name);
-                        }
+                        Plugin.Logger.LogDebug("[MERGE PRIMARY 1] " + r1.Slugcats.Allowed.FormatToString(','));
+                        Plugin.Logger.LogDebug("[MERGE PRIMARY 2] " + r2.Slugcats.Allowed.FormatToString(','));
+
                         rs.ReplaceInheritence(r2); //The restrictions are passed down to the room level
                         processMerge(r1, rs, r2);
                     }
