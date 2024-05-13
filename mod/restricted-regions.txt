@@ -33,7 +33,7 @@ SLUGCATS: Pearlcat
 //Deserted Wasteland, Testing Simulation
 $DW, $TZ
 WORLDSTATE: Vanilla
-//Scorched District, Howling Rift, Moss Fields, Lush Mire
+//Scorched District, Howling Rift, Moss Fields, Lush Mire, Undersea
 $SD, $HC, $MF, $LW, $US
 SLUGCATS:
 NOTALLOW
@@ -50,3 +50,9 @@ WORLDSTATE: None
 //Begonia regions
 $CE, $RP
 SLUGCATS: Begonia
+//Abyss
+$AY
+ROOMS: AY_S02, AY_S03, AY_S05
+SLUGCATS:
+NOTALLOW
+Artificer
