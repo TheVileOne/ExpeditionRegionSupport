@@ -269,7 +269,26 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                             if (modifierChanged)
                                 Plugin.Logger.LogInfo(LogHeader + "MODIFIER: " + activeModifierField.ToString());
 
-                            if (modifier != Modifier.None) continue; //Modifier header - Values on this line currently not supported
+                            if (modifier != Modifier.None)
+                            {
+                                int valueIndex;
+                                switch (activeModifierField)
+                                {
+                                    case Modifier.Allow:
+                                        valueIndex = HEADER_ALLOW.Length;
+                                        break;
+                                    case Modifier.Disallow:
+                                        valueIndex = HEADER_NOTALLOW.Length;
+                                        break;
+                                    default: //Only recognized modifier fields support value processing on the modifier line
+                                        continue;
+                                }
+
+                                if (textLine.Length <= valueIndex + 1) //Check whether it is only the header
+                                    continue;
+
+                                textLine = textLine.Substring(valueIndex).TrimStart(':').TrimStart();
+                            }
                         }
 
                         processField[(int)activeField](textLine, activeRegionRestrictions);
