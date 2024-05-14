@@ -40,6 +40,9 @@ namespace ExpeditionRegionSupport.Interface
             cwt.Page = new ScrollablePage(self, null, "main", 0);
             cwt.Options = new FilterOptions(self, cwt.Page, cwt.Page.pos);
 
+            if (self is ExpeditionSettingsDialog)
+                cwt.Options.MaxDividers = 3; //Only the first checkbox grouping should have dividers
+
             cwt.Page.AddSubObject(cwt.Options);
 
             self.dialogPage = cwt.Page;

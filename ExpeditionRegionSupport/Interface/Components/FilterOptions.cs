@@ -34,6 +34,11 @@ namespace ExpeditionRegionSupport.Interface.Components
         private FSprite pendingDivider;
 
         /// <summary>
+        /// The divider count will not go beyond this amount when set to a positive value
+        /// </summary>
+        public int MaxDividers = -1;
+
+        /// <summary>
         /// A counter that disables input handling when user clicks too soon
         /// </summary>
         public int DoubleClickProtection;
@@ -62,13 +67,16 @@ namespace ExpeditionRegionSupport.Interface.Components
 
             onCheckBoxAdded(option);
 
-            if (pendingDivider != null) //Offset divider add in order to not render a divider below the last filter option
+            if (MaxDividers < 0 || (MaxDividers > 0 && Dividers.Count < MaxDividers))
             {
-                Dividers.Add(pendingDivider);
-                Container.AddChild(pendingDivider);
-            }
+                if (pendingDivider != null) //Offset divider add in order to not render a divider below the last filter option
+                {
+                    Dividers.Add(pendingDivider);
+                    Container.AddChild(pendingDivider);
+                }
 
-            pendingDivider = createDividerSprite();
+                pendingDivider = createDividerSprite();
+            }
             subObjects.Add(option);
         }
 
@@ -184,28 +192,35 @@ namespace ExpeditionRegionSupport.Interface.Components
                 filterLabel.SetPosY(590f - (OPTION_HEIGHT * i));
             }
 
-            //Check if dividers need to be updated
-            int dividersNeeded = Boxes.Count - Dividers.Count - 1;
-
-            if (dividersNeeded > 0)
+            if (MaxDividers != 0)
             {
-                pendingDivider = null;
+                //Check if dividers need to be updated
+                int dividersNeeded = Boxes.Count - Dividers.Count - 1;
 
-                //Reset Y positions for all dividers
-                for (int i = 0; i < Dividers.Count; i++)
-                    Dividers[i].y = 571f - (OPTION_HEIGHT * i);
+                //Max divider count is enforced here
+                if (MaxDividers > 0)
+                    dividersNeeded = Math.Min(dividersNeeded, Math.Max(MaxDividers - Dividers.Count, 0));
 
-                //Add any extra dividers as necessary
-                while (dividersNeeded > 0)
+                if (dividersNeeded > 0)
                 {
-                    FSprite divider = createDividerSprite();
+                    pendingDivider = null;
 
-                    Dividers.Add(divider);
-                    Container.AddChild(divider);
-                    dividersNeeded--;
+                    //Reset Y positions for all dividers
+                    for (int i = 0; i < Dividers.Count; i++)
+                        Dividers[i].y = 571f - (OPTION_HEIGHT * i);
+
+                    //Add any extra dividers as necessary
+                    while (dividersNeeded > 0)
+                    {
+                        FSprite divider = createDividerSprite();
+
+                        Dividers.Add(divider);
+                        Container.AddChild(divider);
+                        dividersNeeded--;
+                    }
+
+                    pendingDivider = createDividerSprite(); //It is expected to there to be an FSprite stored here
                 }
-
-                pendingDivider = createDividerSprite(); //It is expected to there to be an FSprite stored here
             }
         }
     }
