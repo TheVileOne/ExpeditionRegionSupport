@@ -15,6 +15,11 @@ namespace ExpeditionRegionSupport.Interface.Components
         public static Color LABEL_CHECKED_COLOR = new Color(0.83f, 0.83f, 0.83f);
         public static Color LABEL_UNCHECKED_COLOR = new Color(0.25f, 0.25f, 0.25f);
 
+        /// <summary>
+        /// The checkbox height combined with divider padding
+        /// </summary>
+        public static readonly float OPTION_HEIGHT = FilterCheckBoxFactory.CHECKBOX_HEIGHT + 2;
+
         public Action<FilterCheckBox, bool> OnFilterChanged;
 
         public CheckBox.IOwnCheckBox OptionHandle;
@@ -57,15 +62,13 @@ namespace ExpeditionRegionSupport.Interface.Components
 
             onCheckBoxAdded(option);
 
-            FSprite divider = createDividerSprite();
-
             if (pendingDivider != null) //Offset divider add in order to not render a divider below the last filter option
             {
                 Dividers.Add(pendingDivider);
                 Container.AddChild(pendingDivider);
             }
 
-            pendingDivider = divider;
+            pendingDivider = createDividerSprite();
             subObjects.Add(option);
         }
 
@@ -103,7 +106,7 @@ namespace ExpeditionRegionSupport.Interface.Components
             return new FSprite("pixel", true)
             {
                 x = 684f - pos.x,
-                y = 571f - 37f * (Dividers.Count + 1),
+                y = 571f - (OPTION_HEIGHT * Dividers.Count),
                 scaleX = 270f,
                 color = new Color(0.4f, 0.4f, 0.4f)
             };
@@ -177,9 +180,8 @@ namespace ExpeditionRegionSupport.Interface.Components
                 FilterCheckBox filterOption = Boxes[i];
                 MenuLabel filterLabel = filterOption.label;
 
-                //TODO: This position assignment may be wrong
-                filterOption.SetPosY(577f - 37f * i);
-                filterLabel.SetPosY(590f - 37f * i);
+                filterOption.SetPosY(577f - (OPTION_HEIGHT * i));
+                filterLabel.SetPosY(590f - (OPTION_HEIGHT * i));
             }
 
             //Check if dividers need to be updated
@@ -191,7 +193,7 @@ namespace ExpeditionRegionSupport.Interface.Components
 
                 //Reset Y positions for all dividers
                 for (int i = 0; i < Dividers.Count; i++)
-                    Dividers[i].y = 571f - 37f * (i + 1); //TODO: Check padding is correct
+                    Dividers[i].y = 571f - (OPTION_HEIGHT * i);
 
                 //Add any extra dividers as necessary
                 while (dividersNeeded > 0)
