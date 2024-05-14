@@ -105,7 +105,6 @@ namespace ExpeditionRegionSupport.Interface
             Vector2 nextPos = factory.Spacer.NextPosition - new Vector2(0, 80f);
 
             customSheltersCheckBox = factory.Create("Detect Custom Shelters", RegionFilterSettings.DetectCustomShelters, "CUSTOM SHELTERS", nextPos);
-            customSheltersCheckBox.buttonBehav.greyedOut = !Plugin.DebugMode; //Only enable this feature in Debug mode
 
             regionFilterVisitedOnly.FilterImmune = true;
             customSheltersCheckBox.FilterImmune = true;
