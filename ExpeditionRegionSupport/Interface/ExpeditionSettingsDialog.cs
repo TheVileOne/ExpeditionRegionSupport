@@ -35,8 +35,10 @@ namespace ExpeditionRegionSupport.Interface
         private FilterCheckBox regionFilterDownpour;
         private FilterCheckBox regionFilterCustom;
         private FilterCheckBox regionFilterVisitedOnly;
+        private FilterCheckBox regionFilterStoryAndOptionalOnly;
 
         private FilterCheckBox customSheltersCheckBox;
+        private FilterCheckBox rememberSettingsCheckBox;
 
         public event Action<ExpeditionSettingsDialog> OnDialogClosed;
 
@@ -102,11 +104,15 @@ namespace ExpeditionRegionSupport.Interface
             regionFilterCustom = factory.Create("Custom Regions", RegionFilterSettings.AllowCustomRegions, "CUSTOM");
             regionFilterVisitedOnly = factory.Create("Visited Regions Only", RegionFilterSettings.VisitedRegionsOnly, "VISITED ONLY");
 
-            Vector2 nextPos = factory.Spacer.NextPosition - new Vector2(0, 80f);
+            factory.Spacer.AdvancePosition(); //Leave a gap in between sections
 
-            customSheltersCheckBox = factory.Create("Detect Custom Shelters", RegionFilterSettings.DetectCustomShelters, "CUSTOM SHELTERS", nextPos);
+            customSheltersCheckBox = factory.Create("Detect Custom Shelters", RegionFilterSettings.DetectCustomShelters, "CUSTOM SHELTERS");
+            regionFilterStoryAndOptionalOnly = factory.Create("Enforce Story Regions", RegionFilterSettings.StoryAndOptionalRegionsOnly, "STORY/OPTIONAL ONLY");
+            regionFilterStoryAndOptionalOnly.buttonBehav.greyedOut = !Plugin.DebugMode;
+            rememberSettingsCheckBox = factory.Create("Remember My Settings", RegionFilterSettings.RememberSettings, "REMEMBER SETTINGS");
 
             regionFilterVisitedOnly.FilterImmune = true;
+            regionFilterStoryAndOptionalOnly.FilterImmune = true;
             customSheltersCheckBox.FilterImmune = true;
 
             MenuUtils.SetSelectables(options.Boxes, cancelButton);

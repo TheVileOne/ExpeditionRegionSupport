@@ -8,10 +8,13 @@ namespace ExpeditionRegionSupport.Filters.Settings
 {
     public static class RegionFilterSettings
     {
+        public static readonly SimpleToggle RememberSettings;
+
         public static readonly FilterToggle AllowVanillaRegions;
         public static readonly FilterToggle AllowDownpourRegions;
         public static readonly FilterToggle AllowCustomRegions;
         public static readonly FilterToggle VisitedRegionsOnly;
+        public static readonly FilterToggle StoryAndOptionalRegionsOnly;
         public static readonly FilterToggle DetectCustomShelters;
 
         /// <summary>
@@ -22,31 +25,41 @@ namespace ExpeditionRegionSupport.Filters.Settings
         /// <summary>
         /// The setting toggles that have been changed since the last time ExpeditionSettingDialog was opened 
         /// </summary>
-        public static List<SimpleToggle> ChangedSettings = new List<SimpleToggle>();
+        public static List<FilterToggle> ChangedSettings = new List<FilterToggle>();
 
         static RegionFilterSettings()
         {
             SimpleToggle.OnCreate += onToggleCreated;
 
+            RememberSettings = new SimpleToggle(false);
+
             AllowVanillaRegions = new FilterToggle(FilterOption.NoVanilla, true, false);
             AllowDownpourRegions = new FilterToggle(FilterOption.NoDownpour, true, false);
             AllowCustomRegions = new FilterToggle(FilterOption.NoCustom, true, false);
             VisitedRegionsOnly = new FilterToggle(FilterOption.VisitedRegionsOnly, false, true);
+            StoryAndOptionalRegionsOnly = new FilterToggle(FilterOption.StoryAndOptionalRegionsOnly, false, true);
             DetectCustomShelters = new FilterToggle(FilterOption.InheritCustomShelters, false, true);
 
             SimpleToggle.OnCreate -= onToggleCreated;
 
             static void onToggleCreated(SimpleToggle toggle)
             {
-                toggle.ValueChanged += onValueChanged;
-                Settings.Add((FilterToggle)toggle);
+                FilterToggle filterSetting = toggle as FilterToggle;
+
+                if (filterSetting != null)
+                {
+                    toggle.ValueChanged += onSettingChanged;
+                    Settings.Add(filterSetting);
+                }
             }
 
-            static void onValueChanged(SimpleToggle toggle)
+            static void onSettingChanged(SimpleToggle toggle)
             {
-                //We want the toggle to removed, or added every time the value changes
-                if (!ChangedSettings.Remove(toggle))
-                    ChangedSettings.Add(toggle);
+                FilterToggle filterSetting = (FilterToggle)toggle;
+
+                //We want the toggle to be removed, or added every time the value changes
+                if (!ChangedSettings.Remove(filterSetting))
+                    ChangedSettings.Add(filterSetting);
             }
         }
 
@@ -142,6 +155,7 @@ namespace ExpeditionRegionSupport.Filters.Settings
         None,
         InheritCustomShelters,
         VisitedRegionsOnly,
+        StoryAndOptionalRegionsOnly,
         NoVanilla,
         NoDownpour,
         NoCustom
