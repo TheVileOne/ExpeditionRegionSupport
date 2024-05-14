@@ -106,9 +106,9 @@ namespace ExpeditionRegionSupport.Interface
 
             factory.Spacer.AdvancePosition(); //Leave a gap in between sections
 
-            customSheltersCheckBox = factory.Create("Detect Custom Shelters", RegionFilterSettings.DetectCustomShelters, "CUSTOM SHELTERS");
             regionFilterStoryAndOptionalOnly = factory.Create("Enforce Story Regions", RegionFilterSettings.StoryAndOptionalRegionsOnly, "STORY/OPTIONAL ONLY");
             regionFilterStoryAndOptionalOnly.buttonBehav.greyedOut = !Plugin.DebugMode;
+            customSheltersCheckBox = factory.Create("Detect Custom Shelters", RegionFilterSettings.DetectCustomShelters, "CUSTOM SHELTERS");
             rememberSettingsCheckBox = factory.Create("Remember My Settings", RegionFilterSettings.RememberSettings, "REMEMBER SETTINGS");
 
             regionFilterVisitedOnly.FilterImmune = true;
