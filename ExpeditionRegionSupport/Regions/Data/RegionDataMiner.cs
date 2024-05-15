@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ExpeditionRegionSupport.Data;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -81,7 +82,7 @@ namespace ExpeditionRegionSupport.Regions.Data
             try
             {
                 TextReader stream = GetStreamReader(regionCode);
-                
+
                 ActiveStream = stream;
 
                 if (stream != null)
@@ -126,30 +127,6 @@ namespace ExpeditionRegionSupport.Regions.Data
         ~RegionDataMiner()
         {
             CloseStream();
-        }
-    }
-
-    /// <summary>
-    /// This custom class ensures that stream's dispose logic is only called once
-    /// </summary>
-    public class TextStream : StreamReader, IDisposable
-    {
-        public bool IsDisposed { get; private set; }
-
-        public TextStream(string file) : base(file)
-        {
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            IsDisposed = true;
-            base.Dispose(disposing);
-        }
-
-        public override void Close()
-        {
-            if (!IsDisposed)
-                base.Close();
         }
     }
 }
