@@ -34,7 +34,7 @@ namespace ExpeditionRegionSupport
             set => ExpeditionData.devMode = value;
         }
 
-        public static new Logging.Logger Logger;
+        public static new Data.Logging.Logger Logger;
 
         public static bool SlugBaseEnabled;
         public static WorldState ActiveWorldState;
@@ -48,7 +48,7 @@ namespace ExpeditionRegionSupport
 
         public void OnEnable()
         {
-            Logger = new Logging.Logger(base.Logger);
+            Logger = new Data.Logging.Logger(base.Logger);
 
             try
             {
@@ -103,7 +103,7 @@ namespace ExpeditionRegionSupport
                 On.RegionGate.customOEGateRequirements += RegionGate_customOEGateRequirements;
 
                 //Allow communication with Log Manager
-                Logging.Logger.ApplyHooks();
+                Data.Logging.Logger.ApplyHooks();
             }
             catch (Exception ex)
             {
@@ -143,7 +143,7 @@ namespace ExpeditionRegionSupport
 
         private void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)
         {
-            Logger = new Logging.Logger("ErsLog", true); //Override BepInEx logger
+            Logger = new Data.Logging.Logger("ErsLog", true); //Override BepInEx logger
 
             orig(self);
 

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ExpeditionRegionSupport.Logging.Utils
+namespace ExpeditionRegionSupport.Data.Logging.Utils
 {
     public static class LogUtils
     {

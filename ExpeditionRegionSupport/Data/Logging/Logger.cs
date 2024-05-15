@@ -1,5 +1,5 @@
 ﻿using BepInEx.Logging;
-using ExpeditionRegionSupport.Logging.Utils;
+using ExpeditionRegionSupport.Data.Logging.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
-namespace ExpeditionRegionSupport.Logging
+namespace ExpeditionRegionSupport.Data.Logging
 {
     public class Logger : IDisposable
     {

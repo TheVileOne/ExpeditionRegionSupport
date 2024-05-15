@@ -1,6 +1,6 @@
-﻿using ExpeditionRegionSupport.Filters.Settings;
+﻿using ExpeditionRegionSupport.Data;
+using ExpeditionRegionSupport.Filters.Settings;
 using ExpeditionRegionSupport.Filters.Utils;
-using ExpeditionRegionSupport.Logging.Utils;
 using ExpeditionRegionSupport.Regions.Restrictions;
 using MoreSlugcats;
 using System;
