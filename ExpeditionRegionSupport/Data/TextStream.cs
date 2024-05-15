@@ -17,11 +17,17 @@ namespace ExpeditionRegionSupport.Data
         /// </summary>
         public StringDelegates.Format LineFormatter { get; set; }
 
+        /// <summary>
+        /// Apply conditions that pass over text data that matches certain criteria
+        /// </summary>
+        public StringDelegates.Validate SkipConditions { get; set; }
+
         public bool IsDisposed { get; private set; }
 
         public TextStream(string file) : base(file)
         {
             LineFormatter = new StringDelegates.Format(s => s);
+            SkipConditions = new StringDelegates.Validate(s => false);
         }
 
         public override string ReadLine()
@@ -33,6 +39,27 @@ namespace ExpeditionRegionSupport.Data
             if (line != null)
                 return LineFormatter.Invoke(line);
             return line;
+        }
+
+        /// <summary>
+        /// Reads from file one line at a time
+        /// </summary>
+        public IEnumerable<string> ReadLines()
+        {
+            string line;
+            do
+            {
+                line = ReadLine();
+
+                if (line == null)
+                    yield break;
+
+                if (SkipConditions(line))
+                    continue;
+
+                yield return line;
+            }
+            while (line != null);
         }
 
         protected override void Dispose(bool disposing)
