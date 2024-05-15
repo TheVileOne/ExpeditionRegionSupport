@@ -12,19 +12,27 @@ namespace ExpeditionRegionSupport.Data
     /// </summary>
     public class TextStream : StreamReader, IDisposable
     {
-        public IEnumerable<string> LineData = null;
+        /// <summary>
+        /// Apply modifications to the text data as it is read from file
+        /// </summary>
+        public StringDelegates.Format LineFormatter { get; set; }
 
         public bool IsDisposed { get; private set; }
 
         public TextStream(string file) : base(file)
         {
+            LineFormatter = new StringDelegates.Format(s => s);
         }
 
         public override string ReadLine()
         {
             if (IsDisposed) return null;
 
-            return base.ReadLine();
+            string line = base.ReadLine();
+
+            if (line != null)
+                return LineFormatter.Invoke(line);
+            return line;
         }
 
         protected override void Dispose(bool disposing)
