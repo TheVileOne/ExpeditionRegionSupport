@@ -22,6 +22,11 @@ namespace ExpeditionRegionSupport.Data
         /// </summary>
         public List<StringDelegates.Validate> SkipConditions = new List<StringDelegates.Validate>();
 
+        /// <summary>
+        /// When set to true, stream will close when end of file is reached. Instance will need to be disposed externally if this is set to false
+        /// </summary>
+        public bool DisposeOnStreamEnd = true;
+
         public bool IsDisposed { get; private set; }
 
         public TextStream(string file) : base(file)
@@ -38,6 +43,9 @@ namespace ExpeditionRegionSupport.Data
 
             if (line != null)
                 return LineFormatter.Invoke(line);
+
+            if (DisposeOnStreamEnd)
+                Close();
             return line;
         }
 
