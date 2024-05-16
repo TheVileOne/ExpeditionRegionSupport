@@ -20,14 +20,14 @@ namespace ExpeditionRegionSupport.Data
         /// <summary>
         /// Apply conditions that pass over text data that matches certain criteria
         /// </summary>
-        public StringDelegates.Validate SkipConditions { get; set; }
+        public List<StringDelegates.Validate> SkipConditions = new List<StringDelegates.Validate>();
 
         public bool IsDisposed { get; private set; }
 
         public TextStream(string file) : base(file)
         {
-            LineFormatter = new StringDelegates.Format(s => s);
-            SkipConditions = new StringDelegates.Validate(s => false);
+            LineFormatter = new StringDelegates.Format(s => s.Trim());
+            SkipConditions.Add(new StringDelegates.Validate(s => s == string.Empty || s.StartsWith("//")));
         }
 
         public override string ReadLine()
@@ -54,7 +54,7 @@ namespace ExpeditionRegionSupport.Data
                 if (line == null)
                     yield break;
 
-                if (SkipConditions(line))
+                if (SkipConditions.Exists(hasFailedCheck => hasFailedCheck(line))) //Checks that line conforms with all given skip conditions
                     continue;
 
                 yield return line;
