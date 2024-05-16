@@ -62,6 +62,25 @@ namespace ExpeditionRegionSupport.Data
             while (line != null);
         }
 
+        /// <summary>
+        /// Reads all lines from file returning them in an array
+        /// </summary>
+        public string[] ReadAllLines()
+        {
+            //Discard any buffer data, and start at beginning of file
+            DiscardBufferedData();
+            BaseStream.Seek(0, SeekOrigin.Begin);
+
+            List<string> fileData = new List<string>();
+            string line;
+            while ((line = ReadLine()) != null)
+            {
+                if (!SkipConditions.Exists(hasFailedCheck => hasFailedCheck(line))) //Checks that line conforms with all given skip conditions)
+                    fileData.Add(line);
+            }
+            return fileData.ToArray();
+        }
+
         protected override void Dispose(bool disposing)
         {
             IsDisposed = true;
