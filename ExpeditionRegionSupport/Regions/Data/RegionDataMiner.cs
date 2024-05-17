@@ -7,24 +7,55 @@ namespace ExpeditionRegionSupport.Regions.Data
 {
     public class RegionDataMiner
     {
-        private TextReader _activeStream;
-        protected TextReader ActiveStream
+        private TextStream _activeStream;
+        protected TextStream ActiveStream
         {
             get => _activeStream;
             private set
             {
-                //Close old stream - once we lose the reference, the stream wont be disposed
-                if (!KeepStreamOpen && _activeStream != null && _activeStream != value)
-                    CloseStream();
+                if (_activeStream == value) return;
 
+                //Close old stream - once we lose the reference, the stream wont be disposed
+                if (/*!KeepStreamOpen && */_activeStream != null)
+                {
+                    //if (KeepStreamOpen)
+                    //    Plugin.Logger.LogDebug("Stream is being closed that should be kept open");
+
+                    CloseStream();
+                }
+                
                 _activeStream = value;
+
+                if (_activeStream != null)
+                    _activeStream.OnDisposed += onStreamDisposed;
             }
         }
 
+        private void onStreamDisposed(TextStream stream)
+        {
+            if (_activeStream == stream)
+            {
+                _activeStream.OnDisposed -= onStreamDisposed;
+                _activeStream = null;
+            }
+        }
+
+        private bool _keepStreamOpen;
+
         /// <summary>
         /// The stream wont be closed when a read process finished. Stream will be disposed when RegionDataMiner is destroyed.
+        /// NOTE: This currently does not work correctly when set to true. Reusing the StreamReader for multiple reads is currently not supported.
         /// </summary>
-        public bool KeepStreamOpen;
+        public bool KeepStreamOpen
+        {
+            get => _keepStreamOpen;
+            set
+            {
+                if (ActiveStream != null)
+                    ActiveStream.DisposeOnStreamEnd = !value;
+                _keepStreamOpen = value;
+            }
+        }
 
         public const string SECTION_BAT_MIGRATION_BLOCKAGES = "BAT MIGRATION BLOCKAGES";
         public const string SECTION_CONDITIONAL_LINKS = "CONDITIONAL LINKS";
@@ -35,7 +66,7 @@ namespace ExpeditionRegionSupport.Regions.Data
         {
         }
 
-        public TextReader GetStreamReader(string regionCode)
+        public TextStream GetStreamReader(string regionCode)
         {
             string regionFile = RegionUtils.GetWorldFilePath(regionCode);
 
@@ -48,7 +79,12 @@ namespace ExpeditionRegionSupport.Regions.Data
 
             try
             {
-                return new TextStream(regionFile);
+                //TODO: StreamReaders must be able to be reused, or KeepStreamOpen will not work properly, firing a Sharing violation
+                //if another StreamReader is created for the same file
+                return new TextStream(regionFile)
+                {
+                    DisposeOnStreamEnd = !KeepStreamOpen
+                };
             }
             catch (IOException)
             {
@@ -81,7 +117,7 @@ namespace ExpeditionRegionSupport.Regions.Data
         {
             try
             {
-                TextReader stream = GetStreamReader(regionCode);
+                TextStream stream = GetStreamReader(regionCode);
 
                 ActiveStream = stream;
 
@@ -121,7 +157,9 @@ namespace ExpeditionRegionSupport.Regions.Data
         public void CloseStream()
         {
             KeepStreamOpen = false;
-            ActiveStream?.Close();
+
+            if (_activeStream != null)
+                _activeStream.Close();
         }
 
         ~RegionDataMiner()

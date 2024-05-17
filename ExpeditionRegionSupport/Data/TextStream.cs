@@ -29,6 +29,8 @@ namespace ExpeditionRegionSupport.Data
 
         public bool IsDisposed { get; private set; }
 
+        public event Action<TextStream> OnDisposed;
+
         public TextStream(string file) : base(file)
         {
             LineFormatter = new StringDelegates.Format(s => s.Trim());
@@ -92,8 +94,13 @@ namespace ExpeditionRegionSupport.Data
 
         protected override void Dispose(bool disposing)
         {
-            IsDisposed = true;
             base.Dispose(disposing);
+
+            if (!IsDisposed)
+            {
+                IsDisposed = true;
+                OnDisposed?.Invoke(this);
+            }
         }
 
         public override void Close()
