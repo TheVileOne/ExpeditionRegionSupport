@@ -41,12 +41,13 @@ namespace ExpeditionRegionSupport.Data
 
             string line = base.ReadLine();
 
-            if (line != null)
-                return LineFormatter.Invoke(line);
-
-            if (DisposeOnStreamEnd)
-                Close();
-            return line;
+            if (line == null)
+            {
+                if (DisposeOnStreamEnd)
+                    Close();
+                return null;
+            }
+            return LineFormatter.Invoke(line);
         }
 
         /// <summary>
