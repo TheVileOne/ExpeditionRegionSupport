@@ -216,17 +216,18 @@ namespace ExpeditionRegionSupport.Regions
         {
             bool excludeRegion = false;
             bool regionHandled = false;
-            if (regionCode == "OE")
+
+            if (Region.EquivalentRegion(regionCode, "OE"))
             {
                 excludeRegion = !UnlockedSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Gourmand);
                 regionHandled = true;
             }
-            else if (regionCode == "LC")
+            else if (Region.EquivalentRegion(regionCode, "LC"))
             {
                 excludeRegion = !UnlockedSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Artificer);
                 regionHandled = true;
             }
-            else if (regionCode == "MS")
+            else if (Region.EquivalentRegion(regionCode, "MS"))
             {
                 excludeRegion = !UnlockedSlugcats.Contains(MoreSlugcatsEnums.SlugcatStatsName.Rivulet);
                 regionHandled = true;
