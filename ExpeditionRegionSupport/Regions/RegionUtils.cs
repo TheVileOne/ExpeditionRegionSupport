@@ -661,6 +661,14 @@ namespace ExpeditionRegionSupport.Regions
                 profile_SL.RegisterEquivalency(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Spear, profile_LM);
                 profile_SL.RegisterEquivalency(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Artificer, profile_LM);
                 profile_SS.RegisterEquivalency(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Rivulet, profile_RM);
+
+                //This slugcat has hooked their equivalent region checks. Until that changes, hardcode these equivalencies.
+                SlugcatStats.Name technomancer = new SlugcatStats.Name("technomancer");
+
+                profile_SL.RegisterEquivalency(technomancer, profile_LM);
+
+                RegionProfile profile_SB = FindEquivalencyProfile("SB");
+                profile_SB.RegisterEquivalency(technomancer, FindEquivalencyProfile("TL"));
             }
 
             foreach (string path in GetFilePathFromAllSources("equivalences.txt"))
