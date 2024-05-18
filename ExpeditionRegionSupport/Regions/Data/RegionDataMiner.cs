@@ -127,7 +127,7 @@ namespace ExpeditionRegionSupport.Regions.Data
                     bool sectionHeaderFound = false;
                     do
                     {
-                        line = stream.ReadLine()?.Trim();
+                        line = stream.ReadLine();
 
                         if (line == null) //End of file has been reached
                             yield break;
