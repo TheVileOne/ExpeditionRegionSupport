@@ -179,12 +179,14 @@ namespace ExpeditionRegionSupport.Regions
 
             string slugcatEquivalentRegion = GetSlugcatEquivalentRegion(regionCode, slugcat, adjustForSlugcatEquivalences, out string regionBaseEquivalent);
 
+            /*
             string reportString = $"Getting connecting regions for {slugcatEquivalentRegion}";
 
             if (adjustForSlugcatEquivalences && regionCode != slugcatEquivalentRegion)
                 reportString += $" (Changed from {regionCode})";
 
             Plugin.Logger.LogInfo(reportString);
+            */
 
             List<string> connectedRegions = new List<string>();
             foreach (GateInfo gate in GetRegionGates(slugcatEquivalentRegion))
