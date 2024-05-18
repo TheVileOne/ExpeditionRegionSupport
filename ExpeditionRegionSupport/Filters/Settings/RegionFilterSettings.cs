@@ -1,13 +1,18 @@
-﻿using System;
+﻿using ExpeditionRegionSupport.Data;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace ExpeditionRegionSupport.Filters.Settings
 {
     public static class RegionFilterSettings
     {
+        public static readonly string SETTINGS_PATH; 
+
         public static readonly SimpleToggle RememberSettings;
 
         public static readonly FilterToggle AllowVanillaRegions;
@@ -27,8 +32,15 @@ namespace ExpeditionRegionSupport.Filters.Settings
         /// </summary>
         public static List<FilterToggle> ChangedSettings = new List<FilterToggle>();
 
+        /// <summary>
+        /// Any strings the file parser could not immediately recognize
+        /// </summary>
+        public static List<string> UnrecognizedSettingStrings = new List<string>();
+
         static RegionFilterSettings()
         {
+            SETTINGS_PATH = Path.Combine(Application.persistentDataPath, "ModConfigs", "expedition-settings.cfg");
+
             SimpleToggle.OnCreate += onToggleCreated;
 
             RememberSettings = new SimpleToggle(false);
@@ -41,6 +53,12 @@ namespace ExpeditionRegionSupport.Filters.Settings
             DetectCustomShelters = new FilterToggle(FilterOption.InheritCustomShelters, false, true);
 
             SimpleToggle.OnCreate -= onToggleCreated;
+
+            if (File.Exists(SETTINGS_PATH)) //The existence of the file is how we know if the user activated this setting
+            {
+                RememberSettings.Value = true;
+                LoadFromFile(SETTINGS_PATH);
+            }
 
             static void onToggleCreated(SimpleToggle toggle)
             {
@@ -79,6 +97,76 @@ namespace ExpeditionRegionSupport.Filters.Settings
         public static void RestoreToDefaults()
         {
             Settings.ForEach(s => s.RestoreDefault());
+        }
+
+        public static void HandleSaveableData()
+        {
+            try
+            {
+                //Whether or not we are saving to file, we are replacing this file
+                if (File.Exists(SETTINGS_PATH))
+                    File.Delete(SETTINGS_PATH);
+            }
+            catch { }
+
+            if (RememberSettings.Value)
+                SaveToFile(SETTINGS_PATH);
+        }
+
+        public static void SaveToFile(string settingsPath)
+        {
+            TextWriter writer = File.AppendText(settingsPath);
+
+            int totalLinesWritten = 0;
+            for (int i = 0; i < Settings.Count; i++)
+            {
+                FilterToggle setting = Settings[i];
+
+                //Only non-default values are saved to file
+                if (setting.IsChanged)
+                {
+                    writer.WriteLine(string.Format("{0}, {1}, {2}", setting.OptionID, i, setting.Value));
+                    totalLinesWritten++;
+                }
+            }
+
+            UnrecognizedSettingStrings.ForEach(writer.WriteLine);
+            totalLinesWritten += UnrecognizedSettingStrings.Count;
+
+            Plugin.Logger.LogInfo("Line Written " + totalLinesWritten);
+            writer.Close();
+        }
+
+        public static void LoadFromFile(string settingsPath)
+        {
+            UnrecognizedSettingStrings.Clear(); //We are retrieving the strings from file. Nothing should be lost here.
+
+            TextStream stream = new TextStream(settingsPath);
+
+            foreach (string line in stream.ReadLines())
+            {
+                string[] settingValues = line.Split(',');
+
+                int settingIndex = -1;
+                bool settingValue = false;
+
+                bool wasParseSuccessful =
+                    settingValues.Length > 2
+                 && int.TryParse(settingValues[1].Trim(), out settingIndex) //Parse: SettingName,Index,Value
+                 && bool.TryParse(settingValues[2].Trim(), out settingValue)
+                 && settingIndex >= 0
+                 && settingIndex < Settings.Count;
+
+                if (wasParseSuccessful)
+                {
+                    Settings[settingIndex].Value = settingValue;
+                }
+                else
+                {
+                    Plugin.Logger.LogWarning($"Error parsing line '{line}'");
+                    UnrecognizedSettingStrings.Add(line);
+                }
+            }
         }
     }
 

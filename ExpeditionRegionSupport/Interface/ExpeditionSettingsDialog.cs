@@ -114,6 +114,7 @@ namespace ExpeditionRegionSupport.Interface
             regionFilterVisitedOnly.FilterImmune = true;
             regionFilterStoryAndOptionalOnly.FilterImmune = true;
             customSheltersCheckBox.FilterImmune = true;
+            rememberSettingsCheckBox.FilterImmune = true;
 
             MenuUtils.SetSelectables(options.Boxes, cancelButton);
         }

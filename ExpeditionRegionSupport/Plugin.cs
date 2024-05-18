@@ -52,6 +52,7 @@ namespace ExpeditionRegionSupport
 
             try
             {
+                On.RainWorld.OnDestroy += RainWorld_OnDestroy;
                 On.RainWorld.OnModsInit += RainWorld_OnModsInit;
                 On.RainWorld.PostModsInit += RainWorld_PostModsInit;
 
@@ -149,6 +150,11 @@ namespace ExpeditionRegionSupport
 
             ChallengeFilterHooks.ApplyHooks(); //This needs to be handled in PostModsInIt or Expedition.ChallengeTools breaks
             SlugBaseEnabled = ModManager.ActiveMods.Exists(m => m.id == "slime-cubed.slugbase");
+
+        private void RainWorld_OnDestroy(On.RainWorld.orig_OnDestroy orig, RainWorld self)
+        {
+            orig(self);
+            RegionFilterSettings.HandleSaveableData();
         }
 
         private static bool restrictionFileMergePending;
