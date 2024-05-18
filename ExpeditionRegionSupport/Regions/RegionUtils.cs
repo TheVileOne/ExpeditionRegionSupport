@@ -230,7 +230,7 @@ namespace ExpeditionRegionSupport.Regions
         /// <param name="regionBaseEquivalent">The slugcat independent region code equivalent</param>
         public static string GetSlugcatEquivalentRegion(string regionCode, SlugcatStats.Name slugcat, out string regionBaseEquivalent)
         {
-            RegionProfile regionProfile = EquivalentRegions.FirstOrDefault(r => r.RegionCode == regionCode);
+            RegionProfile regionProfile = FindEquivalencyProfile(regionCode);
 
             if (!regionProfile.IsDefault)
             {
@@ -265,7 +265,7 @@ namespace ExpeditionRegionSupport.Regions
 
             try
             {
-                RegionProfile regionProfile = EquivalentRegions.FirstOrDefault(r => r.RegionCode == regionCode);
+                RegionProfile regionProfile = FindEquivalencyProfile(regionCode);
 
                 if (!regionProfile.IsDefault)
                     return regionProfile.GetSlugcatEquivalentRegion(slugcat).RegionCode;
