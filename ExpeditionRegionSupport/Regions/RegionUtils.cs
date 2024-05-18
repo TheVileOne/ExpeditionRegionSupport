@@ -890,10 +890,17 @@ namespace ExpeditionRegionSupport.Regions
             int lastSepIndex = data.LastIndexOf(':');
 
             //Either the last data position, or next to last data position is checked for the 'SHELTER' keyword
-            if (data.Substring(lastSepIndex + 1).EndsWith(" SHELTER")
-             || data.Substring(0, lastSepIndex).TrimEnd().EndsWith(" SHELTER")) //The whitespace is intentional - room codes cannot have whitespace
-            {
+            bool isShelterData = lastSepIndex != -1 &&
+                (data.Substring(lastSepIndex + 1).EndsWith(" SHELTER")
+              || data.Substring(0, lastSepIndex).TrimEnd().EndsWith(" SHELTER")); //The whitespace is intentional - room codes cannot have whitespace
+
+            if (isShelterData)
                 return data.Substring(0, data.IndexOf(':')).Trim();
+
+            if (lastSepIndex == -1)
+            {
+                Plugin.Logger.LogInfo("Processed shelter line missing a ':'");
+                Plugin.Logger.LogInfo("Line " + data);
             }
             return null;
         }
