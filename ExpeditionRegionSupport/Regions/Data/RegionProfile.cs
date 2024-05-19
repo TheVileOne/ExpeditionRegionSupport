@@ -46,6 +46,11 @@ namespace ExpeditionRegionSupport.Regions.Data
         /// </summary>
         public readonly StrongBox<bool> ValidationInProgress;
 
+        /// <summary>
+        /// Determines if RegionProfile node children refer to the base equivalences, or the equivalences stored in EquivalentRegions 
+        /// </summary>
+        public static bool NodeTreeForward = false;
+
         public RegionProfile()
         {
             PendingEquivalency = new StrongBox<RegionProfile>();
@@ -290,7 +295,13 @@ namespace ExpeditionRegionSupport.Regions.Data
 
         public IEnumerable<ITreeNode> GetChildNodes()
         {
-            return EquivalentBaseRegions?.Select(node => node as ITreeNode);
+            IEnumerable<RegionProfile> nextNodeTier;
+
+            if (NodeTreeForward)
+                nextNodeTier = EquivalentRegions.Values; //Ignore slugcat restrictions here
+            else
+                nextNodeTier = EquivalentBaseRegions;
+            return (IEnumerable<ITreeNode>)nextNodeTier;
         }
 
         private void onDataLogged(IEnumerable<ITreeNode> nodesAtThisDepth, int nodeDepth)
