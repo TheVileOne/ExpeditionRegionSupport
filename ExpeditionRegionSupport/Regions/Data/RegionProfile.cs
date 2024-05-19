@@ -179,7 +179,7 @@ namespace ExpeditionRegionSupport.Regions.Data
         {
             if (IsDefault) return this;
 
-            RegionProfile baseEquivalentRegion = GetEquivalentBaseRegion(slugcat); //Region candidacy checking should start at a base equivalent region
+            RegionProfile baseEquivalentRegion = GetEquivalentBaseRegion(slugcat); //Region candidacy checking should start at a base equivalent region         
             return baseEquivalentRegion.GetRegionCandidateRecursive(slugcat);
         }
 

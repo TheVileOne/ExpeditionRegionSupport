@@ -492,8 +492,7 @@ namespace ExpeditionRegionSupport.Regions
 
         public void AddRoom(string roomName)
         {
-            string regionCode, roomCode;
-            RegionUtils.ParseRoomName(roomName, out regionCode, out roomCode);
+            RegionUtils.ParseRoomName(roomName, out string regionCode, out string roomCode);
 
             //Check for valid format, and check for restrictions that might apply to this room
             if (roomCode == null || checkRestrictions(regionCode, roomCode))

@@ -424,8 +424,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                                 //Retrieve new, or existing RegionKey
                                 if (currentRegion.IsEmpty || !room.StartsWith(currentRegion.RegionCode))
                                 {
-                                    string regionCode;
-                                    RegionUtils.ParseRoomName(room, out regionCode, out _);
+                                    RegionUtils.ParseRoomName(room, out string regionCode, out _);
 
                                     if (!regionsRestricted.Contains(regionCode))
                                         regionsRestricted.Add(regionCode);

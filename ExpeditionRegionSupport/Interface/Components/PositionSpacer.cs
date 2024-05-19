@@ -64,7 +64,6 @@ namespace ExpeditionRegionSupport.Interface
         /// <summary>
         /// Gets the next current position without affecting the index
         /// </summary>
-        /// <returns></returns>
         public Vector2 Peek()
         {
             return PositionAt(PositionCount + 1);

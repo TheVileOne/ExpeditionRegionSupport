@@ -831,11 +831,6 @@ namespace ExpeditionRegionSupport.Regions
             return string.Format("world_{0}.txt", regionCode.ToLower());
         }
 
-        public static int IndexOfRegionCode(string[] roomInfo)
-        {
-            return roomInfo[0].StartsWith("GATE", StringComparison.InvariantCultureIgnoreCase) ? 1 : 0;
-        }
-
         /// <summary>
         /// Gets the region part of a room name
         /// </summary>
@@ -865,7 +860,7 @@ namespace ExpeditionRegionSupport.Regions
 
             try
             {
-                int regionCodeIndex = IndexOfRegionCode(roomInfo);
+                int regionCodeIndex = HasGatePrefix(roomName) ? 1 : 0;
 
                 regionCode = roomInfo[regionCodeIndex];
                 roomCode = FormatRoomCode(roomInfo, regionCodeIndex + 1);
@@ -947,7 +942,7 @@ namespace ExpeditionRegionSupport.Regions
 
         public static string GetGateCodeWithValidation(string data)
         {
-            if (data.StartsWith("GATE"))
+            if (HasGatePrefix(data))
             {
                 string[] regionGateData = data.Split(':');
 
@@ -964,6 +959,11 @@ namespace ExpeditionRegionSupport.Regions
         public static bool ContainsGateData(string[] data)
         {
             return HasRoomKeyword(data, "GATE", false); //Gate must have a name, at least one valid connection, and end with GATE
+        }
+
+        public static bool HasGatePrefix(string roomName)
+        {
+            return roomName.StartsWith("GATE");
         }
 
         public static bool HasRoomKeyword(string[] data, string keyword, bool isConditionalLink)
