@@ -835,12 +835,19 @@ namespace ExpeditionRegionSupport.Regions
         {
             string[] roomInfo = SplitRoomName(roomName);
 
-            regionCode = roomInfo[0];
-            roomCode = null;
+            regionCode = roomCode = null;
 
-            if (roomInfo.Length > 1)
+            try
+            {
+                int regionCodeIndex = roomInfo[0].StartsWith("GATE", StringComparison.InvariantCultureIgnoreCase) ? 1 : 0;
+
+                regionCode = roomInfo[regionCodeIndex];
                 roomCode = FormatRoomCode(roomInfo);
-
+            }
+            catch (IndexOutOfRangeException)
+            {
+                Plugin.Logger.LogWarning($"Room name {roomName} is malformated");
+            }
             return roomInfo;
         }
 
