@@ -74,13 +74,6 @@ namespace ExpeditionRegionSupport
         }
     }
 
-    public class Tree<T> : Tree where T : ITreeNode
-    {
-        public Tree(ITreeNode sourceNode) : base(sourceNode)
-        {
-        }
-    }
-
     public interface ITreeNode
     {
         public IEnumerable<ITreeNode> GetChildNodes();
