@@ -831,6 +831,27 @@ namespace ExpeditionRegionSupport.Regions
             return string.Format("world_{0}.txt", regionCode.ToLower());
         }
 
+        /// <summary>
+        /// Gets the region part of a room name
+        /// </summary>
+        public static string ExtractRegionCode(string roomName)
+        {
+            ParseRoomName(roomName, out string regionCode, out _);
+            return regionCode;
+        }
+
+        /// <summary>
+        /// Gets the room part of a room name
+        /// </summary>
+        public static string ExtractRoomCode(string roomName)
+        {
+            ParseRoomName(roomName, out _, out string roomCode);
+            return roomCode;
+        }
+
+        /// <summary>
+        /// Splits a room name into its parts returning the results in an array. The region part, and the room part are available in out parameters
+        /// </summary>
         public static string[] ParseRoomName(string roomName, out string regionCode, out string roomCode)
         {
             string[] roomInfo = SplitRoomName(roomName);
