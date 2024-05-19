@@ -60,6 +60,34 @@ namespace ExpeditionRegionSupport
             }
         }
 
+        /// <summary>
+        /// Retrieves all nodes belonging to the given node starting with the tree source node
+        /// </summary>
+        public IEnumerable<ITreeNode> GetAllNodes()
+        {
+            return GetAllNodes(SourceNode);
+        }
+
+        /// <summary>
+        /// Retrieves all nodes belonging to the given node starting with the tree source node
+        /// </summary>
+        public IEnumerable<T> GetAllNodes<T>() where T : ITreeNode
+        {
+            return GetAllNodes(SourceNode).Select(n => (T)n);
+        }
+
+        /// <summary>
+        /// Retrieves all nodes belonging to the given node starting with the given node
+        /// </summary>
+        public static IEnumerable<ITreeNode> GetAllNodes(ITreeNode node)
+        {
+            foreach (IEnumerable<ITreeNode> currentLevel in GetNodesByDepth(node))
+            {
+                foreach (ITreeNode selectedNode in currentLevel)
+                    yield return selectedNode;
+            }
+        }
+
         public void LogData()
         {
             int nodeDepth = 0;
