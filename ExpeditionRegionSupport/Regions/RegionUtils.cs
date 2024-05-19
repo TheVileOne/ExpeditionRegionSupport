@@ -831,6 +831,11 @@ namespace ExpeditionRegionSupport.Regions
             return string.Format("world_{0}.txt", regionCode.ToLower());
         }
 
+        public static int IndexOfRegionCode(string[] roomInfo)
+        {
+            return roomInfo[0].StartsWith("GATE", StringComparison.InvariantCultureIgnoreCase) ? 1 : 0;
+        }
+
         /// <summary>
         /// Gets the region part of a room name
         /// </summary>
@@ -860,10 +865,10 @@ namespace ExpeditionRegionSupport.Regions
 
             try
             {
-                int regionCodeIndex = roomInfo[0].StartsWith("GATE", StringComparison.InvariantCultureIgnoreCase) ? 1 : 0;
+                int regionCodeIndex = IndexOfRegionCode(roomInfo);
 
                 regionCode = roomInfo[regionCodeIndex];
-                roomCode = FormatRoomCode(roomInfo);
+                roomCode = FormatRoomCode(roomInfo, regionCodeIndex + 1);
             }
             catch (IndexOutOfRangeException)
             {
@@ -884,20 +889,17 @@ namespace ExpeditionRegionSupport.Regions
 
         public static string FormatRoomName(string[] roomInfo)
         {
-            string regionCode = roomInfo[0];
-            string roomCode = FormatRoomCode(roomInfo);
-
-            return FormatRoomName(regionCode, roomCode);
+            return string.Join("_", roomInfo);
         }
 
         /// <summary>
         /// Processes every index after the first as part of the room code.
         /// </summary>
-        public static string FormatRoomCode(string[] roomInfo)
+        public static string FormatRoomCode(string[] roomInfo, int roomCodeStartIndex = 1)
         {
             StringBuilder sb = new StringBuilder();
 
-            for (int i = 1; i < roomInfo.Length; i++)
+            for (int i = roomCodeStartIndex; i < roomInfo.Length; i++)
             {
                 sb.Append(roomInfo[i]);
 
