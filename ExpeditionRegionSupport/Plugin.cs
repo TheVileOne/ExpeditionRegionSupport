@@ -271,6 +271,9 @@ namespace ExpeditionRegionSupport
 
             orig(self, manager);
 
+            if (!RegionFilterSettings.RememberSettings.Value)
+                RegionFilterSettings.RestoreToDefaults();
+
             settingsButton = createSettingsButton(self, self.pages[1]);
             self.pages[1].subObjects.Add(settingsButton);
 
