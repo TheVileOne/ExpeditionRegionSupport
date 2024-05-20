@@ -97,6 +97,7 @@ namespace ExpeditionRegionSupport
                 On.ModManager.RefreshModsLists += ModManager_RefreshModsLists;
                 On.MoreSlugcats.MoreSlugcats.OnInit += MoreSlugcats_OnInit;
                 On.PlayerProgression.ReloadRegionsList += PlayerProgression_ReloadRegionsList;
+                IL.Region.GetProperRegionAcronym += Region_GetProperRegionAcronym;
 
                 //Misc.
                 On.HardmodeStart.SinglePlayerUpdate += HardmodeStart_SinglePlayerUpdate;
@@ -128,6 +129,13 @@ namespace ExpeditionRegionSupport
             SlugcatUtils.SlugcatsInitialized = true;
         }
 
+        private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
+        {
+            orig(self);
+            if (!SlugcatUtils.SlugcatsInitialized)
+                RegionUtils.CacheEquivalentRegions();
+        }
+
         private void PlayerProgression_ReloadRegionsList(On.PlayerProgression.orig_ReloadRegionsList orig, PlayerProgression self)
         {
             orig(self);
@@ -135,11 +143,15 @@ namespace ExpeditionRegionSupport
                 RegionUtils.CacheEquivalentRegions();
         }
 
-        private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
+        private void Region_GetProperRegionAcronym(ILContext il)
         {
-            orig(self);
-            if (!SlugcatUtils.SlugcatsInitialized)
-                RegionUtils.CacheEquivalentRegions();
+            ILCursor cursor = new ILCursor(il);
+
+            cursor.GotoNext(MoveType.AfterLabel, x => x.MatchLdstr("World")); //Go to before Equivalences.txt examples are going to be fetched
+            cursor.Emit(OpCodes.Ldloc_0); //Push Region code onto stack
+            cursor.Emit(OpCodes.Ldarg_0); //Push slugcat parameter onto stack
+            cursor.EmitDelegate<Func<string, SlugcatStats.Name, string>>(RegionUtils.GetSlugcatEquivalentRegion); //Send then to custom method for equivalency checking
+            cursor.Emit(OpCodes.Ret); //Return the result
         }
 
         private void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)

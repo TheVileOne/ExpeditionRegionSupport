@@ -241,12 +241,6 @@ namespace ExpeditionRegionSupport.Regions
             }
             regionBaseEquivalent = regionCode;
             return regionCode;
-
-            //Old implementation
-            /*
-            regionBaseEquivalent = Region.GetVanillaEquivalentRegionAcronym(regionCode); //This is needed to return the correct default output
-            return Region.GetProperRegionAcronym(slugcat, regionBaseEquivalent);
-            */
         }
 
         /// <summary>
@@ -271,12 +265,6 @@ namespace ExpeditionRegionSupport.Regions
                     return regionProfile.GetSlugcatEquivalentRegion(slugcat).RegionCode;
 
                 return regionCode;
-
-                //Old implementation
-                /*
-                string regionBaseEquivalent = Region.GetVanillaEquivalentRegionAcronym(regionCode); //This is needed to return the correct default output
-                return Region.GetProperRegionAcronym(slugcat, regionBaseEquivalent);
-                */
             }
             finally
             {
