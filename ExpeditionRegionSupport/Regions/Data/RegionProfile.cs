@@ -301,7 +301,7 @@ namespace ExpeditionRegionSupport.Regions.Data
                 nextNodeTier = EquivalentRegions.Values; //Ignore slugcat restrictions here
             else
                 nextNodeTier = EquivalentBaseRegions;
-            return (IEnumerable<ITreeNode>)nextNodeTier;
+            return nextNodeTier.Select(node => node as ITreeNode);
         }
 
         private void onDataLogged(IEnumerable<ITreeNode> nodesAtThisDepth, int nodeDepth)
@@ -323,6 +323,7 @@ namespace ExpeditionRegionSupport.Regions.Data
             //Only handle regions that are at the top of their equivalency chain - May not be failproof in all cases
             foreach (RegionProfile region in RegionUtils.EquivalentRegions.Where(r => !r.EquivalentRegions.Any()))
                 region.LogEquivalences(true);
+        }
 
         public static void LogEquivalencyRelationships(string regionCode)
         {
