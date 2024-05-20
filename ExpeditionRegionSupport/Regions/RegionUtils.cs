@@ -321,6 +321,47 @@ namespace ExpeditionRegionSupport.Regions
             return visitedRegions;
         }
 
+        public static AbstractRoom GetEquivalentGateRoom(World world, string roomName, bool fallbackCheck)
+        {
+            if (!fallbackCheck)
+            {
+                AbstractRoom room = world.GetAbstractRoom(roomName);
+
+                if (room != null)
+                    return room;
+            }
+
+            Plugin.Logger.LogInfo($"Gate room {roomName} has not been found. Checking for equivalent rooms");
+
+            if (!HasGatePrefix(roomName))
+            {
+                Plugin.Logger.LogInfo("Room is not a gate room");
+                return null;
+            }
+
+            string[] roomInfo = ParseRoomName(roomName, out string regionCodeA, out string regionCodeB);
+
+            IEnumerable<string> equivalentRegionCombinationsA, equivalentRegionCombinationsB;
+
+            equivalentRegionCombinationsA = GetAllEquivalentRegions(regionCodeA, true);
+            equivalentRegionCombinationsB = GetAllEquivalentRegions(regionCodeB, true);
+
+            IEnumerable<string> roomCombinations = GetEquivalentGateRoomCombinations(equivalentRegionCombinationsA, equivalentRegionCombinationsB);
+
+            //Plugin.Logger.LogInfo("ROOM COMBINATIONS: " + roomCombinations.FormatToString(','));
+            
+            return world.GetAbstractRoomFrom(roomCombinations);
+        }
+
+        public static IEnumerable<string> GetAllEquivalentRegions(string regionCode, bool includeSelf)
+        {
+            RegionProfile regionProfile = FindEquivalencyProfile(regionCode);
+
+            if (regionProfile.IsDefault)
+                return includeSelf ? new string[] { regionCode } : new string[] { };
+            return regionProfile.ListEquivalences(includeSelf).Select(rp => rp.RegionCode);
+        }
+
         public static List<ShelterInfo> GetAllShelters()
         {
             List<ShelterInfo> allShelters = new List<ShelterInfo>();
@@ -956,6 +997,40 @@ namespace ExpeditionRegionSupport.Regions
             return null;
         }
 
+        /// <summary>
+        /// Formats all possible gate room combinations formed between two collections of strings
+        /// </summary>
+        public static IEnumerable<string> GetEquivalentGateRoomCombinations(IEnumerable<string> codePartsA, IEnumerable<string> codePartsB)
+        {
+            string[] roomInfo = new string[3];
+
+            roomInfo[0] = "GATE";
+
+            //Check every combination beginning with entries in the first collection in the first index, and then later as the second index
+            foreach (string roomName in gateRoomCombinationHelper(roomInfo, codePartsA, codePartsB))
+            {
+                yield return roomName;
+            }
+
+            foreach (string roomName in gateRoomCombinationHelper(roomInfo, codePartsB, codePartsA))
+            {
+                yield return roomName;
+            }
+        }
+
+        private static IEnumerable<string> gateRoomCombinationHelper(string[] roomInfo, IEnumerable<string> regionParts, IEnumerable<string> roomParts)
+        {
+            foreach (string roomCode in roomParts)
+            {
+                roomInfo[2] = roomCode; //Assign room code part
+                foreach (string regionCode in regionParts)
+                {
+                    roomInfo[1] = regionCode; //Assign region code part
+                    yield return FormatRoomName(roomInfo);
+                }
+            }
+        }
+
         public static bool ContainsGateData(string[] data)
         {
             return HasRoomKeyword(data, "GATE", false); //Gate must have a name, at least one valid connection, and end with GATE
@@ -979,6 +1054,18 @@ namespace ExpeditionRegionSupport.Regions
                     return true;
             }
             return false;
+        }
+
+        public static AbstractRoom GetAbstractRoomFrom(this World world, IEnumerable<string> roomNames)
+        {
+            foreach (string roomName in roomNames)
+            {
+                AbstractRoom room = world.GetAbstractRoom(roomName);
+
+                if (room != null)
+                    return room;
+            }
+            return null;
         }
     }
 }
