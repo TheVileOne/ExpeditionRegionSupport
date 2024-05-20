@@ -265,6 +265,31 @@ namespace ExpeditionRegionSupport.Regions.Data
             return this; //Return this when this is the most valid equivalent region
         }
 
+        /// <summary>
+        /// Provide a list of all current equivalencies for this region
+        /// </summary>
+        public List<RegionProfile> ListEquivalences(bool includeSelf)
+        {
+            Tree searchTree = new Tree(this);
+
+            //Fetch equivalences that this region replaces
+            IEnumerable<RegionProfile> searchResult = searchTree.GetAllNodes<RegionProfile>();
+
+            List<RegionProfile> listResult = new List<RegionProfile>();
+            listResult.AddRange(searchResult);
+
+            //Fetch equivalences that replace this region
+            NodeTreeForward = true;
+            searchResult = searchTree.GetAllNodes<RegionProfile>();
+            listResult.AddRange(searchResult.Except(listResult));
+
+            NodeTreeForward = false;
+
+            if (!includeSelf)
+                listResult.Remove(this);
+            return listResult;
+        }
+
         public void LogEquivalences(bool logOnlyIfDataExists)
         {
             if (IsDefault) return;
