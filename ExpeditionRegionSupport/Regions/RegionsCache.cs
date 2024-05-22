@@ -6,25 +6,21 @@ using System.Threading.Tasks;
 
 namespace ExpeditionRegionSupport.Regions
 {
-    public class RegionsCache //Cannot be a struct due to challenge filters requiring an unchanging list to reference
+    public class RegionsCache : SimpleListCache<string>
     {
+        /// <summary>
+        /// The current/last active slugcat to be associated with cached region data
+        /// </summary>
         public SlugcatStats.Name LastAccessed;
         public string RegionCode;
 
-        private readonly List<string> _regions = new List<string>();
-
+        /// <summary>
+        /// Returns the base list cache renamed as Regions
+        /// </summary>
         public List<string> Regions
         {
-            get => _regions;
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException();
-
-                //This reference should not be overwritten. Transfer values to existing reference instead.
-                _regions.Clear();
-                _regions.AddRange(value);
-            }
+            get => Items;
+            set => Items = value;
         }
 
         public RegionsCache()
@@ -34,7 +30,7 @@ namespace ExpeditionRegionSupport.Regions
         public RegionsCache(string regionCode, IEnumerable<string> regions)
         {
             RegionCode = regionCode;
-            Regions = regions.ToList();
+            Store(regions);
         }
 
         public static RegionsCache GetOrCreate(RegionsCache regionCache, SlugcatStats.Name slugcat)
