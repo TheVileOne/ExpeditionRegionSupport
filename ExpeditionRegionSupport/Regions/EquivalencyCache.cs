@@ -27,13 +27,23 @@ namespace ExpeditionRegionSupport.Regions
                 regionProfile = FindProfile(regionCode); //Check if profile already exists
 
             if (regionProfile.IsDefault)
-                regionProfile = Store(new RegionProfile(regionCode)); //Only store one profile per region
+                regionProfile = Store(new RegionProfile(regionCode, CacheID)); //Only store one profile per region
             return regionProfile;
         }
 
         public override RegionProfile Store(RegionProfile regionProfile)
         {
-            if (!regionProfile.IsDefault) return regionProfile;
+            if (regionProfile.IsDefault)
+            {
+                Plugin.Logger.LogInfo("Attempted to store the default region profile");
+                return regionProfile;
+            }
+
+            if (regionProfile.RegisterID != CacheID)
+            {
+                Plugin.Logger.LogInfo("Register ID mismatch");
+                return regionProfile;
+            }
 
             return base.Store(regionProfile);
         }

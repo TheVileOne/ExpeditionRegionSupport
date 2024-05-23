@@ -9,6 +9,11 @@ namespace ExpeditionRegionSupport.Regions.Data
 {
     public readonly struct RegionProfile : ITreeNode
     {
+        /// <summary>
+        /// This value represents the cache identifier that this profile belongs to
+        /// </summary>
+        public readonly int RegisterID = -1;
+
         public readonly string RegionCode;
 
         /// <summary>
@@ -51,13 +56,14 @@ namespace ExpeditionRegionSupport.Regions.Data
         /// </summary>
         public static bool NodeTreeForward = false;
 
-        public RegionProfile()
+        public RegionProfile(int registerID = -1)
         {
+            RegisterID = registerID;
             PendingEquivalency = new StrongBox<RegionProfile>();
             ValidationInProgress = new StrongBox<bool>();
         }
 
-        public RegionProfile(string regionCode) : this()
+        public RegionProfile(string regionCode, int registerID = -1) : this(registerID)
         {
             RegionCode = regionCode;
             IsPermanentBaseRegion = RegionUtils.IsVanillaRegion(RegionCode)
