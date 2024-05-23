@@ -32,6 +32,11 @@ namespace ExpeditionRegionSupport
             }
         }
 
+        public SimpleListCache()
+        {
+            AssignUniqueID();
+        }
+
         /// <summary>
         /// Stores an item in the item cache
         /// </summary>
@@ -47,6 +52,10 @@ namespace ExpeditionRegionSupport
         public virtual void Store(IEnumerable<T> items)
         {
             _items.AddRange(items);
+        }
+
+        protected virtual void AssignUniqueID()
+        {
         }
     }
 }

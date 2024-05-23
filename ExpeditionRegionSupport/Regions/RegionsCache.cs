@@ -23,11 +23,11 @@ namespace ExpeditionRegionSupport.Regions
             set => Items = value;
         }
 
-        public RegionsCache()
+        public RegionsCache() : base()
         {
         }
 
-        public RegionsCache(string regionCode, IEnumerable<string> regions)
+        public RegionsCache(string regionCode, IEnumerable<string> regions) : this()
         {
             RegionCode = regionCode;
             Store(regions);

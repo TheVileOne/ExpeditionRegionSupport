@@ -10,6 +10,11 @@ namespace ExpeditionRegionSupport.Regions
     public class EquivalencyCache : SimpleListCache<RegionProfile>
     {
         /// <summary>
+        /// A history of cache ids that have registered since the mod was active
+        /// </summary>
+        protected static List<int> RegisteredIDs = new List<int>();
+
+        /// <summary>
         /// Returns the base list cache renamed as Regions
         /// </summary>
         public List<RegionProfile> Regions => Items;
@@ -77,6 +82,29 @@ namespace ExpeditionRegionSupport.Regions
             if (regionProfile.IsDefault)
                 return includeSelf ? new string[] { regionCode } : new string[] { };
             return regionProfile.ListEquivalences(includeSelf).Select(rp => rp.RegionCode);
+        }
+
+        protected override void AssignUniqueID()
+        {
+            int attemptsAllowed = 3;
+            while (CacheID == -1 && attemptsAllowed > 0)
+            {
+                int assignedID = UnityEngine.Random.Range(1, 1000); //Assign an ID based on a random value
+
+                if (!RegisteredIDs.Contains(assignedID))
+                {
+                    CacheID = assignedID;
+                    RegisteredIDs.Add(assignedID); //Ensure no other EquivalencyCache object will have the same identifier
+                }
+                attemptsAllowed--;
+            }
+
+            //When all else fails, this is guaranteed to find a unique value for the cache identifier
+            if (CacheID == -1)
+            {
+                CacheID = RegisteredIDs.Find(i => !RegisteredIDs.Contains(i + 1)) + 1;
+                RegisteredIDs.Add(CacheID);
+            }
         }
 
         public void LogEquivalencyRelationships()
