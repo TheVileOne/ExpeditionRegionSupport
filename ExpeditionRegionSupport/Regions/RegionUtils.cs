@@ -125,7 +125,7 @@ namespace ExpeditionRegionSupport.Regions
                 regionCache.LastAccessed = slugcat;
             }
 
-            regionCache.Regions.Add(slugcatEquivalentRegion);
+            regionCache.Store(slugcatEquivalentRegion);
             FindAllConnectingRegionsRecursive(regionCache.Regions, slugcatEquivalentRegion, slugcat);
 
             RegionAccessibilityCache = regionCache;
@@ -147,7 +147,7 @@ namespace ExpeditionRegionSupport.Regions
             //Get all region codes that connect with this region, and are accessible for the given slugcat
             foreach (string connectedRegion in GetConnectingRegions(regionCode, slugcat, !firstPass))
             {
-                //No connecting region will have been comapred against the slugcat at this stage
+                //No connecting region will have been compared against the slugcat at this stage
                 string slugcatEquivalentRegion = GetSlugcatEquivalentRegion(connectedRegion, slugcat); //The region this slugcat will load from a region gate
                 if (!connectedRegions.Contains(slugcatEquivalentRegion))
                 {
@@ -177,7 +177,7 @@ namespace ExpeditionRegionSupport.Regions
                 processTimer.Start();
             }
 
-            string slugcatEquivalentRegion = GetSlugcatEquivalentRegion(regionCode, slugcat, adjustForSlugcatEquivalences, out string regionBaseEquivalent);
+            string slugcatEquivalentRegion = EquivalentRegionCache.GetSlugcatEquivalentRegion(regionCode, slugcat, adjustForSlugcatEquivalences, out string regionBaseEquivalent);
 
             /*
             string reportString = $"Getting connecting regions for {slugcatEquivalentRegion}";
@@ -212,35 +212,10 @@ namespace ExpeditionRegionSupport.Regions
         /// <summary>
         /// Gets the proper region equivalent of the region code for a particular slugcat
         /// </summary>
-        /// <param name="adjustForSlugcatEquivalences">A flag to control the slugcat equivalence check</param>
-        /// <param name="regionBaseEquivalent">The slugcat independent region code equivalent</param>
-        public static string GetSlugcatEquivalentRegion(string regionCode, SlugcatStats.Name slugcat, bool adjustForSlugcatEquivalences, out string regionBaseEquivalent)
-        {
-            if (!adjustForSlugcatEquivalences)
-            {
-                regionBaseEquivalent = regionCode;
-                return regionCode;
-            }
-            return GetSlugcatEquivalentRegion(regionCode, slugcat, out regionBaseEquivalent);
-        }
-
-        /// <summary>
-        /// Gets the proper region equivalent of the region code for a particular slugcat
-        /// </summary>
         /// <param name="regionBaseEquivalent">The slugcat independent region code equivalent</param>
         public static string GetSlugcatEquivalentRegion(string regionCode, SlugcatStats.Name slugcat, out string regionBaseEquivalent)
         {
-            RegionProfile regionProfile = FindEquivalencyProfile(regionCode);
-
-            if (!regionProfile.IsDefault)
-            {
-                RegionProfile baseProfile = regionProfile.GetEquivalentBaseRegion(slugcat);
-
-                regionBaseEquivalent = baseProfile.RegionCode;
-                return baseProfile.GetSlugcatEquivalentRegion(slugcat).RegionCode;
-            }
-            regionBaseEquivalent = regionCode;
-            return regionCode;
+            return EquivalentRegionCache.GetSlugcatEquivalentRegion(regionCode, slugcat, out regionBaseEquivalent);
         }
 
         /// <summary>
@@ -248,34 +223,7 @@ namespace ExpeditionRegionSupport.Regions
         /// </summary>
         public static string GetSlugcatEquivalentRegion(string regionCode, SlugcatStats.Name slugcat)
         {
-            /*
-            DebugTimer processTimer = null;
-            if (Plugin.DebugMode)
-            {
-                processTimer = DebugMode.CreateTimer(DebugMode.RunningDebugProcess, false);
-                processTimer.Start();
-            }
-            */
-
-            try
-            {
-                RegionProfile regionProfile = FindEquivalencyProfile(regionCode);
-
-                if (!regionProfile.IsDefault)
-                    return regionProfile.GetSlugcatEquivalentRegion(slugcat).RegionCode;
-
-                return regionCode;
-            }
-            finally
-            {
-                /*
-                if (Plugin.DebugMode)
-                {
-                    processTimer.ReportTime("Equivalent region check for " + regionCode);
-                    processTimer.Stop();
-                }
-                */
-            }
+            return EquivalentRegionCache.GetSlugcatEquivalentRegion(regionCode, slugcat);
         }
 
         public static List<string> GetVisitedRegions(SlugcatStats.Name slugcat)
@@ -343,11 +291,7 @@ namespace ExpeditionRegionSupport.Regions
 
         public static IEnumerable<string> GetAllEquivalentRegions(string regionCode, bool includeSelf)
         {
-            RegionProfile regionProfile = FindEquivalencyProfile(regionCode);
-
-            if (regionProfile.IsDefault)
-                return includeSelf ? new string[] { regionCode } : new string[] { };
-            return regionProfile.ListEquivalences(includeSelf).Select(rp => rp.RegionCode);
+            return EquivalentRegionCache.GetAllEquivalentRegions(regionCode, includeSelf);
         }
 
         public static List<ShelterInfo> GetAllShelters()
@@ -627,7 +571,7 @@ namespace ExpeditionRegionSupport.Regions
             RegionFilterCache.Clear();
         }
 
-        public static RegionProfile[] EquivalentRegions;
+        public static EquivalencyCache EquivalentRegionCache;
 
         /// <summary>
         /// Reads all equivalences.txt files and compiles lines into a dictionary for quick access
@@ -645,38 +589,40 @@ namespace ExpeditionRegionSupport.Regions
             profile_DS = profile_SH = profile_SL = profile_SS = default;
             profile_UG = profile_CL = profile_LM = profile_RM = default;
 
-            EquivalentRegions = new RegionProfile[regions.Length];
-            for (int i = 0; i < regions.Length; i++)
+            EquivalentRegionCache = new EquivalencyCache();
+
+            //Store a RegionProfile object for each region
+            foreach (string regionCode in regions)
             {
-                EquivalentRegions[i] = new RegionProfile(regions[i]);
+                RegionProfile currentProfile = EquivalentRegionCache.Store(regionCode);
 
                 if (ModManager.MSC)
                 {
-                    switch (regions[i])
+                    switch (regionCode)
                     {
                         case "DS":
-                            profile_DS = EquivalentRegions[i];
+                            profile_DS = currentProfile;
                             break;
                         case "SH":
-                            profile_SH = EquivalentRegions[i];
+                            profile_SH = currentProfile;
                             break;
                         case "SL":
-                            profile_SL = EquivalentRegions[i];
+                            profile_SL = currentProfile;
                             break;
                         case "SS":
-                            profile_SS = EquivalentRegions[i];
+                            profile_SS = currentProfile;
                             break;
                         case "UG":
-                            profile_UG = EquivalentRegions[i];
+                            profile_UG = currentProfile;
                             break;
                         case "CL":
-                            profile_CL = EquivalentRegions[i];
+                            profile_CL = currentProfile;
                             break;
                         case "LM":
-                            profile_LM = EquivalentRegions[i];
+                            profile_LM = currentProfile;
                             break;
                         case "RM":
-                            profile_RM = EquivalentRegions[i];
+                            profile_RM = currentProfile;
                             break;
                     }
                 }
@@ -696,8 +642,8 @@ namespace ExpeditionRegionSupport.Regions
 
                 profile_SL.RegisterEquivalency(technomancer, profile_LM);
 
-                RegionProfile profile_SB = FindEquivalencyProfile("SB");
-                profile_SB.RegisterEquivalency(technomancer, FindEquivalencyProfile("TL"));
+                RegionProfile profile_SB = EquivalentRegionCache.FindProfile("SB");
+                profile_SB.RegisterEquivalency(technomancer, EquivalentRegionCache.FindProfile("TL"));
             }
 
             foreach (string path in GetFilePathFromAllSources("equivalences.txt"))
@@ -707,7 +653,7 @@ namespace ExpeditionRegionSupport.Regions
                 //The region code stored here replaces any region mentioned in the equivalences.txt file
                 string regionCodeFromDirectory = Path.GetFileName(Path.GetDirectoryName(path)).ToUpper(); //Get region code from containing directory
 
-                RegionProfile targetRegion = FindEquivalencyProfile(regionCodeFromDirectory);
+                RegionProfile targetRegion = EquivalentRegionCache.FindProfile(regionCodeFromDirectory);
 
                 if (targetRegion.IsDefault)
                 {
@@ -756,14 +702,14 @@ namespace ExpeditionRegionSupport.Regions
 
                         if (registerTarget == null) continue; //The region is likely part of an unloaded mod
 
-                        RegionProfile slugcatEquivalentRegion = FindEquivalencyProfile(registerTarget);
+                        RegionProfile slugcatEquivalentRegion = EquivalentRegionCache.FindProfile(registerTarget);
                         targetRegion.RegisterEquivalency(slugcat, slugcatEquivalentRegion);
                     }
                 }
             }
 
             if (Plugin.DebugMode)
-                RegionProfile.LogEquivalencyRelationships();
+                EquivalentRegionCache.LogEquivalencyRelationships();
         }
 
         private static SlugcatStats.Name equivalentRegionsCacheHelper(string[] regions, string valueA, string valueB, out string regionCode)
@@ -781,11 +727,6 @@ namespace ExpeditionRegionSupport.Regions
                     slugcat = SlugcatUtils.GetOrCreate(valueA);
             }
             return slugcat;
-        }
-
-        public static RegionProfile FindEquivalencyProfile(string regionCode)
-        {
-            return Array.Find(EquivalentRegions, r => r.RegionCode == regionCode);
         }
 
         public static bool IsVanillaRegion(string regionCode)
