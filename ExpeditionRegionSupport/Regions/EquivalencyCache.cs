@@ -41,21 +41,6 @@ namespace ExpeditionRegionSupport.Regions
         /// <summary>
         /// Gets the proper region equivalent of the region code for a particular slugcat
         /// </summary>
-        /// <param name="adjustForSlugcatEquivalences">A flag to control the slugcat equivalence check</param>
-        /// <param name="regionBaseEquivalent">The slugcat independent region code equivalent</param>
-        public string GetSlugcatEquivalentRegion(string regionCode, SlugcatStats.Name slugcat, bool adjustForSlugcatEquivalences, out string regionBaseEquivalent)
-        {
-            if (!adjustForSlugcatEquivalences)
-            {
-                regionBaseEquivalent = regionCode;
-                return regionCode;
-            }
-            return GetSlugcatEquivalentRegion(regionCode, slugcat, out regionBaseEquivalent);
-        }
-
-        /// <summary>
-        /// Gets the proper region equivalent of the region code for a particular slugcat
-        /// </summary>
         /// <param name="regionBaseEquivalent">The slugcat independent region code equivalent</param>
         public string GetSlugcatEquivalentRegion(string regionCode, SlugcatStats.Name slugcat, out string regionBaseEquivalent)
         {

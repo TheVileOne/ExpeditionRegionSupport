@@ -177,7 +177,15 @@ namespace ExpeditionRegionSupport.Regions
                 processTimer.Start();
             }
 
-            string slugcatEquivalentRegion = EquivalentRegionCache.GetSlugcatEquivalentRegion(regionCode, slugcat, adjustForSlugcatEquivalences, out string regionBaseEquivalent);
+            string slugcatEquivalentRegion, regionBaseEquivalent;
+
+            //This adjust parameter was originally included to reduce equivalency checks. With the cache, this optimisation is probably not necessary.
+            //Functionally, this only skips the equivalency check on the first call of this method from FindAllConnectingRegionsRecursive, which already
+            //has the equivalency check applied
+            if (adjustForSlugcatEquivalences)
+                slugcatEquivalentRegion = GetSlugcatEquivalentRegion(regionCode, slugcat, out regionBaseEquivalent);
+            else
+                slugcatEquivalentRegion = regionBaseEquivalent = regionCode;
 
             /*
             string reportString = $"Getting connecting regions for {slugcatEquivalentRegion}";
