@@ -113,6 +113,8 @@ namespace ExpeditionRegionSupport
             }
         }
 
+        #region Region Loading
+
         private void ModManager_RefreshModsLists(On.ModManager.orig_RefreshModsLists orig, RainWorld rainWorld)
         {
             SlugcatUtils.SlugcatsInitialized = false;
@@ -153,6 +155,8 @@ namespace ExpeditionRegionSupport
             cursor.EmitDelegate<Func<string, SlugcatStats.Name, string>>(RegionUtils.GetSlugcatEquivalentRegion); //Send then to custom method for equivalency checking
             cursor.Emit(OpCodes.Ret); //Return the result
         }
+
+        #endregion
 
         private void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)
         {
