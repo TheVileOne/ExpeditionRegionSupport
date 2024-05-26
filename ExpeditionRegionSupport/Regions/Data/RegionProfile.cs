@@ -295,7 +295,10 @@ namespace ExpeditionRegionSupport.Regions.Data
         {
             if (slugcat == SlugcatUtils.AnySlugcat)
             {
-                Plugin.Logger.LogInfo("Returning a region candidate for any slugcat. Is this intentional?");
+                if (Plugin.DebugMode)
+                    throw new NotSupportedException("A slugcat must be specified for this operation");
+
+                Plugin.Logger.LogWarning("Returning a region candidate for any slugcat. Is this intentional?");
                 return EquivalentRegions.FirstOrDefault().Value;
             }
 
