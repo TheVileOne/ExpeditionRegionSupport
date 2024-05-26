@@ -63,11 +63,12 @@ namespace ExpeditionRegionSupport.Regions
 
             if (!regionProfile.IsDefault)
             {
-                RegionProfile baseProfile = regionProfile.GetEquivalentBaseRegion(slugcat);
+                regionProfile = regionProfile.GetSlugcatEquivalentRegion(slugcat, out RegionProfile baseProfile);
 
                 regionBaseEquivalent = baseProfile.RegionCode;
-                return baseProfile.GetSlugcatEquivalentRegion(slugcat).RegionCode;
+                return regionProfile.RegionCode;
             }
+
             regionBaseEquivalent = regionCode;
             return regionCode;
         }
@@ -85,6 +86,9 @@ namespace ExpeditionRegionSupport.Regions
             return regionCode;
         }
 
+        /// <summary>
+        /// Returns an IEnumerable containing all equivalent regions assoicated with a region code
+        /// </summary>
         public IEnumerable<string> GetAllEquivalentRegions(string regionCode, bool includeSelf)
         {
             RegionProfile regionProfile = FindProfile(regionCode);
