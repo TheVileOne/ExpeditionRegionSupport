@@ -934,40 +934,6 @@ namespace ExpeditionRegionSupport.Regions
             return null;
         }
 
-        /// <summary>
-        /// Formats all possible gate room combinations formed between two collections of strings
-        /// </summary>
-        public static IEnumerable<string> GetEquivalentGateRoomCombinations(IEnumerable<string> codePartsA, IEnumerable<string> codePartsB)
-        {
-            string[] roomInfo = new string[3];
-
-            roomInfo[0] = "GATE";
-
-            //Check every combination beginning with entries in the first collection in the first index, and then later as the second index
-            foreach (string roomName in gateRoomCombinationHelper(roomInfo, codePartsA, codePartsB))
-            {
-                yield return roomName;
-            }
-
-            foreach (string roomName in gateRoomCombinationHelper(roomInfo, codePartsB, codePartsA))
-            {
-                yield return roomName;
-            }
-        }
-
-        private static IEnumerable<string> gateRoomCombinationHelper(string[] roomInfo, IEnumerable<string> regionParts, IEnumerable<string> roomParts)
-        {
-            foreach (string roomCode in roomParts)
-            {
-                roomInfo[2] = roomCode; //Assign room code part
-                foreach (string regionCode in regionParts)
-                {
-                    roomInfo[1] = regionCode; //Assign region code part
-                    yield return FormatRoomName(roomInfo);
-                }
-            }
-        }
-
         public static bool ContainsGateData(string[] data)
         {
             return HasRoomKeyword(data, "GATE", false); //Gate must have a name, at least one valid connection, and end with GATE
