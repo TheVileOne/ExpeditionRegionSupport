@@ -227,7 +227,21 @@ namespace ExpeditionRegionSupport.Regions.Data
                 return this;
 
             if (EquivalentBaseRegions.Count > 1)
+            {
                 Plugin.Logger.LogInfo($"Multiple base regions for {RegionCode} detected. Choosing one");
+
+                //Regions with more lenient restrictions should be prioritized over regions with only slugcat-specific restrictions
+                RegionProfile thisProfile = this;
+                RegionProfile baseProfile = EquivalentBaseRegions.Find(r => r.EquivalentRegions.Exists(checkEntry));
+
+                if (!baseProfile.IsDefault)
+                    return baseProfile;
+
+                bool checkEntry(KeyValuePair<SlugcatStats.Name, RegionProfile> equivalencyEntry)
+                {
+                    return equivalencyEntry.Key == SlugcatUtils.AnySlugcat && equivalencyEntry.Value.Equals(thisProfile);
+                }
+            }
 
             return EquivalentBaseRegions[0].GetEquivalentBaseRegion(); //Default to the first registered base
         }
