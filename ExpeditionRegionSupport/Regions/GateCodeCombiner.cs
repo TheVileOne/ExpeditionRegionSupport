@@ -31,12 +31,12 @@ namespace ExpeditionRegionSupport.Regions
 
         private static IEnumerable<string> gateRoomCombinationHelper(string[] roomInfo, IEnumerable<string> regionPartsA, IEnumerable<string> regionPartsB)
         {
-            foreach (string regionCodeB in regionPartsB)
+            foreach (string regionCodeA in regionPartsA)
             {
-                roomInfo[2] = regionCodeB; //Assign second region code
-                foreach (string regionCodeA in regionPartsA)
+                roomInfo[1] = regionCodeA;
+                foreach (string regionCodeB in regionPartsB)
                 {
-                    roomInfo[1] = regionCodeA; //Assign first region code
+                    roomInfo[2] = regionCodeB;
                     yield return RegionUtils.FormatRoomName(roomInfo);
                 }
             }
