@@ -300,7 +300,7 @@ namespace ExpeditionRegionSupport.Regions
                     if (tempResults.DestinationRegion != null)
                     {
                         results = tempResults;
-                        if (equivalentRegion.IsSlugcatAllowedHere(slugcat)) //TODO: Make sure that equivalent regions are not processing the vanilla region first
+                        if (equivalentRegion.IsSlugcatAllowedHere(slugcat))
                             break;
                     }
                 }
