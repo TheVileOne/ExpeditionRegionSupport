@@ -9,6 +9,21 @@ namespace ExpeditionRegionSupport.Regions
     public static class GateCodeCombiner
     {
         /// <summary>
+        /// Parses room code into its region components, and returns a list containing equivalent combinations of equivalent regions 
+        /// </summary>
+        public static List<string> GetEquivalentCombinations(string gateRoomCode)
+        {
+            RegionUtils.ParseRoomName(gateRoomCode, out string regionCodeA, out string regionCodeB);
+
+            IEnumerable<string> equivalentRegionCombinationsA, equivalentRegionCombinationsB;
+
+            equivalentRegionCombinationsA = RegionUtils.GetAllEquivalentRegions(regionCodeA, true);
+            equivalentRegionCombinationsB = RegionUtils.GetAllEquivalentRegions(regionCodeB, true);
+
+            return GetCombinations(equivalentRegionCombinationsA, equivalentRegionCombinationsB).ToList();
+        }
+
+        /// <summary>
         /// Formats all possible gate room combinations formed between two collections of strings
         /// </summary>
         public static IEnumerable<string> GetCombinations(IEnumerable<string> codePartsA, IEnumerable<string> codePartsB)

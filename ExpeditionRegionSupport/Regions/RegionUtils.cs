@@ -266,23 +266,9 @@ namespace ExpeditionRegionSupport.Regions
         }
 
         /// <summary>
-        /// Parses room code into its region components, and returns an IEnumerable containing equivalent combinations of equivalent regions 
-        /// </summary>
-        public static IEnumerable<string> CompileEquivalentGateCodes(string gateRoomCode)
-        {
-            ParseRoomName(gateRoomCode, out string regionCodeA, out string regionCodeB);
-
-            IEnumerable<string> equivalentRegionCombinationsA, equivalentRegionCombinationsB;
-
-            equivalentRegionCombinationsA = GetAllEquivalentRegions(regionCodeA, true);
-            equivalentRegionCombinationsB = GetAllEquivalentRegions(regionCodeB, true);
-
-            return GateCodeCombiner.GetCombinations(equivalentRegionCombinationsA, equivalentRegionCombinationsB);
-        }
-
-        /// <summary>
         /// A flag that can toggle between the vanilla behavior of having the gate room connecting two regions be the same,
-        /// and having all equivalent combinations of the gate being checked. This flag is added for convenience. 
+        /// and having all equivalent combinations of the gate being checked. This flag is added for convenience.
+        /// 
         /// </summary>
         private static bool checkEquivalentGateCombinations = true;
 
@@ -293,11 +279,9 @@ namespace ExpeditionRegionSupport.Regions
         {
             if (string.IsNullOrWhiteSpace(destinationRegion)) return default;
 
-            IEnumerable<string> roomCombinations;
-            if (checkEquivalentGateCombinations)
-                roomCombinations = CompileEquivalentGateCodes(gateRoomCode);
-            else
-                roomCombinations = new[] { gateRoomCode };
+            List<string> roomCombinations = checkEquivalentGateCombinations
+                ? GateCodeCombiner.GetEquivalentCombinations(gateRoomCode)
+                : new List<string> { gateRoomCode };
 
             var results = findCompatibleLoadRegion(destinationRegion, roomCombinations); //Check the most likely to find a match region first
 
@@ -323,7 +307,7 @@ namespace ExpeditionRegionSupport.Regions
             }
             return results;
 
-            (string DestinationRegion, string DestinationRoomCode) findCompatibleLoadRegion(string regionCode, IEnumerable<string> roomCombinations)
+            (string DestinationRegion, string DestinationRoomCode) findCompatibleLoadRegion(string regionCode, List<string> roomCombinations)
             {
                 List<GateInfo> destinationGates = GetRegionGates(regionCode);
 
