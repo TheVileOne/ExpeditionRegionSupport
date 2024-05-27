@@ -432,7 +432,7 @@ namespace ExpeditionRegionSupport.Regions
                 KeepStreamOpen = true
             };
 
-            IEnumerable<string> conditionalLinkData = regionMiner.GetConditionalLinkLines(regionCode);
+            List<string> conditionalLinkData = regionMiner.GetConditionalLinkLines(regionCode).ToList();
             IEnumerable<string> roomData = regionMiner.GetRoomLines(regionCode);
 
             if (Plugin.DebugMode)
