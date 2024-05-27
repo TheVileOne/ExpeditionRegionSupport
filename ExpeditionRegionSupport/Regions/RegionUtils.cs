@@ -813,6 +813,8 @@ namespace ExpeditionRegionSupport.Regions
             return !IsVanillaRegion(regionCode) && !IsDownpourRegion(regionCode);
         }
 
+        #region File Handling
+
         /// <summary>
         /// Gets full path to the world file for a specified region
         /// </summary>
@@ -847,6 +849,9 @@ namespace ExpeditionRegionSupport.Regions
         {
             return string.Format("world_{0}.txt", regionCode.ToLower());
         }
+
+        #endregion
+        #region Room Parsing
 
         /// <summary>
         /// Gets the region part of a room name
@@ -957,6 +962,8 @@ namespace ExpeditionRegionSupport.Regions
             return null;
         }
 
+        #region Gate Parsing
+
         public static string GetGateCodeWithValidation(string data)
         {
             if (HasGatePrefix(data))
@@ -983,6 +990,9 @@ namespace ExpeditionRegionSupport.Regions
             return roomName.StartsWith("GATE");
         }
 
+
+        #endregion
+
         public static bool HasRoomKeyword(string[] data, string keyword, bool isConditionalLink)
         {
             if (isConditionalLink)
@@ -998,5 +1008,6 @@ namespace ExpeditionRegionSupport.Regions
             return false;
         }
 
+        #endregion
     }
 }
