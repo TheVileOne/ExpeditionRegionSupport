@@ -308,15 +308,15 @@ namespace ExpeditionRegionSupport.Regions.Data
             if (IsBaseRegion || IsDefault)
                 return this;
 
-            if (EquivalentBaseRegions.Count == 1)
-                return EquivalentBaseRegions[0].InternalGetEquivalentBaseRegion(slugcat);
+            if (EquivalentBaseRegions.Count > 1)
+            {
+                Plugin.Logger.LogInfo($"Multiple base regions for {RegionCode} detected. Choosing one");
 
-            Plugin.Logger.LogInfo($"Multiple base regions for {RegionCode} detected. Choosing one");
+                RegionProfile mostRelevantBaseRegion = EquivalentBaseRegions.Find(r => r.EquivalentRegions.ContainsKey(slugcat));
 
-            RegionProfile mostRelevantBaseRegion = EquivalentBaseRegions.Find(r => r.EquivalentRegions.ContainsKey(slugcat));
-
-            if (!mostRelevantBaseRegion.IsDefault)
-                return mostRelevantBaseRegion;
+                if (!mostRelevantBaseRegion.IsDefault)
+                    return mostRelevantBaseRegion;
+            }
 
             return EquivalentBaseRegions[0].InternalGetEquivalentBaseRegion(slugcat); //Default to the first registered base
         }
