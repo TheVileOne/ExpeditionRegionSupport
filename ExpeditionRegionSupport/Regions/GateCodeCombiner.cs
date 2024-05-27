@@ -13,6 +13,12 @@ namespace ExpeditionRegionSupport.Regions
         /// </summary>
         public static List<string> GetEquivalentCombinations(string gateRoomCode)
         {
+            if (!RegionUtils.HasGatePrefix(gateRoomCode))
+            {
+                Plugin.Logger.LogInfo("Equivalent combination processing does not apply to non-standard gate codes");
+                return new List<string>() { gateRoomCode };
+            }
+
             RegionUtils.ParseRoomName(gateRoomCode, out string regionCodeA, out string regionCodeB);
 
             IEnumerable<string> equivalentRegionCombinationsA, equivalentRegionCombinationsB;
