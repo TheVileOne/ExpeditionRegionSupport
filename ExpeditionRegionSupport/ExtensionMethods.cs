@@ -137,5 +137,24 @@ namespace Extensions
             currentParent.RemoveAllChildren();
             newChildList.ForEach(newParent.AddChild);
         }
+
+        public static readonly ConditionalWeakTable<World, WorldCWT> worldCWT = new();
+
+        public static WorldCWT GetCWT(this World self) => worldCWT.GetValue(self, _ => new());
+
+        public class WorldCWT
+        {
+            public bool LoadedFromGateTransition;
+
+            /// <summary>
+            /// Set by the gate transition hooks to identify the actual gate room code to use when loading into new region
+            /// </summary>
+            public string LoadRoomTarget;
+
+            /// <summary>
+            /// Set by the gate transition hooks to identify the gate room name to check for, and replace when loading into a new region
+            /// </summary>
+            public string LoadRoomTargetExpected;
+        }
     }
 }

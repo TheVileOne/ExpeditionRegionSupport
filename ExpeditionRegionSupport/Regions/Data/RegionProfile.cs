@@ -70,6 +70,25 @@ namespace ExpeditionRegionSupport.Regions.Data
                                  || RegionCode == "OE" || RegionCode == "VS" || RegionCode == "HR" || RegionCode == "MS" || RegionCode == "LC";
         }
 
+        public bool HasEquivalencyEntry(SlugcatStats.Name slugcat, RegionProfile regionProfile)
+        {
+            bool entryFound = false;
+            if (EquivalentRegions.TryGetValue(slugcat, out RegionProfile foundProfile))
+                entryFound = foundProfile.RegionCode == regionProfile.RegionCode;
+
+            return entryFound; ;
+        }
+
+        public bool IsSlugcatAllowedHere(SlugcatStats.Name slugcat)
+        {
+            if (IsDefault) return false;
+            if (IsBaseRegion) return true; //Base regions cannot have slugcat restrictions
+
+            ///Checks whether the base equivalent relationships with this profile would allow this slugcat to enter this region from a gate
+            RegionProfile thisProfile = this;
+            return EquivalentBaseRegions.Any(p => p.HasEquivalencyEntry(slugcat, thisProfile) || p.HasEquivalencyEntry(SlugcatUtils.AnySlugcat, thisProfile));
+        }
+
         /// <summary>
         /// Establish an equivalent relationship with another RegionProfile
         /// </summary>

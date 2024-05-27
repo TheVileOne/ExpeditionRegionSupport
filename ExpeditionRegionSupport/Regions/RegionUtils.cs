@@ -265,36 +265,75 @@ namespace ExpeditionRegionSupport.Regions
             return visitedRegions;
         }
 
-        public static AbstractRoom GetEquivalentGateRoom(World world, string roomName, bool fallbackCheck)
+        /// <summary>
+        /// Parses room code into its region components, and returns an IEnumerable containing equivalent combinations of equivalent regions 
+        /// </summary>
+        public static IEnumerable<string> CompileEquivalentGateCodes(string gateRoomCode)
         {
-            if (!fallbackCheck)
-            {
-                AbstractRoom room = world.GetAbstractRoom(roomName);
-
-                if (room != null)
-                    return room;
-            }
-
-            Plugin.Logger.LogInfo($"Gate room {roomName} has not been found. Checking for equivalent rooms");
-
-            if (!HasGatePrefix(roomName))
-            {
-                Plugin.Logger.LogInfo("Room is not a gate room");
-                return null;
-            }
-
-            string[] roomInfo = ParseRoomName(roomName, out string regionCodeA, out string regionCodeB);
+            ParseRoomName(gateRoomCode, out string regionCodeA, out string regionCodeB);
 
             IEnumerable<string> equivalentRegionCombinationsA, equivalentRegionCombinationsB;
 
             equivalentRegionCombinationsA = GetAllEquivalentRegions(regionCodeA, true);
             equivalentRegionCombinationsB = GetAllEquivalentRegions(regionCodeB, true);
 
-            IEnumerable<string> roomCombinations = GetEquivalentGateRoomCombinations(equivalentRegionCombinationsA, equivalentRegionCombinationsB);
+            return GateCodeCombiner.GetCombinations(equivalentRegionCombinationsA, equivalentRegionCombinationsB);
+        }
 
-            //Plugin.Logger.LogInfo("ROOM COMBINATIONS: " + roomCombinations.FormatToString(','));
-            
-            return world.GetAbstractRoomFrom(roomCombinations);
+        /// <summary>
+        /// A flag that can toggle between the vanilla behavior of having the gate room connecting two regions be the same,
+        /// and having all equivalent combinations of the gate being checked. This flag is added for convenience. 
+        /// </summary>
+        private static bool checkEquivalentGateCombinations = true;
+
+        /// <summary>
+        /// Gets the proper region to load from a specific gate
+        /// </summary>
+        public static (string DestinationRegion, string DestinationRoomCode) GetProperLoadRegion(string currentRegion, string destinationRegion, SlugcatStats.Name slugcat, string gateRoomCode)
+        {
+            if (string.IsNullOrWhiteSpace(destinationRegion)) return default;
+
+            IEnumerable<string> roomCombinations;
+            if (checkEquivalentGateCombinations)
+                roomCombinations = CompileEquivalentGateCodes(gateRoomCode);
+            else
+                roomCombinations = new[] { gateRoomCode };
+
+            var results = findCompatibleLoadRegion(destinationRegion, roomCombinations); //Check the most likely to find a match region first
+
+            if (results.DestinationRegion == null)
+            {
+                RegionProfile regionProfile = EquivalentRegionCache.FindProfile(destinationRegion);
+
+                if (regionProfile.IsDefault) //The region doesn't exist, probably part of an unloaded mod
+                    return results;
+
+                //If we can't find a compatible gate room at the destination, check all regions equivalent to the destination
+                foreach (RegionProfile equivalentRegion in regionProfile.ListEquivalences(false))
+                {
+                    var tempResults = findCompatibleLoadRegion(equivalentRegion.RegionCode, roomCombinations);
+
+                    if (tempResults.DestinationRegion != null)
+                    {
+                        results = tempResults;
+                        if (equivalentRegion.IsSlugcatAllowedHere(slugcat)) //TODO: Make sure that equivalent regions are not processing the vanilla region first
+                            break;
+                    }
+                }
+            }
+            return results;
+
+            (string DestinationRegion, string DestinationRoomCode) findCompatibleLoadRegion(string regionCode, IEnumerable<string> roomCombinations)
+            {
+                List<GateInfo> destinationGates = GetRegionGates(regionCode);
+
+                GateInfo gateInfo = destinationGates.Find(gate => roomCombinations.Contains(gate.RoomCode));
+
+                if (gateInfo != null)
+                    return (regionCode, gateInfo.RoomCode);
+
+                return default;
+            }
         }
 
         public static IEnumerable<string> GetAllEquivalentRegions(string regionCode, bool includeSelf)
@@ -959,16 +998,5 @@ namespace ExpeditionRegionSupport.Regions
             return false;
         }
 
-        public static AbstractRoom GetAbstractRoomFrom(this World world, IEnumerable<string> roomNames)
-        {
-            foreach (string roomName in roomNames)
-            {
-                AbstractRoom room = world.GetAbstractRoom(roomName);
-
-                if (room != null)
-                    return room;
-            }
-            return null;
-        }
     }
 }

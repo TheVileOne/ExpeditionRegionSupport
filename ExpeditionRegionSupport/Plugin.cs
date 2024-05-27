@@ -99,6 +99,11 @@ namespace ExpeditionRegionSupport
                 On.PlayerProgression.ReloadRegionsList += PlayerProgression_ReloadRegionsList;
                 IL.Region.GetProperRegionAcronym += Region_GetProperRegionAcronym;
 
+                //Region Loading patch
+                IL.OverWorld.GateRequestsSwitchInitiation += OverWorld_GateRequestsSwitchInitiation;
+                On.OverWorld.WorldLoaded += OverWorld_WorldLoaded;
+                On.World.GetAbstractRoom_string += World_GetAbstractRoom_string;
+
                 //Misc.
                 On.HardmodeStart.SinglePlayerUpdate += HardmodeStart_SinglePlayerUpdate;
                 On.Room.Loaded += Room_Loaded;
@@ -114,6 +119,83 @@ namespace ExpeditionRegionSupport
         }
 
         #region Region Loading
+
+        private static string gateTransitionRoomResults;
+
+        private void OverWorld_WorldLoaded(On.OverWorld.orig_WorldLoaded orig, OverWorld self)
+        {
+            ExtensionMethods.WorldCWT cwt = null;
+
+            if (self.reportBackToGate != null) //Indicates a gate transition
+            {
+                World incomingWorld = self.worldLoader.ReturnWorld();
+
+                cwt = incomingWorld.GetCWT();
+
+                cwt.LoadedFromGateTransition = true;
+                cwt.LoadRoomTarget = gateTransitionRoomResults;
+                cwt.LoadRoomTargetExpected = self.reportBackToGate.room.abstractRoom.name;
+
+                gateTransitionRoomResults = null;
+            }
+
+            try
+            {
+                orig(self);
+            }
+            finally
+            {
+                //Change CWT fields back to default values
+                if (cwt != null)
+                {
+                    cwt.LoadedFromGateTransition = false;
+                    cwt.LoadRoomTarget = null;
+                    cwt.LoadRoomTargetExpected = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// This hook intercepts the target region data to make sure the region is loadable on the other side of the gate
+        /// </summary>
+        private void OverWorld_GateRequestsSwitchInitiation(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(Region).GetMethod("GetProperRegionAcronym"))); //Get string return
+            cursor.Emit(OpCodes.Ldarg_0); //Get OverWorld reference
+            cursor.EmitDelegate((string destinationRegion, OverWorld overworld) => //Send them both to this method for extra processing
+            {
+                AbstractRoom currentGateRoom = overworld.reportBackToGate.room.abstractRoom;
+                string currentRegion = overworld.activeWorld.name;
+
+                var regionResults = RegionUtils.GetProperLoadRegion(currentRegion, destinationRegion, overworld.game.StoryCharacter, currentGateRoom.name);
+
+                if (regionResults.DestinationRegion != null)
+                {
+                    gateTransitionRoomResults = regionResults.DestinationRoomCode;
+                    return regionResults.DestinationRegion;
+                }
+
+                Logger.LogInfo("Unable to find loadable region");
+                //Returning ERROR! will trigger an early return in the hooked method, effectively cancelling the gate transition
+                return "ERROR!";
+            });
+        }
+
+        private AbstractRoom World_GetAbstractRoom_string(On.World.orig_GetAbstractRoom_string orig, World self, string roomCode)
+        {
+            var cwt = self.GetCWT();
+
+            //This behavior should only be handled for gate transitions. It is only relevant for gate rooms
+            if (cwt.LoadedFromGateTransition && roomCode.Equals(cwt.LoadRoomTargetExpected))
+            {
+                //Replace gate transition target room with load-compatible version 
+                roomCode = cwt.LoadRoomTarget;
+                Logger.LogInfo($"Retrieving room {roomCode} from world {self.name}");
+            }
+            return orig(self, roomCode);
+        }
 
         private void ModManager_RefreshModsLists(On.ModManager.orig_RefreshModsLists orig, RainWorld rainWorld)
         {
