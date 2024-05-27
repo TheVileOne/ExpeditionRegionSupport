@@ -275,7 +275,7 @@ namespace ExpeditionRegionSupport.Regions
         /// <summary>
         /// Gets the proper region to load from a specific gate
         /// </summary>
-        public static (string DestinationRegion, string DestinationRoomCode) GetProperLoadRegion(string currentRegion, string destinationRegion, SlugcatStats.Name slugcat, string gateRoomCode)
+        public static (string DestinationRegion, string DestinationRoomCode) GetProperLoadRegion(string destinationRegion, SlugcatStats.Name slugcat, string gateRoomCode)
         {
             if (string.IsNullOrWhiteSpace(destinationRegion)) return default;
 

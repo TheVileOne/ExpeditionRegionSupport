@@ -167,9 +167,8 @@ namespace ExpeditionRegionSupport
             cursor.EmitDelegate((string destinationRegion, OverWorld overworld) => //Send them both to this method for extra processing
             {
                 AbstractRoom currentGateRoom = overworld.reportBackToGate.room.abstractRoom;
-                string currentRegion = overworld.activeWorld.name;
 
-                var regionResults = RegionUtils.GetProperLoadRegion(currentRegion, destinationRegion, overworld.game.StoryCharacter, currentGateRoom.name);
+                var regionResults = RegionUtils.GetProperLoadRegion(destinationRegion, overworld.game.StoryCharacter, currentGateRoom.name);
 
                 if (regionResults.DestinationRegion != null)
                 {
