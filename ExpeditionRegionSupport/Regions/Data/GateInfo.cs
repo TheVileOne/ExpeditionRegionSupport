@@ -55,5 +55,10 @@ namespace ExpeditionRegionSupport.Regions.Data
 
             return null;
         }
+
+        public override string ToString()
+        {
+            return RoomCode;
+        }
     }
 }
