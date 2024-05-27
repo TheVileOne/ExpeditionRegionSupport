@@ -268,9 +268,9 @@ namespace ExpeditionRegionSupport.Regions
         /// <summary>
         /// A flag that can toggle between the vanilla behavior of having the gate room connecting two regions be the same,
         /// and having all equivalent combinations of the gate being checked. This flag is added for convenience.
-        /// 
+        /// Disclaimer: Equivalent gate combination code creates false matches with other gates, and may take a considerable change to this logic to fix
         /// </summary>
-        private static bool checkEquivalentGateCombinations = true;
+        private static bool checkEquivalentGateCombinations = false;
 
         /// <summary>
         /// Gets the proper region to load from a specific gate
