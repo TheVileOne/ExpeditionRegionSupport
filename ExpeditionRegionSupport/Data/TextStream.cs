@@ -55,22 +55,9 @@ namespace ExpeditionRegionSupport.Data
         /// <summary>
         /// Reads from file one line at a time
         /// </summary>
-        public IEnumerable<string> ReadLines()
+        public CachedEnumerable<string> ReadLines()
         {
-            string line;
-            do
-            {
-                line = ReadLine();
-
-                if (line == null)
-                    yield break;
-
-                if (SkipConditions.Exists(hasFailedCheck => hasFailedCheck(line))) //Checks that line conforms with all given skip conditions
-                    continue;
-
-                yield return line;
-            }
-            while (line != null);
+            return new CachedEnumerable<string>(ReadLinesIterator());
         }
 
         /// <summary>
@@ -90,6 +77,24 @@ namespace ExpeditionRegionSupport.Data
                     fileData.Add(line);
             }
             return fileData.ToArray();
+        }
+
+        internal IEnumerable<string> ReadLinesIterator()
+        {
+            string line;
+            do
+            {
+                line = ReadLine();
+
+                if (line == null)
+                    yield break;
+
+                if (SkipConditions.Exists(hasFailedCheck => hasFailedCheck(line))) //Checks that line conforms with all given skip conditions
+                    continue;
+
+                yield return line;
+            }
+            while (line != null);
         }
 
         protected override void Dispose(bool disposing)

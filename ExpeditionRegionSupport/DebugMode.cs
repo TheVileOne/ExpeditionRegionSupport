@@ -1,4 +1,5 @@
-﻿using ExpeditionRegionSupport.Regions;
+﻿using ExpeditionRegionSupport.Data;
+using ExpeditionRegionSupport.Regions;
 using ExpeditionRegionSupport.Regions.Data;
 using ExpeditionRegionSupport.Tools;
 using System;
@@ -238,6 +239,57 @@ namespace ExpeditionRegionSupport
 
             foreach (string roomData in roomData_SI)
                 logger.LogInfo(roomData);
+
+            string testRegion = "SH";
+            CachedEnumerable<string> cacheA, cacheB, cacheC, cacheD; //Test IEnumerables
+            List<string> listA, listB, listC, listD; //Test lists
+
+            listA = listB = listC = listD = null;
+
+            int testOrderMethod = 0;
+
+            cacheA = regionMiner.GetConditionalLinkLines(testRegion);
+            cacheB = regionMiner.GetRoomLines(testRegion);
+            cacheC = regionMiner.GetCreatureLines(testRegion);
+            cacheD = regionMiner.GetBatMigrationLines(testRegion);
+
+            //Enumerate all results by converting IEnumerable to list
+            if (testOrderMethod == 0 || testOrderMethod > 1) //World sections in order
+            {
+                listA = cacheA.ToList();
+                listB = cacheB.ToList();
+                listC = cacheC.ToList();
+                listD = cacheD.ToList();
+            }
+            else if (testOrderMethod == 1) //World sections mixed order
+            {
+                listD = cacheD.ToList();
+                listA = cacheA.ToList();
+                listC = cacheC.ToList();
+                listB = cacheB.ToList();
+            }
+
+            //Expected outcome: Counts should be equal
+            logger.LogInfo($"A: Test List Count: {listA.Count} Cached List Count: {cacheA.EnumeratedValues.Count}");
+            logger.LogInfo($"B: Test List Count: {listB.Count} Cached List Count: {cacheB.EnumeratedValues.Count}");
+            logger.LogInfo($"C: Test List Count: {listC.Count} Cached List Count: {cacheC.EnumeratedValues.Count}");
+            logger.LogInfo($"D: Test List Count: {listD.Count} Cached List Count: {cacheD.EnumeratedValues.Count}");
+
+            //Test whether a cache for a different file section can be read without interfering with the logging for the first section
+            int linesLogged = 0;
+            foreach (string line in cacheB)
+            {
+                logger.LogInfo($"[{linesLogged}]{line}");
+
+                if (linesLogged > 0 && linesLogged % 15 == 0)
+                {
+                    logger.LogInfo("LOGGING DIFFERENT SECTION");
+                    foreach (string otherLine in cacheA)
+                        logger.LogInfo($"[{linesLogged}]{otherLine}");
+                }
+                linesLogged++;
+            }
+
             FinishDebugProcess();
         }
     }
