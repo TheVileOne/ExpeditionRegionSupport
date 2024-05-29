@@ -23,7 +23,7 @@ namespace ExpeditionRegionSupport.Regions.Data
 
                     CloseStream();
                 }
-                
+
                 _activeStream = value;
 
                 if (_activeStream != null)
@@ -61,6 +61,17 @@ namespace ExpeditionRegionSupport.Regions.Data
         public const string SECTION_CONDITIONAL_LINKS = "CONDITIONAL LINKS";
         public const string SECTION_CREATURES = "CREATURES";
         public const string SECTION_ROOMS = "ROOMS";
+
+        /// <summary>
+        /// Each world file will contains these sections by default
+        /// </summary>
+        public static readonly string[] WORLD_FILE_SECTIONS = new string[4]
+        {
+            SECTION_CONDITIONAL_LINKS,
+            SECTION_ROOMS,
+            SECTION_CREATURES,
+            SECTION_BAT_MIGRATION_BLOCKAGES
+        };
 
         public RegionDataMiner()
         {
@@ -171,5 +182,14 @@ namespace ExpeditionRegionSupport.Regions.Data
         {
             CloseStream();
         }
+    }
+
+    public enum WorldSection
+    {
+        Any = -1,
+        ConditionalLinks = 0,
+        Rooms = 1,
+        Creatures = 2,
+        BatMigrationBlockages = 3
     }
 }
