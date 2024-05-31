@@ -129,47 +129,6 @@ namespace ExpeditionRegionSupport.Regions.Data
             return new CachedEnumerable<string>(ReadLinesIterator(regionCode, sectionName));
         }
 
-        internal IEnumerable<string> ReadLinesIterator(string regionCode, string sectionName)
-        {
-            try
-            {
-                TextStream stream = GetStreamReader(regionCode);
-
-                ActiveStream = stream;
-
-                if (stream != null)
-                {
-                    string line;
-                    bool sectionHeaderFound = false;
-                    do
-                    {
-                        line = stream.ReadLine();
-
-                        if (line == null) //End of file has been reached
-                            yield break;
-
-                        if (sectionHeaderFound)
-                        {
-                            if (line.StartsWith("//") || line == string.Empty) //Empty or commented out lines
-                                continue;
-                            if (line.StartsWith("END ")) //I hope all world files end their blocks with an end line
-                                yield break;
-
-                            yield return line;
-                        }
-                        else if (line.StartsWith(sectionName))
-                            sectionHeaderFound = true; //The header doesn't need to be yielded
-                    }
-                    while (line != null);
-                }
-            }
-            finally
-            {
-                if (!KeepStreamOpen)
-                    CloseStream();
-            }
-        }
-
         public void CloseStream()
         {
             KeepStreamOpen = false;
@@ -181,6 +140,102 @@ namespace ExpeditionRegionSupport.Regions.Data
         ~RegionDataMiner()
         {
             CloseStream();
+        }
+
+        public class ReadLinesIterator
+        {
+            private TextStream _stream;
+
+            /// <summary>
+            /// The collection of section headers to look for during enumeration
+            /// </summary>
+            private List<string> _sectionsWanted;
+
+            private bool enumerateAllSections;
+
+            public ReadLinesIterator(TextStream stream, params string[] regionSections)
+            {
+                _stream = stream;
+
+                enumerateAllSections = Array.Exists(regionSections, section => section.Equals("ANY"));
+
+                //Either we are looking for a specific set of sections, or every identifiable section
+                _sectionsWanted = new List<string>(enumerateAllSections ? WORLD_FILE_SECTIONS : regionSections);
+            }
+
+            public IEnumerable<string> GetEnumerable()
+            {
+                if (_stream == null) yield break; //Nothing to process
+                try
+                {
+                    string line;
+                    string activeSection = null;
+                    bool skipThisSection = false;
+                    do
+                    {
+                        line = _stream.ReadLine();
+
+                        if (line == null) //End of file has been reached
+                            yield break;
+
+                        if (skipThisSection)
+                        {
+                            if (line.StartsWith("END ")) //At the end of section, set skip flag back to false
+                                skipThisSection = false;
+                            continue;
+                        }
+
+                        if (activeSection != null)
+                        {
+                            if (line.StartsWith("//") || line == string.Empty) //Empty or commented out lines
+                                continue;
+                            if (line.StartsWith("END ")) //I hope all world files end their blocks with an end line
+                            {
+                                activeSection = null; //Start the search for the next header
+
+                                if (_sectionsWanted.Count == 0)
+                                {
+                                    Plugin.Logger.LogInfo("Process finished");
+                                    yield break;
+                                }
+                                continue;
+                            }
+                            yield return line;
+                        }
+
+                        activeSection = getSectionHeader(line, true);
+
+                        if (activeSection != null)
+                            _sectionsWanted.Remove(activeSection); //Sections are supposed to only appear once per file
+                        else if (getSectionHeader(line, false) != null)
+                            skipThisSection = true; //Prevent unnecessary section header checks
+                    }
+                    while (line != null);
+                }
+                finally
+                {
+                    _stream.Close();
+                }
+            }
+
+            private string getSectionHeader(string line, bool wantedOnly)
+            {
+                if (wantedOnly)
+                    return _sectionsWanted.Find(line.StartsWith);
+
+                return WORLD_FILE_SECTIONS.Find(line.StartsWith);
+
+                bool sectionHeaderFound = _sectionsWanted.Exists(line.StartsWith);
+
+                if (sectionHeaderFound)
+                {
+                    Plugin.Logger.LogInfo("Processing " + line);
+                    return line;
+                }
+
+                Plugin.Logger.LogInfo($"Section header '{line}' not targeted");
+                return null;
+            }
         }
     }
 
