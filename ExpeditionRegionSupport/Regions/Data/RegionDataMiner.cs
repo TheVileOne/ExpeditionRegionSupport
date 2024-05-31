@@ -199,16 +199,31 @@ namespace ExpeditionRegionSupport.Regions.Data
                         }
 
                         //First check for wanted sections, and then check for unwanted sections
-                        activeSection = getSectionHeader(line, true);
+                        activeSection = getSectionHeader(line, out bool isSectionWanted);
 
+                        /*
+                         * When a wanted section header is detected, the section can be removed from the wanted list
+                         * Unwanted sections will be skipped completely
+                         */
                         if (activeSection != null)
-                            _sectionsWanted.Remove(activeSection); //Sections are supposed to only appear once per file
+                        {
+                            string statusString;
+                            if (isSectionWanted)
+                            {
+                                statusString = "READING";
+                                _sectionsWanted.Remove(activeSection);
+                            }
+                            else
+                            {
+                                statusString = "SKIPPED";
+                                skipThisSection = true;
+                            }
+
+                            Plugin.Logger.LogInfo($"Section header '{line}' ({statusString})");
+                        }
                         else
                         {
-                            //A null indicates there is line data that is not part of any known section, or the start of a new section.
-                            //This could be an indication of a custom section that the reader is unfamiliar with.
-                            activeSection = getSectionHeader(line, false);
-                            skipThisSection = activeSection != null;
+                            Plugin.Logger.LogInfo($"Unknown line detected between sections '{line}'");
                         }
                     }
                     while (line != null);
@@ -219,23 +234,17 @@ namespace ExpeditionRegionSupport.Regions.Data
                 }
             }
 
-            private string getSectionHeader(string line, bool wantedOnly)
+            /// <summary>
+            /// Compares line with list of known section headers, returning first match it finds, or null otherwise
+            /// </summary>
+            /// <param name="line">The string to check</param>
+            /// <param name="isWanted">Whether section header is associated with a wanted section</param>
+            private string getSectionHeader(string line, out bool isWanted)
             {
-                if (wantedOnly)
-                    return _sectionsWanted.Find(line.StartsWith);
+                string header = _sectionsWanted.Find(line.StartsWith);
 
-                return WORLD_FILE_SECTIONS.Find(line.StartsWith);
-
-                bool sectionHeaderFound = _sectionsWanted.Exists(line.StartsWith);
-
-                if (sectionHeaderFound)
-                {
-                    Plugin.Logger.LogInfo("Processing " + line);
-                    return line;
-                }
-
-                Plugin.Logger.LogInfo($"Section header '{line}' not targeted");
-                return null;
+                isWanted = header != null;
+                return header ?? WORLD_FILE_SECTIONS.Find(line.StartsWith);
             }
         }
     }
