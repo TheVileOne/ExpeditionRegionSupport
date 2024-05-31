@@ -73,10 +73,6 @@ namespace ExpeditionRegionSupport.Regions.Data
             SECTION_BAT_MIGRATION_BLOCKAGES
         };
 
-        public RegionDataMiner()
-        {
-        }
-
         public TextStream GetStreamReader(string regionCode)
         {
             string regionFile = RegionUtils.GetWorldFilePath(regionCode);
