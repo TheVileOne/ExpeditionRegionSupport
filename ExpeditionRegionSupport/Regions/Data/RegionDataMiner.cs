@@ -174,11 +174,12 @@ namespace ExpeditionRegionSupport.Regions.Data
                         if (line == null) //End of file has been reached
                             yield break;
 
+                        if (line.StartsWith("//") || line == string.Empty) //Empty or commented out lines
+                            continue;
+
                         //All section lines are handled within this code block
                         if (activeSection != null)
                         {
-                            if (line.StartsWith("//") || line == string.Empty) //Empty or commented out lines
-                                continue;
                             if (line.StartsWith("END ")) //Sections must end with an end statement for file to process correctly
                             {
                                 //Prepare local variables values for searching for the next section
