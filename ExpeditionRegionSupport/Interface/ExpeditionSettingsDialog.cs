@@ -57,7 +57,7 @@ namespace ExpeditionRegionSupport.Interface
 
         public void ReloadFiles()
         {
-            ModMerger modMerger = new ModMerger();
+            //ModMerger modMerger = new ModMerger();
 
             //TODO
         }
