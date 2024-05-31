@@ -65,7 +65,7 @@ namespace ExpeditionRegionSupport.Regions.Data
         /// <summary>
         /// Each world file will contains these sections by default
         /// </summary>
-        public static readonly string[] WORLD_FILE_SECTIONS = new string[4]
+        public static List<string> WORLD_FILE_SECTIONS = new List<string>()
         {
             SECTION_CONDITIONAL_LINKS,
             SECTION_ROOMS,
