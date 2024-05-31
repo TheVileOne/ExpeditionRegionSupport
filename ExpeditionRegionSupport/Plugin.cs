@@ -97,7 +97,7 @@ namespace ExpeditionRegionSupport
                 On.ModManager.RefreshModsLists += ModManager_RefreshModsLists;
                 On.MoreSlugcats.MoreSlugcats.OnInit += MoreSlugcats_OnInit;
                 On.PlayerProgression.ReloadRegionsList += PlayerProgression_ReloadRegionsList;
-                IL.Region.GetProperRegionAcronym += Region_GetProperRegionAcronym;
+                //IL.Region.GetProperRegionAcronym += Region_GetProperRegionAcronym;
 
                 //Misc.
                 On.HardmodeStart.SinglePlayerUpdate += HardmodeStart_SinglePlayerUpdate;
