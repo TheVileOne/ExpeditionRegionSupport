@@ -178,20 +178,16 @@ namespace ExpeditionRegionSupport.Regions.Data
                         if (line == null) //End of file has been reached
                             yield break;
 
-                        if (skipThisSection)
-                        {
-                            if (line.StartsWith("END ")) //At the end of section, set skip flag back to false
-                                skipThisSection = false;
-                            continue;
-                        }
-
+                        //All section lines are handled within this code block
                         if (activeSection != null)
                         {
                             if (line.StartsWith("//") || line == string.Empty) //Empty or commented out lines
                                 continue;
-                            if (line.StartsWith("END ")) //I hope all world files end their blocks with an end line
+                            if (line.StartsWith("END ")) //Sections must end with an end statement for file to process correctly
                             {
-                                activeSection = null; //Start the search for the next header
+                                //Prepare local variables values for searching for the next section
+                                activeSection = null;
+                                skipThisSection = false;
 
                                 if (_sectionsWanted.Count == 0)
                                 {
@@ -200,15 +196,24 @@ namespace ExpeditionRegionSupport.Regions.Data
                                 }
                                 continue;
                             }
+
+                            if (skipThisSection) continue;
+
                             yield return line;
                         }
 
+                        //First check for wanted sections, and then check for unwanted sections
                         activeSection = getSectionHeader(line, true);
 
                         if (activeSection != null)
                             _sectionsWanted.Remove(activeSection); //Sections are supposed to only appear once per file
-                        else if (getSectionHeader(line, false) != null)
-                            skipThisSection = true; //Prevent unnecessary section header checks
+                        else
+                        {
+                            //A null indicates there is line data that is not part of any known section, or the start of a new section.
+                            //This could be an indication of a custom section that the reader is unfamiliar with.
+                            activeSection = getSectionHeader(line, false);
+                            skipThisSection = activeSection != null;
+                        }
                     }
                     while (line != null);
                 }
