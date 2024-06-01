@@ -1,5 +1,6 @@
 ﻿using ExpeditionRegionSupport.Data;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
@@ -120,9 +121,10 @@ namespace ExpeditionRegionSupport.Regions.Data
             return GetLines(regionCode, SECTION_ROOMS);
         }
 
-        internal CachedEnumerable<string> GetLines(string regionCode, string sectionName)
+        internal EnumeratedWorldData GetLines(string regionCode, string sectionName)
         {
-            return new CachedEnumerable<string>(ReadLinesIterator(regionCode, sectionName));
+            ActiveStream = GetStreamReader(regionCode);
+            return new EnumeratedWorldData(new ReadLinesIterator(ActiveStream, sectionName));
         }
 
         public void CloseStream()
@@ -149,6 +151,8 @@ namespace ExpeditionRegionSupport.Regions.Data
 
             private bool enumerateAllSections;
 
+            public SectionEventHandler OnSectionStart;
+            public SectionEventHandler OnSectionEnd;
             public ReadLinesIterator(TextStream stream, params string[] regionSections)
             {
                 _stream = stream;
@@ -182,6 +186,7 @@ namespace ExpeditionRegionSupport.Regions.Data
                         {
                             if (line.StartsWith("END ")) //Sections must end with an end statement for file to process correctly
                             {
+                                OnSectionEnd?.Invoke(activeSection, !skipThisSection);
                                 //Prepare local variables values for searching for the next section
                                 activeSection = null;
                                 skipThisSection = false;
@@ -221,6 +226,7 @@ namespace ExpeditionRegionSupport.Regions.Data
                             }
 
                             Plugin.Logger.LogInfo($"Section header '{line}' ({statusString})");
+                            OnSectionStart?.Invoke(activeSection, isSectionWanted);
                         }
                         else
                         {
@@ -249,6 +255,8 @@ namespace ExpeditionRegionSupport.Regions.Data
             }
         }
     }
+
+    public delegate void SectionEventHandler(string sectionName, bool isSectionWanted);
 
     public enum WorldSection
     {

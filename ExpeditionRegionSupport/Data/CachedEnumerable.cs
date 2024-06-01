@@ -14,14 +14,14 @@ namespace ExpeditionRegionSupport.Data
         /// <summary>
         /// Enumerated values are stored here when values are returned from InnerEnumerable
         /// </summary>
-        public readonly IList<T> EnumeratedValues = new List<T>();
+        public readonly List<T> EnumeratedValues = new List<T>();
 
         public CachedEnumerable(IEnumerable<T> innerEnumerable)
         {
             InnerEnumerable = innerEnumerable;
         }
 
-        public IEnumerator<T> GetEnumerator()
+        public virtual IEnumerator<T> GetEnumerator()
         {
             if (InnerEnumerable != null)
             {
