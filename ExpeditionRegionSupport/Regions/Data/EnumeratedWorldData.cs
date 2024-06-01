@@ -17,7 +17,30 @@ namespace ExpeditionRegionSupport.Regions.Data
         /// <summary>
         /// The last accessed start and end point in the EnumeratedValues list
         /// </summary>
-        public Range CurrentRange { get; }
+        public Range CurrentRange { get; private set; }
+
+        /// <summary>
+        /// Advance CurrentRange to the next available section range if one exists
+        /// </summary>
+        public bool AdvanceRange()
+        {
+            //Search for dictionary entries with ranges that are ahead of the current range, and pick the earliest range
+            Range? earliestRange = null;
+            foreach (Range range in SectionMap.Values.Where(range => range.CompareTo(CurrentRange) > 0))
+            {
+                if (earliestRange == null || range.Start < earliestRange?.Start)
+                    earliestRange = range;
+            }
+
+            //Update the current range
+            if (earliestRange != null)
+            {
+                CurrentRange = earliestRange.Value;
+                return true;
+            }
+            return false;
+        }
+
 
         //These are used for managing the file stream
         private IEnumerator<string> dataEnumerator;
