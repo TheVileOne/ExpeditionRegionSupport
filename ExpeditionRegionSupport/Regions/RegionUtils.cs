@@ -707,11 +707,12 @@ namespace ExpeditionRegionSupport.Regions
                 //The region code stored here replaces any region mentioned in the equivalences.txt file
                 string regionCodeFromDirectory = Path.GetFileName(Path.GetDirectoryName(path)).ToUpper(); //Get region code from containing directory
 
-                RegionProfile targetRegion = FindEquivalencyProfile(regionCodeFromDirectory);
+                //Find its profile. All loaded regions will have one.
+                RegionProfile equivalentRegionCandidate = FindEquivalencyProfile(regionCodeFromDirectory);
 
-                if (targetRegion.IsDefault)
+                if (equivalentRegionCandidate .IsDefault)
                 {
-                    Plugin.Logger.LogInfo("Region code is unrecognized");
+                    Plugin.Logger.LogInfo($"Aborting equivalency check for region '{regionCodeFromDirectory}'. Region code is unrecognized");
                     continue;
                 }
 
@@ -756,8 +757,8 @@ namespace ExpeditionRegionSupport.Regions
 
                         if (registerTarget == null) continue; //The region is likely part of an unloaded mod
 
-                        RegionProfile slugcatEquivalentRegion = FindEquivalencyProfile(registerTarget);
-                        targetRegion.RegisterEquivalency(slugcat, slugcatEquivalentRegion);
+                        RegionProfile targetRegion = FindEquivalencyProfile(registerTarget);
+                        targetRegion.RegisterEquivalency(slugcat, equivalentRegionCandidate);
                     }
                 }
             }
