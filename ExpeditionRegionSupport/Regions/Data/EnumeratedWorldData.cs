@@ -79,10 +79,7 @@ namespace ExpeditionRegionSupport.Regions.Data
 
             if (sectionRange.End != -1)
             {
-                int sectionLineCount = sectionRange.ValueRange;
-
-                if (sectionLineCount > 0)
-                    return EnumeratedValues.GetRange(sectionRange.Start, sectionLineCount);
+                return GetSectionLines(sectionRange);
             }
             else if (InnerEnumerable != null) //Check that there is still data to process, the section may not be read yet
             {
@@ -93,12 +90,7 @@ namespace ExpeditionRegionSupport.Regions.Data
                     sectionRange = GetSectionRange(RegionDataMiner.SECTION_ROOMS); //Get the range a second time
 
                     if (sectionRange.End != -1)
-                    {
-                        int sectionLineCount = sectionRange.ValueRange;
-
-                        if (sectionLineCount > 0)
-                            return EnumeratedValues.GetRange(sectionRange.Start, sectionLineCount);
-                    }
+                        return GetSectionLines(sectionRange);
                 }
                 else //TODO: Read logic
                 {
@@ -169,6 +161,44 @@ namespace ExpeditionRegionSupport.Regions.Data
                     newRange = Range.NegativeOne;
 
                 SectionMap[sectionName] = newRange;
+            }
+        }
+
+        /// <summary>
+        /// A tracker for failed data access attempts
+        /// </summary>
+        private int dataAccessAttempts = 0;
+
+        /// <summary>
+        /// Returns the section lines between the given range (indexes inclusive)
+        /// </summary>
+        internal List<string> GetSectionLines(Range range)
+        {
+            bool errorHandled = false;
+            int sectionLineCount = range.ValueRange;
+
+            try
+            {
+                if (sectionLineCount > 0)
+                    return EnumeratedValues.GetRange(range.Start, sectionLineCount);
+
+                return new List<string>();
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                if (dataAccessAttempts > 0 || Plugin.DebugMode)
+                    throw ex;
+
+                errorHandled = true;
+                Plugin.Logger.LogError("Invalid section range handled. Please report this issue");
+                return GetSectionLines(new Range(range.Start, Math.Min(range.End, EnumeratedValues.Count - 1)));
+            }
+            finally
+            {
+                if (errorHandled)
+                    dataAccessAttempts++;
+                else
+                    dataAccessAttempts = 0;
             }
         }
     }
