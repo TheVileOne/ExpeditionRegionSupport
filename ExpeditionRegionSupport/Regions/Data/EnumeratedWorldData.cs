@@ -81,7 +81,7 @@ namespace ExpeditionRegionSupport.Regions.Data
         {
             //Initiate a section for each major world file section
             foreach (string section in RegionDataMiner.WORLD_FILE_SECTIONS)
-                SectionMap[section] = new Range(-1, -1);
+                SectionMap[section] = Range.NegativeOne;
         }
 
         public override IEnumerator<string> GetEnumerator()
