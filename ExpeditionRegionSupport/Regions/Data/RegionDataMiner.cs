@@ -29,6 +29,30 @@ namespace ExpeditionRegionSupport.Regions.Data
 
                 if (_activeStream != null)
                     _activeStream.OnDisposed += onStreamDisposed;
+
+        /// <summary>
+        /// A dictionary that manages the file stream readers of all RegionDataMiner instances organized by world file path
+        /// </summary>
+        public static Dictionary<string, List<TextStream>> ManagedStreams = new Dictionary<string, List<TextStream>>();
+
+
+        private static void onStreamFinished(TextStream stream)
+        {
+            stream.AllowStreamDisposal = true;
+
+            List<TextStream> managedStreams = ManagedStreams[stream.Filepath];
+
+            Plugin.Logger.LogInfo("Data Miner - Stream finished");
+            if (managedStreams.TrueForAll(s => s.AllowStreamDisposal)) //Only dispose if every reference is allowed to dispose
+            {
+                managedStreams.ForEach(stream => stream.Close());
+                managedStreams.Clear();
+                Plugin.Logger.LogInfo("Dispose successful");
+            }
+            else
+            {
+                int waitingOnStreamCount = managedStreams.FindAll(s => !s.AllowStreamDisposal).Count;
+                Plugin.Logger.LogInfo($"Stream could not be disposed - Waiting on {waitingOnStreamCount} references");
             }
         }
 
@@ -52,8 +76,8 @@ namespace ExpeditionRegionSupport.Regions.Data
             get => _keepStreamOpen;
             set
             {
-                if (ActiveStream != null)
-                    ActiveStream.DisposeOnStreamEnd = !value;
+                //if (ActiveStream != null)
+                //    ActiveStream.AllowStreamDisposal = value;
                 _keepStreamOpen = value;
             }
         }
@@ -89,10 +113,20 @@ namespace ExpeditionRegionSupport.Regions.Data
             {
                 //TODO: StreamReaders must be able to be reused, or KeepStreamOpen will not work properly, firing a Sharing violation
                 //if another StreamReader is created for the same file
-                return new TextStream(regionFile)
+                TextStream stream = new TextStream(regionFile)
                 {
-                    DisposeOnStreamEnd = !KeepStreamOpen
+                    AllowStreamDisposal = KeepStreamOpen
                 };
+
+                stream.OnStreamEnd += onStreamFinished;
+
+                //Register the stream reference to control how it is disposed
+                if (ManagedStreams.ContainsKey(stream.Filepath))
+                    ManagedStreams[stream.Filepath].Add(stream);
+                else
+                    ManagedStreams[stream.Filepath] = new List<TextStream> { stream };
+
+                return stream;
             }
             catch (IOException)
             {
@@ -196,6 +230,7 @@ namespace ExpeditionRegionSupport.Regions.Data
 
                                 if (_sectionsWanted.Count == 0)
                                 {
+                                    _stream.OnStreamEnd?.Invoke(_stream);
                                     Plugin.Logger.LogInfo("Process finished");
                                     yield break;
                                 }

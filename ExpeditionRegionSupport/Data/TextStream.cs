@@ -13,6 +13,11 @@ namespace ExpeditionRegionSupport.Data
     public class TextStream : StreamReader, IDisposable
     {
         /// <summary>
+        /// The file stream source
+        /// </summary>
+        public string Filepath { get; }
+
+        /// <summary>
         /// Apply modifications to the text data as it is read from file
         /// </summary>
         public StringDelegates.Format LineFormatter { get; set; }
@@ -23,16 +28,19 @@ namespace ExpeditionRegionSupport.Data
         public List<StringDelegates.Validate> SkipConditions = new List<StringDelegates.Validate>();
 
         /// <summary>
-        /// When set to true, stream will close when end of file is reached. Instance will need to be disposed externally if this is set to false
+        /// When set to true, stream will not close on disposal. Instance will need to be disposed externally if this is set to false
         /// </summary>
-        public bool DisposeOnStreamEnd = true;
+        public bool AllowStreamDisposal = true;
 
         public bool IsDisposed { get; private set; }
 
         public event Action<TextStream> OnDisposed;
 
+        public Action<TextStream> OnStreamEnd;
+
         public TextStream(string file) : base(file)
         {
+            Filepath = file;
             LineFormatter = new StringDelegates.Format(s => s.Trim());
             SkipConditions.Add(new StringDelegates.Validate(s => s == string.Empty || s.StartsWith("//")));
         }
@@ -45,8 +53,8 @@ namespace ExpeditionRegionSupport.Data
 
             if (line == null)
             {
-                if (DisposeOnStreamEnd)
-                    Close();
+                OnStreamEnd?.Invoke(this);
+                Close();
                 return null;
             }
             return LineFormatter.Invoke(line);
@@ -99,6 +107,12 @@ namespace ExpeditionRegionSupport.Data
 
         protected override void Dispose(bool disposing)
         {
+            if (!AllowStreamDisposal)
+            {
+                Plugin.Logger.LogDebug("StreamReader was not allowed to be disposed");
+                return;
+            }
+
             base.Dispose(disposing);
 
             if (!IsDisposed)
