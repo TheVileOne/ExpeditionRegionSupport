@@ -140,7 +140,7 @@ namespace ExpeditionRegionSupport.Regions.Data
             CloseStream();
         }
 
-        public class ReadLinesIterator
+        public class ReadLinesIterator : IDisposable
         {
             private TextStream _stream;
 
@@ -153,6 +153,9 @@ namespace ExpeditionRegionSupport.Regions.Data
 
             public SectionEventHandler OnSectionStart;
             public SectionEventHandler OnSectionEnd;
+
+            private bool isDisposed;
+
             public ReadLinesIterator(TextStream stream, params string[] regionSections)
             {
                 _stream = stream;
@@ -253,6 +256,35 @@ namespace ExpeditionRegionSupport.Regions.Data
                 isWanted = header != null;
                 return header ?? WORLD_FILE_SECTIONS.Find(line.StartsWith);
             }
+
+            #region Dispose Handlers
+            protected virtual void Dispose(bool disposing)
+            {
+                if (!isDisposed)
+                {
+                    if (disposing)
+                    {
+                        _stream = null;
+                        OnSectionStart = null;
+                        OnSectionEnd = null;
+                    }
+                    isDisposed = true;
+                }
+            }
+
+            ~ReadLinesIterator()
+            {
+                // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+                Dispose(disposing: false);
+            }
+
+            public void Dispose()
+            {
+                // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+                Dispose(disposing: true);
+                GC.SuppressFinalize(this);
+            }
+            #endregion
         }
     }
 
