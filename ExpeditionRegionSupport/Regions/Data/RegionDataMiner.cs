@@ -18,15 +18,17 @@ namespace ExpeditionRegionSupport.Regions.Data
         /// </summary>
         public List<TextStream> ActiveStreams = new List<TextStream>();
 
+        /// <summary>
+        /// A flag that enables extra debug functionality such as extra data logging
+        /// </summary>
+        public bool DebugMode;
+
         private static void onStreamFinished(TextStream stream)
         {
             stream.AllowStreamDisposal = true;
 
-            List<TextStream> managedStreams = ManagedStreams[stream.Filepath];
-
-            Plugin.Logger.LogInfo("Data Miner - Stream finished");
-
             //Properly handle managed resources
+            List<TextStream> managedStreams = ManagedStreams[stream.Filepath];
             if (managedStreams.TrueForAll(s => s.AllowStreamDisposal)) //Only dispose if every reference is allowed to dispose
             {
                 managedStreams.ForEach(stream => stream.Close());
@@ -35,7 +37,7 @@ namespace ExpeditionRegionSupport.Regions.Data
             else
             {
                 int waitingOnStreamCount = managedStreams.FindAll(s => !s.AllowStreamDisposal).Count;
-                Plugin.Logger.LogInfo($"Stream could not be disposed - Waiting on {waitingOnStreamCount} references");
+                Plugin.Logger.LogInfo($"Data stream could not be disposed - Waiting on {waitingOnStreamCount} references");
             }
         }
 
@@ -125,7 +127,8 @@ namespace ExpeditionRegionSupport.Regions.Data
         {
             if (isDisposed) return;
 
-            Plugin.Logger.LogInfo("Data Miner - Allowing controlled streams to close");
+            if (DebugMode)
+                Plugin.Logger.LogInfo("Data Miner - Allowing data streams to close");
 
             ActiveStreams.ForEach(stream => stream.AllowStreamDisposal = true);
 
@@ -141,12 +144,14 @@ namespace ExpeditionRegionSupport.Regions.Data
 
             ActiveStreams.Clear();
 
-            int undisposedStreamCount = 0;
-            foreach (List<TextStream> list in ManagedStreams.Values)
-                undisposedStreamCount += list.Count;
+            if (DebugMode)
+            {
+                int undisposedStreamCount = 0;
+                foreach (List<TextStream> list in ManagedStreams.Values)
+                    undisposedStreamCount += list.Count;
 
-            Plugin.Logger.LogInfo("Undisposed streams: " + undisposedStreamCount);
-
+                Plugin.Logger.LogInfo("Undisposed streams: " + undisposedStreamCount);
+            }
             isDisposed = true;
         }
 

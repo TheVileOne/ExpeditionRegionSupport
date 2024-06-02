@@ -200,7 +200,10 @@ namespace ExpeditionRegionSupport.Diagnostics
 
             var logger = Plugin.Logger;
 
-            RegionDataMiner regionMiner = new RegionDataMiner();
+            RegionDataMiner regionMiner = new RegionDataMiner()
+            {
+                DebugMode = true
+            };
 
             IEnumerable<string> roomData_SI = regionMiner.GetRoomLines("SI");
 
