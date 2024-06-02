@@ -5,11 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Expedition;
+using ExpeditionRegionSupport.Diagnostics;
 using ExpeditionRegionSupport.Filters.Settings;
 using ExpeditionRegionSupport.Filters.Utils;
 using ExpeditionRegionSupport.Regions.Data;
 using ExpeditionRegionSupport.Regions.Restrictions;
-using ExpeditionRegionSupport.Tools;
 using RWCustom;
 
 namespace ExpeditionRegionSupport.Regions

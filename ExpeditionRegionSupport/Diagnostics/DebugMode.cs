@@ -1,13 +1,12 @@
 ﻿using ExpeditionRegionSupport.Data;
 using ExpeditionRegionSupport.Regions;
 using ExpeditionRegionSupport.Regions.Data;
-using ExpeditionRegionSupport.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace ExpeditionRegionSupport
+namespace ExpeditionRegionSupport.Diagnostics
 {
     public static class DebugMode
     {

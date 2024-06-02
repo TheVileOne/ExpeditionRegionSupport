@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 using Expedition;
 using ExpeditionRegionSupport.Data.Logging.Utils;
+using ExpeditionRegionSupport.Diagnostics;
 using ExpeditionRegionSupport.Filters.Utils;
 using ExpeditionRegionSupport.Regions;
-using ExpeditionRegionSupport.Tools;
 
 namespace ExpeditionRegionSupport.Filters
 {
