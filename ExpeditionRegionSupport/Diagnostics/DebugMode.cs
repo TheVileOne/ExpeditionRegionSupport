@@ -255,18 +255,34 @@ namespace ExpeditionRegionSupport.Diagnostics
             //Enumerate all results by converting IEnumerable to list
             if (testOrderMethod == 0 || testOrderMethod > 1) //World sections in order
             {
+                Plugin.Logger.LogInfo("[A]");
                 listA = cacheA.ToList();
+
+                Plugin.Logger.LogInfo("[B]");
                 listB = cacheB.ToList();
+
+                Plugin.Logger.LogInfo("[C]");
                 listC = cacheC.ToList();
+
+                Plugin.Logger.LogInfo("[D]");
                 listD = cacheD.ToList();
             }
             else if (testOrderMethod == 1) //World sections mixed order
             {
+                Plugin.Logger.LogInfo("[D]");
                 listD = cacheD.ToList();
+
+                Plugin.Logger.LogInfo("[A]");
                 listA = cacheA.ToList();
+
+                Plugin.Logger.LogInfo("[C]");
                 listC = cacheC.ToList();
+
+                Plugin.Logger.LogInfo("[B]");
                 listB = cacheB.ToList();
             }
+
+            Plugin.Logger.LogInfo("DONE");
 
             //Expected outcome: Counts should be equal
             logger.LogInfo($"A: Test List Count: {listA.Count} Cached List Count: {cacheA.EnumeratedValues.Count}");
