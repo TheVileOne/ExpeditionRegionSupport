@@ -101,30 +101,30 @@ namespace ExpeditionRegionSupport.Regions.Data
             }
         }
 
-        public CachedEnumerable<string> GetBatMigrationLines(string regionCode)
+        public EnumeratedWorldData GetBatMigrationLines(string regionCode)
         {
             return GetLines(regionCode, SECTION_BAT_MIGRATION_BLOCKAGES);
         }
 
-        public CachedEnumerable<string> GetConditionalLinkLines(string regionCode)
+        public EnumeratedWorldData GetConditionalLinkLines(string regionCode)
         {
             return GetLines(regionCode, SECTION_CONDITIONAL_LINKS);
         }
 
-        public CachedEnumerable<string> GetCreatureLines(string regionCode)
+        public EnumeratedWorldData GetCreatureLines(string regionCode)
         {
             return GetLines(regionCode, SECTION_CREATURES);
         }
 
-        public CachedEnumerable<string> GetRoomLines(string regionCode)
+        public EnumeratedWorldData GetRoomLines(string regionCode)
         {
             return GetLines(regionCode, SECTION_ROOMS);
         }
 
-        internal EnumeratedWorldData GetLines(string regionCode, string sectionName)
+        internal EnumeratedWorldData GetLines(string regionCode, params string[] sectionNames)
         {
             ActiveStream = GetStreamReader(regionCode);
-            return new EnumeratedWorldData(new ReadLinesIterator(ActiveStream, sectionName));
+            return new EnumeratedWorldData(new ReadLinesIterator(ActiveStream, sectionNames));
         }
 
         public void CloseStream()
