@@ -266,7 +266,7 @@ namespace ExpeditionRegionSupport.Regions.Data
             if (isSectionWanted)
             {
                 Range currentRange = SectionMap[sectionName];
-                Range newRange = new Range(currentRange.Start, EnumeratedValues.Count);
+                Range newRange = new Range(currentRange.Start, EnumeratedValues.Count - 1);
 
                 if (Plugin.DebugMode)
                     Plugin.Logger.LogInfo($"Section '{sectionName}' has {newRange.ValueRange} entries");
