@@ -206,34 +206,35 @@ namespace ExpeditionRegionSupport.Regions.Data
 
                             yield return line;
                         }
-
-                        //First check for wanted sections, and then check for unwanted sections
-                        activeSection = getSectionHeader(line, out bool isSectionWanted);
-
-                        /*
-                         * When a wanted section header is detected, the section can be removed from the wanted list
-                         * Unwanted sections will be skipped completely
-                         */
-                        if (activeSection != null)
+                        else
                         {
-                            string statusString;
-                            if (isSectionWanted)
+                            activeSection = getSectionHeader(line, out bool isSectionWanted);
+
+                            /*
+                             * When a wanted section header is detected, the section can be removed from the wanted list
+                             * Unwanted sections will be skipped completely
+                             */
+                            if (activeSection != null)
                             {
-                                statusString = "READING";
-                                _sectionsWanted.Remove(activeSection);
+                                string statusString;
+                                if (isSectionWanted)
+                                {
+                                    statusString = "READING";
+                                    _sectionsWanted.Remove(activeSection);
+                                }
+                                else
+                                {
+                                    statusString = "SKIPPED";
+                                    skipThisSection = true;
+                                }
+
+                                Plugin.Logger.LogInfo($"Section header '{line}' ({statusString})");
+                                OnSectionStart?.Invoke(activeSection, isSectionWanted);
                             }
                             else
                             {
-                                statusString = "SKIPPED";
-                                skipThisSection = true;
+                                Plugin.Logger.LogInfo($"Unknown line detected between sections '{line}'");
                             }
-
-                            Plugin.Logger.LogInfo($"Section header '{line}' ({statusString})");
-                            OnSectionStart?.Invoke(activeSection, isSectionWanted);
-                        }
-                        else
-                        {
-                            Plugin.Logger.LogInfo($"Unknown line detected between sections '{line}'");
                         }
                     }
                     while (line != null);
