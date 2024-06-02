@@ -90,11 +90,44 @@ namespace ExpeditionRegionSupport.Regions.Data
         }
 
         /// <summary>
+        /// Gets conditional link data from the enumerated list. If conditional link data was not collected, list will be empty.
+        /// </summary>
+        public List<string> GetConditionalLinkData()
+        {
+            //TODO: Process inlined CRS-styled conditional links
+            return GetSectionData(RegionDataMiner.SECTION_CONDITIONAL_LINKS);
+        }
+
+        /// <summary>
         /// Gets room data from the enumerated list. If room data was not collected, list will be empty.
         /// </summary>
         public List<string> GetRoomData()
         {
-            Range sectionRange = GetSectionRange(RegionDataMiner.SECTION_ROOMS);
+            return GetSectionData(RegionDataMiner.SECTION_ROOMS);
+        }
+
+        /// <summary>
+        /// Gets creature data from the enumerated list. If creature data was not collected, list will be empty.
+        /// </summary>
+        public List<string> GetCreatureData()
+        {
+            return GetSectionData(RegionDataMiner.SECTION_CREATURES);
+        }
+
+        /// <summary>
+        /// Gets bat migration blockage data from the enumerated list. If bat migration blockage data was not collected, list will be empty.
+        /// </summary>
+        public List<string> GetBatMigrationBlockageData()
+        {
+            return GetSectionData(RegionDataMiner.SECTION_BAT_MIGRATION_BLOCKAGES);
+        }
+
+        /// <summary>
+        /// Gets section data from the enumerated list. If the section was not collected, list will be empty.
+        /// </summary>
+        public List<string> GetSectionData(string sectionName)
+        {
+            Range sectionRange = GetSectionRange(sectionName);
 
             if (CanRetrieveSectionLines(sectionRange))
             {
@@ -106,7 +139,7 @@ namespace ExpeditionRegionSupport.Regions.Data
                 {
                     ReadUntilSectionEnds();
 
-                    sectionRange = GetSectionRange(RegionDataMiner.SECTION_ROOMS); //Get the range a second time
+                    sectionRange = GetSectionRange(sectionName); //Get the range a second time
                     return GetSectionLines(sectionRange);
                 }
                 else
