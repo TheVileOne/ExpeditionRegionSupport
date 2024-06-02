@@ -222,7 +222,10 @@ namespace ExpeditionRegionSupport.Regions.Data
         private void onSectionStart(string sectionName, bool isSectionWanted)
         {
             if (isSectionWanted)
-                SectionMap[sectionName] = new Range(EnumeratedValues.Count, -1); //Store the index start for the section
+            {
+                CurrentRange = new Range(EnumeratedValues.Count, -1);
+                SectionMap[sectionName] = CurrentRange; //Store the index start for the section
+            }
         }
 
         private void onSectionEnd(string sectionName, bool isSectionWanted)
@@ -238,6 +241,7 @@ namespace ExpeditionRegionSupport.Regions.Data
                 if (newRange.ValueRange <= 0) //Section indexes are not in an expected state
                     newRange = Range.NegativeOne;
 
+                CurrentRange = newRange;
                 SectionMap[sectionName] = newRange;
             }
         }
