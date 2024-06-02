@@ -6,35 +6,17 @@ using System.IO;
 
 namespace ExpeditionRegionSupport.Regions.Data
 {
-    public class RegionDataMiner
+    public class RegionDataMiner : IDisposable
     {
-        private TextStream _activeStream;
-        protected TextStream ActiveStream
-        {
-            get => _activeStream;
-            private set
-            {
-                if (_activeStream == value) return;
-
-                //Close old stream - once we lose the reference, the stream wont be disposed
-                if (/*!KeepStreamOpen && */_activeStream != null)
-                {
-                    //if (KeepStreamOpen)
-                    //    Plugin.Logger.LogDebug("Stream is being closed that should be kept open");
-
-                    CloseStream();
-                }
-
-                _activeStream = value;
-
-                if (_activeStream != null)
-                    _activeStream.OnDisposed += onStreamDisposed;
-
         /// <summary>
         /// A dictionary that manages the file stream readers of all RegionDataMiner instances organized by world file path
         /// </summary>
         public static Dictionary<string, List<TextStream>> ManagedStreams = new Dictionary<string, List<TextStream>>();
 
+        /// <summary>
+        /// A list of specific streams controlled by the class
+        /// </summary>
+        public List<TextStream> ActiveStreams = new List<TextStream>();
 
         private static void onStreamFinished(TextStream stream)
         {
@@ -43,42 +25,17 @@ namespace ExpeditionRegionSupport.Regions.Data
             List<TextStream> managedStreams = ManagedStreams[stream.Filepath];
 
             Plugin.Logger.LogInfo("Data Miner - Stream finished");
+
+            //Properly handle managed resources
             if (managedStreams.TrueForAll(s => s.AllowStreamDisposal)) //Only dispose if every reference is allowed to dispose
             {
                 managedStreams.ForEach(stream => stream.Close());
                 managedStreams.Clear();
-                Plugin.Logger.LogInfo("Dispose successful");
             }
             else
             {
                 int waitingOnStreamCount = managedStreams.FindAll(s => !s.AllowStreamDisposal).Count;
                 Plugin.Logger.LogInfo($"Stream could not be disposed - Waiting on {waitingOnStreamCount} references");
-            }
-        }
-
-        private void onStreamDisposed(TextStream stream)
-        {
-            if (_activeStream == stream)
-            {
-                _activeStream.OnDisposed -= onStreamDisposed;
-                _activeStream = null;
-            }
-        }
-
-        private bool _keepStreamOpen;
-
-        /// <summary>
-        /// The stream wont be closed when a read process finished. Stream will be disposed when RegionDataMiner is destroyed.
-        /// NOTE: This currently does not work correctly when set to true. Reusing the StreamReader for multiple reads is currently not supported.
-        /// </summary>
-        public bool KeepStreamOpen
-        {
-            get => _keepStreamOpen;
-            set
-            {
-                //if (ActiveStream != null)
-                //    ActiveStream.AllowStreamDisposal = value;
-                _keepStreamOpen = value;
             }
         }
 
@@ -97,8 +54,9 @@ namespace ExpeditionRegionSupport.Regions.Data
             SECTION_CREATURES,
             SECTION_BAT_MIGRATION_BLOCKAGES
         };
+        private bool isDisposed;
 
-        public TextStream GetStreamReader(string regionCode)
+        internal static TextStream CreateStreamReader(string regionCode)
         {
             string regionFile = RegionUtils.GetWorldFilePath(regionCode);
 
@@ -111,12 +69,7 @@ namespace ExpeditionRegionSupport.Regions.Data
 
             try
             {
-                //TODO: StreamReaders must be able to be reused, or KeepStreamOpen will not work properly, firing a Sharing violation
-                //if another StreamReader is created for the same file
-                TextStream stream = new TextStream(regionFile)
-                {
-                    AllowStreamDisposal = KeepStreamOpen
-                };
+                TextStream stream = new TextStream(regionFile, false);
 
                 stream.OnStreamEnd += onStreamFinished;
 
@@ -157,21 +110,44 @@ namespace ExpeditionRegionSupport.Regions.Data
 
         internal EnumeratedWorldData GetLines(string regionCode, params string[] sectionNames)
         {
-            ActiveStream = GetStreamReader(regionCode);
-            return new EnumeratedWorldData(new ReadLinesIterator(ActiveStream, sectionNames));
-        }
+            TextStream activeStream = CreateStreamReader(regionCode);
 
-        public void CloseStream()
-        {
-            KeepStreamOpen = false;
-
-            if (_activeStream != null)
-                _activeStream.Close();
+            ActiveStreams.Add(activeStream);
+            return new EnumeratedWorldData(new ReadLinesIterator(activeStream, sectionNames));
         }
 
         ~RegionDataMiner()
         {
-            CloseStream();
+            Dispose();
+        }
+
+        public void Dispose()
+        {
+            if (isDisposed) return;
+
+            Plugin.Logger.LogInfo("Data Miner - Allowing controlled streams to close");
+
+            ActiveStreams.ForEach(stream => stream.AllowStreamDisposal = true);
+
+            //Properly handle managed resources
+            foreach (List<TextStream> list in ManagedStreams.Values)
+            {
+                if (list.TrueForAll(s => s.AllowStreamDisposal))
+                {
+                    list.ForEach(stream => stream.Close());
+                    list.Clear();
+                }
+            }
+
+            ActiveStreams.Clear();
+
+            int undisposedStreamCount = 0;
+            foreach (List<TextStream> list in ManagedStreams.Values)
+                undisposedStreamCount += list.Count;
+
+            Plugin.Logger.LogInfo("Undisposed streams: " + undisposedStreamCount);
+
+            isDisposed = true;
         }
 
         public class ReadLinesIterator : IDisposable

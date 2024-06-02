@@ -450,10 +450,7 @@ namespace ExpeditionRegionSupport.Regions
                 processTimer.Start();
             }
 
-            RegionDataMiner regionMiner = new RegionDataMiner()
-            {
-                KeepStreamOpen = true
-            };
+            RegionDataMiner regionMiner = new RegionDataMiner();
 
             List<string> conditionalLinkData = regionMiner.GetConditionalLinkLines(regionCode).ToList();
             IEnumerable<string> roomData = regionMiner.GetRoomLines(regionCode);
@@ -501,8 +498,6 @@ namespace ExpeditionRegionSupport.Regions
                 processTimer.ReportTime("Gate process time for " + regionCode);
                 processTimer.Stop();
             }
-
-            regionMiner.KeepStreamOpen = false;
             return gates;
         }
 

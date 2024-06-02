@@ -30,7 +30,7 @@ namespace ExpeditionRegionSupport.Data
         /// <summary>
         /// When set to true, stream will not close on disposal. Instance will need to be disposed externally if this is set to false
         /// </summary>
-        public bool AllowStreamDisposal = true;
+        public bool AllowStreamDisposal;
 
         public bool IsDisposed { get; private set; }
 
@@ -38,9 +38,10 @@ namespace ExpeditionRegionSupport.Data
 
         public Action<TextStream> OnStreamEnd;
 
-        public TextStream(string file) : base(file)
+        public TextStream(string file, bool allowDisposal) : base(file)
         {
             Filepath = file;
+            AllowStreamDisposal = allowDisposal;
             LineFormatter = new StringDelegates.Format(s => s.Trim());
             SkipConditions.Add(new StringDelegates.Validate(s => s == string.Empty || s.StartsWith("//")));
         }
@@ -120,12 +121,6 @@ namespace ExpeditionRegionSupport.Data
                 IsDisposed = true;
                 OnDisposed?.Invoke(this);
             }
-        }
-
-        public override void Close()
-        {
-            if (!IsDisposed)
-                base.Close();
         }
     }
 }

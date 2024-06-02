@@ -141,7 +141,7 @@ namespace ExpeditionRegionSupport.Filters.Settings
         {
             UnrecognizedSettingStrings.Clear(); //We are retrieving the strings from file. Nothing should be lost here.
 
-            TextStream stream = new TextStream(settingsPath);
+            TextStream stream = new TextStream(settingsPath, true);
 
             foreach (string line in stream.ReadLines())
             {
