@@ -54,7 +54,7 @@ namespace ExpeditionRegionSupport.Regions.Data
             return false;
         }
 
-        public bool EndOfRange => InnerEnumerable == null && CurrentRange.End == EnumeratedValues.Count - 1;
+        public bool EndOfRange => ProcessingComplete && CurrentRange.End == EnumeratedValues.Count - 1;
 
         /// <summary>
         /// Returns whether or not CurrentRange is in a state that can retrieve data
@@ -100,7 +100,7 @@ namespace ExpeditionRegionSupport.Regions.Data
             {
                 return GetSectionLines(sectionRange);
             }
-            else if (InnerEnumerable != null) //Check that there is still data to process, the section may not be read yet
+            else if (!ProcessingComplete) //Check that there is still data to process, the section may not be read yet
             {
                 if (sectionRange.Start != -1) //Indicates that section has not been read fully, read the rest of the data
                 {
@@ -137,7 +137,7 @@ namespace ExpeditionRegionSupport.Regions.Data
         {
             if (EndOfRange) return new List<string>(); //Nothing left to return
 
-            if (InnerEnumerable == null)
+            if (ProcessingComplete)
             {
                 //No more values to process, but we're not at the end of the range
                 if (AdvanceRange() && CanRetrieveSectionLines(CurrentRange))

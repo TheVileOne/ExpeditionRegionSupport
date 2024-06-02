@@ -16,6 +16,11 @@ namespace ExpeditionRegionSupport.Data
         /// </summary>
         public readonly List<T> EnumeratedValues = new List<T>();
 
+        /// <summary>
+        /// This property indicates that all data has been processed and cached
+        /// </summary>
+        public virtual bool ProcessingComplete => InnerEnumerable != null;
+
         public CachedEnumerable(IEnumerable<T> innerEnumerable)
         {
             InnerEnumerable = innerEnumerable;
