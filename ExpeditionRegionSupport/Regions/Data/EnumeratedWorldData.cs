@@ -20,17 +20,30 @@ namespace ExpeditionRegionSupport.Regions.Data
         public Range CurrentRange { get; private set; }
 
         /// <summary>
+        /// The range that follows immediately after CurrentRange. Null if it doesn't exist
+        /// </summary>
+        public Range? NextRange
+        {
+            get
+            {
+                //Search for dictionary entries with ranges that are ahead of the current range, and pick the earliest range
+                Range? earliestRange = null;
+                foreach (Range range in SectionMap.Values.Where(range => range.CompareTo(CurrentRange) > 0))
+                {
+                    if (earliestRange == null || range.Start < earliestRange?.Start)
+                        earliestRange = range;
+                }
+                return earliestRange;
+            }
+        }
+
+        /// <summary>
         /// Advance CurrentRange to the next available section range if one exists
         /// </summary>
         public bool AdvanceRange()
         {
             //Search for dictionary entries with ranges that are ahead of the current range, and pick the earliest range
-            Range? earliestRange = null;
-            foreach (Range range in SectionMap.Values.Where(range => range.CompareTo(CurrentRange) > 0))
-            {
-                if (earliestRange == null || range.Start < earliestRange?.Start)
-                    earliestRange = range;
-            }
+            Range? earliestRange = NextRange;
 
             //Update the current range
             if (earliestRange != null)
@@ -41,6 +54,12 @@ namespace ExpeditionRegionSupport.Regions.Data
             return false;
         }
 
+        public bool EndOfRange => InnerEnumerable == null && CurrentRange.End == EnumeratedValues.Count - 1;
+
+        /// <summary>
+        /// Returns whether or not CurrentRange is in a state that can retrieve data
+        /// </summary>
+        public bool CanRetrieveSectionLines => CurrentRange.Start != -1 && CurrentRange.End != -1;
 
         //These are used for managing the file stream
         private IEnumerator<string> dataEnumerator;
@@ -103,10 +122,56 @@ namespace ExpeditionRegionSupport.Regions.Data
 
         public List<string> ReadNextSection()
         {
-            return ReadUntilSectionEnds();
+            if (EndOfRange) return new List<string>(); //Nothing left to return
+
+            if (InnerEnumerable == null)
+            {
+                //No more values to process, but we're not at the end of the range
+                if (AdvanceRange() && CanRetrieveSectionLines)
+                    return GetSectionLines(CurrentRange);
+                return new List<string>();
+            }
+
+            if (CurrentRange.End == -1)
+            {
+                if (CurrentRange != Range.NegativeOne)
+                {
+                    //Last section has not been fully processed. Process it first, and then process the next section fully
+                    ReadUntilSectionEnds();
+                }
+
+                //Retrieve the section we want to access
+                //This code gives priority to unread data over the unlikely event that the enumeration has been reset back to the
+                //first section
+                return ReadUntilSectionEnds();
+            }
+
+            /*
+             * CurrentRange is guaranteed to be positive, but it may be positioned earlier than expected. Advance the range, and check
+             * that the new range is still valid. If it is, retrieve the data, and if it is not, we need to read the rest of the section
+             * to complete it.
+             */
+            if (AdvanceRange())
+            {
+                if (CanRetrieveSectionLines)
+                    return GetSectionLines(CurrentRange);
+
+                List<string> sectionLines = new List<string>();
+                if (CurrentRange.Start < EnumeratedValues.Count)
+                {
+                    //Get section lines that have already been processed
+                    sectionLines = GetSectionLines(new Range(CurrentRange.Start, EnumeratedValues.Count - 1));
+                }
+
+                //The remaining lines will be added here
+                sectionLines.AddRange(ReadUntilSectionEnds());
+                return sectionLines;
+            }
+
+            return new List<string>();
         }
 
-        public List<string> ReadUntilSectionEnds()
+        internal List<string> ReadUntilSectionEnds()
         {
             _ReadLinesIterator.OnSectionEnd += onSectionEndEvent;
 
