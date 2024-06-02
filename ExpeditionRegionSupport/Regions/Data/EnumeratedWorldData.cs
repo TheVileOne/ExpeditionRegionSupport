@@ -59,7 +59,7 @@ namespace ExpeditionRegionSupport.Regions.Data
         /// <summary>
         /// Returns whether or not CurrentRange is in a state that can retrieve data
         /// </summary>
-        public bool CanRetrieveSectionLines => CurrentRange.Start != -1 && CurrentRange.End != -1;
+        public bool CanRetrieveSectionLines(Range range) => range.Start != -1 && range.End != -1;
 
         //These are used for managing the file stream
         private IEnumerator<string> dataEnumerator;
@@ -96,7 +96,7 @@ namespace ExpeditionRegionSupport.Regions.Data
         {
             Range sectionRange = GetSectionRange(RegionDataMiner.SECTION_ROOMS);
 
-            if (sectionRange.End != -1)
+            if (CanRetrieveSectionLines(sectionRange))
             {
                 return GetSectionLines(sectionRange);
             }
@@ -107,13 +107,26 @@ namespace ExpeditionRegionSupport.Regions.Data
                     ReadUntilSectionEnds();
 
                     sectionRange = GetSectionRange(RegionDataMiner.SECTION_ROOMS); //Get the range a second time
-
-                    if (sectionRange.End != -1)
-                        return GetSectionLines(sectionRange);
+                    return GetSectionLines(sectionRange);
                 }
-                else //TODO: Read logic
+                else
                 {
+                    _ReadLinesIterator.OnSectionEnd += onSectionEndEvent;
+                    bool sectionFound = false;
+                    while (!sectionFound && dataEnumerator.MoveNext()) { } //Read lines until we find the section, or run out of lines
 
+                    _ReadLinesIterator.OnSectionEnd -= onSectionEndEvent;
+
+                    if (sectionFound)
+                    {
+                        sectionRange = CurrentRange;
+                        return GetSectionLines(sectionRange);
+                    }
+
+                    void onSectionEndEvent(string sectionName, bool isSectionWanted)
+                    {
+                        sectionFound = true;
+                    }
                 }
             }
 
@@ -127,7 +140,7 @@ namespace ExpeditionRegionSupport.Regions.Data
             if (InnerEnumerable == null)
             {
                 //No more values to process, but we're not at the end of the range
-                if (AdvanceRange() && CanRetrieveSectionLines)
+                if (AdvanceRange() && CanRetrieveSectionLines(CurrentRange))
                     return GetSectionLines(CurrentRange);
                 return new List<string>();
             }
@@ -153,7 +166,7 @@ namespace ExpeditionRegionSupport.Regions.Data
              */
             if (AdvanceRange())
             {
-                if (CanRetrieveSectionLines)
+                if (CanRetrieveSectionLines(CurrentRange))
                     return GetSectionLines(CurrentRange);
 
                 List<string> sectionLines = new List<string>();
