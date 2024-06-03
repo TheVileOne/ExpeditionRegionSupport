@@ -63,9 +63,9 @@ namespace ExpeditionRegionSupport.Regions.Data
 
         //These are used for managing the file stream
         private IEnumerator<string> dataEnumerator;
-        private RegionDataMiner.ReadLinesIterator _ReadLinesIterator;
+        private RegionDataMinerIterator _ReadLinesIterator;
 
-        public EnumeratedWorldData(RegionDataMiner.ReadLinesIterator iterator) : base(iterator.GetEnumerable())
+        public EnumeratedWorldData(RegionDataMinerIterator iterator) : base(iterator.GetEnumerable())
         {
             CurrentRange = Range.NegativeOne;
 
