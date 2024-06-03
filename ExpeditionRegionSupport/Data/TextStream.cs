@@ -12,6 +12,8 @@ namespace ExpeditionRegionSupport.Data
     /// </summary>
     public class TextStream : StreamReader, IDisposable
     {
+        public static readonly StringDelegates.Validate DEFAULT_SKIP_CONDITIONS = new StringDelegates.Validate(s => s == string.Empty || s.StartsWith("//"));
+
         /// <summary>
         /// The file stream source
         /// </summary>
@@ -38,12 +40,15 @@ namespace ExpeditionRegionSupport.Data
 
         public Action<TextStream> OnStreamEnd;
 
+        public ReadLinesIterator ReadIterator;
+
         public TextStream(string file, bool allowDisposal) : base(file)
         {
             Filepath = file;
             AllowStreamDisposal = allowDisposal;
             LineFormatter = new StringDelegates.Format(s => s.Trim());
-            SkipConditions.Add(new StringDelegates.Validate(s => s == string.Empty || s.StartsWith("//")));
+            SkipConditions.Add(DEFAULT_SKIP_CONDITIONS);
+            ReadIterator = new ReadLinesIterator(this, checkSkipConditions);
         }
 
         public override string ReadLine()
@@ -64,15 +69,15 @@ namespace ExpeditionRegionSupport.Data
         /// <summary>
         /// Reads from file one line at a time
         /// </summary>
-        public CachedEnumerable<string> ReadLines()
+        public virtual CachedEnumerable<string> ReadLines()
         {
-            return new CachedEnumerable<string>(ReadLinesIterator());
+            return new CachedEnumerable<string>(ReadIterator.GetEnumerable());
         }
 
         /// <summary>
         /// Reads all lines from file returning them in an array
         /// </summary>
-        public string[] ReadAllLines()
+        public virtual string[] ReadAllLines()
         {
             //Discard any buffer data, and start at beginning of file
             DiscardBufferedData();
@@ -82,12 +87,20 @@ namespace ExpeditionRegionSupport.Data
             string line;
             while ((line = ReadLine()) != null)
             {
-                if (!SkipConditions.Exists(hasFailedCheck => hasFailedCheck(line))) //Checks that line conforms with all given skip conditions)
+                bool shouldIgnoreLine = checkSkipConditions(line); //Checks that line conforms with all given skip conditions
+
+                if (!shouldIgnoreLine)
                     fileData.Add(line);
             }
             return fileData.ToArray();
         }
 
+        private bool checkSkipConditions(string line)
+        {
+            return SkipConditions.Exists(hasFailedCheck => hasFailedCheck(line));
+        }
+
+        /*
         internal IEnumerable<string> ReadLinesIterator()
         {
             string line;
@@ -105,6 +118,7 @@ namespace ExpeditionRegionSupport.Data
             }
             while (line != null);
         }
+        */
 
         protected override void Dispose(bool disposing)
         {
