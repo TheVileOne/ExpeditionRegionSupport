@@ -75,6 +75,8 @@ namespace ExpeditionRegionSupport.Regions.Data
 
             SectionMap = new Dictionary<string, Range>();
             InitializeSections();
+
+            dataEnumerator = base.GetEnumerator();
         }
 
         protected void InitializeSections()
@@ -86,7 +88,7 @@ namespace ExpeditionRegionSupport.Regions.Data
 
         public override IEnumerator<string> GetEnumerator()
         {
-            return dataEnumerator = base.GetEnumerator();
+            return dataEnumerator;
         }
 
         /// <summary>
@@ -127,42 +129,61 @@ namespace ExpeditionRegionSupport.Regions.Data
         /// </summary>
         public List<string> GetSectionData(string sectionName)
         {
-            Range sectionRange = GetSectionRange(sectionName);
+            try
+            {
+                Range sectionRange = GetSectionRange(sectionName);
 
-            if (CanRetrieveSectionLines(sectionRange))
-            {
-                return GetSectionLines(sectionRange);
-            }
-            else if (!ProcessingComplete) //Check that there is still data to process, the section may not be read yet
-            {
-                if (sectionRange.Start != -1) //Indicates that section has not been read fully, read the rest of the data
+                //Plugin.Logger.LogInfo("Searching for section " + sectionName);
+                //Plugin.Logger.LogInfo("Range " + sectionRange.ToString());
+
+                if (CanRetrieveSectionLines(sectionRange))
                 {
-                    ReadUntilSectionEnds();
-
-                    sectionRange = GetSectionRange(sectionName); //Get the range a second time
                     return GetSectionLines(sectionRange);
                 }
-                else
+                else if (!ProcessingComplete) //Check that there is still data to process, the section may not be read yet
                 {
-                    _ReadLinesIterator.OnSectionEnd += onSectionEndEvent;
-                    bool sectionFound = false;
-                    while (!sectionFound && dataEnumerator.MoveNext()) { } //Read lines until we find the section, or run out of lines
+                    //Plugin.Logger.LogInfo("Data to process");
 
-                    _ReadLinesIterator.OnSectionEnd -= onSectionEndEvent;
-
-                    if (sectionFound)
+                    if (sectionRange.Start != -1) //Indicates that section has not been read fully, read the rest of the data
                     {
-                        sectionRange = CurrentRange;
+                        ReadUntilSectionEnds();
+
+                        sectionRange = GetSectionRange(sectionName); //Get the range a second time
                         return GetSectionLines(sectionRange);
                     }
-
-                    void onSectionEndEvent(string sectionName, bool isSectionWanted)
+                    else
                     {
-                        sectionFound = true;
+                        _ReadLinesIterator.OnSectionEnd += onSectionEndEvent;
+                        bool sectionFound = false;
+                        while (!sectionFound && dataEnumerator.MoveNext()) { } //Read lines until we find the section, or run out of lines
+
+                        //Plugin.Logger.LogInfo("Data processing finished");
+                        //Plugin.Logger.LogInfo("Section found " + sectionFound);
+
+                        _ReadLinesIterator.OnSectionEnd -= onSectionEndEvent;
+
+                        if (sectionFound)
+                            return GetSectionLines(sectionRange);
+
+                        void onSectionEndEvent(string sectionRead, bool isSectionWanted)
+                        {
+                            sectionFound = sectionRead == sectionName;
+
+                            //The section range is set here, because CurrentRange will store the range for the next section after this event
+                            if (sectionFound)
+                                sectionRange = CurrentRange;
+                        }
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                Plugin.Logger.LogError("There was an error while reading world data");
+                Plugin.Logger.LogError(ex);
+                Plugin.Logger.LogError(ex.StackTrace);
+            }
 
+            //Plugin.Logger.LogInfo("Data set empty");
             return new List<string>();
         }
 

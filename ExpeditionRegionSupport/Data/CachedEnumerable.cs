@@ -19,7 +19,7 @@ namespace ExpeditionRegionSupport.Data
         /// <summary>
         /// This property indicates that all data has been processed and cached
         /// </summary>
-        public virtual bool ProcessingComplete => InnerEnumerable != null;
+        public virtual bool ProcessingComplete => InnerEnumerable == null;
 
         public CachedEnumerable(IEnumerable<T> innerEnumerable)
         {
