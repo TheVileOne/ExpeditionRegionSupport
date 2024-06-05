@@ -154,7 +154,9 @@ namespace ExpeditionRegionSupport.Regions
                     //Add the equivalent region, and then check its connecting regions
                     connectedRegions.Add(slugcatEquivalentRegion);
                     FindAllConnectingRegionsRecursive(connectedRegions, slugcatEquivalentRegion, slugcat, false);
-                    processTimer.ReportTime("Getting connecting regions for " + slugcatEquivalentRegion);
+
+                    if (Plugin.DebugMode)
+                        processTimer.ReportTime("Getting connecting regions for " + slugcatEquivalentRegion);
                 }
             }
 
