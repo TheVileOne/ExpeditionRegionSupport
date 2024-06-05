@@ -212,7 +212,6 @@ namespace ExpeditionRegionSupport.Regions.Data
                                 if (_sectionsWanted.Count == 0)
                                 {
                                     _stream.OnStreamEnd?.Invoke(_stream);
-                                    Plugin.Logger.LogInfo("Process finished");
                                     yield break;
                                 }
                                 continue;
@@ -232,19 +231,19 @@ namespace ExpeditionRegionSupport.Regions.Data
                              */
                             if (activeSection != null)
                             {
-                                string statusString;
+                                //string statusString;
                                 if (isSectionWanted)
                                 {
-                                    statusString = "READING";
+                                    //statusString = "READING";
                                     _sectionsWanted.Remove(activeSection);
                                 }
                                 else
                                 {
-                                    statusString = "SKIPPED";
+                                    //statusString = "SKIPPED";
                                     skipThisSection = true;
                                 }
 
-                                Plugin.Logger.LogInfo($"Section header '{line}' ({statusString})");
+                                //Plugin.Logger.LogInfo($"Section header '{line}' ({statusString})");
                                 OnSectionStart?.Invoke(activeSection, isSectionWanted);
                             }
                             else

@@ -268,8 +268,8 @@ namespace ExpeditionRegionSupport.Regions.Data
                 Range currentRange = SectionMap[sectionName];
                 Range newRange = new Range(currentRange.Start, EnumeratedValues.Count - 1);
 
-                if (Plugin.DebugMode)
-                    Plugin.Logger.LogInfo($"Section '{sectionName}' has {newRange.ValueRange} entries");
+                //if (Plugin.DebugMode)
+                //    Plugin.Logger.LogInfo($"Section '{sectionName}' has {newRange.ValueRange} entries");
 
                 if (newRange.ValueRange <= 0) //Section indexes are not in an expected state
                     newRange = Range.NegativeOne;
