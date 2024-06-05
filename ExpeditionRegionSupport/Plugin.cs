@@ -4,12 +4,16 @@ using DependencyFlags = BepInEx.BepInDependency.DependencyFlags;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Expedition;
+using ExpeditionRegionSupport.Data;
 using ExpeditionRegionSupport.Filters;
 using ExpeditionRegionSupport.Filters.Settings;
 using ExpeditionRegionSupport.HookUtils;
 using ExpeditionRegionSupport.Interface;
 using ExpeditionRegionSupport.Regions;
+using ExpeditionRegionSupport.Regions.Data;
 using ExpeditionRegionSupport.Regions.Restrictions;
 using Extensions;
 using Menu;
@@ -92,6 +96,9 @@ namespace ExpeditionRegionSupport
                 //ModMerger
                 On.ModManager.ModMerger.PendingApply.CollectModifications += PendingApply_CollectModifications;
                 IL.ModManager.ModMerger.PendingApply.CollectModifications += PendingApply_CollectModifications;
+
+                //RegionDataMiner (Dispose file streams hook)
+                On.ModManager.GenerateMergedMods += ModManager_GenerateMergedMods;
 
                 //Equivalency Cache
                 On.ModManager.RefreshModsLists += ModManager_RefreshModsLists;
@@ -306,6 +313,26 @@ namespace ExpeditionRegionSupport
             //Add modifications can be processed without an [ADD] tag once per file, and before any other tags are processed
             if (restrictionFileMergePending && !hasDetectedModMergerTag && !pendingApplyLine.StartsWith("//") && !string.IsNullOrWhiteSpace(pendingApplyLine))
                 pendingApplyLine = "[ADD]" + pendingApplyLine;
+        }
+
+        private void ModManager_GenerateMergedMods(On.ModManager.orig_GenerateMergedMods orig, ModManager.ModApplyer applyer, List<bool> pendingEnabled, bool hasRegionMods)
+        {
+            //Make sure no stream is allowed to stay open. Open world files interfere with the merging process
+            int closedStreams = 0;
+            foreach (List<TextStream> list in RegionDataMiner.ManagedStreams.Values)
+            {
+                foreach (TextStream stream in list.Where(s => !s.IsDisposed))
+                {
+                    closedStreams++;
+                    stream.AllowStreamDisposal = true;
+                    stream.Close();
+                }
+            }
+
+            if (closedStreams > 0)
+                Logger.LogInfo($"Closing {closedStreams} filestreams before merge process starts");
+
+            orig(applyer, pendingEnabled, hasRegionMods);
         }
 
         private HSLColor Menu_MenuColor(On.Menu.Menu.orig_MenuColor orig, Menu.Menu.MenuColors color)
