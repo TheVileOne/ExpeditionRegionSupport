@@ -117,23 +117,16 @@ namespace ExpeditionRegionSupport.Filters.Settings
         {
             TextWriter writer = File.AppendText(settingsPath);
 
-            int totalLinesWritten = 0;
             for (int i = 0; i < Settings.Count; i++)
             {
                 FilterToggle setting = Settings[i];
 
                 //Only non-default values are saved to file
                 if (setting.IsChanged)
-                {
                     writer.WriteLine(string.Format("{0}, {1}, {2}", setting.OptionID, i, setting.Value));
-                    totalLinesWritten++;
-                }
             }
 
             UnrecognizedSettingStrings.ForEach(writer.WriteLine);
-            totalLinesWritten += UnrecognizedSettingStrings.Count;
-
-            Plugin.Logger.LogInfo("Line Written " + totalLinesWritten);
             writer.Close();
         }
 
