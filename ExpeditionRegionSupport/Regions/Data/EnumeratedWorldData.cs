@@ -290,7 +290,7 @@ namespace ExpeditionRegionSupport.Regions.Data
                 Range newRange = new Range(currentRange.Start, EnumeratedValues.Count - 1);
 
                 //if (Plugin.DebugMode)
-                //    Plugin.Logger.LogInfo($"Section '{sectionName}' has {newRange.ValueRange} entries");
+                //    Plugin.Logger.LogInfo($"Section '{sectionName}' has {newRange.ValueRangeInclusive} entries");
 
                 if (newRange.ValueRange <= 0) //Section indexes are not in an expected state
                     newRange = Range.NegativeOne;
@@ -311,7 +311,7 @@ namespace ExpeditionRegionSupport.Regions.Data
         internal List<string> GetSectionLines(Range range)
         {
             bool errorHandled = false;
-            int sectionLineCount = range.ValueRange;
+            int sectionLineCount = range.ValueRangeInclusive;
 
             try
             {

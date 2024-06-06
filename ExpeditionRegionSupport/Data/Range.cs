@@ -11,7 +11,15 @@ namespace ExpeditionRegionSupport.Data
         public int Start;
         public int End;
 
+        /// <summary>
+        /// Difference between the End (exclusive) and Start (inclusive) values
+        /// </summary>
         public int ValueRange => End - Start;
+
+        /// <summary>
+        /// Difference between the End (inclusive) and Start (inclusive) values
+        /// </summary>
+        public int ValueRangeInclusive => ValueRange + 1;
 
         public Range(int start, int end)
         {
