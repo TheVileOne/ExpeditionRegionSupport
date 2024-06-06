@@ -157,7 +157,7 @@ namespace ExpeditionRegionSupport.Regions.Data
 
         public class ReadLinesIterator : IDisposable
         {
-            private TextStream _stream;
+            protected TextStream Stream;
 
             /// <summary>
             /// The collection of section headers to look for during enumeration
@@ -173,7 +173,7 @@ namespace ExpeditionRegionSupport.Regions.Data
 
             public ReadLinesIterator(TextStream stream, params string[] regionSections)
             {
-                _stream = stream;
+                Stream = stream;
 
                 enumerateAllSections = Array.Exists(regionSections, section => section.Equals("ANY"));
 
@@ -183,7 +183,7 @@ namespace ExpeditionRegionSupport.Regions.Data
 
             public IEnumerable<string> GetEnumerable()
             {
-                if (_stream == null) yield break; //Nothing to process
+                if (Stream == null) yield break; //Nothing to process
                 try
                 {
                     string line;
@@ -191,7 +191,7 @@ namespace ExpeditionRegionSupport.Regions.Data
                     bool skipThisSection = false;
                     do
                     {
-                        line = _stream.ReadLine();
+                        line = Stream.ReadLine();
 
                         if (line == null) //End of file has been reached
                             yield break;
@@ -211,7 +211,7 @@ namespace ExpeditionRegionSupport.Regions.Data
 
                                 if (_sectionsWanted.Count == 0)
                                 {
-                                    _stream.OnStreamEnd?.Invoke(_stream);
+                                    Stream.OnStreamEnd?.Invoke(Stream);
                                     yield break;
                                 }
                                 continue;
@@ -256,7 +256,7 @@ namespace ExpeditionRegionSupport.Regions.Data
                 }
                 finally
                 {
-                    _stream.Close();
+                    Stream.Close();
                 }
             }
 
@@ -280,7 +280,7 @@ namespace ExpeditionRegionSupport.Regions.Data
                 {
                     if (disposing)
                     {
-                        _stream = null;
+                        Stream = null;
                         OnSectionStart = null;
                         OnSectionEnd = null;
                     }
