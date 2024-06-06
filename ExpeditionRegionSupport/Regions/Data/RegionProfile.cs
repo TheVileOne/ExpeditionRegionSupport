@@ -76,7 +76,7 @@ namespace ExpeditionRegionSupport.Regions.Data
             if (EquivalentRegions.TryGetValue(slugcat, out RegionProfile foundProfile))
                 entryFound = foundProfile.RegionCode == regionProfile.RegionCode;
 
-            return entryFound; ;
+            return entryFound;
         }
 
         public bool IsSlugcatAllowedHere(SlugcatStats.Name slugcat)
@@ -98,9 +98,10 @@ namespace ExpeditionRegionSupport.Regions.Data
         {
             if (IsDefault)
             {
+                string errorMessage = "Default RegionProfile does not accept registrations";
                 if (Plugin.DebugMode)
-                    throw new InvalidOperationException("Default RegionProfile does not accept registrations");
-                Plugin.Logger.LogError("Default RegionProfile does not accept registrations");
+                    throw new InvalidOperationException(errorMessage);
+                Plugin.Logger.LogError(errorMessage);
                 return;
             }
 
@@ -123,6 +124,13 @@ namespace ExpeditionRegionSupport.Regions.Data
 
                 Plugin.Logger.LogWarning("EquivalentRegions should not have empty values");
                 EquivalentRegions.Remove(slugcat);
+            }
+
+            if (Plugin.DebugMode)
+            {
+                Plugin.Logger.LogInfo("Registration");
+                Plugin.Logger.LogInfo("Slugcat: " + slugcat);
+                Plugin.Logger.LogInfo("Region targeted: " + region.RegionCode);
             }
 
             PendingEquivalency.Value = region;
