@@ -115,7 +115,7 @@ namespace ExpeditionRegionSupport.Regions.Data
             TextStream activeStream = CreateStreamReader(regionCode);
 
             ActiveStreams.Add(activeStream);
-            return new EnumeratedWorldData(new ReadLinesIterator(activeStream, sectionNames));
+            return new EnumeratedWorldData(new ReadLinesIterator(activeStream, sectionNames), regionCode);
         }
 
         ~RegionDataMiner()

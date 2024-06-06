@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Expedition;
+using ExpeditionRegionSupport.Data;
 using ExpeditionRegionSupport.Diagnostics;
 using ExpeditionRegionSupport.Filters.Settings;
 using ExpeditionRegionSupport.Filters.Utils;
@@ -342,105 +343,10 @@ namespace ExpeditionRegionSupport.Regions
                 return shelterCache;
 
             RegionDataMiner regionMiner = new RegionDataMiner();
+            EnumeratedWorldData worldData = regionMiner.GetRoomLines(regionCode);
 
-            IEnumerable<string> roomData = regionMiner.GetRoomLines(regionCode);
-
-            if (roomData == null)
-                return new List<ShelterInfo>();
-
-            List<ShelterInfo> shelters = new List<ShelterInfo>();
-
-            Shelters[regionCode] = shelters;
-
-            //TODO: Need to detect non-broken conditional shelters
-            foreach (string roomLine in roomData)
-            {
-                string shelterCode = GetShelterCodeWithValidation(roomLine);
-
-                if (shelterCode != null)
-                    shelters.Add(new ShelterInfo(shelterCode));
-            }
-
-            string regionFile = GetWorldFilePath(regionCode);
-            string propertiesFile = GetFilePath(regionCode, "properties.txt");
-
-            //Look for broken shelter info
-            if (shelters.Count > 0 && File.Exists(propertiesFile))
-            {
-                List<string> brokenShelterData = new List<string>();
-                using (TextReader stream = new StreamReader(propertiesFile))
-                {
-                    string line;
-                    while ((line = stream.ReadLine()) != null)
-                    {
-                        if (line.StartsWith("Broken Shelters"))
-                        {
-                            int sepIndex = line.IndexOf(':');
-
-                            if (sepIndex != -1 && sepIndex != line.Length - 1) //Format is okay, and there is data on this line
-                                brokenShelterData.Add(line.Substring(sepIndex + 1)); //Whole line is stored, will be processed later
-                        }
-                    }
-                }
-
-                if (brokenShelterData.Count > 0)
-                {
-                    Plugin.Logger.LogInfo("Broken shelter data found for region " + regionCode);
-
-                    ShelterInfo lastShelterProcessed = default;
-                    foreach (string shelterDataRaw in brokenShelterData)
-                    {
-                        string[] shelterData = shelterDataRaw.Split(':'); //Expects " White: SL_S11" (whitespace is expected)
-
-                        if (shelterData.Length >= 2) //Expected length - Something is unusual is there if it is anything else
-                        {
-                            string[] roomCodes = shelterData[1].Split(',');
-
-                            for (int i = 0; i < roomCodes.Length; i++)
-                            {
-                                string roomCode = roomCodes[i].Trim();
-
-                                bool isNewShelter = lastShelterProcessed.RoomCode != roomCode;
-
-                                //It is common to have the same shelter being targeted across multiple lines
-                                ShelterInfo shelter = isNewShelter ?
-                                    shelters.Find(s => string.Equals(s.RoomCode, roomCode, StringComparison.InvariantCultureIgnoreCase))
-                                  : lastShelterProcessed;
-
-                                if (shelter.RoomCode == roomCode) //ShelterInfo is a struct, checking for this lets us know if we found a match
-                                {
-                                    lastShelterProcessed = shelter;
-
-                                    string[] slugcats = shelterData[0].Split(',');
-
-                                    foreach (string slugcat in slugcats)
-                                    {
-                                        //Slugcat may not be available if this fails, which should be fine.
-                                        if (SlugcatUtils.TryParse(slugcat, out SlugcatStats.Name found))
-                                            shelter.BrokenForTheseSlugcats.Add(found);
-                                    }
-
-                                    //This shelter is likely registered as broken, but unsure how the game handles it without slugcat info
-                                    if (shelter.BrokenForTheseSlugcats.Count == 0)
-                                        Plugin.Logger.LogInfo($"Line 'Broken Shelters: {shelterDataRaw}' has no recognizable slugcat info");
-                                }
-                                else //Stray property line doesn't match any shelter data processed
-                                {
-                                    Plugin.Logger.LogInfo("Broken shelter references a room that cannot be found");
-                                    Plugin.Logger.LogInfo($"Shelter room [{shelter.RoomCode}]");
-                                    Plugin.Logger.LogInfo($"Room [{roomCode}]");
-                                }
-                            }
-                        }
-                        else
-                        {
-                            Plugin.Logger.LogInfo($"Line 'Broken Shelters: {shelterDataRaw}' is invalid");
-                        }
-                    }
-                }
-            }
-
-            return shelters;
+            Shelters[regionCode] = worldData.Shelters;
+            return worldData.Shelters;
         }
 
         public static List<GateInfo> GetRegionGates(string regionCode)
@@ -453,48 +359,9 @@ namespace ExpeditionRegionSupport.Regions
             }
 
             RegionDataMiner regionMiner = new RegionDataMiner();
-
-            List<string> conditionalLinkData = regionMiner.GetConditionalLinkLines(regionCode).ToList();
-            IEnumerable<string> roomData = regionMiner.GetRoomLines(regionCode);
-
-            if (Plugin.DebugMode)
-            {
-                processTimer.ReportTime("File read time for " + regionCode);
-                processTimer.Reset();
-            }
-
-            if (roomData == null)
-                return new List<GateInfo>();
-
-            if (Plugin.DebugMode)
-                processTimer.Start();
-
-            List<GateInfo> gates = new List<GateInfo>();
-
-            foreach (string roomLine in roomData)
-            {
-                string gateCode = GetGateCodeWithValidation(roomLine);
-
-                if (gateCode != null)
-                {
-                    GateInfo gate = new GateInfo(gateCode);
-
-                    //Handle conditional link information
-                    foreach (string conditionalLink in conditionalLinkData.Where(r => r.Contains("EXCLUSIVEROOM") && r.TrimEnd().EndsWith(gate.RoomCode)))
-                        gate.ConditionalAccess.Add(SlugcatUtils.GetOrCreate(conditionalLink.Substring(0, conditionalLink.IndexOf(':')))); //The first section is the slugcat
-
-                    /*
-                    if (gate.ConditionalAccess.Count > 0)
-                    {
-                        Plugin.Logger.LogInfo("CONDITIONAL INFO");
-                        foreach (SlugcatStats.Name slugcat in gate.ConditionalAccess)
-                            Plugin.Logger.LogInfo(slugcat);
-                    }
-                    */
-                    gates.Add(gate);
-                }
-            }
-
+            EnumeratedWorldData worldData = regionMiner.GetLines(regionCode, RegionDataMiner.SECTION_CONDITIONAL_LINKS, RegionDataMiner.SECTION_ROOMS);
+            
+            List<GateInfo> gates = worldData.Gates;
             if (Plugin.DebugMode)
             {
                 processTimer.ReportTime("Gate process time for " + regionCode);
