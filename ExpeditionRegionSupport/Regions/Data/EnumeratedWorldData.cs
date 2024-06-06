@@ -326,6 +326,9 @@ namespace ExpeditionRegionSupport.Regions.Data
             bool errorHandled = false;
             int sectionLineCount = range.ValueRangeInclusive;
 
+            if (range == Range.NegativeOne)
+                sectionLineCount = 0;
+
             try
             {
                 if (sectionLineCount > 0)
