@@ -201,11 +201,14 @@ namespace ExpeditionRegionSupport.Regions.Data
 
             if (CurrentRange.End == -1)
             {
+                /*
+                // Failed attempt to handle incomplete processed sections
                 if (CurrentRange != Range.NegativeOne)
                 {
                     //Last section has not been fully processed. Process it first, and then process the next section fully
                     ReadUntilSectionEnds();
                 }
+                */
 
                 //Retrieve the section we want to access
                 //This code gives priority to unread data over the unlikely event that the enumeration has been reset back to the
