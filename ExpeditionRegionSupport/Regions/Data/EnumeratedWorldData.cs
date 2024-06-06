@@ -244,13 +244,15 @@ namespace ExpeditionRegionSupport.Regions.Data
 
             List<string> sectionLines = new List<string>();
             bool sectionEnded = false;
-            while (!sectionEnded)
+            do
             {
-                if (dataEnumerator.MoveNext())
-                    sectionLines.Add(dataEnumerator.Current); //Add lines to list until end of section
-                else
+                if (!dataEnumerator.MoveNext())
                     sectionEnded = true;
+
+                if (!sectionEnded)
+                    sectionLines.Add(dataEnumerator.Current); //Add lines to list until end of section
             }
+            while (!sectionEnded);
 
             _ReadLinesIterator.OnSectionEnd -= onSectionEndEvent;
             return sectionLines;
