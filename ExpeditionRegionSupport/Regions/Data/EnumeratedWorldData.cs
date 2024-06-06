@@ -266,6 +266,14 @@ namespace ExpeditionRegionSupport.Regions.Data
             }
         }
 
+        /// <summary>
+        /// Allows enumeration to begin at the start of the enumerated values cache
+        /// </summary>
+        public void Reset()
+        {
+            CurrentRange = Range.NegativeOne;
+        }
+
         public Range GetSectionRange(string sectionName)
         {
             try
