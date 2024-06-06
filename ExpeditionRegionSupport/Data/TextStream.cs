@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace ExpeditionRegionSupport.Data
 {
     /// <summary>
-    /// This custom class includes a flag indicated when it has been disposed
+    /// This custom StreamReader class implementes common line format processing and validation, and provides a way for custom handling of line data
     /// </summary>
     public class TextStream : StreamReader, IDisposable
     {
