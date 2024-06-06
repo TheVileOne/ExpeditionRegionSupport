@@ -23,24 +23,6 @@ namespace ExpeditionRegionSupport.Regions.Data
         /// </summary>
         public bool DebugMode;
 
-        private static void onStreamFinished(TextStream stream)
-        {
-            stream.AllowStreamDisposal = true;
-
-            //Properly handle managed resources
-            List<TextStream> managedStreams = ManagedStreams[stream.Filepath];
-            if (managedStreams.TrueForAll(s => s.AllowStreamDisposal)) //Only dispose if every reference is allowed to dispose
-            {
-                managedStreams.ForEach(stream => stream.Close());
-                managedStreams.Clear();
-            }
-            else
-            {
-                int waitingOnStreamCount = managedStreams.FindAll(s => !s.AllowStreamDisposal).Count;
-                Plugin.Logger.LogInfo($"Data stream could not be disposed - Waiting on {waitingOnStreamCount} references");
-            }
-        }
-
         public const string SECTION_BAT_MIGRATION_BLOCKAGES = "BAT MIGRATION BLOCKAGES";
         public const string SECTION_CONDITIONAL_LINKS = "CONDITIONAL LINKS";
         public const string SECTION_CREATURES = "CREATURES";
@@ -57,6 +39,36 @@ namespace ExpeditionRegionSupport.Regions.Data
             SECTION_BAT_MIGRATION_BLOCKAGES
         };
         private bool isDisposed;
+
+        public EnumeratedWorldData GetBatMigrationLines(string regionCode)
+        {
+            return GetLines(regionCode, SECTION_BAT_MIGRATION_BLOCKAGES);
+        }
+
+        public EnumeratedWorldData GetConditionalLinkLines(string regionCode)
+        {
+            return GetLines(regionCode, SECTION_CONDITIONAL_LINKS);
+        }
+
+        public EnumeratedWorldData GetCreatureLines(string regionCode)
+        {
+            return GetLines(regionCode, SECTION_CREATURES);
+        }
+
+        public EnumeratedWorldData GetRoomLines(string regionCode)
+        {
+            return GetLines(regionCode, SECTION_ROOMS);
+        }
+
+        internal EnumeratedWorldData GetLines(string regionCode, params string[] sectionNames)
+        {
+            TextStream activeStream = CreateStreamReader(regionCode);
+
+            ActiveStreams.Add(activeStream);
+            return new EnumeratedWorldData(new ReadLinesIterator(activeStream, sectionNames), regionCode);
+        }
+
+        #region Stream Handling
 
         internal static TextStream CreateStreamReader(string regionCode)
         {
@@ -90,33 +102,26 @@ namespace ExpeditionRegionSupport.Regions.Data
             }
         }
 
-        public EnumeratedWorldData GetBatMigrationLines(string regionCode)
+        private static void onStreamFinished(TextStream stream)
         {
-            return GetLines(regionCode, SECTION_BAT_MIGRATION_BLOCKAGES);
+            stream.AllowStreamDisposal = true;
+
+            //Properly handle managed resources
+            List<TextStream> managedStreams = ManagedStreams[stream.Filepath];
+            if (managedStreams.TrueForAll(s => s.AllowStreamDisposal)) //Only dispose if every reference is allowed to dispose
+            {
+                managedStreams.ForEach(stream => stream.Close());
+                managedStreams.Clear();
+            }
+            else
+            {
+                int waitingOnStreamCount = managedStreams.FindAll(s => !s.AllowStreamDisposal).Count;
+                Plugin.Logger.LogInfo($"Data stream could not be disposed - Waiting on {waitingOnStreamCount} references");
+            }
         }
 
-        public EnumeratedWorldData GetConditionalLinkLines(string regionCode)
-        {
-            return GetLines(regionCode, SECTION_CONDITIONAL_LINKS);
-        }
-
-        public EnumeratedWorldData GetCreatureLines(string regionCode)
-        {
-            return GetLines(regionCode, SECTION_CREATURES);
-        }
-
-        public EnumeratedWorldData GetRoomLines(string regionCode)
-        {
-            return GetLines(regionCode, SECTION_ROOMS);
-        }
-
-        internal EnumeratedWorldData GetLines(string regionCode, params string[] sectionNames)
-        {
-            TextStream activeStream = CreateStreamReader(regionCode);
-
-            ActiveStreams.Add(activeStream);
-            return new EnumeratedWorldData(new ReadLinesIterator(activeStream, sectionNames), regionCode);
-        }
+        #endregion
+        #region Dispose Pattern
 
         ~RegionDataMiner()
         {
@@ -154,6 +159,8 @@ namespace ExpeditionRegionSupport.Regions.Data
             }
             isDisposed = true;
         }
+
+        #endregion
 
         public class ReadLinesIterator : IDisposable
         {
