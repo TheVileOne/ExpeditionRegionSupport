@@ -108,18 +108,25 @@ namespace ExpeditionRegionSupport.Data
 
         protected override void Dispose(bool disposing)
         {
-            if (!AllowStreamDisposal)
+            if (!AllowStreamDisposal) return;
+
+            try
             {
-                Plugin.Logger.LogDebug("StreamReader was not allowed to be disposed");
-                return;
+                base.Dispose(disposing);
+
+                if (!IsDisposed)
+                {
+                    IsDisposed = true;
+                    OnDisposed?.Invoke(this);
+                }
             }
-
-            base.Dispose(disposing);
-
-            if (!IsDisposed)
+            catch (IOException ex)
             {
-                IsDisposed = true;
-                OnDisposed?.Invoke(this);
+                if (Plugin.DebugMode)
+                {
+                    Plugin.Logger.LogError(ex);
+                    Plugin.Logger.LogError(ex.StackTrace);
+                }
             }
         }
     }
