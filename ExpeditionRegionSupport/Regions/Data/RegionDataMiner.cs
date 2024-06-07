@@ -40,6 +40,25 @@ namespace ExpeditionRegionSupport.Regions.Data
         };
         private bool isDisposed;
 
+        public DataMinerPresets DataPresets;
+
+        public RegionDataMiner()
+        {
+        }
+
+        public RegionDataMiner(string regionCode, params string[] sectionNames)
+        {
+            DataPresets = new DataMinerPresets()
+            {
+                RegionCode = regionCode,
+                SectionsWanted = sectionNames
+            };
+        }
+
+        public RegionDataMiner(string regionCode, params WorldSection[] sections) : this(regionCode, ConvertToNames(sections))
+        {
+        }
+
         public EnumeratedWorldData GetBatMigrationLines(string regionCode)
         {
             return GetLines(regionCode, SECTION_BAT_MIGRATION_BLOCKAGES);
@@ -60,12 +79,46 @@ namespace ExpeditionRegionSupport.Regions.Data
             return GetLines(regionCode, SECTION_ROOMS);
         }
 
+        public EnumeratedWorldData LinesFromPresets()
+        {
+            if (DataPresets == null)
+                throw new NullReferenceException("Data presets are undefined");
+
+            return GetLines(DataPresets.RegionCode, DataPresets.SectionsWanted);
+        }
+
         internal EnumeratedWorldData GetLines(string regionCode, params string[] sectionNames)
         {
+            if (regionCode == null)
+                throw new NullReferenceException("Region code must be defined");
+
             TextStream activeStream = CreateStreamReader(regionCode);
 
             ActiveStreams.Add(activeStream);
             return new EnumeratedWorldData(new ReadLinesIterator(activeStream, sectionNames), regionCode);
+        }
+
+        /// <summary>
+        /// Translates an array of WorldSection enum values into their corresponding section names
+        /// </summary>
+        public static string[] ConvertToNames(WorldSection[] sections)
+        {
+            string[] sectionNames = new string[sections.Length];
+            foreach (WorldSection section in sections)
+            {
+                switch (section)
+                {
+                    case WorldSection.Any: //This overrides any other data in the array
+                        return new string[]
+                        {
+                            "ANY"
+                        };
+                    default:
+                        sectionNames[(int)section] = WORLD_FILE_SECTIONS[(int)section];
+                        break;
+                }
+            }
+            return sectionNames;
         }
 
         #region Stream Handling
