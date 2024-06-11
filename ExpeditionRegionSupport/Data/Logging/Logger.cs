@@ -62,14 +62,6 @@ namespace ExpeditionRegionSupport.Data.Logging
         /// </summary>
         public static string BaseDirectory;
 
-        public Logger(ManualLogSource logger)
-        {
-            BaseLogger = new LogModule(logger);
-            AttachLogger(BaseLogger);
-
-            applyMoveEvents();
-        }
-
         public Logger(LogModule logModule)
         {
             if (logModule == null)
@@ -79,6 +71,13 @@ namespace ExpeditionRegionSupport.Data.Logging
             AttachLogger(BaseLogger);
 
             applyMoveEvents();
+
+            if (!LogProperties.HasReadPropertiesFile)
+                LogProperties.RequestLoad = true;
+        }
+
+        public Logger(ManualLogSource logger) : this(new LogModule(logger))
+        {
         }
 
         public Logger(string logName, bool overwrite = false)
@@ -100,6 +99,9 @@ namespace ExpeditionRegionSupport.Data.Logging
             }
 
             applyMoveEvents();
+
+            if (!LogProperties.HasReadPropertiesFile)
+                LogProperties.RequestLoad = true;
         }
 
         /// <summary>
@@ -237,6 +239,9 @@ namespace ExpeditionRegionSupport.Data.Logging
 
                 if (managedLogListener != null)
                     processLogSignal(managedLogListener.GetSignal());
+
+                if (LogProperties.RequestLoad || !LogProperties.HasReadPropertiesFile)
+                    LogProperties.LoadProperties();
             }
         }
 

@@ -38,8 +38,15 @@ namespace ExpeditionRegionSupport.Data.Logging
 
         public static void SendMessage(string message)
         {
+            if (DataHandler == null)
+                Initialize();
+
             DataHandler.AddEntry(message);
         }
+
+        public const string DATA_HEADER_GET_DATA = "dat";
+        public const string DATA_HEADER_REQUEST = "req";
+        public const string DATA_HEADER_IGNORE = "ignore";
     }
 
     /// <summary>

@@ -1,14 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace ExpeditionRegionSupport.Data.Logging
 {
     public class LogProperties
     {
+        public static bool RequestLoad;
+
+        public static bool HasReadPropertiesFile;
+
+        public static List<LogProperties> AllProperties = new List<LogProperties>();
+
         private LoggerID _logID;
         public LoggerID LogID
         {
@@ -84,6 +92,87 @@ namespace ExpeditionRegionSupport.Data.Logging
         public static LogProperties Deserialize(string propertyString)
         {
             return JsonConvert.DeserializeObject<LogProperties>(propertyString);
+        }
+
+        public static void LoadProperties()
+        {
+            AllProperties.Clear();
+
+            if (DataTransferController.UnhandledMessages.Count > 0)
+            {
+                bool propertiesHandled = true;
+                foreach (string stringToProcess in DataTransferController.UnhandledMessages)
+                {
+                    Exception error = null;
+
+                    try
+                    {
+                        LogProperties properties = Deserialize(stringToProcess);
+
+                        if (properties != null)
+                        {
+                            Debug.LogWarning($"Transfered properties for log {properties.LogID} successfully");
+                            propertiesHandled = true;
+                            AllProperties.Add(properties);
+                            continue;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        error = ex;
+                    }
+
+                    Debug.LogWarning("Unable to transfer log properties");
+
+                    if (error != null)
+                        Debug.LogError(error);
+                }
+
+                if (propertiesHandled)
+                {
+                    HasReadPropertiesFile = true; //Another mod has read the file already
+                    return;
+                }
+            }
+
+            ReadPropertiesFromFile();
+        }
+
+        public static void ReadPropertiesFromFile()
+        {
+            AllProperties.Clear();
+
+            string propertiesFile = AssetManager.ResolveFilePath("logs.txt");
+
+            if (File.Exists(propertiesFile))
+            {
+                string[] propertyStrings = File.ReadAllLines(propertiesFile);
+
+                //Read all lines and serialize them into LogProperties
+                for (int i = 0; i < propertyStrings.Count(); i++)
+                {
+                    string propertyString = propertyStrings[i];
+
+                    if (string.IsNullOrWhiteSpace(propertyString) || propertyString.StartsWith("//")) continue;
+
+                    try
+                    {
+                        LogProperties properties = Deserialize(propertyString);
+
+                        if (properties != null)
+                            AllProperties.Add(properties);
+
+                        DataTransferController.SendMessage(propertyString); //Send serialized data string to be handled by other loggers
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError("An error occured while processing log property line " + i);
+                        Debug.LogError(ex);
+                    }
+                }
+            }
+
+            HasReadPropertiesFile = true;
         }
     }
 
