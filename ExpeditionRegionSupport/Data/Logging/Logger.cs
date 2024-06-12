@@ -70,10 +70,7 @@ namespace ExpeditionRegionSupport.Data.Logging
             BaseLogger = logModule;
             AttachLogger(BaseLogger);
 
-            applyMoveEvents();
-
-            if (!LogProperties.HasReadPropertiesFile)
-                LogProperties.RequestLoad = true;
+            applyEventHandlers();
         }
 
         public Logger(ManualLogSource logger) : this(new LogModule(logger))
@@ -98,10 +95,7 @@ namespace ExpeditionRegionSupport.Data.Logging
                 Debug.LogError(ex);
             }
 
-            applyMoveEvents();
-
-            if (!LogProperties.HasReadPropertiesFile)
-                LogProperties.RequestLoad = true;
+            applyEventHandlers();
         }
 
         /// <summary>
@@ -220,7 +214,14 @@ namespace ExpeditionRegionSupport.Data.Logging
         /// </summary>
         public static void ApplyHooks()
         {
+            On.RainWorld.Start += RainWorld_Start;
             On.RainWorld.Update += RainWorld_Update;
+        }
+
+        private static void RainWorld_Start(On.RainWorld.orig_Start orig, RainWorld self)
+        {
+            LogProperties.LoadProperties();
+            orig(self);
         }
 
         private static void RainWorld_Update(On.RainWorld.orig_Update orig, RainWorld self)
@@ -239,9 +240,6 @@ namespace ExpeditionRegionSupport.Data.Logging
 
                 if (managedLogListener != null)
                     processLogSignal(managedLogListener.GetSignal());
-
-                if (LogProperties.RequestLoad || !LogProperties.HasReadPropertiesFile)
-                    LogProperties.LoadProperties();
             }
         }
 
@@ -346,14 +344,46 @@ namespace ExpeditionRegionSupport.Data.Logging
 
         #endregion
 
-        private void applyMoveEvents()
+        private void applyEventHandlers()
         {
             OnMoveComplete += onLogDirectoryPathChanged;
+
+            LogProperties.Initialize();
+            DataTransferController.DataHandler += onDataReceived;
         }
 
-        public void removeMoveEvents()
+        private void removeEventHandlers()
         {
             OnMoveComplete -= onLogDirectoryPathChanged;
+            DataTransferController.DataHandler -= onDataReceived;
+        }
+
+        private void onDataReceived(object dataPacketObject)
+        {
+            dynamic dataPacket = dataPacketObject;
+
+            Plugin.Logger.LogInfo(dataPacket.Data);
+            Plugin.Logger.LogInfo(dataPacket.DataHeader);
+            Plugin.Logger.LogInfo(dataPacket.DataID);
+            Plugin.Logger.LogInfo(dataPacket.Handled);
+
+            Plugin.Logger.LogInfo("Type Info");
+
+            Plugin.Logger.LogInfo(dataPacket.Data.GetType());
+            Plugin.Logger.LogInfo(dataPacket.DataHeader.GetType());
+            Plugin.Logger.LogInfo(dataPacket.DataID?.GetType());
+            Plugin.Logger.LogInfo(dataPacket.Handled.GetType());
+
+            if (dataPacket.Handled) return;
+
+            DataPacketType dataHeader = dataPacket.DataHeader;
+
+            if (dataHeader == DataPacketType.Request)
+            {
+                string requestString = dataPacket.Data;
+                Debug.Log(requestString);
+                dataPacket.Handled = true;
+            }
         }
 
         private void onLogDirectoryPathChanged(string path)
@@ -495,7 +525,7 @@ namespace ExpeditionRegionSupport.Data.Logging
 
         public void Dispose()
         {
-            removeMoveEvents();
+            removeEventHandlers();
         }
     }
 

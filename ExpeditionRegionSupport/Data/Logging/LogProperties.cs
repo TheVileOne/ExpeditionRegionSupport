@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -94,48 +92,31 @@ namespace ExpeditionRegionSupport.Data.Logging
             return JsonConvert.DeserializeObject<LogProperties>(propertyString);
         }
 
+        private static bool hasInitialized;
+
+        public static void Initialize()
+        {
+            if (hasInitialized) return;
+
+            DataTransferController.DataHandler += onDataReceived;
+
+            //Handle any data that was received before data handlers were in place for this mod
+            if (DataTransferController.UnhandledDataPackets.Count > 0)
+            {
+                Debug.Log("Processing unhandled data");
+                DataTransferController.UnhandledDataPackets.ForEach(data => DataTransferController.DataHandler(data));
+                DataTransferController.UnhandledDataPackets.Clear();
+            }
+            hasInitialized = true;
+        }
+
         public static void LoadProperties()
         {
-            AllProperties.Clear();
+            DataTransferController.SendData(DataPacketType.Signal, null, "Hello World!");
+            return;
 
-            if (DataTransferController.UnhandledMessages.Count > 0)
-            {
-                bool propertiesHandled = true;
-                foreach (string stringToProcess in DataTransferController.UnhandledMessages)
-                {
-                    Exception error = null;
-
-                    try
-                    {
-                        LogProperties properties = Deserialize(stringToProcess);
-
-                        if (properties != null)
-                        {
-                            Debug.LogWarning($"Transfered properties for log {properties.LogID} successfully");
-                            propertiesHandled = true;
-                            AllProperties.Add(properties);
-                            continue;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        error = ex;
-                    }
-
-                    Debug.LogWarning("Unable to transfer log properties");
-
-                    if (error != null)
-                        Debug.LogError(error);
-                }
-
-                if (propertiesHandled)
-                {
-                    HasReadPropertiesFile = true; //Another mod has read the file already
-                    return;
-                }
-            }
-
-            ReadPropertiesFromFile();
+            if (!HasReadPropertiesFile)
+                ReadPropertiesFromFile();
         }
 
         public static void ReadPropertiesFromFile()
@@ -162,7 +143,7 @@ namespace ExpeditionRegionSupport.Data.Logging
                         if (properties != null)
                             AllProperties.Add(properties);
 
-                        DataTransferController.SendMessage(propertyString); //Send serialized data string to be handled by other loggers
+                        DataTransferController.SendData(DataPacketType.ObjectData, "properties", propertyString); //Send serialized data string to be handled by other loggers
                     }
                     catch (Exception ex)
                     {
@@ -173,6 +154,24 @@ namespace ExpeditionRegionSupport.Data.Logging
             }
 
             HasReadPropertiesFile = true;
+        }
+
+        private static void onDataReceived(object dataPacketObject)
+        {
+            dynamic dataPacket = dataPacketObject;
+
+            DataPacketType dataHeader = dataPacket.DataHeader;
+
+            if (dataHeader == DataPacketType.ObjectData)
+            {
+                if (dataPacket.DataID == "properties")
+                {
+                    LogProperties properties = Deserialize(dataPacket.Data);
+
+                    if (properties != null)
+                        AllProperties.Add(properties);
+                }
+            }
         }
     }
 

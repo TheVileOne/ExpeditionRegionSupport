@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
 	<PropertyGroup>
 		<TargetFramework>net48</TargetFramework>
 		<LangVersion>11</LangVersion>
@@ -8,6 +7,9 @@
 
 	<ItemGroup>
 		<Reference Include="../lib/*.dll">
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="Microsoft.CSharp" Version="4.7.0">
 			<Private>false</Private>
 		</Reference>
 	</ItemGroup>
