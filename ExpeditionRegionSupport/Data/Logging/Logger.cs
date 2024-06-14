@@ -71,6 +71,7 @@ namespace ExpeditionRegionSupport.Data.Logging
             AttachLogger(BaseLogger);
 
             applyEventHandlers();
+            LogProperties.LoadProperties();
         }
 
         public Logger(ManualLogSource logger) : this(new LogModule(logger))
@@ -96,6 +97,7 @@ namespace ExpeditionRegionSupport.Data.Logging
             }
 
             applyEventHandlers();
+            LogProperties.LoadProperties();
         }
 
         /// <summary>
@@ -349,36 +351,11 @@ namespace ExpeditionRegionSupport.Data.Logging
         private void applyEventHandlers()
         {
             OnMoveComplete += onLogDirectoryPathChanged;
-
-            LogProperties.Initialize();
-            DataTransferController.DataHandler += onDataReceived;
         }
 
         private void removeEventHandlers()
         {
             OnMoveComplete -= onLogDirectoryPathChanged;
-            DataTransferController.DataHandler -= onDataReceived;
-        }
-
-        private void onDataReceived(DataStorage dataPacketObject)
-        {
-            DataStorage dataPacket = dataPacketObject;
-
-            Plugin.Logger.LogInfo(dataPacket.Data);
-            Plugin.Logger.LogInfo((DataPacketType)dataPacket.HeaderID);
-            Plugin.Logger.LogInfo(dataPacket.DataID);
-            Plugin.Logger.LogInfo(dataPacket.Handled);
-
-            if (dataPacket.Handled) return;
-
-            DataPacketType dataHeader = (DataPacketType)dataPacket.HeaderID;
-
-            if (dataHeader == DataPacketType.Request)
-            {
-                string requestString = dataPacket.Data;
-                Debug.Log(requestString);
-                dataPacket.Handled = true;
-            }
         }
 
         private void onLogDirectoryPathChanged(string path)

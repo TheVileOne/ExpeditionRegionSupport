@@ -9,22 +9,9 @@ namespace ExpeditionRegionSupport.Data.Logging
 {
     public class LogProperties
     {
-        public static bool RequestLoad;
+        public static DataController PropertyManager;
 
-        public static bool HasReadPropertiesFile;
-
-        public static List<LogProperties> AllProperties = new List<LogProperties>();
-
-        private LoggerID _logID;
-        public LoggerID LogID
-        {
-            get
-            {
-                if (_logID == null)
-                    _logID = new LoggerID(Filename, false);
-                return _logID;
-            }
-        }
+        public readonly LogID LogID;
 
         /// <summary>
         /// The filename that will be used in the typical write path for the log file
@@ -42,6 +29,11 @@ namespace ExpeditionRegionSupport.Data.Logging
         public List<string> Aliases = new List<string>();
 
         protected List<LogRule> Rules = new List<LogRule>();
+
+        public LogProperties(LogID logID)
+        {
+            LogID = logID;
+        }
 
         public void AddRule(LogRule rule)
         {
@@ -92,92 +84,14 @@ namespace ExpeditionRegionSupport.Data.Logging
             return JsonConvert.DeserializeObject<LogProperties>(propertyString);
         }
 
-        private static bool hasInitialized;
-
-        public static void Initialize()
-        {
-            if (hasInitialized) return;
-
-            Debug.Log("Adding data event");
-            DataTransferController.DataHandler += onDataReceived;
-
-            //Handle any data that was received before data handlers were in place for this mod
-            if (DataTransferController.UnhandledDataPackets.Count > 0)
-            {
-                Debug.Log("Processing unhandled data");
-                DataTransferController.UnhandledDataPackets.ForEach(DataTransferController.HandleData);
-                DataTransferController.UnhandledDataPackets.Clear();
-            }
-            hasInitialized = true;
-        }
-
-        static bool testDataSent;
-
         public static void LoadProperties()
         {
-            if (!testDataSent)
+            if (PropertyManager == null)
             {
-                DataTransferController.SendData(DataPacketType.Signal, "", "Hello World!");
-                testDataSent = true;
-            }
-            return;
+                PropertyManager = PropertyDataController.GetOrCreate(out bool created);
 
-            if (!HasReadPropertiesFile)
-                ReadPropertiesFromFile();
-        }
-
-        public static void ReadPropertiesFromFile()
-        {
-            AllProperties.Clear();
-
-            string propertiesFile = AssetManager.ResolveFilePath("logs.txt");
-
-            if (File.Exists(propertiesFile))
-            {
-                string[] propertyStrings = File.ReadAllLines(propertiesFile);
-
-                //Read all lines and serialize them into LogProperties
-                for (int i = 0; i < propertyStrings.Count(); i++)
-                {
-                    string propertyString = propertyStrings[i];
-
-                    if (string.IsNullOrWhiteSpace(propertyString) || propertyString.StartsWith("//")) continue;
-
-                    try
-                    {
-                        LogProperties properties = Deserialize(propertyString);
-
-                        if (properties != null)
-                            AllProperties.Add(properties);
-
-                        DataTransferController.SendData(DataPacketType.ObjectData, "properties", propertyString); //Send serialized data string to be handled by other loggers
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.LogError("An error occured while processing log property line " + i);
-                        Debug.LogError(ex);
-                    }
-                }
-            }
-
-            HasReadPropertiesFile = true;
-        }
-
-        private static void onDataReceived(DataStorage dataPacketObject)
-        {
-            DataStorage dataPacket = dataPacketObject;
-
-            DataPacketType dataHeader = (DataPacketType)dataPacket.HeaderID;
-
-            if (dataHeader == DataPacketType.ObjectData)
-            {
-                if (dataPacket.DataID == "properties")
-                {
-                    LogProperties properties = Deserialize(dataPacket.Data);
-
-                    if (properties != null)
-                        AllProperties.Add(properties);
-                }
+                if (created)
+                    PropertyManager.ReadFromFile();
             }
         }
     }
