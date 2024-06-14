@@ -98,21 +98,28 @@ namespace ExpeditionRegionSupport.Data.Logging
         {
             if (hasInitialized) return;
 
+            Debug.Log("Adding data event");
             DataTransferController.DataHandler += onDataReceived;
 
             //Handle any data that was received before data handlers were in place for this mod
             if (DataTransferController.UnhandledDataPackets.Count > 0)
             {
                 Debug.Log("Processing unhandled data");
-                DataTransferController.UnhandledDataPackets.ForEach(data => DataTransferController.DataHandler(data));
+                DataTransferController.UnhandledDataPackets.ForEach(DataTransferController.HandleData);
                 DataTransferController.UnhandledDataPackets.Clear();
             }
             hasInitialized = true;
         }
 
+        static bool testDataSent;
+
         public static void LoadProperties()
         {
-            DataTransferController.SendData(DataPacketType.Signal, null, "Hello World!");
+            if (!testDataSent)
+            {
+                DataTransferController.SendData(DataPacketType.Signal, "", "Hello World!");
+                testDataSent = true;
+            }
             return;
 
             if (!HasReadPropertiesFile)
@@ -156,11 +163,11 @@ namespace ExpeditionRegionSupport.Data.Logging
             HasReadPropertiesFile = true;
         }
 
-        private static void onDataReceived(object dataPacketObject)
+        private static void onDataReceived(DataStorage dataPacketObject)
         {
-            dynamic dataPacket = dataPacketObject;
+            DataStorage dataPacket = dataPacketObject;
 
-            DataPacketType dataHeader = dataPacket.DataHeader;
+            DataPacketType dataHeader = (DataPacketType)dataPacket.HeaderID;
 
             if (dataHeader == DataPacketType.ObjectData)
             {

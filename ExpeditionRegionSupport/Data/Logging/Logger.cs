@@ -220,7 +220,7 @@ namespace ExpeditionRegionSupport.Data.Logging
 
         private static void RainWorld_Start(On.RainWorld.orig_Start orig, RainWorld self)
         {
-            LogProperties.LoadProperties();
+            //LogProperties.LoadProperties();
             orig(self);
         }
 
@@ -240,6 +240,8 @@ namespace ExpeditionRegionSupport.Data.Logging
 
                 if (managedLogListener != null)
                     processLogSignal(managedLogListener.GetSignal());
+
+                LogProperties.LoadProperties();
             }
         }
 
@@ -358,25 +360,18 @@ namespace ExpeditionRegionSupport.Data.Logging
             DataTransferController.DataHandler -= onDataReceived;
         }
 
-        private void onDataReceived(object dataPacketObject)
+        private void onDataReceived(DataStorage dataPacketObject)
         {
-            dynamic dataPacket = dataPacketObject;
+            DataStorage dataPacket = dataPacketObject;
 
             Plugin.Logger.LogInfo(dataPacket.Data);
-            Plugin.Logger.LogInfo(dataPacket.DataHeader);
+            Plugin.Logger.LogInfo((DataPacketType)dataPacket.HeaderID);
             Plugin.Logger.LogInfo(dataPacket.DataID);
             Plugin.Logger.LogInfo(dataPacket.Handled);
 
-            Plugin.Logger.LogInfo("Type Info");
-
-            Plugin.Logger.LogInfo(dataPacket.Data.GetType());
-            Plugin.Logger.LogInfo(dataPacket.DataHeader.GetType());
-            Plugin.Logger.LogInfo(dataPacket.DataID?.GetType());
-            Plugin.Logger.LogInfo(dataPacket.Handled.GetType());
-
             if (dataPacket.Handled) return;
 
-            DataPacketType dataHeader = dataPacket.DataHeader;
+            DataPacketType dataHeader = (DataPacketType)dataPacket.HeaderID;
 
             if (dataHeader == DataPacketType.Request)
             {

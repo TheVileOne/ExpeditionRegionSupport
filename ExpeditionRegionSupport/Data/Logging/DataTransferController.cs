@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ExpeditionRegionSupport.Data.Logging
 {
-    public delegate void DataHandleDelegate(object dataPacketObject);
+    public delegate void DataHandleDelegate(DataStorage dataPacketObject);
 
     /// <summary>
     /// A static class used to assist in the transfer of data strings from one mod to another
@@ -19,9 +19,14 @@ namespace ExpeditionRegionSupport.Data.Logging
         /// <summary>
         /// The primary method of handling data strings shared between one or more mods
         /// </summary>
-        public static DataHandleDelegate DataHandler;
+        public static event DataHandleDelegate DataHandler;
 
-        public static List<object> UnhandledDataPackets => dataController.UnhandledDataPackets;
+        public static void HandleData(DataStorage dataPacket)
+        {
+            DataHandler(dataPacket);
+        }
+
+        public static List<DataStorage> UnhandledDataPackets => dataController.UnhandledDataPackets;
 
         static DataTransferController()
         {
@@ -34,13 +39,15 @@ namespace ExpeditionRegionSupport.Data.Logging
         /// </summary>
         public static void SendData(DataPacketType dataPacketHeader, string dataID, string dataString)
         {
-            object dataPacket = new
+            DataPacket dataPacket = new DataPacket()
             {
                 Data = dataString,
                 DataID = dataID,
-                DataHeader = dataPacketHeader,
+                HeaderID = (int)dataPacketHeader,
                 Handled = false
             };
+
+            //Plugin.Logger.LogInfo("Sending data");
 
             if (dataController == null)
             {
@@ -60,17 +67,30 @@ namespace ExpeditionRegionSupport.Data.Logging
         /// <summary>
         /// A list for storing data strings that are received, but are unable to be handled by the mod
         /// </summary>
-        internal List<object> UnhandledDataPackets = new List<object>();
+        internal List<DataStorage> UnhandledDataPackets = new List<DataStorage>();
 
         /// <summary>
         /// Receives data sent by other mods
         /// </summary>
-        public void ReceiveData(object dataPacketObject)
+        public void ReceiveData(DataStorage dataPacketObject)
         {
             Plugin.Logger.LogInfo("Receiving data");
-            dynamic dataPacket = dataPacketObject;
 
-            if ((bool)dataPacket.Handled) return;
+            DataStorage dataPacket = dataPacketObject;
+
+            try
+            {
+                Plugin.Logger.LogInfo(dataPacket.Data);
+                Plugin.Logger.LogInfo((DataPacketType)dataPacket.HeaderID);
+                Plugin.Logger.LogInfo(dataPacket.DataID);
+                Plugin.Logger.LogInfo(dataPacket.Handled);
+            }
+            catch (Exception e)
+            {
+                Plugin.Logger.LogError(e);
+            }
+
+            if (dataPacket.Handled) return;
 
             if (Handler == null) //This data cannot be handled by this mod yet
             {
@@ -78,6 +98,18 @@ namespace ExpeditionRegionSupport.Data.Logging
                 return;
             }
 
+            Plugin.Logger.LogInfo("Receiving data");
+            try
+            {
+                Plugin.Logger.LogInfo(dataPacket.Data);
+                Plugin.Logger.LogInfo((DataPacketType)dataPacket.HeaderID);
+                Plugin.Logger.LogInfo(dataPacket.DataID);
+                Plugin.Logger.LogInfo(dataPacket.Handled);
+            }
+            catch (Exception e)
+            {
+                Plugin.Logger.LogError(e);
+            }
             Handler(dataPacket);
         }
 
