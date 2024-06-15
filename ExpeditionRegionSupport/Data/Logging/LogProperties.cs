@@ -10,7 +10,7 @@ namespace ExpeditionRegionSupport.Data.Logging
 {
     public class LogProperties
     {
-        public static DataController PropertyManager;
+        public static PropertyDataController PropertyManager;
 
         public readonly LogID LogID;
 
