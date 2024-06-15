@@ -33,7 +33,7 @@ namespace ExpeditionRegionSupport.Data.Logging
 
         protected List<LogRule> Rules = new List<LogRule>();
 
-        public LogProperties(LogID logID, string relativePathNoFile = "CustomRoot")
+        public LogProperties(LogID logID, string relativePathNoFile = "customroot")
         {
             LogID = logID;
             ContainingFolderPath = GetContainingPath(relativePathNoFile);
@@ -101,9 +101,11 @@ namespace ExpeditionRegionSupport.Data.Logging
 
         public static string GetContainingPath(string relativePathNoFile)
         {
-            if (relativePathNoFile == "CustomRoot")
+            relativePathNoFile = relativePathNoFile.ToLower();
+
+            if (relativePathNoFile == "customroot")
                 return Application.streamingAssetsPath;
-            else if (relativePathNoFile == "Root")
+            else if (relativePathNoFile == "root")
                 return Application.dataPath; //TODO: Check that this path is correct
 
             if (Directory.Exists(relativePathNoFile)) //No need to change the path when it is already valid
