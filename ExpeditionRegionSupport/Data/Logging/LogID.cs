@@ -10,7 +10,7 @@ namespace ExpeditionRegionSupport.Data.Logging
     {
         public LogProperties Properties;
 
-        public LogID(string modID, string name, string relativePath = null, bool register = false) : base(validateName(modID, name, relativePath), register)
+        public LogID(string modID, string name, string relativePathNoFile = null, bool register = false) : base(validateName(modID, name, relativePathNoFile), register)
         {
         }
 

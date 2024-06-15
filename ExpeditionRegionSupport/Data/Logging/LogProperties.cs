@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
+using RWCustom;
 using UnityEngine;
 
 namespace ExpeditionRegionSupport.Data.Logging
@@ -12,6 +13,8 @@ namespace ExpeditionRegionSupport.Data.Logging
         public static DataController PropertyManager;
 
         public readonly LogID LogID;
+
+        public readonly string ContainingFolderPath;
 
         /// <summary>
         /// The filename that will be used in the typical write path for the log file
@@ -30,9 +33,10 @@ namespace ExpeditionRegionSupport.Data.Logging
 
         protected List<LogRule> Rules = new List<LogRule>();
 
-        public LogProperties(LogID logID)
+        public LogProperties(LogID logID, string relativePathNoFile = "CustomRoot")
         {
             LogID = logID;
+            ContainingFolderPath = GetContainingPath(relativePathNoFile);
         }
 
         public void AddRule(LogRule rule)
@@ -93,6 +97,27 @@ namespace ExpeditionRegionSupport.Data.Logging
                 if (created)
                     PropertyManager.ReadFromFile();
             }
+        }
+
+        public static string GetContainingPath(string relativePathNoFile)
+        {
+            if (relativePathNoFile == "CustomRoot")
+                return Application.streamingAssetsPath;
+            else if (relativePathNoFile == "Root")
+                return Application.dataPath; //TODO: Check that this path is correct
+
+            if (Directory.Exists(relativePathNoFile)) //No need to change the path when it is already valid
+                return relativePathNoFile;
+
+            if (Custom.rainWorld != null)
+            {
+                string customPath = AssetManager.ResolveDirectory(relativePathNoFile); //This cannot be called too early in the load process
+
+                if (Directory.Exists(customPath))
+                    return customPath;
+            }
+
+            return Application.streamingAssetsPath; //Fallback path - Should register custom path later if it needs to be resolved through AssetManager
         }
     }
 
