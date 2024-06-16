@@ -10,8 +10,16 @@ namespace ExpeditionRegionSupport.Data.Logging
     {
         public LogProperties Properties;
 
-        public LogID(string modID, string name, string relativePathNoFile = null, bool register = false) : base(validateName(modID, name, relativePathNoFile), register)
+        public LogID(string modID, string name, string relativePathNoFile = null, bool register = false) : base(name, false)
         {
+            if (register)
+            {
+                //Make sure properties are read from file before any ExtEnums are registered
+                LogProperties.LoadProperties();
+
+                values.AddEntry(value);
+                index = values.Count - 1;
+            }
         }
 
         private static string validateName(string modID, string name, string relativePath)
