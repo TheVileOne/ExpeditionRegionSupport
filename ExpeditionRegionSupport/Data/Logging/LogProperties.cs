@@ -10,7 +10,11 @@ namespace ExpeditionRegionSupport.Data.Logging
 {
     public class LogProperties
     {
-        public static PropertyDataController PropertyManager;
+        public static PropertyDataController PropertyManager
+        {
+            get => PropertyDataController.PropertyManager;
+            set => PropertyDataController.PropertyManager = value;
+        }
 
         public readonly LogID LogID;
 
@@ -91,12 +95,7 @@ namespace ExpeditionRegionSupport.Data.Logging
         public static void LoadProperties()
         {
             if (PropertyManager == null)
-            {
-                PropertyManager = PropertyDataController.GetOrCreate(out bool created);
-
-                if (created)
-                    PropertyManager.ReadFromFile();
-            }
+                PropertyDataController.Initialize();
         }
 
         public static string GetContainingPath(string relativePathNoFile)

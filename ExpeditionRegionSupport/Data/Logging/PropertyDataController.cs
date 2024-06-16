@@ -10,9 +10,16 @@ namespace ExpeditionRegionSupport.Data.Logging
 {
     public class PropertyDataController : MonoBehaviour, DataController
     {
-        public string Name => "Logging";
+        public static PropertyDataController PropertyManager;
+
+        public string Name => "LogProperties";
 
         public List<LogProperties> Properties = new List<LogProperties>();
+
+        static PropertyDataController()
+        {
+            Initialize();
+        }
 
         public bool TryGetData<T>(string dataAccessString, out T dataValue)
         {
@@ -116,6 +123,14 @@ namespace ExpeditionRegionSupport.Data.Logging
                     }
                 }
             }
+        }
+
+        public static void Initialize()
+        {
+            PropertyManager = GetOrCreate(out bool wasCreated);
+
+            if (wasCreated)
+                PropertyManager.ReadFromFile();
         }
 
         /// <summary>

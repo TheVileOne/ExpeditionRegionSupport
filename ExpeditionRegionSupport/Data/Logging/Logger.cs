@@ -68,7 +68,6 @@ namespace ExpeditionRegionSupport.Data.Logging
             AttachLogger(BaseLogger);
 
             applyEventHandlers();
-            LogProperties.LoadProperties();
         }
 
         public Logger(ManualLogSource logger) : this(new LogModule(logger))
@@ -94,7 +93,6 @@ namespace ExpeditionRegionSupport.Data.Logging
             }
 
             applyEventHandlers();
-            LogProperties.LoadProperties();
         }
 
         /// <summary>
@@ -213,14 +211,7 @@ namespace ExpeditionRegionSupport.Data.Logging
         /// </summary>
         public static void ApplyHooks()
         {
-            On.RainWorld.Start += RainWorld_Start;
             On.RainWorld.Update += RainWorld_Update;
-        }
-
-        private static void RainWorld_Start(On.RainWorld.orig_Start orig, RainWorld self)
-        {
-            //LogProperties.LoadProperties();
-            orig(self);
         }
 
         private static void RainWorld_Update(On.RainWorld.orig_Update orig, RainWorld self)
@@ -239,8 +230,6 @@ namespace ExpeditionRegionSupport.Data.Logging
 
                 if (managedLogListener != null)
                     processLogSignal(managedLogListener.GetSignal());
-
-                LogProperties.LoadProperties();
             }
         }
 
