@@ -16,6 +16,11 @@ namespace ExpeditionRegionSupport.Data.Logging
             set => PropertyDataController.PropertyManager = value;
         }
 
+        /// <summary>
+        /// Indicates that properties are in the process of being fetched/loaded
+        /// </summary>
+        public static bool LoadInProgress;
+
         public readonly LogID LogID;
 
         public readonly string ContainingFolderPath;
@@ -94,8 +99,11 @@ namespace ExpeditionRegionSupport.Data.Logging
 
         public static void LoadProperties()
         {
-            if (PropertyManager == null)
-                PropertyDataController.Initialize();
+            if (LoadInProgress || PropertyManager != null) return;
+
+            LoadInProgress = true;
+            PropertyDataController.Initialize();
+            LoadInProgress = false;
         }
 
         public static string GetContainingPath(string relativePathNoFile)
