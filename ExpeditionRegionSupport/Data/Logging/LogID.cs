@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using BepInEx;
 
 namespace ExpeditionRegionSupport.Data.Logging
 {
@@ -40,5 +36,12 @@ namespace ExpeditionRegionSupport.Data.Logging
             if (Properties == null)
                 Properties = new LogProperties(this, relativePathNoFile);
         }
+
+        //TODO: Need to add altfilename info
+        public static readonly LogID BepInEx = new LogID(null, "LogOutput", Paths.BepInExRootPath, true);
+        public static readonly LogID Exception = new LogID(null, "exceptionLog", "root", true);
+        public static readonly LogID Expedition = new LogID(null, "ExpLog", "customroot", true);
+        public static readonly LogID JollyCoop = new LogID(null, "jollyLog", "customroot", true);
+        public static readonly LogID Unity = new LogID(null, "consoleLog", "root", true);
     }
 }
