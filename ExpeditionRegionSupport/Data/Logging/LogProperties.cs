@@ -87,6 +87,12 @@ namespace ExpeditionRegionSupport.Data.Logging
             }
         }
 
+        public bool HasPath(string path)
+        {
+            //TODO: Strip filename
+            return LogUtils.ComparePaths(ContainingFolderPath, GetContainingPath(path));
+        }
+
         public string Serialize()
         {
             return JsonConvert.SerializeObject(this);
@@ -108,6 +114,9 @@ namespace ExpeditionRegionSupport.Data.Logging
 
         public static string GetContainingPath(string relativePathNoFile)
         {
+            if (relativePathNoFile == null)
+                return Application.streamingAssetsPath;
+
             relativePathNoFile = relativePathNoFile.ToLower();
 
             if (relativePathNoFile == "customroot")

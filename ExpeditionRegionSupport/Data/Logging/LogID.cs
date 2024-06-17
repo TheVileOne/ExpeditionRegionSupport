@@ -8,7 +8,10 @@ namespace ExpeditionRegionSupport.Data.Logging
 {
     public class LogID : ExtEnum<LogProperties>
     {
-        public LogProperties Properties;
+        /// <summary>
+        /// Contains path information, and other settings that affect logging behavior 
+        /// </summary>
+        public LogProperties Properties { get; }
 
         public LogID(string modID, string name, string relativePathNoFile = null, bool register = false) : base(name, false)
         {
@@ -20,42 +23,22 @@ namespace ExpeditionRegionSupport.Data.Logging
                 values.AddEntry(value);
                 index = values.Count - 1;
             }
-        }
 
-        private static string validateName(string modID, string name, string relativePath)
-        {
-            //Check if property already exists
-            var propertyManager = LogProperties.PropertyManager;
-            if (propertyManager != null)
+            if (LogProperties.PropertyManager != null)
             {
-                if (propertyManager.TryGetData(PropertyDataController.FormatAccessString(name, nameof(LogProperties.Filename)), out string filename))
+                Properties = LogProperties.PropertyManager.GetProperties(this, relativePathNoFile);
+
+                if (register && Properties == null)
                 {
-                    if (string.Equals(name, filename, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        //This entry already exists
-                        return filename;
-                    }
-
-                    string altFilename = propertyManager.GetData<string>(PropertyDataController.FormatAccessString(name, nameof(LogProperties.AltFilename)));
-
-                    if (string.Equals(name, altFilename, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        //This entry already exists under an alternate name
-                        return filename;
-                    }
-
-                    List<string> nameAliases = propertyManager.GetData<List<string>>(PropertyDataController.FormatAccessString(name, nameof(LogProperties.Aliases)));
-
-                    if (nameAliases.Exists(alias => string.Equals(name, alias, StringComparison.InvariantCultureIgnoreCase)))
-                    {
-                        //This entry already exists as an aliased name
-                        return filename;
-                    }
+                    //Register a new LogProperties instance for this LogID
+                    Properties = LogProperties.PropertyManager.SetProperties(this, relativePathNoFile);
                 }
             }
 
-            //This name is at this point considered unique
-            return name;
+            //At this point, a null means there isn't an intention to register properties with the manager, but properties should still be created
+            //in case LogID is registered in the future
+            if (Properties == null)
+                Properties = new LogProperties(this, relativePathNoFile);
         }
     }
 }

@@ -21,6 +21,32 @@ namespace ExpeditionRegionSupport.Data.Logging
             Initialize();
         }
 
+        public List<LogProperties> GetProperties(LogID logID)
+        {
+            return Properties.FindAll(p => p.Filename == logID.value);
+        }
+
+        /// <summary>
+        /// Finds the first detected LogProperties instance associated with the given LogID, and relative filepath
+        /// </summary>
+        /// <param name="logID">The LogID to search for</param>
+        /// <param name="relativePathNoFile">The filepath to search for. When set to null, the first LogID match will be returned</param>
+        public LogProperties GetProperties(LogID logID, string relativePathNoFile)
+        {
+            if (relativePathNoFile == null)
+                return Properties.Find(p => p.Filename == logID.value);
+
+            return Properties.Find(p => p.Filename == logID.value && p.HasPath(relativePathNoFile));
+        }
+
+        public LogProperties SetProperties(LogID logID, string relativePathNoFile)
+        {
+            LogProperties properties = new LogProperties(logID, relativePathNoFile);
+
+            Properties.Add(properties);
+            return properties;
+        }
+
         public bool TryGetData<T>(string dataAccessString, out T dataValue)
         {
             try
