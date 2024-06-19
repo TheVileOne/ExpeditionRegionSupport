@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -15,6 +17,7 @@ namespace ExpeditionRegionSupport.Data.Logging
         public string Name => "LogProperties";
 
         public List<LogProperties> Properties = new List<LogProperties>();
+        public Dictionary<LogProperties, StringDictionary> UnrecognizedFields = new Dictionary<LogProperties, StringDictionary>();
 
         static PropertyDataController()
         {
@@ -115,38 +118,73 @@ namespace ExpeditionRegionSupport.Data.Logging
                     properties.AltFilename = Convert.ToString(dataValue);
                     break;
                 case nameof(properties.Aliases):
-                    properties.Aliases = (List<string>)Convert.ChangeType(dataValue, typeof(List<string>));
+                    IEnumerable<string> enumeratedData = (IEnumerable<string>)Convert.ChangeType(dataValue, typeof(IEnumerable<string>));
+                    properties.Aliases = enumeratedData.ToArray();
                     break;
             }
         }
 
         public void ReadFromFile()
         {
-            string propertiesFile = AssetManager.ResolveFilePath("logs.txt");
+            LogPropertyReader reader = new LogPropertyReader("logs.txt");
 
-            if (File.Exists(propertiesFile))
+            var enumerator = reader.GetEnumerator();
+
+            while (enumerator.MoveNext())
             {
-                string[] propertyStrings = File.ReadAllLines(propertiesFile);
+                StringDictionary dataFields = enumerator.Current;
 
-                //Read all lines and serialize them into LogProperties
-                for (int i = 0; i < propertyStrings.Count(); i++)
+                try
                 {
-                    string propertyString = propertyStrings[i];
-
-                    if (string.IsNullOrWhiteSpace(propertyString) || propertyString.StartsWith("//")) continue;
-
-                    try
+                    LogProperties properties = new LogProperties(dataFields["filename"], dataFields["path"])
                     {
-                        LogProperties properties = LogProperties.Deserialize(propertyString);
+                        Version = dataFields["version"],
+                        AltFilename = dataFields["altfilename"],
+                        Aliases = dataFields["aliases"].Split(',')
+                    };
 
-                        if (properties != null)
-                            Properties.Add(properties);
-                    }
-                    catch (Exception ex)
+                    //TODO: Handle LogRules
+                    bool showCategories = bool.Parse(dataFields["showcategories"]);
+                    bool showLineCount = bool.Parse(dataFields["showlinecount"]);
+
+                    const int expected_field_total = 8;
+
+                    int unprocessedFieldTotal = dataFields.Count - expected_field_total;
+
+                    if (unprocessedFieldTotal > 0)
                     {
-                        Debug.LogError("An error occured while processing log property line " + i);
-                        Debug.LogError(ex);
+                        var unrecognizedFields = UnrecognizedFields[properties] = new StringDictionary();
+
+                        //Handle unrecognized, and custom fields by storing them in a list that other mods will be able to access
+                        IDictionaryEnumerator fieldEnumerator = (IDictionaryEnumerator)dataFields.GetEnumerator();
+                        while (unprocessedFieldTotal > 0)
+                        {
+                            fieldEnumerator.MoveNext();
+
+                            DictionaryEntry fieldEntry = fieldEnumerator.Key switch
+                            {
+                                "filename" => default,
+                                "altfilename" => default,
+                                "aliases" => default,
+                                "version" => default,
+                                "path" => default,
+                                "logrules" => default,
+                                "showlinecount" => default,
+                                "showcategories" => default,
+                                _ => fieldEnumerator.Entry
+                            };
+
+                            if (!fieldEntry.Equals(default))
+                            {
+                                unrecognizedFields[(string)fieldEntry.Key] = (string)fieldEntry.Value;
+                                unprocessedFieldTotal--;
+                            }
+                        }
                     }
+                }
+                catch (KeyNotFoundException)
+                {
+                    throw new KeyNotFoundException($"{dataFields["filename"]}.log is missing a required property. Check logs.txt for issues");
                 }
             }
         }

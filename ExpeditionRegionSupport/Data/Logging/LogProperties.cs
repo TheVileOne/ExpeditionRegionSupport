@@ -25,6 +25,12 @@ namespace ExpeditionRegionSupport.Data.Logging
 
         public readonly string ContainingFolderPath;
 
+
+        /// <summary>
+        /// A string representation of the content state. This is useful for preventing user sourced changes from being overwritten by mods
+        /// </summary>
+        public string Version;
+
         /// <summary>
         /// The filename that will be used in the typical write path for the log file
         /// </summary>
@@ -38,9 +44,15 @@ namespace ExpeditionRegionSupport.Data.Logging
         /// <summary>
         /// A list of filenames that should be considered equal to Filename/AltFilename
         /// </summary>
-        public List<string> Aliases = new List<string>();
+        public string[] Aliases;
 
         protected List<LogRule> Rules = new List<LogRule>();
+
+        public LogProperties(string filename, string relativePathNoFile = "customroot")
+        {
+            Filename = filename;
+            ContainingFolderPath = GetContainingPath(relativePathNoFile);
+        }
 
         public LogProperties(LogID logID, string relativePathNoFile = "customroot")
         {
