@@ -133,10 +133,10 @@ namespace ExpeditionRegionSupport.Data.Logging
             while (enumerator.MoveNext())
             {
                 StringDictionary dataFields = enumerator.Current;
-
+                LogProperties properties = null;
                 try
                 {
-                    LogProperties properties = new LogProperties(dataFields["filename"], dataFields["path"])
+                    properties = new LogProperties(dataFields["filename"], dataFields["path"])
                     {
                         Version = dataFields["version"],
                         AltFilename = dataFields["altfilename"],
@@ -189,7 +189,12 @@ namespace ExpeditionRegionSupport.Data.Logging
                 }
                 catch (KeyNotFoundException)
                 {
-                    throw new KeyNotFoundException($"{dataFields["filename"]}.log is missing a required property. Check logs.txt for issues");
+                    throw new KeyNotFoundException(string.Format("{0}.log is missing a required property. Check logs.txt for issues", dataFields["filename"]));
+                }
+                finally
+                {
+                    if (properties != null)
+                        properties.ReadOnly = true;
                 }
             }
         }

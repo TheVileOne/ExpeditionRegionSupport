@@ -21,30 +21,85 @@ namespace ExpeditionRegionSupport.Data.Logging
         /// </summary>
         public static bool LoadInProgress;
 
+        public bool ReadOnly;
+
         public readonly LogID LogID;
 
         public readonly string ContainingFolderPath;
 
 
+        private string _version;
+        private string _filename;
+        private string _altFilename;
+        private string[] _aliases;
+
         /// <summary>
         /// A string representation of the content state. This is useful for preventing user sourced changes from being overwritten by mods
         /// </summary>
-        public string Version;
+        public string Version
+        {
+            get => _version;
+            set
+            {
+                if (_version == value) return;
+
+                if (value == null)
+                    throw new ArgumentNullException(nameof(Version) + " cannot be null");
+
+                ReadOnly = false; //Updating the version exposes LogProperties to changes
+                _version = value;
+            }
+        }
 
         /// <summary>
         /// The filename that will be used in the typical write path for the log file
         /// </summary>
-        public string Filename;
+        public string Filename
+        {
+            get => _filename;
+            set
+            {
+                if (_filename == value || ReadOnly) return;
+
+                if (value == null)
+                    throw new ArgumentNullException(nameof(Filename) + " cannot be null. Use root, or customroot as a value instead.");
+                _filename = value;
+            }
+        }
 
         /// <summary>
         /// The filename that will be used if the write path is the LogManager Logs directory. May be null if same as Filename
         /// </summary>
-        public string AltFilename;
+        public string AltFilename
+        {
+            get => _altFilename;
+            set
+            {
+                if (_altFilename == value || ReadOnly) return;
+
+                if (value == null)
+                    throw new ArgumentNullException(nameof(AltFilename) + " cannot be null. Use root, or customroot as a value instead.");
+                _altFilename = value;
+            }
+        }
 
         /// <summary>
         /// A list of filenames that should be considered equal to Filename/AltFilename
         /// </summary>
-        public string[] Aliases;
+        public string[] Aliases
+        {
+            get
+            {
+                if (ReadOnly)
+                    return (string[])_aliases.Clone();
+                return _aliases;
+            }
+            set
+            {
+                if (ReadOnly) return;
+                _aliases = value;
+            }
+        }
 
         private List<LogRule> _rules = new List<LogRule>();
 
