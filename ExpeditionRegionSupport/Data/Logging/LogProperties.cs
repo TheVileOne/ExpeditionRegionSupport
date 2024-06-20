@@ -46,7 +46,12 @@ namespace ExpeditionRegionSupport.Data.Logging
         /// </summary>
         public string[] Aliases;
 
-        protected List<LogRule> Rules = new List<LogRule>();
+        private List<LogRule> _rules = new List<LogRule>();
+
+        /// <summary>
+        /// A prioritized order of process actions that must be applied to a message string before logging it to file 
+        /// </summary>
+        protected IOrderedEnumerable<LogRule> Rules => _rules.OrderBy(r => r.ApplyPriority);
 
         public LogProperties(string filename, string relativePathNoFile = "customroot")
         {
@@ -62,41 +67,7 @@ namespace ExpeditionRegionSupport.Data.Logging
 
         public void AddRule(LogRule rule)
         {
-            if (Rules.Exists(r => r.ID == rule.ID)) return;
-
-            if (Rules.Count == 0)
-            {
-                Rules.Add(rule);
-                return;
-            }
-
-            //The code below ensures that priority rules are last in the list. Rules that are applied last in the list are applied last to the log message
-            switch (rule.ID)
-            {
-                case LogRule.Rule.ShowCategory:
-                    if (Rules[Rules.Count - 1].ID == LogRule.Rule.ShowLineCount) //Line count should apply before category formatting
-                        Rules.Insert(Rules.Count - 1, rule);
-                    else
-                        Rules.Add(rule); //Category formatting takes priority over every other rule
-                    break;
-                case LogRule.Rule.ShowLineCount:
-                    Rules.Add(rule);
-                    break;
-                case LogRule.Rule.Unknown:
-                    if (Rules[Rules.Count - 1].ID == LogRule.Rule.ShowCategory) //Insert before prioritized rules
-                        Rules.Insert(Rules.Count - 1, rule);
-                    else if (Rules[Rules.Count - 1].ID == LogRule.Rule.ShowLineCount) //ShowLineCount takes priority
-                    {
-                        //Inserts before one, or both prioritized rules
-                        if (Rules.Count == 1 || Rules[Rules.Count - 2].ID != LogRule.Rule.ShowCategory)
-                            Rules.Insert(Rules.Count - 1, rule);
-                        else
-                            Rules.Insert(Rules.Count - 2, rule);
-                    }
-                    else
-                        Rules.Add(rule); //There are no prioritized rules if this triggers
-                    break;
-            }
+            _rules.Add(rule);
         }
 
         public bool HasPath(string path)
@@ -148,23 +119,6 @@ namespace ExpeditionRegionSupport.Data.Logging
             }
 
             return Application.streamingAssetsPath; //Fallback path - Should register custom path later if it needs to be resolved through AssetManager
-        }
-    }
-
-    public class LogRule
-    {
-        public Rule ID = Rule.Unknown; 
-
-        public virtual string ApplyRule(string message)
-        {
-            return message;
-        }
-
-        public enum Rule
-        {
-            Unknown = -1,
-            ShowCategory,
-            ShowLineCount
         }
     }
 }

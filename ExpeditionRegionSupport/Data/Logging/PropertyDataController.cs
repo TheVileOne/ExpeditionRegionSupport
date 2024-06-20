@@ -143,9 +143,14 @@ namespace ExpeditionRegionSupport.Data.Logging
                         Aliases = dataFields["aliases"].Split(',')
                     };
 
-                    //TODO: Handle LogRules
                     bool showCategories = bool.Parse(dataFields["showcategories"]);
                     bool showLineCount = bool.Parse(dataFields["showlinecount"]);
+
+                    if (showCategories)
+                        properties.AddRule(new ShowCategoryRule());
+
+                    if (showLineCount)
+                        properties.AddRule(new ShowLineCountRule());
 
                     const int expected_field_total = 8;
 
