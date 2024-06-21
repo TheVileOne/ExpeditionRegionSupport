@@ -80,7 +80,7 @@ namespace ExpeditionRegionSupport.Data.Logging
             string logName = splitData[0];
             string dataName = splitData[1];
 
-            LogProperties properties = Properties.Find(p => p.LogID.value == logName || p.Aliases.Contains(logName));
+            LogProperties properties = Properties.Find(p => p.LogID.value == logName || p.Tags.Contains(logName));
 
             //Search for the requested property field and store it into a temporary object
             //Note: This will box value types, but LogProperties currently doesn't have any of those
@@ -93,8 +93,8 @@ namespace ExpeditionRegionSupport.Data.Logging
                 case nameof(properties.AltFilename):
                     dataObject = properties.AltFilename;
                     break;
-                case nameof(properties.Aliases):
-                    dataObject = properties.Aliases;
+                case nameof(properties.Tags):
+                    dataObject = properties.Tags;
                     break;
             }
 
@@ -112,7 +112,7 @@ namespace ExpeditionRegionSupport.Data.Logging
             string logName = splitData[0];
             string dataName = splitData[1];
 
-            LogProperties properties = Properties.Find(p => p.LogID.value == logName || p.Aliases.Contains(logName));
+            LogProperties properties = Properties.Find(p => p.LogID.value == logName || p.Tags.Contains(logName));
 
             //Store value in the specified field location
             switch (dataName)
@@ -123,9 +123,9 @@ namespace ExpeditionRegionSupport.Data.Logging
                 case nameof(properties.AltFilename):
                     properties.AltFilename = Convert.ToString(dataValue);
                     break;
-                case nameof(properties.Aliases):
+                case nameof(properties.Tags):
                     IEnumerable<string> enumeratedData = (IEnumerable<string>)Convert.ChangeType(dataValue, typeof(IEnumerable<string>));
-                    properties.Aliases = enumeratedData.ToArray();
+                    properties.Tags = enumeratedData.ToArray();
                     break;
             }
         }
@@ -146,7 +146,7 @@ namespace ExpeditionRegionSupport.Data.Logging
                     {
                         Version = dataFields["version"],
                         AltFilename = dataFields["altfilename"],
-                        Aliases = dataFields["aliases"].Split(',')
+                        Tags = dataFields["tags"].Split(',')
                     };
 
                     bool showCategories = bool.Parse(dataFields["showcategories"]);

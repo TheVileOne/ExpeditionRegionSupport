@@ -31,7 +31,7 @@ namespace ExpeditionRegionSupport.Data.Logging
         private string _version;
         private string _filename;
         private string _altFilename;
-        private string[] _aliases;
+        private string[] _tags;
 
         /// <summary>
         /// A string representation of the content state. This is useful for preventing user sourced changes from being overwritten by mods
@@ -84,20 +84,20 @@ namespace ExpeditionRegionSupport.Data.Logging
         }
 
         /// <summary>
-        /// A list of filenames that should be considered equal to Filename/AltFilename
+        /// An array of value identifiers for a specific log
         /// </summary>
-        public string[] Aliases
+        public string[] Tags
         {
             get
             {
                 if (ReadOnly)
-                    return (string[])_aliases.Clone();
-                return _aliases;
+                    return (string[])_tags.Clone();
+                return _tags;
             }
             set
             {
                 if (ReadOnly) return;
-                _aliases = value;
+                _tags = value;
             }
         }
 
