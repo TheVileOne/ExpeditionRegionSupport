@@ -12,9 +12,10 @@ namespace ExpeditionRegionSupport.Data.Logging
 {
     public class PropertyDataController : MonoBehaviour, DataController
     {
+        public static Version AssemblyVersion = new Version(0, 8, 5);
         public static PropertyDataController PropertyManager;
 
-        public string Name => "LogProperties";
+        public Version Version => AssemblyVersion;
 
         public List<LogProperties> Properties = new List<LogProperties>();
         public Dictionary<LogProperties, StringDictionary> UnrecognizedFields = new Dictionary<LogProperties, StringDictionary>();
@@ -22,6 +23,11 @@ namespace ExpeditionRegionSupport.Data.Logging
         static PropertyDataController()
         {
             Initialize();
+        }
+
+        public PropertyDataController()
+        {
+            tag = "Log Properties";
         }
 
         public List<LogProperties> GetProperties(LogID logID)
@@ -217,14 +223,33 @@ namespace ExpeditionRegionSupport.Data.Logging
             didCreate = false;
             if (managerObject != null)
             {
-                //TODO: This might create an instance
-                var propertyController = managerObject.GetComponent<PropertyDataController>();
+                Version activeVersion = null;
+                try
+                {
+                    //TODO: Make sure this is getting an existing object, and not creating one
+                    var propertyController = managerObject.GetComponent<PropertyDataController>();
 
-                if (propertyController != null)
+                    if (propertyController == null)
+                    {
+                        didCreate = true;
+                        propertyController = managerObject.AddComponent<PropertyDataController>();
+                    }
+
+                    activeVersion = propertyController.Version;
                     return propertyController;
-
-                didCreate = true;
-                return managerObject.AddComponent<PropertyDataController>();
+                }
+                catch (TypeLoadException) //There was some kind of version mismatch
+                {
+                    DataController controller = (object)GameObject.FindWithTag("Log Properties") as DataController;
+                    activeVersion = controller.Version;
+                }
+                finally
+                {
+                    if (activeVersion < AssemblyVersion)
+                    {
+                        //TODO: Replace PropertyDataController with most up to data version
+                    }
+                }
             }
             return null;
         }
@@ -238,9 +263,9 @@ namespace ExpeditionRegionSupport.Data.Logging
     public interface DataController
     {
         /// <summary>
-        /// This is used to differentiate between multiple DataController instances used for different purposes
+        /// The version associated withthe DataController instance (typically associated with a particular release of the containing assembly)
         /// </summary>
-        string Name { get; }
+        Version Version { get; }
 
         /// <summary>
         /// Gets a value associated with a specific key. Throws exception if not found
