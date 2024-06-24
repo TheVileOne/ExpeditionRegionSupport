@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json;
 using RWCustom;
 using UnityEngine;
 
@@ -120,16 +119,6 @@ namespace ExpeditionRegionSupport.Data.Logging
         {
             //TODO: Strip filename
             return LogUtils.ComparePaths(ContainingFolderPath, GetContainingPath(path));
-        }
-
-        public string Serialize()
-        {
-            return JsonConvert.SerializeObject(this);
-        }
-
-        public static LogProperties Deserialize(string propertyString)
-        {
-            return JsonConvert.DeserializeObject<LogProperties>(propertyString);
         }
 
         public static string GetContainingPath(string relativePathNoFile)
