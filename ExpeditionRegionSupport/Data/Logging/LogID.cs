@@ -9,7 +9,7 @@ namespace ExpeditionRegionSupport.Data.Logging
         /// </summary>
         public LogProperties Properties { get; }
 
-        public LogID(string modID, string name, string relativePathNoFile = null, bool register = false) : base(name, false)
+        public LogID(string filename, string relativePathNoFile = null, bool register = false) : base(filename, false)
         {
             if (register)
             {
@@ -19,16 +19,13 @@ namespace ExpeditionRegionSupport.Data.Logging
 
             Properties = LogProperties.PropertyManager.GetProperties(this, relativePathNoFile);
 
-            if (register && Properties == null)
-            {
-                //Register a new LogProperties instance for this LogID
-                Properties = LogProperties.PropertyManager.SetProperties(this, relativePathNoFile);
-            }
-
-            //At this point, a null means there isn't an intention to register properties with the manager, but properties should still be created
-            //in case LogID is registered in the future
             if (Properties == null)
-                Properties = new LogProperties(this, relativePathNoFile);
+            {
+                if (register)
+                    Properties = LogProperties.PropertyManager.SetProperties(this, relativePathNoFile); //Register a new LogProperties instance for this LogID
+                else
+                    Properties = new LogProperties(this, relativePathNoFile);
+            }
         }
 
         static LogID()
@@ -38,11 +35,11 @@ namespace ExpeditionRegionSupport.Data.Logging
                 UtilityCore.Initialize();
 
             //TODO: Need to add altfilename info
-            BepInEx = new LogID(null, "LogOutput", Paths.BepInExRootPath, true);
-            Exception = new LogID(null, "exceptionLog", "root", true);
-            Expedition = new LogID(null, "ExpLog", "customroot", true);
-            JollyCoop = new LogID(null, "jollyLog", "customroot", true);
-            Unity = new LogID(null, "consoleLog", "root", true);
+            BepInEx = new LogID("LogOutput", Paths.BepInExRootPath, true);
+            Exception = new LogID("exceptionLog", "root", true);
+            Expedition = new LogID("ExpLog", "customroot", true);
+            JollyCoop = new LogID("jollyLog", "customroot", true);
+            Unity = new LogID("consoleLog", "root", true);
         }
 
         public static readonly LogID BepInEx;
