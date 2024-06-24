@@ -34,12 +34,18 @@ namespace ExpeditionRegionSupport.Data.Logging
             if (!UtilityCore.IsInitialized)
                 UtilityCore.Initialize();
 
-            //TODO: Need to add altfilename info
             BepInEx = new LogID("LogOutput", Paths.BepInExRootPath, true);
             Exception = new LogID("exceptionLog", "root", true);
             Expedition = new LogID("ExpLog", "customroot", true);
             JollyCoop = new LogID("jollyLog", "customroot", true);
             Unity = new LogID("consoleLog", "root", true);
+
+            BepInEx.Properties.AltFilename = "mods";
+            BepInEx.Properties.AddRule(new ShowCategoryRule());
+            Exception.Properties.AltFilename = "exception";
+            Expedition.Properties.AltFilename = "expedition";
+            JollyCoop.Properties.AltFilename = "jolly";
+            Unity.Properties.AltFilename = "console";
         }
 
         public static readonly LogID BepInEx;
