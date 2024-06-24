@@ -18,9 +18,9 @@ namespace ExpeditionRegionSupport.Data.Logging
         public readonly string ContainingFolderPath;
 
 
-        private string _version;
-        private string _filename;
-        private string _altFilename;
+        private string _version = "0.5.0";
+        private string _filename = string.Empty;
+        private string _altFilename = string.Empty;
         private string[] _tags;
 
         /// <summary>
