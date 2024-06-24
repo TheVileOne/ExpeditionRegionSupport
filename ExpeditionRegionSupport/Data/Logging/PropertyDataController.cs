@@ -13,8 +13,6 @@ namespace ExpeditionRegionSupport.Data.Logging
     public class PropertyDataController : MonoBehaviour, DataController
     {
         public static Version AssemblyVersion = new Version(0, 8, 5);
-        public static PropertyDataController PropertyManager;
-
         public Version Version => AssemblyVersion;
 
         public List<LogProperties> Properties = new List<LogProperties>();
@@ -22,7 +20,9 @@ namespace ExpeditionRegionSupport.Data.Logging
 
         static PropertyDataController()
         {
-            Initialize();
+            //Initialize the utility when this class is accessed
+            if (!UtilityCore.IsInitialized)
+                UtilityCore.Initialize();
         }
 
         public PropertyDataController()
@@ -203,14 +203,6 @@ namespace ExpeditionRegionSupport.Data.Logging
                         properties.ReadOnly = true;
                 }
             }
-        }
-
-        public static void Initialize()
-        {
-            PropertyManager = GetOrCreate(out bool wasCreated);
-
-            if (wasCreated)
-                PropertyManager.ReadFromFile();
         }
 
         /// <summary>

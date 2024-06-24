@@ -13,22 +13,16 @@ namespace ExpeditionRegionSupport.Data.Logging
         {
             if (register)
             {
-                //Make sure properties are read from file before any ExtEnums are registered
-                LogProperties.LoadProperties();
-
                 values.AddEntry(value);
                 index = values.Count - 1;
             }
 
-            if (LogProperties.PropertyManager != null)
-            {
-                Properties = LogProperties.PropertyManager.GetProperties(this, relativePathNoFile);
+            Properties = LogProperties.PropertyManager.GetProperties(this, relativePathNoFile);
 
-                if (register && Properties == null)
-                {
-                    //Register a new LogProperties instance for this LogID
-                    Properties = LogProperties.PropertyManager.SetProperties(this, relativePathNoFile);
-                }
+            if (register && Properties == null)
+            {
+                //Register a new LogProperties instance for this LogID
+                Properties = LogProperties.PropertyManager.SetProperties(this, relativePathNoFile);
             }
 
             //At this point, a null means there isn't an intention to register properties with the manager, but properties should still be created
@@ -37,11 +31,24 @@ namespace ExpeditionRegionSupport.Data.Logging
                 Properties = new LogProperties(this, relativePathNoFile);
         }
 
-        //TODO: Need to add altfilename info
-        public static readonly LogID BepInEx = new LogID(null, "LogOutput", Paths.BepInExRootPath, true);
-        public static readonly LogID Exception = new LogID(null, "exceptionLog", "root", true);
-        public static readonly LogID Expedition = new LogID(null, "ExpLog", "customroot", true);
-        public static readonly LogID JollyCoop = new LogID(null, "jollyLog", "customroot", true);
-        public static readonly LogID Unity = new LogID(null, "consoleLog", "root", true);
+        static LogID()
+        {
+            //Initialize the utility when this class is accessed
+            if (!UtilityCore.IsInitialized)
+                UtilityCore.Initialize();
+
+            //TODO: Need to add altfilename info
+            BepInEx = new LogID(null, "LogOutput", Paths.BepInExRootPath, true);
+            Exception = new LogID(null, "exceptionLog", "root", true);
+            Expedition = new LogID(null, "ExpLog", "customroot", true);
+            JollyCoop = new LogID(null, "jollyLog", "customroot", true);
+            Unity = new LogID(null, "consoleLog", "root", true);
+        }
+
+        public static readonly LogID BepInEx;
+        public static readonly LogID Exception;
+        public static readonly LogID Expedition;
+        public static readonly LogID JollyCoop;
+        public static readonly LogID Unity;
     }
 }

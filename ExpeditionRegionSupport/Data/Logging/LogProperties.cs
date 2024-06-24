@@ -10,16 +10,7 @@ namespace ExpeditionRegionSupport.Data.Logging
 {
     public class LogProperties
     {
-        public static PropertyDataController PropertyManager
-        {
-            get => PropertyDataController.PropertyManager;
-            set => PropertyDataController.PropertyManager = value;
-        }
-
-        /// <summary>
-        /// Indicates that properties are in the process of being fetched/loaded
-        /// </summary>
-        public static bool LoadInProgress;
+        public static PropertyDataController PropertyManager;
 
         public bool ReadOnly;
 
@@ -139,15 +130,6 @@ namespace ExpeditionRegionSupport.Data.Logging
         public static LogProperties Deserialize(string propertyString)
         {
             return JsonConvert.DeserializeObject<LogProperties>(propertyString);
-        }
-
-        public static void LoadProperties()
-        {
-            if (LoadInProgress || PropertyManager != null) return;
-
-            LoadInProgress = true;
-            PropertyDataController.Initialize();
-            LoadInProgress = false;
         }
 
         public static string GetContainingPath(string relativePathNoFile)

@@ -115,9 +115,6 @@ namespace ExpeditionRegionSupport
                 On.HardmodeStart.SinglePlayerUpdate += HardmodeStart_SinglePlayerUpdate;
                 On.Room.Loaded += Room_Loaded;
                 On.RegionGate.customOEGateRequirements += RegionGate_customOEGateRequirements;
-
-                //Allow communication with Log Manager
-                Data.Logging.Logger.ApplyHooks();
             }
             catch (Exception ex)
             {

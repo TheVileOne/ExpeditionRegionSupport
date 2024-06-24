@@ -59,6 +59,13 @@ namespace ExpeditionRegionSupport.Data.Logging
         /// </summary>
         public static string BaseDirectory;
 
+        static Logger()
+        {
+            //Initialize the utility when this class is accessed
+            if (!UtilityCore.IsInitialized)
+                UtilityCore.Initialize();
+        }
+
         public Logger(LogModule logModule)
         {
             if (logModule == null)
@@ -209,7 +216,7 @@ namespace ExpeditionRegionSupport.Data.Logging
         /// This is required for the signaling system. All remote loggers should use this hook to ensure that the logger is aware
         /// of the Logs directory being moved.
         /// </summary>
-        public static void ApplyHooks()
+        internal static void ApplyHooks()
         {
             On.RainWorld.Update += RainWorld_Update;
         }
