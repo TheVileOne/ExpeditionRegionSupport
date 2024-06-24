@@ -252,13 +252,8 @@ namespace ExpeditionRegionSupport.Data.Logging
         }
     }
 
-    public interface DataController
+    public interface DataController : IVersion
     {
-        /// <summary>
-        /// The version associated withthe DataController instance (typically associated with a particular release of the containing assembly)
-        /// </summary>
-        Version Version { get; }
-
         /// <summary>
         /// Gets a value associated with a specific key. Throws exception if not found
         /// </summary>
