@@ -17,6 +17,8 @@ namespace ExpeditionRegionSupport.Data.Logging
 
         public readonly string ContainingFolderPath;
 
+        public List<CustomLogProperty> CustomProperties = new List<CustomLogProperty>();
+
 
         private string _version = "0.5.0";
         private string _filename = string.Empty;

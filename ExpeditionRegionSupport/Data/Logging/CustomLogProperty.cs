@@ -58,5 +58,13 @@ namespace ExpeditionRegionSupport.Data.Logging
         {
             return null;
         }
+
+        /// <summary>
+        /// An overridable method that creates a copy of the current class instance
+        /// </summary>
+        public virtual CustomLogProperty Clone()
+        {
+            return new CustomLogProperty(Name, Value, IsLogRule);
+        }
     }
 }

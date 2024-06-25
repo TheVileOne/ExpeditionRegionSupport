@@ -11,14 +11,22 @@ namespace ExpeditionRegionSupport.Data.Logging
     {
         protected List<CustomLogProperty> InnerList = new List<CustomLogProperty>();
 
+        public EventDelegate OnPropertyAdded, OnPropertyRemoved;
+
         public void AddProperty(CustomLogProperty property)
         {
             InnerList.Add(property);
+            OnPropertyAdded?.Invoke(property);
         }
 
         public bool RemoveProperty(CustomLogProperty property)
         {
-            return InnerList.Remove(property);
+            if (InnerList.Remove(property))
+            {
+                OnPropertyRemoved?.Invoke(property);
+                return true;
+            }
+            return false;
         }
 
         public IEnumerator<CustomLogProperty> GetEnumerator()
@@ -30,5 +38,7 @@ namespace ExpeditionRegionSupport.Data.Logging
         {
             return InnerList.GetEnumerator();
         }
+
+        public delegate void EventDelegate(CustomLogProperty property);
     }
 }

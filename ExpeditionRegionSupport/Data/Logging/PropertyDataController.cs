@@ -29,6 +29,45 @@ namespace ExpeditionRegionSupport.Data.Logging
         public PropertyDataController()
         {
             tag = "Log Properties";
+
+            CustomLogProperties.OnPropertyAdded += onCustomPropertyAdded;
+            CustomLogProperties.OnPropertyRemoved += onCustomPropertyRemoved;
+        }
+
+        private void onCustomPropertyAdded(CustomLogProperty property)
+        {
+            foreach (LogProperties properties in Properties)
+            {
+                CustomLogProperty customProperty = property.Clone(); //Create an instance of the custom property for each item in the property list
+
+                //Search for unrecognized fields that match the custom property
+                if (UnrecognizedFields.TryGetValue(properties, out StringDictionary fieldDictionary))
+                {
+                    if (fieldDictionary.ContainsKey(customProperty.Name))
+                    {
+                        customProperty.Value = fieldDictionary[customProperty.Name]; //Overwrites default value with the value taken from file
+                        fieldDictionary.Remove(customProperty.Name); //Field is no longer unrecognized
+
+                        if (fieldDictionary.Count == 0)
+                            UnrecognizedFields.Remove(properties); //Remove the dictionary after it is empty
+                    }
+                }
+
+                //Register the custom property with the associated properties instance
+                properties.CustomProperties.Add(customProperty);
+            }
+        }
+
+        private void onCustomPropertyRemoved(CustomLogProperty property)
+        {
+            //Remove the custom property reference from each properties instance
+            foreach (LogProperties properties in Properties)
+            {
+                int propertyIndex = properties.CustomProperties.FindIndex(p => p.Name == property.Name);
+
+                if (propertyIndex != -1)
+                    properties.CustomProperties.RemoveAt(propertyIndex);
+            }
         }
 
         public List<LogProperties> GetProperties(LogID logID)
