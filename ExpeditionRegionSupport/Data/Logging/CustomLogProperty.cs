@@ -33,7 +33,7 @@ namespace ExpeditionRegionSupport.Data.Logging
         /// <summary>
         /// An overridable method that allows custom parsing of the value to determine the enable state for this property
         /// </summary>
-        protected internal virtual bool CheckEnabled(string value)
+        protected virtual bool CheckEnabled(string value)
         {
             return true;
         }
