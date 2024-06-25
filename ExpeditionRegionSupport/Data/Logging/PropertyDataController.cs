@@ -90,7 +90,7 @@ namespace ExpeditionRegionSupport.Data.Logging
 
         public LogProperties SetProperties(LogID logID, string relativePathNoFile)
         {
-            LogProperties properties = new LogProperties(logID, relativePathNoFile);
+            LogProperties properties = new LogProperties(logID.value, relativePathNoFile);
 
             Properties.Add(properties);
             return properties;
@@ -120,7 +120,7 @@ namespace ExpeditionRegionSupport.Data.Logging
             string logName = splitData[0];
             string dataName = splitData[1];
 
-            LogProperties properties = Properties.Find(p => p.LogID.value == logName || p.Tags.Contains(logName));
+            LogProperties properties = Properties.Find(p => p.Filename == logName || p.Tags.Contains(logName));
 
             //Search for the requested property field and store it into a temporary object
             //Note: This will box value types, but LogProperties currently doesn't have any of those
@@ -152,7 +152,7 @@ namespace ExpeditionRegionSupport.Data.Logging
             string logName = splitData[0];
             string dataName = splitData[1];
 
-            LogProperties properties = Properties.Find(p => p.LogID.value == logName || p.Tags.Contains(logName));
+            LogProperties properties = Properties.Find(p => p.Filename == logName || p.Tags.Contains(logName));
 
             //Store value in the specified field location
             switch (dataName)

@@ -12,9 +12,6 @@ namespace ExpeditionRegionSupport.Data.Logging
         public static PropertyDataController PropertyManager;
 
         public bool ReadOnly;
-
-        public readonly LogID LogID;
-
         public readonly string ContainingFolderPath;
 
         public List<CustomLogProperty> CustomProperties = new List<CustomLogProperty>();
@@ -103,12 +100,6 @@ namespace ExpeditionRegionSupport.Data.Logging
         public LogProperties(string filename, string relativePathNoFile = "customroot")
         {
             Filename = filename;
-            ContainingFolderPath = GetContainingPath(relativePathNoFile);
-        }
-
-        public LogProperties(LogID logID, string relativePathNoFile = "customroot")
-        {
-            LogID = logID;
             ContainingFolderPath = GetContainingPath(relativePathNoFile);
         }
 
