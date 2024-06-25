@@ -21,6 +21,7 @@ namespace ExpeditionRegionSupport.Data.Logging
         private string _filename = string.Empty;
         private string _altFilename = string.Empty;
         private string[] _tags;
+        private List<LogRule> _rules = new List<LogRule>();
 
         /// <summary>
         /// A string representation of the content state. This is useful for preventing user sourced changes from being overwritten by mods
@@ -89,8 +90,6 @@ namespace ExpeditionRegionSupport.Data.Logging
                 _tags = value;
             }
         }
-
-        private List<LogRule> _rules = new List<LogRule>();
 
         /// <summary>
         /// A prioritized order of process actions that must be applied to a message string before logging it to file 
