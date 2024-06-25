@@ -54,7 +54,7 @@ namespace ExpeditionRegionSupport.Data.Logging
                 }
 
                 //Register the custom property with the associated properties instance
-                properties.CustomProperties.Add(customProperty);
+                properties.CustomProperties.AddProperty(customProperty);
             }
         }
 
@@ -62,12 +62,7 @@ namespace ExpeditionRegionSupport.Data.Logging
         {
             //Remove the custom property reference from each properties instance
             foreach (LogProperties properties in Properties)
-            {
-                int propertyIndex = properties.CustomProperties.FindIndex(p => p.Name == property.Name);
-
-                if (propertyIndex != -1)
-                    properties.CustomProperties.RemoveAt(propertyIndex);
-            }
+                properties.CustomProperties.RemoveProperty(p => p.Name == property.Name);
         }
 
         public List<LogProperties> GetProperties(LogID logID)

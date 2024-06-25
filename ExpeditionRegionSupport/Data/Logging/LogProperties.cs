@@ -14,7 +14,7 @@ namespace ExpeditionRegionSupport.Data.Logging
         public bool ReadOnly;
         public readonly string ContainingFolderPath;
 
-        public List<CustomLogProperty> CustomProperties = new List<CustomLogProperty>();
+        public CustomLogPropertyCollection CustomProperties = new CustomLogPropertyCollection();
 
 
         private string _version = "0.5.0";
@@ -101,11 +101,51 @@ namespace ExpeditionRegionSupport.Data.Logging
         {
             Filename = filename;
             ContainingFolderPath = GetContainingPath(relativePathNoFile);
+
+            CustomProperties.OnPropertyAdded += onCustomPropertyAdded;
+            CustomProperties.OnPropertyRemoved += onCustomPropertyRemoved;
+        }
+
+        private void onCustomPropertyAdded(CustomLogProperty property)
+        {
+            if (property.IsEnabled && property.IsLogRule)
+            {
+                LogRule customRule = property.CreateRule();
+
+                //Allows custom LogRules to be searchable
+                customRule.Name = property.Name;
+                AddRule(property.CreateRule());
+            }
+
+            //TODO: Define non-rule based properties
+        }
+
+        private void onCustomPropertyRemoved(CustomLogProperty property)
+        {
+            if (property.IsLogRule)
+                RemoveRule(property.Name);
         }
 
         public void AddRule(LogRule rule)
         {
             _rules.Add(rule);
+        }
+
+        public bool RemoveRule(LogRule rule)
+        {
+            return _rules.Remove(rule);
+        }
+
+        public bool RemoveRule(string name)
+        {
+            int ruleIndex = _rules.FindIndex(r => r.Name == name);
+
+            if (ruleIndex != -1)
+            {
+                _rules.RemoveAt(ruleIndex);
+                return true;
+            }
+            return false;
         }
 
         public bool HasPath(string path)

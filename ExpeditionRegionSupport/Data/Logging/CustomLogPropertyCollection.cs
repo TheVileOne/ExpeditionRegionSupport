@@ -29,6 +29,21 @@ namespace ExpeditionRegionSupport.Data.Logging
             return false;
         }
 
+        public bool RemoveProperty(Predicate<CustomLogProperty> match)
+        {
+            int propertyIndex = InnerList.FindIndex(match);
+
+            if (propertyIndex != -1)
+            {
+                CustomLogProperty property = InnerList[propertyIndex];
+
+                InnerList.RemoveAt(propertyIndex);
+                OnPropertyRemoved?.Invoke(property);
+                return true;
+            }
+            return false;
+        }
+
         public IEnumerator<CustomLogProperty> GetEnumerator()
         {
             return InnerList.GetEnumerator();

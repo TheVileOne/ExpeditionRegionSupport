@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace ExpeditionRegionSupport.Data.Logging
 {
-    public class LogRule
+    public abstract class LogRule
     {
+        public string Name;
+
         /// <summary>
         /// The default priority for LogRule instances. Rules are applied in order of priority from lowest to highest
         /// </summary>
@@ -25,6 +27,11 @@ namespace ExpeditionRegionSupport.Data.Logging
         /// Categories should apply after almost all non-custom message modifications
         /// </summary>
         public override float ApplyPriority => 0.9995f;
+
+        public ShowCategoryRule()
+        {
+            Name = "ShowCategory";
+        }
     }
 
     public class ShowLineCountRule : LogRule
@@ -33,5 +40,10 @@ namespace ExpeditionRegionSupport.Data.Logging
         /// Line count should apply after all non-custom message modifications
         /// </summary>
         public override float ApplyPriority => 1.0f;
+
+        public ShowLineCountRule()
+        {
+            Name = "ShowLineCount";
+        }
     }
 }
