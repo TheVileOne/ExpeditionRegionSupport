@@ -16,6 +16,7 @@ namespace ExpeditionRegionSupport.Data.Logging
         public Version Version => AssemblyVersion;
 
         public List<LogProperties> Properties = new List<LogProperties>();
+        public CustomLogPropertyCollection CustomLogProperties = new CustomLogPropertyCollection();
         public Dictionary<LogProperties, StringDictionary> UnrecognizedFields = new Dictionary<LogProperties, StringDictionary>();
 
         static PropertyDataController()
