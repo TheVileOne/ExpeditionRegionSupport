@@ -21,6 +21,33 @@ namespace ExpeditionRegionSupport.Data.Logging
             Plugin.Logger.LogInfo(entry);
         }
 
+
+        /// <summary>
+        /// Converts a placeholder path string into a useable path
+        /// </summary>
+        public static string ToPath(string path)
+        {
+            if (string.IsNullOrEmpty(path) || path == "customroot")
+                return Application.streamingAssetsPath;
+
+            if (path == "root")
+                return Path.GetDirectoryName(Application.dataPath);
+            return path;
+        }
+
+        /// <summary>
+        /// Converts a path string into a placeholder path string (if applicable)
+        /// </summary>
+        public static string ToPlaceholderPath(string path)
+        {
+            if (string.IsNullOrEmpty(path) || ComparePaths(path, Application.streamingAssetsPath))
+                return "customroot";
+
+            if (ComparePaths(path, Path.GetDirectoryName(Application.dataPath)))
+                return "root";
+            return path;
+        }
+
         public static bool ComparePaths(string path1, string path2)
         {
             if (path1 == null)

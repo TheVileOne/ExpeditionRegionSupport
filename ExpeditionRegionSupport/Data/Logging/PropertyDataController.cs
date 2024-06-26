@@ -240,6 +240,27 @@ namespace ExpeditionRegionSupport.Data.Logging
             }
         }
 
+        public void SaveToFile()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            foreach (LogProperties properties in Properties)
+            {
+                sb.AppendLine(properties.ToString());
+
+                if (UnrecognizedFields.TryGetValue(properties, out StringDictionary unrecognizedPropertyLines) && unrecognizedPropertyLines.Count > 0)
+                {
+                    sb.AppendLine("custom:");
+
+                    //TODO: Introduce a way of writing changes to this data to file
+                    foreach (string key in unrecognizedPropertyLines)
+                        sb.AppendLine(key + ":" + unrecognizedPropertyLines[key]);
+                }
+            }
+
+            File.WriteAllText(Path.Combine(Application.streamingAssetsPath, "logs.txt"), sb.ToString());
+        }
+
         /// <summary>
         /// Searches for a PropertyDataController component, and creates one if it does not exist
         /// </summary>

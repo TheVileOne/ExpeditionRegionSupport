@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using RWCustom;
 using UnityEngine;
 
@@ -153,17 +154,27 @@ namespace ExpeditionRegionSupport.Data.Logging
             return LogUtils.ComparePaths(ContainingFolderPath, GetContainingPath(path));
         }
 
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            sb.AppendLine("filename:" + Filename);
+            sb.AppendLine("altfilename:" + AltFilename);
+            sb.AppendLine("version:" + Version);
+            sb.AppendLine("tags:" + (Tags != null ? string.Join(",", Tags) : string.Empty));
+            sb.AppendLine("path:" + LogUtils.ToPlaceholderPath(ContainingFolderPath));
+            sb.AppendLine("logrules:");
+            sb.AppendLine("showlinecount:" + Rules.Exists(r => r is ShowLineCountRule));
+            sb.AppendLine("showcategories:" + Rules.Exists(r => r is ShowCategoryRule));
+            return sb.ToString();
+        }
+
         public static string GetContainingPath(string relativePathNoFile)
         {
             if (relativePathNoFile == null)
                 return Application.streamingAssetsPath;
 
-            relativePathNoFile = relativePathNoFile.ToLower();
-
-            if (relativePathNoFile == "customroot")
-                return Application.streamingAssetsPath;
-            else if (relativePathNoFile == "root")
-                return Application.dataPath; //TODO: Check that this path is correct
+            relativePathNoFile = LogUtils.ToPath(relativePathNoFile.ToLower());
 
             if (Directory.Exists(relativePathNoFile)) //No need to change the path when it is already valid
                 return relativePathNoFile;
