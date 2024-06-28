@@ -187,11 +187,11 @@ namespace ExpeditionRegionSupport.Data.Logging
                     bool showCategories = bool.Parse(dataFields["showcategories"]);
                     bool showLineCount = bool.Parse(dataFields["showlinecount"]);
 
-                    if (showCategories)
-                        properties.AddRule(new ShowCategoryRule());
+                    LogRule showCategoryRule = new ShowCategoryRule(showCategories);
+                    LogRule showLineCountRule = new ShowLineCountRule(showLineCount);
 
-                    if (showLineCount)
-                        properties.AddRule(new ShowLineCountRule());
+                    properties.AddRule(showCategoryRule);
+                    properties.AddRule(showLineCountRule);
 
                     const int expected_field_total = 8;
 
@@ -250,9 +250,9 @@ namespace ExpeditionRegionSupport.Data.Logging
 
                 if (UnrecognizedFields.TryGetValue(properties, out StringDictionary unrecognizedPropertyLines) && unrecognizedPropertyLines.Count > 0)
                 {
-                    sb.AppendLine("custom:");
+                    if (properties.CustomProperties.Count() == 0) //Ensure that custom field header is only added once
+                        sb.AppendLine("custom:");
 
-                    //TODO: Introduce a way of writing changes to this data to file
                     foreach (string key in unrecognizedPropertyLines)
                         sb.AppendLine(key + ":" + unrecognizedPropertyLines[key]);
                 }

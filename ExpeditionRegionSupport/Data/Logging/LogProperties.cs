@@ -95,7 +95,7 @@ namespace ExpeditionRegionSupport.Data.Logging
         /// <summary>
         /// A prioritized order of process actions that must be applied to a message string before logging it to file 
         /// </summary>
-        protected IOrderedEnumerable<LogRule> Rules => _rules.OrderBy(r => r.ApplyPriority);
+        public IOrderedEnumerable<LogRule> Rules => _rules.OrderBy(r => r.Priority);
 
         public LogProperties(string filename, string relativePathNoFile = "customroot")
         {
@@ -108,13 +108,10 @@ namespace ExpeditionRegionSupport.Data.Logging
 
         private void onCustomPropertyAdded(CustomLogProperty property)
         {
-            if (property.IsEnabled && property.IsLogRule)
+            if (property.IsLogRule)
             {
-                LogRule customRule = property.CreateRule();
-
-                //Allows custom LogRules to be searchable
-                customRule.Name = property.Name;
-                AddRule(property.CreateRule());
+                LogRule customRule = property.GetRule();
+                AddRule(customRule);
             }
 
             //TODO: Define non-rule based properties
@@ -126,9 +123,41 @@ namespace ExpeditionRegionSupport.Data.Logging
                 RemoveRule(property.Name);
         }
 
+        /// <summary>
+        /// Adds a LogRule instance to the collection of Rules
+        /// Do not use this for temporary rule changes, use SetTemporaryRule instead 
+        /// </summary>
         public void AddRule(LogRule rule)
         {
+            if (_rules.Exists(r => r.Name == rule.Name)) //Don't allow more than one rule concept to be added with the same name
+            {
+                //TODO: Suggest that ReplaceRule be used instead
+                return;
+            }
             _rules.Add(rule);
+        }
+
+        /// <summary>
+        /// Replaces an existing rule with another instance
+        /// Be warned, running this each time your mod runs will overwrite data being saved, and read from file
+        /// Do not replace existing property data values in a way that might break the parse logic
+        /// Consider using temporary rules instead, and handle saving of the property values through your mod
+        /// In either case, you may want to inherit from the existing property in case a user has changed the property through the file
+        /// </summary>
+        public void ReplaceRule(LogRule rule)
+        {
+            int ruleIndex = _rules.FindIndex(r => r.Name == rule.Name);
+
+            if (ruleIndex != -1)
+            {
+                LogRule replacedRule = _rules[ruleIndex];
+
+                //Transfer over temporary rules as long as replacement rule doesn't have one already
+                if (rule.TemporaryOverride == null)
+                    rule.TemporaryOverride = replacedRule.TemporaryOverride;
+                _rules.RemoveAt(ruleIndex);
+            }
+            AddRule(rule); //Add rule when there is no existing rule match
         }
 
         public bool RemoveRule(LogRule rule)
@@ -148,6 +177,24 @@ namespace ExpeditionRegionSupport.Data.Logging
             return false;
         }
 
+        public void SetTemporaryRule(LogRule rule)
+        {
+            LogRule targetRule = _rules.Find(r => r.Name == rule.Name);
+
+            if (targetRule != null)
+                targetRule.TemporaryOverride = rule;
+            else
+                AddRule(rule); //No associated rule was found, treat temporary rule as a normal rule
+        }
+
+        public void RemoveTemporaryRule(LogRule rule)
+        {
+            LogRule targetRule = _rules.Find(r => r.TemporaryOverride == rule);
+
+            if (targetRule != null)
+                targetRule.TemporaryOverride = null;
+        }
+
         public bool HasPath(string path)
         {
             //TODO: Strip filename
@@ -164,8 +211,26 @@ namespace ExpeditionRegionSupport.Data.Logging
             sb.AppendLine("tags:" + (Tags != null ? string.Join(",", Tags) : string.Empty));
             sb.AppendLine("path:" + LogUtils.ToPlaceholderPath(ContainingFolderPath));
             sb.AppendLine("logrules:");
-            sb.AppendLine("showlinecount:" + Rules.Exists(r => r is ShowLineCountRule));
-            sb.AppendLine("showcategories:" + Rules.Exists(r => r is ShowCategoryRule));
+
+            LogRule lineCountRule = _rules.Find(r => r is ShowLineCountRule);
+            LogRule categoryRule = _rules.Find(r => r is ShowCategoryRule);
+
+            sb.AppendLine(lineCountRule.PropertyString);
+            sb.AppendLine(categoryRule.PropertyString);
+
+            foreach (var customProperty in CustomProperties)
+            {
+                //Log properties with names that are not unique are unsupported, and may cause unwanted behavior
+                //Duplicate named property strings will still be written to file the way this is currently handled
+                string propertyString = customProperty.PropertyString;
+                if (customProperty.IsLogRule)
+                {
+                    LogRule customRule = _rules.Find(r => r.Name == customProperty.Name);
+                    propertyString = customRule.PropertyString;
+                }
+                sb.AppendLine(propertyString);
+            }
+
             return sb.ToString();
         }
 

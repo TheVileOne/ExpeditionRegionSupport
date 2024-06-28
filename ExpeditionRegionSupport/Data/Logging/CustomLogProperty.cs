@@ -51,10 +51,22 @@ namespace ExpeditionRegionSupport.Data.Logging
             IsLogRule = isRule;
         }
 
+        public LogRule GetRule()
+        {
+            LogRule rule = CreateRule();
+
+            if (rule != null)
+            {
+                rule.Name = Name;
+                rule.IsEnabled = IsEnabled;
+            }
+            return rule;
+        }
+
         /// <summary>
         /// An overridable method used in conjunction with IsLogRule for constructing custom LogRule implementations 
         /// </summary>
-        public virtual LogRule CreateRule()
+        protected virtual LogRule CreateRule()
         {
             return null;
         }
