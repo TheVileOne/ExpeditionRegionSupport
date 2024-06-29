@@ -63,13 +63,14 @@ namespace ExpeditionRegionSupport.Data.Logging
 
         public string PropertyString => ToPropertyString();
 
-        public LogRule()
-        {
-        }
-
-        public LogRule(bool enabled) : this()
+        public LogRule(bool enabled)
         {
             _enabled = enabled;
+        }
+
+        public LogRule(string name, bool enabled) : this(enabled)
+        {
+            Name = name;
         }
 
         public void Apply(ref string message)
@@ -101,13 +102,14 @@ namespace ExpeditionRegionSupport.Data.Logging
         {
             return ToPropertyString();
         }
+
+        public delegate string ApplyDelegate(string message);
     }
 
     public class ShowCategoryRule : LogRule
     {
-        public ShowCategoryRule(bool enabled) : base(enabled)
+        public ShowCategoryRule(bool enabled) : base("ShowCategory", enabled)
         {
-            Name = "ShowCategory";
         }
 
         protected override float GetPriority()
@@ -118,9 +120,8 @@ namespace ExpeditionRegionSupport.Data.Logging
 
     public class ShowLineCountRule : LogRule
     {
-        public ShowLineCountRule(bool enabled) : base(enabled)
+        public ShowLineCountRule(bool enabled) : base("ShowLineCount", enabled)
         {
-            Name = "ShowLineCount";
         }
 
         protected override float GetPriority()
