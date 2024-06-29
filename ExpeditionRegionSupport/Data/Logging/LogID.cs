@@ -41,7 +41,7 @@ namespace ExpeditionRegionSupport.Data.Logging
             Unity = new LogID("consoleLog", "root", true);
 
             BepInEx.Properties.AltFilename = "mods";
-            BepInEx.Properties.Rules.Add(new ShowCategoryRule());
+            BepInEx.Properties.Rules.Add(new ShowCategoryRule(true));
             Exception.Properties.AltFilename = "exception";
             Expedition.Properties.AltFilename = "expedition";
             JollyCoop.Properties.AltFilename = "jolly";

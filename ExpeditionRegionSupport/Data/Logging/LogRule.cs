@@ -105,10 +105,6 @@ namespace ExpeditionRegionSupport.Data.Logging
 
     public class ShowCategoryRule : LogRule
     {
-        public ShowCategoryRule() : this(false)
-        {
-        }
-
         public ShowCategoryRule(bool enabled) : base(enabled)
         {
             Name = "ShowCategory";
@@ -122,10 +118,6 @@ namespace ExpeditionRegionSupport.Data.Logging
 
     public class ShowLineCountRule : LogRule
     {
-        public ShowLineCountRule() : this(false)
-        {
-        }
-
         public ShowLineCountRule(bool enabled) : base(enabled)
         {
             Name = "ShowLineCount";
