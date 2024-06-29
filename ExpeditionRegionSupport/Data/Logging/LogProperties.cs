@@ -135,8 +135,8 @@ namespace ExpeditionRegionSupport.Data.Logging
             sb.AppendPropertyString("path", LogUtils.ToPlaceholderPath(ContainingFolderPath));
             sb.AppendPropertyString("logrules");
 
-            LogRule lineCountRule = Rules.Find(r => r is ShowLineCountRule);
-            LogRule categoryRule = Rules.Find(r => r is ShowCategoryRule);
+            LogRule lineCountRule = Rules.FindByType<ShowLineCountRule>();
+            LogRule categoryRule = Rules.FindByType<ShowCategoryRule>();
 
             sb.AppendLine(lineCountRule.PropertyString);
             sb.AppendLine(categoryRule.PropertyString);
@@ -152,7 +152,7 @@ namespace ExpeditionRegionSupport.Data.Logging
                     string propertyString = customProperty.PropertyString;
                     if (customProperty.IsLogRule)
                     {
-                        LogRule customRule = Rules.Find(r => r.Name == customProperty.Name);
+                        LogRule customRule = Rules.FindByName(customProperty.Name);
                         propertyString = customRule.PropertyString;
                     }
                     sb.AppendLine(propertyString);
@@ -181,6 +181,14 @@ namespace ExpeditionRegionSupport.Data.Logging
             }
 
             return Application.streamingAssetsPath; //Fallback path - Should register custom path later if it needs to be resolved through AssetManager
+        }
+
+        /// <summary>
+        /// Compares two names for equality (case insensitive)
+        /// </summary>
+        public static bool CompareNames(string name, string otherName)
+        {
+            return string.Equals(name, otherName, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public static string ToPropertyString(string name, string value = "")

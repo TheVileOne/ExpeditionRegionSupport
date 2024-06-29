@@ -18,7 +18,7 @@ namespace ExpeditionRegionSupport.Data.Logging
         /// </summary>
         public void Add(LogRule rule)
         {
-            if (InnerList.Exists(r => r.Name == rule.Name)) //Don't allow more than one rule concept to be added with the same name
+            if (InnerList.Exists(r => LogProperties.CompareNames(r.Name, rule.Name))) //Don't allow more than one rule concept to be added with the same name
                 return;
             InnerList.Add(rule);
         }
@@ -32,7 +32,7 @@ namespace ExpeditionRegionSupport.Data.Logging
         /// </summary>
         public void Replace(LogRule rule)
         {
-            int ruleIndex = InnerList.FindIndex(r => r.Name == rule.Name);
+            int ruleIndex = InnerList.FindIndex(r => LogProperties.CompareNames(r.Name, rule.Name));
 
             if (ruleIndex != -1)
             {
@@ -53,7 +53,7 @@ namespace ExpeditionRegionSupport.Data.Logging
 
         public bool Remove(string name)
         {
-            int ruleIndex = InnerList.FindIndex(r => r.Name == name);
+            int ruleIndex = InnerList.FindIndex(r => LogProperties.CompareNames(r.Name, name));
 
             if (ruleIndex != -1)
             {
@@ -65,7 +65,7 @@ namespace ExpeditionRegionSupport.Data.Logging
 
         public void SetTemporaryRule(LogRule rule)
         {
-            LogRule targetRule = InnerList.Find(r => r.Name == rule.Name);
+            LogRule targetRule = FindByName(rule.Name);
 
             if (targetRule != null)
                 targetRule.TemporaryOverride = rule;
@@ -84,6 +84,21 @@ namespace ExpeditionRegionSupport.Data.Logging
         public LogRule Find(Predicate<LogRule> match)
         {
             return InnerList.Find(match);
+        }
+
+        public LogRule FindByName(string name)
+        {
+            return Find(r => LogProperties.CompareNames(r.Name, name));
+        }
+
+        public LogRule FindByType<T>() where T : LogRule
+        {
+            return Find(r => r is T);
+        }
+
+        public LogRule FindByType(Type type)
+        {
+            return Find(r => r.GetType() == type);
         }
 
         public bool Contains(LogRule rule)
