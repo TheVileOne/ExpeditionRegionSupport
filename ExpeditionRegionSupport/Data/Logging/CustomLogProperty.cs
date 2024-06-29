@@ -28,7 +28,7 @@ namespace ExpeditionRegionSupport.Data.Logging
         /// </summary>
         public string Value;
 
-        public string PropertyString => Name + ':' + Value;
+        public string PropertyString => LogProperties.ToPropertyString(Name, Value);
 
         /// <summary>
         /// An overridable method that allows custom parsing of the value to determine the enable state for this property

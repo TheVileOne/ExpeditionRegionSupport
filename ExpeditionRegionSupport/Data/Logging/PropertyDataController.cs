@@ -250,11 +250,11 @@ namespace ExpeditionRegionSupport.Data.Logging
 
                 if (UnrecognizedFields.TryGetValue(properties, out StringDictionary unrecognizedPropertyLines) && unrecognizedPropertyLines.Count > 0)
                 {
-                    if (properties.CustomProperties.Count() == 0) //Ensure that custom field header is only added once
-                        sb.AppendLine("custom:");
+                    if (!properties.CustomProperties.Any()) //Ensure that custom field header is only added once
+                        sb.AppendPropertyString("custom");
 
                     foreach (string key in unrecognizedPropertyLines)
-                        sb.AppendLine(key + ":" + unrecognizedPropertyLines[key]);
+                        sb.AppendPropertyString(key, unrecognizedPropertyLines[key]);
                 }
             }
 

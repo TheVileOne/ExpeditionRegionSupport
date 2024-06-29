@@ -94,7 +94,7 @@ namespace ExpeditionRegionSupport.Data.Logging
 
         public virtual string ToPropertyString()
         {
-            return (Name + ':' + _enabled).ToLower();
+            return LogProperties.ToPropertyString(Name.ToLower(), _enabled.ToString());
         }
 
         public override string ToString()

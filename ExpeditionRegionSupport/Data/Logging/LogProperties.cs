@@ -205,12 +205,12 @@ namespace ExpeditionRegionSupport.Data.Logging
         {
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendLine("filename:" + Filename);
-            sb.AppendLine("altfilename:" + AltFilename);
-            sb.AppendLine("version:" + Version);
-            sb.AppendLine("tags:" + (Tags != null ? string.Join(",", Tags) : string.Empty));
-            sb.AppendLine("path:" + LogUtils.ToPlaceholderPath(ContainingFolderPath));
-            sb.AppendLine("logrules:");
+            sb.AppendPropertyString("filename", Filename);
+            sb.AppendPropertyString("altfilename", AltFilename);
+            sb.AppendPropertyString("version", Version);
+            sb.AppendPropertyString("tags", (Tags != null ? string.Join(",", Tags) : string.Empty));
+            sb.AppendPropertyString("path", LogUtils.ToPlaceholderPath(ContainingFolderPath));
+            sb.AppendPropertyString("logrules");
 
             LogRule lineCountRule = _rules.Find(r => r is ShowLineCountRule);
             LogRule categoryRule = _rules.Find(r => r is ShowCategoryRule);
@@ -218,17 +218,22 @@ namespace ExpeditionRegionSupport.Data.Logging
             sb.AppendLine(lineCountRule.PropertyString);
             sb.AppendLine(categoryRule.PropertyString);
 
-            foreach (var customProperty in CustomProperties)
+            if (CustomProperties.Any())
             {
-                //Log properties with names that are not unique are unsupported, and may cause unwanted behavior
-                //Duplicate named property strings will still be written to file the way this is currently handled
-                string propertyString = customProperty.PropertyString;
-                if (customProperty.IsLogRule)
+                sb.AppendPropertyString("custom");
+
+                foreach (var customProperty in CustomProperties)
                 {
-                    LogRule customRule = _rules.Find(r => r.Name == customProperty.Name);
-                    propertyString = customRule.PropertyString;
+                    //Log properties with names that are not unique are unsupported, and may cause unwanted behavior
+                    //Duplicate named property strings will still be written to file the way this is currently handled
+                    string propertyString = customProperty.PropertyString;
+                    if (customProperty.IsLogRule)
+                    {
+                        LogRule customRule = _rules.Find(r => r.Name == customProperty.Name);
+                        propertyString = customRule.PropertyString;
+                    }
+                    sb.AppendLine(propertyString);
                 }
-                sb.AppendLine(propertyString);
             }
 
             return sb.ToString();
@@ -253,6 +258,11 @@ namespace ExpeditionRegionSupport.Data.Logging
             }
 
             return Application.streamingAssetsPath; //Fallback path - Should register custom path later if it needs to be resolved through AssetManager
+        }
+
+        public static string ToPropertyString(string name, string value = "")
+        {
+            return name + ':' + value;
         }
     }
 }
