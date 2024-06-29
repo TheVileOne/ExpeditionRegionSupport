@@ -114,3 +114,17 @@
 /lib/HOOKS-Assembly-CSharp.dll
 /lib/PUBLIC-Assembly-CSharp.dll
 /mod/debug/
+/ExpeditionRegionSupport/obj/ExpeditionRegionSupport.csproj.nuget.dgspec.json
+/ExpeditionRegionSupport/obj/ExpeditionRegionSupport.csproj.nuget.g.props
+/ExpeditionRegionSupport/obj/ExpeditionRegionSupport.csproj.nuget.g.targets
+/ExpeditionRegionSupport/obj/project.assets.json
+/ExpeditionRegionSupport/obj/project.nuget.cache
+/LogUtils/obj/Release/net48/LogUtils.AssemblyInfoInputs.cache
+/LogUtils/obj/Release/net48/LogUtils.assets.cache
+/LogUtils/obj/Release/net48/LogUtils.csproj.AssemblyReference.cache
+/LogUtils/obj/Release/net48/LogUtils.GeneratedMSBuildEditorConfig.editorconfig
+/LogUtils/obj/LogUtils.csproj.nuget.dgspec.json
+/LogUtils/obj/LogUtils.csproj.nuget.g.props
+/LogUtils/obj/LogUtils.csproj.nuget.g.targets
+/LogUtils/obj/project.assets.json
+/LogUtils/obj/project.nuget.cache

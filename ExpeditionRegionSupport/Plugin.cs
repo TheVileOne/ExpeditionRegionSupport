@@ -38,7 +38,7 @@ namespace ExpeditionRegionSupport
             set => ExpeditionData.devMode = value;
         }
 
-        public static new Data.Logging.Logger Logger;
+        public static new LogUtils.Logger Logger;
 
         public static bool SlugBaseEnabled;
         public static WorldState ActiveWorldState;
@@ -52,7 +52,7 @@ namespace ExpeditionRegionSupport
 
         public void OnEnable()
         {
-            Logger = new Data.Logging.Logger(base.Logger);
+            Logger = new LogUtils.Logger(base.Logger);
 
             try
             {
@@ -245,7 +245,7 @@ namespace ExpeditionRegionSupport
 
         private void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)
         {
-            Logger = new Data.Logging.Logger("ErsLog", true); //Override BepInEx logger
+            Logger = new LogUtils.Logger("ErsLog", true); //Override BepInEx logger
 
             orig(self);
 
@@ -789,5 +789,16 @@ namespace ExpeditionRegionSupport
 
             RegionSelector.Instance.AddRoom(roomInfo);
         }
+
+        /// <summary>
+        /// Logs to both mod-specific logger, and ExpLog
+        /// </summary>
+        /// <param name="entry"></param>
+        public static void LogBoth(string entry)
+        {
+            ExpLog.Log(entry);
+            Logger.LogInfo(entry);
+        }
+
     }
 }

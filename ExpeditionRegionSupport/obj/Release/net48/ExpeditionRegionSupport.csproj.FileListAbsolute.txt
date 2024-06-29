@@ -7,3 +7,6 @@ C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\obj\Releas
 C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\obj\Release\net48\ExpeditionRegionSupport.csproj.CoreCompileInputs.cache
 C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\obj\Release\net48\ExpeditionRegionSupport.dll
 C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\obj\Release\net48\ExpeditionRegionSupport.pdb
+C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\LogUtils.dll
+C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\LogUtils.pdb
+C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\obj\Release\net48\ExpeditionRegionSupport.csproj.CopyComplete

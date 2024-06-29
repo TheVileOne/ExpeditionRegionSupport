@@ -9,7 +9,6 @@
 		<Reference Include="../lib/*.dll">
 			<Private>false</Private>
 		</Reference>
-		<ProjectReference Include="..\LogUtils\LogUtils.csproj" />
 		<Reference Include="Microsoft.CSharp" Version="4.7.0">
 			<Private>false</Private>
 		</Reference>
@@ -17,7 +16,7 @@
 
 	<Target Name="GenerateMod" AfterTargets="PostBuildEvent">
 		<ItemGroup>
-			<RemovePlugins Include="../mod/plugins/ExpeditionRegionSupport.dll" />
+			<RemovePlugins Include="../mod/plugins/LogUtils.dll" />
 			<RemovePDBs Include="$(OutDir)*.pdb" />
 		</ItemGroup>
 		<ItemGroup>
