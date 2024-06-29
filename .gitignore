@@ -128,3 +128,5 @@
 /LogUtils/obj/LogUtils.csproj.nuget.g.targets
 /LogUtils/obj/project.assets.json
 /LogUtils/obj/project.nuget.cache
+/LogUtils/obj/Release/net48/LogUtils.csproj.CoreCompileInputs.cache
+/LogUtils/obj/Release/net48/LogUtils.csproj.FileListAbsolute.txt
