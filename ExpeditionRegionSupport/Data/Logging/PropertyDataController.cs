@@ -190,8 +190,8 @@ namespace ExpeditionRegionSupport.Data.Logging
                     LogRule showCategoryRule = new ShowCategoryRule(showCategories);
                     LogRule showLineCountRule = new ShowLineCountRule(showLineCount);
 
-                    properties.AddRule(showCategoryRule);
-                    properties.AddRule(showLineCountRule);
+                    properties.Rules.Add(showCategoryRule);
+                    properties.Rules.Add(showLineCountRule);
 
                     const int expected_field_total = 8;
 
