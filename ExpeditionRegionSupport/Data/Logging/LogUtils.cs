@@ -21,6 +21,13 @@ namespace ExpeditionRegionSupport.Data.Logging
             Plugin.Logger.LogInfo(entry);
         }
 
+        public static LogID GetLogID(string value)
+        {
+            LogID found = null;
+            if (ExtEnumBase.TryParse(typeof(LogID), value, true, out ExtEnumBase extBase))
+                found = (LogID)extBase;
+            return found;
+        }
 
         /// <summary>
         /// Converts a placeholder path string into a useable path
