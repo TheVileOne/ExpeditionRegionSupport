@@ -2,7 +2,7 @@
 
 namespace LogUtils
 {
-    public class LogID : ExtEnum<LogProperties>
+    public class LogID : ExtEnum<LogID>
     {
         /// <summary>
         /// Contains path information, and other settings that affect logging behavior 
