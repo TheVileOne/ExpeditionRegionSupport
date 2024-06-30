@@ -95,8 +95,8 @@ namespace LogUtils
             }
             catch (Exception ex)
             {
-                Debug.LogError("Unable to replace existing log file");
-                Debug.LogError(ex);
+                UtilityCore.BaseLogger.LogError("Unable to replace existing log file");
+                UtilityCore.BaseLogger.LogError(ex);
             }
 
             applyEventHandlers();
@@ -127,7 +127,7 @@ namespace LogUtils
                 //The found directory needs to be created if it doesn't yet exist, and the alternative directory removed
                 if (!Directory.Exists(BaseDirectory))
                 {
-                    Debug.Log("Creating directory: " + BaseDirectory);
+                    UtilityCore.BaseLogger.LogInfo("Creating directory: " + BaseDirectory);
                     Directory.CreateDirectory(BaseDirectory);
                 }
 
@@ -137,20 +137,20 @@ namespace LogUtils
                 {
                     if (Directory.Exists(alternativeLogPath))
                     {
-                        Debug.Log("Removing directory: " + alternativeLogPath);
+                        UtilityCore.BaseLogger.LogInfo("Removing directory: " + alternativeLogPath);
                         Directory.Delete(alternativeLogPath, true);
                     }
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError("Unable to delete log directory");
-                    Debug.LogError(ex);
+                    UtilityCore.BaseLogger.LogError("Unable to delete log directory");
+                    UtilityCore.BaseLogger.LogError(ex);
                 }
             }
             catch (Exception ex)
             {
-                Debug.LogError("Unable to create log directory");
-                Debug.LogError(ex);
+                UtilityCore.BaseLogger.LogError("Unable to create log directory");
+                UtilityCore.BaseLogger.LogError(ex);
             }
 
             HasInitialized = true;
@@ -268,7 +268,7 @@ namespace LogUtils
 
             string basePath = Path.GetFullPath(BaseDirectory).TrimEnd('\\');
 
-            Debug.Log("Comparing " + path + " to  base " + basePath);
+            UtilityCore.BaseLogger.LogInfo("Comparing " + path + " to  base " + basePath);
 
             return string.Equals(path, basePath, StringComparison.InvariantCultureIgnoreCase);
         }
@@ -311,7 +311,7 @@ namespace LogUtils
             {
                 string path = signalData[2];
 
-                Debug.Log("Log directory changed to " + path);
+                UtilityCore.BaseLogger.LogInfo("Log directory changed to " + path);
 
                 OnMoveComplete?.Invoke(path);
                 BaseDirectory = path; //This gets updated last. It is needed for comparison purposes.
