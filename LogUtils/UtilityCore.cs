@@ -71,7 +71,7 @@ namespace LogUtils
         /// </summary>
         internal static void LoadComponents()
         {
-            PropertyManager = PropertyDataController.GetOrCreate(out bool wasCreated);
+            PropertyManager = ComponentUtils.GetOrCreate<PropertyDataController>("Log Properties", out bool wasCreated);
 
             if (wasCreated)
             {

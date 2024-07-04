@@ -10,10 +10,8 @@ using UnityEngine;
 
 namespace LogUtils
 {
-    public class PropertyDataController : MonoBehaviour, DataController
+    public class PropertyDataController : UtilityComponent, DataController
     {
-        public Version Version => UtilityCore.AssemblyVersion;
-
         public List<LogProperties> Properties = new List<LogProperties>();
         public CustomLogPropertyCollection CustomLogProperties = new CustomLogPropertyCollection();
         public Dictionary<LogProperties, StringDictionary> UnrecognizedFields = new Dictionary<LogProperties, StringDictionary>();
@@ -27,7 +25,7 @@ namespace LogUtils
 
         public PropertyDataController()
         {
-            tag = "Log Properties";
+            Tag = "Log Properties";
 
             CustomLogProperties.OnPropertyAdded += onCustomPropertyAdded;
             CustomLogProperties.OnPropertyRemoved += onCustomPropertyRemoved;
@@ -262,47 +260,6 @@ namespace LogUtils
             }
 
             File.WriteAllText(Path.Combine(Application.streamingAssetsPath, "logs.txt"), sb.ToString());
-        }
-
-        /// <summary>
-        /// Searches for a PropertyDataController component, and creates one if it does not exist
-        /// </summary>
-        public static PropertyDataController GetOrCreate(out bool didCreate)
-        {
-            GameObject managerObject = BepInEx.Bootstrap.Chainloader.ManagerObject;
-
-            didCreate = false;
-            if (managerObject != null)
-            {
-                Version activeVersion = null;
-                try
-                {
-                    //TODO: Make sure this is getting an existing object, and not creating one
-                    var propertyController = managerObject.GetComponent<PropertyDataController>();
-
-                    if (propertyController == null)
-                    {
-                        didCreate = true;
-                        propertyController = managerObject.AddComponent<PropertyDataController>();
-                    }
-
-                    activeVersion = propertyController.Version;
-                    return propertyController;
-                }
-                catch (TypeLoadException) //There was some kind of version mismatch
-                {
-                    DataController controller = (object)GameObject.FindWithTag("Log Properties") as DataController;
-                    activeVersion = controller.Version;
-                }
-                finally
-                {
-                    if (activeVersion < UtilityCore.AssemblyVersion)
-                    {
-                        //TODO: Replace PropertyDataController with most up to data version
-                    }
-                }
-            }
-            return null;
         }
 
         public static string FormatAccessString(string logName, string propertyName)
