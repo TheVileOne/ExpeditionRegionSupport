@@ -10,7 +10,7 @@ namespace LogUtils
 {
     public class LogProperties
     {
-        public static PropertyDataController PropertyManager;
+        public static PropertyDataController PropertyManager => UtilityCore.PropertyManager;
 
         public bool ReadOnly;
         public readonly string ContainingFolderPath;

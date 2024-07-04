@@ -12,8 +12,7 @@ namespace LogUtils
 {
     public class PropertyDataController : MonoBehaviour, DataController
     {
-        public static Version AssemblyVersion = new Version(0, 8, 5);
-        public Version Version => AssemblyVersion;
+        public Version Version => UtilityCore.AssemblyVersion;
 
         public List<LogProperties> Properties = new List<LogProperties>();
         public CustomLogPropertyCollection CustomLogProperties = new CustomLogPropertyCollection();
@@ -297,7 +296,7 @@ namespace LogUtils
                 }
                 finally
                 {
-                    if (activeVersion < AssemblyVersion)
+                    if (activeVersion < UtilityCore.AssemblyVersion)
                     {
                         //TODO: Replace PropertyDataController with most up to data version
                     }

@@ -1,6 +1,5 @@
 ﻿using BepInEx.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,23 +8,32 @@ namespace LogUtils
 {
     public static class UtilityCore
     {
-        public static ManualLogSource BaseLogger { get; private set; }
+        public static Version AssemblyVersion = new Version(0, 8, 5);
+
+        /// <summary>
+        /// The assembly responsible for loading core resources for the utility
+        /// </summary>
+        public static bool IsControllingAssembly { get; private set; }
 
         public static bool IsInitialized { get; private set; }
 
         private static bool initializingInProgress;
 
+        public static ManualLogSource BaseLogger { get; private set; }
+
+        public static PropertyDataController PropertyManager;
+
         internal static void Initialize()
         {
-            if (initializingInProgress) return; //Initialize may be called several times during the init process
+            if (IsInitialized || initializingInProgress) return; //Initialize may be called several times during the init process
 
             initializingInProgress = true;
 
             BaseLogger = BepInEx.Logging.Logger.Sources.FirstOrDefault(l => l.SourceName == "LogUtils") as ManualLogSource
                       ?? BepInEx.Logging.Logger.CreateLogSource("LogUtils");
 
-            ApplyHooks();
             LoadComponents();
+            ApplyHooks();
             initializingInProgress = false;
 
             IsInitialized = true;
@@ -36,6 +44,8 @@ namespace LogUtils
         /// </summary>
         internal static void ApplyHooks()
         {
+            if (!IsControllingAssembly) return; //Only the controlling assembly is allowed to apply the hooks
+
             Logger.ApplyHooks();
         }
 
@@ -61,10 +71,13 @@ namespace LogUtils
         /// </summary>
         internal static void LoadComponents()
         {
-            LogProperties.PropertyManager = PropertyDataController.GetOrCreate(out bool wasCreated);
+            PropertyManager = PropertyDataController.GetOrCreate(out bool wasCreated);
 
             if (wasCreated)
-                LogProperties.PropertyManager.ReadFromFile();
+            {
+                IsControllingAssembly = true;
+                PropertyManager.ReadFromFile();
+            }
         }
     }
 }
