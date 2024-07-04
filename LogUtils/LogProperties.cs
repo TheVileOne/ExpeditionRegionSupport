@@ -82,12 +82,7 @@ namespace LogUtils
         /// </summary>
         public string[] Tags
         {
-            get
-            {
-                if (ReadOnly)
-                    return (string[])_tags.Clone();
-                return _tags;
-            }
+            get => _tags;
             set
             {
                 if (ReadOnly) return;
