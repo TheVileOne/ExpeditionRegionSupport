@@ -23,6 +23,11 @@ namespace LogUtils
 
         public static PropertyDataController PropertyManager;
 
+        /// <summary>
+        /// Handles cross-mod data storage for the utility
+        /// </summary>
+        public static SharedDataHandler DataHandler;
+
         internal static void Initialize()
         {
             if (IsInitialized || initializingInProgress) return; //Initialize may be called several times during the init process
@@ -78,6 +83,8 @@ namespace LogUtils
                 IsControllingAssembly = true;
                 PropertyManager.ReadFromFile();
             }
+
+            DataHandler = ComponentUtils.GetOrCreate<SharedDataHandler>("Shared Data", out _);
         }
     }
 }
