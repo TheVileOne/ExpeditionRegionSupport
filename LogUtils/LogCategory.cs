@@ -1,6 +1,6 @@
 ﻿namespace LogUtils
 {
-    public class LogCategory : ExtEnum<LogCategory>
+    public class LogCategory : SharedExtEnum<LogCategory>
     {
         public LogCategory(string value, bool register = false) : base(value, register)
         {
