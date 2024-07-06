@@ -140,7 +140,7 @@ namespace LogUtils
         public void LogBepEx(LogCategory category, object data)
         {
             var bepLogger = ManagedLogSource ?? UtilityCore.BaseLogger;
-            bepLogger.Log(category, data);
+            bepLogger.Log(category.BepInExCategory, data);
         }
 
         public void LogUnity(object data)
@@ -158,6 +158,7 @@ namespace LogUtils
             //TODO: Put this in a proper place
             Debug.unityLogger.filterLogType = (LogType)1000; //Allow space for custom LogTypes to be defined
 
+            /*
             LogType unityLogCategory;
 
             //Convert translatable LogTypes first
@@ -174,8 +175,8 @@ namespace LogUtils
                 UtilityCore.BaseLogger.LogInfo("Unity logger requires custom log categories to be registered");
                 unityLogCategory = LogType.Log;
             }
-
-            Debug.unityLogger.Log(unityLogCategory, data);
+            */
+            Debug.unityLogger.Log(category.UnityCategory, data);
         }
 
         public void LogExp(object data)
@@ -195,10 +196,8 @@ namespace LogUtils
 
         public void LogJolly(LogCategory category, object data)
         {
-            //TODO: Headers????
-            Debug.Log(data);
+            JollyCoop.JollyCustom.Log(data?.ToString());
         }
-
 
         #endregion
 
