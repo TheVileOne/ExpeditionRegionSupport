@@ -87,9 +87,11 @@ namespace LogUtils
             while (entriesToFind > 0 && cursor.TryGotoNext(MoveType.After, x => x.MatchLdstr("exceptionLog.txt")))
             {
                 cursor.Emit(OpCodes.Pop);
-                cursor.Emit(OpCodes.Ldstr, LogID.Exception.Properties.CurrentFilename + ".log");
+                cursor.EmitDelegate(() => LogID.Exception.Properties.CurrentFilename + ".log");
+                //cursor.Emit(OpCodes.Ldstr, LogID.Exception.Properties.CurrentFilename + ".log");
                 cursor.Emit(OpCodes.Ldc_I4_1); //Push a true value on the stack to satisfy second argument
-                cursor.EmitDelegate(Logger.ApplyLogPathToFilename);
+                cursor.EmitDelegate(() => LogID.Exception.Properties.CurrentFilepath);
+                //cursor.EmitDelegate(Logger.ApplyLogPathToFilename);
                 entriesToFind--;
             }
 
@@ -100,9 +102,11 @@ namespace LogUtils
             if (cursor.TryGotoNext(MoveType.After, x => x.MatchLdstr("consoleLog.txt")))
             {
                 cursor.Emit(OpCodes.Pop);
-                cursor.Emit(OpCodes.Ldstr, LogID.Unity.Properties.CurrentFilename + ".log");
+                cursor.EmitDelegate(() => LogID.Unity.Properties.CurrentFilename + ".log");
+                //cursor.Emit(OpCodes.Ldstr, LogID.Unity.Properties.CurrentFilename + ".log");
                 cursor.Emit(OpCodes.Ldc_I4_1); //Push a true value on the stack to satisfy second argument
-                cursor.EmitDelegate(Logger.ApplyLogPathToFilename);
+                cursor.EmitDelegate(() => LogID.Unity.Properties.CurrentFilepath);
+                //cursor.EmitDelegate(Logger.ApplyLogPathToFilename);
             }
             else
             {
@@ -127,10 +131,12 @@ namespace LogUtils
             if (cursor.TryGotoNext(MoveType.After, x => x.MatchCall(typeof(RWCustom.Custom).GetMethod("RootFolderDirectory"))))
             {
                 cursor.Emit(OpCodes.Pop); //Get method return value off the stack
-                cursor.Emit(OpCodes.Ldsfld, typeof(Logger).GetField("BaseDirectory")); //Load new path onto stack
+                cursor.EmitDelegate(() => logFile.Properties.ContainingFolderPath);//Load current filepath onto stack
+                //cursor.Emit(OpCodes.Ldstr, logFile.Properties.ContainingFolderPath);
                 cursor.GotoNext(MoveType.After, x => x.Match(OpCodes.Ldstr));
                 cursor.Emit(OpCodes.Pop); //Replace filename extension with new one
-                cursor.Emit(OpCodes.Ldstr, logFile.Properties.CurrentFilename + ".log");
+                cursor.EmitDelegate(() => logFile.Properties.CurrentFilename + ".log");//Load current filename onto stack
+                //cursor.Emit(OpCodes.Ldstr, logFile.Properties.CurrentFilename + ".log");
             }
             else
             {
