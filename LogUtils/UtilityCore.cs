@@ -1,8 +1,6 @@
 ﻿using BepInEx.Logging;
 using System;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LogUtils
 {
@@ -38,37 +36,10 @@ namespace LogUtils
                       ?? BepInEx.Logging.Logger.CreateLogSource("LogUtils");
 
             LoadComponents();
-            ApplyHooks();
+            GameHooks.Initialize();
             initializingInProgress = false;
 
             IsInitialized = true;
-        }
-
-        /// <summary>
-        /// Apply hooks used by the utility module
-        /// </summary>
-        internal static void ApplyHooks()
-        {
-            if (!IsControllingAssembly) return; //Only the controlling assembly is allowed to apply the hooks
-
-            Logger.ApplyHooks();
-        }
-
-        /// <summary>
-        /// Releases, and then reapply hooks used by the utility module 
-        /// </summary>
-        public static void ReloadHooks()
-        {
-            UnloadHooks();
-            ApplyHooks();
-        }
-
-        /// <summary>
-        /// Releases all hooks used by the utility module
-        /// </summary>
-        public static void UnloadHooks()
-        {
-            //TODO: Logger hooks don't have unload logic
         }
 
         /// <summary>

@@ -13,7 +13,6 @@ namespace LogUtils
         public static PropertyDataController PropertyManager => UtilityCore.PropertyManager;
 
         public bool ReadOnly;
-        public readonly string ContainingFolderPath;
 
         public CustomLogPropertyCollection CustomProperties = new CustomLogPropertyCollection();
 
@@ -44,6 +43,33 @@ namespace LogUtils
                 _version = value;
             }
         }
+
+        /// <summary>
+        /// The active filename of the log file (without file extension)
+        /// </summary>
+        public string CurrentFilename
+        {
+            get
+            {
+                //Filename field designates the original log filename, while AltFilename is the preferred/current log filename 
+                string currentFilename;
+                if (!string.IsNullOrEmpty(AltFilename))
+                    currentFilename = AltFilename;
+                else
+                    currentFilename = Filename;
+                return currentFilename;
+            }
+        }
+
+        /// <summary>
+        /// The active filepath of the log file (with filename)
+        /// </summary>
+        public string CurrentFilepath => Path.Combine(ContainingFolderPath, CurrentFilename + ".log");
+
+        /// <summary>
+        /// The active filepath of the log file (without filename)
+        /// </summary>
+        public string ContainingFolderPath { get; private set; }
 
         /// <summary>
         /// The filename that will be used in the typical write path for the log file
