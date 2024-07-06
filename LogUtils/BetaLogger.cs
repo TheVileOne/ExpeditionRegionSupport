@@ -60,25 +60,26 @@ namespace LogUtils
                 VisibleLoggers[modID] = this;
         }
 
-        public BetaLogger(LogID logID)
+        public BetaLogger(params LogID[] presets)
         {
-            LogTargets.Add(logID);
+            LogTargets.AddRange(presets);
 
-            bool isLocal = LocalIDs.Contains(logID);
-            if (!isLocal)
+            foreach (LogID logID in presets)
             {
-                //Check that a foreign LogID doesn't exist
-                if (!IsForeign(logID))
+                if (!LocalIDs.Contains(logID))
                 {
-                    isLocal = true;
-                    LocalIDs.Add(logID);
+                    //TODO: Detect foreign ids
+                    //Check that a foreign LogID doesn't exist
+                    //if (!IsForeign(logID))
+                    {
+                        LocalIDs.Add(logID);
+                    }
                 }
             }
         }
 
         public BetaLogger(string logName, string log)
         {
-
         }
 
         #region Log Overloads (object)
