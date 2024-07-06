@@ -1,5 +1,4 @@
 ﻿using BepInEx.Logging;
-using LogUtils.Legacy;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,9 +6,9 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
-namespace LogUtils
+namespace LogUtils.Legacy
 {
-    public class Logger : ILogger, IDisposable
+    public class LegacyLogger : ILogger, IDisposable
     {
         /// <summary>
         /// The name of the combined mod log file in the Logs directory. Only produced with LogManager plugin.
@@ -60,14 +59,7 @@ namespace LogUtils
         /// </summary>
         public static string BaseDirectory;
 
-        static Logger()
-        {
-            //Initialize the utility when this class is accessed
-            if (!UtilityCore.IsInitialized)
-                UtilityCore.Initialize();
-        }
-
-        public Logger(LogModule logModule)
+        public LegacyLogger(LogModule logModule)
         {
             if (logModule == null)
                 throw new ArgumentNullException(nameof(logModule));
@@ -78,11 +70,11 @@ namespace LogUtils
             applyEventHandlers();
         }
 
-        public Logger(ManualLogSource logger) : this(new LogModule(logger))
+        public LegacyLogger(ManualLogSource logger) : this(new LogModule(logger))
         {
         }
 
-        public Logger(string logName, bool overwrite = false)
+        public LegacyLogger(string logName, bool overwrite = false)
         {
             InitializeLogDirectory();
 
@@ -492,19 +484,6 @@ namespace LogUtils
         public void Dispose()
         {
             removeEventHandlers();
-        }
-    }
-
-    public static class ExtendedILogListener
-    {
-        /// <summary>
-        /// Fetches signal data produced by a custom ILogListener
-        /// </summary>
-        public static string GetSignal(this ILogListener self)
-        {
-            string stringToProcess = self.ToString();
-
-            return stringToProcess.StartsWith("Signal") ? stringToProcess : null;
         }
     }
 }

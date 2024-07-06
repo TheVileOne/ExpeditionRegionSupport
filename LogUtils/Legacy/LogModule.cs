@@ -3,7 +3,7 @@ using System;
 using System.IO;
 using UnityEngine;
 
-namespace LogUtils
+namespace LogUtils.Legacy
 {
     /// <summary>
     /// Contains components of the logger
