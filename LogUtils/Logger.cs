@@ -205,42 +205,6 @@ namespace LogUtils
             return fileMover.MoveFile();
         }
 
-        private static bool listenerCheckComplete;
-
-        /// <summary>
-        /// The ILogListener managed by the LogManager plugin. Null when LogManager isn't enabled.
-        /// </summary>
-        private static ILogListener managedLogListener;
-
-        /// <summary>
-        /// Hooks into RainWorld.Update
-        /// This is required for the signaling system. All remote loggers should use this hook to ensure that the logger is aware
-        /// of the Logs directory being moved.
-        /// </summary>
-        internal static void ApplyHooks()
-        {
-            On.RainWorld.Update += RainWorld_Update;
-        }
-
-        private static void RainWorld_Update(On.RainWorld.orig_Update orig, RainWorld self)
-        {
-            orig(self);
-
-            //Logic is handled after orig for several reasons. The main reason is that all remote loggers are guaranteed to receive any signals set during update
-            //no matter where they are in the load order. Signals are created pre-update, or during update only.
-            if (self.started)
-            {
-                if (!listenerCheckComplete)
-                {
-                    managedLogListener = findManagedListener();
-                    listenerCheckComplete = true;
-                }
-
-                if (managedLogListener != null)
-                    processLogSignal(managedLogListener.GetSignal());
-            }
-        }
-
         /// <summary>
         /// Check that a path matches one of the two supported Logs directories.
         /// </summary>
@@ -294,7 +258,7 @@ namespace LogUtils
         /// <summary>
         /// Handles an event based on a provided signal word
         /// </summary>
-        private static void processLogSignal(string signal)
+        internal static void ProcessLogSignal(string signal)
         {
             if (signal == "Signal.None") return;
 
@@ -319,25 +283,6 @@ namespace LogUtils
             }
             else if (signalWord == "MoveAborted")
                 OnMoveAborted?.Invoke();
-        }
-
-        /// <summary>
-        /// Look for an ILogListener that returns a signal sent through ToString().
-        /// This listener belongs to the LogManager plugin.
-        /// </summary>
-        private static ILogListener findManagedListener()
-        {
-            //Look for an ILogListener with a signal. This listener belongs to the LogManager plugin
-            IEnumerator<ILogListener> enumerator = BepInEx.Logging.Logger.Listeners.GetEnumerator();
-
-            ILogListener managedListener = null;
-            while (enumerator.MoveNext() && managedListener == null)
-            {
-                if (enumerator.Current.GetSignal() != null)
-                    managedListener = enumerator.Current;
-            }
-
-            return managedListener;
         }
 
         #endregion

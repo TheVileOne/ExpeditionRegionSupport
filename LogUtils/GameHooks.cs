@@ -35,8 +35,10 @@ namespace LogUtils
         {
             if (!UtilityCore.IsControllingAssembly) return; //Only the controlling assembly is allowed to apply the hooks
 
-            Logger.ApplyHooks();
+            //Signal system
+            On.RainWorld.Update += RainWorld_Update;
 
+            //Log property handling
             IL.RainWorld.HandleLog += RainWorld_HandleLog;
             IL.Expedition.ExpLog.ClearLog += replaceLogPathHook_Expedition;
             IL.Expedition.ExpLog.Log += replaceLogPathHook_Expedition;
@@ -66,7 +68,8 @@ namespace LogUtils
         {
             if (!UtilityCore.IsControllingAssembly) return;
 
-            //TODO: Logger does not have unload logic for its hooks
+            On.RainWorld.Update -= RainWorld_Update;
+
             IL.RainWorld.HandleLog -= RainWorld_HandleLog;
             IL.Expedition.ExpLog.ClearLog -= replaceLogPathHook_Expedition;
             IL.Expedition.ExpLog.Log -= replaceLogPathHook_Expedition;
@@ -76,6 +79,29 @@ namespace LogUtils
             IL.JollyCoop.JollyCustom.WriteToLog -= replaceLogPathHook_JollyCoop;
 
             managedHooks.ForEach(hook => hook.Free());
+        }
+
+        private static bool listenerCheckComplete;
+
+        /// <summary>
+        /// This is required for the signaling system. All remote loggers should use this hook to ensure that the logger is aware of the Logs directory being moved
+        /// </summary>
+        private static void RainWorld_Update(On.RainWorld.orig_Update orig, RainWorld self)
+        {
+            orig(self);
+
+            //Logic is handled after orig for several reasons. The main reason is that all remote loggers are guaranteed to receive any signals set during update
+            //no matter where they are in the load order. Signals are created pre-update, or during update only.
+            if (self.started)
+            {
+                if (!listenerCheckComplete)
+                {
+                    UtilityCore.FindManagedListener();
+                    listenerCheckComplete = true;
+                }
+
+                UtilityCore.HandleLogSignal();
+            }
         }
 
         private static void RainWorld_HandleLog(ILContext il)
