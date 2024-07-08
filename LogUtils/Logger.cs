@@ -194,18 +194,6 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Moves a log file from one place to another. Allows file renaming.
-        /// </summary>
-        /// <param name="sourceLogPath">The full path to the log file that needs to be moved (including filename + ext)</param>
-        /// <param name="destLogPath">The full path to the destination of the log file. Log filename is optional.</param>
-        public static FileStatus MoveLog(string sourceLogPath, string destLogPath)
-        {
-            LogFileMover fileMover = new LogFileMover(sourceLogPath, destLogPath);
-
-            return fileMover.MoveFile();
-        }
-
-        /// <summary>
         /// Check that a path matches one of the two supported Logs directories.
         /// </summary>
         public static bool IsValidLogPath(string path)

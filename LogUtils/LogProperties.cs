@@ -145,8 +145,8 @@ namespace LogUtils
 
         public bool HasPath(string path)
         {
-            //TODO: Strip filename
-            return LogUtils.ComparePaths(ContainingFolderPath, GetContainingPath(path));
+            return PathUtils.ComparePaths(CurrentFolderPath, GetContainingPath(path));
+        }
         }
 
         public override string ToString()
@@ -157,7 +157,7 @@ namespace LogUtils
             sb.AppendPropertyString("altfilename", AltFilename);
             sb.AppendPropertyString("version", Version);
             sb.AppendPropertyString("tags", Tags != null ? string.Join(",", Tags) : string.Empty);
-            sb.AppendPropertyString("path", LogUtils.ToPlaceholderPath(ContainingFolderPath));
+            sb.AppendPropertyString("path", PathUtils.ToPlaceholderPath(ContainingFolderPath));
             sb.AppendPropertyString("logrules");
 
             LogRule lineCountRule = Rules.FindByType<ShowLineCountRule>();
@@ -187,19 +187,19 @@ namespace LogUtils
             return sb.ToString();
         }
 
-        public static string GetContainingPath(string relativePathNoFile)
+        public static string GetContainingPath(string relativePath)
         {
-            if (relativePathNoFile == null)
+            if (relativePath == null)
                 return Application.streamingAssetsPath;
 
-            relativePathNoFile = LogUtils.ToPath(relativePathNoFile.ToLower());
+            relativePath = PathUtils.ToPath(relativePath.ToLower());
 
-            if (Directory.Exists(relativePathNoFile)) //No need to change the path when it is already valid
-                return relativePathNoFile;
+            if (Directory.Exists(relativePath)) //No need to change the path when it is already valid
+                return relativePath;
 
             if (Custom.rainWorld != null)
             {
-                string customPath = AssetManager.ResolveDirectory(relativePathNoFile); //This cannot be called too early in the load process
+                string customPath = AssetManager.ResolveDirectory(relativePath); //This cannot be called too early in the load process
 
                 if (Directory.Exists(customPath))
                     return customPath;

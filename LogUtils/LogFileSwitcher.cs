@@ -62,7 +62,7 @@ namespace LogUtils
                 //If last move was unsuccessful, it is okay to do nothing here 
                 if (valuePair.ToggleFlag == SwitchStartPosition)
                 {
-                    valuePair.Status = Logger.MoveLog(path1, path2);
+                    valuePair.Status = LogUtils.MoveLog(path1, path2);
 
                     //Don't allow file position to get desynced with toggle position due to move fail
                     if (valuePair.LastMoveSuccessful)
@@ -74,7 +74,7 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Looks for a matching path, and attempts to move log file to that path
+        /// Searches for a matching path, and attempts to move log file to that path
         /// </summary>
         public void SwitchToPath(string path)
         {
@@ -86,7 +86,7 @@ namespace LogUtils
 
             if (valuePair != null && valuePair.ActiveValue != path)
             {
-                valuePair.Status = Logger.MoveLog(valuePair.ActiveValue, path);
+                valuePair.Status = LogUtils.MoveLog(valuePair.ActiveValue, path);
 
                 //Don't allow file position to get desynced with toggle position due to move fail
                 if (valuePair.LastMoveSuccessful)
