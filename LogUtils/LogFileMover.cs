@@ -120,7 +120,7 @@ namespace LogUtils
                 string sourceFilename = sourceFilePath.Name;
                 string destFilename = destFilePath.Name;
 
-                if (LogValidator.ExtensionsMatch(sourceFilename, destFilename) && sourceFilename == destFilename)
+                if (FileUtils.ExtensionsMatch(sourceFilename, destFilename) && sourceFilename == destFilename)
                     return FileStatus.NoActionRequired; //Same file, no copy necessary
 
                 destFilePath.Delete(); //Move will fail if a file already exists

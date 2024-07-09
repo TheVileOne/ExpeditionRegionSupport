@@ -23,7 +23,7 @@ namespace LogUtils
             UnvalidatedSourcePath = UnvalidatedDestinationPath = null;
             SourceFile = DestinationFile = null;
 
-            if (!IsValidLogFileExt(sourcePath)) return false; //We don't want to handle random filetypes
+            if (!FileUtils.IsSupportedExtension(sourcePath)) return false; //We don't want to handle random filetypes
 
             //A valid filetype is all we need to validate the source path
             SourceFile = new FileInfo(sourcePath);
@@ -33,7 +33,7 @@ namespace LogUtils
             {
                 string destFilename = Path.GetFileName(destPath);
 
-                if (!ExtensionsMatch(SourceFile.Name, destFilename) && !IsValidLogFileExt(destFilename))
+                if (!FileUtils.ExtensionsMatch(SourceFile.Name, destFilename) && !FileUtils.IsSupportedExtension(destFilename))
                     return false; //We can only replace log files
 
                 DestinationFile = new FileInfo(destPath);
@@ -44,24 +44,6 @@ namespace LogUtils
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// Returns true if filename has either .log, or .txt as a file extension
-        /// </summary>
-        public static bool IsValidLogFileExt(string filename)
-        {
-            string fileExt = Path.GetExtension(filename); //Case-insensitive file extensions not supported
-
-            return fileExt == ".log" || fileExt == ".txt";
-        }
-
-        public static bool ExtensionsMatch(string filename, string filename2)
-        {
-            string fileExt = Path.GetExtension(filename);
-            string fileExt2 = Path.GetExtension(filename2);
-
-            return fileExt == fileExt2;
         }
     }
 }
