@@ -2,12 +2,12 @@
 using System.IO;
 using System.Linq;
 
-namespace LogUtils
+namespace LogUtils.Helpers
 {
     public static class FileUtils
     {
         public static string[] SupportedExtensions = { ".log", ".txt" };
-        
+
         public static bool CompareFilenames(string filename, string filename2, bool ignoreExtensions = true)
         {
             if (filename == null)

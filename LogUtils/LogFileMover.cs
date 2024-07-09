@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using LogUtils.Helpers;
 using UnityEngine;
 
 namespace LogUtils

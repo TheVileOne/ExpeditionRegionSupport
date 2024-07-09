@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace LogUtils
+namespace LogUtils.Helpers
 {
     internal static class Extensions
     {

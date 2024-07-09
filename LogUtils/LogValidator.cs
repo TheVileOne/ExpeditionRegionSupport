@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using LogUtils.Helpers;
 
 namespace LogUtils
 {

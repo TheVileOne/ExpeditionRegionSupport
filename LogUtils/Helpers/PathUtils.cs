@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace LogUtils
+namespace LogUtils.Helpers
 {
     public static class PathUtils
     {
