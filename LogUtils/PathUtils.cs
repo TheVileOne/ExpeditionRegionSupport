@@ -10,10 +10,44 @@ namespace LogUtils
 {
     public static class PathUtils
     {
+        /// <summary>
+        /// Checks that some portion of a path exists
+        /// </summary>
+        public static bool PathRootExists(string path)
+        {
+            if (path == null) return false;
+
+            path = RemoveFileFromPath(path);
+
+            short maxPathChecksAllowed = 3; //The maximum number of containing paths to check
+            for (int i = 0; i < maxPathChecksAllowed; i++)
+            {
+                if (Directory.Exists(path))
+                    return true;
+                path = Path.GetDirectoryName(path);
+            }
+            return false;
+        }
+
         public static string RemoveFileFromPath(string path)
         {
             if (Path.HasExtension(path))
                 return Path.GetDirectoryName(path); //Gets the path of the containing directory of a file/directory path
+            return path;
+        }
+
+        /// <summary>
+        /// Check for a path root, and strip it from the path
+        /// </summary>
+        public static string Unroot(string path)
+        {
+            if (Path.IsPathRooted(path))
+            {
+                if (path.Length > 2 && path[1] == Path.VolumeSeparatorChar) //Path begins with a drive map
+                    return path.Substring(2);
+
+                return path.Substring(1);
+            }
             return path;
         }
 

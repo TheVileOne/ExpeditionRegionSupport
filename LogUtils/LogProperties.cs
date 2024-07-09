@@ -192,20 +192,48 @@ namespace LogUtils
             if (relativePath == null)
                 return Application.streamingAssetsPath;
 
-            relativePath = PathUtils.ToPath(relativePath.ToLower());
-
-            if (Directory.Exists(relativePath)) //No need to change the path when it is already valid
-                return relativePath;
-
-            if (Custom.rainWorld != null)
+            //Apply some preprocessing to the path based on whether it is a partial, or full path
+            string path;
+            if (Path.IsPathRooted(relativePath))
             {
-                string customPath = AssetManager.ResolveDirectory(relativePath); //This cannot be called too early in the load process
+                UtilityCore.BaseLogger.LogInfo("Processing a rooted path when expecting a partial one");
 
-                if (Directory.Exists(customPath))
-                    return customPath;
+                if (Directory.Exists(relativePath)) //As long as it exists, we shouldn't care if it is rooted
+                    return relativePath;
+
+                UtilityCore.BaseLogger.LogInfo("Rooted path could not be found. Unrooting...");
+
+                //Unrooting allows us to still find a possibly valid Rain World path
+                relativePath = PathUtils.Unroot(relativePath);
+
+                path = Path.GetFullPath(relativePath);
+
+                if (PathUtils.PathRootExists(path))
+                {
+                    UtilityCore.BaseLogger.LogInfo("Unroot successful");
+                    return path;
+                }
+
+                path = relativePath; //We don't know where this path is, but we shouldn't default to the Rain World root here 
+            }
+            else
+            {
+                path = PathUtils.ToPath(relativePath);
             }
 
-            return Application.streamingAssetsPath; //Fallback path - Should register custom path later if it needs to be resolved through AssetManager
+            if (PathUtils.PathRootExists(path)) //No need to change the path when it is already valid
+                return path;
+
+            UtilityCore.BaseLogger.LogInfo("Attempting to resolve path");
+
+            //Resolve directory the game supported way if we're not too early to do so (most likely will be too early)
+            if (Custom.rainWorld != null)
+                return AssetManager.ResolveDirectory(path);
+
+            UtilityCore.BaseLogger.LogInfo("Defaulting to custom root. Path check run too early to resolve");
+
+            //This is what AssetManager.ResolveDirectory would have returned as a fallback path
+            return Path.Combine(Application.streamingAssetsPath, relativePath);
         }
 
         /// <summary>
