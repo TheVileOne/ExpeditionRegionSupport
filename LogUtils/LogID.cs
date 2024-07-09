@@ -9,8 +9,29 @@ namespace LogUtils
         /// </summary>
         public LogProperties Properties { get; }
 
-        public LogID(string filename, string relativePathNoFile = null, bool register = false) : base(filename, false)
+        /// <summary>
+        /// Controls the handle limitations of this LogID for the local mod
+        /// </summary>
+        public LogAccess Access;
+
+        /// <summary>
+        /// A flag that indicates that this represents a log file managed by the game
+        /// </summary>
+        public bool IsGameControlled;
+
+        public LogID(string filename, string relativePathNoFile = null, bool register = false) : this(filename,relativePathNoFile, LogAccess.RemoteAccessOnly, register)
         {
+        }
+
+        public LogID(string filename, string relativePathNoFile, bool gameControlled, bool register) : this(filename, relativePathNoFile, gameControlled ? LogAccess.FullAccess : LogAccess.RemoteAccessOnly, register)
+        {
+            IsGameControlled = gameControlled;
+        }
+
+        public LogID(string filename, string relativePathNoFile = null, LogAccess access = LogAccess.RemoteAccessOnly, bool register = false) : base(filename, false)
+        {
+            Access = access;
+
             if (register)
             {
                 values.AddEntry(value);
@@ -34,11 +55,11 @@ namespace LogUtils
             if (!UtilityCore.IsInitialized)
                 UtilityCore.Initialize();
 
-            BepInEx = new LogID("LogOutput", Paths.BepInExRootPath, true);
-            Exception = new LogID("exceptionLog", "root", true);
-            Expedition = new LogID("ExpLog", "customroot", true);
-            JollyCoop = new LogID("jollyLog", "customroot", true);
-            Unity = new LogID("consoleLog", "root", true);
+            BepInEx = new LogID("LogOutput", Paths.BepInExRootPath, true, true);
+            Exception = new LogID("exceptionLog", "root", true, true);
+            Expedition = new LogID("ExpLog", "customroot", true, true);
+            JollyCoop = new LogID("jollyLog", "customroot", true, true);
+            Unity = new LogID("consoleLog", "root", true, true);
 
             BepInEx.Properties.AltFilename = "mods";
             BepInEx.Properties.Rules.Add(new ShowCategoryRule(true));
@@ -53,5 +74,12 @@ namespace LogUtils
         public static readonly LogID Expedition;
         public static readonly LogID JollyCoop;
         public static readonly LogID Unity;
+    }
+
+    public enum LogAccess
+    {
+        FullAccess = 0, //LogID can be handled by either local, or remote loggers
+        RemoteAccessOnly = 1, //LogID cannot be handled by the same mod that makes the log request
+        Private = 2 //LogID can only be handled by the mod that registers it
     }
 }
