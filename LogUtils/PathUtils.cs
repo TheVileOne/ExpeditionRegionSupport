@@ -31,8 +31,17 @@ namespace LogUtils
 
         public static string RemoveFileFromPath(string path)
         {
+            return RemoveFileFromPath(path, out _);
+        }
+
+        public static string RemoveFileFromPath(string path, out string filename)
+        {
+            filename = null;
             if (Path.HasExtension(path))
+            {
+                filename = Path.GetFileName(path);
                 return Path.GetDirectoryName(path); //Gets the path of the containing directory of a file/directory path
+            }
             return path;
         }
 

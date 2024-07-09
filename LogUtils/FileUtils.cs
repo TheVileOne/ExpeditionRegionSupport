@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 
 namespace LogUtils
@@ -6,6 +7,32 @@ namespace LogUtils
     public static class FileUtils
     {
         public static string[] SupportedExtensions = { ".log", ".txt" };
+        
+        public static bool CompareFilenames(string filename, string filename2, bool ignoreExtensions = true)
+        {
+            if (filename == null)
+                return filename2 == null;
+
+            if (filename2 == null)
+                return false;
+
+            if (ignoreExtensions)
+            {
+                filename = RemoveExtension(filename);
+                filename2 = RemoveExtension(filename);
+            }
+
+            //Strip any path info that may be present
+            filename = Path.GetFileName(filename);
+            filename2 = Path.GetFileName(filename2);
+
+            return string.Equals(filename, filename2, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        public static string RemoveExtension(string filename)
+        {
+            return Path.ChangeExtension(filename, string.Empty);
+        }
 
         public static string GetExtension(string filename, bool normalize = true)
         {

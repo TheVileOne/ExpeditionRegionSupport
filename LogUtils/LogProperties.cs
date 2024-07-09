@@ -11,10 +11,10 @@ namespace LogUtils
     public class LogProperties
     {
         public static PropertyDataController PropertyManager => UtilityCore.PropertyManager;
-
-        public bool ReadOnly;
-
         public CustomLogPropertyCollection CustomProperties = new CustomLogPropertyCollection();
+
+        public bool IsCreated;
+        public bool ReadOnly;
 
         /// <summary>
         /// The ID strings of the mod(s) that control these log properties 
@@ -152,6 +152,45 @@ namespace LogUtils
         {
             return PathUtils.ComparePaths(CurrentFolderPath, GetContainingPath(path));
         }
+
+        public void ChangePath(string newPath)
+        {
+            newPath = PathUtils.RemoveFileFromPath(newPath, out string newFilename);
+
+            bool changesPresent = false;
+
+            //Compare the current filename to the new filename
+            if (newFilename != null && !FileUtils.CompareFilenames(CurrentFilename, newFilename))
+            {
+                CurrentFilename = FileUtils.RemoveExtension(newFilename);
+                changesPresent = true;
+            }
+
+            //Compare the current path to the new path
+            if (!PathUtils.ComparePaths(CurrentFolderPath, newPath)) //The paths are different
+            {
+                CurrentFolderPath = newPath;
+                changesPresent = true;
+            }
+
+            //Loggers need to be notified of any changes that might affect managed LogIDs
+            if (changesPresent)
+            {
+                IsCreated = File.Exists(CurrentFilePath);
+                //OnPathChanged.Invoke(this); TODO: Create
+            }
+
+            //Steps:
+            //Determine if it is a relative or full path
+            //Remove the filename (if it exists) from the path and set it separately
+            //Validate file - throw exception if it's not a .txt, or .log file
+            //Change to .log file ext
+            //Set path
+        }
+
+        public void ChangePath(string newPath, string newFilename)
+        {
+            ChangePath(Path.Combine(newPath, newFilename));
         }
 
         public override string ToString()

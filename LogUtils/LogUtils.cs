@@ -19,28 +19,18 @@ namespace LogUtils
             return found;
         }
 
-        public static FileStatus MoveLog(LogID logFile, string newPath)
+        public static FileStatus MoveLog(LogID logFile, string newLogPath)
         {
-            FileStatus moveResult = MoveLog(logFile.Properties.CurrentFilePath, newPath);
+            FileStatus moveResult = MoveLog(logFile.Properties.CurrentFilePath, newLogPath);
 
             if (moveResult == FileStatus.MoveComplete)
-            {
-
-            }
-
+                logFile.Properties.ChangePath(newLogPath);
             return moveResult;
         }
 
         public static FileStatus MoveLog(LogID logFile, string newLogPath, string logFilename)
         {
-            newLogPath = Path.Combine(newLogPath, logFilename);
-
-            FileStatus moveResult = MoveLog(logFile.Properties.CurrentFilePath, newLogPath);
-
-            if (moveResult == FileStatus.MoveComplete)
-                logFile.Properties.ChangePath(newLogPath);
-
-            return moveResult;
+            return MoveLog(logFile.Properties.CurrentFilePath, Path.Combine(newLogPath, logFilename));
         }
 
         /// <summary>
