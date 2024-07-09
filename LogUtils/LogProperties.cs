@@ -24,6 +24,7 @@ namespace LogUtils
         private string _version = "0.5.0";
         private string _filename = string.Empty;
         private string _altFilename = string.Empty;
+        private string _folderPath = string.Empty;
         private string[] _tags;
 
         /// <summary>
@@ -47,29 +48,33 @@ namespace LogUtils
         /// <summary>
         /// The active filename of the log file (without file extension)
         /// </summary>
-        public string CurrentFilename
-        {
-            get
-            {
-                //Filename field designates the original log filename, while AltFilename is the preferred/current log filename 
-                string currentFilename;
-                if (!string.IsNullOrEmpty(AltFilename))
-                    currentFilename = AltFilename;
-                else
-                    currentFilename = Filename;
-                return currentFilename;
-            }
-        }
+        public string CurrentFilename { get; private set; }
 
         /// <summary>
         /// The active filepath of the log file (with filename)
         /// </summary>
-        public string CurrentFilepath => Path.Combine(ContainingFolderPath, CurrentFilename + ".log");
+        public string CurrentFilePath => Path.Combine(CurrentFolderPath, CurrentFilename + ".log");
 
         /// <summary>
-        /// The active filepath of the log file (without filename)
+        /// The active full path of the directory containing the log file
         /// </summary>
-        public string ContainingFolderPath { get; private set; }
+        public string CurrentFolderPath { get; private set; }
+
+        /// <summary>
+        /// The full path to the directory containing the log file as recorded from the properties file
+        /// </summary>
+        public string FolderPath
+        {
+            get => _folderPath;
+            set
+            {
+                if (_folderPath == value || ReadOnly) return;
+
+                if (value == null)
+                    throw new ArgumentNullException(nameof(FolderPath) + " cannot be null. Use root, or customroot as a value instead.");
+                _folderPath = value;
+            }
+        }
 
         /// <summary>
         /// The filename that will be used in the typical write path for the log file
@@ -82,13 +87,13 @@ namespace LogUtils
                 if (_filename == value || ReadOnly) return;
 
                 if (value == null)
-                    throw new ArgumentNullException(nameof(Filename) + " cannot be null. Use root, or customroot as a value instead.");
+                    throw new ArgumentNullException(nameof(Filename) + " cannot be null");
                 _filename = value;
             }
         }
 
         /// <summary>
-        /// The filename that will be used if the write path is the LogManager Logs directory. May be null if same as Filename
+        /// The filename that will be used if the write path is the Logs directory. May be null if same as Filename
         /// </summary>
         public string AltFilename
         {
@@ -98,7 +103,7 @@ namespace LogUtils
                 if (_altFilename == value || ReadOnly) return;
 
                 if (value == null)
-                    throw new ArgumentNullException(nameof(AltFilename) + " cannot be null. Use root, or customroot as a value instead.");
+                    throw new ArgumentNullException(nameof(AltFilename) + " cannot be null");
                 _altFilename = value;
             }
         }
@@ -124,7 +129,7 @@ namespace LogUtils
         public LogProperties(string filename, string relativePathNoFile = "customroot")
         {
             Filename = filename;
-            ContainingFolderPath = GetContainingPath(relativePathNoFile);
+            FolderPath = GetContainingPath(relativePathNoFile);
 
             CustomProperties.OnPropertyAdded += onCustomPropertyAdded;
             CustomProperties.OnPropertyRemoved += onCustomPropertyRemoved;
@@ -157,7 +162,7 @@ namespace LogUtils
             sb.AppendPropertyString("altfilename", AltFilename);
             sb.AppendPropertyString("version", Version);
             sb.AppendPropertyString("tags", Tags != null ? string.Join(",", Tags) : string.Empty);
-            sb.AppendPropertyString("path", PathUtils.ToPlaceholderPath(ContainingFolderPath));
+            sb.AppendPropertyString("path", PathUtils.ToPlaceholderPath(FolderPath));
             sb.AppendPropertyString("logrules");
 
             LogRule lineCountRule = Rules.FindByType<ShowLineCountRule>();

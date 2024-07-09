@@ -21,7 +21,7 @@ namespace LogUtils
 
         public static FileStatus MoveLog(LogID logFile, string newPath)
         {
-            FileStatus moveResult = MoveLog(logFile.Properties.CurrentFilepath, newPath);
+            FileStatus moveResult = MoveLog(logFile.Properties.CurrentFilePath, newPath);
 
             if (moveResult == FileStatus.MoveComplete)
             {
@@ -35,7 +35,7 @@ namespace LogUtils
         {
             newLogPath = Path.Combine(newLogPath, logFilename);
 
-            FileStatus moveResult = MoveLog(logFile.Properties.CurrentFilepath, newLogPath);
+            FileStatus moveResult = MoveLog(logFile.Properties.CurrentFilePath, newLogPath);
 
             if (moveResult == FileStatus.MoveComplete)
                 logFile.Properties.ChangePath(newLogPath);
