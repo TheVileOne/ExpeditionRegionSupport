@@ -57,18 +57,13 @@ namespace LogUtils
         {
             LogTargets.AddRange(presets);
 
-            foreach (LogID logID in presets)
+            /*
+            foreach (LogID logID in presets.Where(id => id.IsGameControlled && (id.Access == LogAccess.FullAccess || id.Access == LogAccess.Private)))
             {
                 if (!LocalIDs.Contains(logID))
-                {
-                    //TODO: Detect foreign ids
-                    //Check that a foreign LogID doesn't exist
-                    //if (!IsForeign(logID))
-                    {
-                        LocalIDs.Add(logID);
-                    }
-                }
+                    LocalIDs.Add(logID);
             }
+            */
         }
 
         public BetaLogger(string logName, string log)
