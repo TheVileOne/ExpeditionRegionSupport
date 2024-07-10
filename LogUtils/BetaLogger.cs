@@ -23,14 +23,7 @@ namespace LogUtils
         /// <summary>
         /// A list of LogIDs that a Logger instance has access to by default
         /// </summary>
-        public static List<LogID> LocalIDs = new List<LogID>()
-        {
-            LogID.BepInEx,
-            LogID.Unity,
-            LogID.Exception,
-            LogID.Expedition,
-            LogID.JollyCoop
-        };
+        public static List<LogID> LocalIDs = new List<LogID>();
 
         private List<LogID> managedIDs = new List<LogID>();
 
