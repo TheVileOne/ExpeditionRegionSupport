@@ -20,26 +20,6 @@ namespace LogUtils
         /// </summary>
         public static Dictionary<string, BetaLogger> VisibleLoggers = new Dictionary<string, BetaLogger>();
 
-        /// <summary>
-        /// A list of LogIDs that a Logger instance has access to by default
-        /// </summary>
-        public static List<LogID> LocalIDs = new List<LogID>();
-
-        private List<LogID> managedIDs = new List<LogID>();
-
-        /// <summary>
-        /// Contains local LogIDs that this logger instance has permission to handle arbitrary log requests for
-        /// </summary>
-        public List<LogID> ManagedIDs
-        {
-            get
-            {
-                if (managedIDs.Count == 0) //When no managed ids are specified, use the local LodID pool
-                    return LocalIDs;
-                return managedIDs;
-            }
-        }
-
         public ManualLogSource ManagedLogSource;
 
         /// <summary>
@@ -56,14 +36,6 @@ namespace LogUtils
         public BetaLogger(params LogID[] presets)
         {
             LogTargets.AddRange(presets);
-
-            /*
-            foreach (LogID logID in presets.Where(id => id.IsGameControlled && (id.Access == LogAccess.FullAccess || id.Access == LogAccess.Private)))
-            {
-                if (!LocalIDs.Contains(logID))
-                    LocalIDs.Add(logID);
-            }
-            */
         }
 
         public BetaLogger(string logName, string log)
@@ -337,7 +309,37 @@ namespace LogUtils
 
         protected virtual void LogData(LogID target, LogCategory category, object data)
         {
-            //TODO: Implement
+            if (target.IsGameControlled) //Game controlled LogIDs are always full access
+            {
+                if (target == LogID.BepInEx)
+                {
+                    LogBepEx(category, data);
+                }
+                else if (target == LogID.Unity)
+                {
+                    LogUnity(category, data);
+                }
+                else if (target == LogID.Expedition)
+                {
+                    LogExp(category, data);
+                }
+                else if (target == LogID.JollyCoop)
+                {
+                    LogJolly(category, data);
+                }
+                else if (target == LogID.Exception)
+                {
+                    LogUnity(LogType.Error, data);
+                }
+            }
+            else if (target.Access == LogAccess.FullAccess || target.Access == LogAccess.Private)
+            {
+                //TODO: Logging code here
+            }
+            else if (target.Access == LogAccess.RemoteAccessOnly)
+            {
+                //TODO: Remote logging code here
+            }
         }
     }
 }
