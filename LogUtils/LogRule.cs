@@ -8,10 +8,13 @@ namespace LogUtils
 {
     public abstract class LogRule
     {
+        /// <summary>
+        /// An unique string that identifies a particular LogRule. LogRules with the same value in this field will be treated as interchangable within the LogRuleCollection class
+        /// </summary>
         public string Name = "Unknown";
 
         /// <summary>
-        /// The default priority for LogRule instances. Rules are applied in order of priority from lowest to highest
+        /// The default priority of a LogRule. Rules are applied in order of priority from lowest to highest
         /// </summary>
         public float Priority
         {
@@ -46,7 +49,7 @@ namespace LogUtils
         private LogRule _temporaryOverride;
 
         /// <summary>
-        /// The content of this field takes priority over the LogRule that contains it
+        /// The instance stored in this field takes priority over the LogRule that contains it
         /// </summary>
         public LogRule TemporaryOverride
         {
