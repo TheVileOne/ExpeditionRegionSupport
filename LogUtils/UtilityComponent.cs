@@ -19,5 +19,17 @@ namespace LogUtils
         /// A tag used for identification purposes (Not the same field as Component.tag)
         /// </summary>
         public string Tag;
+
+        /// <summary>
+        /// Returns field values stored by the component using the field name as the key 
+        /// </summary>
+        public virtual Dictionary<string, object> GetFields()
+        {
+            Dictionary<string, object> fieldDictionary = new Dictionary<string, object>();
+
+            fieldDictionary[nameof(Tag)] = Tag;
+            fieldDictionary[nameof(Version)] = Version;
+            return fieldDictionary;
+        }
     }
 }

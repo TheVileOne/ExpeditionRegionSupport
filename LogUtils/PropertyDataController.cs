@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace LogUtils
 {
-    public class PropertyDataController : UtilityComponent, DataController
+    public class PropertyDataController : UtilityComponent
     {
         public List<LogProperties> Properties = new List<LogProperties>();
         public CustomLogPropertyCollection CustomLogProperties = new CustomLogPropertyCollection();
@@ -88,84 +88,6 @@ namespace LogUtils
             Properties.Add(properties);
             return properties;
         }
-
-        #region DataController methods
-
-        public bool TryGetData<T>(string dataAccessString, out T dataValue)
-        {
-            try
-            {
-                dataValue = GetData<T>(dataAccessString);
-                return true;
-            }
-            catch
-            {
-                dataValue = default;
-            }
-            return false;
-        }
-
-        public T GetData<T>(string dataAccessString)
-        {
-            string[] splitData = dataAccessString.Split(','); //Expected format: <Log Identifier>,<Data Identifier>
-
-            if (splitData.Length < 2)
-                throw new FormatException("Data string is in an unexpected format");
-
-            string logName = splitData[0];
-            string dataName = splitData[1];
-
-            LogProperties properties = Properties.Find(p => p.Filename == logName || p.Tags.Contains(logName));
-
-            //Search for the requested property field and store it into a temporary object
-            //Note: This will box value types, but LogProperties currently doesn't have any of those
-            object dataObject = null;
-            switch (dataName)
-            {
-                case nameof(properties.Filename):
-                    dataObject = properties.Filename;
-                    break;
-                case nameof(properties.AltFilename):
-                    dataObject = properties.AltFilename;
-                    break;
-                case nameof(properties.Tags):
-                    dataObject = properties.Tags;
-                    break;
-            }
-
-            //Convert the object to the specified type
-            return (T)Convert.ChangeType(dataObject, typeof(T));
-        }
-
-        public void SendData<T>(string dataAccessString, T dataValue)
-        {
-            string[] splitData = dataAccessString.Split(','); //Expected format: <Log Identifier>,<Data Identifier>
-
-            if (splitData.Length < 2)
-                throw new FormatException("Data string is in an unexpected format");
-
-            string logName = splitData[0];
-            string dataName = splitData[1];
-
-            LogProperties properties = Properties.Find(p => p.Filename == logName || p.Tags.Contains(logName));
-
-            //Store value in the specified field location
-            switch (dataName)
-            {
-                case nameof(properties.Filename):
-                    properties.Filename = Convert.ToString(dataValue);
-                    break;
-                case nameof(properties.AltFilename):
-                    properties.AltFilename = Convert.ToString(dataValue);
-                    break;
-                case nameof(properties.Tags):
-                    IEnumerable<string> enumeratedData = (IEnumerable<string>)Convert.ChangeType(dataValue, typeof(IEnumerable<string>));
-                    properties.Tags = enumeratedData.ToArray();
-                    break;
-            }
-        }
-
-        #endregion
 
         public void ReadFromFile()
         {
@@ -263,32 +185,19 @@ namespace LogUtils
             File.WriteAllText(Path.Combine(Application.streamingAssetsPath, "logs.txt"), sb.ToString());
         }
 
+        public override Dictionary<string, object> GetFields()
+        {
+            Dictionary<string, object> fields = base.GetFields();
+
+            fields[nameof(Properties)] = Properties;
+            fields[nameof(CustomLogProperties)] = CustomLogProperties;
+            fields[nameof(UnrecognizedFields)] = UnrecognizedFields;
+            return fields;
+        }
+
         public static string FormatAccessString(string logName, string propertyName)
         {
             return logName + ',' + propertyName;
         }
-    }
-
-    public interface DataController : IVersion
-    {
-        /// <summary>
-        /// Gets a value associated with a specific key. Throws exception if not found
-        /// </summary>
-        T GetData<T>(string dataKey);
-
-        /// <summary>
-        /// Gets a value associated with a specific key. Returns false if not found
-        /// </summary>
-        bool TryGetData<T>(string dataKey, out T dataValue);
-
-        /// <summary>
-        /// Give data to be stored by, or handled by the DataController
-        /// </summary>
-        void SendData<T>(string dataKey, T dataValue);
-
-        /// <summary>
-        /// Use for handling data from file
-        /// </summary>
-        void ReadFromFile();
     }
 }

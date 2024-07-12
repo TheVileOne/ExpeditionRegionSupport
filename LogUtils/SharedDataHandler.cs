@@ -68,6 +68,15 @@ namespace LogUtils
             }
             return storedData;
         }
+
+        public override Dictionary<string, object> GetFields()
+        {
+            Dictionary<string, object> fields = base.GetFields();
+
+            fields[nameof(EventData)] = EventData;
+            fields[nameof(DataCollection)] = DataCollection;
+            return fields;
+        }
     }
 
     public class LogEventData
