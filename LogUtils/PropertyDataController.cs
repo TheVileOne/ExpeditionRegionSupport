@@ -135,7 +135,7 @@ namespace LogUtils
                             {
                                 "filename" => default,
                                 "altfilename" => default,
-                                "aliases" => default,
+                                "tags" => default,
                                 "version" => default,
                                 "path" => default,
                                 "logrules" => default,

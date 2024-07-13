@@ -14,7 +14,7 @@ namespace LogUtils
         public static PropertyDataController PropertyManager => UtilityCore.PropertyManager;
         public CustomLogPropertyCollection CustomProperties = new CustomLogPropertyCollection();
 
-        public bool IsCreated;
+        public bool FileExists;
         public bool ReadOnly
         {
             get => _readOnly;
@@ -186,7 +186,7 @@ namespace LogUtils
             //Loggers need to be notified of any changes that might affect managed LogIDs
             if (changesPresent)
             {
-                IsCreated = File.Exists(CurrentFilePath);
+                FileExists = File.Exists(CurrentFilePath);
                 //OnPathChanged.Invoke(this); TODO: Create
             }
 
