@@ -9,6 +9,8 @@ namespace LogUtils
 {
     public class LogRuleCollection : IOrderedEnumerable<LogRule>
     {
+        public bool ReadOnly;
+
         protected List<LogRule> InnerList = new List<LogRule>();
         protected IOrderedEnumerable<LogRule> InnerEnumerable => InnerList.OrderBy(r => r.Priority);
 

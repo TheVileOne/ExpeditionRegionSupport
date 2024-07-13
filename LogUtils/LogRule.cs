@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LogUtils
 {
     public abstract class LogRule
     {
+        public bool ReadOnly => !IsTemporary || Owner?.ReadOnly == true;
+
         /// <summary>
         /// An unique string that identifies a particular LogRule. LogRules with the same value in this field will be treated as interchangable within the LogRuleCollection class
         /// </summary>
@@ -26,6 +25,34 @@ namespace LogUtils
             }
         }
 
+        private LogRule _temporaryOverride;
+
+        /// <summary>
+        /// The instance stored in this field takes priority over the LogRule that contains it
+        /// </summary>
+        public LogRule TemporaryOverride
+        {
+            get => _temporaryOverride;
+            set
+            {
+                if (value == this) return; //A reference cannot override itself
+
+                if (_temporaryOverride != null)
+                {
+                    _temporaryOverride.IsTemporary = false;
+                }
+
+                if (value != null)
+                {
+                    value.IsTemporary = true;
+                    value.TemporaryOverride = null; //Temporary rules should not be allowed to have temporary rules
+                }
+                _temporaryOverride = value;
+            }
+        }
+
+        public bool IsTemporary { get; private set; }
+
         private bool _enabled = true;
         public bool IsEnabled
         {
@@ -42,25 +69,16 @@ namespace LogUtils
                     TemporaryOverride.IsEnabled = value;
                     return;
                 }
+
+                if (ReadOnly || value == _enabled) return;
+
                 _enabled = value;
             }
         }
 
-        private LogRule _temporaryOverride;
-
-        /// <summary>
-        /// The instance stored in this field takes priority over the LogRule that contains it
-        /// </summary>
-        public LogRule TemporaryOverride
         {
-            get => _temporaryOverride;
-            set
             {
-                if (value == this) return; //A reference cannot override itself
 
-                if (value != null)
-                    value.TemporaryOverride = null; //Temporary rules should not be allowed to have temporary rules
-                _temporaryOverride = value;
             }
         }
 

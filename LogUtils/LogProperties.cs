@@ -15,13 +15,22 @@ namespace LogUtils
         public CustomLogPropertyCollection CustomProperties = new CustomLogPropertyCollection();
 
         public bool IsCreated;
-        public bool ReadOnly;
+        public bool ReadOnly
+        {
+            get => _readOnly;
+            set
+            {
+                _readOnly = value;
+                Rules.ReadOnly = value;
+            }
+        }
 
         /// <summary>
         /// The ID strings of the mod(s) that control these log properties 
         /// </summary>
         public List<string> AssociatedModIDs = new List<string>();
 
+        private static bool _readOnly;
         private string _version = "0.5.0";
         private string _filename = string.Empty;
         private string _altFilename = string.Empty;
