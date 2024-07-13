@@ -35,7 +35,13 @@ namespace LogUtils
         private string _filename = string.Empty;
         private string _altFilename = string.Empty;
         private string _folderPath = string.Empty;
+        private string _originalPath = string.Empty;
         private string[] _tags;
+
+        /// <summary>
+        /// An identification string used for LogID matching
+        /// </summary>
+        public string ID { get; private set; }
 
         /// <summary>
         /// A string representation of the content state. This is useful for preventing user sourced changes from being overwritten by mods
@@ -87,6 +93,27 @@ namespace LogUtils
         }
 
         /// <summary>
+        /// The path that was first assigned when the log file was first registered
+        /// </summary>
+        public string OriginalPath
+        {
+            get => _originalPath;
+            set
+            {
+                if (_originalPath == value || ReadOnly) return;
+
+                if (value == null)
+                    throw new ArgumentNullException(nameof(OriginalPath) + " cannot be null. Use root, or customroot as a value instead.");
+                _originalPath = value;
+            }
+        }
+
+        /// <summary>
+        /// The path of the last known location of the log file
+        /// </summary>
+        public string LastKnownPath { get; internal set; }
+
+        /// <summary>
         /// The filename that will be used in the typical write path for the log file
         /// </summary>
         public string Filename
@@ -131,18 +158,34 @@ namespace LogUtils
             }
         }
 
+        public LogRule ShowCategories => Rules.FindByType<ShowCategoryRule>();
+        public LogRule ShowLineCount => Rules.FindByType<ShowLineCountRule>();
+
         /// <summary>
         /// A prioritized order of process actions that must be applied to a message string before logging it to file 
         /// </summary>
         public LogRuleCollection Rules = new LogRuleCollection();
 
-        public LogProperties(string filename, string relativePathNoFile = "customroot")
+        public LogProperties(string propertyID, string filename, string relativePathNoFile = "customroot")
         {
+            ID = propertyID;
             Filename = filename;
             FolderPath = GetContainingPath(relativePathNoFile);
 
+            CurrentFilename = Filename;
+            CurrentFolderPath = OriginalPath = FolderPath;
+            LastKnownPath = CurrentFilePath;
+
+            //Utility packaged rules get added to every log file disabled by default 
+            Rules.Add(new ShowCategoryRule(false));
+            Rules.Add(new ShowLineCountRule(false));
+
             CustomProperties.OnPropertyAdded += onCustomPropertyAdded;
             CustomProperties.OnPropertyRemoved += onCustomPropertyRemoved;
+        }
+
+        public LogProperties(string filename, string relativePathNoFile = "customroot") : this(filename, filename, relativePathNoFile)
+        {
         }
 
         private void onCustomPropertyAdded(CustomLogProperty property)
@@ -158,9 +201,9 @@ namespace LogUtils
                 Rules.Remove(property.Name);
         }
 
-        public bool HasPath(string path)
+        public bool IDMatch(LogID logID)
         {
-            return PathUtils.ComparePaths(CurrentFolderPath, GetContainingPath(path));
+            return string.Equals(logID.value, ID, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public void ChangePath(string newPath)
@@ -187,6 +230,7 @@ namespace LogUtils
             if (changesPresent)
             {
                 FileExists = File.Exists(CurrentFilePath);
+                LastKnownPath = CurrentFilePath;
                 //OnPathChanged.Invoke(this); TODO: Create
             }
 
@@ -207,18 +251,18 @@ namespace LogUtils
         {
             StringBuilder sb = new StringBuilder();
 
+            sb.AppendPropertyString("logid", ID);
             sb.AppendPropertyString("filename", Filename);
             sb.AppendPropertyString("altfilename", AltFilename);
             sb.AppendPropertyString("version", Version);
             sb.AppendPropertyString("tags", Tags != null ? string.Join(",", Tags) : string.Empty);
             sb.AppendPropertyString("path", PathUtils.ToPlaceholderPath(FolderPath));
+            sb.AppendPropertyString("origpath", PathUtils.ToPlaceholderPath(OriginalPath));
+            sb.AppendPropertyString("lastknownpath", LastKnownPath);
             sb.AppendPropertyString("logrules");
 
-            LogRule lineCountRule = Rules.FindByType<ShowLineCountRule>();
-            LogRule categoryRule = Rules.FindByType<ShowCategoryRule>();
-
-            sb.AppendLine(lineCountRule.PropertyString);
-            sb.AppendLine(categoryRule.PropertyString);
+            sb.AppendLine(ShowLineCount.PropertyString);
+            sb.AppendLine(ShowCategories.PropertyString);
 
             if (CustomProperties.Any())
             {

@@ -72,13 +72,24 @@ namespace LogUtils
         /// Finds the first detected LogProperties instance associated with the given LogID, and relative filepath
         /// </summary>
         /// <param name="logID">The LogID to search for</param>
-        /// <param name="relativePathNoFile">The filepath to search for. When set to null, the first LogID match will be returned</param>
+        /// <param name="relativePathNoFile">The filepath to search for. When set to null, any LogID match will be returned with custom root being prioritized</param>
         public LogProperties GetProperties(LogID logID, string relativePathNoFile)
         {
-            if (relativePathNoFile == null)
-                return Properties.Find(p => p.Filename == logID.value);
+            bool searchForAnyMatch = relativePathNoFile == null; //This flag prioritizes the custom root over any other match
 
-            return Properties.Find(p => p.Filename == logID.value && p.HasPath(relativePathNoFile));
+            LogProperties bestCandidate = null;
+            foreach (LogProperties properties in Properties.Where(p => p.IDMatch(logID)))
+            {
+                if (PathUtils.ComparePaths(properties.OriginalPath, LogProperties.GetContainingPath(relativePathNoFile)))
+                {
+                    bestCandidate = properties;
+                    break;
+                }
+
+                if (searchForAnyMatch && bestCandidate == null)
+                    bestCandidate = properties;
+            }
+            return bestCandidate;
         }
 
         public LogProperties SetProperties(LogID logID, string relativePathNoFile)
@@ -101,23 +112,19 @@ namespace LogUtils
                 LogProperties properties = null;
                 try
                 {
-                    properties = new LogProperties(dataFields["filename"], dataFields["path"])
+                    properties = new LogProperties(dataFields["logid"], dataFields["filename"], dataFields["path"])
                     {
                         Version = dataFields["version"],
                         AltFilename = dataFields["altfilename"],
+                        OriginalPath = dataFields["origpath"],
+                        LastKnownPath = dataFields["lastknownpath"],
                         Tags = dataFields["tags"].Split(',')
                     };
 
-                    bool showCategories = bool.Parse(dataFields["showcategories"]);
-                    bool showLineCount = bool.Parse(dataFields["showlinecount"]);
+                    properties.ShowCategories.IsEnabled = bool.Parse(dataFields["showcategories"]);
+                    properties.ShowLineCount.IsEnabled = bool.Parse(dataFields["showlinecount"]);
 
-                    LogRule showCategoryRule = new ShowCategoryRule(showCategories);
-                    LogRule showLineCountRule = new ShowLineCountRule(showLineCount);
-
-                    properties.Rules.Add(showCategoryRule);
-                    properties.Rules.Add(showLineCountRule);
-
-                    const int expected_field_total = 8;
+                    const int expected_field_total = 11;
 
                     int unprocessedFieldTotal = dataFields.Count - expected_field_total;
 
@@ -133,11 +140,14 @@ namespace LogUtils
 
                             DictionaryEntry fieldEntry = fieldEnumerator.Key switch
                             {
+                                "logid" => default,
                                 "filename" => default,
                                 "altfilename" => default,
                                 "tags" => default,
                                 "version" => default,
                                 "path" => default,
+                                "origpath" => default,
+                                "lastknownpath" => default,
                                 "logrules" => default,
                                 "showlinecount" => default,
                                 "showcategories" => default,
@@ -151,6 +161,8 @@ namespace LogUtils
                             }
                         }
                     }
+
+                    Properties.Add(properties);
                 }
                 catch (KeyNotFoundException)
                 {
