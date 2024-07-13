@@ -21,6 +21,11 @@ namespace LogUtils
         public LogAccess Access;
 
         /// <summary>
+        /// A flag that controls whether logging should be permitted for this LogID instance
+        /// </summary>
+        public bool IsEnabled = true;
+
+        /// <summary>
         /// A flag that indicates that this represents a log file managed by the game
         /// </summary>
         public bool IsGameControlled;
@@ -44,7 +49,10 @@ namespace LogUtils
                 LogID existingID = LocalRegistry[localIndex];
 
                 if (existingID.Registered || !register)
+                {
                     access = existingID.Access; //Inherit access from existing reference, it should not be overwritten here
+                    IsEnabled = existingID.IsEnabled;
+                }
 
                 if (!existingID.Registered && register)
                     LocalRegistry[localIndex] = this; //Replace an unregistered reference with a registered one

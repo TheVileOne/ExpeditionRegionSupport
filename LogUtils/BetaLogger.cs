@@ -27,6 +27,8 @@ namespace LogUtils
         /// </summary>
         public List<LogID> LogTargets = new List<LogID>();
 
+        public bool AllowLogging = true;
+
         public BetaLogger(string modID, bool visibleToRemoteLoggers = true)
         {
             if (visibleToRemoteLoggers)
@@ -93,12 +95,16 @@ namespace LogUtils
 
         public void LogBepEx(LogLevel category, object data)
         {
+            if (!AllowLogging || !LogID.BepInEx.IsEnabled) return;
+
             var bepLogger = ManagedLogSource ?? UtilityCore.BaseLogger;
             bepLogger.Log(category, data);
         }
 
         public void LogBepEx(LogCategory category, object data)
         {
+            if (!AllowLogging || !LogID.BepInEx.IsEnabled) return;
+
             var bepLogger = ManagedLogSource ?? UtilityCore.BaseLogger;
             bepLogger.Log(category.BepInExCategory, data);
         }
@@ -110,11 +116,21 @@ namespace LogUtils
 
         public void LogUnity(LogType category, object data)
         {
+            if (!AllowLogging
+            || (!LogID.Unity.IsEnabled && category != LogType.Error && category != LogType.Exception) //Non-error logging
+            || (!LogID.Exception.IsEnabled && (category == LogType.Error || category == LogType.Exception))) //Error logging
+                return;
+
             Debug.unityLogger.Log(category, data);
         }
 
         public void LogUnity(LogCategory category, object data)
         {
+            if (!AllowLogging
+            || (!LogID.Unity.IsEnabled && category.UnityCategory != LogType.Error && category.UnityCategory != LogType.Exception) //Non-error logging
+            || (!LogID.Exception.IsEnabled && (category.UnityCategory == LogType.Error || category.UnityCategory == LogType.Exception))) //Error logging
+                return;
+
             //TODO: Put this in a proper place
             Debug.unityLogger.filterLogType = (LogType)1000; //Allow space for custom LogTypes to be defined
 
@@ -146,6 +162,8 @@ namespace LogUtils
 
         public void LogExp(LogCategory category, object data)
         {
+            if (!AllowLogging || !LogID.Expedition.IsEnabled) return;
+
             Expedition.ExpLog.Log(data?.ToString());
         }
 
@@ -156,6 +174,8 @@ namespace LogUtils
 
         public void LogJolly(LogCategory category, object data)
         {
+            if (!AllowLogging || !LogID.JollyCoop.IsEnabled) return;
+
             JollyCoop.JollyCustom.Log(data?.ToString());
         }
 
@@ -309,6 +329,8 @@ namespace LogUtils
 
         protected virtual void LogData(LogID target, LogCategory category, object data)
         {
+            if (!AllowLogging || !target.IsEnabled) return;
+
             if (target.IsGameControlled) //Game controlled LogIDs are always full access
             {
                 if (target == LogID.BepInEx)
