@@ -66,7 +66,7 @@ namespace LogUtils
             }
         }
 
-        public bool IsTemporary { get; private set; }
+        public bool IsTemporary { get; set; }
 
         private bool _enabled = true;
         public bool IsEnabled

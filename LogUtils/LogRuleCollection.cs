@@ -144,15 +144,21 @@ namespace LogUtils
             if (targetRule != null)
                 targetRule.TemporaryOverride = rule;
             else
+            {
+                rule.IsTemporary = true;
                 Add(rule); //No associated rule was found, treat temporary rule as a normal rule
+            }
         }
 
         public void RemoveTemporaryRule(LogRule rule)
         {
-            LogRule targetRule = InnerList.Find(r => r.TemporaryOverride == rule);
+            LogRule targetRule = InnerList.Find(r => r.TemporaryOverride == rule || r == rule);
 
             if (targetRule != null)
+            {
+                targetRule.IsTemporary = false;
                 targetRule.TemporaryOverride = null;
+            }
         }
 
         public LogRule Find(Predicate<LogRule> match)
