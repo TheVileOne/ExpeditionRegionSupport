@@ -5,6 +5,11 @@ namespace LogUtils
 {
     public abstract class LogRule
     {
+        /// <summary>
+        /// The containing collection instance of a LogRule. Only one collection allowed per instance
+        /// </summary>
+        public LogRuleCollection Owner;
+
         public bool ReadOnly => !IsTemporary || Owner?.ReadOnly == true;
 
         /// <summary>
@@ -37,14 +42,24 @@ namespace LogUtils
             {
                 if (value == this) return; //A reference cannot override itself
 
+                if (Owner != null)
+                {
+                    Owner.ChangeAlert();
+
+                    if (Owner.TrackChanges)
+                        Owner.ChangeRecord.Push(new ChangeState(this, nameof(_temporaryOverride)));
+                }
+
                 if (_temporaryOverride != null)
                 {
                     _temporaryOverride.IsTemporary = false;
+                    _temporaryOverride.Owner = null;
                 }
 
                 if (value != null)
                 {
                     value.IsTemporary = true;
+                    value.Owner = Owner;
                     value.TemporaryOverride = null; //Temporary rules should not be allowed to have temporary rules
                 }
                 _temporaryOverride = value;
@@ -72,14 +87,71 @@ namespace LogUtils
 
                 if (ReadOnly || value == _enabled) return;
 
+                if (Owner != null)
+                {
+                    Owner.ChangeAlert();
+
+                    if (Owner.TrackChanges)
+                        Owner.ChangeRecord.Push(new ChangeState(this, nameof(_enabled)));
+                }
                 _enabled = value;
             }
         }
 
+        public void Enable()
         {
-            {
+            if (IsEnabled) return;
 
+            //When handling a non-temporary rule, temporarily enable rule, creating a temporary instance if necessary 
+            if (!IsTemporary)
+            {
+                Owner?.ResetRecord(); //Clear any past changes before operation runs
+
+                if (TemporaryOverride == null)
+                {
+                    TemporaryOverride = (LogRule)Activator.CreateInstance(GetType(), new object[] { true });
+                }
+                else
+                {
+                    TemporaryOverride.Enable();
+                }
             }
+            else //Temporary rules are free to be modified directly
+            {
+                IsEnabled = true;
+            }
+        }
+
+        public void Disable()
+        {
+            if (!IsEnabled) return;
+
+            //When handling a non-temporary rule, temporarily disable rule, creating a temporary instance if necessary 
+            if (!IsTemporary)
+            {
+                Owner?.ResetRecord(); //Clear any past changes before operation runs
+
+                if (TemporaryOverride == null)
+                {
+                    TemporaryOverride = (LogRule)Activator.CreateInstance(GetType(), new object[] { false });
+                }
+                else
+                {
+                    TemporaryOverride.Disable();
+                }
+            }
+            else //Temporary rules are free to be modified directly
+            {
+                IsEnabled = false;
+            }
+        }
+
+        /// <summary>
+        /// Change recent rule modifications back to pre-change values
+        /// </summary>
+        public void Restore()
+        {
+            Owner?.RestoreRecord();
         }
 
         public string PropertyString => ToPropertyString();

@@ -15,6 +15,68 @@ namespace LogUtils
         protected IOrderedEnumerable<LogRule> InnerEnumerable => InnerList.OrderBy(r => r.Priority);
 
         /// <summary>
+        /// Tracks LogRule state changes
+        /// </summary>
+        public Stack<ChangeState> ChangeRecord;
+
+        /// <summary>
+        /// Enables/disables change state system
+        /// </summary>
+        public bool TrackChanges
+        {
+            get => ChangeRecord != null;
+            set
+            {
+                if (value)
+                {
+                    if (ChangeRecord == null)
+                        ChangeRecord = new Stack<ChangeState>();
+                }
+                else
+                {
+                    ResetRecord();
+                }
+            }
+        }
+
+        /// <summary>
+        /// An indicator that a LogRule field is about to be changed
+        /// </summary>
+        public void ChangeAlert()
+        {
+            //Rule changes should be tracked when the initialization period has ended
+            if (!ReadOnly)
+            {
+                UtilityCore.BaseLogger.LogInfo("LogRule change in progress");
+                TrackChanges = true;
+            }
+        }
+
+        public void ResetRecord()
+        {
+            if (TrackChanges)
+            {
+                ChangeRecord.Clear();
+                ChangeRecord = null;
+            }
+        }
+
+        public void RestoreRecord()
+        {
+            UtilityCore.BaseLogger.LogInfo("Attempting to restore rule modifications");
+            if (TrackChanges)
+            {
+                while (ChangeRecord.Any())
+                    ChangeRecord.Pop().Restore();
+                ResetRecord();
+            }
+            else
+            {
+                UtilityCore.BaseLogger.LogInfo("Nothing to restore...");
+            }
+        }
+
+        /// <summary>
         /// Adds a LogRule instance to the collection of Rules
         /// Do not use this for temporary rule changes, use SetTemporaryRule instead 
         /// </summary>
@@ -22,6 +84,8 @@ namespace LogUtils
         {
             if (InnerList.Exists(r => LogProperties.CompareNames(r.Name, rule.Name))) //Don't allow more than one rule concept to be added with the same name
                 return;
+
+            rule.Owner = this;
             InnerList.Add(rule);
         }
 
@@ -43,6 +107,8 @@ namespace LogUtils
                 //Transfer over temporary rules as long as replacement rule doesn't have one already
                 if (rule.TemporaryOverride == null)
                     rule.TemporaryOverride = replacedRule.TemporaryOverride;
+
+                replacedRule.Owner = null;
                 InnerList.RemoveAt(ruleIndex);
             }
             Add(rule); //Add rule when there is no existing rule match
@@ -50,7 +116,12 @@ namespace LogUtils
 
         public bool Remove(LogRule rule)
         {
-            return InnerList.Remove(rule);
+            if (InnerList.Remove(rule))
+            {
+                rule.Owner = null;
+                return true;
+            }
+            return false;
         }
 
         public bool Remove(string name)
@@ -59,6 +130,7 @@ namespace LogUtils
 
             if (ruleIndex != -1)
             {
+                InnerList[ruleIndex].Owner = null;
                 InnerList.RemoveAt(ruleIndex);
                 return true;
             }
