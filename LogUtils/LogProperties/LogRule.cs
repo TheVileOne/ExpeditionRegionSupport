@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace LogUtils
+namespace LogUtils.Properties
 {
     public abstract class LogRule
     {

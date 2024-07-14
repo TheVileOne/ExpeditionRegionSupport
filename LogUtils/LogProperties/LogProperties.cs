@@ -7,7 +7,7 @@ using LogUtils.Helpers;
 using RWCustom;
 using UnityEngine;
 
-namespace LogUtils
+namespace LogUtils.Properties
 {
     public class LogProperties
     {

@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace LogUtils
+namespace LogUtils.Properties
 {
     public class LogPropertyReader
     {

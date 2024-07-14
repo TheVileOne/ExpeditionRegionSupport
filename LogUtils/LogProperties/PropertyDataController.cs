@@ -5,11 +5,10 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using LogUtils.Helpers;
 using UnityEngine;
 
-namespace LogUtils
+namespace LogUtils.Properties
 {
     public class PropertyDataController : UtilityComponent
     {

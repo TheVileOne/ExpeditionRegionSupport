@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Text;
 
-namespace LogUtils
+namespace LogUtils.Properties
 {
     public class LogRuleCollection : IOrderedEnumerable<LogRule>
     {

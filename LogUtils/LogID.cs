@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using LogUtils.Properties;
 using System.Collections.Generic;
 
 namespace LogUtils

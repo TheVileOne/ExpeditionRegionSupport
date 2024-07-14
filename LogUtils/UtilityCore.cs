@@ -1,5 +1,6 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Helpers;
+using LogUtils.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
