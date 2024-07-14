@@ -201,7 +201,7 @@ namespace LogUtils.Properties
 
     public class ShowCategoryRule : LogRule
     {
-        public ShowCategoryRule(bool enabled) : base("ShowCategory", enabled)
+        public ShowCategoryRule(bool enabled) : base(UtilityConsts.DataFields.Rules.SHOW_CATEGORIES, enabled)
         {
         }
 
@@ -213,7 +213,7 @@ namespace LogUtils.Properties
 
     public class ShowLineCountRule : LogRule
     {
-        public ShowLineCountRule(bool enabled) : base("ShowLineCount", enabled)
+        public ShowLineCountRule(bool enabled) : base(UtilityConsts.DataFields.Rules.SHOW_LINE_COUNT, enabled)
         {
         }
 

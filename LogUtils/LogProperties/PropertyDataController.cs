@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using LogUtils.Helpers;
 using UnityEngine;
+using DataFields = LogUtils.UtilityConsts.DataFields;
 
 namespace LogUtils.Properties
 {
@@ -15,6 +16,8 @@ namespace LogUtils.Properties
         public List<LogProperties> Properties = new List<LogProperties>();
         public CustomLogPropertyCollection CustomLogProperties = new CustomLogPropertyCollection();
         public Dictionary<LogProperties, StringDictionary> UnrecognizedFields = new Dictionary<LogProperties, StringDictionary>();
+
+        public override string Tag => UtilityConsts.ComponentTags.PROPERTY_DATA;
 
         static PropertyDataController()
         {
@@ -25,8 +28,6 @@ namespace LogUtils.Properties
 
         public PropertyDataController()
         {
-            Tag = "Log Properties";
-
             CustomLogProperties.OnPropertyAdded += onCustomPropertyAdded;
             CustomLogProperties.OnPropertyRemoved += onCustomPropertyRemoved;
         }
@@ -111,21 +112,19 @@ namespace LogUtils.Properties
                 LogProperties properties = null;
                 try
                 {
-                    properties = new LogProperties(dataFields["logid"], dataFields["filename"], dataFields["path"])
+                    properties = new LogProperties(dataFields[DataFields.LOGID], dataFields[DataFields.FILENAME], dataFields[DataFields.PATH])
                     {
-                        Version = dataFields["version"],
-                        AltFilename = dataFields["altfilename"],
-                        OriginalPath = dataFields["origpath"],
-                        LastKnownPath = dataFields["lastknownpath"],
-                        Tags = dataFields["tags"].Split(',')
+                        Version = dataFields[DataFields.VERSION],
+                        AltFilename = dataFields[DataFields.ALTFILENAME],
+                        OriginalPath = dataFields[DataFields.ORIGINAL_PATH],
+                        LastKnownPath = dataFields[DataFields.LAST_KNOWN_PATH],
+                        Tags = dataFields[DataFields.TAGS].Split(',')
                     };
 
-                    properties.ShowCategories.IsEnabled = bool.Parse(dataFields["showcategories"]);
-                    properties.ShowLineCount.IsEnabled = bool.Parse(dataFields["showlinecount"]);
+                    properties.ShowCategories.IsEnabled = bool.Parse(dataFields[DataFields.Rules.SHOW_CATEGORIES]);
+                    properties.ShowLineCount.IsEnabled = bool.Parse(dataFields[DataFields.Rules.SHOW_LINE_COUNT]);
 
-                    const int expected_field_total = 11;
-
-                    int unprocessedFieldTotal = dataFields.Count - expected_field_total;
+                    int unprocessedFieldTotal = dataFields.Count - DataFields.EXPECTED_FIELD_COUNT;
 
                     if (unprocessedFieldTotal > 0)
                     {
@@ -139,17 +138,17 @@ namespace LogUtils.Properties
 
                             DictionaryEntry fieldEntry = fieldEnumerator.Key switch
                             {
-                                "logid" => default,
-                                "filename" => default,
-                                "altfilename" => default,
-                                "tags" => default,
-                                "version" => default,
-                                "path" => default,
-                                "origpath" => default,
-                                "lastknownpath" => default,
-                                "logrules" => default,
-                                "showlinecount" => default,
-                                "showcategories" => default,
+                                DataFields.LOGID => default,
+                                DataFields.FILENAME => default,
+                                DataFields.ALTFILENAME => default,
+                                DataFields.TAGS => default,
+                                DataFields.VERSION => default,
+                                DataFields.PATH => default,
+                                DataFields.ORIGINAL_PATH => default,
+                                DataFields.LAST_KNOWN_PATH => default,
+                                DataFields.Rules.HEADER => default,
+                                DataFields.Rules.SHOW_LINE_COUNT => default,
+                                DataFields.Rules.SHOW_CATEGORIES => default,
                                 _ => fieldEnumerator.Entry
                             };
 
@@ -186,7 +185,7 @@ namespace LogUtils.Properties
                 if (UnrecognizedFields.TryGetValue(properties, out StringDictionary unrecognizedPropertyLines) && unrecognizedPropertyLines.Count > 0)
                 {
                     if (!properties.CustomProperties.Any()) //Ensure that custom field header is only added once
-                        sb.AppendPropertyString("custom");
+                        sb.AppendPropertyString(DataFields.CUSTOM);
 
                     foreach (string key in unrecognizedPropertyLines)
                         sb.AppendPropertyString(key, unrecognizedPropertyLines[key]);

@@ -35,7 +35,7 @@ namespace LogUtils.Properties
                     string header = lineData[0];
                     string value = lineData[1];
 
-                    if (header == "filename")
+                    if (header == UtilityConsts.DataFields.FILENAME)
                     {
                         if (propertyInFile != null)
                             yield return propertyInFile; //Data collection has finished for the last entry - return the data

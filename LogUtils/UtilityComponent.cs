@@ -18,7 +18,7 @@ namespace LogUtils
         /// <summary>
         /// A tag used for identification purposes (Not the same field as Component.tag)
         /// </summary>
-        public string Tag;
+        public abstract string Tag { get; }
 
         /// <summary>
         /// Returns field values stored by the component using the field name as the key 

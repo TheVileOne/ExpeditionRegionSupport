@@ -55,7 +55,7 @@ namespace LogUtils
         /// </summary>
         internal static void LoadComponents()
         {
-            PropertyManager = ComponentUtils.GetOrCreate<PropertyDataController>("Log Properties", out bool wasCreated);
+            PropertyManager = ComponentUtils.GetOrCreate<PropertyDataController>(UtilityConsts.ComponentTags.PROPERTY_DATA, out bool wasCreated);
 
             if (wasCreated)
             {
@@ -63,7 +63,7 @@ namespace LogUtils
                 PropertyManager.ReadFromFile();
             }
 
-            DataHandler = ComponentUtils.GetOrCreate<SharedDataHandler>("Shared Data", out _);
+            DataHandler = ComponentUtils.GetOrCreate<SharedDataHandler>(UtilityConsts.ComponentTags.SHARED_DATA, out _);
         }
 
         /// <summary>

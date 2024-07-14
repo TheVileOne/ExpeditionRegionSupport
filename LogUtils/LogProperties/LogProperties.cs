@@ -6,6 +6,7 @@ using System.Text;
 using LogUtils.Helpers;
 using RWCustom;
 using UnityEngine;
+using DataFields = LogUtils.UtilityConsts.DataFields;
 
 namespace LogUtils.Properties
 {
@@ -251,22 +252,22 @@ namespace LogUtils.Properties
         {
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendPropertyString("logid", ID);
-            sb.AppendPropertyString("filename", Filename);
-            sb.AppendPropertyString("altfilename", AltFilename);
-            sb.AppendPropertyString("version", Version);
-            sb.AppendPropertyString("tags", Tags != null ? string.Join(",", Tags) : string.Empty);
-            sb.AppendPropertyString("path", PathUtils.ToPlaceholderPath(FolderPath));
-            sb.AppendPropertyString("origpath", PathUtils.ToPlaceholderPath(OriginalPath));
-            sb.AppendPropertyString("lastknownpath", LastKnownPath);
-            sb.AppendPropertyString("logrules");
+            sb.AppendPropertyString(DataFields.LOGID, ID);
+            sb.AppendPropertyString(DataFields.FILENAME, Filename);
+            sb.AppendPropertyString(DataFields.ALTFILENAME, AltFilename);
+            sb.AppendPropertyString(DataFields.VERSION, Version);
+            sb.AppendPropertyString(DataFields.TAGS, Tags != null ? string.Join(",", Tags) : string.Empty);
+            sb.AppendPropertyString(DataFields.PATH, PathUtils.ToPlaceholderPath(FolderPath));
+            sb.AppendPropertyString(DataFields.ORIGINAL_PATH, PathUtils.ToPlaceholderPath(OriginalPath));
+            sb.AppendPropertyString(DataFields.LAST_KNOWN_PATH, LastKnownPath);
+            sb.AppendPropertyString(DataFields.Rules.HEADER);
 
             sb.AppendLine(ShowLineCount.PropertyString);
             sb.AppendLine(ShowCategories.PropertyString);
 
             if (CustomProperties.Any())
             {
-                sb.AppendPropertyString("custom");
+                sb.AppendPropertyString(DataFields.CUSTOM);
 
                 foreach (var customProperty in CustomProperties)
                 {

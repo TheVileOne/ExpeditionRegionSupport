@@ -12,10 +12,7 @@ namespace LogUtils
 
         public Dictionary<Type, List<IShareable>> DataCollection = new Dictionary<Type, List<IShareable>>();
 
-        public SharedDataHandler()
-        {
-            Tag = "Shared Data";
-        }
+        public override string Tag => UtilityConsts.ComponentTags.SHARED_DATA;
 
         public IShareable GetData(Type type, string tag)
         {
