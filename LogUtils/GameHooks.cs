@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Properties;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
@@ -68,6 +69,7 @@ namespace LogUtils
         {
             if (!UtilityCore.IsControllingAssembly) return;
 
+            On.RainWorld.PostModsInit += RainWorld_PostModsInit;
             On.RainWorld.Update -= RainWorld_Update;
 
             IL.RainWorld.HandleLog -= RainWorld_HandleLog;
@@ -79,6 +81,16 @@ namespace LogUtils
             IL.JollyCoop.JollyCustom.WriteToLog -= replaceLogPathHook_JollyCoop;
 
             managedHooks.ForEach(hook => hook.Free());
+        }
+
+        /// <summary>
+        /// Ends the grace period in which newly initialized properties can be freely modified
+        /// </summary>
+        private static void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)
+        {
+            orig(self);
+            LogProperties.PropertyManager.Properties.ForEach(prop => prop.ReadOnly = true);
+            LogProperties.PropertyManager.IsEditGracePeriod = false;
         }
 
         private static bool listenerCheckComplete;

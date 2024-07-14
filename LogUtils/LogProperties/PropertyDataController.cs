@@ -19,6 +19,8 @@ namespace LogUtils.Properties
 
         public override string Tag => UtilityConsts.ComponentTags.PROPERTY_DATA;
 
+        internal bool IsEditGracePeriod = true;
+
         static PropertyDataController()
         {
             //Initialize the utility when this class is accessed
@@ -28,6 +30,7 @@ namespace LogUtils.Properties
 
         public PropertyDataController()
         {
+            enabled = true;
             CustomLogProperties.OnPropertyAdded += onCustomPropertyAdded;
             CustomLogProperties.OnPropertyRemoved += onCustomPropertyRemoved;
         }
@@ -203,6 +206,19 @@ namespace LogUtils.Properties
             fields[nameof(CustomLogProperties)] = CustomLogProperties;
             fields[nameof(UnrecognizedFields)] = UnrecognizedFields;
             return fields;
+        }
+
+        public void Update()
+        {
+            if (IsEditGracePeriod) return;
+
+            foreach (LogProperties properties in Properties)
+            {
+                if (properties.AllowEditPeriod > 0)
+                    properties.AllowEditPeriod--;
+
+                properties.ReadOnly = properties.AllowEditPeriod == 0;
+            }
         }
 
         public static string FormatAccessString(string logName, string propertyName)

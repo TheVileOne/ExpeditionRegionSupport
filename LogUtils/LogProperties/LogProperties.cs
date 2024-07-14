@@ -12,17 +12,40 @@ namespace LogUtils.Properties
 {
     public class LogProperties
     {
+        public const int EDIT_PERIOD_DEFAULT = 3;
+
         public static PropertyDataController PropertyManager => UtilityCore.PropertyManager;
         public CustomLogPropertyCollection CustomProperties = new CustomLogPropertyCollection();
 
         public bool FileExists;
+
+        /// <summary>
+        /// The amount of frames that a LogProperties instance can have its fields changed once the initial grace period has expired
+        /// </summary>
+        public int AllowEditPeriod = EDIT_PERIOD_DEFAULT;
+
         public bool ReadOnly
         {
             get => _readOnly;
             set
             {
-                _readOnly = value;
-                Rules.ReadOnly = value;
+                if (_readOnly == value) return;
+
+                //When ReadOnly is set to false, set a short frame window to allow for edits
+                if (!value)
+                {
+                    //Avoid overwriting a preset edit window
+                    if (AllowEditPeriod == 0)
+                        AllowEditPeriod = EDIT_PERIOD_DEFAULT;
+
+                    UtilityCore.BaseLogger.LogDebug($"Read Only mode for {ID} disabled for {AllowEditPeriod} frames");
+                }
+                else
+                {
+                    UtilityCore.BaseLogger.LogDebug($"Read Only mode enabled for {ID}");
+                    AllowEditPeriod = 0;
+                }
+                _readOnly = Rules.ReadOnly = value;
             }
         }
 
