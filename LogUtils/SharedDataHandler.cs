@@ -98,6 +98,42 @@ namespace LogUtils
         }
 
         /// <summary>
+        /// Retrieves a registered SharedField instance with the specified tag, and optional initial value
+        /// </summary>
+        /// <typeparam name="T">The type of data that will be stored in the field</typeparam>
+        /// <param name="tag">The search tag</param>
+        /// <param name="initValue">A value to be optionally set on creation of the SharedField</param>
+        public SharedField<T> GetField<T>(string tag, T initValue = default)
+        {
+            return GetField(typeof(T), tag, initValue);
+        }
+
+        /// <summary>
+        /// Retrieves a registered SharedField instance with the specified tag, and optional initial value
+        /// </summary>
+        /// <typeparam name="T">The type of data that will be stored in the field</typeparam>
+        /// <param name="tag">The search tag</param>
+        /// <param name="type">The desired type to associate IShareables with</param>
+        /// <param name="initValue">A value to be optionally set on creation of the SharedField</param>
+        public SharedField<T> GetField<T>(Type type, string tag, T initValue = default)
+        {
+            var field = Find(type, tag) as SharedField<T>; //Check if a field has already been registered
+
+            if (field == null)
+            {
+                field = new SharedField<T>(tag, initValue); //Create new shared field and register it
+                RegisterData(type, field);
+            }
+            else if (EqualityComparer<T>.Default.Equals(field.Value))
+            {
+                //We do not want to modify existing field data, so only do so when it already the default. This logic still may potentially create unwanted behavior
+                field.Value = initValue;
+            }
+
+            return field;
+        }
+
+        /// <summary>
         /// Retrieves an IShareable with an existing data tag, or stores, and returns the given one if it does not yet exist
         /// This method uses the data type to retrieve the data
         /// </summary>
