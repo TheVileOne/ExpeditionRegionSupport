@@ -14,33 +14,82 @@ namespace LogUtils
 
         public override string Tag => UtilityConsts.ComponentTags.SHARED_DATA;
 
-        public IShareable GetData(Type type, string tag)
+        /// <summary>
+        /// Finds the first IShareable with a given tag under the specified type
+        /// </summary>
+        /// <param name="type">The desired type to associate IShareables with (e.g. Shareable booleans can be registered under the boolean type</param>
+        /// <param name="tag">The search tag</param>
+        public IShareable Find(Type type, string tag)
         {
             RegisterType(type);
             return DataCollection[type].Find(data => data.CheckTag(tag));
         }
 
-        public List<IShareable> GetDataSet(Type type, string tag)
+        /// <summary>
+        /// Finds all IShareable instances with a given tag under the specified type
+        /// </summary>
+        /// <param name="type">The desired type to associate IShareables with (e.g. Shareable booleans can be registered under the boolean type</param>
+        /// <param name="tag">The search tag</param>
+        public List<IShareable> FindAll(Type type, string tag)
         {
             RegisterType(type);
             return DataCollection[type].FindAll(data => data.CheckTag(tag));
         }
 
+        /// <summary>
+        /// Assigns an IShareable to the data list of its own type
+        /// </summary>
+        /// <param name="data">Data to store under a registered type</param>
         public void RegisterData(IShareable data)
         {
             RegisterData(data.GetType(), data);
         }
 
+        /// <summary>
+        /// Assigns an IShareable to the data list of the specified type
+        /// </summary>
+        /// <param name="type">The desired type to associate IShareables with (e.g. Shareable booleans can be registered under the boolean type</param>
+        /// <param name="data">Data to store under a registered type</param>
         public void RegisterData(Type type, IShareable data)
+        {
+            RegisterType(type);
+
+            var itemCollection = DataCollection[type];
+
+            if (itemCollection.Exists(d => d.CheckTag(tag)))
+            {
+                UtilityCore.BaseLogger.LogWarning($"Data already exists of type {type} with tag {data.Tag}. Overwriting on register is not allowed");
+                return;
+            }
+
+            itemCollection.Add(data);
+        }
+
+        /// <summary>
+        /// Assigns a list for data of the specified type
+        /// </summary>
+        /// <param name="type">The desired type to associate IShareables with (e.g. Shareable booleans can be registered under the boolean type</param>
+        public void RegisterType(Type type)
+        {
+            DataCollection[type] ??= new List<IShareable>();
+        }
+
+        /// <summary>
+        /// Assigns an IShareable to the data list of the specified type, existing data will be overwritten
+        /// </summary>
+        /// <param name="type">The desired type to associate IShareables with (e.g. Shareable booleans can be registered under the boolean type</param>
+        /// <param name="data">Data to store under a registered type</param>
+        public void ReplaceData(Type type, IShareable data)
         {
             RegisterType(type);
 
             var itemCollection = DataCollection[type];
             int itemIndex = itemCollection.FindIndex(d => d.CheckTag(tag));
 
-            if (itemIndex != -1)
+            if (itemCollection.Exists(d => d.CheckTag(tag)))
             {
-                UtilityCore.BaseLogger.LogInfo($"Overwriting shared data with tag {data.Tag}");
+                UtilityCore.BaseLogger.LogWarning($"Replacing existing data of type {type} with tag {data.Tag}");
+
                 itemCollection[itemIndex] = data;
                 return;
             }
@@ -48,15 +97,16 @@ namespace LogUtils
             itemCollection.Add(data);
         }
 
-        public void RegisterType(Type type)
-        {
-            DataCollection[type] ??= new List<IShareable>();
-        }
-
+        /// <summary>
+        /// Retrieves an IShareable with an existing data tag, or stores, and returns the given one if it does not yet exist
+        /// This method uses the data type to retrieve the data
+        /// </summary>
+        /// <param name="data">The data to check for, or retrieve</param>
+        /// <returns>The associated shared data object</returns>
         public IShareable GetOrAssign(IShareable data)
         {
             Type type = data.GetType();
-            IShareable storedData = GetData(type, data.Tag);
+            IShareable storedData = Find(type, data.Tag);
 
             if (storedData == null)
             {
