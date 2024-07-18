@@ -29,14 +29,24 @@ namespace LogUtils
 
         public void CreateFile(LogID logFile)
         {
-            File.Create(logFile.Properties.CurrentFilePath);
-            logFile.Properties.OnLogStarted();
+            try
+            {
+                File.Create(logFile.Properties.CurrentFilePath);
+                logFile.Properties.LogStartProcess();
+            }
+            catch (IOException e)
+            {
+                UtilityCore.BaseLogger.LogError($"Unable to create file {logFile.Properties.CurrentFilename}.log");
+                UtilityCore.BaseLogger.LogError(e);
+            }
         }
 
         public void WriteToFile(LogID logFile, string message)
         {
             if (!logFile.Properties.FileExists)
                 CreateFile(logFile);
+
+            OnLogMessageReceived(new LogEvents.LogMessageEventArgs(logFile, message));
 
             string writePath = logFile.Properties.CurrentFilePath;
 
@@ -51,6 +61,11 @@ namespace LogUtils
             foreach (LogRule rule in logFile.Properties.Rules.Where(r => r.IsEnabled))
                 rule.Apply(ref message);
             return message;
+        }
+
+        protected virtual void OnLogMessageReceived(LogEvents.LogMessageEventArgs e)
+        {
+            LogEvents.OnMessageReceived?.Invoke(e);
         }
     }
 

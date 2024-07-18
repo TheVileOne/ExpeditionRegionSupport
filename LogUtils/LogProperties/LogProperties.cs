@@ -17,6 +17,11 @@ namespace LogUtils.Properties
         public static PropertyDataController PropertyManager => UtilityCore.PropertyManager;
         public CustomLogPropertyCollection CustomProperties = new CustomLogPropertyCollection();
 
+        /// <summary>
+        /// Events triggers at the start, or the end of a log session
+        /// </summary>
+        public event LogEvents.LogEventHandler OnLogStart, OnLogFinish;
+
         public bool FileExists;
 
         /// <summary>
@@ -230,14 +235,6 @@ namespace LogUtils.Properties
             return string.Equals(logID.value, ID, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        public void OnLogStarted()
-        {
-        }
-
-        public void OnLogCompleted()
-        {
-        }
-
         public void ChangePath(string newPath)
         {
             newPath = PathUtils.RemoveFileFromPath(newPath, out string newFilename);
@@ -263,7 +260,7 @@ namespace LogUtils.Properties
             {
                 FileExists = File.Exists(CurrentFilePath);
                 LastKnownPath = CurrentFilePath;
-                //OnPathChanged.Invoke(this); TODO: Create
+                NotifyPathChanged();
             }
 
             //Steps:
@@ -277,6 +274,42 @@ namespace LogUtils.Properties
         public void ChangePath(string newPath, string newFilename)
         {
             ChangePath(Path.Combine(newPath, newFilename));
+        }
+
+        public string StartMessage, FinishMessage;
+
+        /// <summary>
+        /// Initiates the routine that applies at the start of a log session. Handle initial file write operations through this process
+        /// </summary>
+        public void LogStartProcess()
+        {
+            //TODO: Read from file
+            //TODO: Provide options that imitate current game logging behavior
+            if (StartMessage != null)
+                File.AppendAllText(CurrentFilePath, StartMessage);
+
+            OnLogStart?.Invoke(new LogEvents.LogEventArgs(this));
+        }
+
+        /// <summary>
+        /// Initiates the routine that applies at the end of a log session
+        /// </summary>
+        public void LogEndProcess()
+        {
+            //TODO: Read from file
+            //TODO: Provide options that imitate current game logging behavior
+            if (FinishMessage != null)
+                File.AppendAllText(CurrentFilePath, FinishMessage);
+
+            OnLogFinish?.Invoke(new LogEvents.LogEventArgs(this));
+        }
+
+        /// <summary>
+        /// Triggers the LogEvents.OnPathChanged event for this instance
+        /// </summary>
+        public void NotifyPathChanged()
+        {
+            LogEvents.OnPathChanged?.Invoke(new LogEvents.LogEventArgs(this));
         }
 
         public override string ToString()

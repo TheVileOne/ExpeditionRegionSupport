@@ -8,8 +8,6 @@ namespace LogUtils
     /// </summary>
     public class SharedDataHandler : UtilityComponent
     {
-        public LogEventData EventData;
-
         public Dictionary<Type, List<IShareable>> DataCollection = new Dictionary<Type, List<IShareable>>();
 
         public override string Tag => UtilityConsts.ComponentTags.SHARED_DATA;
@@ -156,15 +154,9 @@ namespace LogUtils
         {
             Dictionary<string, object> fields = base.GetFields();
 
-            fields[nameof(EventData)] = EventData;
             fields[nameof(DataCollection)] = DataCollection;
             return fields;
         }
-    }
-
-    public class LogEventData
-    {
-        //Stub class
     }
 
     public class SharedField<T> : IShareable
