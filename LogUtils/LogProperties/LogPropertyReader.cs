@@ -35,16 +35,19 @@ namespace LogUtils.Properties
                     string header = lineData[0];
                     string value = lineData[1];
 
-                    if (header == UtilityConsts.DataFields.FILENAME)
+                    if (header == UtilityConsts.DataFields.LOGID)
                     {
-                        if (propertyInFile != null)
-                            yield return propertyInFile; //Data collection has finished for the last entry - return the data
+                        var lastProcessed = propertyInFile;
 
                         //Start a new entry for the next set of data fields
                         propertyInFile = new StringDictionary();
+                        propertyInFile[header] = value;
+
+                        if (lastProcessed != null)
+                            yield return lastProcessed; //Data collection has finished for the last entry - return the data
                     }
 
-                    if (line.Length > 2) //This shouldn't be a thing, but lets handle it to be safe
+                    if (lineData.Length > 2) //This shouldn't be a thing, but lets handle it to be safe
                         value = line.Substring(line.IndexOf(":") + 1);
 
                     //Store each data field in a dictionary until all lines pertaining to the current property are read
