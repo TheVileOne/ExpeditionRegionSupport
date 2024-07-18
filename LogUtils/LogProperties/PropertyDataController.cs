@@ -68,7 +68,7 @@ namespace LogUtils.Properties
 
         public List<LogProperties> GetProperties(LogID logID)
         {
-            return Properties.FindAll(p => p.Filename == logID.value);
+            return Properties.FindAll(p => p.IDMatch(logID));
         }
 
         /// <summary>
