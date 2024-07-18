@@ -230,6 +230,14 @@ namespace LogUtils.Properties
             return string.Equals(logID.value, ID, StringComparison.InvariantCultureIgnoreCase);
         }
 
+        public void OnLogStarted()
+        {
+        }
+
+        public void OnLogCompleted()
+        {
+        }
+
         public void ChangePath(string newPath)
         {
             newPath = PathUtils.RemoveFileFromPath(newPath, out string newFilename);

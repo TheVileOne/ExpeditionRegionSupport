@@ -1,13 +1,6 @@
 ﻿using BepInEx.Logging;
-using Mono.Cecil;
-using MonoMod.Cil;
-using MonoMod.RuntimeDetour;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace LogUtils
@@ -19,6 +12,8 @@ namespace LogUtils
         /// Stores mod_id as the key
         /// </summary>
         public static Dictionary<string, BetaLogger> VisibleLoggers = new Dictionary<string, BetaLogger>();
+
+        public ILogWriter Writer = LogWriter.Writer;
 
         public ManualLogSource ManagedLogSource;
 
@@ -331,34 +326,42 @@ namespace LogUtils
         {
             if (!AllowLogging || !target.IsEnabled) return;
 
-            if (target.IsGameControlled) //Game controlled LogIDs are always full access
+            if (target.Access != LogAccess.RemoteAccessOnly)
             {
-                if (target == LogID.BepInEx)
+                if (target.Properties.FileExists)
                 {
-                    LogBepEx(category, data);
+                    //TODO: Create file logic here
                 }
-                else if (target == LogID.Unity)
+
+                if (target.IsGameControlled) //Game controlled LogIDs are always full access
                 {
-                    LogUnity(category, data);
+                    if (target == LogID.BepInEx)
+                    {
+                        LogBepEx(category, data);
+                    }
+                    else if (target == LogID.Unity)
+                    {
+                        LogUnity(category, data);
+                    }
+                    else if (target == LogID.Expedition)
+                    {
+                        LogExp(category, data);
+                    }
+                    else if (target == LogID.JollyCoop)
+                    {
+                        LogJolly(category, data);
+                    }
+                    else if (target == LogID.Exception)
+                    {
+                        LogUnity(LogType.Error, data);
+                    }
                 }
-                else if (target == LogID.Expedition)
+                else if (target.Access == LogAccess.FullAccess || target.Access == LogAccess.Private)
                 {
-                    LogExp(category, data);
-                }
-                else if (target == LogID.JollyCoop)
-                {
-                    LogJolly(category, data);
-                }
-                else if (target == LogID.Exception)
-                {
-                    LogUnity(LogType.Error, data);
+                    Writer.WriteToFile(target, data?.ToString());
                 }
             }
-            else if (target.Access == LogAccess.FullAccess || target.Access == LogAccess.Private)
-            {
-                //TODO: Logging code here
-            }
-            else if (target.Access == LogAccess.RemoteAccessOnly)
+            else
             {
                 //TODO: Remote logging code here
             }
