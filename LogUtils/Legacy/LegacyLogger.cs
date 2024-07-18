@@ -8,7 +8,7 @@ using Debug = UnityEngine.Debug;
 
 namespace LogUtils.Legacy
 {
-    public class LegacyLogger : ILogger, IDisposable
+    public class LegacyLogger : IDisposable
     {
         /// <summary>
         /// The name of the combined mod log file in the Logs directory. Only produced with LogManager plugin.

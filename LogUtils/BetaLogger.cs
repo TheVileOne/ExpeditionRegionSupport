@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace LogUtils
 {
-    public class BetaLogger : ILogger
+    public class BetaLogger
     {
         /// <summary>
         /// A dictionary of loggers available to remote mod requests

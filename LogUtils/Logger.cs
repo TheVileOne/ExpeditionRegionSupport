@@ -9,7 +9,7 @@ using Debug = UnityEngine.Debug;
 
 namespace LogUtils
 {
-    public class Logger : ILogger, IDisposable
+    public class Logger : IDisposable
     {
         /// <summary>
         /// The name of the combined mod log file in the Logs directory. Only produced with LogManager plugin.
