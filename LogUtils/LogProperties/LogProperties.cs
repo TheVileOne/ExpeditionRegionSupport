@@ -67,6 +67,12 @@ namespace LogUtils.Properties
         private string _originalPath = string.Empty;
         private string[] _tags;
 
+        private string _startMessage;
+        private string _finishMessage;
+        private bool _showIntroTimestamp;
+        private bool _showOutroTimestamp;
+        private bool _showLogsAware;
+
         /// <summary>
         /// An identification string used for LogID matching
         /// </summary>
@@ -187,6 +193,71 @@ namespace LogUtils.Properties
             }
         }
 
+        /// <summary>
+        /// A message that will be logged at the start of a log session
+        /// </summary>
+        public string StartMessage
+        {
+            get => _startMessage;
+            set
+            {
+                if (ReadOnly) return;
+                _startMessage = value;
+            }
+        }
+
+        /// <summary>
+        /// A message that will be logged at the end of a log session
+        /// </summary>
+        public string FinishMessage
+        {
+            get => _finishMessage;
+            set
+            {
+                if (ReadOnly) return;
+                _finishMessage = value;
+            }
+        }
+
+        /// <summary>
+        /// A flag that indicates whether a timestamp should be logged at the start of a log session
+        /// </summary>
+        public bool ShowIntroTimestamp
+        {
+            get => _showIntroTimestamp;
+            set
+            {
+                if (ReadOnly) return;
+                _showIntroTimestamp = value;
+            }
+        }
+
+        /// <summary>
+        /// A flag that indicates whether a timestamp should be logged at the end of a log session
+        /// </summary>
+        public bool ShowOutroTimestamp
+        {
+            get => _showOutroTimestamp;
+            set
+            {
+                if (ReadOnly) return;
+                _showOutroTimestamp = value;
+            }
+        }
+
+        /// <summary>
+        /// A flag that controls whether log is allowed to be used when RainWorld.ShowLogs is false
+        /// </summary>
+        public bool ShowLogsAware
+        {
+            get => _showLogsAware;
+            set
+            {
+                if (ReadOnly) return;
+                _showLogsAware = value;
+            }
+        }
+
         public LogRule ShowCategories => Rules.FindByType<ShowCategoryRule>();
         public LogRule ShowLineCount => Rules.FindByType<ShowLineCountRule>();
 
@@ -276,17 +347,18 @@ namespace LogUtils.Properties
             ChangePath(Path.Combine(newPath, newFilename));
         }
 
-        public string StartMessage, FinishMessage;
-
         /// <summary>
         /// Initiates the routine that applies at the start of a log session. Handle initial file write operations through this process
         /// </summary>
         public void LogStartProcess()
         {
-            //TODO: Read from file
-            //TODO: Provide options that imitate current game logging behavior
+            string writePath = CurrentFilePath;
+
             if (StartMessage != null)
-                File.AppendAllText(CurrentFilePath, StartMessage);
+                File.AppendAllText(writePath, StartMessage);
+
+            if (ShowIntroTimestamp)
+                File.AppendAllText(writePath, $"[{DateTime.Now}]");
 
             OnLogStart?.Invoke(new LogEvents.LogEventArgs(this));
         }
@@ -296,10 +368,13 @@ namespace LogUtils.Properties
         /// </summary>
         public void LogEndProcess()
         {
-            //TODO: Read from file
-            //TODO: Provide options that imitate current game logging behavior
+            string writePath = CurrentFilePath;
+
             if (FinishMessage != null)
-                File.AppendAllText(CurrentFilePath, FinishMessage);
+                File.AppendAllText(writePath, FinishMessage);
+
+            if (ShowOutroTimestamp)
+                File.AppendAllText(writePath, $"[{DateTime.Now}]");
 
             OnLogFinish?.Invoke(new LogEvents.LogEventArgs(this));
         }
@@ -321,9 +396,14 @@ namespace LogUtils.Properties
             sb.AppendPropertyString(DataFields.ALTFILENAME, AltFilename);
             sb.AppendPropertyString(DataFields.VERSION, Version);
             sb.AppendPropertyString(DataFields.TAGS, Tags != null ? string.Join(",", Tags) : string.Empty);
+            sb.AppendPropertyString(DataFields.SHOW_LOGS_AWARE, ShowLogsAware.ToString());
             sb.AppendPropertyString(DataFields.PATH, PathUtils.ToPlaceholderPath(FolderPath));
             sb.AppendPropertyString(DataFields.ORIGINAL_PATH, PathUtils.ToPlaceholderPath(OriginalPath));
             sb.AppendPropertyString(DataFields.LAST_KNOWN_PATH, LastKnownPath);
+            sb.AppendPropertyString(DataFields.Intro.MESSAGE, StartMessage);
+            sb.AppendPropertyString(DataFields.Intro.TIMESTAMP, ShowIntroTimestamp.ToString());
+            sb.AppendPropertyString(DataFields.Outro.MESSAGE, FinishMessage);
+            sb.AppendPropertyString(DataFields.Outro.TIMESTAMP, ShowOutroTimestamp.ToString());
             sb.AppendPropertyString(DataFields.Rules.HEADER);
 
             sb.AppendLine(ShowLineCount.PropertyString);

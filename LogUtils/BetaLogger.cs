@@ -324,15 +324,10 @@ namespace LogUtils
 
         protected virtual void LogData(LogID target, LogCategory category, object data)
         {
-            if (!AllowLogging || !target.IsEnabled) return;
+            if (!AllowLogging || !target.IsEnabled || (target.Properties.ShowLogsAware && !RainWorld.ShowLogs)) return;
 
             if (target.Access != LogAccess.RemoteAccessOnly)
             {
-                if (target.Properties.FileExists)
-                {
-                    //TODO: Create file logic here
-                }
-
                 if (target.IsGameControlled) //Game controlled LogIDs are always full access
                 {
                     if (target == LogID.BepInEx)

@@ -121,7 +121,12 @@ namespace LogUtils.Properties
                         AltFilename = dataFields[DataFields.ALTFILENAME],
                         OriginalPath = dataFields[DataFields.ORIGINAL_PATH],
                         LastKnownPath = dataFields[DataFields.LAST_KNOWN_PATH],
-                        Tags = dataFields[DataFields.TAGS].Split(',')
+                        Tags = dataFields[DataFields.TAGS].Split(','),
+                        ShowLogsAware = bool.Parse(dataFields[DataFields.SHOW_LOGS_AWARE]),
+                        StartMessage = dataFields[DataFields.Intro.MESSAGE],
+                        FinishMessage = dataFields[DataFields.Outro.MESSAGE],
+                        ShowIntroTimestamp = bool.Parse(dataFields[DataFields.Intro.TIMESTAMP]),
+                        ShowOutroTimestamp = bool.Parse(dataFields[DataFields.Outro.TIMESTAMP])
                     };
 
                     properties.ShowCategories.IsEnabled = bool.Parse(dataFields[DataFields.Rules.SHOW_CATEGORIES]);
@@ -149,6 +154,11 @@ namespace LogUtils.Properties
                                 DataFields.PATH => default,
                                 DataFields.ORIGINAL_PATH => default,
                                 DataFields.LAST_KNOWN_PATH => default,
+                                DataFields.Intro.MESSAGE => default,
+                                DataFields.Intro.TIMESTAMP => default,
+                                DataFields.Outro.MESSAGE => default,
+                                DataFields.Outro.TIMESTAMP => default,
+                                DataFields.SHOW_LOGS_AWARE => default,
                                 DataFields.Rules.HEADER => default,
                                 DataFields.Rules.SHOW_LINE_COUNT => default,
                                 DataFields.Rules.SHOW_CATEGORIES => default,
