@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace LogUtils
 {
@@ -25,7 +26,7 @@ namespace LogUtils
             MethodInfo method = type.GetMethod(nameof(ManualLogSource.Log));
 
             //Allows LogRules to apply to BepInEx log traffic
-            managedHooks.Add(new ILHook(method, bepInExFormatHook));
+            managedHooks.Add(new ILHook(method, bepInExLogProcessHook));
             Apply();
         }
 
@@ -40,13 +41,17 @@ namespace LogUtils
             On.RainWorld.Update += RainWorld_Update;
 
             //Log property handling
+            On.RainWorld.HandleLog += RainWorld_HandleLog;
             IL.RainWorld.HandleLog += RainWorld_HandleLog;
-            IL.Expedition.ExpLog.ClearLog += replaceLogPathHook_Expedition;
-            IL.Expedition.ExpLog.Log += replaceLogPathHook_Expedition;
-            IL.Expedition.ExpLog.LogOnce += replaceLogPathHook_Expedition;
-            IL.JollyCoop.JollyCustom.CreateJollyLog += replaceLogPathHook_JollyCoop;
-            IL.JollyCoop.JollyCustom.Log += replaceLogPathHook_JollyCoop;
-            IL.JollyCoop.JollyCustom.WriteToLog += replaceLogPathHook_JollyCoop;
+
+            IL.Expedition.ExpLog.ClearLog += ExpLog_ClearLog;
+            IL.Expedition.ExpLog.Log += ExpLog_Log;
+            IL.Expedition.ExpLog.LogOnce += ExpLog_LogOnce;
+            IL.Expedition.ExpLog.LogChallengeTypes += ExpLog_LogChallengeTypes;
+
+            IL.JollyCoop.JollyCustom.CreateJollyLog += JollyCustom_CreateJollyLog;
+            IL.JollyCoop.JollyCustom.Log += JollyCustom_Log;
+            IL.JollyCoop.JollyCustom.WriteToLog += JollyCustom_WriteToLog;
 
             managedHooks.ForEach(hook => hook.Apply());
         }
@@ -72,13 +77,17 @@ namespace LogUtils
             On.RainWorld.PostModsInit += RainWorld_PostModsInit;
             On.RainWorld.Update -= RainWorld_Update;
 
+            On.RainWorld.HandleLog -= RainWorld_HandleLog;
             IL.RainWorld.HandleLog -= RainWorld_HandleLog;
-            IL.Expedition.ExpLog.ClearLog -= replaceLogPathHook_Expedition;
-            IL.Expedition.ExpLog.Log -= replaceLogPathHook_Expedition;
-            IL.Expedition.ExpLog.LogOnce -= replaceLogPathHook_Expedition;
-            IL.JollyCoop.JollyCustom.CreateJollyLog -= replaceLogPathHook_JollyCoop;
-            IL.JollyCoop.JollyCustom.Log -= replaceLogPathHook_JollyCoop;
-            IL.JollyCoop.JollyCustom.WriteToLog -= replaceLogPathHook_JollyCoop;
+
+            IL.Expedition.ExpLog.ClearLog -= ExpLog_ClearLog;
+            IL.Expedition.ExpLog.Log -= ExpLog_Log;
+            IL.Expedition.ExpLog.LogOnce -= ExpLog_LogOnce;
+            IL.Expedition.ExpLog.LogChallengeTypes -= ExpLog_LogChallengeTypes;
+
+            IL.JollyCoop.JollyCustom.CreateJollyLog -= JollyCustom_CreateJollyLog;
+            IL.JollyCoop.JollyCustom.Log -= JollyCustom_Log;
+            IL.JollyCoop.JollyCustom.WriteToLog -= JollyCustom_WriteToLog;
 
             managedHooks.ForEach(hook => hook.Free());
         }
@@ -114,6 +123,18 @@ namespace LogUtils
 
                 UtilityCore.HandleLogSignal();
             }
+        }
+
+        private static void RainWorld_HandleLog(On.RainWorld.orig_HandleLog orig, RainWorld self, string logString, string stackTrace, LogType type)
+        {
+            LogID logFile = LogID.Unity;
+
+            if (type == LogType.Error || type == LogType.Exception)
+                logFile = LogID.Exception;
+
+            if (logFile.Properties.ShowLogsAware && !RainWorld.ShowLogs) return; //Don't handle request, orig doesn't get called in this circumstance
+
+            orig(self, logString, stackTrace, type);
         }
 
         private static void RainWorld_HandleLog(ILContext il)
@@ -152,20 +173,70 @@ namespace LogUtils
             }
         }
 
-        private static void replaceLogPathHook_Expedition(ILContext il)
+        private static void ExpLog_LogChallengeTypes(ILContext il)
         {
-            replaceLogPath(il, LogID.Expedition);
+            showLogsBypassHook(new ILCursor(il), LogID.Expedition);
         }
 
-        private static void replaceLogPathHook_JollyCoop(ILContext il)
-        {
-            replaceLogPath(il, LogID.JollyCoop);
-        }
-
-        private static void replaceLogPath(ILContext il, LogID logFile)
+        private static void ExpLog_Log(ILContext il)
         {
             ILCursor cursor = new ILCursor(il);
 
+            showLogsBypassHook(cursor, LogID.Expedition);
+            replaceLogPathHook(cursor, LogID.Expedition);
+        }
+
+        private static void ExpLog_LogOnce(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            showLogsBypassHook(cursor, LogID.Expedition);
+            replaceLogPathHook(cursor, LogID.Expedition);
+        }
+
+        private static void ExpLog_ClearLog(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            showLogsBypassHook(cursor, LogID.Expedition);
+            replaceLogPathHook(cursor, LogID.Expedition);
+        }
+
+        private static void JollyCustom_WriteToLog(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            showLogsBypassHook(cursor, LogID.JollyCoop);
+            replaceLogPathHook(cursor, LogID.JollyCoop);
+        }
+
+        private static void JollyCustom_Log(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            showLogsBypassHook(cursor, LogID.JollyCoop);
+            replaceLogPathHook(cursor, LogID.JollyCoop);
+        }
+
+        private static void JollyCustom_CreateJollyLog(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            showLogsBypassHook(cursor, LogID.JollyCoop);
+            replaceLogPathHook(cursor, LogID.JollyCoop);
+        }
+
+        private static void showLogsBypassHook(ILCursor cursor, LogID logFile)
+        {
+            cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(RainWorld).GetMethod("get_ShowLogs")));
+            cursor.EmitDelegate((bool showLogs) =>
+            {
+                return showLogs || !logFile.Properties.ShowLogsAware;
+            });
+        }
+
+        private static void replaceLogPathHook(ILCursor cursor, LogID logFile)
+        {
             if (cursor.TryGotoNext(MoveType.After, x => x.MatchCall(typeof(RWCustom.Custom).GetMethod("RootFolderDirectory"))))
             {
                 cursor.Emit(OpCodes.Pop); //Get method return value off the stack
@@ -182,10 +253,28 @@ namespace LogUtils
             }
         }
 
-        private static void bepInExFormatHook(ILContext il)
+        private static void bepInExLogProcessHook(ILContext il)
         {
-            //Stub
             ILCursor cursor = new ILCursor(il);
+
+            cursor.GotoNext(MoveType.After, x => x.MatchLdarg(0));
+            cursor.Emit(OpCodes.Pop); //Just need to emit after this instruction. We don't need the reference
+            cursor.Emit(OpCodes.Ldarg_1)
+                  .Emit(OpCodes.Ldarg_2);
+            cursor.EmitDelegate(onLogReceived);
+
+            //Check that LogRequest has passed validation
+            ILLabel branchLabel = cursor.DefineLabel();
+
+            cursor.Emit(OpCodes.Brtrue, branchLabel);
+            cursor.Emit(OpCodes.Ret); //Return early if validation check failed
+
+            cursor.MarkLabel(branchLabel);
+
+            bool onLogReceived(LogLevel category, object data)
+            {
+                return !LogID.BepInEx.Properties.ShowLogsAware || RainWorld.ShowLogs;
+            }
         }
     }
 }

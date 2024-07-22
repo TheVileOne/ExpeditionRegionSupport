@@ -96,9 +96,15 @@ namespace LogUtils
 
             BepInEx.Properties.AltFilename = "mods";
             BepInEx.Properties.Rules.Add(new ShowCategoryRule(true));
+
             Exception.Properties.AltFilename = "exception";
+
             Expedition.Properties.AltFilename = "expedition";
+            Expedition.Properties.ShowLogsAware = true;
+
             JollyCoop.Properties.AltFilename = "jolly";
+            JollyCoop.Properties.ShowLogsAware = true;
+
             Unity.Properties.AltFilename = "console";
         }
 
