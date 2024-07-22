@@ -11,14 +11,59 @@ namespace LogUtils
     /// </summary>
     public class LogRequest
     {
-        /// <summary>
-        /// General identifier string often used to provide additional user feedback 
-        /// </summary>
-        public string Category;
+        public LogEvents.LogMessageEventArgs Data;
 
-        /// <summary>
-        /// A pending message waiting to be logged to file
-        /// </summary>
-        public string Message;
+        public RequestProtocol HandleProtocol;
+        public RequestStatus Status { get; private set; }
+
+        public LogRequest(LogEvents.LogMessageEventArgs data)
+        {
+            Data = data;
+            Status = RequestStatus.Pending;
+        }
+
+        public void Complete()
+        {
+            Status = RequestStatus.Complete;
+        }
+
+        public void Reject()
+        {
+            Status = RequestStatus.Rejected;
+        }
+
+        public override string ToString()
+        {
+            return string.Format("[Log Request][{0}] {1}", Data.ID, Data.Message);
+        }
+    }
+
+    public enum RequestStatus
+    {
+        Pending,
+        Rejected,
+        Complete
+    }
+
+    public enum RequestProtocol
+    {
+        HandleWhenPossible,
+        DiscardOnFail
+    }
+
+    public enum LogAvailability
+    {
+        Pregame,
+        OnModsInIt
+    }
+
+    public enum RejectionReason
+    {
+        None = 0,
+        AccessDenied = 1, //Logger is private
+        LogDisabled = 2, //LogID is not enabled, Logger is not accepting logs, or LogID is ShowLogs aware and ShowLogs is false
+        LogUnavailable = 3, //No logger is available that accepts the LogID, or the logger accepts the LogID, but enforces a build period on the log file that is not yet satisfied
+        PregameUnityRequest = 4, //Requested action to the Unity logger before the game is initialized
+        ShowLogsNotInitialized = 5 //Requested action to a ShowLogs aware log before ShowLogs is initialized 
     }
 }
