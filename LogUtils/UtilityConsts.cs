@@ -47,6 +47,7 @@ namespace LogUtils
         {
             public const string PROPERTY_DATA = "LogProperties";
             public const string SHARED_DATA = "SharedData";
+            public const string REQUEST_DATA = "RequestData";
         }
     }
 }

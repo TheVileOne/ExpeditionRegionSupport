@@ -34,6 +34,11 @@ namespace LogUtils
         /// </summary>
         public static SharedDataHandler DataHandler;
 
+        /// <summary>
+        /// Handles log requests between different loggers
+        /// </summary>
+        public static LogRequestHandler RequestHandler;
+
         internal static void Initialize()
         {
             if (IsInitialized || initializingInProgress) return; //Initialize may be called several times during the init process
@@ -64,6 +69,7 @@ namespace LogUtils
             }
 
             DataHandler = ComponentUtils.GetOrCreate<SharedDataHandler>(UtilityConsts.ComponentTags.SHARED_DATA, out _);
+            RequestHandler = ComponentUtils.GetOrCreate<LogRequestHandler>(UtilityConsts.ComponentTags.REQUEST_DATA, out _);
         }
 
         /// <summary>
