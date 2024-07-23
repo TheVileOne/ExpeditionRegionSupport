@@ -1,5 +1,6 @@
 ﻿using BepInEx.Logging;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 
@@ -22,23 +23,65 @@ namespace LogUtils
         /// </summary>
         public List<LogID> LogTargets = new List<LogID>();
 
-        public bool AllowLogging = true;
+        /// <summary>
+        /// A flag that allows/disallows handling of log requests (local and remote) through this logger 
+        /// </summary>
+        public bool AllowLogging;
 
-        public BetaLogger(string modID, bool visibleToRemoteLoggers = true)
-        {
-            if (visibleToRemoteLoggers)
-                VisibleLoggers[modID] = this;
-        }
+        /// <summary>
+        /// A flag that allows/disallows handling of remote log requests through this logger
+        /// </summary>
+        public bool AllowRemoteLogging;
 
-        public BetaLogger(params LogID[] presets)
+        #region Constructors
+
+        /// <summary>
+        /// Constructs a logger instance
+        /// </summary>
+        /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
+        /// <param name="visibleToRemoteLoggers">Whether logger is able to handle remote log requests</param>
+        /// <param name="presets">LogIDs that are handled by this logger for untargeted, and remote log requests</param>
+        public BetaLogger(bool allowLogging, bool visibleToRemoteLoggers, params LogID[] presets)
         {
+            AllowLogging = allowLogging;
+            AllowRemoteLogging = visibleToRemoteLoggers;
+
             LogTargets.AddRange(presets);
         }
 
-        public BetaLogger(string logName, string log)
+        /// <summary>
+        /// Constructs a logger instance
+        /// </summary>
+        /// <param name="visibleToRemoteLoggers">Whether logger is able to handle remote log requests</param>
+        /// <param name="presets">LogIDs that are handled by this logger for untargeted, and remote log requests</param>
+        public BetaLogger(bool visibleToRemoteLoggers, params LogID[] presets) : this(true, visibleToRemoteLoggers, presets)
         {
         }
 
+        /// <summary>
+        /// Constructs a logger instance
+        /// </summary>
+        /// <param name="presets">LogIDs that are handled by this logger for untargeted, and remote log requests</param>
+        public BetaLogger(params LogID[] presets) : this(true, true, presets)
+        {
+        }
+
+        /// <summary>
+        /// Constructs a logger instance for a temporary log file
+        /// </summary>
+        /// <param name="logPath"> The full path to the log file (including filename)</param>
+        /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
+        public BetaLogger(string logPath, bool allowLogging = true)
+        {
+            AllowLogging = allowLogging;
+            AllowRemoteLogging = true;
+
+            string logName = Path.GetFileNameWithoutExtension(logPath);
+            logPath = Path.GetDirectoryName(logPath);
+
+            LogTargets.Add(new LogID(logName, logPath, false)); //Unregistered to avoid properties being saved for this temporary log file
+        }
+        #endregion
         #region Log Overloads (object)
 
         public void Log(object data)
