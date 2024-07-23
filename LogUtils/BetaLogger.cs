@@ -22,10 +22,28 @@ namespace LogUtils
         /// </summary>
         public bool AllowLogging;
 
+        private bool _allowRemoteLogging;
+
         /// <summary>
         /// A flag that allows/disallows handling of remote log requests through this logger
         /// </summary>
-        public bool AllowRemoteLogging;
+        public bool AllowRemoteLogging
+        {
+            get => _allowRemoteLogging;
+            set
+            {
+                if (AllowRemoteLogging != value)
+                {
+                    List<BetaLogger> availableForRemoteLogging = UtilityCore.RequestHandler.AvailableLoggers;
+
+                    if (value)
+                        availableForRemoteLogging.Add(this);
+                    else
+                        availableForRemoteLogging.Remove(this);
+                    _allowRemoteLogging = value;
+                }
+            }
+        }
 
         #region Constructors
 
