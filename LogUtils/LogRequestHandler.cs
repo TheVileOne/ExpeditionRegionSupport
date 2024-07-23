@@ -8,6 +8,11 @@ namespace LogUtils
     {
         public override string Tag => UtilityConsts.ComponentTags.REQUEST_DATA;
 
+        /// <summary>
+        /// A list of loggers available to handle log requests. (Not all loggers may accept remote requests)
+        /// </summary>
+        public List<BetaLogger> AvailableLoggers = new List<BetaLogger>();
+
         public BufferedLinkedList<LogRequest> UnhandledRequests;
 
         public LogRequest CurrentRequest

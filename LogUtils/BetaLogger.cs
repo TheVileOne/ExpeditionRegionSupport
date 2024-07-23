@@ -8,12 +8,6 @@ namespace LogUtils
 {
     public class BetaLogger
     {
-        /// <summary>
-        /// A dictionary of loggers available to remote mod requests
-        /// Stores mod_id as the key
-        /// </summary>
-        public static Dictionary<string, BetaLogger> VisibleLoggers = new Dictionary<string, BetaLogger>();
-
         public ILogWriter Writer = LogWriter.Writer;
 
         public ManualLogSource ManagedLogSource;
@@ -47,6 +41,8 @@ namespace LogUtils
             AllowRemoteLogging = visibleToRemoteLoggers;
 
             LogTargets.AddRange(presets);
+
+            UtilityCore.RequestHandler.AvailableLoggers.Add(this);
         }
 
         /// <summary>
