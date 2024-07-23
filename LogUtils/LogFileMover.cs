@@ -140,14 +140,14 @@ namespace LogUtils
 
         private void logMoveError(Exception ex)
         {
-            Debug.LogError("Unable to move file. Attempt copy instead");
-            Debug.LogError(ex);
+            UtilityCore.BaseLogger.LogError("Unable to move file. Attempting to copy instead");
+            UtilityCore.BaseLogger.LogError(ex);
         }
 
         private void logCopyError(Exception ex)
         {
-            Debug.LogError("Unable to copy file");
-            Debug.LogError(ex);
+            UtilityCore.BaseLogger.LogError("Unable to copy file");
+            UtilityCore.BaseLogger.LogError(ex);
         }
     }
 
