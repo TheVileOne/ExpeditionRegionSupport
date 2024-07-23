@@ -8,7 +8,7 @@ namespace LogUtils
     {
         private LinkedList<T> nodeLeaser;
 
-        public LinkedList<T> InnerLinkedList;
+        protected LinkedList<T> InnerLinkedList;
 
         private const int default_capacity = 5;
 
