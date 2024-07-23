@@ -40,7 +40,7 @@ namespace LogUtils
             IsGameControlled = gameControlled;
         }
 
-        public LogID(string filename, string relativePathNoFile = null, LogAccess access = LogAccess.RemoteAccessOnly, bool register = false) : base(filename, false)
+        public LogID(string filename, string relativePathNoFile, LogAccess access = LogAccess.RemoteAccessOnly, bool register = false) : base(filename, false)
         {
             //Each time a LogID is constructed, a local reference needs to be registered in order to maintain setting/access consistency
             int localIndex = LocalRegistry.FindIndex(id => id.value == filename);
