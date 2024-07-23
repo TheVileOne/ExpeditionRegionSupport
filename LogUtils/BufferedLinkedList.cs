@@ -126,6 +126,16 @@ namespace LogUtils
             return InnerLinkedList.FindLast(value);
         }
 
+        public bool Remove(T value)
+        {
+            return InnerLinkedList.Remove(value);
+        }
+
+        public void Remove(LinkedListNode<T> node)
+        {
+            InnerLinkedList.Remove(node);
+        }
+
         public void RemoveFirst()
         {
             LinkedListNode<T> node = InnerLinkedList.First;
