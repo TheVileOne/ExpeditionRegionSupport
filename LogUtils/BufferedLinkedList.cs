@@ -44,6 +44,12 @@ namespace LogUtils
             }
         }
 
+        public int Count => InnerLinkedList.Count;
+
+        public LinkedListNode<T> First => InnerLinkedList.First;
+
+        public LinkedListNode<T> Last => InnerLinkedList.Last;
+
         public BufferedLinkedList(int capacity = default_capacity)
         {
             InnerLinkedList = new LinkedList<T>();
@@ -61,7 +67,7 @@ namespace LogUtils
                 Capacity += default_capacity;
         }
 
-        public void AddFirst(T value)
+        public LinkedListNode<T> AddFirst(T value)
         {
             EnsureCapacity();
 
@@ -69,9 +75,10 @@ namespace LogUtils
 
             node.Value = value;
             InnerLinkedList.AddFirst(node);
+            return node;
         }
 
-        public void AddLast(T value)
+        public LinkedListNode<T> AddLast(T value)
         {
             EnsureCapacity();
 
@@ -79,9 +86,10 @@ namespace LogUtils
 
             node.Value = value;
             InnerLinkedList.AddLast(node);
+            return node;
         }
 
-        public void AddBefore(LinkedListNode<T> node, T value)
+        public LinkedListNode<T> AddBefore(LinkedListNode<T> node, T value)
         {
             EnsureCapacity();
 
@@ -89,9 +97,10 @@ namespace LogUtils
 
             nodeBefore.Value = value;
             InnerLinkedList.AddBefore(node, nodeBefore);
+            return nodeBefore;
         }
 
-        public void AddAfter(LinkedListNode<T> node, T value)
+        public LinkedListNode<T> AddAfter(LinkedListNode<T> node, T value)
         {
             EnsureCapacity();
 
@@ -99,6 +108,22 @@ namespace LogUtils
 
             nodeAfter.Value = value;
             InnerLinkedList.AddAfter(node, nodeAfter);
+            return nodeAfter;
+        }
+
+        public bool Contains(T value)
+        {
+            return InnerLinkedList.Contains(value);
+        }
+
+        public LinkedListNode<T> Find(T value)
+        {
+            return InnerLinkedList.Find(value);
+        }
+
+        public LinkedListNode<T> FindLast(T value)
+        {
+            return InnerLinkedList.FindLast(value);
         }
 
         public void RemoveFirst()
