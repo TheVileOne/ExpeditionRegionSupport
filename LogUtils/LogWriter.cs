@@ -41,12 +41,26 @@ namespace LogUtils
             }
         }
 
+        public void WriteFromRequest(LogRequest request)
+        {
+            InternalWriteToFile(request.Data);
+        }
+
         public void WriteToFile(LogID logFile, string message)
         {
             if (!logFile.Properties.FileExists)
                 CreateFile(logFile);
 
-            OnLogMessageReceived(new LogEvents.LogMessageEventArgs(logFile, message));
+            LogEvents.LogMessageEventArgs logEventData = new LogEvents.LogMessageEventArgs(logFile, message);
+
+            OnLogMessageReceived(logEventData);
+            InternalWriteToFile(logEventData);
+        }
+
+        internal void InternalWriteToFile(LogEvents.LogMessageEventArgs logEventData)
+        {
+            LogID logFile = logEventData.ID;
+            string message = logEventData.Message;
 
             string writePath = logFile.Properties.CurrentFilePath;
 
@@ -65,6 +79,7 @@ namespace LogUtils
 
         protected virtual void OnLogMessageReceived(LogEvents.LogMessageEventArgs e)
         {
+            UtilityCore.RequestHandler.CurrentRequest = new LogRequest(e);
             LogEvents.OnMessageReceived?.Invoke(e);
         }
     }
@@ -72,6 +87,7 @@ namespace LogUtils
     public interface ILogWriter
     {
         public void CreateFile(LogID logFile);
+        public void WriteFromRequest(LogRequest request);
         public void WriteToFile(LogID logFile, string message);
         public string ApplyRules(LogID logFile, string message);
     }

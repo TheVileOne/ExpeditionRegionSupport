@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace LogUtils
 {
@@ -8,10 +9,12 @@ namespace LogUtils
     {
         public override string Tag => UtilityConsts.ComponentTags.REQUEST_DATA;
 
+        private List<BetaLogger> availableLoggers = new List<BetaLogger>();
+
         /// <summary>
         /// A list of loggers available to handle remote log requests
         /// </summary>
-        internal List<BetaLogger> AvailableLoggers = new List<BetaLogger>();
+        public IEnumerable<BetaLogger> AvailableLoggers => availableLoggers;
 
         public BufferedLinkedList<LogRequest> UnhandledRequests;
 
@@ -50,6 +53,38 @@ namespace LogUtils
         {
             enabled = true;
             UnhandledRequests = new BufferedLinkedList<LogRequest>(20);
+        }
+
+        public IEnumerable<LogRequest> GetActiveRequests(LogID logFile)
+        {
+            return UnhandledRequests.Where(log => log.Equals(logFile));
+        }
+
+        /// <summary>
+        /// Registers a logger for remote logging
+        /// </summary>
+        public void Register(BetaLogger logger)
+        {
+            UtilityCore.BaseLogger.LogInfo("Registering logger");
+            UtilityCore.BaseLogger.LogInfo("Log targets: " + string.Join(" ,", logger.LogTargets));
+
+            availableLoggers.Add(logger);
+
+            //Regardless of whether this logger 
+            foreach (LogID logFile in logger.LogTargets.Where(log => !log.IsGameControlled && log.Access != LogAccess.RemoteAccessOnly)) //Game controlled logids cannot be handled here
+            {
+                logger.HandleRequests(GetActiveRequests(logFile));
+            }
+        }
+
+        /// <summary>
+        /// Unregisters a logger for remote logging
+        /// </summary>
+        public void Unregister(BetaLogger logger)
+        {
+            UtilityCore.BaseLogger.LogInfo("Unregistering logger");
+            UtilityCore.BaseLogger.LogInfo("Log targets: " + string.Join(" ,", logger.LogTargets));
+            availableLoggers.Remove(logger);
         }
 
         public void Update()

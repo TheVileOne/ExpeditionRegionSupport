@@ -13,8 +13,9 @@ namespace LogUtils
     {
         public LogEvents.LogMessageEventArgs Data;
 
-        public RequestProtocol HandleProtocol;
         public RequestStatus Status { get; private set; }
+
+        public RejectionReason UnhandledReason { get; private set; }
 
         public LogRequest(LogEvents.LogMessageEventArgs data)
         {
@@ -27,9 +28,10 @@ namespace LogUtils
             Status = RequestStatus.Complete;
         }
 
-        public void Reject()
+        public void Reject(RejectionReason reason)
         {
             Status = RequestStatus.Rejected;
+            UnhandledReason = reason;
         }
 
         public override string ToString()
@@ -60,7 +62,7 @@ namespace LogUtils
     public enum RejectionReason
     {
         None = 0,
-        AccessDenied = 1, //Logger is private
+        AccessDenied = 1, //LogID is private
         LogDisabled = 2, //LogID is not enabled, Logger is not accepting logs, or LogID is ShowLogs aware and ShowLogs is false
         LogUnavailable = 3, //No logger is available that accepts the LogID, or the logger accepts the LogID, but enforces a build period on the log file that is not yet satisfied
         PregameUnityRequest = 4, //Requested action to the Unity logger before the game is initialized

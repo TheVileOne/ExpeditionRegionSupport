@@ -34,12 +34,10 @@ namespace LogUtils
             {
                 if (AllowRemoteLogging != value)
                 {
-                    List<BetaLogger> availableForRemoteLogging = UtilityCore.RequestHandler.AvailableLoggers;
-
                     if (value)
-                        availableForRemoteLogging.Add(this);
+                        UtilityCore.RequestHandler.Register(this);
                     else
-                        availableForRemoteLogging.Remove(this);
+                        UtilityCore.RequestHandler.Unregister(this);
                     _allowRemoteLogging = value;
                 }
             }
@@ -59,8 +57,6 @@ namespace LogUtils
             AllowRemoteLogging = visibleToRemoteLoggers;
 
             LogTargets.AddRange(presets);
-
-            UtilityCore.RequestHandler.AvailableLoggers.Add(this);
         }
 
         /// <summary>
@@ -416,6 +412,50 @@ namespace LogUtils
             else
             {
                 //TODO: Remote logging code here
+            }
+        }
+
+        public void HandleRequests(IEnumerable<LogRequest> requests, bool validationNotNeeded = false)
+        {
+            LogID loggerID = null;
+            LogID requestID = null;
+
+            foreach (LogRequest request in requests.Where(req => validationNotNeeded || LogTargets.Contains(req.Data.ID)))
+            {
+                if (request.Status == RequestStatus.Complete)
+                {
+                    UtilityCore.BaseLogger.LogWarning("Request handled in an invalid state. Please report this");
+                    continue;
+                }
+
+                requestID = request.Data.ID;
+                if (loggerID == null || (loggerID != requestID)) //ExtEnums are not compared by reference
+                {
+                    //The local LogID stored in LogTargets will be a different instance to the one stored in a remote log request
+                    //It is important to check the local id instead of the remote id in certain situations
+                    loggerID = LogTargets.Find(id => id == requestID);
+                }
+
+                if (loggerID.Properties.CurrentFilePath != requestID.Properties.CurrentFilePath) //Same LogID, different log paths - do not handle
+                {
+                    UtilityCore.BaseLogger.LogInfo("Request not handled, log paths do not match");
+                    continue;
+                }
+
+                if (!AllowLogging || !loggerID.IsEnabled || (loggerID.Properties.ShowLogsAware && !RainWorld.ShowLogs))
+                {
+                    request.Reject(RejectionReason.LogDisabled);
+                    continue;
+                }
+
+                if (loggerID.Access == LogAccess.Private || !AllowRemoteLogging) //TODO: Distinguish between remote, and non-remote requests
+                {
+                    request.Reject(RejectionReason.AccessDenied);
+                    continue;
+                }
+
+                request.Complete();
+                Writer.WriteFromRequest(request);
             }
         }
     }
