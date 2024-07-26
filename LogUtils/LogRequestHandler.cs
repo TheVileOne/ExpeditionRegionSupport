@@ -18,7 +18,21 @@ namespace LogUtils
 
         public BufferedLinkedList<LogRequest> UnhandledRequests;
 
+        private LogRequest _currentRequest;
+
+        /// <summary>
+        /// The request currently being handled. The property is cleared when request has been properly handled, or the request has been swapped out to another request
+        /// </summary>
         public LogRequest CurrentRequest
+        {
+            get => _currentRequest ?? PendingRequest;
+            set => _currentRequest = value;
+        }
+
+        /// <summary>
+        /// The latest request that has yet to be handled
+        /// </summary>
+        public LogRequest PendingRequest
         {
             get
             {
@@ -27,19 +41,15 @@ namespace LogUtils
 
                 LogRequest request = UnhandledRequests.Last.Value;
 
-                //Only pending requests should be considered current
                 if (request.Status == RequestStatus.Pending)
                     return request;
 
                 return null;
             }
 
-            set
+            private set
             {
-                if (value == null)
-                    throw new ArgumentNullException("Log Request queue does not accept null values");
-
-                LogRequest lastUnhandledRequest = CurrentRequest;
+                LogRequest lastUnhandledRequest = PendingRequest;
 
                 //Ensure that only one pending request is handled by design. This shouldn't be the case normally, and handling it this way will consume the unhandled request
                 if (lastUnhandledRequest != null && (lastUnhandledRequest.Status == RequestStatus.Complete || lastUnhandledRequest.Status == RequestStatus.Pending))
@@ -58,6 +68,16 @@ namespace LogUtils
         public IEnumerable<LogRequest> GetActiveRequests(LogID logFile)
         {
             return UnhandledRequests.Where(log => log.Equals(logFile));
+        }
+
+        /// <summary>
+        /// Submit a request - will be treated as an active pending log request
+        /// </summary>
+        public LogRequest Submit(LogRequest request)
+        {
+            request.ResetStatus();
+            PendingRequest = request;
+            return request;
         }
 
         /// <summary>

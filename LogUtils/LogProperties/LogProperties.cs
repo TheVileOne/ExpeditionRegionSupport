@@ -22,7 +22,28 @@ namespace LogUtils.Properties
         /// </summary>
         public event LogEvents.LogEventHandler OnLogStart, OnLogFinish;
 
-        public bool FileExists;
+        public bool FileExists
+        {
+            get => _fileExists;
+            set
+            {
+                if (_fileExists == value) return;
+
+                _fileExists = value;
+                LogSessionActive = false; //A new session needs to apply when file is created or removed
+            }
+        }
+
+        /// <summary>
+        /// The log file has been created, its initialization process has run successfully, and it isn't adding to stale log file data 
+        /// </summary>
+        public bool LogSessionActive { get; private set; }
+
+        /// <summary>
+        /// The earliest period that the log file may start a new log session through a log event
+        /// It is recommended to keep at the earliest possible write period, or a period that is close to when the log file is used by a mod's logger
+        /// </summary>
+        public SetupPeriod AccessPeriod = SetupPeriod.Pregame;
 
         /// <summary>
         /// The amount of frames that a LogProperties instance can have its fields changed once the initial grace period has expired
@@ -59,6 +80,7 @@ namespace LogUtils.Properties
         /// </summary>
         public List<string> AssociatedModIDs = new List<string>();
 
+        private static bool _fileExists;
         private static bool _readOnly;
         private string _version = "0.5.0";
         private string _filename = string.Empty;
@@ -361,6 +383,11 @@ namespace LogUtils.Properties
                 File.AppendAllText(writePath, $"[{DateTime.Now}]");
 
             OnLogStart?.Invoke(new LogEvents.LogEventArgs(this));
+
+            //File probably always exists at this point - it is possible that it might not in unusual situations
+            //TODO: Determine if file should be created as part of the process
+            FileExists = File.Exists(writePath);
+            LogSessionActive = FileExists;
         }
 
         /// <summary>
@@ -377,6 +404,7 @@ namespace LogUtils.Properties
                 File.AppendAllText(writePath, $"[{DateTime.Now}]");
 
             OnLogFinish?.Invoke(new LogEvents.LogEventArgs(this));
+            LogSessionActive = false;
         }
 
         /// <summary>

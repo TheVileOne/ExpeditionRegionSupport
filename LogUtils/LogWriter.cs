@@ -43,22 +43,49 @@ namespace LogUtils
 
         public void WriteFromRequest(LogRequest request)
         {
+            UtilityCore.RequestHandler.CurrentRequest = request;
+
+            if (!PrepareLogFile(request.Data.ID))
+            {
+                request.Reject(RejectionReason.LogUnavailable);
+                return;
+            }
+
             InternalWriteToFile(request.Data);
         }
 
         public void WriteToFile(LogID logFile, string message)
         {
-            if (!logFile.Properties.FileExists)
-                CreateFile(logFile);
-
             LogEvents.LogMessageEventArgs logEventData = new LogEvents.LogMessageEventArgs(logFile, message);
+            LogRequest request = UtilityCore.RequestHandler.Submit(new LogRequest(logEventData));
 
-            OnLogMessageReceived(logEventData);
+            if (!PrepareLogFile(logFile))
+            {
+                request.Reject(RejectionReason.LogUnavailable);
+                return;
+            }
+     
             InternalWriteToFile(logEventData);
+        }
+
+        internal bool PrepareLogFile(LogID logFile)
+        {
+            if (logFile.Properties.LogSessionActive)
+                return true;
+
+            //Have you reached a point where this LogID can log to file
+            if (RWInfo.LatestSetupPeriodReached < logFile.Properties.AccessPeriod)
+                return false;
+
+            //Start routine for a new log session
+            CreateFile(logFile);
+            return true;
         }
 
         internal void InternalWriteToFile(LogEvents.LogMessageEventArgs logEventData)
         {
+            OnLogMessageReceived(logEventData);
+
             LogID logFile = logEventData.ID;
             string message = logEventData.Message;
 
@@ -79,7 +106,6 @@ namespace LogUtils
 
         protected virtual void OnLogMessageReceived(LogEvents.LogMessageEventArgs e)
         {
-            UtilityCore.RequestHandler.CurrentRequest = new LogRequest(e);
             LogEvents.OnMessageReceived?.Invoke(e);
         }
     }

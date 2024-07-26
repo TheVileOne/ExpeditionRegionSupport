@@ -94,17 +94,22 @@ namespace LogUtils
             JollyCoop = new LogID("jollyLog", "customroot", true, true);
             Unity = new LogID("consoleLog", "root", true, true);
 
+            BepInEx.Properties.AccessPeriod = SetupPeriod.Pregame;
             BepInEx.Properties.AltFilename = "mods";
             BepInEx.Properties.Rules.Add(new ShowCategoryRule(true));
 
+            Exception.Properties.AccessPeriod = SetupPeriod.RWAwake;
             Exception.Properties.AltFilename = "exception";
 
+            Expedition.Properties.AccessPeriod = SetupPeriod.ModsInit;
             Expedition.Properties.AltFilename = "expedition";
             Expedition.Properties.ShowLogsAware = true;
 
+            JollyCoop.Properties.AccessPeriod = SetupPeriod.ModsInit;
             JollyCoop.Properties.AltFilename = "jolly";
             JollyCoop.Properties.ShowLogsAware = true;
 
+            Unity.Properties.AccessPeriod = SetupPeriod.RWAwake;
             Unity.Properties.AltFilename = "console";
         }
 

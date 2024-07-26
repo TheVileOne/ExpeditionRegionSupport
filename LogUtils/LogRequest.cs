@@ -23,6 +23,12 @@ namespace LogUtils
             Status = RequestStatus.Pending;
         }
 
+        public void ResetStatus()
+        {
+            Status = RequestStatus.Pending;
+            UnhandledReason = RejectionReason.None;
+        }
+
         public void Complete()
         {
             Status = RequestStatus.Complete;
@@ -51,12 +57,6 @@ namespace LogUtils
     {
         HandleWhenPossible,
         DiscardOnFail
-    }
-
-    public enum LogAvailability
-    {
-        Pregame,
-        OnModsInIt
     }
 
     public enum RejectionReason

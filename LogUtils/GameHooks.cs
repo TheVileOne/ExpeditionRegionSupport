@@ -37,6 +37,11 @@ namespace LogUtils
         {
             if (!UtilityCore.IsControllingAssembly) return; //Only the controlling assembly is allowed to apply the hooks
 
+            On.RainWorld.Awake += RainWorld_Awake;
+            On.RainWorld.PreModsInit += RainWorld_PreModsInit;
+            On.RainWorld.OnModsInit += RainWorld_OnModsInit;
+            On.RainWorld.PostModsInit += RainWorld_PostModsInit;
+
             //Signal system
             On.RainWorld.Update += RainWorld_Update;
 
@@ -74,7 +79,10 @@ namespace LogUtils
         {
             if (!UtilityCore.IsControllingAssembly) return;
 
-            On.RainWorld.PostModsInit += RainWorld_PostModsInit;
+            On.RainWorld.Awake -= RainWorld_Awake;
+            On.RainWorld.PreModsInit -= RainWorld_PreModsInit;
+            On.RainWorld.OnModsInit -= RainWorld_OnModsInit;
+            On.RainWorld.PostModsInit -= RainWorld_PostModsInit;
             On.RainWorld.Update -= RainWorld_Update;
 
             On.RainWorld.HandleLog -= RainWorld_HandleLog;
@@ -92,11 +100,34 @@ namespace LogUtils
             managedHooks.ForEach(hook => hook.Free());
         }
 
+        private static void RainWorld_Awake(On.RainWorld.orig_Awake orig, RainWorld self)
+        {
+            if (RWInfo.LatestSetupPeriodReached < SetupPeriod.RWAwake)
+                RWInfo.LatestSetupPeriodReached = SetupPeriod.RWAwake;
+            orig(self);
+        }
+
+        private static void RainWorld_PreModsInit(On.RainWorld.orig_PreModsInit orig, RainWorld self)
+        {
+            if (RWInfo.LatestSetupPeriodReached < SetupPeriod.PreMods)
+                RWInfo.LatestSetupPeriodReached = SetupPeriod.PreMods;
+            orig(self);
+        }
+
+        private static void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
+        {
+            if (RWInfo.LatestSetupPeriodReached < SetupPeriod.ModsInit)
+                RWInfo.LatestSetupPeriodReached = SetupPeriod.ModsInit;
+            orig(self);
+        }
+
         /// <summary>
         /// Ends the grace period in which newly initialized properties can be freely modified
         /// </summary>
         private static void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)
         {
+            if (RWInfo.LatestSetupPeriodReached < SetupPeriod.PostMods)
+                RWInfo.LatestSetupPeriodReached = SetupPeriod.PostMods;
             orig(self);
             LogProperties.PropertyManager.Properties.ForEach(prop => prop.ReadOnly = true);
             LogProperties.PropertyManager.IsEditGracePeriod = false;
