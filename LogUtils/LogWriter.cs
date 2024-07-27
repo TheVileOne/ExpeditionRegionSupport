@@ -51,7 +51,8 @@ namespace LogUtils
                 return;
             }
 
-            InternalWriteToFile(request.Data);
+            if (!InternalWriteToFile(request.Data))
+                request.Reject(RejectionReason.FailedToWrite);
         }
 
         public void WriteToFile(LogID logFile, string message)
@@ -64,8 +65,9 @@ namespace LogUtils
                 request.Reject(RejectionReason.LogUnavailable);
                 return;
             }
-     
-            InternalWriteToFile(logEventData);
+
+            if (!InternalWriteToFile(logEventData))
+                request.Reject(RejectionReason.FailedToWrite);
         }
 
         internal bool PrepareLogFile(LogID logFile)
@@ -82,7 +84,7 @@ namespace LogUtils
             return true;
         }
 
-        internal void InternalWriteToFile(LogEvents.LogMessageEventArgs logEventData)
+        internal bool InternalWriteToFile(LogEvents.LogMessageEventArgs logEventData)
         {
             OnLogMessageReceived(logEventData);
 
@@ -91,8 +93,19 @@ namespace LogUtils
 
             string writePath = logFile.Properties.CurrentFilePath;
 
-            message = ApplyRules(logFile, message);
-            File.AppendAllText(writePath, message);
+            try
+            {
+                message = ApplyRules(logFile, message);
+                File.AppendAllText(writePath, message);
+                return true;
+            }
+            catch (IOException ex)
+            {
+                UtilityCore.BaseLogger.LogError("Log write error");
+                UtilityCore.BaseLogger.LogError(ex);
+                UtilityCore.BaseLogger.LogError(ex.StackTrace);
+                return false;
+            }
         }
 
         public string ApplyRules(LogID logFile, string message)
