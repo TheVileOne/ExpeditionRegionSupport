@@ -415,48 +415,62 @@ namespace LogUtils
             }
         }
 
-        public void HandleRequests(IEnumerable<LogRequest> requests, bool validationNotNeeded = false)
+        public void HandleRequests(IEnumerable<LogRequest> requests, bool skipValidation = false)
         {
             LogID loggerID = null;
-            LogID requestID = null;
+            foreach (LogRequest request in requests.Where(req => skipValidation || LogTargets.Contains(req.Data.ID)))
+                TryHandleRequest(request, ref loggerID);
+        }
 
-            foreach (LogRequest request in requests.Where(req => validationNotNeeded || LogTargets.Contains(req.Data.ID)))
+        public RejectionReason HandleRequest(LogRequest request, bool skipValidation = false)
+        {
+            if (!skipValidation && !LogTargets.Contains(request.Data.ID))
+                return request.UnhandledReason;
+
+            LogID loggerID = null;
+            return TryHandleRequest(request, ref loggerID);
+        }
+
+        internal RejectionReason TryHandleRequest(LogRequest request, ref LogID loggerID)
+        {
+            if (request.Status == RequestStatus.Complete)
             {
-                if (request.Status == RequestStatus.Complete)
-                {
-                    UtilityCore.BaseLogger.LogWarning("Request handled in an invalid state. Please report this");
-                    continue;
-                }
-
-                requestID = request.Data.ID;
-                if (loggerID == null || (loggerID != requestID)) //ExtEnums are not compared by reference
-                {
-                    //The local LogID stored in LogTargets will be a different instance to the one stored in a remote log request
-                    //It is important to check the local id instead of the remote id in certain situations
-                    loggerID = LogTargets.Find(id => id == requestID);
-                }
-
-                if (loggerID.Properties.CurrentFilePath != requestID.Properties.CurrentFilePath) //Same LogID, different log paths - do not handle
-                {
-                    UtilityCore.BaseLogger.LogInfo("Request not handled, log paths do not match");
-                    continue;
-                }
-
-                if (!AllowLogging || !loggerID.IsEnabled || (loggerID.Properties.ShowLogsAware && !RainWorld.ShowLogs))
-                {
-                    request.Reject(RejectionReason.LogDisabled);
-                    continue;
-                }
-
-                if (loggerID.Access == LogAccess.Private || !AllowRemoteLogging) //TODO: Distinguish between remote, and non-remote requests
-                {
-                    request.Reject(RejectionReason.AccessDenied);
-                    continue;
-                }
-
-                request.Complete();
-                Writer.WriteFromRequest(request);
+                UtilityCore.BaseLogger.LogWarning("Request handled in an invalid state. Please report this");
+                return RejectionReason.None;
             }
+
+            LogID requestID = request.Data.ID;
+            if (loggerID == null || (loggerID != requestID)) //ExtEnums are not compared by reference
+            {
+                //The local LogID stored in LogTargets will be a different instance to the one stored in a remote log request
+                //It is important to check the local id instead of the remote id in certain situations
+                loggerID = LogTargets.Find(id => id == requestID);
+            }
+
+            if (loggerID.Properties.CurrentFolderPath != requestID.Properties.CurrentFolderPath) //Same LogID, different log paths - do not handle
+            {
+                UtilityCore.BaseLogger.LogInfo("Request not handled, log paths do not match");
+
+                //This particular rejection reason has problematic support, and is not guaranteed to be recorded by the request
+                request.Reject(RejectionReason.PathMismatch);
+                return RejectionReason.PathMismatch;
+            }
+
+            if (!AllowLogging || !loggerID.IsEnabled || (loggerID.Properties.ShowLogsAware && !RainWorld.ShowLogs))
+            {
+                request.Reject(RejectionReason.LogDisabled);
+                return request.UnhandledReason;
+            }
+
+            if (loggerID.Access == LogAccess.Private || !AllowRemoteLogging) //TODO: Distinguish between remote, and non-remote requests
+            {
+                request.Reject(RejectionReason.AccessDenied);
+                return request.UnhandledReason;
+            }
+
+            request.Complete();
+            Writer.WriteFromRequest(request);
+            return RejectionReason.None;
         }
     }
 }

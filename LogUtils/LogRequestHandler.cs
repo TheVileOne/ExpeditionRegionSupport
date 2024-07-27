@@ -17,7 +17,6 @@ namespace LogUtils
         public IEnumerable<BetaLogger> AvailableLoggers => availableLoggers;
 
         public BufferedLinkedList<LogRequest> UnhandledRequests;
-
         private LogRequest _currentRequest;
 
         /// <summary>
@@ -90,10 +89,14 @@ namespace LogUtils
 
             availableLoggers.Add(logger);
 
-            //Regardless of whether this logger 
             foreach (LogID logFile in logger.LogTargets.Where(log => !log.IsGameControlled && log.Access != LogAccess.RemoteAccessOnly)) //Game controlled logids cannot be handled here
             {
-                logger.HandleRequests(GetActiveRequests(logFile));
+                IEnumerable<LogRequest> requests = GetActiveRequests(logFile);
+                logger.HandleRequests(requests, true);
+
+                //Check the status of all processed requests to remove the handled ones
+                foreach (LogRequest request in requests.Where(r => r.Status == RequestStatus.Complete || !r.CanRetryRequest()))
+                    UnhandledRequests.Remove(request);
             }
         }
 
@@ -107,32 +110,126 @@ namespace LogUtils
             availableLoggers.Remove(logger);
         }
 
-        public void Update()
+        /// <summary>
+        /// Find a logger instance that accepts log requests for a specified LogID
+        /// </summary>
+        /// <param name="logFile">LogID to check</param>
+        /// <param name="doPathCheck">Should the log file's containing folder bear significance when finding a logger match</param>
+        private BetaLogger findCompatibleLogger(LogID logFile, bool doPathCheck)
+        {
+            BetaLogger bestLoggerMatch = null;
+            if (doPathCheck)
+            {
+                string folderPath = logFile.Properties.CurrentFolderPath;
+                foreach (var logger in availableLoggers.FindAll(logger => logger.LogTargets.Exists(logID => logID.Properties.IDMatch(logFile) && logID.Properties.CurrentFolderPath == folderPath)))
+                {
+                    if (checkForBestMatch(logger))
+                        bestLoggerMatch = logger;
+                }
+            }
+            else
+            {
+                foreach (var logger in availableLoggers.FindAll(logger => logger.LogTargets.Exists(logID => logID.Properties.IDMatch(logFile))))
+                {
+                    if (checkForBestMatch(logger))
+                        bestLoggerMatch = logger;
+                }
+            }
+
+            return bestLoggerMatch;
+
+            bool checkForBestMatch(BetaLogger matchCandidate)
+            {
+                return
+                    bestLoggerMatch == null
+                || (matchCandidate.AllowLogging && matchCandidate.AllowRemoteLogging) //The best possible case
+                || (matchCandidate.AllowRemoteLogging && !bestLoggerMatch.AllowRemoteLogging)
+                || (matchCandidate.AllowLogging && !bestLoggerMatch.AllowLogging);
+            }
+        }
+
+        /// <summary>
+        /// Attempts to handle unhandled requests 
+        /// </summary>
+        public void ProcessRequests()
         {
             if (UnhandledRequests.Count == 0) return;
 
             LogRequest target;
+            LogID targetID, lastTargetID;
             LinkedListNode<LogRequest> targetNode;
 
-            target = UnhandledRequests.First.Value;
+            //Define setup values
             targetNode = UnhandledRequests.First;
+            target = targetNode.Value;
+            targetID = lastTargetID = target.Data.ID;
 
-            bool processRequests = true;
-            while (UnhandledRequests.Count > 0 && processRequests)
+            int numRequests = UnhandledRequests.Count;
+            int numRequestsProcessed = 0;
+
+            BetaLogger selectedLogger = null;
+
+            //Check every unhandled request, removing recently handled or invalid entries, and handling entries that are capable of being handled
+            while (numRequestsProcessed != numRequests)
             {
-                if (target.Status == RequestStatus.Complete)
+                bool requestCanBeHandled = true;
+
+                if (requestCanBeHandled = target.Status == RequestStatus.Pending || (target.Status == RequestStatus.Rejected && target.CanRetryRequest()))
                 {
+                    //Find a logger that can be used for this LogID
+                    if (selectedLogger == null || targetID != lastTargetID)
+                        selectedLogger = findCompatibleLogger(targetID, doPathCheck: false);
+
+                    if (selectedLogger != null)
+                    {
+                        //Try to handle the log request, and recheck the status
+                        RejectionReason result = selectedLogger.HandleRequest(target, true);
+
+                        if (requestCanBeHandled = target.Status == RequestStatus.Pending || (target.Status == RequestStatus.Rejected && target.CanRetryRequest()))
+                        {
+                            if (result == RejectionReason.PathMismatch)
+                            {
+                                //Attempt to find a logger that accepts the target LogID with this exact path
+                                selectedLogger = findCompatibleLogger(targetID, doPathCheck: true);
+
+                                if (selectedLogger != null)
+                                {
+                                    selectedLogger.HandleRequest(target, true);
+                                    requestCanBeHandled = target.Status == RequestStatus.Complete || !target.CanRetryRequest();
+                                }
+                            }
+                        }
+                    }
+
+                    if (selectedLogger == null)
+                        target.Reject(RejectionReason.LogUnavailable);
+                }
+
+                if (!requestCanBeHandled)
                     UnhandledRequests.Remove(targetNode);
-                }
-                else if (target.Status == RequestStatus.Rejected)
-                {
-                    //TODO: Check rejection reason
-                }
-                else //Pending
-                {
-                    processRequests = false;
-                }
+
+                //Target the next request
+                advanceTarget();
             }
+
+            void advanceTarget()
+            {
+                targetNode = targetNode.Next;
+                target = targetNode.Value;
+
+                lastTargetID = targetID;
+                targetID = target.Data.ID;
+
+                numRequestsProcessed++;
+            }
+        }
+
+        public void Update()
+        {
+            //Requests should not be regularly checked until after the game, mods, and associated logger instances have been given time to initialize
+            //There is a separate process for handling log requests earlier in the setup process
+            if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.PostMods)
+                ProcessRequests();
         }
         }
     }

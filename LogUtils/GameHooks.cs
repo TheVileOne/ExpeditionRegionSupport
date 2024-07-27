@@ -103,21 +103,33 @@ namespace LogUtils
         private static void RainWorld_Awake(On.RainWorld.orig_Awake orig, RainWorld self)
         {
             if (RWInfo.LatestSetupPeriodReached < SetupPeriod.RWAwake)
+            {
                 RWInfo.LatestSetupPeriodReached = SetupPeriod.RWAwake;
+                UtilityCore.RequestHandler.ProcessRequests();
+            }
+
             orig(self);
         }
 
         private static void RainWorld_PreModsInit(On.RainWorld.orig_PreModsInit orig, RainWorld self)
         {
             if (RWInfo.LatestSetupPeriodReached < SetupPeriod.PreMods)
+            {
                 RWInfo.LatestSetupPeriodReached = SetupPeriod.PreMods;
+                UtilityCore.RequestHandler.ProcessRequests();
+            }
+
             orig(self);
         }
 
         private static void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
         {
             if (RWInfo.LatestSetupPeriodReached < SetupPeriod.ModsInit)
+            {
                 RWInfo.LatestSetupPeriodReached = SetupPeriod.ModsInit;
+                UtilityCore.RequestHandler.ProcessRequests();
+            }
+
             orig(self);
         }
 
@@ -127,8 +139,13 @@ namespace LogUtils
         private static void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)
         {
             if (RWInfo.LatestSetupPeriodReached < SetupPeriod.PostMods)
+            {
                 RWInfo.LatestSetupPeriodReached = SetupPeriod.PostMods;
+                UtilityCore.RequestHandler.ProcessRequests();
+            }
+
             orig(self);
+
             LogProperties.PropertyManager.Properties.ForEach(prop => prop.ReadOnly = true);
             LogProperties.PropertyManager.IsEditGracePeriod = false;
         }

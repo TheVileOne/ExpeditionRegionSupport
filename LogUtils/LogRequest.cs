@@ -11,6 +11,8 @@ namespace LogUtils
     /// </summary>
     public class LogRequest
     {
+        public const byte NO_RETRY_MAXIMUM = 3;
+
         public LogEvents.LogMessageEventArgs Data;
 
         public RequestStatus Status { get; private set; }
@@ -23,6 +25,13 @@ namespace LogUtils
             Status = RequestStatus.Pending;
         }
 
+        public bool CanRetryRequest()
+        {
+            byte reasonValue = (byte)UnhandledReason;
+
+            return reasonValue > NO_RETRY_MAXIMUM || reasonValue == 0;
+        }
+
         public void ResetStatus()
         {
             Status = RequestStatus.Pending;
@@ -31,13 +40,26 @@ namespace LogUtils
 
         public void Complete()
         {
+            if (Status == RequestStatus.Complete) return;
+
             Status = RequestStatus.Complete;
         }
 
         public void Reject(RejectionReason reason)
         {
+            if (Status == RequestStatus.Complete)
+            {
+                UtilityCore.BaseLogger.LogInfo("Completed requests cannot be rejected");
+                return;
+            }
+
+            if (UnhandledReason == reason) return;
+
             Status = RequestStatus.Rejected;
-            UnhandledReason = reason;
+
+            //A hacky attempt to make it possible to notify of path mismatches without overwriting an already existing reason 
+            if (reason != RejectionReason.PathMismatch || UnhandledReason == RejectionReason.None)
+                UnhandledReason = reason;
         }
 
         public override string ToString()
@@ -59,13 +81,15 @@ namespace LogUtils
         DiscardOnFail
     }
 
-    public enum RejectionReason
+    public enum RejectionReason : byte
     {
         None = 0,
         AccessDenied = 1, //LogID is private
         LogDisabled = 2, //LogID is not enabled, Logger is not accepting logs, or LogID is ShowLogs aware and ShowLogs is false
-        LogUnavailable = 3, //No logger is available that accepts the LogID, or the logger accepts the LogID, but enforces a build period on the log file that is not yet satisfied
-        PregameUnityRequest = 4, //Requested action to the Unity logger before the game is initialized
-        ShowLogsNotInitialized = 5 //Requested action to a ShowLogs aware log before ShowLogs is initialized 
+        FailedToWrite = 3, //Attempt to log failed due to an error
+        PathMismatch = 4, //The path information for the LogID accepted by the logger does not match the path information of the LogID in the request
+        LogUnavailable = 5, //No logger is available that accepts the LogID, or the logger accepts the LogID, but enforces a build period on the log file that is not yet satisfied
+        PregameUnityRequest = 6, //Requested action to the Unity logger before the game is initialized
+        ShowLogsNotInitialized = 7 //Requested action to a ShowLogs aware log before ShowLogs is initialized 
     }
 }
