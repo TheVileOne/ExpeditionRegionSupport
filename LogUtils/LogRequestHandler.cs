@@ -118,22 +118,10 @@ namespace LogUtils
         private BetaLogger findCompatibleLogger(LogID logFile, bool doPathCheck)
         {
             BetaLogger bestLoggerMatch = null;
-            if (doPathCheck)
+            foreach (var logger in availableLoggers.FindAll(logger => logger.CanAccess(logFile, doPathCheck)))
             {
-                string folderPath = logFile.Properties.CurrentFolderPath;
-                foreach (var logger in availableLoggers.FindAll(logger => logger.LogTargets.Exists(logID => logID.Properties.IDMatch(logFile) && logID.Properties.CurrentFolderPath == folderPath)))
-                {
-                    if (checkForBestMatch(logger))
-                        bestLoggerMatch = logger;
-                }
-            }
-            else
-            {
-                foreach (var logger in availableLoggers.FindAll(logger => logger.LogTargets.Exists(logID => logID.Properties.IDMatch(logFile))))
-                {
-                    if (checkForBestMatch(logger))
-                        bestLoggerMatch = logger;
-                }
+                if (checkForBestMatch(logger))
+                    bestLoggerMatch = logger;
             }
 
             return bestLoggerMatch;

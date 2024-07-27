@@ -415,16 +415,24 @@ namespace LogUtils
             }
         }
 
+        /// <summary>
+        /// Returns whether logger instance is able to handle a specified LogID
+        /// </summary>
+        public bool CanAccess(LogID logID, bool doPathCheck)
+        {
+            return LogTargets.Exists(log => log.Access != LogAccess.RemoteAccessOnly && log.Properties.IDMatch(logID) && (!doPathCheck || log.Properties.CurrentFolderPath == logID.Properties.CurrentFolderPath));
+        }
+
         public void HandleRequests(IEnumerable<LogRequest> requests, bool skipValidation = false)
         {
             LogID loggerID = null;
-            foreach (LogRequest request in requests.Where(req => skipValidation || LogTargets.Contains(req.Data.ID)))
+            foreach (LogRequest request in requests.Where(req => skipValidation || !CanAccess(req.Data.ID, doPathCheck: true)))
                 TryHandleRequest(request, ref loggerID);
         }
 
         public RejectionReason HandleRequest(LogRequest request, bool skipValidation = false)
         {
-            if (!skipValidation && !LogTargets.Contains(request.Data.ID))
+            if (!skipValidation && !CanAccess(request.Data.ID, doPathCheck: true))
                 return request.UnhandledReason;
 
             LogID loggerID = null;
