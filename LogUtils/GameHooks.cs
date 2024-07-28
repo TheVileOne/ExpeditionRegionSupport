@@ -179,16 +179,20 @@ namespace LogUtils
             }
         }
 
-        private static void RainWorld_HandleLog(On.RainWorld.orig_HandleLog orig, RainWorld self, string logString, string stackTrace, LogType type)
+        private static void RainWorld_HandleLog(On.RainWorld.orig_HandleLog orig, RainWorld self, string logString, string stackTrace, LogType logLevel)
         {
             LogID logFile = LogID.Unity;
 
-            if (type == LogType.Error || type == LogType.Exception)
+            if (logLevel == LogType.Error || logLevel == LogType.Exception)
                 logFile = LogID.Exception;
+
+            //Ensure that request is always constructed before a message is logged
+            if (UtilityCore.RequestHandler.CurrentRequest == null)
+                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(logFile, logString, LogCategory.ToCategory(logLevel))));
 
             if (logFile.Properties.ShowLogsAware && !RainWorld.ShowLogs) return; //Don't handle request, orig doesn't get called in this circumstance
 
-            orig(self, logString, stackTrace, type);
+            orig(self, logString, stackTrace, logLevel);
         }
 
         private static void RainWorld_HandleLog(ILContext il)
