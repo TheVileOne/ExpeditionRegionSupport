@@ -5,6 +5,11 @@ namespace LogUtils
 {
     public class LogCategory : SharedExtEnum<LogCategory>
     {
+        /// <summary>
+        /// The index offset where custom conversions of LogCategory values exist as LogLevel or LogType 
+        /// </summary>
+        public const int CONVERSION_OFFSET = 150;
+
         private LogLevel _bepInExConversion = LogLevel.Info;
         private LogType _unityConversion = LogType.Log;
 
@@ -40,8 +45,8 @@ namespace LogUtils
             {
                 if (Registered)
                 {
-                    _bepInExConversion = bepInExEquivalent ?? (LogLevel)(150 + index);
-                    _unityConversion = unityEquivalent ?? (LogType)(150 + index);
+                    _bepInExConversion = bepInExEquivalent ?? (LogLevel)(CONVERSION_OFFSET + index);
+                    _unityConversion = unityEquivalent ?? (LogType)(CONVERSION_OFFSET + index);
                 }
                 else
                 {
@@ -51,8 +56,8 @@ namespace LogUtils
             }
             else if (!ManagedReference.Registered)
             {
-                ManagedReference._bepInExConversion = bepInExEquivalent ?? (LogLevel)(150 + index);
-                ManagedReference._unityConversion = unityEquivalent ?? (LogType)(150 + index);
+                ManagedReference._bepInExConversion = bepInExEquivalent ?? (LogLevel)(CONVERSION_OFFSET + index);
+                ManagedReference._unityConversion = unityEquivalent ?? (LogType)(CONVERSION_OFFSET + index);
             }
         }
 
@@ -62,14 +67,14 @@ namespace LogUtils
             {
                 if (Registered)
                 {
-                    _bepInExConversion = (LogLevel)(150 + index);
-                    _unityConversion = (LogType)(150 + index);
+                    _bepInExConversion = (LogLevel)(CONVERSION_OFFSET + index);
+                    _unityConversion = (LogType)(CONVERSION_OFFSET + index);
                 }
             }
             else if (!ManagedReference.Registered && Registered)
             {
-                ManagedReference._bepInExConversion = (LogLevel)(150 + index);
-                ManagedReference._unityConversion = (LogType)(150 + index);
+                ManagedReference._bepInExConversion = (LogLevel)(CONVERSION_OFFSET + index);
+                ManagedReference._unityConversion = (LogType)(CONVERSION_OFFSET + index);
             }
         }
 
@@ -80,6 +85,35 @@ namespace LogUtils
 
         public static LogCategory ToCategory(LogLevel logLevel)
         {
+            int enumValue = (int)logLevel;
+
+            //A high enum value indicates that we are handling a custom LogCategory converted to an enum type
+            if (enumValue >= CONVERSION_OFFSET)
+            {
+                int categoryIndex = enumValue - CONVERSION_OFFSET;
+                string[] categoryNames = GetNames(typeof(LogCategory));
+
+                return new LogCategory(categoryNames[categoryIndex]);
+            }
+
+            //More typical enum type values can be translated directly to string
+            return new LogCategory(logLevel.ToString());
+        }
+
+        public static LogCategory ToCategory(LogType logLevel)
+        {
+            int enumValue = (int)logLevel;
+
+            //A high enum value indicates that we are handling a custom LogCategory converted to an enum type
+            if (enumValue >= CONVERSION_OFFSET)
+            {
+                int categoryIndex = enumValue - CONVERSION_OFFSET;
+                string[] categoryNames = GetNames(typeof(LogCategory));
+
+                return new LogCategory(categoryNames[categoryIndex]);
+            }
+
+            //More typical enum type values can be translated directly to string
             return new LogCategory(logLevel.ToString());
         }
 
