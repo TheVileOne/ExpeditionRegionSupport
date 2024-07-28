@@ -58,6 +58,9 @@ namespace LogUtils
             IL.JollyCoop.JollyCustom.Log += JollyCustom_Log;
             IL.JollyCoop.JollyCustom.WriteToLog += JollyCustom_WriteToLog;
 
+            On.Expedition.ExpLog.Log += ExpLog_Log;
+            On.JollyCoop.JollyCustom.Log += JollyCustom_Log;
+
             managedHooks.ForEach(hook => hook.Apply());
         }
 
@@ -96,6 +99,9 @@ namespace LogUtils
             IL.JollyCoop.JollyCustom.CreateJollyLog -= JollyCustom_CreateJollyLog;
             IL.JollyCoop.JollyCustom.Log -= JollyCustom_Log;
             IL.JollyCoop.JollyCustom.WriteToLog -= JollyCustom_WriteToLog;
+
+            On.Expedition.ExpLog.Log -= ExpLog_Log;
+            On.JollyCoop.JollyCustom.Log -= JollyCustom_Log;
 
             managedHooks.ForEach(hook => hook.Free());
         }
@@ -221,6 +227,14 @@ namespace LogUtils
             }
         }
 
+        private static void ExpLog_Log(On.Expedition.ExpLog.orig_Log orig, string text)
+        {
+            //Ensure that request is always constructed before a message is logged
+            if (UtilityCore.RequestHandler.CurrentRequest == null)
+                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.Expedition, text)));
+            orig(text);
+        }
+
         private static void ExpLog_LogChallengeTypes(ILContext il)
         {
             showLogsBypassHook(new ILCursor(il), LogID.Expedition);
@@ -248,6 +262,15 @@ namespace LogUtils
 
             showLogsBypassHook(cursor, LogID.Expedition);
             replaceLogPathHook(cursor, LogID.Expedition);
+        }
+
+        private static void JollyCustom_Log(On.JollyCoop.JollyCustom.orig_Log orig, string logText, bool throwException)
+        {
+            //Ensure that request is always constructed before a message is logged
+            if (UtilityCore.RequestHandler.CurrentRequest == null)
+                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.JollyCoop, logText)));
+
+            orig(logText, throwException);
         }
 
         private static void JollyCustom_WriteToLog(ILContext il)
@@ -319,9 +342,59 @@ namespace LogUtils
 
             cursor.MarkLabel(branchLabel);
 
+            MethodInfo getRequest = typeof(LogRequestHandler).GetProperty(nameof(LogRequestHandler.CurrentRequest)).GetGetMethod();
+            MethodInfo getCategory = typeof(LogEvents.LogMessageEventArgs).GetProperty(nameof(LogEvents.LogMessageEventArgs.Category)).GetGetMethod();
+            MethodInfo getSpecificCategory = typeof(LogCategory).GetProperty(nameof(LogCategory.BepInExCategory)).GetGetMethod();
+            //MethodInfo getMessage = typeof(LogEvents.LogMessageEventArgs).GetProperty(nameof(LogEvents.LogMessageEventArgs.Message)).GetGetMethod();
+
+            //First Data access
+            cursor.EmitReference(UtilityCore.RequestHandler);
+            cursor.Emit(OpCodes.Call, getRequest);
+            cursor.Emit(OpCodes.Ldfld, nameof(LogRequest.Data)); //Access the Data field
+            cursor.Emit(OpCodes.Call, getCategory); //Access Category property from Data
+            cursor.Emit(OpCodes.Call, getSpecificCategory); //Access BepInEx conversion of Category
+            cursor.Emit(OpCodes.Starg, 1); //Overwrite local argument (LogLevel)
+
+            /*
+            //Second Data access
+            cursor.EmitReference(UtilityCore.RequestHandler);
+            cursor.Emit(OpCodes.Call, getRequest);
+            cursor.Emit(OpCodes.Ldfld, nameof(LogRequest.Data)); //Access the Data field
+            cursor.Emit(OpCodes.Call, getMessage); //Access Category property from Data
+            cursor.Emit(OpCodes.Starg, 2); //Overwrite local argument (data)
+            */
+
+            /*
+            //First Data access
+            cursor.Emit(OpCodes.Ldfld, nameof(LogEvents.LogMessageEventArgs.Category)); //Access Category property from Data
+            cursor.Emit(OpCodes.Ldfld, nameof(LogCategory.BepInExCategory)); //Access BepInEx conversion of Category
+            cursor.Emit(OpCodes.Starg, 1); //Overwrite local argument (LogLevel)
+
+            //Second Data access
+            cursor.Emit(OpCodes.Call, getRequest);
+            cursor.Emit(OpCodes.Ldfld, nameof(LogRequest.Data)); //Access the Data field
+            cursor.Emit(OpCodes.Ldfld, nameof(LogEvents.LogMessageEventArgs.Message)); //Access Category property from Data
+            cursor.Emit(OpCodes.Starg, 2); //Overwrite local argument (data)
+            */
+
             bool onLogReceived(LogLevel category, object data)
             {
-                return !LogID.BepInEx.Properties.ShowLogsAware || RainWorld.ShowLogs;
+                string message = data?.ToString();
+
+                if (UtilityCore.RequestHandler.CurrentRequest == null)
+                    UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.BepInEx, message)));
+
+                //Make sure request is valid and can be processed
+                bool acceptRequest = !LogID.BepInEx.Properties.ShowLogsAware || RainWorld.ShowLogs;
+
+                if (!acceptRequest)
+                {
+                    UtilityCore.RequestHandler.CurrentRequest.Reject(RejectionReason.LogDisabled);
+                    return false;
+                }
+
+                UtilityCore.RequestHandler.CurrentRequest.Complete();
+                return true;
             }
         }
     }
