@@ -411,7 +411,7 @@ namespace LogUtils
             }
             else
             {
-                //TODO: Remote logging code here
+                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(target, data?.ToString(), category)));
             }
         }
 
