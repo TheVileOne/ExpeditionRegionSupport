@@ -193,11 +193,13 @@ namespace LogUtils
                         target.Reject(RejectionReason.LogUnavailable);
                 }
 
-                if (!requestCanBeHandled)
-                    UnhandledRequests.Remove(targetNode);
+                var lastTargetNode = targetNode;
 
-                //Target the next request
                 advanceTarget();
+
+                //This must be handled after target is advanced
+                if (!requestCanBeHandled)
+                    UnhandledRequests.Remove(lastTargetNode);
             }
 
             void advanceTarget()
