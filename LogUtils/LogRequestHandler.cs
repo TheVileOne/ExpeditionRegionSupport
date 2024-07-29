@@ -17,6 +17,8 @@ namespace LogUtils
         public IEnumerable<BetaLogger> AvailableLoggers => availableLoggers;
 
         public BufferedLinkedList<LogRequest> UnhandledRequests;
+        private BufferedLinkedList<LogRequest>.Enumerator requestEnumerator;
+
         private LogRequest _currentRequest;
 
         /// <summary>
@@ -62,6 +64,8 @@ namespace LogUtils
         {
             enabled = true;
             UnhandledRequests = new BufferedLinkedList<LogRequest>(20);
+
+            requestEnumerator = (BufferedLinkedList<LogRequest>.Enumerator)UnhandledRequests.GetEnumerator();
         }
 
         public IEnumerable<LogRequest> GetActiveRequests(LogID logFile)
@@ -141,25 +145,17 @@ namespace LogUtils
         /// </summary>
         public void ProcessRequests()
         {
-            if (UnhandledRequests.Count == 0) return;
-
-            LogRequest target;
             LogID targetID, lastTargetID;
-            LinkedListNode<LogRequest> targetNode;
 
-            //Define setup values
-            targetNode = UnhandledRequests.First;
-            target = targetNode.Value;
-            targetID = lastTargetID = target.Data.ID;
-
-            int numRequests = UnhandledRequests.Count;
-            int numRequestsProcessed = 0;
-
+            targetID = lastTargetID = null;
             BetaLogger selectedLogger = null;
 
             //Check every unhandled request, removing recently handled or invalid entries, and handling entries that are capable of being handled
-            while (numRequestsProcessed != numRequests)
+            foreach (LogRequest target in requestEnumerator.EnumerateAll())
             {
+                lastTargetID = targetID;
+                targetID = target.Data.ID;
+
                 bool requestCanBeHandled = true;
 
                 if (requestCanBeHandled = target.Status == RequestStatus.Pending || (target.Status == RequestStatus.Rejected && target.CanRetryRequest()))
@@ -187,30 +183,14 @@ namespace LogUtils
                                 }
                             }
                         }
-                    }
 
-                    if (selectedLogger == null)
-                        target.Reject(RejectionReason.LogUnavailable);
+                        if (selectedLogger == null)
+                            target.Reject(RejectionReason.LogUnavailable);
+                    }
                 }
 
-                var lastTargetNode = targetNode;
-
-                advanceTarget();
-
-                //This must be handled after target is advanced
                 if (!requestCanBeHandled)
-                    UnhandledRequests.Remove(lastTargetNode);
-            }
-
-            void advanceTarget()
-            {
-                targetNode = targetNode.Next;
-                target = targetNode.Value;
-
-                lastTargetID = targetID;
-                targetID = target.Data.ID;
-
-                numRequestsProcessed++;
+                    UnhandledRequests.Remove(requestEnumerator.CurrentNode);
             }
         }
 

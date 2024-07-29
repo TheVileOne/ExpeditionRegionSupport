@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace LogUtils
 {
-    public class BufferedLinkedList<T> : IEnumerable<T>
+    public class BufferedLinkedList<T> : IEnumerable<T> where T : class
     {
         private LinkedList<T> nodeLeaser;
 
@@ -13,7 +13,7 @@ namespace LogUtils
         private const int default_capacity = 5;
 
         private int _capacity;
-        
+
         /// <summary>
         /// The amount of nodes managed by the node leaser
         /// </summary>
@@ -49,6 +49,8 @@ namespace LogUtils
         public LinkedListNode<T> First => InnerLinkedList.First;
 
         public LinkedListNode<T> Last => InnerLinkedList.Last;
+
+        public bool AllowModificationsDuringIteration = true;
 
         public BufferedLinkedList(int capacity = default_capacity)
         {
@@ -182,12 +184,94 @@ namespace LogUtils
 
         public IEnumerator<T> GetEnumerator()
         {
+            if (AllowModificationsDuringIteration)
+                return new Enumerator(this);
+
             return InnerLinkedList.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
+            if (AllowModificationsDuringIteration)
+                return new Enumerator(this);
+
             return InnerLinkedList.GetEnumerator();
+        }
+
+        public struct Enumerator : IEnumerator<T>
+        {
+            /// <summary>
+            /// This is the node that controls the reference to the Current node
+            /// </summary>
+            private LinkedListNode<T> refNode;
+
+            public LinkedListNode<T> CurrentNode
+            {
+                get
+                {
+                    return !started ? refNode : refNode.Next;
+                }
+            }
+
+            public T Current => CurrentNode?.Value;
+
+            object IEnumerator.Current => CurrentNode?.Value;
+
+            private BufferedLinkedList<T> items;
+
+            private bool started;
+
+            public Enumerator(BufferedLinkedList<T> list)
+            {
+                items = list;
+            }
+
+            public IEnumerable<T> EnumerateAll()
+            {
+                Reset();
+
+                while (MoveNext())
+                    yield return Current;
+                yield break;
+            }
+
+            public void Dispose()
+            {
+                refNode = null;
+                items = null;
+            }
+
+            public bool MoveNext()
+            {
+                if (items.Count == 0)
+                {
+                    started = false; //Enumeration cannot start on an empty list
+                    return false;
+                }
+
+                if (!started)
+                {
+                    refNode = items.First;
+                    started = true;
+                    return true;
+                }
+
+                var next = refNode.Next;
+
+                //The reference node is only changed when list can be advanced
+                if (next != null && next != items.First)
+                {
+                    refNode = next;
+                    return true;
+                }
+                return false;
+            }
+
+            public void Reset()
+            {
+                started = false;
+                refNode = items.First;
+            }
         }
     }
 }
