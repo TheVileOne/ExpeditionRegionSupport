@@ -52,7 +52,13 @@ namespace LogUtils
             }
 
             if (!InternalWriteToFile(request.Data))
+            {
                 request.Reject(RejectionReason.FailedToWrite);
+                return;
+            }
+
+            //All checks passed is a complete request
+            request.Complete();
         }
 
         public void WriteToFile(LogID logFile, string message)
@@ -67,7 +73,13 @@ namespace LogUtils
             }
 
             if (!InternalWriteToFile(logEventData))
+            {
                 request.Reject(RejectionReason.FailedToWrite);
+                return;
+            }
+
+            //All checks passed is a complete request
+            request.Complete();
         }
 
         internal bool PrepareLogFile(LogID logFile)

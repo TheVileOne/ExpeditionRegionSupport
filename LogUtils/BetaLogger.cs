@@ -476,9 +476,12 @@ namespace LogUtils
                 return request.UnhandledReason;
             }
 
-            request.Complete();
             Writer.WriteFromRequest(request);
-            return RejectionReason.None;
+
+            if (request.Status == RequestStatus.Complete)
+                return RejectionReason.None;
+
+            return request.UnhandledReason;
         }
     }
 }
