@@ -68,9 +68,9 @@ namespace LogUtils
             requestEnumerator = (BufferedLinkedList<LogRequest>.Enumerator)UnhandledRequests.GetEnumerator();
         }
 
-        public IEnumerable<LogRequest> GetActiveRequests(LogID logFile)
+        public IEnumerable<LogRequest> GetRequests(LogID logFile)
         {
-            return UnhandledRequests.Where(log => log.Equals(logFile));
+            return UnhandledRequests.Where(req => req.Data.Properties.IDMatch(logFile));
         }
 
         /// <summary>
@@ -95,7 +95,7 @@ namespace LogUtils
 
             foreach (LogID logFile in logger.LogTargets.Where(log => !log.IsGameControlled && log.Access != LogAccess.RemoteAccessOnly)) //Game controlled logids cannot be handled here
             {
-                IEnumerable<LogRequest> requests = GetActiveRequests(logFile);
+                IEnumerable<LogRequest> requests = GetRequests(logFile);
                 logger.HandleRequests(requests, true);
 
                 //Check the status of all processed requests to remove the handled ones
