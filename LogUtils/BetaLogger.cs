@@ -420,7 +420,7 @@ namespace LogUtils
         /// </summary>
         public bool CanAccess(LogID logID, bool doPathCheck)
         {
-            return LogTargets.Exists(log => log.Access != LogAccess.RemoteAccessOnly && log.Properties.IDMatch(logID) && (!doPathCheck || log.Properties.CurrentFolderPath == logID.Properties.CurrentFolderPath));
+            return !logID.IsGameControlled && LogTargets.Exists(log => log.Access != LogAccess.RemoteAccessOnly && log.Properties.IDMatch(logID) && (!doPathCheck || log.Properties.CurrentFolderPath == logID.Properties.CurrentFolderPath));
         }
 
         public void HandleRequests(IEnumerable<LogRequest> requests, bool skipValidation = false)
