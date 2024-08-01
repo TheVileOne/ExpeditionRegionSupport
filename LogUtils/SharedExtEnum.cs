@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LogUtils
 {
-    public class SharedExtEnum<T> : ExtEnum<T>, IShareable where T : class, IShareable
+    public class SharedExtEnum<T> : ExtEnum<T>, IShareable where T : SharedExtEnum<T>, IShareable
     {
         public bool Registered => index >= 0;
         public string Tag => value;
