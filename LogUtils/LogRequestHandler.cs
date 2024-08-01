@@ -16,6 +16,8 @@ namespace LogUtils
         /// </summary>
         public IEnumerable<BetaLogger> AvailableLoggers => availableLoggers;
 
+        public GameLogger GameLogger = new GameLogger();
+
         public BufferedLinkedList<LogRequest> UnhandledRequests;
         private BufferedLinkedList<LogRequest>.Enumerator requestEnumerator;
 

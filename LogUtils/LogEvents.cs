@@ -1,4 +1,5 @@
-﻿using LogUtils.Properties;
+﻿using BepInEx.Logging;
+using LogUtils.Properties;
 using System;
 
 namespace LogUtils
@@ -45,6 +46,11 @@ namespace LogUtils
 
         public class LogMessageEventArgs : LogEventArgs
         {
+            /// <summary>
+            /// Contains source information needed to log through the BepInEx logger
+            /// </summary>
+            public ManualLogSource LogSource;
+
             /// <summary>
             /// The log category associated with the message (equivalent to LogType (Unity), and LogLevel (BepInEx)
             /// </summary>
