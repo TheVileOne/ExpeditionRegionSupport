@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using LogUtils.Properties;
+using System.IO;
 
 namespace LogUtils
 {
@@ -38,7 +39,7 @@ namespace LogUtils
             IsGameControlled = gameControlled;
         }
 
-        public LogID(string filename, string relativePathNoFile, LogAccess access = LogAccess.RemoteAccessOnly, bool register = false) : base(filename, register)
+        public LogID(string filename, string relativePathNoFile, LogAccess access = LogAccess.RemoteAccessOnly, bool register = false) : base(Path.GetFileNameWithoutExtension(filename), register)
         {
             Access = access;
             Properties = LogProperties.PropertyManager.GetProperties(this, relativePathNoFile);
@@ -50,6 +51,11 @@ namespace LogUtils
                 else
                     Properties = new LogProperties(value, relativePathNoFile);
             }
+
+            string fileExt = Path.GetExtension(filename);
+
+            if (fileExt != string.Empty)
+                Properties.PreferredFileExt = fileExt;
         }
 
         static LogID()

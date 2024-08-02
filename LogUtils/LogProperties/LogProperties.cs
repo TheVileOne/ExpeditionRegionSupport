@@ -126,7 +126,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// The active filepath of the log file (with filename)
         /// </summary>
-        public string CurrentFilePath => Path.Combine(CurrentFolderPath, CurrentFilename + ".log");
+        public string CurrentFilePath => Path.Combine(CurrentFolderPath, CurrentFilename + PreferredFileExt);
 
         /// <summary>
         /// The active full path of the directory containing the log file
@@ -201,6 +201,8 @@ namespace LogUtils.Properties
                 _altFilename = value;
             }
         }
+
+        public string PreferredFileExt = ".log";
 
         /// <summary>
         /// An array of value identifiers for a specific log
