@@ -44,7 +44,7 @@ namespace LogUtils
                 if (register)
                     Properties = LogProperties.PropertyManager.SetProperties(this, relativePathNoFile); //Register a new LogProperties instance for this LogID
                 else
-                    Properties = new LogProperties(filename, relativePathNoFile);
+                    Properties = new LogProperties(value, relativePathNoFile);
             }
         }
 
