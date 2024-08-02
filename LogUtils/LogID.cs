@@ -1,16 +1,10 @@
 ﻿using BepInEx;
 using LogUtils.Properties;
-using System.Collections.Generic;
 
 namespace LogUtils
 {
     public class LogID : SharedExtEnum<LogID>
     {
-        /// <summary>
-        /// A unique collection of references constructed locally by the mod
-        /// </summary>
-        public static List<LogID> LocalRegistry = new List<LogID>();
-
         /// <summary>
         /// Contains path information, and other settings that affect logging behavior 
         /// </summary>
@@ -42,27 +36,6 @@ namespace LogUtils
 
         public LogID(string filename, string relativePathNoFile, LogAccess access = LogAccess.RemoteAccessOnly, bool register = false) : base(filename, register)
         {
-            //Each time a LogID is constructed, a local reference needs to be registered in order to maintain setting/access consistency
-            int localIndex = LocalRegistry.FindIndex(id => id.CheckTag(Tag));
-
-            if (localIndex >= 0) //An instance has already been constructed for this LogID
-            {
-                LogID existingID = LocalRegistry[localIndex];
-
-                if (existingID.Registered || !register)
-                {
-                    access = existingID.Access; //Inherit access from existing reference, it should not be overwritten here
-                    IsEnabled = existingID.IsEnabled;
-                }
-
-                if (!existingID.Registered && register)
-                    LocalRegistry[localIndex] = this; //Replace an unregistered reference with a registered one
-            }
-            else
-            {
-                LocalRegistry.Add(this);
-            }
-
             Access = access;
             Properties = LogProperties.PropertyManager.GetProperties(this, relativePathNoFile);
 
