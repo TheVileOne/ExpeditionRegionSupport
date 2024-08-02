@@ -31,7 +31,7 @@ namespace LogUtils
         /// </summary>
         public bool IsGameControlled;
 
-        public LogID(string filename, string relativePathNoFile = null, bool register = false) : this(filename,relativePathNoFile, LogAccess.RemoteAccessOnly, register)
+        public LogID(string filename, string relativePathNoFile = null, bool register = false) : this(filename, relativePathNoFile, LogAccess.RemoteAccessOnly, register)
         {
         }
 
@@ -40,10 +40,10 @@ namespace LogUtils
             IsGameControlled = gameControlled;
         }
 
-        public LogID(string filename, string relativePathNoFile, LogAccess access = LogAccess.RemoteAccessOnly, bool register = false) : base(filename, false)
+        public LogID(string filename, string relativePathNoFile, LogAccess access = LogAccess.RemoteAccessOnly, bool register = false) : base(filename, register)
         {
             //Each time a LogID is constructed, a local reference needs to be registered in order to maintain setting/access consistency
-            int localIndex = LocalRegistry.FindIndex(id => id.value == filename);
+            int localIndex = LocalRegistry.FindIndex(id => id.CheckTag(Tag));
 
             if (localIndex >= 0) //An instance has already been constructed for this LogID
             {
@@ -64,13 +64,6 @@ namespace LogUtils
             }
 
             Access = access;
-
-            if (register && index < 0)
-            {
-                values.AddEntry(value);
-                index = values.Count - 1;
-            }
-
             Properties = LogProperties.PropertyManager.GetProperties(this, relativePathNoFile);
 
             if (Properties == null)
