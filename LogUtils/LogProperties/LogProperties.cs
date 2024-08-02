@@ -35,6 +35,11 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
+        /// This field contains the last known LogRequest handle state for this LogID, particularly the rejection status, and the reason for rejection of the request
+        /// </summary>
+        public LogRequestRecord HandleRecord;
+
+        /// <summary>
         /// The log file has been created, its initialization process has run successfully, and it isn't adding to stale log file data 
         /// </summary>
         public bool LogSessionActive { get; private set; }

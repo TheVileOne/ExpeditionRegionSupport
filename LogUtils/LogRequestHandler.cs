@@ -82,6 +82,8 @@ namespace LogUtils
         {
             request.ResetStatus();
             PendingRequest = request;
+
+            ProcessRequest(request);
             return request;
         }
 
@@ -98,11 +100,9 @@ namespace LogUtils
             foreach (LogID logFile in logger.LogTargets.Where(log => !log.IsGameControlled && log.Access != LogAccess.RemoteAccessOnly)) //Game controlled logids cannot be handled here
             {
                 IEnumerable<LogRequest> requests = GetRequests(logFile);
-                logger.HandleRequests(requests, true);
 
-                //Check the status of all processed requests to remove the handled ones
-                foreach (LogRequest request in requests.Where(r => r.Status == RequestStatus.Complete || !r.CanRetryRequest()))
-                    UnhandledRequests.Remove(request);
+                logger.HandleRequests(requests, true);
+                DiscardHandledRequests(requests);
             }
         }
 
@@ -140,6 +140,71 @@ namespace LogUtils
                 || (matchCandidate.AllowRemoteLogging && !bestLoggerMatch.AllowRemoteLogging)
                 || (matchCandidate.AllowLogging && !bestLoggerMatch.AllowLogging);
             }
+        }
+
+        public void TryResolveRecord(LogID logFile)
+        {
+            //TODO: Check the handle record, and attempt to resolve the last known rejection reason
+
+        /// <summary>
+        /// Attempts to handle all unhandled log requests belonging to a single LogID in the order they were submitted
+        /// </summary>
+        public void ProcessRequests(LogID logFile)
+        {
+            var requests = GetRequests(logFile);
+
+            if (!logFile.IsGameControlled)
+            {
+                BetaLogger selectedLogger = findCompatibleLogger(logFile, doPathCheck: true);
+
+                if (selectedLogger == null)
+                {
+                    RejectRequests(requests, RejectionReason.LogUnavailable);
+                    return;
+                }
+
+                selectedLogger.HandleRequests(requests);
+            }
+            else
+            {
+                GameLogger.HandleRequests(requests);
+            }
+
+            DiscardHandledRequests(requests);
+        }
+
+        internal void ProcessRequest(LogRequest request)
+        {
+            LogID logFile = request.Data.ID;
+
+            if (request.Data.Properties.HandleRecord.Rejected)
+            {
+                TryResolveRecord(logFile);
+
+                if (request.Data.Properties.HandleRecord.Rejected)
+                    RejectRequests(logFile, request.Data.Properties.HandleRecord.Reason);
+                else
+                    ProcessRequests(logFile);
+                return;
+            }
+
+            //Beyond this point, we can assume that there are no preexisting unhandled requests for this log file
+            if (!logFile.IsGameControlled)
+            {
+                BetaLogger selectedLogger = findCompatibleLogger(logFile, doPathCheck: true);
+
+                if (selectedLogger != null)
+                    selectedLogger.HandleRequest(request, true);
+                else
+                    request.Reject(RejectionReason.LogUnavailable);
+            }
+            else
+            {
+                GameLogger.HandleRequest(request);
+            }
+
+            if (request.Status == RequestStatus.Complete || !request.CanRetryRequest())
+                UnhandledRequests.Remove(request);
         }
 
         /// <summary>
@@ -194,6 +259,30 @@ namespace LogUtils
                 if (!requestCanBeHandled)
                     UnhandledRequests.Remove(requestEnumerator.CurrentNode);
             }
+        }
+
+        public void RejectRequests(LogID logFile, RejectionReason reason)
+        {
+            //TODO: This doesn't account for requests targeting different log paths
+            RejectRequests(GetRequests(logFile), reason);
+        }
+
+        public void RejectRequests(IEnumerable<LogRequest> requests, RejectionReason reason)
+        {
+            foreach (LogRequest request in requests)
+                request.Reject(reason);
+
+            DiscardHandledRequests(requests);
+        }
+
+        /// <summary>
+        /// Remove requests that have been handled since being processed
+        /// </summary>
+        internal void DiscardHandledRequests(IEnumerable<LogRequest> requests)
+        {
+            //Check the status of all processed requests to remove the handled ones
+            foreach (LogRequest request in requests.Where(r => r.Status == RequestStatus.Complete || !r.CanRetryRequest()))
+                UnhandledRequests.Remove(request);
         }
 
         public void Update()
