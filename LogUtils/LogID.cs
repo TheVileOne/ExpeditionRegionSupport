@@ -26,11 +26,11 @@ namespace LogUtils
         /// </summary>
         public bool IsGameControlled;
 
-        public LogID(string filename, string relativePathNoFile = null, bool register = false) : this(filename, relativePathNoFile, LogAccess.RemoteAccessOnly, register)
+        public LogID(string filename, string relativePathNoFile, bool register) : this(filename, relativePathNoFile, LogAccess.RemoteAccessOnly, register)
         {
         }
 
-        public LogID(string filename, LogAccess access, bool register = false) : this(filename, null, access, register)
+        public LogID(string filename, LogAccess access = LogAccess.RemoteAccessOnly, bool register = false) : this(filename, null, access, register)
         {
         }
 
