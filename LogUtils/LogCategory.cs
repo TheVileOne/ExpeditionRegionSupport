@@ -121,6 +121,7 @@ namespace LogUtils
 
         public static readonly LogCategory All = new LogCategory("All", LogLevel.All, null);
         public static readonly LogCategory None = new LogCategory("None", LogLevel.None, LogType.Log);
+        public static readonly LogCategory Assert = new LogCategory("Assert", LogLevel.Debug, LogType.Assert); //TODO: Show this as Assert in BepInEx
         public static readonly LogCategory Debug = new LogCategory("Debug", LogLevel.Debug, null);
         public static readonly LogCategory Info = new LogCategory("Info", LogLevel.Info, LogType.Log);
         public static readonly LogCategory Message = new LogCategory("Message", LogLevel.Message, LogType.Log);
