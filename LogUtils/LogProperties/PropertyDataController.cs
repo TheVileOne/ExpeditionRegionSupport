@@ -83,7 +83,7 @@ namespace LogUtils.Properties
             LogProperties bestCandidate = null;
             foreach (LogProperties properties in Properties.Where(p => p.IDMatch(logID)))
             {
-                if (PathUtils.ComparePaths(properties.OriginalPath, LogProperties.GetContainingPath(relativePathNoFile)))
+                if (PathUtils.ComparePaths(properties.OriginalFolderPath, LogProperties.GetContainingPath(relativePathNoFile)))
                 {
                     bestCandidate = properties;
                     break;
@@ -119,7 +119,7 @@ namespace LogUtils.Properties
                     {
                         Version = dataFields[DataFields.VERSION],
                         AltFilename = dataFields[DataFields.ALTFILENAME],
-                        OriginalPath = dataFields[DataFields.ORIGINAL_PATH],
+                        OriginalFolderPath = dataFields[DataFields.ORIGINAL_PATH],
                         LastKnownPath = dataFields[DataFields.LAST_KNOWN_PATH],
                         Tags = dataFields[DataFields.TAGS].Split(','),
                         ShowLogsAware = bool.Parse(dataFields[DataFields.SHOW_LOGS_AWARE]),

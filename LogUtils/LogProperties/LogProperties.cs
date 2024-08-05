@@ -91,7 +91,7 @@ namespace LogUtils.Properties
         private string _filename = string.Empty;
         private string _altFilename = string.Empty;
         private string _folderPath = string.Empty;
-        private string _originalPath = string.Empty;
+        private string _originalFolderPath = string.Empty;
         private string[] _tags;
 
         private string _startMessage;
@@ -157,16 +157,16 @@ namespace LogUtils.Properties
         /// <summary>
         /// The path that was first assigned when the log file was first registered
         /// </summary>
-        public string OriginalPath
+        public string OriginalFolderPath
         {
-            get => _originalPath;
+            get => _originalFolderPath;
             set
             {
-                if (_originalPath == value || ReadOnly) return;
+                if (_originalFolderPath == value || ReadOnly) return;
 
                 if (value == null)
-                    throw new ArgumentNullException(nameof(OriginalPath) + " cannot be null. Use root, or customroot as a value instead.");
-                _originalPath = value;
+                    throw new ArgumentNullException(nameof(OriginalFolderPath) + " cannot be null. Use root, or customroot as a value instead.");
+                _originalFolderPath = value;
             }
         }
 
@@ -302,7 +302,7 @@ namespace LogUtils.Properties
             FolderPath = GetContainingPath(relativePathNoFile);
 
             CurrentFilename = Filename;
-            CurrentFolderPath = OriginalPath = FolderPath;
+            CurrentFolderPath = OriginalFolderPath = FolderPath;
             LastKnownPath = CurrentFilePath;
 
             //Utility packaged rules get added to every log file disabled by default 
@@ -433,7 +433,7 @@ namespace LogUtils.Properties
             sb.AppendPropertyString(DataFields.TAGS, Tags != null ? string.Join(",", Tags) : string.Empty);
             sb.AppendPropertyString(DataFields.SHOW_LOGS_AWARE, ShowLogsAware.ToString());
             sb.AppendPropertyString(DataFields.PATH, PathUtils.ToPlaceholderPath(FolderPath));
-            sb.AppendPropertyString(DataFields.ORIGINAL_PATH, PathUtils.ToPlaceholderPath(OriginalPath));
+            sb.AppendPropertyString(DataFields.ORIGINAL_PATH, PathUtils.ToPlaceholderPath(OriginalFolderPath));
             sb.AppendPropertyString(DataFields.LAST_KNOWN_PATH, LastKnownPath);
             sb.AppendPropertyString(DataFields.Intro.MESSAGE, StartMessage);
             sb.AppendPropertyString(DataFields.Intro.TIMESTAMP, ShowIntroTimestamp.ToString());
