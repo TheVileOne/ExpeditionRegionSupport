@@ -31,7 +31,7 @@ namespace LogUtils
 
         public class LogEventArgs : EventArgs
         {
-            public LogID ID => Helpers.LogUtils.GetLogID(Properties.ID);
+            public LogID ID => Properties.ID;
             public LogProperties Properties { get; }
 
             public LogEventArgs(LogID logID) : this(logID.Properties)

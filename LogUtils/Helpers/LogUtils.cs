@@ -11,14 +11,6 @@ namespace LogUtils.Helpers
 {
     public static class LogUtils
     {
-        public static LogID GetLogID(string value)
-        {
-            LogID found = null;
-            if (ExtEnumBase.TryParse(typeof(LogID), value, true, out ExtEnumBase extBase))
-                found = (LogID)extBase;
-            return found;
-        }
-
         public static FileStatus MoveLog(LogID logFile, string newLogPath)
         {
             FileStatus moveResult = MoveLog(logFile.Properties.CurrentFilePath, newLogPath);

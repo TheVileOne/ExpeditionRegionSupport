@@ -85,6 +85,8 @@ namespace LogUtils.Properties
         /// </summary>
         public List<string> AssociatedModIDs = new List<string>();
 
+        private LogID _id;
+        private string _idValue;
         private static bool _fileExists;
         private static bool _readOnly;
         private string _version = "0.5.0";
@@ -101,9 +103,25 @@ namespace LogUtils.Properties
         private bool _showLogsAware;
 
         /// <summary>
-        /// An identification string used for LogID matching
+        /// The LogID associated with the log properties
         /// </summary>
-        public string ID { get; private set; }
+        public LogID ID
+        {
+            get
+            {
+                //LogID is lazy loaded here, because it would trigger an infinite loop if it were defined in the constructor
+                if (_id == null)
+                {
+                    if (_idValue == null)
+                        return null;
+
+                    _id = new LogID(_idValue, OriginalFolderPath);
+
+                    Debug.Assert(_id.Properties == this);
+                }
+                return _id;
+            }
+        }
 
         /// <summary>
         /// A string representation of the content state. This is useful for preventing user sourced changes from being overwritten by mods
@@ -297,7 +315,8 @@ namespace LogUtils.Properties
 
         public LogProperties(string propertyID, string filename, string relativePathNoFile = "customroot")
         {
-            ID = propertyID;
+            _idValue = propertyID;
+            
             Filename = filename;
             FolderPath = GetContainingPath(relativePathNoFile);
 
@@ -332,7 +351,9 @@ namespace LogUtils.Properties
 
         public bool IDMatch(LogID logID)
         {
-            return string.Equals(logID.value, ID, StringComparison.InvariantCultureIgnoreCase);
+            //This should always be comparing against a single case as long as the ctor is invoked, but need to test this
+            return ID == logID;
+            //return string.Equals(logID.value, ID.value, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public void ChangePath(string newPath)
@@ -426,7 +447,7 @@ namespace LogUtils.Properties
         {
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendPropertyString(DataFields.LOGID, ID);
+            sb.AppendPropertyString(DataFields.LOGID, ID.value);
             sb.AppendPropertyString(DataFields.FILENAME, Filename);
             sb.AppendPropertyString(DataFields.ALTFILENAME, AltFilename);
             sb.AppendPropertyString(DataFields.VERSION, Version);
