@@ -179,27 +179,6 @@ namespace LogUtils
             || (!LogID.Exception.IsEnabled && (category.UnityCategory == LogType.Error || category.UnityCategory == LogType.Exception))) //Error logging
                 return;
 
-            //TODO: Put this in a proper place
-            Debug.unityLogger.filterLogType = (LogType)1000; //Allow space for custom LogTypes to be defined
-
-            /*
-            LogType unityLogCategory;
-
-            //Convert translatable LogTypes first
-            if (category == LogCategory.Info || category == LogCategory.Message)
-                unityLogCategory = LogType.Log;
-            else if (category == LogCategory.Warning)
-                unityLogCategory = LogType.Warning;
-            else if (category == LogCategory.Error || category == LogCategory.Fatal)
-                unityLogCategory = LogType.Error;
-            else if (category.index >= 0)
-                unityLogCategory = (LogType)(150 + category.index); //Define a custom LogType when no other LogType will fit
-            else
-            {
-                UtilityCore.BaseLogger.LogInfo("Unity logger requires custom log categories to be registered");
-                unityLogCategory = LogType.Log;
-            }
-            */
             Debug.unityLogger.Log(category.UnityCategory, data);
         }
 

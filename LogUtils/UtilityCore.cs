@@ -4,6 +4,7 @@ using LogUtils.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace LogUtils
 {
@@ -44,6 +45,8 @@ namespace LogUtils
             if (IsInitialized || initializingInProgress) return; //Initialize may be called several times during the init process
 
             initializingInProgress = true;
+
+            Debug.unityLogger.filterLogType = (LogType)Math.Max((int)Debug.unityLogger.filterLogType, 1000); //Allow space for custom LogTypes to be defined
 
             BaseLogger = BepInEx.Logging.Logger.Sources.FirstOrDefault(l => l.SourceName == "LogUtils") as ManualLogSource
                       ?? BepInEx.Logging.Logger.CreateLogSource("LogUtils");
