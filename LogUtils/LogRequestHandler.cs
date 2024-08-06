@@ -292,6 +292,22 @@ namespace LogUtils
             if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.PostMods)
                 ProcessRequests();
         }
+
+        /// <summary>
+        /// Dumps all unhandled log requests to a special dump file
+        /// </summary>
+        public void DumpRequestsToFile()
+        {
+            LogID logDump = new LogID("LogDump"); //TODO: Timestamp, allow new log file to be created at anytime
+            BetaLogger logger = new BetaLogger(logDump);
+
+            string writePath = logDump.Properties.CurrentFilePath;
+
+            //Delete existing log file before write
+            if (File.Exists(writePath))
+                File.Delete(writePath);
+
+            logger.Log(UnhandledRequests);
         }
     }
 }

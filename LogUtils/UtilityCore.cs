@@ -52,6 +52,8 @@ namespace LogUtils
                       ?? BepInEx.Logging.Logger.CreateLogSource("LogUtils");
 
             LoadComponents();
+
+            AppDomain.CurrentDomain.UnhandledException += (o, e) => RequestHandler.DumpRequestsToFile();
             GameHooks.Initialize();
             initializingInProgress = false;
 
