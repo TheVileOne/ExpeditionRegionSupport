@@ -45,41 +45,60 @@ namespace LogUtils
         {
             UtilityCore.RequestHandler.CurrentRequest = request;
 
-            if (!PrepareLogFile(request.Data.ID))
+            try
             {
-                request.Reject(RejectionReason.LogUnavailable);
-                return;
-            }
+                if (!PrepareLogFile(request.Data.ID))
+                {
+                    request.Reject(RejectionReason.LogUnavailable);
+                    return;
+                }
 
-            if (!InternalWriteToFile(request.Data))
+                if (!InternalWriteToFile(request.Data))
+                {
+                    request.Reject(RejectionReason.FailedToWrite);
+                    return;
+                }
+
+                //All checks passed is a complete request
+                request.Complete();
+            }
+            finally
             {
-                request.Reject(RejectionReason.FailedToWrite);
-                return;
+                UtilityCore.RequestHandler.CurrentRequest = null;
             }
-
-            //All checks passed is a complete request
-            request.Complete();
         }
 
         public void WriteToFile(LogID logFile, string message)
         {
+            UtilityCore.RequestHandler.ProcessRequests(logFile);
+
             LogEvents.LogMessageEventArgs logEventData = new LogEvents.LogMessageEventArgs(logFile, message);
-            LogRequest request = UtilityCore.RequestHandler.Submit(new LogRequest(logEventData));
+            LogRequest request = UtilityCore.RequestHandler.Submit(new LogRequest(logEventData), false);
 
-            if (!PrepareLogFile(logFile))
+            try
             {
-                request.Reject(RejectionReason.LogUnavailable);
-                return;
-            }
+                if (!request.CanRetryRequest())
+                    return;
 
-            if (!InternalWriteToFile(logEventData))
+                if (!PrepareLogFile(logFile))
+                {
+                    request.Reject(RejectionReason.LogUnavailable);
+                    return;
+                }
+
+                if (!InternalWriteToFile(logEventData))
+                {
+                    request.Reject(RejectionReason.FailedToWrite);
+                    return;
+                }
+
+                //All checks passed is a complete request
+                request.Complete();
+            }
+            finally
             {
-                request.Reject(RejectionReason.FailedToWrite);
-                return;
+                UtilityCore.RequestHandler.CurrentRequest = null;
             }
-
-            //All checks passed is a complete request
-            request.Complete();
         }
 
         internal bool PrepareLogFile(LogID logFile)

@@ -188,7 +188,7 @@ namespace LogUtils
 
             //Ensure that request is always constructed before a message is logged
             if (UtilityCore.RequestHandler.CurrentRequest == null)
-                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(logFile, logString, LogCategory.ToCategory(logLevel))));
+                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(logFile, logString, LogCategory.ToCategory(logLevel))), false);
 
             if (logFile.Properties.ShowLogsAware && !RainWorld.ShowLogs) return; //Don't handle request, orig doesn't get called in this circumstance
 
@@ -235,7 +235,7 @@ namespace LogUtils
         {
             //Ensure that request is always constructed before a message is logged
             if (UtilityCore.RequestHandler.CurrentRequest == null)
-                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.Expedition, text)));
+                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.Expedition, text)), false);
             orig(text);
         }
 
@@ -272,7 +272,7 @@ namespace LogUtils
         {
             //Ensure that request is always constructed before a message is logged
             if (UtilityCore.RequestHandler.CurrentRequest == null)
-                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.JollyCoop, logText)));
+                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.JollyCoop, logText)), false);
 
             orig(logText, throwException);
         }
@@ -386,7 +386,7 @@ namespace LogUtils
                 string message = data?.ToString();
 
                 if (UtilityCore.RequestHandler.CurrentRequest == null)
-                    UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.BepInEx, message)));
+                    UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.BepInEx, message)), false);
 
                 //Make sure request is valid and can be processed
                 bool acceptRequest = !LogID.BepInEx.Properties.ShowLogsAware || RainWorld.ShowLogs;

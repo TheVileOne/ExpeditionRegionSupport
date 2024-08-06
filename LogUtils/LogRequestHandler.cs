@@ -78,12 +78,31 @@ namespace LogUtils
         /// <summary>
         /// Submit a request - will be treated as an active pending log request
         /// </summary>
-        public LogRequest Submit(LogRequest request)
+        public LogRequest Submit(LogRequest request, bool handleSubmission = true)
         {
+            LogID logFile = request.Data.ID;
+
+            ProcessRequests(logFile);
+
+            //Ensures consistent handling of the request
             request.ResetStatus();
+
+            if (logFile.Properties.HandleRecord.Rejected)
+            {
+                request.Reject(logFile.Properties.HandleRecord.Reason);
+
+                if (request.CanRetryRequest()) //As long as the rejection is recoverable, treat the request as pending
+                    PendingRequest = request;
+                else
+                    CurrentRequest = request; //Otherwise store it in CurrentRequest to avoid potential null references
+
+                return request;
+            }
+
             PendingRequest = request;
 
-            ProcessRequest(request);
+            if (handleSubmission)
+                ProcessRequest(request);
             return request;
         }
 

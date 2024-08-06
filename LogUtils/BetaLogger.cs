@@ -191,6 +191,9 @@ namespace LogUtils
         {
             if (!AllowLogging || !LogID.Expedition.IsEnabled) return;
 
+            string message = data?.ToString();
+
+            UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.Expedition, message, category)), false);
             Expedition.ExpLog.Log(data?.ToString());
         }
 
@@ -203,6 +206,9 @@ namespace LogUtils
         {
             if (!AllowLogging || !LogID.JollyCoop.IsEnabled) return;
 
+            string message = data?.ToString();
+
+            UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.JollyCoop, message, category)), false);
             JollyCoop.JollyCustom.Log(data?.ToString());
         }
 

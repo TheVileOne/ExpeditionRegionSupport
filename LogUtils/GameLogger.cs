@@ -82,7 +82,7 @@ namespace LogUtils
             string message = data?.ToString();
 
             if (UtilityCore.RequestHandler.CurrentRequest == null)
-                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.Expedition, message, category)));
+                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.Expedition, message, category)), false);
             Expedition.ExpLog.Log(message);
         }
 
@@ -96,7 +96,7 @@ namespace LogUtils
             string message = data?.ToString();
 
             if (UtilityCore.RequestHandler.CurrentRequest == null)
-                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.JollyCoop, message, category)));
+                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.JollyCoop, message, category)), false);
             JollyCoop.JollyCustom.Log(data?.ToString());
         }
     }
