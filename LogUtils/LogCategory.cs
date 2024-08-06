@@ -10,8 +10,23 @@ namespace LogUtils
         /// </summary>
         public const int CONVERSION_OFFSET = 150;
 
-        private LogLevel _bepInExConversion = LogLevel.Info;
-        private LogType _unityConversion = LogType.Log;
+        /// <summary>
+        /// The default conversion type for LogLevel enum
+        /// </summary>
+        public const LogLevel LOG_LEVEL_DEFAULT = LogLevel.Info;
+
+        /// <summary>
+        /// The default conversion type for LogType enum
+        /// </summary>
+        public const LogType LOG_TYPE_DEFAULT = LogType.Log;
+
+        private LogLevel _bepInExConversion = LOG_LEVEL_DEFAULT;
+        private LogType _unityConversion = LOG_TYPE_DEFAULT;
+
+        /// <summary>
+        /// A flag that indicates that conversion fields need to be updated
+        /// </summary>
+        private bool conversionFieldsNeedUpdating;
 
         /// <summary>
         /// The category value translated to the category enum used for BepInEx logging
@@ -39,43 +54,83 @@ namespace LogUtils
             }
         }
 
+        /// <summary>
+        /// Constructs a registered LogCategory instance
+        /// </summary>
+        /// <param name="value">The ExtEnum value associated with this instance</param>
+        /// <param name="bepInExEquivalent">
+        /// The enum value to be used when this category is used by the BepInEx logger
+        /// Set to null assigns a custom LogLevel, otherwise will take the value of the LogLevel provided
+        /// </param>
+        /// <param name="unityEquivalent">
+        /// The enum value to be used when this category is used by the Unity logger
+        /// Set to null assigns a custom LogType, otherwise will take the value of the LogType provided
+        /// </param>
         public LogCategory(string value, LogLevel? bepInExEquivalent, LogType? unityEquivalent) : base(value, true)
         {
-            if (ReferenceEquals(ManagedReference, this)) //Fields only have to be updated by the reference object
+            if (!ReferenceEquals(ManagedReference, this))
             {
-                if (Registered)
+                //When the managed reference is registered at the same time as this instance, propagate constructor parameters to the managed reference
+                if (ManagedReference.conversionFieldsNeedUpdating)
                 {
-                    _bepInExConversion = bepInExEquivalent ?? (LogLevel)(CONVERSION_OFFSET + index);
-                    _unityConversion = unityEquivalent ?? (LogType)(CONVERSION_OFFSET + index);
+                    int customValue = CONVERSION_OFFSET + index;
+                    ManagedReference.updateConversionFields(bepInExEquivalent ?? (LogLevel)customValue, unityEquivalent ?? (LogType)customValue);
                 }
-                else
-                {
-                    _bepInExConversion = bepInExEquivalent ?? LogLevel.Info;
-                    _unityConversion = unityEquivalent ?? LogType.Log;
-                }
+
+                //Make sure that backing fields always have the same values as the managed reference
+                updateConversionFields(ManagedReference._bepInExConversion, ManagedReference._unityConversion);
             }
-            else if (!ManagedReference.Registered)
+            else
             {
-                ManagedReference._bepInExConversion = bepInExEquivalent ?? (LogLevel)(CONVERSION_OFFSET + index);
-                ManagedReference._unityConversion = unityEquivalent ?? (LogType)(CONVERSION_OFFSET + index);
+                int customValue = CONVERSION_OFFSET + index;
+                updateConversionFields(bepInExEquivalent ?? (LogLevel)customValue, unityEquivalent ?? (LogType)customValue);
             }
         }
 
+        /// <summary>
+        /// Constructs a LogCategory instance
+        /// </summary>
+        /// <param name="value">The ExtEnum value associated with this instance</param>
+        /// <param name="register">Whether or not this instance should be registered as a unique ExtEnum entry</param>
         public LogCategory(string value, bool register = false) : base(value, register)
         {
-            if (ReferenceEquals(ManagedReference, this)) //Fields only have to be updated by the reference object
+            //We can only give custom conversions to registered instances because these instances have a valid index assigned
+            if (Registered)
             {
-                if (Registered)
+                if (!ReferenceEquals(ManagedReference, this))
                 {
-                    _bepInExConversion = (LogLevel)(CONVERSION_OFFSET + index);
-                    _unityConversion = (LogType)(CONVERSION_OFFSET + index);
+                    if (ManagedReference.conversionFieldsNeedUpdating)
+                    {
+                        int customValue = CONVERSION_OFFSET + index;
+                        ManagedReference.updateConversionFields((LogLevel)customValue, (LogType)customValue);
+                    }
+
+                    //Make sure that backing fields always have the same values as the managed reference
+                    updateConversionFields(ManagedReference._bepInExConversion, ManagedReference._unityConversion);
+                }
+                else
+                {
+                    int customValue = CONVERSION_OFFSET + index;
+                    updateConversionFields((LogLevel)customValue, (LogType)customValue);
                 }
             }
-            else if (!ManagedReference.Registered && Registered)
-            {
-                ManagedReference._bepInExConversion = (LogLevel)(CONVERSION_OFFSET + index);
-                ManagedReference._unityConversion = (LogType)(CONVERSION_OFFSET + index);
-            }
+        }
+
+        public override void Register()
+        {
+            //When a registration is applied, set a flag that allows conversion fields to be overwritten
+            if (!ManagedReference.Registered || index < 0)
+                conversionFieldsNeedUpdating = true;
+
+            base.Register();
+        }
+
+        private void updateConversionFields(LogLevel logLevel, LogType logType)
+        {
+            _bepInExConversion = logLevel;
+            _unityConversion = logType;
+
+            conversionFieldsNeedUpdating = false;
         }
 
         public static LogCategory ToCategory(string value)
@@ -121,7 +176,7 @@ namespace LogUtils
 
         public static readonly LogCategory All = new LogCategory("All", LogLevel.All, null);
         public static readonly LogCategory None = new LogCategory("None", LogLevel.None, LogType.Log);
-        public static readonly LogCategory Assert = new LogCategory("Assert", LogLevel.Debug, LogType.Assert); //TODO: Show this as Assert in BepInEx
+        public static readonly LogCategory Assert = new LogCategory("Assert", null, LogType.Assert);
         public static readonly LogCategory Debug = new LogCategory("Debug", LogLevel.Debug, null);
         public static readonly LogCategory Info = new LogCategory("Info", LogLevel.Info, LogType.Log);
         public static readonly LogCategory Message = new LogCategory("Message", LogLevel.Message, LogType.Log);

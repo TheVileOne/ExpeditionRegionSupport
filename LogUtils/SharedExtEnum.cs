@@ -14,7 +14,7 @@ namespace LogUtils
             {
                 if (!ReferenceEquals(ManagedReference, this))
                     return ManagedReference.Index;
-                return Index;
+                return index;
             }
         }
 
