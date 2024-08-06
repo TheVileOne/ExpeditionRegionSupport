@@ -164,22 +164,22 @@ namespace LogUtils
 
         public void LogUnity(LogType category, object data)
         {
-            if (!AllowLogging
-            || (!LogID.Unity.IsEnabled && category != LogType.Error && category != LogType.Exception) //Non-error logging
-            || (!LogID.Exception.IsEnabled && (category == LogType.Error || category == LogType.Exception))) //Error logging
-                return;
+            if (!AllowLogging) return;
 
-            Debug.unityLogger.Log(category, data);
+            LogID logFile = !LogCategory.IsUnityErrorCategory(category) ? LogID.Unity : LogID.Exception;
+
+            if (logFile.IsEnabled)
+                Debug.unityLogger.Log(category, data);
         }
 
         public void LogUnity(LogCategory category, object data)
         {
-            if (!AllowLogging
-            || (!LogID.Unity.IsEnabled && category.UnityCategory != LogType.Error && category.UnityCategory != LogType.Exception) //Non-error logging
-            || (!LogID.Exception.IsEnabled && (category.UnityCategory == LogType.Error || category.UnityCategory == LogType.Exception))) //Error logging
-                return;
+            if (!AllowLogging) return;
 
-            Debug.unityLogger.Log(category.UnityCategory, data);
+            LogID logFile = !LogCategory.IsUnityErrorCategory(category.UnityCategory) ? LogID.Unity : LogID.Exception;
+
+            if (logFile.IsEnabled)
+                Debug.unityLogger.Log(category.UnityCategory, data);
         }
 
         public void LogExp(object data)

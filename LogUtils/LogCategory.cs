@@ -133,6 +133,11 @@ namespace LogUtils
             conversionFieldsNeedUpdating = false;
         }
 
+        public static bool IsUnityErrorCategory(LogType logType)
+        {
+            return logType == LogType.Error || logType == LogType.Exception;
+        }
+
         public static LogCategory ToCategory(string value)
         {
             return new LogCategory(value);
