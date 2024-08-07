@@ -19,19 +19,37 @@ namespace LogUtils
 
             if (!logFile.IsGameControlled) return;
 
-            LogCategory category = request.Data.Category;
             string message = request.Data.Message;
 
-            if (logFile == LogID.Unity)
-                LogUnity(category, message);
-            else if (logFile == LogID.BepInEx)
-                LogBepEx(request.Data.LogSource, category, message);
-            else if (logFile == LogID.Expedition)
-                LogExp(category, message);
-            else if (logFile == LogID.JollyCoop)
-                LogJolly(category, message);
+            if (logFile == LogID.BepInEx) //The only logger example that needs an extra parameter
+            {
+                LogBepEx(request.Data.LogSource, request.Data.BepInExCategory, message);
+            }
+            else if (logFile == LogID.Unity) //Unity, and Exception log requests are not guaranteed to have a defined LogCategory instance
+            {
+                LogUnity(request.Data.UnityCategory, message);
+            }
             else if (logFile == LogID.Exception)
+            {
                 LogUnity(LogType.Error, message);
+            }
+            else
+            {
+                LogCategory category = request.Data.Category;
+                LogHandler logMethod = LogUnity;
+
+                if (logFile != LogID.Unity)
+                {
+                    if (logFile == LogID.Expedition)
+                        logMethod = LogExp;
+                    else if (logFile == LogID.JollyCoop)
+                        logMethod = LogJolly;
+                    else if (logFile == LogID.Exception)
+                        logMethod = LogUnity;
+                }
+
+                logMethod(category, message);
+            }
         }
 
         public void HandleRequests(IEnumerable<LogRequest> requests)
@@ -99,5 +117,7 @@ namespace LogUtils
                 UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.JollyCoop, message, category)), false);
             JollyCoop.JollyCustom.Log(data?.ToString());
         }
+
+        public delegate void LogHandler(LogCategory category, string message);
     }
 }

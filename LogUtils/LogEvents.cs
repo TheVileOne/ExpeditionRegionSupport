@@ -1,6 +1,7 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Properties;
 using System;
+using UnityEngine;
 
 namespace LogUtils
 {
@@ -56,15 +57,41 @@ namespace LogUtils
             /// </summary>
             public LogCategory Category { get; }
 
+            private LogLevel? _bepInExCategory;
+            private LogType? _unityCategory;
+            public LogLevel BepInExCategory
+            {
+                get => _bepInExCategory ?? Category.BepInExCategory;
+                private set => _bepInExCategory = value;
+            }
+
+            public LogType UnityCategory
+            {
+                get => _unityCategory ?? Category.UnityCategory;
+                private set => _unityCategory = value;
+            }
+
             /// <summary>
             /// A message about to be handled by a logger
             /// </summary>
             public string Message { get; }
 
-            public LogMessageEventArgs(LogID logID, string message, LogCategory category = null) : base(logID)
+            public LogMessageEventArgs(LogID logID, object messageData, LogCategory category = null) : base(logID)
             {
                 Category = category ?? LogCategory.Default;
-                Message = message;
+                Message = messageData?.ToString();
+            }
+
+            public LogMessageEventArgs(LogID logID, object messageData, LogLevel category) : base(logID)
+            {
+                BepInExCategory = category;
+                Message = messageData?.ToString();
+            }
+
+            public LogMessageEventArgs(LogID logID, object messageData, LogType category) : base(logID)
+            {
+                UnityCategory = category;
+                Message = messageData?.ToString();
             }
         }
 
