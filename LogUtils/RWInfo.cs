@@ -11,6 +11,11 @@ namespace LogUtils
     /// </summary>
     public static class RWInfo
     {
+        /// <summary>
+        /// A period during which it is safe to evaluate RainWorld.ShowLogs because it is guaranteed to be initialized at this time
+        /// </summary>
+        public const SetupPeriod SHOW_LOGS_ACTIVE_PERIOD = SetupPeriod.PreMods;
+
         static RWInfo()
         {
             //Initialize the utility when this class is accessed
