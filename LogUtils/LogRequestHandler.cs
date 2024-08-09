@@ -222,8 +222,7 @@ namespace LogUtils
                 GameLogger.HandleRequest(request);
             }
 
-            if (request.Status == RequestStatus.Complete || !request.CanRetryRequest())
-                UnhandledRequests.Remove(request);
+            RequestMayBeCompleteOrInvalid(request);
         }
 
         /// <summary>
@@ -244,7 +243,7 @@ namespace LogUtils
 
                 bool requestCanBeHandled = true;
 
-                if (requestCanBeHandled = target.Status == RequestStatus.Pending || (target.Status == RequestStatus.Rejected && target.CanRetryRequest()))
+                if (requestCanBeHandled = !target.IsCompleteOrInvalid)
                 {
                     //Find a logger that can be used for this LogID
                     if (selectedLogger == null || targetID != lastTargetID)
@@ -255,7 +254,7 @@ namespace LogUtils
                         //Try to handle the log request, and recheck the status
                         RejectionReason result = selectedLogger.HandleRequest(target, true);
 
-                        if (requestCanBeHandled = target.Status == RequestStatus.Pending || (target.Status == RequestStatus.Rejected && target.CanRetryRequest()))
+                        if (requestCanBeHandled = !target.IsCompleteOrInvalid)
                         {
                             if (result == RejectionReason.PathMismatch)
                             {
@@ -265,7 +264,7 @@ namespace LogUtils
                                 if (selectedLogger != null)
                                 {
                                     selectedLogger.HandleRequest(target, true);
-                                    requestCanBeHandled = target.Status == RequestStatus.Complete || !target.CanRetryRequest();
+                                    requestCanBeHandled = !target.IsCompleteOrInvalid;
                                 }
                             }
                         }
@@ -295,13 +294,28 @@ namespace LogUtils
         }
 
         /// <summary>
+        /// Clean up process for requests that need to be removed from the request handling system
+        /// </summary>
+        public void RequestMayBeCompleteOrInvalid(LogRequest request)
+        {
+            if (request.IsCompleteOrInvalid)
+            {
+                UnhandledRequests.Remove(request);
+
+                if (CurrentRequest == request) //Removing the request may not clear this field
+                    CurrentRequest = null;
+            }
+        }
+
+        /// <summary>
         /// Remove requests that have been handled since being processed
         /// </summary>
         internal void DiscardHandledRequests(IEnumerable<LogRequest> requests)
         {
             //Check the status of all processed requests to remove the handled ones
-            foreach (LogRequest request in requests.Where(r => r.Status == RequestStatus.Complete || !r.CanRetryRequest()))
-                UnhandledRequests.Remove(request);
+
+            foreach (LogRequest request in requests)
+                RequestMayBeCompleteOrInvalid(request);
         }
 
         public void Update()

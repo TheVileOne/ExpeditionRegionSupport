@@ -15,6 +15,11 @@ namespace LogUtils
 
         public LogEvents.LogMessageEventArgs Data;
 
+        /// <summary>
+        /// Request has been handled, and no more attempts to process the request should be made
+        /// </summary>
+        public bool IsCompleteOrInvalid => Status == RequestStatus.Complete || !CanRetryRequest();
+
         public RequestStatus Status { get; private set; }
 
         public RejectionReason UnhandledReason { get; private set; }
