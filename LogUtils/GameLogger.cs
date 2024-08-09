@@ -19,6 +19,22 @@ namespace LogUtils
 
             if (!logFile.IsGameControlled) return;
 
+            //Check RainWorld.ShowLogs for logs that are restricted by it
+            if (logFile.Properties.ShowLogsAware && !RainWorld.ShowLogs)
+            {
+                if (RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD)
+                    request.Reject(RejectionReason.ShowLogsNotInitialized);
+                else
+                    request.Reject(RejectionReason.LogDisabled);
+                return;
+            }
+
+            //Check that the log file can be initialized
+            if (!logFile.Properties.LogSessionActive && RWInfo.LatestSetupPeriodReached < logFile.Properties.AccessPeriod)
+                request.Reject(RejectionReason.LogUnavailable);
+
+            if (request.Status == RequestStatus.Rejected) return;
+
             string message = request.Data.Message;
 
             if (logFile == LogID.BepInEx) //The only logger example that needs an extra parameter
