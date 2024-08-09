@@ -88,6 +88,7 @@ namespace LogUtils
         {
             LogID logFile = request.Data.ID;
 
+            //Waiting requests must be handled before the submitted request
             ProcessRequests(logFile);
 
             //Ensures consistent handling of the request
@@ -110,16 +111,17 @@ namespace LogUtils
                     request.Reject(RejectionReason.LogDisabled);
             }
 
-            //Check one last time for pending status
+            //Check one last time for rejected status
             if (request.Status == RequestStatus.Rejected)
             {
                 handleRejection(request);
                 return request;
             }
 
-            //It is safe to store it as an active pending request whether or not it is handled immediately
+            //The pending request has not been rejected, and is available to be processed 
             PendingRequest = request;
 
+            //Submission are either going to be handled through the request system, or the submission serves as a notification that the request is being handled at the source
             if (handleSubmission)
                 ProcessRequest(request); //Processing will clean up for us when there is a rejection
 
@@ -199,6 +201,17 @@ namespace LogUtils
         /// </summary>
         public void ProcessRequests(LogID logFile)
         {
+            if (logFile.Properties.HandleRecord.Rejected)
+            {
+                TryResolveRecord(logFile);
+
+                if (logFile.Properties.HandleRecord.Rejected)
+                {
+                    RejectRequests(logFile, logFile.Properties.HandleRecord.Reason);
+                    return;
+                }
+            }
+
             var requests = GetRequests(logFile);
 
             if (!logFile.IsGameControlled)
@@ -225,14 +238,19 @@ namespace LogUtils
         {
             LogID logFile = request.Data.ID;
 
-            if (request.Data.Properties.HandleRecord.Rejected)
+            //This shouldn't be necessary, as rejections should be resolved before ProcessRequest is resolved
+            if (logFile.Properties.HandleRecord.Rejected)
             {
                 TryResolveRecord(logFile);
 
-                if (request.Data.Properties.HandleRecord.Rejected)
-                    RejectRequests(logFile, request.Data.Properties.HandleRecord.Reason);
-                else
-                    ProcessRequests(logFile);
+                if (logFile.Properties.HandleRecord.Rejected)
+                {
+                    RejectRequests(logFile, logFile.Properties.HandleRecord.Reason);
+                    return;
+                }
+
+                //Waiting requests need to be checked and request will be included in the process operation 
+                ProcessRequests(logFile); 
                 return;
             }
 
