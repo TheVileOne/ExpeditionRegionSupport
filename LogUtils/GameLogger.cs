@@ -113,10 +113,22 @@ namespace LogUtils
 
         public void LogExp(LogCategory category, object data)
         {
-            string message = data?.ToString();
+            string message = null;
 
+            //CurrentRequest has already passed preprocess validation checks if this is not null
             if (UtilityCore.RequestHandler.CurrentRequest == null)
-                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.Expedition, message, category)), false);
+            {
+                LogRequest request = UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.Expedition, data, category)), false);
+
+                if (request.Status == RequestStatus.Rejected)
+                    return;
+
+                message = request.Data.Message;
+            }
+
+            if (message == null)
+                message = data?.ToString();
+
             Expedition.ExpLog.Log(message);
         }
 
@@ -127,11 +139,23 @@ namespace LogUtils
 
         public void LogJolly(LogCategory category, object data)
         {
-            string message = data?.ToString();
+            string message = null;
 
+            //CurrentRequest has already passed preprocess validation checks if this is not null
             if (UtilityCore.RequestHandler.CurrentRequest == null)
-                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.JollyCoop, message, category)), false);
-            JollyCoop.JollyCustom.Log(data?.ToString());
+            {
+                LogRequest request = UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.JollyCoop, data, category)), false);
+
+                if (request.Status == RequestStatus.Rejected)
+                    return;
+
+                message = request.Data.Message;
+            }
+
+            if (message == null)
+                message = data?.ToString();
+
+            JollyCoop.JollyCustom.Log(message);
         }
 
         public delegate void LogHandler(LogCategory category, string message);

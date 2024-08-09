@@ -190,11 +190,14 @@ namespace LogUtils
 
             //Ensure that request is always constructed before a message is logged
             if (request == null)
+            {
                 request = UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(logFile, logString, LogCategory.ToCategory(logLevel))), false);
 
-            //TODO: This check will no longer be required when refactors are complete
-            if (!logFile.Properties.ShowLogsAware || RainWorld.ShowLogs) //Don't handle request through orig when request should be discarded
-                orig(self, logString, stackTrace, logLevel);
+                if (request.Status == RequestStatus.Rejected)
+                    return;
+            }
+
+            orig(self, logString, stackTrace, logLevel);
 
             UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
         }
@@ -241,7 +244,12 @@ namespace LogUtils
 
             //Ensure that request is always constructed before a message is logged
             if (request == null)
+            {
                 request = UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.Expedition, message)), false);
+
+                if (request.Status == RequestStatus.Rejected)
+                    return;
+            }
 
             orig(message);
             UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
@@ -282,7 +290,12 @@ namespace LogUtils
 
             //Ensure that request is always constructed before a message is logged
             if (request == null)
+            {
                 request = UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.JollyCoop, message)), false);
+
+                if (request.Status == RequestStatus.Rejected)
+                    return;
+            }
 
             orig(message, throwException);
             UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
@@ -399,27 +412,17 @@ namespace LogUtils
                 LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
                 if (request == null)
+                {
                     request = UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.BepInEx, message)), false);
 
-                //Make sure request is valid and can be processed
-                bool acceptRequest = !LogID.BepInEx.Properties.ShowLogsAware || RainWorld.ShowLogs;
-
-                try
-                {
-                    if (!acceptRequest)
-                    {
-                        request.Reject(RejectionReason.LogDisabled);
+                    if (request.Status == RequestStatus.Rejected)
                         return false;
-                    }
+                }
 
-                    request.Complete();
-                    return true;
-                }
-                finally
-                {
-                    //Is there a better way of handling this than inside a finally?
-                    UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
-                }
+                //TODO: Check if there is a more proper place to complete the request
+                request.Complete();
+                UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+                return true;
             }
         }
     }

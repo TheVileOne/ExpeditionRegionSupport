@@ -44,6 +44,17 @@ namespace LogUtils
         public void WriteFromRequest(LogRequest request)
         {
             UtilityCore.RequestHandler.CurrentRequest = request;
+            WriteToFile();
+        }
+
+        /// <summary>
+        /// Attempts to write the most recently requested message to file
+        /// </summary>
+        public void WriteToFile()
+        {
+            LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+
+            if (request == null || request.Status == RequestStatus.Rejected) return;
 
             try
             {
@@ -64,41 +75,16 @@ namespace LogUtils
             }
             finally
             {
-                UtilityCore.RequestHandler.CurrentRequest = null;
+                UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
             }
         }
 
         public void WriteToFile(LogID logFile, string message)
         {
-            UtilityCore.RequestHandler.ProcessRequests(logFile);
-
             LogEvents.LogMessageEventArgs logEventData = new LogEvents.LogMessageEventArgs(logFile, message);
-            LogRequest request = UtilityCore.RequestHandler.Submit(new LogRequest(logEventData), false);
+            UtilityCore.RequestHandler.Submit(new LogRequest(logEventData), false);
 
-            try
-            {
-                if (!request.CanRetryRequest())
-                    return;
-
-                if (!PrepareLogFile(logFile))
-                {
-                    request.Reject(RejectionReason.LogUnavailable);
-                    return;
-                }
-
-                if (!InternalWriteToFile(logEventData))
-                {
-                    request.Reject(RejectionReason.FailedToWrite);
-                    return;
-                }
-
-                //All checks passed is a complete request
-                request.Complete();
-            }
-            finally
-            {
-                UtilityCore.RequestHandler.CurrentRequest = null;
-            }
+            WriteToFile();
         }
 
         internal bool PrepareLogFile(LogID logFile)
@@ -158,6 +144,7 @@ namespace LogUtils
     {
         public void CreateFile(LogID logFile);
         public void WriteFromRequest(LogRequest request);
+        public void WriteToFile();
         public void WriteToFile(LogID logFile, string message);
         public string ApplyRules(LogID logFile, string message);
     }
