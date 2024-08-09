@@ -186,13 +186,17 @@ namespace LogUtils
             if (logLevel == LogType.Error || logLevel == LogType.Exception)
                 logFile = LogID.Exception;
 
+            LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+
             //Ensure that request is always constructed before a message is logged
-            if (UtilityCore.RequestHandler.CurrentRequest == null)
-                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(logFile, logString, LogCategory.ToCategory(logLevel))), false);
+            if (request == null)
+                request = UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(logFile, logString, LogCategory.ToCategory(logLevel))), false);
 
-            if (logFile.Properties.ShowLogsAware && !RainWorld.ShowLogs) return; //Don't handle request, orig doesn't get called in this circumstance
+            //TODO: This check will no longer be required when refactors are complete
+            if (!logFile.Properties.ShowLogsAware || RainWorld.ShowLogs) //Don't handle request through orig when request should be discarded
+                orig(self, logString, stackTrace, logLevel);
 
-            orig(self, logString, stackTrace, logLevel);
+            UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
         }
 
         private static void RainWorld_HandleLog(ILContext il)
@@ -231,12 +235,16 @@ namespace LogUtils
             }
         }
 
-        private static void ExpLog_Log(On.Expedition.ExpLog.orig_Log orig, string text)
+        private static void ExpLog_Log(On.Expedition.ExpLog.orig_Log orig, string message)
         {
+            LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+
             //Ensure that request is always constructed before a message is logged
-            if (UtilityCore.RequestHandler.CurrentRequest == null)
-                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.Expedition, text)), false);
-            orig(text);
+            if (request == null)
+                request = UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.Expedition, message)), false);
+
+            orig(message);
+            UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
         }
 
         private static void ExpLog_LogChallengeTypes(ILContext il)
@@ -268,13 +276,16 @@ namespace LogUtils
             replaceLogPathHook(cursor, LogID.Expedition);
         }
 
-        private static void JollyCustom_Log(On.JollyCoop.JollyCustom.orig_Log orig, string logText, bool throwException)
+        private static void JollyCustom_Log(On.JollyCoop.JollyCustom.orig_Log orig, string message, bool throwException)
         {
-            //Ensure that request is always constructed before a message is logged
-            if (UtilityCore.RequestHandler.CurrentRequest == null)
-                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.JollyCoop, logText)), false);
+            LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
-            orig(logText, throwException);
+            //Ensure that request is always constructed before a message is logged
+            if (request == null)
+                request = UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.JollyCoop, message)), false);
+
+            orig(message, throwException);
+            UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
         }
 
         private static void JollyCustom_WriteToLog(ILContext il)
@@ -385,20 +396,30 @@ namespace LogUtils
             {
                 string message = data?.ToString();
 
-                if (UtilityCore.RequestHandler.CurrentRequest == null)
-                    UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.BepInEx, message)), false);
+                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+
+                if (request == null)
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.BepInEx, message)), false);
 
                 //Make sure request is valid and can be processed
                 bool acceptRequest = !LogID.BepInEx.Properties.ShowLogsAware || RainWorld.ShowLogs;
 
-                if (!acceptRequest)
+                try
                 {
-                    UtilityCore.RequestHandler.CurrentRequest.Reject(RejectionReason.LogDisabled);
-                    return false;
-                }
+                    if (!acceptRequest)
+                    {
+                        request.Reject(RejectionReason.LogDisabled);
+                        return false;
+                    }
 
-                UtilityCore.RequestHandler.CurrentRequest.Complete();
-                return true;
+                    request.Complete();
+                    return true;
+                }
+                finally
+                {
+                    //Is there a better way of handling this than inside a finally?
+                    UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+                }
             }
         }
     }

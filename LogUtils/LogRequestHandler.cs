@@ -52,6 +52,12 @@ namespace LogUtils
 
             private set
             {
+                if (value == null)
+                {
+                    UnhandledRequests.RemoveLast();
+                    return;
+                }
+
                 LogRequest lastUnhandledRequest = PendingRequest;
 
                 //Ensure that only one pending request is handled by design. This shouldn't be the case normally, and handling it this way will consume the unhandled request
@@ -91,19 +97,42 @@ namespace LogUtils
             {
                 request.Reject(logFile.Properties.HandleRecord.Reason);
 
-                if (request.CanRetryRequest()) //As long as the rejection is recoverable, treat the request as pending
-                    PendingRequest = request;
-                else
-                    CurrentRequest = request; //Otherwise store it in CurrentRequest to avoid potential null references
-
+                handleRejection(request);
                 return request;
             }
 
+            //Check RainWorld.ShowLogs for logs that are restricted by it
+            if (logFile.Properties.ShowLogsAware && !RainWorld.ShowLogs)
+            {
+                if (RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD)
+                    request.Reject(RejectionReason.ShowLogsNotInitialized);
+                else
+                    request.Reject(RejectionReason.LogDisabled);
+            }
+
+            //Check one last time for pending status
+            if (request.Status == RequestStatus.Rejected)
+            {
+                handleRejection(request);
+                return request;
+            }
+
+            //It is safe to store it as an active pending request whether or not it is handled immediately
             PendingRequest = request;
 
             if (handleSubmission)
-                ProcessRequest(request);
+                ProcessRequest(request); //Processing will clean up for us when there is a rejection
+
             return request;
+
+            void handleRejection(LogRequest request)
+            {
+                //A request shall be treated as pending when the rejection reason permits future process attempts
+                if (request.CanRetryRequest())
+                    PendingRequest = request;
+                else if (!handleSubmission)
+                    CurrentRequest = request; //Request cannot be handled anymore, but it should be stored until it is permitted to be handled
+            }
         }
 
         /// <summary>
