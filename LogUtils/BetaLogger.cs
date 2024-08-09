@@ -360,7 +360,7 @@ namespace LogUtils
 
         protected virtual void LogData(LogID target, LogCategory category, object data)
         {
-            if (!AllowLogging || !target.IsEnabled || (target.Properties.ShowLogsAware && !RainWorld.ShowLogs)) return;
+            if (!AllowLogging || !target.IsEnabled) return;
 
             if (target.Access != LogAccess.RemoteAccessOnly)
             {
@@ -447,9 +447,18 @@ namespace LogUtils
                 return RejectionReason.PathMismatch;
             }
 
-            if (!AllowLogging || !loggerID.IsEnabled || (loggerID.Properties.ShowLogsAware && !RainWorld.ShowLogs))
+            if (!AllowLogging || !loggerID.IsEnabled)
             {
                 request.Reject(RejectionReason.LogDisabled);
+                return request.UnhandledReason;
+            }
+
+            if (loggerID.Properties.ShowLogsAware && !RainWorld.ShowLogs)
+            {
+                if (RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD)
+                    request.Reject(RejectionReason.ShowLogsNotInitialized);
+                else
+                    request.Reject(RejectionReason.LogDisabled);
                 return request.UnhandledReason;
             }
 
