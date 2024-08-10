@@ -91,8 +91,14 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Submit a request - will be treated as an active pending log request
+        /// Submit a request - Treated as an active pending log request unless the request itself did not qualify for submission. A request must meet the following conditions: 
+        /// I. No rejection reasons were found during initial processing of the request
+        /// II. Under the situation that there is a reason to reject, that reason is not severe enough to prevent future attempts to process the request
+        /// Submitted request may be retrieved through CurrentRequest under the above conditions, or from the return value
         /// </summary>
+        /// <param name="request">The request to be processed</param>
+        /// <param name="handleSubmission">Whether a log attempt should be made on the request</param>
+        /// <returns>This method returns the same request given to it under any condition. The return value is more reliable than checking CurrentRequest, which may be null</returns>
         public LogRequest Submit(LogRequest request, bool handleSubmission)
         {
             LogID logFile = request.Data.ID;
@@ -142,8 +148,6 @@ namespace LogUtils
                 //A request shall be treated as pending when the rejection reason permits future process attempts
                 if (request.CanRetryRequest())
                     PendingRequest = request;
-                else if (!handleSubmission)
-                    CurrentRequest = request; //Request cannot be handled anymore, but it should be stored until it is permitted to be handled
             }
         }
 
@@ -370,7 +374,6 @@ namespace LogUtils
         internal void DiscardHandledRequests(IEnumerable<LogRequest> requests)
         {
             //Check the status of all processed requests to remove the handled ones
-
             foreach (LogRequest request in requests)
                 RequestMayBeCompleteOrInvalid(request);
         }
