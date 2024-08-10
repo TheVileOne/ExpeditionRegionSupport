@@ -27,12 +27,15 @@ namespace LogUtils
         /// </summary>
         public bool Submitted;
 
+        public readonly RequestType Type;
+
         public RejectionReason UnhandledReason { get; private set; }
 
-        public LogRequest(LogEvents.LogMessageEventArgs data)
+        public LogRequest(RequestType type, LogEvents.LogMessageEventArgs data)
         {
             Data = data;
             Status = RequestStatus.Pending;
+            Type = type;
         }
 
         public bool CanRetryRequest()
@@ -86,6 +89,13 @@ namespace LogUtils
         Pending,
         Rejected,
         Complete
+    }
+
+    public enum RequestType : byte
+    {
+        Local,
+        Remote,
+        Game
     }
 
     public enum RejectionReason : byte

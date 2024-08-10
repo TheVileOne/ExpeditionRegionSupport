@@ -191,7 +191,7 @@ namespace LogUtils
             //Ensure that request is always constructed before a message is logged
             if (request == null)
             {
-                request = UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(logFile, logString, LogCategory.ToCategory(logLevel))), false);
+                request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(logFile, logString, LogCategory.ToCategory(logLevel))), false);
 
                 if (request.Status == RequestStatus.Rejected)
                     return;
@@ -245,7 +245,7 @@ namespace LogUtils
             //Ensure that request is always constructed before a message is logged
             if (request == null)
             {
-                request = UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.Expedition, message)), false);
+                request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Expedition, message)), false);
 
                 if (request.Status == RequestStatus.Rejected)
                     return;
@@ -291,7 +291,7 @@ namespace LogUtils
             //Ensure that request is always constructed before a message is logged
             if (request == null)
             {
-                request = UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.JollyCoop, message)), false);
+                request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.JollyCoop, message)), false);
 
                 if (request.Status == RequestStatus.Rejected)
                     return;
@@ -407,13 +407,11 @@ namespace LogUtils
 
             bool onLogReceived(LogLevel category, object data)
             {
-                string message = data?.ToString();
-
                 LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
                 if (request == null)
                 {
-                    request = UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.BepInEx, message)), false);
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.BepInEx, data)), false);
 
                     if (request.Status == RequestStatus.Rejected)
                         return false;

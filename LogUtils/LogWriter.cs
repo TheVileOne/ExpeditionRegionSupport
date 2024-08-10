@@ -82,7 +82,7 @@ namespace LogUtils
         public void WriteToFile(LogID logFile, string message)
         {
             LogEvents.LogMessageEventArgs logEventData = new LogEvents.LogMessageEventArgs(logFile, message);
-            UtilityCore.RequestHandler.Submit(new LogRequest(logEventData), false);
+            UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Local, logEventData), false);
 
             WriteToFile();
         }
