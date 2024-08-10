@@ -410,7 +410,7 @@ namespace LogUtils
         public void HandleRequests(IEnumerable<LogRequest> requests, bool skipValidation = false)
         {
             LogID loggerID = null;
-            foreach (LogRequest request in requests.Where(req => skipValidation || !CanAccess(req.Data.ID, doPathCheck: true)))
+            foreach (LogRequest request in requests.Where(req => skipValidation || CanAccess(req.Data.ID, doPathCheck: true)))
                 TryHandleRequest(request, ref loggerID);
         }
 
