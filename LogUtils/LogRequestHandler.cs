@@ -93,7 +93,7 @@ namespace LogUtils
         /// <summary>
         /// Submit a request - will be treated as an active pending log request
         /// </summary>
-        public LogRequest Submit(LogRequest request, bool handleSubmission = true)
+        public LogRequest Submit(LogRequest request, bool handleSubmission)
         {
             LogID logFile = request.Data.ID;
 

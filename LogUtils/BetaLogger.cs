@@ -148,7 +148,7 @@ namespace LogUtils
             UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.BepInEx, data, category)
             {
                 LogSource = ManagedLogSource
-            }));
+            }), true);
         }
 
         public void LogBepEx(LogCategory category, object data)
@@ -158,7 +158,7 @@ namespace LogUtils
             UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.BepInEx, data, category)
             {
                 LogSource = ManagedLogSource
-            }));
+            }), true);
         }
 
         public void LogUnity(object data)
@@ -173,7 +173,7 @@ namespace LogUtils
             LogID logFile = !LogCategory.IsUnityErrorCategory(category) ? LogID.Unity : LogID.Exception;
 
             if (logFile.IsEnabled)
-                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(logFile, data, category)));
+                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(logFile, data, category)), true);
         }
 
         public void LogUnity(LogCategory category, object data)
@@ -183,7 +183,7 @@ namespace LogUtils
             LogID logFile = !LogCategory.IsUnityErrorCategory(category.UnityCategory) ? LogID.Unity : LogID.Exception;
 
             if (logFile.IsEnabled)
-                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(logFile, data, category)));
+                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(logFile, data, category)), true);
         }
 
         public void LogExp(object data)
@@ -195,7 +195,7 @@ namespace LogUtils
         {
             if (!AllowLogging || !LogID.Expedition.IsEnabled) return;
 
-            UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.Expedition, data, category)));
+            UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.Expedition, data, category)), true);
         }
 
         public void LogJolly(object data)
@@ -207,7 +207,7 @@ namespace LogUtils
         {
             if (!AllowLogging || !LogID.JollyCoop.IsEnabled) return;
 
-            UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.JollyCoop, data, category)));
+            UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(LogID.JollyCoop, data, category)), true);
         }
 
         #endregion
@@ -395,7 +395,7 @@ namespace LogUtils
             }
             else
             {
-                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(target, data, category)));
+                UtilityCore.RequestHandler.Submit(new LogRequest(new LogEvents.LogMessageEventArgs(target, data, category)), true);
             }
         }
 
