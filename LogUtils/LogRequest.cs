@@ -63,6 +63,9 @@ namespace LogUtils
                 return;
             }
 
+            if (reason != RejectionReason.None)
+                Data.Properties.HandleRecord.Reason = reason;
+
             if (UnhandledReason == reason) return;
 
             Status = RequestStatus.Rejected;

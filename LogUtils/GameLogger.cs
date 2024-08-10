@@ -15,6 +15,8 @@ namespace LogUtils
     {
         public void HandleRequest(LogRequest request)
         {
+            request.ResetStatus(); //Ensure that processing request is handled in a consistent way
+
             LogID logFile = request.Data.ID;
 
             if (!logFile.IsGameControlled) return;

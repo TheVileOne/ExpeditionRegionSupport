@@ -425,12 +425,6 @@ namespace LogUtils
 
         internal RejectionReason TryHandleRequest(LogRequest request, ref LogID loggerID)
         {
-            if (request.Status == RequestStatus.Complete)
-            {
-                UtilityCore.BaseLogger.LogWarning("Request handled in an invalid state. Please report this");
-                return RejectionReason.None;
-            }
-
             LogID requestID = request.Data.ID;
             if (loggerID == null || (loggerID != requestID)) //ExtEnums are not compared by reference
             {
@@ -447,6 +441,8 @@ namespace LogUtils
                 request.Reject(RejectionReason.PathMismatch);
                 return RejectionReason.PathMismatch;
             }
+
+            request.ResetStatus(); //Ensure that processing request is handled in a consistent way
 
             if (!AllowLogging || !loggerID.IsEnabled)
             {
