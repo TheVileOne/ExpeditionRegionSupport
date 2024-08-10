@@ -29,7 +29,16 @@ namespace LogUtils
         public LogRequest CurrentRequest
         {
             get => _currentRequest ?? PendingRequest;
-            set => _currentRequest = value;
+            set
+            {
+                if (value != null && !value.Submitted)
+                {
+                    Submit(value, false); //CurrentRequest will be set on submission
+                    return;
+                }
+
+                _currentRequest = value;
+            }
         }
 
         /// <summary>
@@ -93,6 +102,7 @@ namespace LogUtils
 
             //Ensures consistent handling of the request
             request.ResetStatus();
+            request.Submitted = true;
 
             if (logFile.Properties.HandleRecord.Rejected)
             {

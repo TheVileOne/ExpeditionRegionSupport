@@ -22,6 +22,11 @@ namespace LogUtils
 
         public RequestStatus Status { get; private set; }
 
+        /// <summary>
+        /// Whether this request has once been handled through the log request system
+        /// </summary>
+        public bool Submitted;
+
         public RejectionReason UnhandledReason { get; private set; }
 
         public LogRequest(LogEvents.LogMessageEventArgs data)
