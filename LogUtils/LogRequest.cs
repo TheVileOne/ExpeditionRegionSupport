@@ -88,12 +88,6 @@ namespace LogUtils
         Complete
     }
 
-    public enum RequestProtocol
-    {
-        HandleWhenPossible,
-        DiscardOnFail
-    }
-
     public enum RejectionReason : byte
     {
         None = 0,
