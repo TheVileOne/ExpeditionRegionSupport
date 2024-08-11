@@ -402,21 +402,37 @@ namespace LogUtils
         /// <summary>
         /// Returns whether logger instance is able to handle a specified LogID
         /// </summary>
-        public bool CanAccess(LogID logID, bool doPathCheck)
+        public bool CanAccess(LogID logID, RequestType requestType, bool doPathCheck)
         {
-            return !logID.IsGameControlled && LogTargets.Exists(log => log.Access != LogAccess.RemoteAccessOnly && log.Properties.IDMatch(logID) && (!doPathCheck || log.Properties.CurrentFolderPath == logID.Properties.CurrentFolderPath));
+            if (logID.IsGameControlled) return false; //This check is here to prevent TryHandleRequest from potentially handling requests that should be handled by a GameLogger
+
+            //Find the LogID equivalent accepted by the Logger instance - only one LogID with this value can be stored
+            LogID loggerID = LogTargets.Find(log => log.Properties.IDMatch(logID));
+
+            //Enabled status is currently not evaluated here - It is unclear whether it should be part of the access check
+            if (loggerID != null)
+            {
+                if (loggerID.Access == LogAccess.RemoteAccessOnly) //Logger can only send remote requests for this LogID
+                    return false;
+
+                if (doPathCheck && loggerID.Properties.CurrentFolderPath != logID.Properties.CurrentFolderPath) //It is possible for a LogID to associate with more than one path
+                    return false;
+
+                return requestType == RequestType.Local || loggerID.Access != LogAccess.Private;
+            }
+            return false;
         }
 
         public void HandleRequests(IEnumerable<LogRequest> requests, bool skipValidation = false)
         {
             LogID loggerID = null;
-            foreach (LogRequest request in requests.Where(req => skipValidation || CanAccess(req.Data.ID, doPathCheck: true)))
+            foreach (LogRequest request in requests.Where(req => skipValidation || CanAccess(req.Data.ID, req.Type, doPathCheck: true)))
                 TryHandleRequest(request, ref loggerID);
         }
 
         public RejectionReason HandleRequest(LogRequest request, bool skipValidation = false)
         {
-            if (!skipValidation && !CanAccess(request.Data.ID, doPathCheck: true))
+            if (!skipValidation && !CanAccess(request.Data.ID, request.Type, doPathCheck: true))
                 return request.UnhandledReason;
 
             LogID loggerID = null;
@@ -459,7 +475,7 @@ namespace LogUtils
                 return request.UnhandledReason;
             }
 
-            if (loggerID.Access == LogAccess.Private || !AllowRemoteLogging) //TODO: Distinguish between remote, and non-remote requests
+            if (request.Type == RequestType.Remote && (loggerID.Access == LogAccess.Private || !AllowRemoteLogging))
             {
                 request.Reject(RejectionReason.AccessDenied);
                 return request.UnhandledReason;
