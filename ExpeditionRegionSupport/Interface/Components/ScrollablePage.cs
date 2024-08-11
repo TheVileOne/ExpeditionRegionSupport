@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace ExpeditionRegionSupport.Interface
+namespace ExpeditionRegionSupport.Interface.Components
 {
     public class ScrollablePage : Page
     {
