@@ -43,6 +43,7 @@ namespace LogUtils
 
         public void WriteFromRequest(LogRequest request)
         {
+            //This shouldn't under normal circumstances be a rejected request
             UtilityCore.RequestHandler.CurrentRequest = request;
             WriteToFile();
         }
@@ -52,6 +53,7 @@ namespace LogUtils
         /// </summary>
         public void WriteToFile()
         {
+            //This shouldn't under normal circumstances be a rejected request
             LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
             if (request == null || request.Status == RequestStatus.Rejected) return;
