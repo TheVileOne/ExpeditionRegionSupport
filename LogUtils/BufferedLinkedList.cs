@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace LogUtils
 {
-    public class BufferedLinkedList<T> : IEnumerable<T> where T : class
+    public class BufferedLinkedList<T> : ILinkedListEnumerable<T> where T : class
     {
         private LinkedList<T> nodeLeaser;
 
@@ -182,36 +183,40 @@ namespace LogUtils
             }
         }
 
+        public ILinkedListEnumerable<T> Where(Func<T, bool> predicate)
+        {
+            if (AllowModificationsDuringIteration)
+                return new WhereEnumerable(GetLinkedListEnumerator(), predicate);
+            return new WhereEnumerableWrapper(Enumerable.Where(this, predicate));
+        }
+
         public IEnumerator<T> GetEnumerator()
         {
             if (AllowModificationsDuringIteration)
                 return new Enumerator(this);
-
-            return InnerLinkedList.GetEnumerator();
+            return new EnumeratorWrapper(InnerLinkedList.GetEnumerator());
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
             if (AllowModificationsDuringIteration)
                 return new Enumerator(this);
-
-            return InnerLinkedList.GetEnumerator();
+            return new EnumeratorWrapper(InnerLinkedList.GetEnumerator());
         }
 
-        public struct Enumerator : IEnumerator<T>
+        public ILinkedListEnumerator<T> GetLinkedListEnumerator()
+        {
+            return (ILinkedListEnumerator<T>)GetEnumerator();
+        }
+
+        public struct Enumerator : ILinkedListEnumerator<T>
         {
             /// <summary>
             /// This is the node that controls the reference to the Current node
             /// </summary>
             private LinkedListNode<T> refNode;
 
-            public LinkedListNode<T> CurrentNode
-            {
-                get
-                {
-                    return !started ? refNode : refNode.Next;
-                }
-            }
+            public LinkedListNode<T> CurrentNode => !started ? refNode : refNode.Next;
 
             public T Current => CurrentNode?.Value;
 
@@ -273,5 +278,153 @@ namespace LogUtils
                 refNode = items.First;
             }
         }
+
+        public readonly struct EnumeratorWrapper : ILinkedListEnumerator<T>
+        {
+            private readonly IEnumerator<T> innerEnumerator;
+
+            public LinkedListNode<T> CurrentNode => throw new NotImplementedException();
+
+            public T Current => innerEnumerator.Current;
+
+            object IEnumerator.Current => Current;
+
+            public EnumeratorWrapper(IEnumerator<T> enumerator)
+            {
+                innerEnumerator = enumerator;
+            }
+
+            public void Dispose()
+            {
+                innerEnumerator.Dispose();
+            }
+
+            public bool MoveNext()
+            {
+                return innerEnumerator.MoveNext();
+            }
+
+            public void Reset()
+            {
+                innerEnumerator.Reset();
+            }
+
+            public IEnumerable<T> EnumerateAll()
+            {
+                try
+                {
+                    Reset(); //This method might not be implemented
+                }
+                catch { };
+
+                while (MoveNext())
+                    yield return Current;
+                yield break;
+            }
+        }
+
+        public class WhereEnumerableWrapper : WhereEnumerable
+        {
+            private readonly IEnumerable<T> innerEnumerable;
+
+            public WhereEnumerableWrapper(IEnumerable<T> enumerable)
+            {
+                innerEnumerable = enumerable;
+            }
+
+            public override IEnumerator<T> GetEnumerator()
+            {
+                return new EnumeratorWrapper(innerEnumerable.GetEnumerator());
+            }
+        }
+
+        public class WhereEnumerable : ILinkedListEnumerable<T>
+        {
+            private ILinkedListEnumerator<T> enumerator;
+            private Func<T, bool> predicate;
+
+            internal WhereEnumerable()
+            {
+            }
+
+            public WhereEnumerable(ILinkedListEnumerator<T> enumerator, Func<T, bool> predicate)
+            {
+                this.enumerator = enumerator;
+                this.predicate = predicate;
+            }
+
+            public virtual IEnumerator<T> GetEnumerator()
+            {
+                return new WhereEnumerator(enumerator, predicate);
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return new WhereEnumerator(enumerator, predicate);
+            }
+
+            public ILinkedListEnumerator<T> GetLinkedListEnumerator()
+            {
+                return (ILinkedListEnumerator<T>)GetEnumerator();
+            }
+        }
+
+        public readonly struct WhereEnumerator : ILinkedListEnumerator<T>
+        {
+            private readonly ILinkedListEnumerator<T> innerEnumerator;
+            private readonly Func<T, bool> predicate;
+
+            public LinkedListNode<T> CurrentNode => innerEnumerator.CurrentNode;
+
+            public T Current => innerEnumerator.Current;
+
+            object IEnumerator.Current => Current;
+
+            public WhereEnumerator(ILinkedListEnumerator<T> enumerator, Func<T, bool> predicate)
+            {
+                this.innerEnumerator = enumerator;
+                this.predicate = predicate;
+            }
+
+            public void Dispose()
+            {
+                innerEnumerator.Dispose();
+            }
+
+            public bool MoveNext()
+            {
+                bool predicateMatch = false;
+                while (innerEnumerator.MoveNext() && !predicateMatch)
+                {
+                    predicateMatch = predicate(innerEnumerator.Current);
+                };
+                return predicateMatch;
+            }
+
+            public void Reset()
+            {
+                innerEnumerator.Reset();
+            }
+
+            public IEnumerable<T> EnumerateAll()
+            {
+                Reset();
+
+                while (MoveNext())
+                    yield return Current;
+                yield break;
+            }
+        }
+    }
+
+    public interface ILinkedListEnumerable<T> : IEnumerable<T> where T : class
+    {
+        public ILinkedListEnumerator<T> GetLinkedListEnumerator();
+    }
+
+    public interface ILinkedListEnumerator<T> : IEnumerator<T> where T : class
+    {
+        public LinkedListNode<T> CurrentNode { get; }
+        public IEnumerable<T> EnumerateAll();
     }
 }

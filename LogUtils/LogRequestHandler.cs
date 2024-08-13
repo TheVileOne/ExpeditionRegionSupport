@@ -19,7 +19,7 @@ namespace LogUtils
         public GameLogger GameLogger = new GameLogger();
 
         public BufferedLinkedList<LogRequest> UnhandledRequests;
-        private BufferedLinkedList<LogRequest>.Enumerator requestEnumerator;
+        private ILinkedListEnumerator<LogRequest> requestEnumerator;
 
         private LogRequest _currentRequest;
 
@@ -82,7 +82,7 @@ namespace LogUtils
             enabled = true;
             UnhandledRequests = new BufferedLinkedList<LogRequest>(20);
 
-            requestEnumerator = (BufferedLinkedList<LogRequest>.Enumerator)UnhandledRequests.GetEnumerator();
+            requestEnumerator = (ILinkedListEnumerator<LogRequest>)UnhandledRequests.GetEnumerator();
         }
 
         public IEnumerable<LogRequest> GetRequests(LogID logFile)
