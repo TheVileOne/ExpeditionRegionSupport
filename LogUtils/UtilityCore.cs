@@ -53,8 +53,11 @@ namespace LogUtils
 
             LoadComponents();
 
-            AppDomain.CurrentDomain.UnhandledException += (o, e) => RequestHandler.DumpRequestsToFile();
-            GameHooks.Initialize();
+            if (IsControllingAssembly)
+            {
+                AppDomain.CurrentDomain.UnhandledException += (o, e) => RequestHandler.DumpRequestsToFile();
+                GameHooks.Initialize();
+            }
             initializingInProgress = false;
 
             IsInitialized = true;
