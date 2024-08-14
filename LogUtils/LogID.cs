@@ -58,12 +58,8 @@ namespace LogUtils
                 Properties.PreferredFileExt = fileExt;
         }
 
-        static LogID()
+        internal static void InitializeLogIDs()
         {
-            //Initialize the utility when this class is accessed
-            if (!UtilityCore.IsInitialized)
-                UtilityCore.Initialize();
-
             BepInEx = new LogID("LogOutput", Paths.BepInExRootPath, true, true);
             Exception = new LogID("exceptionLog", "root", true, true);
             Expedition = new LogID("ExpLog", "customroot", true, true);
@@ -89,11 +85,18 @@ namespace LogUtils
             Unity.Properties.AltFilename = "console";
         }
 
-        public static readonly LogID BepInEx;
-        public static readonly LogID Exception;
-        public static readonly LogID Expedition;
-        public static readonly LogID JollyCoop;
-        public static readonly LogID Unity;
+        static LogID()
+        {
+            //Initialize the utility when this class is accessed
+            if (!UtilityCore.IsInitialized)
+                UtilityCore.Initialize();
+        }
+
+        public static LogID BepInEx;
+        public static LogID Exception;
+        public static LogID Expedition;
+        public static LogID JollyCoop;
+        public static LogID Unity;
     }
 
     public enum LogAccess

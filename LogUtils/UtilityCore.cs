@@ -53,6 +53,8 @@ namespace LogUtils
 
             LoadComponents();
 
+            LogID.InitializeLogIDs(); //This should be called for every assembly that initializes
+
             if (IsControllingAssembly)
             {
                 AppDomain.CurrentDomain.UnhandledException += (o, e) => RequestHandler.DumpRequestsToFile();
