@@ -5,6 +5,7 @@ using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -111,10 +112,7 @@ namespace LogUtils
         private static void RainWorld_Awake(On.RainWorld.orig_Awake orig, RainWorld self)
         {
             if (RWInfo.LatestSetupPeriodReached < SetupPeriod.RWAwake)
-            {
                 RWInfo.LatestSetupPeriodReached = SetupPeriod.RWAwake;
-                UtilityCore.RequestHandler.ProcessRequests();
-            }
 
             orig(self);
         }
@@ -125,11 +123,28 @@ namespace LogUtils
 
             //Move to just before Unity logs are defined
             cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(System.Globalization.CultureInfo), "set_DefaultThreadCurrentCulture"));
+
+            //Intercept attempt to delete Unity log files
+            cursor.GotoNext(MoveType.Before, x => x.MatchCall(typeof(File), nameof(File.Exists)));
+            cursor.Emit(OpCodes.Pop);
+            cursor.Emit(OpCodes.Ldnull); //Replace filename string with null
+
+            cursor.GotoNext(MoveType.Before, x => x.MatchCall(typeof(File), nameof(File.Exists)));
+            cursor.Emit(OpCodes.Pop);
+            cursor.Emit(OpCodes.Ldnull);
+
+            cursor.GotoNext(MoveType.After, x => x.MatchLdarg(0), x => x.Match(OpCodes.Ldftn)); //Ldftn is HandleLog instruction
+            cursor.GotoNext(MoveType.Before, x => x.MatchLdarg(0));
+
+            //After HandleLog is assigned, it is safe to handle unprocessed log requests
             cursor.EmitDelegate(() =>
             {
                 //The game will take over handling of Unity log requests shortly after - unsubscribe listener
                 if (RWInfo.LatestSetupPeriodReached == SetupPeriod.RWAwake)
+                {
+                    UtilityCore.RequestHandler.ProcessRequests();
                     Application.logMessageReceivedThreaded -= UtilityCore.HandleUnityLog;
+                }
             });
         }
 
