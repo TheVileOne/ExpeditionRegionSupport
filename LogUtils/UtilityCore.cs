@@ -108,11 +108,34 @@ namespace LogUtils
                 Logger.ProcessLogSignal(ManagedLogListener.GetSignal());
         }
 
+        private static object _loggingLock = new object();
+        private static string lastLoggedException;
+        private static string lastLoggedStackTrace;
+
         internal static void HandleUnityLog(string message, string stackTrace, LogType category)
         {
             //This submission wont be able to be logged until Rain World can initialize
             if (RequestHandler.CurrentRequest == null)
-                RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Unity, message, category)), false);
+            {
+                lock (_loggingLock)
+                {
+                    if (category == LogType.Error || category == LogType.Exception)
+                    {
+                        //Handle Unity error logging similarly to how the game would handle it
+                        if (message != lastLoggedException && stackTrace != lastLoggedStackTrace)
+                        {
+                            RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Exception, message, category)), false);
+                            RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Exception, stackTrace, category)), false);
+
+                            lastLoggedException = message;
+                            lastLoggedStackTrace = stackTrace;
+                        }
+                        return;
+                    }
+
+                    RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Unity, message, category)), false);
+                }
+            }
         }
     }
 }
