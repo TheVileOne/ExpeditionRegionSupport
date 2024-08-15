@@ -38,9 +38,10 @@ namespace LogUtils
             if (!UtilityCore.IsControllingAssembly) return; //Only the controlling assembly is allowed to apply the hooks
 
             On.RainWorld.Awake += RainWorld_Awake;
-            On.RainWorld.PreModsInit += RainWorld_PreModsInit;
+            IL.RainWorld.Awake += RainWorld_Awake;
             On.RainWorld.OnModsInit += RainWorld_OnModsInit;
             On.RainWorld.PostModsInit += RainWorld_PostModsInit;
+            On.RainWorld.PreModsInit += RainWorld_PreModsInit;
 
             //Signal system
             On.RainWorld.Update += RainWorld_Update;
@@ -83,9 +84,10 @@ namespace LogUtils
             if (!UtilityCore.IsControllingAssembly) return;
 
             On.RainWorld.Awake -= RainWorld_Awake;
-            On.RainWorld.PreModsInit -= RainWorld_PreModsInit;
+            IL.RainWorld.Awake -= RainWorld_Awake;
             On.RainWorld.OnModsInit -= RainWorld_OnModsInit;
             On.RainWorld.PostModsInit -= RainWorld_PostModsInit;
+            On.RainWorld.PreModsInit -= RainWorld_PreModsInit;
             On.RainWorld.Update -= RainWorld_Update;
 
             On.RainWorld.HandleLog -= RainWorld_HandleLog;
@@ -115,6 +117,20 @@ namespace LogUtils
             }
 
             orig(self);
+        }
+
+        private static void RainWorld_Awake(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            //Move to just before Unity logs are defined
+            cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(System.Globalization.CultureInfo), "set_DefaultThreadCurrentCulture"));
+            cursor.EmitDelegate(() =>
+            {
+                //The game will take over handling of Unity log requests shortly after - unsubscribe listener
+                if (RWInfo.LatestSetupPeriodReached == SetupPeriod.RWAwake)
+                    Application.logMessageReceivedThreaded -= UtilityCore.HandleUnityLog;
+            });
         }
 
         private static void RainWorld_PreModsInit(On.RainWorld.orig_PreModsInit orig, RainWorld self)

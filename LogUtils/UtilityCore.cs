@@ -57,11 +57,15 @@ namespace LogUtils
 
             if (IsControllingAssembly)
             {
+                //Listen for Unity log requests while the log file is unavailable
+                if (RWInfo.LatestSetupPeriodReached < LogID.Unity.Properties.AccessPeriod)
+                    Application.logMessageReceivedThreaded += HandleUnityLog;
+
                 AppDomain.CurrentDomain.UnhandledException += (o, e) => RequestHandler.DumpRequestsToFile();
                 GameHooks.Initialize();
             }
-            initializingInProgress = false;
 
+            initializingInProgress = false;
             IsInitialized = true;
         }
 
@@ -102,6 +106,13 @@ namespace LogUtils
         {
             if (ManagedLogListener != null)
                 Logger.ProcessLogSignal(ManagedLogListener.GetSignal());
+        }
+
+        internal static void HandleUnityLog(string message, string stackTrace, LogType category)
+        {
+            //This submission wont be able to be logged until Rain World can initialize
+            if (RequestHandler.CurrentRequest == null)
+                RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Unity, message, category)), false);
         }
     }
 }
