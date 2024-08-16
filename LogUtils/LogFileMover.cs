@@ -46,7 +46,7 @@ namespace LogUtils
                 catch (Exception ex)
                 {
                     logMoveError(ex);
-                    status = _CopyFile(logValidator);
+                    status = CopyFile(logValidator);
                 }
 
                 return status;
@@ -70,7 +70,7 @@ namespace LogUtils
                     status = PrepareToMoveFile(logValidator);
 
                     if (status == FileStatus.MoveRequired)
-                        return _CopyFile(logValidator);
+                        return CopyFile(logValidator);
                 }
                 catch (Exception ex)
                 {
@@ -84,7 +84,7 @@ namespace LogUtils
             return FileStatus.ValidationFailed;
         }
 
-        internal FileStatus _CopyFile(LogValidator logValidator)
+        internal FileStatus CopyFile(LogValidator logValidator)
         {
             FileInfo sourceFilePath = logValidator.SourceFile;
             FileInfo destFilePath = logValidator.DestinationFile;
