@@ -157,7 +157,7 @@ namespace LogUtils
             LogID logFile = LogID.BepInEx;
 
             if (logFile.Properties.FileExists)
-                logFile.Properties.CreateTempFile();
+                logFile.Properties.CreateTempFile(true);
 
             LogProperties.PropertyManager.SaveToFile();
             orig(self);
