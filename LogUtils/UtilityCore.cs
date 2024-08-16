@@ -17,8 +17,15 @@ namespace LogUtils
         /// </summary>
         public static bool IsControllingAssembly { get; private set; }
 
+        /// <summary>
+        /// The initialized state for the assembly. This does NOT indicate that another version of the assembly has initialized,
+        /// and every assembly must go through the init process
+        /// </summary>
         public static bool IsInitialized { get; private set; }
 
+        /// <summary>
+        /// The initialization process is in progress for the current assembly
+        /// </summary>
         private static bool initializingInProgress;
 
         /// <summary>
