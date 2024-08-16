@@ -231,16 +231,13 @@ namespace LogUtils
 
         private static void RainWorld_HandleLog(On.RainWorld.orig_HandleLog orig, RainWorld self, string logString, string stackTrace, LogType logLevel)
         {
-            LogID logFile = LogID.Unity;
-
-            if (logLevel == LogType.Error || logLevel == LogType.Exception)
-                logFile = LogID.Exception;
-
             LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
             //Ensure that request is always constructed before a message is logged
             if (request == null)
             {
+                LogID logFile = !LogCategory.IsUnityErrorCategory(logLevel) ? LogID.Unity : LogID.Exception;
+
                 request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(logFile, logString, LogCategory.ToCategory(logLevel))), false);
 
                 if (request.Status == RequestStatus.Rejected)

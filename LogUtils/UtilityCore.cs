@@ -129,7 +129,7 @@ namespace LogUtils
             {
                 lock (_loggingLock)
                 {
-                    if (category == LogType.Error || category == LogType.Exception)
+                    if (LogCategory.IsUnityErrorCategory(category))
                     {
                         //Handle Unity error logging similarly to how the game would handle it
                         if (message != lastLoggedException && stackTrace != lastLoggedStackTrace)
