@@ -159,6 +159,7 @@ namespace LogUtils
             if (logFile.Properties.FileExists)
                 logFile.Properties.CreateTempFile();
 
+            LogProperties.PropertyManager.SaveToFile();
             orig(self);
         }
 
