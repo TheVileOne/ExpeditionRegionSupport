@@ -57,6 +57,9 @@ namespace LogUtils
 
             if (IsControllingAssembly)
             {
+                if (RWInfo.LatestSetupPeriodReached < RWInfo.STARTUP_CUTOFF_PERIOD) //Sanity check in case we are initializing extra late
+                    PropertyManager.BeginStartupRoutine();
+
                 //Listen for Unity log requests while the log file is unavailable
                 if (RWInfo.LatestSetupPeriodReached < LogID.Unity.Properties.AccessPeriod)
                     Application.logMessageReceivedThreaded += HandleUnityLog;

@@ -40,6 +40,7 @@ namespace LogUtils
 
             On.RainWorld.Awake += RainWorld_Awake;
             IL.RainWorld.Awake += RainWorld_Awake;
+            On.RainWorld.OnDestroy += RainWorld_OnDestroy;
             On.RainWorld.OnModsInit += RainWorld_OnModsInit;
             On.RainWorld.PostModsInit += RainWorld_PostModsInit;
             On.RainWorld.PreModsInit += RainWorld_PreModsInit;
@@ -86,6 +87,7 @@ namespace LogUtils
 
             On.RainWorld.Awake -= RainWorld_Awake;
             IL.RainWorld.Awake -= RainWorld_Awake;
+            On.RainWorld.OnDestroy -= RainWorld_OnDestroy;
             On.RainWorld.OnModsInit -= RainWorld_OnModsInit;
             On.RainWorld.PostModsInit -= RainWorld_PostModsInit;
             On.RainWorld.PreModsInit -= RainWorld_PreModsInit;
@@ -148,6 +150,18 @@ namespace LogUtils
             });
         }
 
+        private static void RainWorld_OnDestroy(On.RainWorld.orig_OnDestroy orig, RainWorld self)
+        {
+            //BepInEx log file requires special treatment. This log file cannot be replaced on game start like the other log files
+            //To account for this, replace this log file when the game closes
+            LogID logFile = LogID.BepInEx;
+
+            if (logFile.Properties.FileExists)
+                logFile.Properties.CreateTempFile();
+
+            orig(self);
+        }
+
         private static void RainWorld_PreModsInit(On.RainWorld.orig_PreModsInit orig, RainWorld self)
         {
             if (RWInfo.LatestSetupPeriodReached < SetupPeriod.PreMods)
@@ -168,6 +182,10 @@ namespace LogUtils
             }
 
             orig(self);
+
+            //Leave enough time for mods to handle the old log files, before removing them from the folder
+            if (RWInfo.LatestSetupPeriodReached == SetupPeriod.ModsInit)
+                LogProperties.PropertyManager.CompleteStartupRoutine();
         }
 
         /// <summary>

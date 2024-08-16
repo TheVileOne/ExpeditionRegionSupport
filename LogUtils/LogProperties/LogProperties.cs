@@ -42,7 +42,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// The log file has been created, its initialization process has run successfully, and it isn't adding to stale log file data 
         /// </summary>
-        public bool LogSessionActive { get; private set; }
+        public bool LogSessionActive { get; internal set; }
 
         /// <summary>
         /// The earliest period that the log file may start a new log session through a log event
@@ -152,6 +152,12 @@ namespace LogUtils.Properties
         public string CurrentFilePath => Path.Combine(CurrentFolderPath, CurrentFilename + PreferredFileExt);
 
         /// <summary>
+        /// The path to the log file when it has been slated to be replaced or removed
+        /// </summary>
+        public string ReplacementFilePath { get; private set; }
+
+
+        /// <summary>
         /// The active full path of the directory containing the log file
         /// </summary>
         public string CurrentFolderPath { get; private set; }
@@ -191,7 +197,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// The path of the last known location of the log file
         /// </summary>
-        public string LastKnownPath { get; internal set; }
+        public string LastKnownFilePath { get; internal set; }
 
         /// <summary>
         /// The filename that will be used in the typical write path for the log file
@@ -322,7 +328,7 @@ namespace LogUtils.Properties
 
             CurrentFilename = Filename;
             CurrentFolderPath = OriginalFolderPath = FolderPath;
-            LastKnownPath = CurrentFilePath;
+            LastKnownFilePath = CurrentFilePath;
 
             //Utility packaged rules get added to every log file disabled by default 
             Rules.Add(new ShowCategoryRule(false));
@@ -380,7 +386,7 @@ namespace LogUtils.Properties
             if (changesPresent)
             {
                 FileExists = File.Exists(CurrentFilePath);
-                LastKnownPath = CurrentFilePath;
+                LastKnownFilePath = CurrentFilePath;
                 NotifyPathChanged();
             }
 
@@ -395,6 +401,31 @@ namespace LogUtils.Properties
         public void ChangePath(string newPath, string newFilename)
         {
             ChangePath(Path.Combine(newPath, newFilename));
+        }
+
+        public FileStatus CreateTempFile()
+        {
+            if (!File.Exists(LastKnownFilePath))
+                return FileStatus.NoActionRequired;
+
+            ReplacementFilePath = Path.ChangeExtension(LastKnownFilePath, ".tmp");
+
+            return Helpers.LogUtils.MoveLog(LastKnownFilePath, ReplacementFilePath);
+        }
+
+        public void RemoveTempFile()
+        {
+            if (!File.Exists(ReplacementFilePath))
+                return;
+
+            try
+            {
+                File.Delete(ReplacementFilePath);
+            }
+            catch (Exception ex)
+            {
+                UtilityCore.BaseLogger.LogError(new IOException("Unable to delete temporary file", ex));
+            }
         }
 
         /// <summary>
@@ -415,6 +446,7 @@ namespace LogUtils.Properties
             //File probably always exists at this point - it is possible that it might not in unusual situations
             //TODO: Determine if file should be created as part of the process
             FileExists = File.Exists(writePath);
+            LastKnownFilePath = CurrentFilePath;
             LogSessionActive = FileExists;
         }
 
@@ -455,7 +487,7 @@ namespace LogUtils.Properties
             sb.AppendPropertyString(DataFields.SHOW_LOGS_AWARE, ShowLogsAware.ToString());
             sb.AppendPropertyString(DataFields.PATH, PathUtils.ToPlaceholderPath(FolderPath));
             sb.AppendPropertyString(DataFields.ORIGINAL_PATH, PathUtils.ToPlaceholderPath(OriginalFolderPath));
-            sb.AppendPropertyString(DataFields.LAST_KNOWN_PATH, LastKnownPath);
+            sb.AppendPropertyString(DataFields.LAST_KNOWN_PATH, LastKnownFilePath);
             sb.AppendPropertyString(DataFields.Intro.MESSAGE, StartMessage);
             sb.AppendPropertyString(DataFields.Intro.TIMESTAMP, ShowIntroTimestamp.ToString());
             sb.AppendPropertyString(DataFields.Outro.MESSAGE, FinishMessage);

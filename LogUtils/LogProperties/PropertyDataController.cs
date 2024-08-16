@@ -21,6 +21,11 @@ namespace LogUtils.Properties
 
         internal bool IsEditGracePeriod = true;
 
+        /// <summary>
+        /// A flag that indicates the log replacement process has started and has yet to finish
+        /// </summary>
+        private bool startupRoutineActive;
+
         static PropertyDataController()
         {
             //Initialize the utility when this class is accessed
@@ -33,6 +38,27 @@ namespace LogUtils.Properties
             enabled = true;
             CustomLogProperties.OnPropertyAdded += onCustomPropertyAdded;
             CustomLogProperties.OnPropertyRemoved += onCustomPropertyRemoved;
+        }
+
+        internal void BeginStartupRoutine()
+        {
+            startupRoutineActive = true;
+            foreach (LogProperties properties in Properties)
+            {
+                if (!properties.LogSessionActive)
+                    properties.CreateTempFile();
+            }
+        }
+
+        internal void CompleteStartupRoutine()
+        {
+            if (!startupRoutineActive) return;
+
+            //All created temp files are removed on game start
+            foreach (LogProperties properties in Properties)
+                properties.RemoveTempFile();
+
+            startupRoutineActive = false;
         }
 
         private void onCustomPropertyAdded(CustomLogProperty property)
@@ -120,7 +146,7 @@ namespace LogUtils.Properties
                         Version = dataFields[DataFields.VERSION],
                         AltFilename = dataFields[DataFields.ALTFILENAME],
                         OriginalFolderPath = dataFields[DataFields.ORIGINAL_PATH],
-                        LastKnownPath = dataFields[DataFields.LAST_KNOWN_PATH],
+                        LastKnownFilePath = dataFields[DataFields.LAST_KNOWN_PATH],
                         Tags = dataFields[DataFields.TAGS].Split(','),
                         ShowLogsAware = bool.Parse(dataFields[DataFields.SHOW_LOGS_AWARE]),
                         StartMessage = dataFields[DataFields.Intro.MESSAGE],

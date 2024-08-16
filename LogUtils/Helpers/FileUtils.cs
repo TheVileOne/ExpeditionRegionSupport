@@ -6,7 +6,7 @@ namespace LogUtils.Helpers
 {
     public static class FileUtils
     {
-        public static string[] SupportedExtensions = { ".log", ".txt" };
+        public static string[] SupportedExtensions = { ".log", ".txt", ".tmp" };
 
         public static bool CompareFilenames(string filename, string filename2, bool ignoreExtensions = true)
         {

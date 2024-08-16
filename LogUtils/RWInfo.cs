@@ -16,6 +16,11 @@ namespace LogUtils
         /// </summary>
         public const SetupPeriod SHOW_LOGS_ACTIVE_PERIOD = SetupPeriod.PreMods;
 
+        /// <summary>
+        /// The period during which it becomes too late to initiate the startup routine (such as for replacing log files)
+        /// </summary>
+        public const SetupPeriod STARTUP_CUTOFF_PERIOD = SetupPeriod.ModsInit;
+
         static RWInfo()
         {
             //Initialize the utility when this class is accessed
