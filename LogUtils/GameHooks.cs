@@ -127,13 +127,14 @@ namespace LogUtils
             cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(System.Globalization.CultureInfo), "set_DefaultThreadCurrentCulture"));
 
             //Intercept attempt to delete Unity log files
-            cursor.GotoNext(MoveType.Before, x => x.MatchCall(typeof(File), nameof(File.Exists)));
-            cursor.Emit(OpCodes.Pop);
-            cursor.Emit(OpCodes.Ldnull); //Replace filename string with null
-
-            cursor.GotoNext(MoveType.Before, x => x.MatchCall(typeof(File), nameof(File.Exists)));
-            cursor.Emit(OpCodes.Pop);
-            cursor.Emit(OpCodes.Ldnull);
+            for (int i = 0; i < 2; i++)
+            {
+                if (cursor.TryGotoNext(MoveType.Before, x => x.MatchCall(typeof(File), nameof(File.Exists))))
+                {
+                    cursor.Emit(OpCodes.Pop);
+                    cursor.Emit(OpCodes.Ldnull); //Replace filename string with null
+                }
+            }
 
             cursor.GotoNext(MoveType.After, x => x.MatchLdarg(0), x => x.Match(OpCodes.Ldftn)); //Ldftn is HandleLog instruction
             cursor.GotoNext(MoveType.Before, x => x.MatchLdarg(0));
