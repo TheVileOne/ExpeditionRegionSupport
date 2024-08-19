@@ -86,10 +86,10 @@ namespace LogUtils
             AllowLogging = allowLogging;
             AllowRemoteLogging = true;
 
-            string logName = Path.GetFileNameWithoutExtension(logPath);
-            logPath = Path.GetDirectoryName(logPath);
+            //Should this be only for temporary log files?
+            LogID logID = LogID.FromPath(logPath, LogAccess.Private, false);
 
-            LogTargets.Add(new LogID(logName, logPath, false)); //Unregistered to avoid properties being saved for this temporary log file
+            LogTargets.Add(logID); //Unregistered to avoid properties being saved for this temporary log file
         }
         #endregion
         #region Log Overloads (object)

@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using LogUtils.Helpers;
 using LogUtils.Properties;
+using System;
 using System.IO;
 
 namespace LogUtils
@@ -57,6 +58,22 @@ namespace LogUtils
 
             if (fileExt != string.Empty)
                 Properties.PreferredFileExt = fileExt;
+        }
+
+        public static LogID FromPath(string logPath, LogAccess access, bool register)
+        {
+            string logName = Path.GetFileNameWithoutExtension(logPath);
+            logPath = Path.GetDirectoryName(logPath);
+
+            return new LogID(logName, logPath, access, register);
+        }
+
+        public static LogID CreateTemporaryID(string filename, string relativePathNoFile)
+        {
+            if (IsRegistered(filename, relativePathNoFile))
+                throw new InvalidOperationException("Temporary log ID could not be created; a registered log ID already exists.");
+
+            return new LogID(filename, relativePathNoFile, LogAccess.Private);
         }
 
         /// <summary>
