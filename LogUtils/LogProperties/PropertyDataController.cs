@@ -92,9 +92,9 @@ namespace LogUtils.Properties
                 properties.CustomProperties.RemoveProperty(p => p.Name == property.Name);
         }
 
-        public List<LogProperties> GetProperties(LogID logID)
+        public IEnumerable<LogProperties> GetProperties(LogID logID)
         {
-            return Properties.FindAll(p => p.IDMatch(logID));
+            return Properties.Where(p => p.IDMatch(logID));
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace LogUtils.Properties
             bool searchForAnyMatch = relativePathNoFile == null; //This flag prioritizes the custom root over any other match
 
             LogProperties bestCandidate = null;
-            foreach (LogProperties properties in Properties.Where(p => p.IDMatch(logID)))
+            foreach (LogProperties properties in GetProperties(logID))
             {
                 if (PathUtils.ComparePaths(properties.OriginalFolderPath, LogProperties.GetContainingPath(relativePathNoFile)))
                 {
