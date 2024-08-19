@@ -403,12 +403,15 @@ namespace LogUtils.Properties
             ChangePath(Path.Combine(newPath, newFilename));
         }
 
-        public FileStatus CreateTempFile()
+        public FileStatus CreateTempFile(bool copyOnly = false)
         {
             if (!File.Exists(LastKnownFilePath))
                 return FileStatus.NoActionRequired;
 
             ReplacementFilePath = Path.ChangeExtension(LastKnownFilePath, ".tmp");
+
+            if (copyOnly)
+                return Helpers.LogUtils.CopyLog(LastKnownFilePath, ReplacementFilePath);
 
             return Helpers.LogUtils.MoveLog(LastKnownFilePath, ReplacementFilePath);
         }
