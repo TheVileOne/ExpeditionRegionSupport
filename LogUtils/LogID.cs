@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using LogUtils.Helpers;
 using LogUtils.Properties;
 using System.IO;
 
@@ -56,6 +57,35 @@ namespace LogUtils
 
             if (fileExt != string.Empty)
                 Properties.PreferredFileExt = fileExt;
+        }
+
+        /// <summary>
+        /// Checks whether file, and path combination matches the file and path information of an existing registered LogProperties object
+        /// </summary>
+        /// <param name="filename">The filename to search for</param>
+        /// <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
+        public static bool IsRegistered(string filename, string relativePathNoFile = null)
+        {
+            string logName = Path.GetFileNameWithoutExtension(filename);
+            string logPath = LogProperties.GetContainingPath(relativePathNoFile);
+
+            bool searchForAnyPath = LogProperties.IsPathWildcard(relativePathNoFile);
+
+            bool results = false;
+            foreach (LogProperties properties in LogProperties.PropertyManager.Properties)
+            {
+                if ((LogProperties.CompareNames(logName, properties.Filename)
+                  || LogProperties.CompareNames(logName, properties.CurrentFilename))
+                  &&
+                    (searchForAnyPath
+                  || PathUtils.ComparePaths(logPath, properties.OriginalFolderPath)
+                  || PathUtils.ComparePaths(logPath, properties.CurrentFolderPath)))
+                {
+                    results = true;
+                    break;
+                }
+            }
+            return results;
         }
 
         internal static void InitializeLogIDs()

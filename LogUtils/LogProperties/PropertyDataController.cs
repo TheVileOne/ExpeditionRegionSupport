@@ -104,7 +104,7 @@ namespace LogUtils.Properties
         /// <param name="relativePathNoFile">The filepath to search for. When set to null, any LogID match will be returned with custom root being prioritized</param>
         public LogProperties GetProperties(LogID logID, string relativePathNoFile)
         {
-            bool searchForAnyMatch = relativePathNoFile == null; //This flag prioritizes the custom root over any other match
+            bool searchForAnyMatch = LogProperties.IsPathWildcard(relativePathNoFile); //This flag prioritizes the custom root over any other match
 
             LogProperties bestCandidate = null;
             foreach (LogProperties properties in GetProperties(logID))

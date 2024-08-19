@@ -578,6 +578,11 @@ namespace LogUtils.Properties
             return string.Equals(name, otherName, StringComparison.InvariantCultureIgnoreCase);
         }
 
+        public static bool IsPathWildcard(string path)
+        {
+            return path == null;
+        }
+
         public static string ToPropertyString(string name, string value = "")
         {
             return name + ':' + value;
