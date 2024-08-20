@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using BepInEx.Logging;
 using DependencyFlags = BepInEx.BepInDependency.DependencyFlags;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -16,6 +15,7 @@ using ExpeditionRegionSupport.Regions;
 using ExpeditionRegionSupport.Regions.Data;
 using ExpeditionRegionSupport.Regions.Restrictions;
 using Extensions;
+using LogUtils;
 using Menu;
 using Menu.Remix.MixedUI;
 using MoreSlugcats;
@@ -38,6 +38,8 @@ namespace ExpeditionRegionSupport
             set => ExpeditionData.devMode = value;
         }
 
+        public static readonly LogID ErsLog = new LogID("ErsLog", LogAccess.FullAccess, true);
+
         public static new LogUtils.Logger Logger;
 
         public static bool SlugBaseEnabled;
@@ -52,7 +54,12 @@ namespace ExpeditionRegionSupport
 
         public void OnEnable()
         {
-            Logger = new LogUtils.Logger(base.Logger);
+            ErsLog.Properties.ShowCategories.IsEnabled = true;
+
+            Logger = new LogUtils.Logger(LogID.BepInEx)
+            {
+                ManagedLogSource = base.Logger
+            };
 
             try
             {
@@ -245,8 +252,6 @@ namespace ExpeditionRegionSupport
 
         private void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)
         {
-            Logger = new LogUtils.Logger("ErsLog", true); //Override BepInEx logger
-
             orig(self);
 
             ChallengeFilterHooks.ApplyHooks(); //This needs to be handled in PostModsInIt or Expedition.ChallengeTools breaks
@@ -799,6 +804,5 @@ namespace ExpeditionRegionSupport
             ExpLog.Log(entry);
             Logger.LogInfo(entry);
         }
-
     }
 }

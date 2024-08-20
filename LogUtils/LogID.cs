@@ -115,8 +115,8 @@ namespace LogUtils
 
             BepInEx.Properties.AccessPeriod = SetupPeriod.Pregame;
             BepInEx.Properties.AltFilename = "mods";
-            BepInEx.Properties.Rules.Add(new ShowCategoryRule(true));
             BepInEx.Properties.LogSessionActive = true; //BepInEx log is active before the utility can initialize
+            BepInEx.Properties.ShowCategories.IsEnabled = true;
 
             Exception.Properties.AccessPeriod = SetupPeriod.RWAwake;
             Exception.Properties.AltFilename = "exception";

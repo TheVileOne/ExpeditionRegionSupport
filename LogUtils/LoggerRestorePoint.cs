@@ -13,7 +13,7 @@ namespace LogUtils
         public bool AllowRemoteLogging;
         public LogID[] LogTargets;
 
-        public LoggerRestorePoint(BetaLogger logger)
+        public LoggerRestorePoint(Logger logger)
         {
             AllowLogging = logger.AllowLogging;
             AllowRemoteLogging = logger.AllowRemoteLogging;

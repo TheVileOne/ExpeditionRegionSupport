@@ -1,11 +1,9 @@
-﻿using System;
+﻿using LogUtils;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using ExpeditionRegionSupport.Regions;
 
 namespace ExpeditionRegionSupport.Regions.Restrictions
 {
@@ -128,13 +126,11 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                     //Create folder for logging
                     Directory.CreateDirectory(resultFolder);
 
-                    bool wasHeadersEnabled = Plugin.Logger.LogHeadersEnabled;
-
-                    Plugin.Logger.LogHeadersEnabled = false;
                     Plugin.Logger.LogDebug("LOGGING RESTRICTION TEST CASES");
 
                     foreach (string testCase in testCases)
                     {
+                        LogID testCaseID = null;
                         string testCaseName = Path.GetFileNameWithoutExtension(testCase);
 
                         Plugin.Logger.LogInfo("Test Case: " + testCaseName);
@@ -144,7 +140,10 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                             processFile(testCase);
 
                             //Log test case results
-                            Plugin.Logger.AttachLogger(testCaseName.Replace("test", "result"), resultFolder);
+                            testCaseID = LogID.CreateTemporaryID(testCaseName.Replace("test", "result"), resultFolder);
+
+                            Plugin.Logger.LogTargets.Add(testCaseID);
+
                             Plugin.Logger.LogInfo("Case Results: " + testCaseName);
                             LogRestrictions();
                             Plugin.Logger.LogInfo("Case Results: END");
@@ -153,11 +152,12 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                         {
                             Plugin.Logger.LogError(ex);
                         }
-
-                        Plugin.Logger.DetachLogger();
+                        finally
+                        {
+                            if (testCaseID != null)
+                                Plugin.Logger.LogTargets.Remove(testCaseID);
+                        }
                     }
-
-                    Plugin.Logger.LogHeadersEnabled = wasHeadersEnabled;
                 }
             }
         }

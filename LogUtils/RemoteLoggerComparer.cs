@@ -2,7 +2,7 @@
 
 namespace LogUtils
 {
-    public class RemoteLoggerComparer : Comparer<BetaLogger>
+    public class RemoteLoggerComparer : Comparer<Logger>
     {
         public const int MAX_SCORE = 2;
 
@@ -11,7 +11,7 @@ namespace LogUtils
         /// <summary>
         /// Returns an integer representation of the better candidate for remote logging
         /// </summary>
-        public override int Compare(BetaLogger logger, BetaLogger otherLogger)
+        public override int Compare(Logger logger, Logger otherLogger)
         {
             // 1 means imperfect score
             // 2 means perfect score

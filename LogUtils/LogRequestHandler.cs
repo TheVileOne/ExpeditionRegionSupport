@@ -9,12 +9,12 @@ namespace LogUtils
     {
         public override string Tag => UtilityConsts.ComponentTags.REQUEST_DATA;
 
-        private List<BetaLogger> availableLoggers = new List<BetaLogger>();
+        private List<Logger> availableLoggers = new List<Logger>();
 
         /// <summary>
         /// A list of loggers available to handle remote log requests
         /// </summary>
-        public IEnumerable<BetaLogger> AvailableLoggers => availableLoggers;
+        public IEnumerable<Logger> AvailableLoggers => availableLoggers;
 
         public GameLogger GameLogger = new GameLogger();
 
@@ -163,7 +163,7 @@ namespace LogUtils
         /// <summary>
         /// Registers a logger for remote logging
         /// </summary>
-        public void Register(BetaLogger logger)
+        public void Register(Logger logger)
         {
             UtilityCore.BaseLogger.LogInfo("Registering logger");
             UtilityCore.BaseLogger.LogInfo("Log targets: " + string.Join(" ,", logger.LogTargets));
@@ -182,7 +182,7 @@ namespace LogUtils
         /// <summary>
         /// Unregisters a logger for remote logging
         /// </summary>
-        public void Unregister(BetaLogger logger)
+        public void Unregister(Logger logger)
         {
             UtilityCore.BaseLogger.LogInfo("Unregistering logger");
             UtilityCore.BaseLogger.LogInfo("Log targets: " + string.Join(" ,", logger.LogTargets));
@@ -195,16 +195,16 @@ namespace LogUtils
         /// <param name="logFile">LogID to check</param>
         /// <param name="requestType">The request type expected</param>
         /// <param name="doPathCheck">Should the log file's containing folder bear significance when finding a logger match</param>
-        private List<BetaLogger> findCompatibleLoggers(LogID logFile, RequestType requestType, bool doPathCheck)
+        private List<Logger> findCompatibleLoggers(LogID logFile, RequestType requestType, bool doPathCheck)
         {
             return availableLoggers.FindAll(logger => logger.CanAccess(logFile, requestType, doPathCheck));
         }
 
-        private void findCompatibleLoggers(LogID logFile, out BetaLogger localLogger, out BetaLogger remoteLogger)
+        private void findCompatibleLoggers(LogID logFile, out Logger localLogger, out Logger remoteLogger)
         {
             localLogger = remoteLogger = null;
 
-            foreach (BetaLogger logger in findCompatibleLoggers(logFile, RequestType.Remote, doPathCheck: true))
+            foreach (Logger logger in findCompatibleLoggers(logFile, RequestType.Remote, doPathCheck: true))
             {
                 //Most situations wont make it past the first assignment
                 if (localLogger == null)
@@ -247,7 +247,7 @@ namespace LogUtils
             {
                 remoteLogger = null;
 
-                foreach (BetaLogger logger in findCompatibleLoggers(logFile, RequestType.Local, doPathCheck: true))
+                foreach (Logger logger in findCompatibleLoggers(logFile, RequestType.Local, doPathCheck: true))
                 {
                     if (localLogger == null || logger.AllowLogging)
                     {
@@ -266,12 +266,12 @@ namespace LogUtils
         /// <param name="logFile">LogID to check</param>
         /// <param name="requestType">The request type expected</param>
         /// <param name="doPathCheck">Should the log file's containing folder bear significance when finding a logger match</param>
-        private BetaLogger findCompatibleLogger(LogID logFile, RequestType requestType, bool doPathCheck)
+        private Logger findCompatibleLogger(LogID logFile, RequestType requestType, bool doPathCheck)
         {
             if (requestType == RequestType.Game)
                 return null;
 
-            List<BetaLogger> candidates = findCompatibleLoggers(logFile, requestType, doPathCheck);
+            List<Logger> candidates = findCompatibleLoggers(logFile, requestType, doPathCheck);
 
             if (candidates.Count == 0)
                 return null;
@@ -279,7 +279,7 @@ namespace LogUtils
             if (candidates.Count == 1)
                 return candidates[0];
 
-            BetaLogger bestCandidate;
+            Logger bestCandidate;
             if (requestType == RequestType.Local)
             {
                 bestCandidate = candidates.Find(logger => logger.AllowLogging) ?? candidates[0];
@@ -291,7 +291,7 @@ namespace LogUtils
                 if (bestCandidate.AllowLogging && bestCandidate.AllowRemoteLogging)
                     return bestCandidate;
 
-                foreach (BetaLogger logger in candidates)
+                foreach (Logger logger in candidates)
                 {
                     int results = RemoteLoggerComparer.DefaultComparer.Compare(bestCandidate, logger);
 
@@ -333,9 +333,9 @@ namespace LogUtils
 
             if (!logFile.IsGameControlled)
             {
-                BetaLogger selectedLogger = null;
-                BetaLogger localLogger = null;
-                BetaLogger remoteLogger = null;
+                Logger selectedLogger = null;
+                Logger localLogger = null;
+                Logger remoteLogger = null;
 
                 bool shouldFetchLoggers = true;
                 LogRequest lastRequest = null;
@@ -392,7 +392,7 @@ namespace LogUtils
             //Beyond this point, we can assume that there are no preexisting unhandled requests for this log file
             if (!logFile.IsGameControlled)
             {
-                BetaLogger selectedLogger = findCompatibleLogger(logFile, request.Type, doPathCheck: true);
+                Logger selectedLogger = findCompatibleLogger(logFile, request.Type, doPathCheck: true);
 
                 if (selectedLogger != null)
                     selectedLogger.HandleRequest(request, true);
@@ -415,7 +415,7 @@ namespace LogUtils
             LogID targetID, lastTargetID;
 
             targetID = lastTargetID = null;
-            BetaLogger selectedLogger = null;
+            Logger selectedLogger = null;
             bool verifyRemoteAccess = false;
 
             //Check every unhandled request, removing recently handled or invalid entries, and handling entries that are capable of being handled
@@ -525,7 +525,7 @@ namespace LogUtils
         public void DumpRequestsToFile()
         {
             LogID logDump = new LogID("LogDump"); //TODO: Timestamp, allow new log file to be created at anytime
-            BetaLogger logger = new BetaLogger(logDump);
+            Logger logger = new Logger(logDump);
 
             string writePath = logDump.Properties.CurrentFilePath;
 

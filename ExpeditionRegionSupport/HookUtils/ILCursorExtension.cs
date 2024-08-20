@@ -87,9 +87,7 @@ namespace ExpeditionRegionSupport.HookUtils
 
         public static ILCursor EmitLog(this ILCursor cursor, string message, LogLevel logLevel = LogLevel.Info)
         {
-            cursor.EmitReference(message);
-            cursor.EmitReference(logLevel);
-            cursor.EmitDelegate<Action<string, LogLevel>>(Plugin.Logger.Log);
+            cursor.EmitDelegate(() => Plugin.Logger.Log(logLevel, message));
             return cursor;
         }
 
