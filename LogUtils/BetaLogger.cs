@@ -22,26 +22,15 @@ namespace LogUtils
         /// </summary>
         public bool AllowLogging;
 
-        private bool _allowRemoteLogging;
-
         /// <summary>
         /// A flag that allows/disallows handling of remote log requests through this logger
         /// </summary>
-        public bool AllowRemoteLogging
-        {
-            get => _allowRemoteLogging;
-            set
-            {
-                if (AllowRemoteLogging != value)
-                {
-                    if (value)
-                        UtilityCore.RequestHandler.Register(this);
-                    else
-                        UtilityCore.RequestHandler.Unregister(this);
-                    _allowRemoteLogging = value;
-                }
-            }
-        }
+        public bool AllowRemoteLogging;
+
+        /// <summary>
+        /// Contains a record of logger field values that can be restored on demand
+        /// </summary>
+        public LoggerRestorePoint RestorePoint;
 
         #region Constructors
 
@@ -57,6 +46,9 @@ namespace LogUtils
             AllowRemoteLogging = visibleToRemoteLoggers;
 
             LogTargets.AddRange(presets);
+            SetRestorePoint();
+
+            UtilityCore.RequestHandler.Register(this);
         }
 
         /// <summary>
@@ -76,21 +68,6 @@ namespace LogUtils
         {
         }
 
-        /// <summary>
-        /// Constructs a logger instance for a temporary log file
-        /// </summary>
-        /// <param name="logPath"> The full path to the log file (including filename)</param>
-        /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
-        public BetaLogger(string logPath, bool allowLogging = true)
-        {
-            AllowLogging = allowLogging;
-            AllowRemoteLogging = true;
-
-            //Should this be only for temporary log files?
-            LogID logID = LogID.FromPath(logPath, LogAccess.Private, false);
-
-            LogTargets.Add(logID); //Unregistered to avoid properties being saved for this temporary log file
-        }
         #endregion
         #region Log Overloads (object)
 
@@ -398,6 +375,24 @@ namespace LogUtils
                 UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Remote, new LogEvents.LogMessageEventArgs(target, data, category)), true);
             }
         }
+
+        #region Restore Points
+
+        public void SetRestorePoint()
+        {
+            RestorePoint = new LoggerRestorePoint(this);
+        }
+
+        public void RestoreState()
+        {
+            AllowLogging = RestorePoint.AllowLogging;
+            AllowRemoteLogging = RestorePoint.AllowRemoteLogging;
+
+            LogTargets.Clear();
+            LogTargets.AddRange(RestorePoint.LogTargets);
+        }
+
+        #endregion
 
         /// <summary>
         /// Returns whether logger instance is able to handle a specified LogID
