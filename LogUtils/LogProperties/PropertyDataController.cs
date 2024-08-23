@@ -149,8 +149,8 @@ namespace LogUtils.Properties
                         LastKnownFilePath = dataFields[DataFields.LAST_KNOWN_PATH],
                         Tags = dataFields[DataFields.TAGS].Split(','),
                         ShowLogsAware = bool.Parse(dataFields[DataFields.SHOW_LOGS_AWARE]),
-                        StartMessage = dataFields[DataFields.Intro.MESSAGE],
-                        FinishMessage = dataFields[DataFields.Outro.MESSAGE],
+                        IntroMessage = dataFields[DataFields.Intro.MESSAGE],
+                        OutroMessage = dataFields[DataFields.Outro.MESSAGE],
                         ShowIntroTimestamp = bool.Parse(dataFields[DataFields.Intro.TIMESTAMP]),
                         ShowOutroTimestamp = bool.Parse(dataFields[DataFields.Outro.TIMESTAMP])
                     };

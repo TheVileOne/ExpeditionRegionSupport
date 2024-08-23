@@ -87,8 +87,8 @@ namespace LogUtils.Properties
 
         private LogID _id;
         private string _idValue;
-        private static bool _fileExists;
-        private static bool _readOnly;
+        private bool _fileExists;
+        private bool _readOnly;
         private string _version = "0.5.0";
         private string _filename = string.Empty;
         private string _altFilename = string.Empty;
@@ -96,10 +96,8 @@ namespace LogUtils.Properties
         private string _originalFolderPath = string.Empty;
         private string[] _tags;
 
-        private string _startMessage;
-        private string _finishMessage;
-        private bool _showIntroTimestamp;
-        private bool _showOutroTimestamp;
+        private string _introMessage, _outroMessage;
+        private bool _showIntroTimestamp, _showOutroTimestamp;
         private bool _showLogsAware;
 
         /// <summary>
@@ -155,7 +153,6 @@ namespace LogUtils.Properties
         /// The path to the log file when it has been slated to be replaced or removed
         /// </summary>
         public string ReplacementFilePath { get; private set; }
-
 
         /// <summary>
         /// The active full path of the directory containing the log file
@@ -249,26 +246,26 @@ namespace LogUtils.Properties
         /// <summary>
         /// A message that will be logged at the start of a log session
         /// </summary>
-        public string StartMessage
+        public string IntroMessage
         {
-            get => _startMessage;
+            get => _introMessage;
             set
             {
                 if (ReadOnly) return;
-                _startMessage = value;
+                _introMessage = value;
             }
         }
 
         /// <summary>
         /// A message that will be logged at the end of a log session
         /// </summary>
-        public string FinishMessage
+        public string OutroMessage
         {
-            get => _finishMessage;
+            get => _outroMessage;
             set
             {
                 if (ReadOnly) return;
-                _finishMessage = value;
+                _outroMessage = value;
             }
         }
 
@@ -438,8 +435,8 @@ namespace LogUtils.Properties
         {
             string writePath = CurrentFilePath;
 
-            if (StartMessage != null)
-                File.AppendAllText(writePath, StartMessage);
+            if (IntroMessage != null)
+                File.AppendAllText(writePath, IntroMessage);
 
             if (ShowIntroTimestamp)
                 File.AppendAllText(writePath, $"[{DateTime.Now}]");
@@ -460,8 +457,8 @@ namespace LogUtils.Properties
         {
             string writePath = CurrentFilePath;
 
-            if (FinishMessage != null)
-                File.AppendAllText(writePath, FinishMessage);
+            if (OutroMessage != null)
+                File.AppendAllText(writePath, OutroMessage);
 
             if (ShowOutroTimestamp)
                 File.AppendAllText(writePath, $"[{DateTime.Now}]");
@@ -491,9 +488,9 @@ namespace LogUtils.Properties
             sb.AppendPropertyString(DataFields.PATH, PathUtils.ToPlaceholderPath(FolderPath));
             sb.AppendPropertyString(DataFields.ORIGINAL_PATH, PathUtils.ToPlaceholderPath(OriginalFolderPath));
             sb.AppendPropertyString(DataFields.LAST_KNOWN_PATH, LastKnownFilePath);
-            sb.AppendPropertyString(DataFields.Intro.MESSAGE, StartMessage);
+            sb.AppendPropertyString(DataFields.Intro.MESSAGE, IntroMessage);
             sb.AppendPropertyString(DataFields.Intro.TIMESTAMP, ShowIntroTimestamp.ToString());
-            sb.AppendPropertyString(DataFields.Outro.MESSAGE, FinishMessage);
+            sb.AppendPropertyString(DataFields.Outro.MESSAGE, OutroMessage);
             sb.AppendPropertyString(DataFields.Outro.TIMESTAMP, ShowOutroTimestamp.ToString());
             sb.AppendPropertyString(DataFields.Rules.HEADER);
 
