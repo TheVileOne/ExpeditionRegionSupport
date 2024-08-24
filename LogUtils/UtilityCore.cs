@@ -1,6 +1,8 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Helpers;
 using LogUtils.Properties;
+using Menu;
+using RWCustom;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,6 +61,32 @@ namespace LogUtils
                       ?? BepInEx.Logging.Logger.CreateLogSource("LogUtils");
 
             LoadComponents();
+
+            //This is before hooks are established. It is highly likely that the utility will load very early, and any mod could force it. Since we cannot control
+            //this factor, we have to infer using specific game fields to tell which part of the initialization period we are in
+            SetupPeriod startupPeriod = SetupPeriod.Pregame;
+
+            if (Custom.rainWorld != null)
+            {
+                if (Menu.Remix.OptionalText.engText == null) //This is set in PreModsInIt
+                {
+                    startupPeriod = SetupPeriod.RWAwake;
+                }
+                else if (Custom.rainWorld.processManager?.currentMainLoop is InitializationScreen)
+                {
+                    //All ExtEnumTypes are forcefully updated as part of the OnModsInit run routine. Look for initialized types
+                    if (ExtEnumBase.valueDictionary.Count() < 50) //Somewhere between PreModsInIt and OnModsInit, we don't know where exactly
+                        startupPeriod = SetupPeriod.PreMods;
+                    else
+                        startupPeriod = SetupPeriod.PostMods;
+                }
+                else //It shouldn't be possible to be another period
+                {
+                    startupPeriod = SetupPeriod.PostMods;
+                }
+            }
+
+            RWInfo.LatestSetupPeriodReached = startupPeriod;
 
             LogID.InitializeLogIDs(); //This should be called for every assembly that initializes
 
