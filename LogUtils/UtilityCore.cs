@@ -88,6 +88,8 @@ namespace LogUtils
 
             RWInfo.LatestSetupPeriodReached = startupPeriod;
 
+            PropertyManager.IsEditGracePeriod = RWInfo.LatestSetupPeriodReached < SetupPeriod.PostMods;
+
             LogID.InitializeLogIDs(); //This should be called for every assembly that initializes
 
             if (IsControllingAssembly)

@@ -19,7 +19,10 @@ namespace LogUtils.Properties
 
         public override string Tag => UtilityConsts.ComponentTags.PROPERTY_DATA;
 
-        internal bool IsEditGracePeriod = true;
+        /// <summary>
+        /// The game is within a period of time when ReadOnly can be toggled off for the duration of the period before turning back on at the end of the period
+        /// </summary>
+        internal bool IsEditGracePeriod;
 
         /// <summary>
         /// A flag that indicates the log replacement process has started and has yet to finish
