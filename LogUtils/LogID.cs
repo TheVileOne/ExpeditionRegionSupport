@@ -95,8 +95,8 @@ namespace LogUtils
                   || LogProperties.CompareNames(logName, properties.CurrentFilename))
                   &&
                     (searchForAnyPath
-                  || PathUtils.ComparePaths(logPath, properties.OriginalFolderPath)
-                  || PathUtils.ComparePaths(logPath, properties.CurrentFolderPath)))
+                  || PathUtils.PathsAreEqual(logPath, properties.OriginalFolderPath)
+                  || PathUtils.PathsAreEqual(logPath, properties.CurrentFolderPath)))
                 {
                     results = true;
                     break;

@@ -5,6 +5,7 @@ using Menu;
 using RWCustom;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 
@@ -94,7 +95,26 @@ namespace LogUtils
 
             if (IsControllingAssembly)
             {
-                if (RWInfo.LatestSetupPeriodReached < RWInfo.STARTUP_CUTOFF_PERIOD) //Sanity check in case we are initializing extra late
+                bool shouldRunStartupRoutine = RWInfo.LatestSetupPeriodReached < RWInfo.STARTUP_CUTOFF_PERIOD;
+
+                //It is important for normal function of the utility for it to initialize before the game does. The following code handles the situation when
+                //the utility is initialized too late, and the game has been allowed to intialize the log files without the necessary utility hooks active
+                if (RWInfo.LatestSetupPeriodReached > SetupPeriod.Pregame)
+                {
+                    if (shouldRunStartupRoutine)
+                        PropertyManager.StartupRoutineActive = true; //Notify that startup process might be happening early
+
+                    ProcessLateInitializedLogFile(LogID.Unity);
+                    ProcessLateInitializedLogFile(LogID.Exception);
+
+                    if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.ModsInit) //Expedition, and JollyCoop
+                    {
+                        ProcessLateInitializedLogFile(LogID.Expedition);
+                        ProcessLateInitializedLogFile(LogID.JollyCoop);
+                    }
+                }
+
+                if (shouldRunStartupRoutine) //Sanity check in case we are initializing extra late
                     PropertyManager.BeginStartupRoutine();
 
                 //Listen for Unity log requests while the log file is unavailable
@@ -124,6 +144,57 @@ namespace LogUtils
 
             DataHandler = ComponentUtils.GetOrCreate<SharedDataHandler>(UtilityConsts.ComponentTags.SHARED_DATA, out _);
             RequestHandler = ComponentUtils.GetOrCreate<LogRequestHandler>(UtilityConsts.ComponentTags.REQUEST_DATA, out _);
+        }
+
+        internal static void ProcessLateInitializedLogFile(LogID logFile)
+        {
+            LogProperties properties = logFile.Properties;
+
+            bool moveFileFromOriginalPath = false;
+
+            //We are checking that the actual write path for the log file is the same as the last known path for the log file
+            if (PathUtils.PathsAreEqual(properties.CurrentFilePath, properties.LastKnownFilePath))
+            {
+                //Now we check that the write path is the same as the path originally defined for this log file. This check is necessary,
+                //because the utility was unable to prevent the game from intializing the log file, and the typical startup routine
+                //cannot be applied
+                if (PathUtils.PathsAreEqual(properties.FolderPath, properties.OriginalFolderPath))
+                {
+                    //The log file was overwritten by the game; it cannot be recovered
+                    properties.FileExists = File.Exists(properties.CurrentFilePath);
+                    properties.LogSessionActive = properties.FileExists;
+                }
+                else
+                    moveFileFromOriginalPath = true;
+            }
+            else
+                moveFileFromOriginalPath = true;
+
+            if (moveFileFromOriginalPath)
+            {
+                //Set up the temp file for the log file if it is not too late to do so
+                if (PropertyManager.StartupRoutineActive)
+                    properties.CreateTempFile();
+
+                string originalFilePath = Helpers.LogUtils.FindLogPathWithoutFileExtension(properties.OriginalFolderPath, logFile.value);
+
+                //At this point, the log file has most likely been created by the game at its original file location, and it needs to be moved to the path
+                //specified by the log properties. If the move fails, it wont exist at the current path anyways, allowing us to assume status of FileExists
+                if (originalFilePath != null && Helpers.LogUtils.MoveLog(originalFilePath, properties.CurrentFilePath) == FileStatus.MoveComplete)
+                {
+                    properties.ChangePath(properties.CurrentFilePath);
+
+                    properties.FileExists = true;
+                    properties.LogSessionActive = true;
+                }
+                else
+                {
+                    properties.FileExists = false;
+                    properties.LogSessionActive = false;
+                }
+            }
+
+            properties.SkipStartupRoutine = true;
         }
 
         /// <summary>

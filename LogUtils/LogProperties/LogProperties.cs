@@ -55,6 +55,11 @@ namespace LogUtils.Properties
         /// </summary>
         public int AllowEditPeriod = EDIT_PERIOD_DEFAULT;
 
+        /// <summary>
+        /// Indicates that the startup routine for this log file should not be run
+        /// </summary>
+        internal bool SkipStartupRoutine;
+
         public bool ReadOnly
         {
             get => _readOnly;
@@ -373,7 +378,7 @@ namespace LogUtils.Properties
             }
 
             //Compare the current path to the new path
-            if (!PathUtils.ComparePaths(CurrentFolderPath, newPath)) //The paths are different
+            if (!PathUtils.PathsAreEqual(CurrentFolderPath, newPath)) //The paths are different
             {
                 CurrentFolderPath = newPath;
                 changesPresent = true;

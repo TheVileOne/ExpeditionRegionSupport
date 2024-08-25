@@ -27,7 +27,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// A flag that indicates the log replacement process has started and has yet to finish
         /// </summary>
-        private bool startupRoutineActive;
+        internal bool StartupRoutineActive;
 
         static PropertyDataController()
         {
@@ -45,23 +45,23 @@ namespace LogUtils.Properties
 
         internal void BeginStartupRoutine()
         {
-            startupRoutineActive = true;
+            StartupRoutineActive = true;
             foreach (LogProperties properties in Properties)
             {
-                if (!properties.LogSessionActive)
+                if (!properties.SkipStartupRoutine && !properties.LogSessionActive)
                     properties.CreateTempFile();
             }
         }
 
         internal void CompleteStartupRoutine()
         {
-            if (!startupRoutineActive) return;
+            if (!StartupRoutineActive) return;
 
             //All created temp files are removed on game start
             foreach (LogProperties properties in Properties)
                 properties.RemoveTempFile();
 
-            startupRoutineActive = false;
+            StartupRoutineActive = false;
         }
 
         private void onCustomPropertyAdded(CustomLogProperty property)
@@ -112,7 +112,7 @@ namespace LogUtils.Properties
             LogProperties bestCandidate = null;
             foreach (LogProperties properties in GetProperties(logID))
             {
-                if (PathUtils.ComparePaths(properties.OriginalFolderPath, LogProperties.GetContainingPath(relativePathNoFile)))
+                if (PathUtils.PathsAreEqual(properties.OriginalFolderPath, LogProperties.GetContainingPath(relativePathNoFile)))
                 {
                     bestCandidate = properties;
                     break;

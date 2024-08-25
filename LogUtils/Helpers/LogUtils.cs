@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 
 namespace LogUtils.Helpers
 {
@@ -51,6 +52,11 @@ namespace LogUtils.Helpers
             LogFileMover fileMover = new LogFileMover(sourceLogPath, destLogPath);
 
             return fileMover.MoveFile();
+        }
+
+        public static string FindLogPathWithoutFileExtension(string searchPath, string filename)
+        {
+            return FileUtils.SupportedExtensions.Select(fileExt => Path.Combine(searchPath, filename + fileExt)).FirstOrDefault(File.Exists);
         }
     }
 }

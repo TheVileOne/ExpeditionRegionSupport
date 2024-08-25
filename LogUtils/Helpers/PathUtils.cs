@@ -78,15 +78,15 @@ namespace LogUtils.Helpers
         /// </summary>
         public static string ToPlaceholderPath(string path)
         {
-            if (string.IsNullOrEmpty(path) || ComparePaths(path, Application.streamingAssetsPath))
+            if (string.IsNullOrEmpty(path) || PathsAreEqual(path, Application.streamingAssetsPath))
                 return "customroot";
 
-            if (ComparePaths(path, Path.GetDirectoryName(Application.dataPath)))
+            if (PathsAreEqual(path, Path.GetDirectoryName(Application.dataPath)))
                 return "root";
             return RemoveFileFromPath(path);
         }
 
-        public static bool ComparePaths(string path1, string path2)
+        public static bool PathsAreEqual(string path1, string path2)
         {
             if (path1 == null)
                 return path2 == null;
