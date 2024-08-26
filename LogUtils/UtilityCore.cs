@@ -63,8 +63,6 @@ namespace LogUtils
             BaseLogger = BepInEx.Logging.Logger.Sources.FirstOrDefault(l => l.SourceName == "LogUtils") as ManualLogSource
                       ?? BepInEx.Logging.Logger.CreateLogSource("LogUtils");
 
-            LoadComponents();
-
             //This is before hooks are established. It is highly likely that the utility will load very early, and any mod could force it. Since we cannot control
             //this factor, we have to infer using specific game fields to tell which part of the initialization period we are in
             SetupPeriod startupPeriod = SetupPeriod.Pregame;
@@ -91,7 +89,7 @@ namespace LogUtils
 
             RWInfo.LatestSetupPeriodReached = startupPeriod;
 
-            PropertyManager.IsEditGracePeriod = RWInfo.LatestSetupPeriodReached < SetupPeriod.PostMods;
+            LoadComponents();
 
             LogID.InitializeLogIDs(); //This should be called for every assembly that initializes
 

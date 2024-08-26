@@ -12,8 +12,6 @@ namespace LogUtils.Properties
 {
     public class LogProperties
     {
-        public const int EDIT_PERIOD_DEFAULT = 3;
-
         public static PropertyDataController PropertyManager => UtilityCore.PropertyManager;
         public CustomLogPropertyCollection CustomProperties = new CustomLogPropertyCollection();
 
@@ -51,14 +49,11 @@ namespace LogUtils.Properties
         public SetupPeriod AccessPeriod = SetupPeriod.Pregame;
 
         /// <summary>
-        /// The amount of frames that a LogProperties instance can have its fields changed once the initial grace period has expired
-        /// </summary>
-        public int AllowEditPeriod = EDIT_PERIOD_DEFAULT;
-
-        /// <summary>
         /// Indicates that the startup routine for this log file should not be run
         /// </summary>
         internal bool SkipStartupRoutine;
+
+        private ScheduledEvent readOnlyRestoreEvent;
 
         public bool ReadOnly
         {
@@ -67,19 +62,30 @@ namespace LogUtils.Properties
             {
                 if (_readOnly == value) return;
 
-                //When ReadOnly is set to false, set a short frame window to allow for edits
                 if (!value)
                 {
-                    //Avoid overwriting a preset edit window
-                    if (AllowEditPeriod == 0)
-                        AllowEditPeriod = EDIT_PERIOD_DEFAULT;
+                    const int disable_frames_allowed = 3;
 
-                    UtilityCore.BaseLogger.LogDebug($"Read Only mode for {ID} disabled for {AllowEditPeriod} frames");
+                    string reportMessage = $"Read Only mode for {ID} disabled for the rest of the game loading period";
+
+                    //When ReadOnly is set to false, set a short frame window to allow for edits
+                    if (!PropertyManager.IsEditGracePeriod)
+                    {
+                        reportMessage = $"Read Only mode for {ID} disabled for {disable_frames_allowed} frames";
+
+                        readOnlyRestoreEvent = UtilityCore.Scheduler.Schedule(() =>
+                        {
+                            ReadOnly = true;
+                        }, disable_frames_allowed);
+                    }
+                    UtilityCore.BaseLogger.LogDebug(reportMessage);
                 }
                 else
                 {
                     UtilityCore.BaseLogger.LogDebug($"Read Only mode enabled for {ID}");
-                    AllowEditPeriod = 0;
+
+                    readOnlyRestoreEvent?.Cancel();
+                    readOnlyRestoreEvent = null;
                 }
                 _readOnly = Rules.ReadOnly = value;
             }

@@ -31,18 +31,18 @@ namespace LogUtils
 
         public void Update()
         {
-            bool triggeredEventsExist = false;
+            bool eventCleanupRequired = false;
 
             foreach (ScheduledEvent e in Events)
             {
                 e.OnFrameReached(FrameCount);
 
-                if (e.Triggered)
-                    triggeredEventsExist = true;
+                if (e.Triggered || e.Cancelled)
+                    eventCleanupRequired = true;
             }
 
-            if (triggeredEventsExist)
-                Events = Events.Where(e => !e.Triggered).ToList();
+            if (eventCleanupRequired)
+                Events = Events.Where(e => !e.Triggered && !e.Cancelled).ToList();
 
             FrameCount++;
         }
@@ -58,6 +58,8 @@ namespace LogUtils
 
         public long Duration;
 
+        public bool Cancelled;
+
         public bool Triggered;
 
         public ScheduledEvent(Action action, long startFrame, long duration)
@@ -67,8 +69,15 @@ namespace LogUtils
             Duration = duration;
         }
 
+        public void Cancel()
+        {
+            Cancelled = true;
+        }
+
         public void OnFrameReached(long frame)
         {
+            if (Cancelled) return;
+
             if (EndFrame >= frame)
             {
                 Event.Invoke();
