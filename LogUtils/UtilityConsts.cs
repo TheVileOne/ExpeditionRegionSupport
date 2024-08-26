@@ -46,6 +46,7 @@ namespace LogUtils
         public static class ComponentTags
         {
             public const string PROPERTY_DATA = "LogProperties";
+            public const string SCHEDULER = "Scheduler";
             public const string SHARED_DATA = "SharedData";
             public const string REQUEST_DATA = "RequestData";
         }

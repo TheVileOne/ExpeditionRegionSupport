@@ -50,6 +50,8 @@ namespace LogUtils
         /// </summary>
         public static LogRequestHandler RequestHandler;
 
+        public static FrameTimer Scheduler;
+
         internal static void Initialize()
         {
             if (IsInitialized || initializingInProgress) return; //Initialize may be called several times during the init process
@@ -134,6 +136,7 @@ namespace LogUtils
         /// </summary>
         internal static void LoadComponents()
         {
+            Scheduler = ComponentUtils.GetOrCreate<FrameTimer>(UtilityConsts.ComponentTags.SCHEDULER, out _);
             PropertyManager = ComponentUtils.GetOrCreate<PropertyDataController>(UtilityConsts.ComponentTags.PROPERTY_DATA, out bool wasCreated);
 
             if (wasCreated)
