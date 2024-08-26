@@ -150,51 +150,35 @@ namespace LogUtils
         {
             LogProperties properties = logFile.Properties;
 
-            bool moveFileFromOriginalPath = false;
+            //The original filename is stored without its original file extension in the value field of the LogID
+            string originalFilePath = Helpers.LogUtils.FindLogPathWithoutFileExtension(properties.OriginalFolderPath, logFile.value);
 
-            //We are checking that the actual write path for the log file is the same as the last known path for the log file
-            if (PathUtils.PathsAreEqual(properties.CurrentFilePath, properties.LastKnownFilePath))
+            if (originalFilePath != null) //This shouldn't be null under typical circumstances
             {
-                //Now we check that the write path is the same as the path originally defined for this log file. This check is necessary,
-                //because the utility was unable to prevent the game from intializing the log file, and the typical startup routine
-                //cannot be applied
-                if (PathUtils.PathsAreEqual(properties.FolderPath, properties.OriginalFolderPath))
+                bool moveFileFromOriginalPath = !PathUtils.PathsAreEqual(originalFilePath, properties.CurrentFilePath);
+                bool lastKnownFileOverwritten = PathUtils.PathsAreEqual(originalFilePath, properties.LastKnownFilePath);
+
+                if (moveFileFromOriginalPath)
                 {
-                    //The log file was overwritten by the game; it cannot be recovered
-                    properties.FileExists = File.Exists(properties.CurrentFilePath);
-                    properties.LogSessionActive = properties.FileExists;
-                }
-                else
-                    moveFileFromOriginalPath = true;
-            }
-            else
-                moveFileFromOriginalPath = true;
+                    //Set up the temp file for this log file if it isn't too late to do so
+                    if (!lastKnownFileOverwritten && PropertyManager.StartupRoutineActive)
+                    {
+                        properties.CreateTempFile();
+                        properties.SkipStartupRoutine = true;
+                    }
 
-            if (moveFileFromOriginalPath)
-            {
-                //Set up the temp file for the log file if it is not too late to do so
-                if (PropertyManager.StartupRoutineActive)
-                    properties.CreateTempFile();
-
-                string originalFilePath = Helpers.LogUtils.FindLogPathWithoutFileExtension(properties.OriginalFolderPath, logFile.value);
-
-                //At this point, the log file has most likely been created by the game at its original file location, and it needs to be moved to the path
-                //specified by the log properties. If the move fails, it wont exist at the current path anyways, allowing us to assume status of FileExists
-                if (originalFilePath != null && Helpers.LogUtils.MoveLog(originalFilePath, properties.CurrentFilePath) == FileStatus.MoveComplete)
-                {
-                    properties.ChangePath(properties.CurrentFilePath);
+                    //Move the file, and if it fails, change the path. Either way, log file exists
+                    if (Helpers.LogUtils.MoveLog(originalFilePath, properties.CurrentFilePath) == FileStatus.MoveComplete)
+                        properties.ChangePath(properties.CurrentFilePath);
+                    else
+                        properties.ChangePath(originalFilePath);
 
                     properties.FileExists = true;
                     properties.LogSessionActive = true;
                 }
-                else
-                {
-                    properties.FileExists = false;
-                    properties.LogSessionActive = false;
-                }
-            }
 
-            properties.SkipStartupRoutine = true;
+                properties.SkipStartupRoutine |= lastKnownFileOverwritten;
+            }
         }
 
         /// <summary>
