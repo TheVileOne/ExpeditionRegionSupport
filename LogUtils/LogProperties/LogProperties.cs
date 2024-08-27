@@ -54,6 +54,7 @@ namespace LogUtils.Properties
         internal bool SkipStartupRoutine;
 
         private ScheduledEvent readOnlyRestoreEvent;
+        public ScheduledEvent recentlyCreatedCutoffEvent;
 
         public bool ReadOnly
         {
@@ -92,6 +93,11 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
+        /// A flag that indicates that a low amount of frames (<= 10) have passed since instance was created
+        /// </summary>
+        public bool PropertiesCreatedRecently { get; private set; }
+
+        /// <summary>
         /// The ID strings of the mod(s) that control these log properties 
         /// </summary>
         public List<string> AssociatedModIDs = new List<string>();
@@ -105,6 +111,8 @@ namespace LogUtils.Properties
         private string _altFilename = string.Empty;
         private string _folderPath = string.Empty;
         private string _originalFolderPath = string.Empty;
+        private bool _logsFolderAware;
+        private bool _logsFolderEligible = true;
         private string[] _tags;
 
         private string _introMessage, _outroMessage;
@@ -242,6 +250,42 @@ namespace LogUtils.Properties
         public string PreferredFileExt = ".log";
 
         /// <summary>
+        /// When the log file properties are first initialized, the log file can have its path changed to target the Logs folder if it exists, disabled by default
+        /// </summary>
+        public bool LogsFolderAware
+        {
+            get => _logsFolderAware;
+            set
+            {
+                if (_logsFolderAware == value || ReadOnly) return;
+
+                _logsFolderAware = value;
+
+                //During post initialization changes can still be recognized and handled for a short period of time
+                if (UtilityCore.IsInitialized)
+                    LogsFolder.OnEligibilityChanged(this);
+            }
+        }
+
+        /// <summary>
+        /// A property that informs the utility that the log file should not use the Logs folder
+        /// </summary>
+        public bool LogsFolderEligible
+        {
+            get => _logsFolderEligible;
+            set
+            {
+                if (_logsFolderEligible == value || ReadOnly) return;
+
+                _logsFolderEligible = value;
+
+                //During post initialization changes can still be recognized and handled for a short period of time
+                if (UtilityCore.IsInitialized)
+                    LogsFolder.OnEligibilityChanged(this);
+            }
+        }
+
+        /// <summary>
         /// An array of value identifiers for a specific log
         /// </summary>
         public string[] Tags
@@ -338,6 +382,16 @@ namespace LogUtils.Properties
             CurrentFolderPath = OriginalFolderPath = FolderPath;
             LastKnownFilePath = CurrentFilePath;
 
+            const int age_threshold = 10;
+
+            PropertiesCreatedRecently = true;
+
+            recentlyCreatedCutoffEvent = UtilityCore.Scheduler.Schedule(() =>
+            {
+                PropertiesCreatedRecently = false;
+                recentlyCreatedCutoffEvent = null;
+            }, age_threshold);
+
             //Utility packaged rules get added to every log file disabled by default 
             Rules.Add(new ShowCategoryRule(false));
             Rules.Add(new ShowLineCountRule(false));
@@ -397,13 +451,6 @@ namespace LogUtils.Properties
                 LastKnownFilePath = CurrentFilePath;
                 NotifyPathChanged();
             }
-
-            //Steps:
-            //Determine if it is a relative or full path
-            //Remove the filename (if it exists) from the path and set it separately
-            //Validate file - throw exception if it's not a .txt, or .log file
-            //Change to .log file ext
-            //Set path
         }
 
         public void ChangePath(string newPath, string newFilename)
@@ -495,6 +542,8 @@ namespace LogUtils.Properties
             sb.AppendPropertyString(DataFields.ALTFILENAME, AltFilename);
             sb.AppendPropertyString(DataFields.VERSION, Version);
             sb.AppendPropertyString(DataFields.TAGS, Tags != null ? string.Join(",", Tags) : string.Empty);
+            sb.AppendPropertyString(DataFields.LOGS_FOLDER_AWARE, LogsFolderAware.ToString());
+            sb.AppendPropertyString(DataFields.LOGS_FOLDER_ELIGIBLE, LogsFolderEligible.ToString());
             sb.AppendPropertyString(DataFields.SHOW_LOGS_AWARE, ShowLogsAware.ToString());
             sb.AppendPropertyString(DataFields.PATH, PathUtils.ToPlaceholderPath(FolderPath));
             sb.AppendPropertyString(DataFields.ORIGINAL_PATH, PathUtils.ToPlaceholderPath(OriginalFolderPath));

@@ -10,7 +10,7 @@ namespace LogUtils
     {
         public static class DataFields
         {
-            public const int EXPECTED_FIELD_COUNT = 16;
+            public const int EXPECTED_FIELD_COUNT = 18;
 
             public const string LOGID = "logid";
             public const string FILENAME = "filename";
@@ -20,6 +20,8 @@ namespace LogUtils
             public const string PATH = "path";
             public const string ORIGINAL_PATH = "origpath";
             public const string LAST_KNOWN_PATH = "lastknownpath";
+            public const string LOGS_FOLDER_AWARE = "logsfolderaware";
+            public const string LOGS_FOLDER_ELIGIBLE = "logsfoldereligible";
             public const string SHOW_LOGS_AWARE = "showlogsaware";
             public const string CUSTOM = "custom";
 

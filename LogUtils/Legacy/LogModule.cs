@@ -45,12 +45,12 @@ namespace LogUtils.Legacy
 
         public LogModule(string logPath)
         {
-            LogPath = Logger.FormatLogFile(logPath);
+            LogPath = LegacyLogger.FormatLogFile(logPath);
         }
 
         public bool IsLog(string logName)
         {
-            return LogPath != null && LogPath == Logger.FormatLogFile(logName);
+            return LogPath != null && LogPath == LegacyLogger.FormatLogFile(logName);
         }
 
         public bool IsLog(LogModule logger)

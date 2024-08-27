@@ -1,7 +1,6 @@
 ﻿using BepInEx.Logging;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -33,21 +32,6 @@ namespace LogUtils
         /// Contains a record of logger field values that can be restored on demand
         /// </summary>
         public LoggerRestorePoint RestorePoint;
-
-        /// <summary>
-        /// The name of the combined mod log file in the Logs directory. Only produced with LogManager plugin.
-        /// </summary>
-        public static readonly string OUTPUT_NAME = "mods";
-
-        /// <summary>
-        /// The folder name that will store log files. Do not change this. It is case-sensitive.
-        /// </summary>
-        public static readonly string LOGS_FOLDER_NAME = "Logs";
-
-        /// <summary>
-        /// The default directory where logs are stored. This is managed by the mod.
-        /// </summary>
-        public static string BaseDirectory;
 
         static Logger()
         {
@@ -112,129 +96,6 @@ namespace LogUtils
         #endregion
 
         /// <summary>
-        /// Rain World root folder
-        /// Application.dataPath is RainWorld_data folder
-        /// </summary>
-        public static readonly string DefaultLogPath = Path.Combine(Path.GetDirectoryName(Application.dataPath)/*Directory.GetParent(Application.dataPath).FullName*/, LOGS_FOLDER_NAME);
-
-        /// <summary>
-        /// StreamingAssets folder
-        /// </summary>
-        public static readonly string AlternativeLogPath = Path.Combine(Application.streamingAssetsPath, LOGS_FOLDER_NAME);
-
-        public static bool HasInitialized;
-
-        #region Static Methods
-
-        public static void InitializeLogDirectory()
-        {
-            if (HasInitialized) return;
-
-            BaseDirectory = FindLogsDirectory();
-            try
-            {
-                //The found directory needs to be created if it doesn't yet exist, and the alternative directory removed
-                if (!Directory.Exists(BaseDirectory))
-                {
-                    UtilityCore.BaseLogger.LogInfo("Creating directory: " + BaseDirectory);
-                    Directory.CreateDirectory(BaseDirectory);
-                }
-
-                string alternativeLogPath = string.Equals(BaseDirectory, DefaultLogPath) ? AlternativeLogPath : DefaultLogPath;
-
-                try
-                {
-                    if (Directory.Exists(alternativeLogPath))
-                    {
-                        UtilityCore.BaseLogger.LogInfo("Removing directory: " + alternativeLogPath);
-                        Directory.Delete(alternativeLogPath, true);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    UtilityCore.BaseLogger.LogError("Unable to delete log directory");
-                    UtilityCore.BaseLogger.LogError(ex);
-                }
-            }
-            catch (Exception ex)
-            {
-                UtilityCore.BaseLogger.LogError("Unable to create log directory");
-                UtilityCore.BaseLogger.LogError(ex);
-            }
-
-            HasInitialized = true;
-        }
-
-        public static string FindExistingLogsDirectory()
-        {
-            if (Directory.Exists(DefaultLogPath))
-                return DefaultLogPath;
-
-            if (Directory.Exists(AlternativeLogPath))
-                return AlternativeLogPath;
-
-            return null;
-        }
-
-        public static string FindLogsDirectory()
-        {
-            return FindExistingLogsDirectory() ?? DefaultLogPath;
-        }
-
-        /// <summary>
-        /// Takes a filename and attaches the path stored in BaseDirectory
-        /// </summary>
-        /// <param name="useLogExt">A flag to convert extension to .log</param>
-        public static string ApplyLogPathToFilename(string filename, bool useLogExt = true)
-        {
-            if (useLogExt)
-                filename = FormatLogFile(filename);
-
-            return Path.Combine(BaseDirectory ?? FindLogsDirectory(), filename);
-        }
-
-        /// <summary>
-        /// Change the extension of any filename to .log
-        /// </summary>
-        public static string FormatLogFile(string filename)
-        {
-            return Path.ChangeExtension(filename, ".log");
-        }
-
-        /// <summary>
-        /// Check that a path matches one of the two supported Logs directories.
-        /// </summary>
-        public static bool IsValidLogPath(string path)
-        {
-            if (path == null) return false;
-
-            path = Path.GetFullPath(path).TrimEnd('\\');
-
-            return string.Equals(path, DefaultLogPath, StringComparison.InvariantCultureIgnoreCase)
-                || string.Equals(path, AlternativeLogPath, StringComparison.InvariantCultureIgnoreCase);
-        }
-
-        /// <summary>
-        /// Checks a path against the BaseDirectory
-        /// </summary>
-        public static bool IsBaseLogPath(string path)
-        {
-            if (path == null) return false;
-
-            //Strip the filename if one exists
-            if (Path.HasExtension(path))
-                path = Path.GetDirectoryName(path);
-            else
-                path = Path.GetFullPath(path).TrimEnd('\\');
-
-            string basePath = Path.GetFullPath(BaseDirectory).TrimEnd('\\');
-
-            UtilityCore.BaseLogger.LogInfo("Comparing " + path + " to  base " + basePath);
-
-            return string.Equals(path, basePath, StringComparison.InvariantCultureIgnoreCase);
-        }
-
-        /// <summary>
         /// Action is invoked when the Logs directory is going to be moved on the next Update frame. May get called multiple times if move fails.
         /// If your logger uses a FileStream for logging to the Logs folder, please make sure it is closed upon activation of this event.
         /// </summary>
@@ -272,13 +133,11 @@ namespace LogUtils
                 UtilityCore.BaseLogger.LogInfo("Log directory changed to " + path);
 
                 OnMoveComplete?.Invoke(path);
-                BaseDirectory = path; //This gets updated last. It is needed for comparison purposes.
+                LogsFolder.Path = path; //This gets updated last. It is needed for comparison purposes.
             }
             else if (signalWord == "MoveAborted")
                 OnMoveAborted?.Invoke();
         }
-
-        #endregion
 
         #region Log Overloads (object)
 

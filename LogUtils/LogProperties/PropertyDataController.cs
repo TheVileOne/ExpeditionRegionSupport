@@ -44,6 +44,68 @@ namespace LogUtils.Properties
             CustomLogProperties.OnPropertyRemoved += onCustomPropertyRemoved;
         }
 
+        internal void ProcessLogFiles()
+        {
+            LogsFolder.UpdatePath();
+
+            bool shouldRunStartupRoutine = RWInfo.LatestSetupPeriodReached < RWInfo.STARTUP_CUTOFF_PERIOD;
+
+            //It is important for normal function of the utility for it to initialize before the game does. The following code handles the situation when
+            //the utility is initialized too late, and the game has been allowed to intialize the log files without the necessary utility hooks active
+            if (RWInfo.LatestSetupPeriodReached > SetupPeriod.Pregame)
+            {
+                if (shouldRunStartupRoutine)
+                    StartupRoutineActive = true; //Notify that startup process might be happening early
+
+                ProcessLateInitializedLogFile(LogID.Unity);
+                ProcessLateInitializedLogFile(LogID.Exception);
+
+                if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.ModsInit) //Expedition, and JollyCoop
+                {
+                    ProcessLateInitializedLogFile(LogID.Expedition);
+                    ProcessLateInitializedLogFile(LogID.JollyCoop);
+                }
+            }
+
+            if (shouldRunStartupRoutine) //Sanity check in case we are initializing extra late
+                BeginStartupRoutine();
+        }
+
+        internal void ProcessLateInitializedLogFile(LogID logFile)
+        {
+            LogProperties properties = logFile.Properties;
+
+            //The original filename is stored without its original file extension in the value field of the LogID
+            string originalFilePath = Helpers.LogUtils.FindLogPathWithoutFileExtension(properties.OriginalFolderPath, logFile.value);
+
+            if (originalFilePath != null) //This shouldn't be null under typical circumstances
+            {
+                bool moveFileFromOriginalPath = !PathUtils.PathsAreEqual(originalFilePath, properties.CurrentFilePath);
+                bool lastKnownFileOverwritten = PathUtils.PathsAreEqual(originalFilePath, properties.LastKnownFilePath);
+
+                if (moveFileFromOriginalPath)
+                {
+                    //Set up the temp file for this log file if it isn't too late to do so
+                    if (!lastKnownFileOverwritten && StartupRoutineActive)
+                    {
+                        properties.CreateTempFile();
+                        properties.SkipStartupRoutine = true;
+                    }
+
+                    //Move the file, and if it fails, change the path. Either way, log file exists
+                    if (Helpers.LogUtils.MoveLog(originalFilePath, properties.CurrentFilePath) == FileStatus.MoveComplete)
+                        properties.ChangePath(properties.CurrentFilePath);
+                    else
+                        properties.ChangePath(originalFilePath);
+
+                    properties.FileExists = true;
+                    properties.LogSessionActive = true;
+                }
+
+                properties.SkipStartupRoutine |= lastKnownFileOverwritten;
+            }
+        }
+
         internal void BeginStartupRoutine()
         {
             StartupRoutineActive = true;
@@ -51,6 +113,10 @@ namespace LogUtils.Properties
             {
                 if (!properties.SkipStartupRoutine && !properties.LogSessionActive)
                     properties.CreateTempFile();
+
+                //When the Logs folder is available, favor that path over the original path to the log file
+                if (properties.LogsFolderAware && properties.LogsFolderEligible)
+                    LogsFolder.AddToFolder(properties);
             }
         }
 
@@ -152,6 +218,8 @@ namespace LogUtils.Properties
                         OriginalFolderPath = dataFields[DataFields.ORIGINAL_PATH],
                         LastKnownFilePath = dataFields[DataFields.LAST_KNOWN_PATH],
                         Tags = dataFields[DataFields.TAGS].Split(','),
+                        LogsFolderAware = bool.Parse(dataFields[DataFields.LOGS_FOLDER_AWARE]),
+                        LogsFolderEligible = bool.Parse(dataFields[DataFields.LOGS_FOLDER_ELIGIBLE]),
                         ShowLogsAware = bool.Parse(dataFields[DataFields.SHOW_LOGS_AWARE]),
                         IntroMessage = dataFields[DataFields.Intro.MESSAGE],
                         OutroMessage = dataFields[DataFields.Outro.MESSAGE],
@@ -161,6 +229,11 @@ namespace LogUtils.Properties
 
                     properties.ShowCategories.IsEnabled = bool.Parse(dataFields[DataFields.Rules.SHOW_CATEGORIES]);
                     properties.ShowLineCount.IsEnabled = bool.Parse(dataFields[DataFields.Rules.SHOW_LINE_COUNT]);
+
+                    //This cannot be implemented here as the replacement system needs access to the last known path taken from file
+                    //When the Logs folder is available, favor that path over the original path to the log file 
+                    //if (properties.LogsFolderAware && properties.LogsFolderEligible)
+                    //    LogsFolder.AddToFolder(properties);
 
                     int unprocessedFieldTotal = dataFields.Count - DataFields.EXPECTED_FIELD_COUNT;
 
@@ -188,6 +261,8 @@ namespace LogUtils.Properties
                                 DataFields.Intro.TIMESTAMP => default,
                                 DataFields.Outro.MESSAGE => default,
                                 DataFields.Outro.TIMESTAMP => default,
+                                DataFields.LOGS_FOLDER_AWARE => default,
+                                DataFields.LOGS_FOLDER_ELIGIBLE => default,
                                 DataFields.SHOW_LOGS_AWARE => default,
                                 DataFields.Rules.HEADER => default,
                                 DataFields.Rules.SHOW_LINE_COUNT => default,

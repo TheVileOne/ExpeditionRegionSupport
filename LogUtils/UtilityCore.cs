@@ -95,27 +95,7 @@ namespace LogUtils
 
             if (IsControllingAssembly)
             {
-                bool shouldRunStartupRoutine = RWInfo.LatestSetupPeriodReached < RWInfo.STARTUP_CUTOFF_PERIOD;
-
-                //It is important for normal function of the utility for it to initialize before the game does. The following code handles the situation when
-                //the utility is initialized too late, and the game has been allowed to intialize the log files without the necessary utility hooks active
-                if (RWInfo.LatestSetupPeriodReached > SetupPeriod.Pregame)
-                {
-                    if (shouldRunStartupRoutine)
-                        PropertyManager.StartupRoutineActive = true; //Notify that startup process might be happening early
-
-                    ProcessLateInitializedLogFile(LogID.Unity);
-                    ProcessLateInitializedLogFile(LogID.Exception);
-
-                    if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.ModsInit) //Expedition, and JollyCoop
-                    {
-                        ProcessLateInitializedLogFile(LogID.Expedition);
-                        ProcessLateInitializedLogFile(LogID.JollyCoop);
-                    }
-                }
-
-                if (shouldRunStartupRoutine) //Sanity check in case we are initializing extra late
-                    PropertyManager.BeginStartupRoutine();
+                PropertyManager.ProcessLogFiles();
 
                 //Listen for Unity log requests while the log file is unavailable
                 if (RWInfo.LatestSetupPeriodReached < LogID.Unity.Properties.AccessPeriod)
@@ -145,41 +125,6 @@ namespace LogUtils
 
             DataHandler = ComponentUtils.GetOrCreate<SharedDataHandler>(UtilityConsts.ComponentTags.SHARED_DATA, out _);
             RequestHandler = ComponentUtils.GetOrCreate<LogRequestHandler>(UtilityConsts.ComponentTags.REQUEST_DATA, out _);
-        }
-
-        internal static void ProcessLateInitializedLogFile(LogID logFile)
-        {
-            LogProperties properties = logFile.Properties;
-
-            //The original filename is stored without its original file extension in the value field of the LogID
-            string originalFilePath = Helpers.LogUtils.FindLogPathWithoutFileExtension(properties.OriginalFolderPath, logFile.value);
-
-            if (originalFilePath != null) //This shouldn't be null under typical circumstances
-            {
-                bool moveFileFromOriginalPath = !PathUtils.PathsAreEqual(originalFilePath, properties.CurrentFilePath);
-                bool lastKnownFileOverwritten = PathUtils.PathsAreEqual(originalFilePath, properties.LastKnownFilePath);
-
-                if (moveFileFromOriginalPath)
-                {
-                    //Set up the temp file for this log file if it isn't too late to do so
-                    if (!lastKnownFileOverwritten && PropertyManager.StartupRoutineActive)
-                    {
-                        properties.CreateTempFile();
-                        properties.SkipStartupRoutine = true;
-                    }
-
-                    //Move the file, and if it fails, change the path. Either way, log file exists
-                    if (Helpers.LogUtils.MoveLog(originalFilePath, properties.CurrentFilePath) == FileStatus.MoveComplete)
-                        properties.ChangePath(properties.CurrentFilePath);
-                    else
-                        properties.ChangePath(originalFilePath);
-
-                    properties.FileExists = true;
-                    properties.LogSessionActive = true;
-                }
-
-                properties.SkipStartupRoutine |= lastKnownFileOverwritten;
-            }
         }
 
         /// <summary>
