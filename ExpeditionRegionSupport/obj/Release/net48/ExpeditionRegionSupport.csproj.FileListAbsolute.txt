@@ -9,4 +9,5 @@ C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\obj\Releas
 C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\obj\Release\net48\ExpeditionRegionSupport.pdb
 C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\LogUtils.dll
 C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\bin\Release\net48\LogUtils.pdb
-C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\obj\Release\net48\ExpeditionRegionSupport.csproj.CopyComplete
+C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\obj\Release\net48\ExpeditionRegionSupport.sourcelink.json
+C:\Users\Michael\source\repos\RandomStartsFix\ExpeditionRegionSupport\obj\Release\net48\Expediti.20BF4544.Up2Date

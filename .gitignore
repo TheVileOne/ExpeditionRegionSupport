@@ -130,3 +130,6 @@
 /LogUtils/obj/project.nuget.cache
 /LogUtils/obj/Release/net48/LogUtils.csproj.CoreCompileInputs.cache
 /LogUtils/obj/Release/net48/LogUtils.csproj.FileListAbsolute.txt
+/LogUtils/obj/Release/net48/LogUtils.sourcelink.json
+/ExpeditionRegionSupport/obj/Release/net48/ExpeditionRegionSupport.csproj.FileListAbsolute.txt
+/ExpeditionRegionSupport/obj/Release/net48/ExpeditionRegionSupport.sourcelink.json
