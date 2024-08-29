@@ -21,12 +21,20 @@ namespace LogUtils
         /// </summary>
         internal static void Initialize()
         {
-            Type type = typeof(ManualLogSource);
-            MethodInfo method = type.GetMethod(nameof(ManualLogSource.Log));
+            try
+            {
+                Type type = typeof(ManualLogSource);
+                MethodInfo method = type.GetMethod(nameof(ManualLogSource.Log));
 
-            //Allows LogRules to apply to BepInEx log traffic
-            managedHooks.Add(new ILHook(method, bepInExLogProcessHook));
-            Apply();
+                //Allows LogRules to apply to BepInEx log traffic
+                managedHooks.Add(new ILHook(method, bepInExLogProcessHook));
+                Apply();
+            }
+            catch (Exception ex)
+            {
+                UtilityCore.BaseLogger.LogError("Error occurred while loading hooks");
+                UtilityCore.BaseLogger.LogError(ex);
+            }
         }
 
         /// <summary>
@@ -63,6 +71,7 @@ namespace LogUtils
             On.JollyCoop.JollyCustom.Log += JollyCustom_Log;
 
             managedHooks.ForEach(hook => hook.Apply());
+            UtilityCore.BaseLogger.LogInfo("Hooks loaded successfully");
         }
 
         /// <summary>

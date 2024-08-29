@@ -491,19 +491,29 @@ namespace LogUtils.Properties
 
             string writePath = CurrentFilePath;
 
-            if (IntroMessage != null)
-                FileUtils.WriteLine(writePath, IntroMessage);
+            try
+            {
+                if (IntroMessage != null)
+                    FileUtils.WriteLine(writePath, IntroMessage);
 
-            if (ShowIntroTimestamp)
-                FileUtils.WriteLine(writePath, $"[{DateTime.Now}]");
+                if (ShowIntroTimestamp)
+                    FileUtils.WriteLine(writePath, $"[{DateTime.Now}]");
 
-            OnLogStart?.Invoke(new LogEvents.LogEventArgs(this));
-
-            //File probably always exists at this point - it is possible that it might not in unusual situations
-            //TODO: Determine if file should be created as part of the process
-            FileExists = File.Exists(writePath);
-            LastKnownFilePath = CurrentFilePath;
-            LogSessionActive = FileExists;
+                OnLogStart?.Invoke(new LogEvents.LogEventArgs(this));
+            }
+            catch (IOException ex)
+            {
+                UtilityCore.BaseLogger.LogError("File handling error occurred");
+                UtilityCore.BaseLogger.LogError(ex);
+            }
+            finally
+            {
+                //TODO: Determine if file should be created as part of the process
+                //File probably always exists at this point - it is possible that it might not in unusual situations
+                FileExists = File.Exists(writePath);
+                LastKnownFilePath = CurrentFilePath;
+                LogSessionActive = FileExists;
+            }
         }
 
         /// <summary>
@@ -515,14 +525,27 @@ namespace LogUtils.Properties
 
             string writePath = CurrentFilePath;
 
-            if (OutroMessage != null)
-                FileUtils.WriteLine(writePath, OutroMessage);
+            try
+            {
+                if (ID != LogID.BepInEx) //Unsupported
+                {
+                    if (OutroMessage != null)
+                        FileUtils.WriteLine(writePath, OutroMessage);
 
-            if (ShowOutroTimestamp)
-                FileUtils.WriteLine(writePath, $"[{DateTime.Now}]");
-
-            OnLogFinish?.Invoke(new LogEvents.LogEventArgs(this));
-            LogSessionActive = false;
+                    if (ShowOutroTimestamp)
+                        FileUtils.WriteLine(writePath, $"[{DateTime.Now}]");
+                }
+                OnLogFinish?.Invoke(new LogEvents.LogEventArgs(this));
+            }
+            catch (IOException ex)
+            {
+                UtilityCore.BaseLogger.LogError("File handling error occurred");
+                UtilityCore.BaseLogger.LogError(ex);
+            }
+            finally
+            {
+                LogSessionActive = false;
+            }
         }
 
         /// <summary>
