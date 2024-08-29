@@ -23,6 +23,8 @@ namespace LogUtils
 
         private LogRequest _currentRequest;
 
+        public bool SubmittingRequest;
+
         /// <summary>
         /// The request currently being handled. The property is cleared when request has been properly handled, or the request has been swapped out to another request
         /// </summary>
@@ -101,56 +103,83 @@ namespace LogUtils
         /// <returns>This method returns the same request given to it under any condition. The return value is more reliable than checking CurrentRequest, which may be null</returns>
         public LogRequest Submit(LogRequest request, bool handleSubmission)
         {
-            LogID logFile = request.Data.ID;
-
-            //Waiting requests must be handled before the submitted request
-            ProcessRequests(logFile);
-
-            //Ensures consistent handling of the request
-            request.ResetStatus();
-            request.Submitted = true;
-
-            if (logFile.Properties.HandleRecord.Rejected)
+            if (SubmittingRequest)
             {
-                request.Reject(logFile.Properties.HandleRecord.Reason);
-
-                handleRejection(request);
+                File.AppendAllText("test.txt", "Request submitted during handling of another request" + Environment.NewLine);
+                request.Reject(RejectionReason.SubmissionInProgress);
                 return request;
             }
+            SubmittingRequest = true;
 
-            //These checks will be handled by the respective loggers, it is handled here to avoid a logger check, and to ensure that
-            //these checks are applied without a log attempt
-            if (!handleSubmission || !logFile.IsGameControlled)
+            try
             {
-                //Check RainWorld.ShowLogs for logs that are restricted by it
-                if (logFile.Properties.ShowLogsAware && !RainWorld.ShowLogs)
-                {
-                    if (RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD)
-                        request.Reject(RejectionReason.ShowLogsNotInitialized);
-                    else
-                        request.Reject(RejectionReason.LogDisabled);
-                }
+                File.AppendAllText("test.txt", "Submitted request: Stage 0" + Environment.NewLine);
 
-                //Check that the log file can be initialized
-                if (!logFile.Properties.LogSessionActive && RWInfo.LatestSetupPeriodReached < logFile.Properties.AccessPeriod)
-                    request.Reject(RejectionReason.LogUnavailable);
+                LogID logFile = request.Data.ID;
 
-                //Check one last time for rejected status
-                if (request.Status == RequestStatus.Rejected)
+                File.AppendAllText("test.txt", "Stage 0.5" + Environment.NewLine);
+
+                //Waiting requests must be handled before the submitted request
+                ProcessRequests(logFile);
+
+                File.AppendAllText("test.txt", "Stage 1" + Environment.NewLine);
+
+                //Ensures consistent handling of the request
+                request.ResetStatus();
+                request.Submitted = true;
+
+                if (logFile.Properties.HandleRecord.Rejected)
                 {
+                    request.Reject(logFile.Properties.HandleRecord.Reason);
+
                     handleRejection(request);
                     return request;
                 }
+
+                File.AppendAllText("test.txt", "Stage 2" + Environment.NewLine);
+
+                //These checks will be handled by the respective loggers, it is handled here to avoid a logger check, and to ensure that
+                //these checks are applied without a log attempt
+                if (!handleSubmission || !logFile.IsGameControlled)
+                {
+                    //Check RainWorld.ShowLogs for logs that are restricted by it
+                    if (logFile.Properties.ShowLogsAware && !RainWorld.ShowLogs)
+                    {
+                        if (RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD)
+                            request.Reject(RejectionReason.ShowLogsNotInitialized);
+                        else
+                            request.Reject(RejectionReason.LogDisabled);
+                    }
+
+                    //Check that the log file can be initialized
+                    if (!logFile.Properties.LogSessionActive && RWInfo.LatestSetupPeriodReached < logFile.Properties.AccessPeriod)
+                        request.Reject(RejectionReason.LogUnavailable);
+
+                    //Check one last time for rejected status
+                    if (request.Status == RequestStatus.Rejected)
+                    {
+                        handleRejection(request);
+                        return request;
+                    }
+                }
+
+                File.AppendAllText("test.txt", "Stage 3" + Environment.NewLine);
+
+                //The pending request has not been rejected, and is available to be processed 
+                PendingRequest = request;
+
+                //Submission are either going to be handled through the request system, or the submission serves as a notification that the request is being handled at the source
+                if (handleSubmission)
+                    ProcessRequest(request); //Processing will clean up for us when there is a rejection
+
+                File.AppendAllText("test.txt", "Stage 4" + Environment.NewLine);
+
+                return request;
             }
-
-            //The pending request has not been rejected, and is available to be processed 
-            PendingRequest = request;
-
-            //Submission are either going to be handled through the request system, or the submission serves as a notification that the request is being handled at the source
-            if (handleSubmission)
-                ProcessRequest(request); //Processing will clean up for us when there is a rejection
-
-            return request;
+            finally
+            {
+                SubmittingRequest = false;
+            }
 
             void handleRejection(LogRequest request)
             {

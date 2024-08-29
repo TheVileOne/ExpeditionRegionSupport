@@ -11,7 +11,7 @@ namespace LogUtils
     /// </summary>
     public class LogRequest
     {
-        public const byte NO_RETRY_MAXIMUM = 3;
+        public const byte NO_RETRY_MAXIMUM = 4;
 
         public LogEvents.LogMessageEventArgs Data;
 
@@ -66,7 +66,7 @@ namespace LogUtils
                 return;
             }
 
-            if (reason != RejectionReason.None)
+            if (reason != RejectionReason.None && reason != RejectionReason.SubmissionInProgress) //Temporary conditions should not be recorded
                 Data.Properties.HandleRecord.Reason = reason;
 
             if (UnhandledReason == reason) return;
@@ -104,9 +104,10 @@ namespace LogUtils
         AccessDenied = 1, //LogID is private
         LogDisabled = 2, //LogID is not enabled, Logger is not accepting logs, or LogID is ShowLogs aware and ShowLogs is false
         FailedToWrite = 3, //Attempt to log failed due to an error
-        PathMismatch = 4, //The path information for the LogID accepted by the logger does not match the path information of the LogID in the request
-        LogUnavailable = 5, //No logger is available that accepts the LogID, or the logger accepts the LogID, but enforces a build period on the log file that is not yet satisfied
-        PregameUnityRequest = 6, //Requested action to the Unity logger before the game is initialized
-        ShowLogsNotInitialized = 7 //Requested action to a ShowLogs aware log before ShowLogs is initialized 
+        SubmissionInProgress = 4, //Attempt to log would cause an infinite loop
+        PathMismatch = 5, //The path information for the LogID accepted by the logger does not match the path information of the LogID in the request
+        LogUnavailable = 6, //No logger is available that accepts the LogID, or the logger accepts the LogID, but enforces a build period on the log file that is not yet satisfied
+        PregameUnityRequest = 7, //Requested action to the Unity logger before the game is initialized
+        ShowLogsNotInitialized = 8 //Requested action to a ShowLogs aware log before ShowLogs is initialized 
     }
 }
