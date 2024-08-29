@@ -218,7 +218,10 @@ namespace LogUtils
             /// </summary>
             private LinkedListNode<T> refNode;
 
-            public LinkedListNode<T> CurrentNode => !started ? refNode : refNode.Next;
+            /// <summary>
+            /// The LinkedListNode associated with Current
+            /// </summary>
+            public LinkedListNode<T> CurrentNode => firstProcess ? refNode : refNode?.Next;
 
             public T Current => CurrentNode?.Value;
 
@@ -226,7 +229,7 @@ namespace LogUtils
 
             private BufferedLinkedList<T> items;
 
-            private bool started;
+            private bool firstProcess;
 
             public Enumerator(BufferedLinkedList<T> list)
             {
@@ -252,16 +255,18 @@ namespace LogUtils
             {
                 if (items.Count == 0)
                 {
-                    started = false; //Enumeration cannot start on an empty list
+                    firstProcess = false; //Enumeration cannot start on an empty list
                     return false;
                 }
 
-                if (!started)
+                if (refNode == null)
                 {
                     refNode = items.First;
-                    started = true;
+                    firstProcess = true;
                     return true;
                 }
+
+                firstProcess = false;
 
                 var next = refNode.Next;
 
@@ -276,8 +281,8 @@ namespace LogUtils
 
             public void Reset()
             {
-                started = false;
-                refNode = items.First;
+                firstProcess = false;
+                refNode = null;
             }
         }
 
@@ -426,6 +431,9 @@ namespace LogUtils
 
     public interface ILinkedListEnumerator<T> : IEnumerator<T> where T : class
     {
+        /// <summary>
+        /// The LinkedListNode associated with Current
+        /// </summary>
         public LinkedListNode<T> CurrentNode { get; }
         public IEnumerable<T> EnumerateAll();
     }
