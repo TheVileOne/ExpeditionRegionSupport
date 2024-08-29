@@ -150,6 +150,9 @@ namespace LogUtils
 
         private static void RainWorld_OnDestroy(On.RainWorld.orig_OnDestroy orig, RainWorld self)
         {
+            //End all active log sessions
+            LogProperties.PropertyManager.Properties.ForEach(p => p.EndLogSession());
+
             //BepInEx log file requires special treatment. This log file cannot be replaced on game start like the other log files
             //To account for this, replace this log file when the game closes
             LogID logFile = LogID.BepInEx;

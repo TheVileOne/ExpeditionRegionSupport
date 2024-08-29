@@ -485,8 +485,10 @@ namespace LogUtils.Properties
         /// <summary>
         /// Initiates the routine that applies at the start of a log session. Handle initial file write operations through this process
         /// </summary>
-        public void LogStartProcess()
+        public void BeginLogSession()
         {
+            if (LogSessionActive) return;
+
             string writePath = CurrentFilePath;
 
             if (IntroMessage != null)
@@ -507,8 +509,10 @@ namespace LogUtils.Properties
         /// <summary>
         /// Initiates the routine that applies at the end of a log session
         /// </summary>
-        public void LogEndProcess()
+        public void EndLogSession()
         {
+            if (!LogSessionActive) return;
+
             string writePath = CurrentFilePath;
 
             if (OutroMessage != null)

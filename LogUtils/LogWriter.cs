@@ -32,7 +32,7 @@ namespace LogUtils
             try
             {
                 File.Create(logFile.Properties.CurrentFilePath);
-                logFile.Properties.LogStartProcess();
+                logFile.Properties.BeginLogSession();
             }
             catch (IOException e)
             {
