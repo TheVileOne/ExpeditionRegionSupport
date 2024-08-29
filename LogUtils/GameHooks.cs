@@ -454,7 +454,7 @@ namespace LogUtils
                 File.AppendAllText("test.txt", "Request processed" + Environment.NewLine);
 
                 //Notify that a request has been processed
-                LogEvents.OnMessageReceived(request.Data);
+                LogEvents.OnMessageReceived?.Invoke(request.Data);
 
                 //Prepare data to be put back on the stack
                 //category = request.Data.BepInExCategory;
