@@ -56,5 +56,10 @@ namespace LogUtils.Helpers
 
             return fileExt == fileExt2;
         }
+
+        public static void WriteLine(string path, string message)
+        {
+            File.AppendAllText(path, message + Environment.NewLine);
+        }
     }
 }

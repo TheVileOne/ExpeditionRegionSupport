@@ -110,11 +110,11 @@ namespace LogUtils
 
         protected void InitializeProperties(string logPath)
         {
-            File.AppendAllText("test.txt", "Creating " + value + Environment.NewLine);
+            FileUtils.WriteLine("test.txt", "Creating " + value);
 
             Properties = LogProperties.PropertyManager.GetProperties(this, logPath);
 
-            File.AppendAllText("test.txt", "Properties search complete" + Environment.NewLine);
+            FileUtils.WriteLine("test.txt", "Properties search complete");
 
             if (Properties == null)
             {

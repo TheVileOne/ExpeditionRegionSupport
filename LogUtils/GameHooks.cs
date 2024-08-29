@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Helpers;
 using LogUtils.Properties;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -431,7 +432,7 @@ namespace LogUtils
             {
                 cursor.EmitDelegate(() =>
                 {
-                    File.AppendAllText("test.txt", "Completing BepInEx log request" + Environment.NewLine);
+                    FileUtils.WriteLine("test.txt", "Completing BepInEx log request");
                     transferObject = null;
                     LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
@@ -443,7 +444,7 @@ namespace LogUtils
 
             bool onLogReceived(LogLevel category, object data)
             {
-                File.AppendAllText("test.txt", "Received log request" + Environment.NewLine);
+                FileUtils.WriteLine("test.txt", "Received log request");
                 LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
                 if (request == null)
@@ -454,7 +455,7 @@ namespace LogUtils
                         return false;
                 }
 
-                File.AppendAllText("test.txt", "Request processed" + Environment.NewLine);
+                FileUtils.WriteLine("test.txt", "Request processed");
 
                 //Notify that a request has been processed
                 LogEvents.OnMessageReceived?.Invoke(request.Data);

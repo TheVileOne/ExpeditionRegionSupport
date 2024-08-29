@@ -1,4 +1,5 @@
-﻿using LogUtils.Properties;
+﻿using LogUtils.Helpers;
+using LogUtils.Properties;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -115,7 +116,7 @@ namespace LogUtils
             try
             {
                 message = ApplyRules(logFile, message);
-                File.AppendAllText(writePath, message);
+                FileUtils.WriteLine(writePath, message);
                 return true;
             }
             catch (IOException ex)

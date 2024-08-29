@@ -132,10 +132,10 @@ namespace LogUtils.Properties
                     if (_idValue == null)
                         return null;
 
-                    File.AppendAllText("test.txt", "Generating property id for " + _idValue + Environment.NewLine);
+                    FileUtils.WriteLine("test.txt", "Generating property id for " + _idValue);
                     _id = new LogID(this, _idValue, OriginalFolderPath, false);
 
-                    File.AppendAllText("test.txt", "Generation complete" + Environment.NewLine);
+                    FileUtils.WriteLine("test.txt", "Generation complete");
                 }
                 return _id;
             }
@@ -492,10 +492,10 @@ namespace LogUtils.Properties
             string writePath = CurrentFilePath;
 
             if (IntroMessage != null)
-                File.AppendAllText(writePath, IntroMessage);
+                FileUtils.WriteLine(writePath, IntroMessage);
 
             if (ShowIntroTimestamp)
-                File.AppendAllText(writePath, $"[{DateTime.Now}]");
+                FileUtils.WriteLine(writePath, $"[{DateTime.Now}]");
 
             OnLogStart?.Invoke(new LogEvents.LogEventArgs(this));
 
@@ -516,10 +516,10 @@ namespace LogUtils.Properties
             string writePath = CurrentFilePath;
 
             if (OutroMessage != null)
-                File.AppendAllText(writePath, OutroMessage);
+                FileUtils.WriteLine(writePath, OutroMessage);
 
             if (ShowOutroTimestamp)
-                File.AppendAllText(writePath, $"[{DateTime.Now}]");
+                FileUtils.WriteLine(writePath, $"[{DateTime.Now}]");
 
             OnLogFinish?.Invoke(new LogEvents.LogEventArgs(this));
             LogSessionActive = false;
