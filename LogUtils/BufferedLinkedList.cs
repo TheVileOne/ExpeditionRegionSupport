@@ -72,9 +72,7 @@ namespace LogUtils
 
         public LinkedListNode<T> AddFirst(T value)
         {
-            EnsureCapacity();
-
-            LinkedListNode<T> node = nodeLeaser.Last;
+            LinkedListNode<T> node = GetNodeFromLeaser();
 
             node.Value = value;
             InnerLinkedList.AddFirst(node);
@@ -83,9 +81,7 @@ namespace LogUtils
 
         public LinkedListNode<T> AddLast(T value)
         {
-            EnsureCapacity();
-
-            LinkedListNode<T> node = nodeLeaser.Last;
+            LinkedListNode<T> node = GetNodeFromLeaser();
 
             node.Value = value;
             InnerLinkedList.AddLast(node);
@@ -94,9 +90,7 @@ namespace LogUtils
 
         public LinkedListNode<T> AddBefore(LinkedListNode<T> node, T value)
         {
-            EnsureCapacity();
-
-            LinkedListNode<T> nodeBefore = nodeLeaser.Last;
+            LinkedListNode<T> nodeBefore = GetNodeFromLeaser();
 
             nodeBefore.Value = value;
             InnerLinkedList.AddBefore(node, nodeBefore);
@@ -105,9 +99,7 @@ namespace LogUtils
 
         public LinkedListNode<T> AddAfter(LinkedListNode<T> node, T value)
         {
-            EnsureCapacity();
-
-            LinkedListNode<T> nodeAfter = nodeLeaser.Last;
+            LinkedListNode<T> nodeAfter = GetNodeFromLeaser();
 
             nodeAfter.Value = value;
             InnerLinkedList.AddAfter(node, nodeAfter);
@@ -127,6 +119,16 @@ namespace LogUtils
         public LinkedListNode<T> FindLast(T value)
         {
             return InnerLinkedList.FindLast(value);
+        }
+
+        internal LinkedListNode<T> GetNodeFromLeaser()
+        {
+            EnsureCapacity();
+
+            LinkedListNode<T> node = nodeLeaser.Last;
+
+            nodeLeaser.RemoveLast(); //Node needs to be removed from one LinkedList before it can be added to another
+            return node;
         }
 
         public bool Remove(T value)
