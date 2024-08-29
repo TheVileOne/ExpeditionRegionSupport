@@ -128,7 +128,23 @@ namespace LogUtils
                 //We do not want to modify existing field data, so only do so when it already the default. This logic still may potentially create unwanted behavior
                 field.Value = initValue;
             }
+            return field;
+        }
 
+        public SharedField<T> GetField<T>(Type type, string tag, Func<T> factoryCallback)
+        {
+            var field = Find(type, tag) as SharedField<T>; //Check if a field has already been registered
+
+            if (field == null)
+            {
+                field = new SharedField<T>(tag, factoryCallback()); //Create new shared field and register it
+                RegisterData(type, field);
+            }
+            else if (EqualityComparer<T>.Default.Equals(field.Value))
+            {
+                //We do not want to modify existing field data, so only do so when it already the default. This logic still may potentially create unwanted behavior
+                field.Value = factoryCallback();
+            }
             return field;
         }
 
