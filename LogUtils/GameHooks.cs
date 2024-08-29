@@ -6,10 +6,7 @@ using MonoMod.RuntimeDetour;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace LogUtils
@@ -408,6 +405,9 @@ namespace LogUtils
             cursor.Emit(OpCodes.Pop); //Just need to emit after this instruction. We don't need the reference
             cursor.Emit(OpCodes.Ldarg_1)
                   .Emit(OpCodes.Ldarg_2);
+
+            object transferObject = null;
+
             cursor.EmitDelegate(onLogReceived);
 
             //Check that LogRequest has passed validation
@@ -418,56 +418,49 @@ namespace LogUtils
 
             cursor.MarkLabel(branchLabel);
 
-            MethodInfo getRequest = typeof(LogRequestHandler).GetProperty(nameof(LogRequestHandler.CurrentRequest)).GetGetMethod();
-            MethodInfo getCategory = typeof(LogEvents.LogMessageEventArgs).GetProperty(nameof(LogEvents.LogMessageEventArgs.Category)).GetGetMethod();
-            MethodInfo getSpecificCategory = typeof(LogCategory).GetProperty(nameof(LogCategory.BepInExCategory)).GetGetMethod();
-            //MethodInfo getMessage = typeof(LogEvents.LogMessageEventArgs).GetProperty(nameof(LogEvents.LogMessageEventArgs.Message)).GetGetMethod();
+            //Take handled log message and store it back on the stack
+            cursor.EmitReference(transferObject);
+            cursor.Emit(OpCodes.Starg, 2);
+            cursor.Emit(OpCodes.Ldarg_0); //Add back the instruction that was popped earlier
 
-            //First Data access
-            cursor.EmitReference(UtilityCore.RequestHandler);
-            cursor.Emit(OpCodes.Call, getRequest);
-            cursor.Emit(OpCodes.Ldfld, nameof(LogRequest.Data)); //Access the Data field
-            cursor.Emit(OpCodes.Call, getCategory); //Access Category property from Data
-            cursor.Emit(OpCodes.Call, getSpecificCategory); //Access BepInEx conversion of Category
-            cursor.Emit(OpCodes.Starg, 1); //Overwrite local argument (LogLevel)
+            //Whenever this method returns, treat this request as complete. BepInEx uses a flush timer, so message may not log immediately on completion
+            while (cursor.TryGotoNext(MoveType.Before, x => x.MatchRet()))
+            {
+                cursor.EmitDelegate(() =>
+                {
+                    File.AppendAllText("test.txt", "Completing BepInEx log request" + Environment.NewLine);
+                    transferObject = null;
+                    LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
-            /*
-            //Second Data access
-            cursor.EmitReference(UtilityCore.RequestHandler);
-            cursor.Emit(OpCodes.Call, getRequest);
-            cursor.Emit(OpCodes.Ldfld, nameof(LogRequest.Data)); //Access the Data field
-            cursor.Emit(OpCodes.Call, getMessage); //Access Category property from Data
-            cursor.Emit(OpCodes.Starg, 2); //Overwrite local argument (data)
-            */
-
-            /*
-            //First Data access
-            cursor.Emit(OpCodes.Ldfld, nameof(LogEvents.LogMessageEventArgs.Category)); //Access Category property from Data
-            cursor.Emit(OpCodes.Ldfld, nameof(LogCategory.BepInExCategory)); //Access BepInEx conversion of Category
-            cursor.Emit(OpCodes.Starg, 1); //Overwrite local argument (LogLevel)
-
-            //Second Data access
-            cursor.Emit(OpCodes.Call, getRequest);
-            cursor.Emit(OpCodes.Ldfld, nameof(LogRequest.Data)); //Access the Data field
-            cursor.Emit(OpCodes.Ldfld, nameof(LogEvents.LogMessageEventArgs.Message)); //Access Category property from Data
-            cursor.Emit(OpCodes.Starg, 2); //Overwrite local argument (data)
-            */
+                    request.Complete();
+                    UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+                });
+                cursor.Index++;
+            }
 
             bool onLogReceived(LogLevel category, object data)
             {
+                File.AppendAllText("test.txt", "Received log request" + Environment.NewLine);
                 LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
                 if (request == null)
                 {
-                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.BepInEx, data)), false);
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.BepInEx, data, category)), false);
 
                     if (request.Status == RequestStatus.Rejected)
                         return false;
                 }
 
-                //TODO: Check if there is a more proper place to complete the request
-                request.Complete();
-                UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+                File.AppendAllText("test.txt", "Request processed" + Environment.NewLine);
+
+                //Notify that a request has been processed
+                LogEvents.OnMessageReceived(request.Data);
+
+                //Prepare data to be put back on the stack
+                //category = request.Data.BepInExCategory;
+                transferObject = request.Data.Message;
+
+                //TODO: LogRules need to be applied here
                 return true;
             }
         }
