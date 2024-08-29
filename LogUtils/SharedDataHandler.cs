@@ -69,7 +69,8 @@ namespace LogUtils
         /// <param name="type">The desired type to associate IShareables with (e.g. Shareable booleans can be registered under the boolean type</param>
         public void RegisterType(Type type)
         {
-            DataCollection[type] ??= new List<IShareable>();
+            if (!DataCollection.ContainsKey(type))
+                DataCollection[type] = new List<IShareable>();
         }
 
         /// <summary>

@@ -28,7 +28,7 @@ namespace LogUtils
             get
             {
                 if (!ReferenceEquals(ManagedReference, this))
-                    return ManagedReference.Tag;
+                    return ManagedReference?.Tag ?? value; //Can be null here when it is accessed through the constructor
                 return value;
             }
         }
@@ -45,6 +45,8 @@ namespace LogUtils
         public SharedExtEnum(string value, bool register = false) : base(value, false)
         {
             ManagedReference = (T)UtilityCore.DataHandler.GetOrAssign(this);
+
+            UnityEngine.Debug.Assert(ManagedReference != null);
 
             if (register)
             {

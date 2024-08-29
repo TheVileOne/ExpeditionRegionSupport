@@ -28,16 +28,16 @@ namespace LogUtils
                 UtilityCore.Initialize();
         }
 
-        private static SharedField<SetupPeriod> _latestSetupPeriodReached = UtilityCore.DataHandler.GetField<SetupPeriod>(nameof(LatestSetupPeriodReached));
+        //private static SharedField<SetupPeriod> _latestSetupPeriodReached = UtilityCore.DataHandler.GetField<SetupPeriod>(nameof(LatestSetupPeriodReached));
 
         /// <summary>
         /// The latest point in the initialization process that Rain World has reached since the application began
         /// </summary>
-        public static SetupPeriod LatestSetupPeriodReached
-        {
+        public static SetupPeriod LatestSetupPeriodReached = SetupPeriod.Pregame;
+        /*{
             get => _latestSetupPeriodReached.Value;
             set => _latestSetupPeriodReached.Value = value;
-        }
+        }*/
     }
 
     public enum SetupPeriod
