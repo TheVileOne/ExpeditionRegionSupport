@@ -11,7 +11,7 @@ namespace LogUtils
         /// <summary>
         /// Contains path information, and other settings that affect logging behavior 
         /// </summary>
-        public LogProperties Properties { get; }
+        public LogProperties Properties { get; protected set; }
 
         /// <summary>
         /// Controls the handle limitations of this LogID for the local mod
@@ -36,28 +36,93 @@ namespace LogUtils
         {
         }
 
-        internal LogID(string filename, string relativePathNoFile, bool gameControlled, bool register) : this(filename, relativePathNoFile, gameControlled ? LogAccess.FullAccess : LogAccess.RemoteAccessOnly, register)
+        internal LogID(LogProperties properties, string filename, string relativePathNoFile, bool register) : base(Path.GetFileNameWithoutExtension(filename), register)
         {
-            IsGameControlled = gameControlled;
+            //TODO: Check if ManagedReference can be useful for LogIDs
+            if (!UtilityCore.IsInitialized)
+                IsGameControlled = true;
+            else
+            {
+                switch (filename)
+                {
+                    case UtilityConsts.LogNames.BepInEx:
+                    case UtilityConsts.LogNames.Exception:
+                    case UtilityConsts.LogNames.Expedition:
+                    case UtilityConsts.LogNames.JollyCoop:
+                    case UtilityConsts.LogNames.Unity:
+                        IsGameControlled = true;
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            Access = LogAccess.RemoteAccessOnly;
+
+            if (IsGameControlled)
+            {
+                IsEnabled = true;
+                Access = LogAccess.FullAccess;
+            }
+
+            Properties = properties;
+
+            if (Properties == null)
+            {
+                InitializeProperties(relativePathNoFile);
+
+                string fileExt = Path.GetExtension(filename);
+
+                if (fileExt != string.Empty)
+                    Properties.PreferredFileExt = fileExt;
+            }
         }
 
         public LogID(string filename, string relativePathNoFile, LogAccess access = LogAccess.RemoteAccessOnly, bool register = false) : base(Path.GetFileNameWithoutExtension(filename), register)
         {
-            Access = access;
-            Properties = LogProperties.PropertyManager.GetProperties(this, relativePathNoFile);
-
-            if (Properties == null)
+            if (!UtilityCore.IsInitialized)
+                IsGameControlled = true;
+            else
             {
-                if (register)
-                    Properties = LogProperties.PropertyManager.SetProperties(this, relativePathNoFile); //Register a new LogProperties instance for this LogID
-                else
-                    Properties = new LogProperties(value, relativePathNoFile);
+                switch (filename)
+                {
+                    case UtilityConsts.LogNames.BepInEx:
+                    case UtilityConsts.LogNames.Exception:
+                    case UtilityConsts.LogNames.Expedition:
+                    case UtilityConsts.LogNames.JollyCoop:
+                    case UtilityConsts.LogNames.Unity:
+                        IsGameControlled = true;
+                        break;
+                    default:
+                        break;
+                }
             }
+
+            Access = access;
+
+            InitializeProperties(relativePathNoFile);
 
             string fileExt = Path.GetExtension(filename);
 
             if (fileExt != string.Empty)
                 Properties.PreferredFileExt = fileExt;
+        }
+
+        protected void InitializeProperties(string logPath)
+        {
+            File.AppendAllText("test.txt", "Creating " + value + Environment.NewLine);
+
+            Properties = LogProperties.PropertyManager.GetProperties(this, logPath);
+
+            File.AppendAllText("test.txt", "Properties search complete" + Environment.NewLine);
+
+            if (Properties == null)
+            {
+                if (Registered)
+                    Properties = LogProperties.PropertyManager.SetProperties(this, logPath); //Register a new LogProperties instance for this LogID
+                else
+                    Properties = new LogProperties(value, logPath);
+            }
         }
 
         public static LogID FromPath(string logPath, LogAccess access, bool register)
@@ -107,30 +172,30 @@ namespace LogUtils
 
         internal static void InitializeLogIDs()
         {
-            BepInEx = new LogID("LogOutput", Paths.BepInExRootPath, true, true);
-            Exception = new LogID("exceptionLog", "root", true, true);
-            Expedition = new LogID("ExpLog", "customroot", true, true);
-            JollyCoop = new LogID("jollyLog", "customroot", true, true);
-            Unity = new LogID("consoleLog", "root", true, true);
+            BepInEx = new LogID(null, UtilityConsts.LogNames.BepInEx, Paths.BepInExRootPath, true);
+            Exception = new LogID(null, UtilityConsts.LogNames.Exception, "root", true);
+            Expedition = new LogID(null, UtilityConsts.LogNames.Expedition, "customroot", true);
+            JollyCoop = new LogID(null, UtilityConsts.LogNames.JollyCoop, "customroot", true);
+            Unity = new LogID(null, UtilityConsts.LogNames.Unity, "root", true);
 
             BepInEx.Properties.AccessPeriod = SetupPeriod.Pregame;
-            BepInEx.Properties.AltFilename = "mods";
+            BepInEx.Properties.AltFilename = UtilityConsts.LogNames.BepInExAlt;
             BepInEx.Properties.LogSessionActive = true; //BepInEx log is active before the utility can initialize
             BepInEx.Properties.ShowCategories.IsEnabled = true;
 
             Exception.Properties.AccessPeriod = SetupPeriod.RWAwake;
-            Exception.Properties.AltFilename = "exception";
+            Exception.Properties.AltFilename = UtilityConsts.LogNames.ExceptionAlt;
 
             Expedition.Properties.AccessPeriod = SetupPeriod.ModsInit;
-            Expedition.Properties.AltFilename = "expedition";
+            Expedition.Properties.AltFilename = UtilityConsts.LogNames.ExpeditionAlt;
             Expedition.Properties.ShowLogsAware = true;
 
             JollyCoop.Properties.AccessPeriod = SetupPeriod.ModsInit;
-            JollyCoop.Properties.AltFilename = "jolly";
+            JollyCoop.Properties.AltFilename = UtilityConsts.LogNames.JollyCoopAlt;
             JollyCoop.Properties.ShowLogsAware = true;
 
             Unity.Properties.AccessPeriod = SetupPeriod.RWAwake;
-            Unity.Properties.AltFilename = "console";
+            Unity.Properties.AltFilename = UtilityConsts.LogNames.UnityAlt;
         }
 
         static LogID()

@@ -132,13 +132,16 @@ namespace LogUtils.Properties
                     if (_idValue == null)
                         return null;
 
-                    _id = new LogID(_idValue, OriginalFolderPath);
+                    File.AppendAllText("test.txt", "Generating property id for " + _idValue + Environment.NewLine);
+                    _id = new LogID(this, _idValue, OriginalFolderPath, false);
 
-                    Debug.Assert(_id.Properties == this);
+                    File.AppendAllText("test.txt", "Generation complete" + Environment.NewLine);
                 }
                 return _id;
             }
         }
+
+        public bool IDMatch(LogID logID) => ID == logID;
 
         /// <summary>
         /// A string representation of the content state. This is useful for preventing user sourced changes from being overwritten by mods
@@ -415,13 +418,6 @@ namespace LogUtils.Properties
         {
             if (property.IsLogRule)
                 Rules.Remove(property.Name);
-        }
-
-        public bool IDMatch(LogID logID)
-        {
-            //This should always be comparing against a single case as long as the ctor is invoked, but need to test this
-            return ID == logID;
-            //return string.Equals(logID.value, ID.value, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public void ChangePath(string newPath)

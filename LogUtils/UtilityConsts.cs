@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace LogUtils
+﻿namespace LogUtils
 {
     public static class UtilityConsts
     {
@@ -51,6 +45,21 @@ namespace LogUtils
             public const string SCHEDULER = "Scheduler";
             public const string SHARED_DATA = "SharedData";
             public const string REQUEST_DATA = "RequestData";
+        }
+
+        public static class LogNames
+        {
+            public const string BepInEx = "LogOutput";
+            public const string Exception = "exceptionLog";
+            public const string Expedition = "ExpLog";
+            public const string JollyCoop = "jollyLog";
+            public const string Unity = "consoleLog";
+
+            public const string BepInExAlt = "mods";
+            public const string ExceptionAlt = "exception";
+            public const string ExpeditionAlt = "expedition";
+            public const string JollyCoopAlt = "jolly";
+            public const string UnityAlt = "console";
         }
     }
 }
