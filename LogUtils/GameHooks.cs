@@ -244,20 +244,43 @@ namespace LogUtils
         {
             LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
+            LogID logFile = !LogCategory.IsUnityErrorCategory(logLevel) ? LogID.Unity : LogID.Exception;
+
+            bool requestOverride = false;
+
             //Ensure that request is always constructed before a message is logged
             if (request == null)
             {
-                LogID logFile = !LogCategory.IsUnityErrorCategory(logLevel) ? LogID.Unity : LogID.Exception;
-
                 request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(logFile, logString, LogCategory.ToCategory(logLevel))), false);
 
                 if (request.Status == RequestStatus.Rejected)
                     return;
             }
+            else if (logFile == LogID.Exception && request.Data.ID != LogID.Exception)
+            {
+                UtilityCore.BaseLogger.LogWarning("Exception message forcefully logged to file");
+                requestOverride = true;
+            }
 
-            orig(self, logString, stackTrace, logLevel);
-
-            UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+            try
+            {
+                orig(self, logString, stackTrace, logLevel);
+            }
+            catch
+            {
+                if (!requestOverride)
+                    request.Reject(RejectionReason.FailedToWrite);
+            }
+            finally
+            {
+                if (!requestOverride)
+                {
+                    if (request.Status != RequestStatus.Rejected)
+                        request.Complete();
+                    UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+                }
+                requestOverride = false;
+            }
         }
 
         private static void RainWorld_HandleLog(ILContext il)
@@ -415,10 +438,10 @@ namespace LogUtils
             ILCursor cursor = new ILCursor(il);
 
             cursor.GotoNext(MoveType.After, x => x.MatchLdarg(0));
-            cursor.Emit(OpCodes.Pop); //Just need to emit after this instruction. We don't need the reference
             cursor.Emit(OpCodes.Ldarg_1)
                   .Emit(OpCodes.Ldarg_2);
 
+            bool isUtilityLogger = false;
             object transferObject = null;
 
             cursor.EmitDelegate(onLogReceived);
@@ -434,7 +457,7 @@ namespace LogUtils
             //Take handled log message and store it back on the stack
             cursor.EmitReference(transferObject);
             cursor.Emit(OpCodes.Starg, 2);
-            cursor.Emit(OpCodes.Ldarg_0); //Add back the instruction that was popped earlier
+            cursor.Emit(OpCodes.Ldarg_0); //Replace the one taken off the stack
 
             //Whenever this method returns, treat this request as complete. BepInEx uses a flush timer, so message may not log immediately on completion
             while (cursor.TryGotoNext(MoveType.Before, x => x.MatchRet()))
@@ -443,35 +466,71 @@ namespace LogUtils
                 {
                     FileUtils.WriteLine("test.txt", "Completing BepInEx log request");
                     transferObject = null;
-                    LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
-                    request.Complete();
-                    UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+                    if (!isUtilityLogger)
+                    {
+                        LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+
+                        request.Complete();
+                        UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+                    }
+                    isUtilityLogger = false;
                 });
                 cursor.Index++;
             }
 
-            bool onLogReceived(LogLevel category, object data)
+            bool onLogReceived(ManualLogSource self, LogLevel category, object data)
             {
-                FileUtils.WriteLine("test.txt", "Received log request");
-                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+                isUtilityLogger = self.SourceName == UtilityConsts.UTILITY_NAME;
 
-                if (request == null)
+                if (!isUtilityLogger) //Utility must be allowed to log without disturbing utility functions
                 {
-                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.BepInEx, data, category)), false);
+                    LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
-                    if (request.Status == RequestStatus.Rejected)
-                        return false;
+                    if (request == null)
+                    {
+                        request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.BepInEx, data, category)), false);
+
+                        if (request.Status == RequestStatus.Rejected)
+                            return false;
+                    }
+                    //else if (request.Data.ID != LogID.BepInEx)
+                    //{
+                    //    FileUtils.WriteLine("test.txt", "Cannot handle request - request already in progress");
+                    //    FileUtils.WriteLine("test.txt", data?.ToString());
+                    //    return false;
+                    //}
+
+                    LogProperties properties = request.Data.Properties;
+
+                    if (!properties.LogSessionActive)
+                    {
+                        properties.BeginLogSession();
+
+                        if (!properties.LogSessionActive) //Unable to create log file for some reason
+                        {
+                            FileUtils.WriteLine("test.txt", "Logger from " + self.SourceName);
+                            FileUtils.WriteLine("test.txt", "Tried to log " + data);
+                            FileUtils.WriteLine("test.txt", request.ToString());
+                            FileUtils.WriteLine("test.txt", "FAILED TO WRITE");
+                            request.Reject(RejectionReason.FailedToWrite);
+                            return false;
+                        }
+                    }
+
+                    FileUtils.WriteLine("test.txt", "Request processed");
+
+                    //Notify that a request has been processed
+                    LogEvents.OnMessageReceived?.Invoke(request.Data);
+
+                    //Prepare data to be put back on the stack
+                    //category = request.Data.BepInExCategory;
+                    transferObject = request.Data.Message;
                 }
+                else
+                    transferObject = data;
 
-                FileUtils.WriteLine("test.txt", "Request processed");
-
-                //Notify that a request has been processed
-                LogEvents.OnMessageReceived?.Invoke(request.Data);
-
-                //Prepare data to be put back on the stack
-                //category = request.Data.BepInExCategory;
-                transferObject = request.Data.Message;
+                FileUtils.WriteLine("test.txt", "LOG MESSAGE: " + transferObject?.ToString());
 
                 //TODO: LogRules need to be applied here
                 return true;

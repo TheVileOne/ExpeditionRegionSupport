@@ -2,6 +2,8 @@
 {
     public static class UtilityConsts
     {
+        public const string UTILITY_NAME = "LogUtils";
+
         public static class DataFields
         {
             public const int EXPECTED_FIELD_COUNT = 18;

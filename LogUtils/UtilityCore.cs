@@ -60,8 +60,8 @@ namespace LogUtils
 
             Debug.unityLogger.filterLogType = (LogType)Math.Max((int)Debug.unityLogger.filterLogType, 1000); //Allow space for custom LogTypes to be defined
 
-            BaseLogger = BepInEx.Logging.Logger.Sources.FirstOrDefault(l => l.SourceName == "LogUtils") as ManualLogSource
-                      ?? BepInEx.Logging.Logger.CreateLogSource("LogUtils");
+            BaseLogger = BepInEx.Logging.Logger.Sources.FirstOrDefault(l => l.SourceName == UtilityConsts.UTILITY_NAME) as ManualLogSource
+                      ?? BepInEx.Logging.Logger.CreateLogSource(UtilityConsts.UTILITY_NAME);
 
             //This is before hooks are established. It is highly likely that the utility will load very early, and any mod could force it. Since we cannot control
             //this factor, we have to infer using specific game fields to tell which part of the initialization period we are in
