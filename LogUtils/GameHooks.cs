@@ -455,7 +455,7 @@ namespace LogUtils
             cursor.MarkLabel(branchLabel);
 
             //Take handled log message and store it back on the stack
-            cursor.EmitReference(transferObject);
+            cursor.EmitDelegate(() => transferObject);
             cursor.Emit(OpCodes.Starg, 2);
             cursor.Emit(OpCodes.Ldarg_0); //Replace the one taken off the stack
 
