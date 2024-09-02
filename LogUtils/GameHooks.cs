@@ -535,10 +535,6 @@ namespace LogUtils
 
                         if (!properties.LogSessionActive) //Unable to create log file for some reason
                         {
-                            FileUtils.WriteLine("test.txt", "Logger from " + self.SourceName);
-                            FileUtils.WriteLine("test.txt", "Tried to log " + data);
-                            FileUtils.WriteLine("test.txt", request.ToString());
-                            FileUtils.WriteLine("test.txt", "FAILED TO WRITE");
                             request.Reject(RejectionReason.FailedToWrite);
                             return false;
                         }
