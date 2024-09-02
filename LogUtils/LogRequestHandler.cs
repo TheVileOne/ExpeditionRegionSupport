@@ -1,12 +1,18 @@
-﻿using System;
+﻿using LogUtils.Helpers;
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace LogUtils
 {
     public class LogRequestHandler : UtilityComponent
     {
+        /// <summary>
+        /// This lock object marshals control over submission of LogRequests, and processing requests stored in UnhandledRequests. When there is a need to
+        /// process LogRequests directly from UnhandledRequests, it is recommended to use this lock object to achieve thread safety
+        /// </summary>
+        public object RequestProcessLock = new object();
+
         public override string Tag => UtilityConsts.ComponentTags.REQUEST_DATA;
 
         private List<Logger> availableLoggers = new List<Logger>();
@@ -39,7 +45,10 @@ namespace LogUtils
                     return;
                 }
 
-                _currentRequest = value;
+                lock (RequestProcessLock)
+                {
+                    _currentRequest = value;
+                }
             }
         }
 
@@ -63,19 +72,22 @@ namespace LogUtils
 
             private set
             {
-                if (value == null)
+                lock (RequestProcessLock)
                 {
-                    UnhandledRequests.RemoveLast();
-                    return;
+                    if (value == null)
+                    {
+                        UnhandledRequests.RemoveLast();
+                        return;
+                    }
+
+                    LogRequest lastUnhandledRequest = PendingRequest;
+
+                    //Ensure that only one pending request is handled by design. This shouldn't be the case normally, and handling it this way will consume the unhandled request
+                    if (lastUnhandledRequest != null && (lastUnhandledRequest.Status == RequestStatus.Complete || lastUnhandledRequest.Status == RequestStatus.Pending))
+                        UnhandledRequests.RemoveLast();
+
+                    UnhandledRequests.AddLast(value);
                 }
-
-                LogRequest lastUnhandledRequest = PendingRequest;
-
-                //Ensure that only one pending request is handled by design. This shouldn't be the case normally, and handling it this way will consume the unhandled request
-                if (lastUnhandledRequest != null && (lastUnhandledRequest.Status == RequestStatus.Complete || lastUnhandledRequest.Status == RequestStatus.Pending))
-                    UnhandledRequests.RemoveLast();
-
-                UnhandledRequests.AddLast(value);
             }
         }
 
@@ -87,7 +99,7 @@ namespace LogUtils
             requestEnumerator = (ILinkedListEnumerator<LogRequest>)UnhandledRequests.GetEnumerator();
         }
 
-        public IEnumerable<LogRequest> GetRequests(LogID logFile)
+        public ILinkedListEnumerable<LogRequest> GetRequests(LogID logFile)
         {
             return UnhandledRequests.Where(req => req.Data.Properties.IDMatch(logFile));
         }
@@ -103,26 +115,25 @@ namespace LogUtils
         /// <returns>This method returns the same request given to it under any condition. The return value is more reliable than checking CurrentRequest, which may be null</returns>
         public LogRequest Submit(LogRequest request, bool handleSubmission)
         {
-            if (SubmittingRequest)
+            lock (RequestProcessLock)
             {
-                File.AppendAllText("test.txt", "Request submitted during handling of another request" + Environment.NewLine);
-                request.Reject(RejectionReason.SubmissionInProgress);
-                return request;
-            }
-            SubmittingRequest = true;
+                //This should no longer be necessary with a lock in place
+                /*
+                if (SubmittingRequest)
+                {
+                    FileUtils.WriteLine("test.txt", "Request submitted during handling of another request");
+                    request.Reject(RejectionReason.SubmissionInProgress);
+                    return request;
+                }
+                SubmittingRequest = true;
+                */
 
-            try
-            {
-                File.AppendAllText("test.txt", "Submitted request: Stage 0" + Environment.NewLine);
+                FileUtils.WriteLine("test.txt", "Submitting request");
 
                 LogID logFile = request.Data.ID;
 
-                File.AppendAllText("test.txt", "Stage 0.5" + Environment.NewLine);
-
                 //Waiting requests must be handled before the submitted request
                 ProcessRequests(logFile);
-
-                File.AppendAllText("test.txt", "Stage 1" + Environment.NewLine);
 
                 //Ensures consistent handling of the request
                 request.ResetStatus();
@@ -135,8 +146,6 @@ namespace LogUtils
                     handleRejection(request);
                     return request;
                 }
-
-                File.AppendAllText("test.txt", "Stage 2" + Environment.NewLine);
 
                 //These checks will be handled by the respective loggers, it is handled here to avoid a logger check, and to ensure that
                 //these checks are applied without a log attempt
@@ -163,8 +172,6 @@ namespace LogUtils
                     }
                 }
 
-                File.AppendAllText("test.txt", "Stage 3" + Environment.NewLine);
-
                 //The pending request has not been rejected, and is available to be processed 
                 PendingRequest = request;
 
@@ -172,13 +179,7 @@ namespace LogUtils
                 if (handleSubmission)
                     ProcessRequest(request); //Processing will clean up for us when there is a rejection
 
-                File.AppendAllText("test.txt", "Stage 4" + Environment.NewLine);
-
                 return request;
-            }
-            finally
-            {
-                SubmittingRequest = false;
             }
 
             void handleRejection(LogRequest request)
@@ -345,57 +346,79 @@ namespace LogUtils
         /// </summary>
         public void ProcessRequests(LogID logFile)
         {
-            if (logFile.Properties.HandleRecord.Rejected)
+            lock (RequestProcessLock)
             {
-                TryResolveRecord(logFile);
-
-                if (logFile.Properties.HandleRecord.Rejected)
+                try
                 {
-                    RejectRequests(logFile, logFile.Properties.HandleRecord.Reason);
-                    return;
-                }
-            }
+                    FileUtils.WriteLine("test.txt", "Processing requests for " + logFile);
 
-            IEnumerable<LogRequest> requests = GetRequests(logFile);
-
-            if (!requests.Any()) return;
-
-            if (!logFile.IsGameControlled)
-            {
-                Logger selectedLogger = null;
-                Logger localLogger = null;
-                Logger remoteLogger = null;
-
-                bool shouldFetchLoggers = true;
-                LogRequest lastRequest = null;
-
-                foreach (LogRequest request in requests)
-                {
-                    if (lastRequest != null)
-                        shouldFetchLoggers = !lastRequest.Data.Properties.IDMatch(request.Data.ID); //TODO: Need to check for path here
-
-                    if (shouldFetchLoggers)
+                    if (logFile.Properties.HandleRecord.Rejected)
                     {
-                        findCompatibleLoggers(logFile, out localLogger, out remoteLogger);
+                        FileUtils.WriteLine("test.txt", "Rejection record detected for this request");
 
-                        selectedLogger = request.Type == RequestType.Remote ? remoteLogger : localLogger;
-                        shouldFetchLoggers = false;
+                        TryResolveRecord(logFile);
+
+                        if (logFile.Properties.HandleRecord.Rejected)
+                        {
+                            RejectRequests(logFile, logFile.Properties.HandleRecord.Reason);
+                            return;
+                        }
                     }
 
-                    if (selectedLogger != null)
-                        selectedLogger.HandleRequest(request);
-                    else
-                        request.Reject(RejectionReason.LogUnavailable);
+                    FileUtils.WriteLine("test.txt", "Getting requests");
 
-                    lastRequest = request;
+                    ILinkedListEnumerable<LogRequest> requests = GetRequests(logFile);
+
+                    //TODO: Get Count() to work with ILinkedListEnumerable
+                    //FileUtils.WriteLine("test.txt", "Count " + requests.Count());
+
+                    if (!requests.Any()) return;
+
+                    if (!logFile.IsGameControlled)
+                    {
+                        Logger selectedLogger = null;
+                        Logger localLogger = null;
+                        Logger remoteLogger = null;
+
+                        bool shouldFetchLoggers = true;
+                        LogRequest lastRequest = null;
+
+                        FileUtils.WriteLine("test.txt", "Processing requests");
+                        foreach (LogRequest request in requests)
+                        {
+                            if (lastRequest != null)
+                                shouldFetchLoggers = !lastRequest.Data.Properties.IDMatch(request.Data.ID); //TODO: Need to check for path here
+
+                            if (shouldFetchLoggers)
+                            {
+                                findCompatibleLoggers(logFile, out localLogger, out remoteLogger);
+
+                                selectedLogger = request.Type == RequestType.Remote ? remoteLogger : localLogger;
+                                shouldFetchLoggers = false;
+                            }
+
+                            if (selectedLogger != null)
+                                selectedLogger.HandleRequest(request);
+                            else
+                                request.Reject(RejectionReason.LogUnavailable);
+
+                            lastRequest = request;
+                        }
+                    }
+                    else
+                    {
+                        FileUtils.WriteLine("test.txt", "Handling game request");
+                        GameLogger.HandleRequests(requests);
+                    }
+
+                    DiscardHandledRequests(requests);
+                }
+                catch (Exception ex)
+                {
+                    FileUtils.WriteLine("test.txt", "Process error");
+                    FileUtils.WriteLine("test.txt", ex.ToString());
                 }
             }
-            else
-            {
-                GameLogger.HandleRequests(requests);
-            }
-
-            DiscardHandledRequests(requests);
         }
 
         internal void ProcessRequest(LogRequest request)
@@ -447,58 +470,78 @@ namespace LogUtils
             Logger selectedLogger = null;
             bool verifyRemoteAccess = false;
 
-            //Check every unhandled request, removing recently handled or invalid entries, and handling entries that are capable of being handled
-            foreach (LogRequest target in requestEnumerator.EnumerateAll())
+            int requestNumber = 1;
+            string targetString = string.Empty;
+
+            lock (RequestProcessLock)
             {
-                lastTargetID = targetID;
-                targetID = target.Data.ID;
-
-                bool requestCanBeHandled = true;
-
-                if (requestCanBeHandled = !target.IsCompleteOrInvalid)
+                //Check every unhandled request, removing recently handled or invalid entries, and handling entries that are capable of being handled
+                foreach (LogRequest target in requestEnumerator.EnumerateAll())
                 {
-                    if (!targetID.IsGameControlled)
+                    FileUtils.WriteLine("test.txt", $"Request # [{requestNumber}] {target.ToString()}");
+
+                    requestNumber++;
+
+                    lastTargetID = targetID;
+                    targetID = target.Data.ID;
+
+                    bool requestCanBeHandled = true;
+
+                    if (requestCanBeHandled = !target.IsCompleteOrInvalid)
                     {
-                        //Find a logger that can be used for this LogID
-                        if (selectedLogger == null || targetID != lastTargetID || (verifyRemoteAccess && target.Type == RequestType.Remote && !selectedLogger.AllowRemoteLogging))
+                        if (!targetID.IsGameControlled)
                         {
-                            verifyRemoteAccess = target.Type == RequestType.Local; //Make the system aware that the logger expects local requests
-                            selectedLogger = findCompatibleLogger(targetID, target.Type, doPathCheck: false);
-                        }
-
-                        if (selectedLogger != null)
-                        {
-                            //Try to handle the log request, and recheck the status
-                            RejectionReason result = selectedLogger.HandleRequest(target, true);
-
-                            if (requestCanBeHandled = !target.IsCompleteOrInvalid)
+                            //Find a logger that can be used for this LogID
+                            if (selectedLogger == null || targetID != lastTargetID || (verifyRemoteAccess && target.Type == RequestType.Remote && !selectedLogger.AllowRemoteLogging))
                             {
-                                if (result == RejectionReason.PathMismatch)
-                                {
-                                    //Attempt to find a logger that accepts the target LogID with this exact path
-                                    selectedLogger = findCompatibleLogger(targetID, target.Type, doPathCheck: true);
-
-                                    if (selectedLogger != null)
-                                    {
-                                        selectedLogger.HandleRequest(target, true);
-                                        requestCanBeHandled = !target.IsCompleteOrInvalid;
-                                    }
-                                }
+                                verifyRemoteAccess = target.Type == RequestType.Local; //Make the system aware that the logger expects local requests
+                                selectedLogger = findCompatibleLogger(targetID, target.Type, doPathCheck: false);
                             }
 
-                            if (selectedLogger == null)
-                                target.Reject(RejectionReason.LogUnavailable);
+                            if (selectedLogger != null)
+                            {
+                                //Try to handle the log request, and recheck the status
+                                RejectionReason result = selectedLogger.HandleRequest(target, true);
+
+                                if (requestCanBeHandled = !target.IsCompleteOrInvalid)
+                                {
+                                    if (result == RejectionReason.PathMismatch)
+                                    {
+                                        //Attempt to find a logger that accepts the target LogID with this exact path
+                                        selectedLogger = findCompatibleLogger(targetID, target.Type, doPathCheck: true);
+
+                                        if (selectedLogger != null)
+                                        {
+                                            selectedLogger.HandleRequest(target, true);
+                                            requestCanBeHandled = !target.IsCompleteOrInvalid;
+                                        }
+                                    }
+                                }
+
+                                if (selectedLogger == null)
+                                    target.Reject(RejectionReason.LogUnavailable);
+                            }
+                        }
+                        else
+                        {
+                            FileUtils.WriteLine("test.txt", "Handling game request");
+                            GameLogger.HandleRequest(target);
+                            requestCanBeHandled = !target.IsCompleteOrInvalid;
                         }
                     }
-                    else
+
+                    if (!requestCanBeHandled)
                     {
-                        GameLogger.HandleRequest(target);
-                        requestCanBeHandled = !target.IsCompleteOrInvalid;
+                        if (requestEnumerator.CurrentNode == null)
+                        {
+                            FileUtils.WriteLine("test.txt", "Rejection Reason: " + target.UnhandledReason);
+                            FileUtils.WriteLine("test.txt", "Attempted to remove a null node");
+                            continue;
+                        }
+
+                        UnhandledRequests.Remove(requestEnumerator.CurrentNode);
                     }
                 }
-
-                if (!requestCanBeHandled)
-                    UnhandledRequests.Remove(requestEnumerator.CurrentNode);
             }
         }
 

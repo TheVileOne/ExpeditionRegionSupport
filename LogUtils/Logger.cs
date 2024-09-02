@@ -436,8 +436,11 @@ namespace LogUtils
                 }
                 else if (target.Access == LogAccess.FullAccess || target.Access == LogAccess.Private)
                 {
-                    UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Local, new LogEvents.LogMessageEventArgs(target, data, category)), false);
-                    Writer.WriteToFile();
+                    lock (UtilityCore.RequestHandler.RequestProcessLock)
+                    {
+                        UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Local, new LogEvents.LogMessageEventArgs(target, data, category)), false);
+                        Writer.WriteToFile();
+                    }
                 }
             }
             else

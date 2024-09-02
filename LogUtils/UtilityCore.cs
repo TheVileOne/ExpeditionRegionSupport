@@ -52,6 +52,8 @@ namespace LogUtils
 
         public static FrameTimer Scheduler;
 
+        public static int ThreadID;
+
         internal static void Initialize()
         {
             if (IsInitialized || initializingInProgress) return; //Initialize may be called several times during the init process
@@ -150,16 +152,16 @@ namespace LogUtils
                 Logger.ProcessLogSignal(ManagedLogListener.GetSignal());
         }
 
-        private static object _loggingLock = new object();
         private static string lastLoggedException;
         private static string lastLoggedStackTrace;
 
         internal static void HandleUnityLog(string message, string stackTrace, LogType category)
         {
-            //This submission wont be able to be logged until Rain World can initialize
-            if (RequestHandler.CurrentRequest == null)
+            lock (RequestHandler.RequestProcessLock)
             {
-                lock (_loggingLock)
+                //TODO: Is this check necessary?
+                //This submission wont be able to be logged until Rain World can initialize
+                if (RequestHandler.CurrentRequest == null)
                 {
                     if (LogCategory.IsUnityErrorCategory(category))
                     {

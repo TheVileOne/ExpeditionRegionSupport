@@ -44,9 +44,12 @@ namespace LogUtils
 
         public void WriteFromRequest(LogRequest request)
         {
-            //This shouldn't under normal circumstances be a rejected request
-            UtilityCore.RequestHandler.CurrentRequest = request;
-            WriteToFile();
+            lock (UtilityCore.RequestHandler.RequestProcessLock)
+            {
+                //This shouldn't under normal circumstances be a rejected request
+                UtilityCore.RequestHandler.CurrentRequest = request;
+                WriteToFile();
+            }
         }
 
         /// <summary>
@@ -85,9 +88,12 @@ namespace LogUtils
         public void WriteToFile(LogID logFile, string message)
         {
             LogEvents.LogMessageEventArgs logEventData = new LogEvents.LogMessageEventArgs(logFile, message);
-            UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Local, logEventData), false);
 
-            WriteToFile();
+            lock (UtilityCore.RequestHandler.RequestProcessLock)
+            {
+                UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Local, logEventData), false);
+                WriteToFile();
+            }
         }
 
         internal bool PrepareLogFile(LogID logFile)

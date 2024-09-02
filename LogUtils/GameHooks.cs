@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using UnityEngine;
 
 namespace LogUtils
@@ -27,7 +28,8 @@ namespace LogUtils
                 MethodInfo method = type.GetMethod(nameof(ManualLogSource.Log));
 
                 //Allows LogRules to apply to BepInEx log traffic
-                managedHooks.Add(new ILHook(method, bepInExLogProcessHook));
+                managedHooks.Add(new Hook(method, bepInExLogProcessHook));
+                managedHooks.Add(new ILHook(method, bepInExLogProcessHookIL));
                 Apply();
             }
             catch (Exception ex)
@@ -123,6 +125,8 @@ namespace LogUtils
             if (RWInfo.LatestSetupPeriodReached < SetupPeriod.RWAwake)
                 RWInfo.LatestSetupPeriodReached = SetupPeriod.RWAwake;
 
+            UtilityCore.ThreadID = Thread.CurrentThread.ManagedThreadId; //Used for debug purposes
+            RainWorld._loggingLock = UtilityCore.RequestHandler.RequestProcessLock;
             orig(self);
         }
 
@@ -242,44 +246,53 @@ namespace LogUtils
 
         private static void RainWorld_HandleLog(On.RainWorld.orig_HandleLog orig, RainWorld self, string logString, string stackTrace, LogType logLevel)
         {
-            LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
-
-            LogID logFile = !LogCategory.IsUnityErrorCategory(logLevel) ? LogID.Unity : LogID.Exception;
-
-            bool requestOverride = false;
-
-            //Ensure that request is always constructed before a message is logged
-            if (request == null)
+            lock (UtilityCore.RequestHandler.RequestProcessLock)
             {
-                request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(logFile, logString, LogCategory.ToCategory(logLevel))), false);
-
-                if (request.Status == RequestStatus.Rejected)
-                    return;
-            }
-            else if (logFile == LogID.Exception && request.Data.ID != LogID.Exception)
-            {
-                UtilityCore.BaseLogger.LogWarning("Exception message forcefully logged to file");
-                requestOverride = true;
-            }
-
-            try
-            {
-                orig(self, logString, stackTrace, logLevel);
-            }
-            catch
-            {
-                if (!requestOverride)
-                    request.Reject(RejectionReason.FailedToWrite);
-            }
-            finally
-            {
-                if (!requestOverride)
+                if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake && UtilityCore.ThreadID != Thread.CurrentThread.ManagedThreadId)
                 {
-                    if (request.Status != RequestStatus.Rejected)
-                        request.Complete();
-                    UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+                    UtilityCore.BaseLogger.LogDebug("Log request not handled on main thread");
+                    UtilityCore.BaseLogger.LogDebug($"ThreadInfo: Id [{Thread.CurrentThread.ManagedThreadId}] Source [Unity]");
                 }
-                requestOverride = false;
+
+                LogID logFile = !LogCategory.IsUnityErrorCategory(logLevel) ? LogID.Unity : LogID.Exception;
+
+                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+
+                bool requestOverride = false;
+
+                //Ensure that request is always constructed before a message is logged
+                if (request == null)
+                {
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(logFile, logString, LogCategory.ToCategory(logLevel))), false);
+
+                    if (request.Status == RequestStatus.Rejected)
+                        return;
+                }
+                else if (logFile == LogID.Exception && request.Data.ID != LogID.Exception) //Happens when the utility throws an exception
+                {
+                    UtilityCore.BaseLogger.LogWarning("Exception message forcefully logged to file");
+                    requestOverride = true;
+                }
+
+                try
+                {
+                    orig(self, logString, stackTrace, logLevel);
+                }
+                catch
+                {
+                    if (!requestOverride)
+                        request.Reject(RejectionReason.FailedToWrite);
+                }
+                finally
+                {
+                    if (!requestOverride)
+                    {
+                        if (request.Status != RequestStatus.Rejected)
+                            request.Complete();
+                        UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+                    }
+                    requestOverride = false;
+                }
             }
         }
 
@@ -321,19 +334,22 @@ namespace LogUtils
 
         private static void ExpLog_Log(On.Expedition.ExpLog.orig_Log orig, string message)
         {
-            LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
-
-            //Ensure that request is always constructed before a message is logged
-            if (request == null)
+            lock (UtilityCore.RequestHandler.RequestProcessLock)
             {
-                request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Expedition, message)), false);
+                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
-                if (request.Status == RequestStatus.Rejected)
-                    return;
+                //Ensure that request is always constructed before a message is logged
+                if (request == null)
+                {
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Expedition, message)), false);
+
+                    if (request.Status == RequestStatus.Rejected)
+                        return;
+                }
+
+                orig(message);
+                UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
             }
-
-            orig(message);
-            UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
         }
 
         private static void ExpLog_LogChallengeTypes(ILContext il)
@@ -367,19 +383,22 @@ namespace LogUtils
 
         private static void JollyCustom_Log(On.JollyCoop.JollyCustom.orig_Log orig, string message, bool throwException)
         {
-            LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
-
-            //Ensure that request is always constructed before a message is logged
-            if (request == null)
+            lock (UtilityCore.RequestHandler.RequestProcessLock)
             {
-                request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.JollyCoop, message)), false);
+                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
-                if (request.Status == RequestStatus.Rejected)
-                    return;
+                //Ensure that request is always constructed before a message is logged
+                if (request == null)
+                {
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.JollyCoop, message)), false);
+
+                    if (request.Status == RequestStatus.Rejected)
+                        return;
+                }
+
+                orig(message, throwException);
+                UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
             }
-
-            orig(message, throwException);
-            UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
         }
 
         private static void JollyCustom_WriteToLog(ILContext il)
@@ -433,7 +452,21 @@ namespace LogUtils
             }
         }
 
-        private static void bepInExLogProcessHook(ILContext il)
+        private static void bepInExLogProcessHook(Action<ManualLogSource, LogLevel, object> orig, ManualLogSource self, LogLevel category, object data)
+        {
+            lock (UtilityCore.RequestHandler.RequestProcessLock)
+            {
+                if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake && UtilityCore.ThreadID != Thread.CurrentThread.ManagedThreadId && self.SourceName != UtilityConsts.UTILITY_NAME)
+                {
+                    UtilityCore.BaseLogger.LogDebug("Log request not handled on main thread");
+                    UtilityCore.BaseLogger.LogDebug($"ThreadInfo: Id [{Thread.CurrentThread.ManagedThreadId}] Source [BepInEx]");
+                }
+
+                orig(self, category, data);
+            }
+        }
+
+        private static void bepInExLogProcessHookIL(ILContext il)
         {
             ILCursor cursor = new ILCursor(il);
 
@@ -464,7 +497,6 @@ namespace LogUtils
             {
                 cursor.EmitDelegate(() =>
                 {
-                    FileUtils.WriteLine("test.txt", "Completing BepInEx log request");
                     transferObject = null;
 
                     if (!isUtilityLogger)
@@ -494,12 +526,6 @@ namespace LogUtils
                         if (request.Status == RequestStatus.Rejected)
                             return false;
                     }
-                    //else if (request.Data.ID != LogID.BepInEx)
-                    //{
-                    //    FileUtils.WriteLine("test.txt", "Cannot handle request - request already in progress");
-                    //    FileUtils.WriteLine("test.txt", data?.ToString());
-                    //    return false;
-                    //}
 
                     LogProperties properties = request.Data.Properties;
 
@@ -517,8 +543,6 @@ namespace LogUtils
                             return false;
                         }
                     }
-
-                    FileUtils.WriteLine("test.txt", "Request processed");
 
                     //Notify that a request has been processed
                     LogEvents.OnMessageReceived?.Invoke(request.Data);
