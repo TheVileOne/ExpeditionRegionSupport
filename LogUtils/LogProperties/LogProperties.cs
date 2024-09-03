@@ -504,6 +504,14 @@ namespace LogUtils.Properties
                 if (ShowIntroTimestamp)
                     FileUtils.WriteLine(writePath, $"[{DateTime.Now}]");
 
+                FileExists = File.Exists(writePath);
+
+                if (!FileExists)
+                {
+                    FileUtils.CreateTextFile(writePath);
+                    FileExists = true;
+                }
+
                 OnLogStart?.Invoke(new LogEvents.LogEventArgs(this));
             }
             catch (IOException ex)
@@ -513,11 +521,11 @@ namespace LogUtils.Properties
             }
             finally
             {
-                //TODO: Determine if file should be created as part of the process
-                //File probably always exists at this point - it is possible that it might not in unusual situations
-                FileExists = File.Exists(writePath);
                 LastKnownFilePath = CurrentFilePath;
                 LogSessionActive = FileExists;
+
+                if (!LogSessionActive)
+                    UtilityCore.BaseLogger.LogInfo($"Session failed to start");
             }
         }
 
@@ -527,6 +535,8 @@ namespace LogUtils.Properties
         public void EndLogSession()
         {
             if (!LogSessionActive) return;
+
+            UtilityCore.BaseLogger.LogInfo($"Log session ended [{ID}]");
 
             string writePath = CurrentFilePath;
 

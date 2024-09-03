@@ -29,6 +29,14 @@ namespace LogUtils.Helpers
             return string.Equals(filename, filename2, StringComparison.InvariantCultureIgnoreCase);
         }
 
+        public static void CreateTextFile(string filepath)
+        {
+            var stream = File.CreateText(filepath);
+
+            stream.Close();
+            stream = null;
+        }
+
         public static string RemoveExtension(string filename)
         {
             return Path.ChangeExtension(filename, string.Empty);
@@ -59,6 +67,15 @@ namespace LogUtils.Helpers
 
         public static void WriteLine(string path, string message)
         {
+            //Code has issues. Sharing protection doesn't always write text to file correctly
+            /*
+            StreamWriter writer = new StreamWriter(File.Open(path, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite), Encoding.UTF8);
+
+            writer.WriteLine(message);
+
+            writer.Close();
+            writer = null;
+            */
             File.AppendAllText(path, message + Environment.NewLine);
         }
     }

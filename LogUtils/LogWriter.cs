@@ -26,16 +26,7 @@ namespace LogUtils
 
         public void CreateFile(LogID logFile)
         {
-            try
-            {
-                File.Create(logFile.Properties.CurrentFilePath);
-                logFile.Properties.BeginLogSession();
-            }
-            catch (IOException e)
-            {
-                UtilityCore.BaseLogger.LogError($"Unable to create file {logFile.Properties.CurrentFilenameWithExtension}");
-                UtilityCore.BaseLogger.LogError(e);
-            }
+            logFile.Properties.BeginLogSession();
         }
 
         public void WriteFromRequest(LogRequest request)
