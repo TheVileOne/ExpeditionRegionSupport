@@ -494,6 +494,8 @@ namespace LogUtils.Properties
         {
             if (LogSessionActive) return;
 
+            UtilityCore.BaseLogger.LogInfo($"Attempting to start log session [{ID}]");
+
             string writePath = CurrentFilePath;
 
             try

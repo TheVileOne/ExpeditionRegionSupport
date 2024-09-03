@@ -244,6 +244,8 @@ namespace LogUtils
             }
         }
 
+        private static bool exceptionLogged;
+
         private static void RainWorld_HandleLog(On.RainWorld.orig_HandleLog orig, RainWorld self, string logString, string stackTrace, LogType logLevel)
         {
             lock (UtilityCore.RequestHandler.RequestProcessLock)
@@ -276,6 +278,7 @@ namespace LogUtils
 
                 try
                 {
+                    exceptionLogged = false;
                     orig(self, logString, stackTrace, logLevel);
                 }
                 catch
@@ -286,11 +289,8 @@ namespace LogUtils
                 finally
                 {
                     if (!requestOverride)
-                    {
-                        if (request.Status != RequestStatus.Rejected)
-                            request.Complete();
-                        UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
-                    }
+                        LogWriter.FinishWriteProcess(request);
+
                     requestOverride = false;
                 }
             }
@@ -300,29 +300,78 @@ namespace LogUtils
         {
             ILCursor cursor = new ILCursor(il);
 
-            //Replace all instances of exceptionLog.txt with a full path version
+            cursor.GotoNext(MoveType.After, x => x.MatchLdfld<RainWorld>(nameof(RainWorld.lastLoggedStackTrace)));
+            cursor.GotoNext(MoveType.After, x => x.MatchBrfalse(out _)); //Go to within the duplicate exception report logic
+            cursor.EmitDelegate(beginWriteProcessIL); //Begin write process for exception log
+
+            //Check that LogRequest has passed validation
+            ILLabel branchLabel = cursor.DefineLabel();
+
+            cursor.Emit(OpCodes.Brtrue, branchLabel);
+            cursor.Emit(OpCodes.Ret); //Return early if validation check failed
+
+            cursor.MarkLabel(branchLabel);
+
             int entriesToFind = 2;
             while (entriesToFind > 0 && cursor.TryGotoNext(MoveType.After, x => x.MatchLdstr("exceptionLog.txt")))
             {
+                //Replace all instances of exceptionLog.txt with a full path version
                 cursor.Emit(OpCodes.Pop);
-                cursor.Emit(OpCodes.Ldc_I4_1); //Push a true value on the stack to satisfy second argument
-                cursor.EmitDelegate(() => LogID.Exception.Properties.CurrentFilenameWithExtension);
                 cursor.EmitDelegate(() => LogID.Exception.Properties.CurrentFilePath);
-                //cursor.EmitDelegate(Logger.ApplyLogPathToFilename);
+
+                //Apply log rules directly to the logged message (not the argument)
+                if (cursor.TryGotoNext(MoveType.After, x => x.MatchLdarg(1) || x.MatchLdarg(2))) //Exception, and stacktrace respectively
+                {
+                    cursor.EmitDelegate<Func<string, string>>(message =>
+                    {
+                        exceptionLogged = true;
+                        return LogWriter.Writer.ApplyRules(LogID.Exception, message);
+                    });
+                }
                 entriesToFind--;
             }
 
             if (entriesToFind > 0)
                 UtilityCore.BaseLogger.LogError("IL hook couldn't find exceptionLog.txt");
 
-            //Replace a single instance of consoleLog.txt with a full path version
-            if (cursor.TryGotoNext(MoveType.After, x => x.MatchLdstr("consoleLog.txt")))
+            //Active request needs to be rejected if the duplicate report logging check prevents logging to file
+            cursor.GotoNext(MoveType.Before, x => x.MatchLeaveS(out _));
+
+            cursor.MoveAfterLabels();
+            cursor.EmitDelegate(() =>
             {
+                if (exceptionLogged)
+                {
+                    LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+                    request.Reject(RejectionReason.ExceptionAlreadyReported);
+                }
+            });
+
+            //Replace a single instance of consoleLog.txt with a full path version
+            if (cursor.TryGotoNext(MoveType.Before, x => x.MatchLdstr("consoleLog.txt")))
+            {
+                cursor.EmitDelegate(beginWriteProcessIL); //Begin write process for console log
+
+                //Check that LogRequest has passed validation
+                branchLabel = cursor.DefineLabel();
+
+                cursor.Emit(OpCodes.Brtrue, branchLabel);
+                cursor.Emit(OpCodes.Ret); //Return early if validation check failed
+
+                cursor.MarkLabel(branchLabel);
+
+                cursor.Index++; //Move after matched Ldstr
                 cursor.Emit(OpCodes.Pop);
-                cursor.Emit(OpCodes.Ldc_I4_1); //Push a true value on the stack to satisfy second argument
-                cursor.EmitDelegate(() => LogID.Unity.Properties.CurrentFilenameWithExtension);
                 cursor.EmitDelegate(() => LogID.Unity.Properties.CurrentFilePath);
-                //cursor.EmitDelegate(Logger.ApplyLogPathToFilename);
+
+                //Apply log rules directly to the logged message (not the argument)
+                if (cursor.TryGotoNext(MoveType.After, x => x.MatchLdarg(1)))
+                {
+                    cursor.EmitDelegate<Func<string, string>>(message =>
+                    {
+                        return LogWriter.Writer.ApplyRules(LogID.Unity, message);
+                    });
+                }
             }
             else
             {
@@ -498,9 +547,7 @@ namespace LogUtils
                     if (!isUtilityLogger)
                     {
                         LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
-
-                        request.Complete();
-                        UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+                        LogWriter.FinishWriteProcess(request);
                     }
                     isUtilityLogger = false;
                 });
@@ -523,21 +570,10 @@ namespace LogUtils
                             return false;
                     }
 
-                    LogProperties properties = request.Data.Properties;
+                    LogWriter.BeginWriteProcess(request);
 
-                    if (!properties.LogSessionActive)
-                    {
-                        properties.BeginLogSession();
-
-                        if (!properties.LogSessionActive) //Unable to create log file for some reason
-                        {
-                            request.Reject(RejectionReason.FailedToWrite);
-                            return false;
-                        }
-                    }
-
-                    //Notify that a request has been processed
-                    LogEvents.OnMessageReceived?.Invoke(request.Data);
+                    if (request.Status == RequestStatus.Rejected)
+                        return false;
 
                     //Prepare data to be put back on the stack
                     //category = request.Data.BepInExCategory;
@@ -551,6 +587,14 @@ namespace LogUtils
                 //TODO: LogRules need to be applied here
                 return true;
             }
+        }
+
+        private static bool beginWriteProcessIL()
+        {
+            LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+
+            LogWriter.BeginWriteProcess(request);
+            return request.Status != RequestStatus.Rejected;
         }
     }
 }

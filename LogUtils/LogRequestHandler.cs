@@ -117,17 +117,6 @@ namespace LogUtils
         {
             lock (RequestProcessLock)
             {
-                //This should no longer be necessary with a lock in place
-                /*
-                if (SubmittingRequest)
-                {
-                    FileUtils.WriteLine("test.txt", "Request submitted during handling of another request");
-                    request.Reject(RejectionReason.SubmissionInProgress);
-                    return request;
-                }
-                SubmittingRequest = true;
-                */
-
                 FileUtils.WriteLine("test.txt", "Submitting request");
 
                 LogID logFile = request.Data.ID;

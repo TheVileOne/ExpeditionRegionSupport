@@ -134,6 +134,34 @@ namespace LogUtils
         {
             LogEvents.OnMessageReceived?.Invoke(e);
         }
+
+        /// <summary>
+        /// Starts the process to write to a game-controlled log file
+        /// </summary>
+        internal static void BeginWriteProcess(LogRequest request)
+        {
+            LogProperties properties = request.Data.Properties;
+
+            properties.BeginLogSession();
+
+            if (!properties.LogSessionActive) //Unable to create log file for some reason
+            {
+                request.Reject(RejectionReason.LogUnavailable);
+                return;
+            }
+
+            LogEvents.OnMessageReceived?.Invoke(request.Data);
+        }
+
+        /// <summary>
+        /// Ends the process to write to a game-controlled log file
+        /// </summary>
+        internal static void FinishWriteProcess(LogRequest request)
+        {
+            if (request.Status != RequestStatus.Rejected)
+                request.Complete();
+            UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+        }
     }
 
     public interface ILogWriter
