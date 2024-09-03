@@ -181,21 +181,26 @@ namespace LogUtils
             BepInEx.Properties.AccessPeriod = SetupPeriod.Pregame;
             BepInEx.Properties.AltFilename = UtilityConsts.LogNames.BepInExAlt;
             BepInEx.Properties.LogSessionActive = true; //BepInEx log is active before the utility can initialize
+            BepInEx.Properties.PreferredFileExt = FileExt.LOG;
             BepInEx.Properties.ShowCategories.IsEnabled = true;
 
             Exception.Properties.AccessPeriod = SetupPeriod.RWAwake;
             Exception.Properties.AltFilename = UtilityConsts.LogNames.ExceptionAlt;
+            Exception.Properties.PreferredFileExt = FileExt.TEXT;
 
             Expedition.Properties.AccessPeriod = SetupPeriod.ModsInit;
             Expedition.Properties.AltFilename = UtilityConsts.LogNames.ExpeditionAlt;
+            Expedition.Properties.PreferredFileExt = FileExt.TEXT;
             Expedition.Properties.ShowLogsAware = true;
 
             JollyCoop.Properties.AccessPeriod = SetupPeriod.ModsInit;
             JollyCoop.Properties.AltFilename = UtilityConsts.LogNames.JollyCoopAlt;
+            JollyCoop.Properties.PreferredFileExt = FileExt.TEXT;
             JollyCoop.Properties.ShowLogsAware = true;
 
             Unity.Properties.AccessPeriod = SetupPeriod.RWAwake;
             Unity.Properties.AltFilename = UtilityConsts.LogNames.UnityAlt;
+            Unity.Properties.PreferredFileExt = FileExt.TEXT;
         }
 
         static LogID()

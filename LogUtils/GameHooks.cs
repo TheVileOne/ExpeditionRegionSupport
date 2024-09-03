@@ -305,9 +305,8 @@ namespace LogUtils
             while (entriesToFind > 0 && cursor.TryGotoNext(MoveType.After, x => x.MatchLdstr("exceptionLog.txt")))
             {
                 cursor.Emit(OpCodes.Pop);
-                cursor.EmitDelegate(() => LogID.Exception.Properties.CurrentFilename + ".log");
-                //cursor.Emit(OpCodes.Ldstr, LogID.Exception.Properties.CurrentFilename + ".log");
                 cursor.Emit(OpCodes.Ldc_I4_1); //Push a true value on the stack to satisfy second argument
+                cursor.EmitDelegate(() => LogID.Exception.Properties.CurrentFilenameWithExtension);
                 cursor.EmitDelegate(() => LogID.Exception.Properties.CurrentFilePath);
                 //cursor.EmitDelegate(Logger.ApplyLogPathToFilename);
                 entriesToFind--;
@@ -320,9 +319,8 @@ namespace LogUtils
             if (cursor.TryGotoNext(MoveType.After, x => x.MatchLdstr("consoleLog.txt")))
             {
                 cursor.Emit(OpCodes.Pop);
-                cursor.EmitDelegate(() => LogID.Unity.Properties.CurrentFilename + ".log");
-                //cursor.Emit(OpCodes.Ldstr, LogID.Unity.Properties.CurrentFilename + ".log");
                 cursor.Emit(OpCodes.Ldc_I4_1); //Push a true value on the stack to satisfy second argument
+                cursor.EmitDelegate(() => LogID.Unity.Properties.CurrentFilenameWithExtension);
                 cursor.EmitDelegate(() => LogID.Unity.Properties.CurrentFilePath);
                 //cursor.EmitDelegate(Logger.ApplyLogPathToFilename);
             }
@@ -440,11 +438,9 @@ namespace LogUtils
             {
                 cursor.Emit(OpCodes.Pop); //Get method return value off the stack
                 cursor.EmitDelegate(() => logFile.Properties.CurrentFolderPath);//Load current filepath onto stack
-                //cursor.Emit(OpCodes.Ldstr, logFile.Properties.ContainingFolderPath);
                 cursor.GotoNext(MoveType.After, x => x.Match(OpCodes.Ldstr));
                 cursor.Emit(OpCodes.Pop); //Replace filename extension with new one
-                cursor.EmitDelegate(() => logFile.Properties.CurrentFilename + ".log");//Load current filename onto stack
-                //cursor.Emit(OpCodes.Ldstr, logFile.Properties.CurrentFilename + ".log");
+                cursor.EmitDelegate(() => logFile.Properties.CurrentFilenameWithExtension);//Load current filename onto stack
             }
             else
             {

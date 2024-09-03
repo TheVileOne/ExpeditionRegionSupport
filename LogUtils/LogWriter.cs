@@ -1,11 +1,7 @@
 ﻿using LogUtils.Helpers;
 using LogUtils.Properties;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LogUtils
 {
@@ -37,7 +33,7 @@ namespace LogUtils
             }
             catch (IOException e)
             {
-                UtilityCore.BaseLogger.LogError($"Unable to create file {logFile.Properties.CurrentFilename}.log");
+                UtilityCore.BaseLogger.LogError($"Unable to create file {logFile.Properties.CurrentFilenameWithExtension}");
                 UtilityCore.BaseLogger.LogError(e);
             }
         }

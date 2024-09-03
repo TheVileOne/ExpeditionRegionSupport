@@ -167,9 +167,14 @@ namespace LogUtils.Properties
         public string CurrentFilename { get; private set; }
 
         /// <summary>
+        /// The active filename of the log file (with file extension)
+        /// </summary>
+        public string CurrentFilenameWithExtension => CurrentFilename + PreferredFileExt;
+
+        /// <summary>
         /// The active filepath of the log file (with filename)
         /// </summary>
-        public string CurrentFilePath => Path.Combine(CurrentFolderPath, CurrentFilename + PreferredFileExt);
+        public string CurrentFilePath => Path.Combine(CurrentFolderPath, CurrentFilenameWithExtension);
 
         /// <summary>
         /// The path to the log file when it has been slated to be replaced or removed
@@ -250,7 +255,7 @@ namespace LogUtils.Properties
             }
         }
 
-        public string PreferredFileExt = ".log";
+        public string PreferredFileExt = FileExt.DEFAULT;
 
         /// <summary>
         /// When the log file properties are first initialized, the log file can have its path changed to target the Logs folder if it exists, disabled by default
@@ -459,7 +464,7 @@ namespace LogUtils.Properties
             if (!File.Exists(LastKnownFilePath))
                 return FileStatus.NoActionRequired;
 
-            ReplacementFilePath = Path.ChangeExtension(LastKnownFilePath, ".tmp");
+            ReplacementFilePath = Path.ChangeExtension(LastKnownFilePath, FileExt.TEMP);
 
             if (copyOnly)
                 return Helpers.LogUtils.CopyLog(LastKnownFilePath, ReplacementFilePath);

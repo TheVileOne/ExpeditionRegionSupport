@@ -6,7 +6,7 @@ namespace LogUtils.Helpers
 {
     public static class FileUtils
     {
-        public static string[] SupportedExtensions = { ".log", ".txt", ".tmp" };
+        public static string[] SupportedExtensions = { FileExt.LOG, FileExt.TEXT, FileExt.TEMP };
 
         public static bool CompareFilenames(string filename, string filename2, bool ignoreExtensions = true)
         {
@@ -61,5 +61,14 @@ namespace LogUtils.Helpers
         {
             File.AppendAllText(path, message + Environment.NewLine);
         }
+    }
+
+    public static class FileExt
+    {
+        public const string LOG = ".log";
+        public const string TEXT = ".txt";
+        public const string TEMP = ".tmp";
+
+        public const string DEFAULT = LOG;
     }
 }
