@@ -62,8 +62,8 @@ namespace LogUtils
             IL.RainWorld.HandleLog += RainWorld_HandleLog;
 
             IL.Expedition.ExpLog.ClearLog += ExpLog_ClearLog;
-            IL.Expedition.ExpLog.Log += ExpLog_Log;
-            IL.Expedition.ExpLog.LogOnce += ExpLog_LogOnce;
+            IL.Expedition.ExpLog.Log += expeditionLogProcessHookIL; //This needs to be handled before LogOnce hook
+            IL.Expedition.ExpLog.LogOnce += expeditionLogProcessHookIL;
             IL.Expedition.ExpLog.LogChallengeTypes += ExpLog_LogChallengeTypes;
 
             IL.JollyCoop.JollyCustom.CreateJollyLog += JollyCustom_CreateJollyLog;
@@ -96,6 +96,8 @@ namespace LogUtils
         {
             if (!UtilityCore.IsControllingAssembly) return;
 
+            expeditionLogProcessFlag = true;
+
             On.RainWorld.Awake -= RainWorld_Awake;
             IL.RainWorld.Awake -= RainWorld_Awake;
             On.RainWorld.OnDestroy -= RainWorld_OnDestroy;
@@ -108,8 +110,8 @@ namespace LogUtils
             IL.RainWorld.HandleLog -= RainWorld_HandleLog;
 
             IL.Expedition.ExpLog.ClearLog -= ExpLog_ClearLog;
-            IL.Expedition.ExpLog.Log -= ExpLog_Log;
-            IL.Expedition.ExpLog.LogOnce -= ExpLog_LogOnce;
+            IL.Expedition.ExpLog.Log -= expeditionLogProcessHookIL;
+            IL.Expedition.ExpLog.LogOnce -= expeditionLogProcessHookIL;
             IL.Expedition.ExpLog.LogChallengeTypes -= ExpLog_LogChallengeTypes;
 
             IL.JollyCoop.JollyCustom.CreateJollyLog -= JollyCustom_CreateJollyLog;
@@ -305,15 +307,8 @@ namespace LogUtils
 
             cursor.GotoNext(MoveType.After, x => x.MatchLdfld<RainWorld>(nameof(RainWorld.lastLoggedStackTrace)));
             cursor.GotoNext(MoveType.After, x => x.MatchBrfalse(out _)); //Go to within the duplicate exception report logic
-            cursor.EmitDelegate(beginWriteProcessIL); //Begin write process for exception log
 
-            //Check that LogRequest has passed validation
-            ILLabel branchLabel = cursor.DefineLabel();
-
-            cursor.Emit(OpCodes.Brtrue, branchLabel);
-            cursor.Emit(OpCodes.Ret); //Return early if validation check failed
-
-            cursor.MarkLabel(branchLabel);
+            beginWriteProcessHook(cursor);
 
             int entriesToFind = 2;
             while (entriesToFind > 0 && cursor.TryGotoNext(MoveType.After, x => x.MatchLdstr("exceptionLog.txt")))
@@ -353,15 +348,7 @@ namespace LogUtils
             //Replace a single instance of consoleLog.txt with a full path version
             if (cursor.TryGotoNext(MoveType.Before, x => x.MatchLdstr("consoleLog.txt")))
             {
-                cursor.EmitDelegate(beginWriteProcessIL); //Begin write process for console log
-
-                //Check that LogRequest has passed validation
-                branchLabel = cursor.DefineLabel();
-
-                cursor.Emit(OpCodes.Brtrue, branchLabel);
-                cursor.Emit(OpCodes.Ret); //Return early if validation check failed
-
-                cursor.MarkLabel(branchLabel);
+                beginWriteProcessHook(cursor);
 
                 cursor.Index++; //Move after matched Ldstr
                 cursor.Emit(OpCodes.Pop);
@@ -382,7 +369,26 @@ namespace LogUtils
             }
         }
 
+        private static bool expeditionOrJollyLogInProgress;
+
+        private static void ExpLog_LogChallengeTypes(ILContext il)
+        {
+            showLogsBypassHook(new ILCursor(il), LogID.Expedition);
+        }
+
         private static void ExpLog_Log(On.Expedition.ExpLog.orig_Log orig, string message)
+        {
+            expeditionLogProcessHook(orig, message);
+        }
+
+        private static void ExpLog_LogOnce(On.Expedition.ExpLog.orig_LogOnce orig, string message)
+        {
+            //Utility doesn't yet support LogRequests that target this functionality. Request system does not need to be checked here
+            if (!ExpLog.onceText.Contains(message))
+                expeditionLogProcessHook(orig, message);
+        }
+
+        private static void expeditionLogProcessHook(Delegate orig, string message)
         {
             lock (UtilityCore.RequestHandler.RequestProcessLock)
             {
@@ -397,37 +403,53 @@ namespace LogUtils
                         return;
                 }
 
-                orig(message);
-                UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+                try
+                {
+                    expeditionOrJollyLogInProgress = true;
+                    orig.DynamicInvoke(message);
+                }
+                catch
+                {
+                    request.Reject(RejectionReason.FailedToWrite);
+                }
+                finally
+                {
+                    expeditionOrJollyLogInProgress = false;
+                    LogWriter.FinishWriteProcess(request);
+                }
             }
         }
 
-        private static void ExpLog_LogChallengeTypes(ILContext il)
-        {
-            showLogsBypassHook(new ILCursor(il), LogID.Expedition);
-        }
+        /// <summary>
+        /// This is a hacky way of adding a necessary OpCodes.Pop to ExpLog.Log, but not ExpLog.LogOnce
+        /// </summary>
+        private static bool expeditionLogProcessFlag = true;
 
-        private static void ExpLog_LogOnce(On.Expedition.ExpLog.orig_LogOnce orig, string text)
-        {
-            //Utility doesn't yet support LogRequests that target this functionality. Request system does not need to be checked here
-            if (!ExpLog.onceText.Contains(text))
-                orig(text);
-        }
-
-        private static void ExpLog_Log(ILContext il)
+        private static void expeditionLogProcessHookIL(ILContext il)
         {
             ILCursor cursor = new ILCursor(il);
 
             showLogsBypassHook(cursor, LogID.Expedition);
             replaceLogPathHook(cursor, LogID.Expedition);
-        }
 
-        private static void ExpLog_LogOnce(ILContext il)
-        {
-            ILCursor cursor = new ILCursor(il);
+            //Match this instruction to ensure we are probably matching the correct branch instruction
+            cursor.GotoNext(x => x.MatchCall(typeof(ExpLog), nameof(ExpLog.ClearLog)));
 
-            showLogsBypassHook(cursor, LogID.Expedition);
-            replaceLogPathHook(cursor, LogID.Expedition);
+            ILLabel branchLabel = null;
+
+            //Find a suitable place to start the log write process
+            cursor.GotoPrev(x => x.MatchBrtrue(out branchLabel)); //Take the label, so we can move to it
+            cursor.GotoLabel(branchLabel);
+            cursor.MoveAfterLabels();
+
+            beginWriteProcessHook(cursor, expeditionLogProcessFlag);
+            expeditionLogProcessFlag = false;
+
+            cursor.GotoNext(MoveType.After, x => x.MatchLdarg(0)); //Move to after message is about to be logged
+            cursor.EmitDelegate<Func<string, string>>(message =>
+            {
+                return LogWriter.Writer.ApplyRules(LogID.Expedition, message);
+            });
         }
 
         private static void ExpLog_ClearLog(ILContext il)
@@ -435,7 +457,22 @@ namespace LogUtils
             ILCursor cursor = new ILCursor(il);
 
             showLogsBypassHook(cursor, LogID.Expedition);
+
+            cursor.GotoNext(MoveType.After, x => x.MatchBrfalse(out _)); //Move just after the ShowLogs check
+            cursor.EmitDelegate(LogID.Expedition.Properties.EndLogSession); //End the last log session if it exists
+
             replaceLogPathHook(cursor, LogID.Expedition);
+
+            //Allows Expedition log file to be overwritten with a new log file with the hardcoded intro message.
+            //To have proper control over this file, this process needs to be rewritten to prevent overwriting
+            cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(File), nameof(File.WriteAllText)));
+
+            //By running this after file is overwriting, the hardcoded intro message will appear first
+            cursor.EmitDelegate(() =>
+            {
+                if (!expeditionOrJollyLogInProgress) //Allow it to be handled in the log method
+                    LogID.Expedition.Properties.BeginLogSession();
+            });
         }
 
         private static void JollyCustom_Log(On.JollyCoop.JollyCustom.orig_Log orig, string message, bool throwException)
@@ -599,12 +636,26 @@ namespace LogUtils
             }
         }
 
-        private static bool beginWriteProcessIL()
+        private static void beginWriteProcessHook(ILCursor cursor, bool requiresExtraPop = false)
         {
-            LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+            //Begin write process from the IL stack
+            cursor.EmitDelegate(() =>
+            {
+                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
-            LogWriter.BeginWriteProcess(request);
-            return request.Status != RequestStatus.Rejected;
+                LogWriter.BeginWriteProcess(request);
+                return request.Status != RequestStatus.Rejected;
+            });
+
+            //Check that LogRequest has passed validation
+            ILLabel branchLabel = cursor.DefineLabel();
+
+            cursor.Emit(OpCodes.Brtrue, branchLabel);
+
+            if (requiresExtraPop)
+                cursor.Emit(OpCodes.Pop);
+            cursor.Emit(OpCodes.Ret); //Return early if validation check failed
+            cursor.MarkLabel(branchLabel);
         }
     }
 }
