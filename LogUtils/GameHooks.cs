@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using Expedition;
 using LogUtils.Helpers;
 using LogUtils.Properties;
 using Mono.Cecil.Cil;
@@ -70,6 +71,7 @@ namespace LogUtils
             IL.JollyCoop.JollyCustom.WriteToLog += JollyCustom_WriteToLog;
 
             On.Expedition.ExpLog.Log += ExpLog_Log;
+            On.Expedition.ExpLog.LogOnce += ExpLog_LogOnce;
             On.JollyCoop.JollyCustom.Log += JollyCustom_Log;
 
             managedHooks.ForEach(hook => hook.Apply());
@@ -115,6 +117,7 @@ namespace LogUtils
             IL.JollyCoop.JollyCustom.WriteToLog -= JollyCustom_WriteToLog;
 
             On.Expedition.ExpLog.Log -= ExpLog_Log;
+            On.Expedition.ExpLog.LogOnce -= ExpLog_LogOnce;
             On.JollyCoop.JollyCustom.Log -= JollyCustom_Log;
 
             managedHooks.ForEach(hook => hook.Free());
@@ -402,6 +405,13 @@ namespace LogUtils
         private static void ExpLog_LogChallengeTypes(ILContext il)
         {
             showLogsBypassHook(new ILCursor(il), LogID.Expedition);
+        }
+
+        private static void ExpLog_LogOnce(On.Expedition.ExpLog.orig_LogOnce orig, string text)
+        {
+            //Utility doesn't yet support LogRequests that target this functionality. Request system does not need to be checked here
+            if (!ExpLog.onceText.Contains(text))
+                orig(text);
         }
 
         private static void ExpLog_Log(ILContext il)
