@@ -1,5 +1,5 @@
-﻿using LogUtils.Helpers;
-using LogUtils.Properties;
+﻿using LogUtils.Properties;
+using System;
 using System.IO;
 using System.Linq;
 
@@ -94,7 +94,7 @@ namespace LogUtils
 
             //Start routine for a new log session
             CreateFile(logFile);
-            return true;
+            return logFile.Properties.LogSessionActive;
         }
 
         internal bool InternalWriteToFile(LogEvents.LogMessageEventArgs logEventData)
@@ -108,15 +108,38 @@ namespace LogUtils
 
             try
             {
-                message = ApplyRules(logFile, message);
-                FileUtils.WriteLine(writePath, message);
+                bool retryAttempt = false;
+
+                retry:
+                using (FileStream stream = GetWriteStream(writePath, false))
+                {
+                    if (stream == null)
+                    {
+                        if (!retryAttempt)
+                        {
+                            logFile.Properties.FileExists = false;
+                            if (PrepareLogFile(logFile)) //Allow a single retry after creating the file once confirming session has been established
+                            {
+                                retryAttempt = true;
+                                goto retry;
+                            }
+                        }
+                        throw new IOException("Unable to create log file");
+                    }
+
+                    //Assume stream is fine here
+                    using (StreamWriter writer = new StreamWriter(stream))
+                    {
+                        message = ApplyRules(logFile, message);
+                        writer.WriteLine(message);
+                    }
+                }
                 return true;
             }
             catch (IOException ex)
             {
                 UtilityCore.BaseLogger.LogError("Log write error");
                 UtilityCore.BaseLogger.LogError(ex);
-                UtilityCore.BaseLogger.LogError(ex.StackTrace);
                 return false;
             }
         }
@@ -161,6 +184,23 @@ namespace LogUtils
             if (request.Status != RequestStatus.Rejected)
                 request.Complete();
             UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+        }
+
+        public static FileStream GetWriteStream(string path, bool createFile)
+        {
+            try
+            {
+                FileMode mode = createFile ? FileMode.OpenOrCreate : FileMode.Open;
+
+                //Accessing the write stream this way provides better control over file creation and write access
+                FileStream stream = File.Open(path, mode, FileAccess.ReadWrite, FileShare.ReadWrite);
+                stream.Seek(0, SeekOrigin.End);
+                return stream;
+            }
+            catch (Exception ex) when (ex is FileNotFoundException || ex is DirectoryNotFoundException)
+            {
+                return null;
+            }
         }
     }
 

@@ -67,15 +67,6 @@ namespace LogUtils.Helpers
 
         public static void WriteLine(string path, string message)
         {
-            //Code has issues. Sharing protection doesn't always write text to file correctly
-            /*
-            StreamWriter writer = new StreamWriter(File.Open(path, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite), Encoding.UTF8);
-
-            writer.WriteLine(message);
-
-            writer.Close();
-            writer = null;
-            */
             File.AppendAllText(path, message + Environment.NewLine);
         }
     }

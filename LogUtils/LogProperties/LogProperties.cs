@@ -494,41 +494,42 @@ namespace LogUtils.Properties
         {
             if (LogSessionActive) return;
 
-            UtilityCore.BaseLogger.LogInfo($"Attempting to start log session [{ID}]");
-
             string writePath = CurrentFilePath;
+
+            UtilityCore.BaseLogger.LogInfo($"Attempting to start log session [{ID}]");
 
             try
             {
-                if (IntroMessage != null)
-                    FileUtils.WriteLine(writePath, IntroMessage);
-
-                if (ShowIntroTimestamp)
-                    FileUtils.WriteLine(writePath, $"[{DateTime.Now}]");
-
-                FileExists = File.Exists(writePath);
-
-                if (!FileExists)
+                using (FileStream stream = LogWriter.GetWriteStream(writePath, true))
                 {
-                    FileUtils.CreateTextFile(writePath);
-                    FileExists = true;
-                }
+                    FileExists = stream != null;
 
-                OnLogStart?.Invoke(new LogEvents.LogEventArgs(this));
+                    if (FileExists)
+                    {
+                        using (StreamWriter writer = new StreamWriter(stream))
+                        {
+                            if (IntroMessage != null)
+                                writer.WriteLine(IntroMessage);
+
+                            if (ShowIntroTimestamp)
+                                writer.WriteLine($"[{DateTime.Now}]");
+                        }
+
+                        LogSessionActive = true;
+                        LastKnownFilePath = CurrentFilePath;
+
+                        OnLogStart?.Invoke(new LogEvents.LogEventArgs(this));
+                    }
+                }
             }
-            catch (IOException ex)
+            catch (IOException ex) //Some issue other than the file existing occurred
             {
                 UtilityCore.BaseLogger.LogError("File handling error occurred");
                 UtilityCore.BaseLogger.LogError(ex);
             }
-            finally
-            {
-                LastKnownFilePath = CurrentFilePath;
-                LogSessionActive = FileExists;
 
-                if (!LogSessionActive)
-                    UtilityCore.BaseLogger.LogInfo($"Session failed to start");
-            }
+            if (!LogSessionActive)
+                UtilityCore.BaseLogger.LogWarning($"Session failed to start");
         }
 
         /// <summary>
