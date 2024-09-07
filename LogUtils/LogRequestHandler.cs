@@ -29,8 +29,6 @@ namespace LogUtils
 
         private LogRequest _currentRequest;
 
-        public bool SubmittingRequest;
-
         /// <summary>
         /// The request currently being handled. The property is cleared when request has been properly handled, or the request has been swapped out to another request
         /// </summary>
@@ -74,19 +72,19 @@ namespace LogUtils
             {
                 lock (RequestProcessLock)
                 {
-                    if (value == null)
-                    {
-                        UnhandledRequests.RemoveLast();
-                        return;
-                    }
-
                     LogRequest lastUnhandledRequest = PendingRequest;
 
-                    //Ensure that only one pending request is handled by design. This shouldn't be the case normally, and handling it this way will consume the unhandled request
-                    if (lastUnhandledRequest != null && (lastUnhandledRequest.Status == RequestStatus.Complete || lastUnhandledRequest.Status == RequestStatus.Pending))
-                        UnhandledRequests.RemoveLast();
+                    if (lastUnhandledRequest == value)
+                        return;
 
-                    UnhandledRequests.AddLast(value);
+                    if (lastUnhandledRequest != null)
+                    {
+                        //Enforce only one pending request by design by consuming the last pending request if it exists
+                        UnhandledRequests.RemoveLast();
+                    }
+
+                    if (value != null)
+                        UnhandledRequests.AddLast(value);
                 }
             }
         }
