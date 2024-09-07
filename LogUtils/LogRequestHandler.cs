@@ -89,6 +89,11 @@ namespace LogUtils
             }
         }
 
+        /// <summary>
+        /// A flag that can be used to do a full check to discard handled, or no longer valid requests
+        /// </summary>
+        public bool CheckForHandledRequests;
+
         public LogRequestHandler()
         {
             enabled = true;
@@ -189,7 +194,7 @@ namespace LogUtils
 
             foreach (LogID logFile in logger.LogTargets.Where(log => !log.IsGameControlled && log.Access != LogAccess.RemoteAccessOnly)) //Game controlled logids cannot be handled here
             {
-                IEnumerable<LogRequest> requests = GetRequests(logFile);
+                ILinkedListEnumerable<LogRequest> requests = GetRequests(logFile);
 
                 logger.HandleRequests(requests, true);
                 DiscardHandledRequests(requests);
@@ -561,7 +566,7 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Remove requests that have been handled since being processed
+        /// Checks that requests in enumerable have been completed, or are no longer valid, removing any that have from UnhandledRequests 
         /// </summary>
         internal void DiscardHandledRequests(IEnumerable<LogRequest> requests)
         {
@@ -570,8 +575,20 @@ namespace LogUtils
                 RequestMayBeCompleteOrInvalid(request);
         }
 
+        /// <summary>
+        /// Checks all requests stored in UnhandledRequests, removing any that have been completed, or are no longer valid
+        /// </summary>
+        public void DiscardHandledRequests()
+        {
+            DiscardHandledRequests(UnhandledRequests); //All requests are checked over
+            CheckForHandledRequests = false;
+        }
+
         public void Update()
         {
+            if (CheckForHandledRequests)
+                DiscardHandledRequests();
+
             //Requests should not be regularly checked until after the game, mods, and associated logger instances have been given time to initialize
             //There is a separate process for handling log requests earlier in the setup process
             if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.PostMods)
