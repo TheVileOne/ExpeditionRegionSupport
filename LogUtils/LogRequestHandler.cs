@@ -25,7 +25,6 @@ namespace LogUtils
         public GameLogger GameLogger = new GameLogger();
 
         public BufferedLinkedList<LogRequest> UnhandledRequests;
-        private ILinkedListEnumerator<LogRequest> requestEnumerator;
 
         private LogRequest _currentRequest;
 
@@ -98,8 +97,6 @@ namespace LogUtils
         {
             enabled = true;
             UnhandledRequests = new BufferedLinkedList<LogRequest>(20);
-
-            requestEnumerator = (ILinkedListEnumerator<LogRequest>)UnhandledRequests.GetEnumerator();
         }
 
         public ILinkedListEnumerable<LogRequest> GetRequests(LogID logFile)
@@ -467,6 +464,8 @@ namespace LogUtils
 
             lock (RequestProcessLock)
             {
+                var requestEnumerator = UnhandledRequests.GetLinkedListEnumerator();
+
                 //Check every unhandled request, removing recently handled or invalid entries, and handling entries that are capable of being handled
                 foreach (LogRequest target in requestEnumerator.EnumerateAll())
                 {
