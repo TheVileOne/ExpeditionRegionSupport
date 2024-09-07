@@ -78,7 +78,9 @@ namespace LogUtils
 
             lock (UtilityCore.RequestHandler.RequestProcessLock)
             {
-                UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Local, logEventData), false);
+                RequestType requestType = logFile.IsGameControlled ? RequestType.Game : RequestType.Local;
+
+                UtilityCore.RequestHandler.Submit(new LogRequest(requestType, logEventData), false);
                 WriteToFile();
             }
         }
