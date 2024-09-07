@@ -470,6 +470,12 @@ namespace LogUtils
                 //Check every unhandled request, removing recently handled or invalid entries, and handling entries that are capable of being handled
                 foreach (LogRequest target in requestEnumerator.EnumerateAll())
                 {
+                    if (target == null)
+                    {
+                        UtilityCore.BaseLogger.LogWarning("Processed a null log request... aborting operation");
+                        break;
+                    }
+
                     FileUtils.WriteLine("test.txt", $"Request # [{requestNumber}] {target.ToString()}");
 
                     requestNumber++;

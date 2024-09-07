@@ -256,7 +256,6 @@ namespace LogUtils
                 if (items == null)
                 {
                     UtilityCore.BaseLogger.LogWarning("Enumerator items list should not be null");
-                    FileUtils.WriteLine("test.txt", "items is null");
 
                     firstProcess = false; //Enumeration cannot start on an empty list
                     return false;
