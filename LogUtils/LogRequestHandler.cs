@@ -117,16 +117,17 @@ namespace LogUtils
         {
             lock (RequestProcessLock)
             {
-                FileUtils.WriteLine("test.txt", "Submitting request");
+                if (request.Submitted)
+                    UtilityCore.BaseLogger.LogWarning("Submitted request has already been submitted at least once");
+
+                //Ensures consistent handling of the request
+                request.ResetStatus();
+                request.Submitted = true;
 
                 LogID logFile = request.Data.ID;
 
                 //Waiting requests must be handled before the submitted request
                 ProcessRequests(logFile);
-
-                //Ensures consistent handling of the request
-                request.ResetStatus();
-                request.Submitted = true;
 
                 if (logFile.Properties.HandleRecord.Rejected)
                 {
