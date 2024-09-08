@@ -249,8 +249,6 @@ namespace LogUtils
             }
         }
 
-        private static bool exceptionLogged;
-
         private static void RainWorld_HandleLog(On.RainWorld.orig_HandleLog orig, RainWorld self, string logString, string stackTrace, LogType logLevel)
         {
             lock (UtilityCore.RequestHandler.RequestProcessLock)
@@ -263,40 +261,49 @@ namespace LogUtils
 
                 LogID logFile = !LogCategory.IsUnityErrorCategory(logLevel) ? LogID.Unity : LogID.Exception;
 
+                LogRequest waitingRequest = null;
                 LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
-                bool requestOverride = false;
+                bool shouldSubmitRequest = false;
 
                 //Ensure that request is always constructed before a message is logged
-                if (request == null)
+                if (request == null || logFile != LogID.Exception)
+                {
+                    shouldSubmitRequest = true;
+                }
+                else if (request.Data.ID != LogID.Exception) //Happens when the utility throws an exception
+                {
+                    UtilityCore.BaseLogger.LogWarning("Exception message forcefully logged to file");
+
+                    /*
+                    //Null the request, so that a new request can be submitted
+                    UtilityCore.RequestHandler.CurrentRequest = null;
+                    waitingRequest = request;
+
+                    shouldSubmitRequest = true;
+                    */
+                }
+
+                if (shouldSubmitRequest)
                 {
                     request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(logFile, logString, LogCategory.ToCategory(logLevel))), false);
 
                     if (request.Status == RequestStatus.Rejected)
                         return;
                 }
-                else if (logFile == LogID.Exception && request.Data.ID != LogID.Exception) //Happens when the utility throws an exception
-                {
-                    UtilityCore.BaseLogger.LogWarning("Exception message forcefully logged to file");
-                    requestOverride = true;
-                }
 
                 try
                 {
-                    exceptionLogged = false;
                     orig(self, logString, stackTrace, logLevel);
                 }
                 catch
                 {
-                    if (!requestOverride)
-                        request.Reject(RejectionReason.FailedToWrite);
+                    request.Reject(RejectionReason.FailedToWrite);
                 }
                 finally
                 {
-                    if (!requestOverride)
-                        LogWriter.FinishWriteProcess(request);
-
-                    requestOverride = false;
+                    if (waitingRequest != null)
+                        UtilityCore.RequestHandler.CurrentRequest = waitingRequest;
                 }
             }
         }
@@ -304,68 +311,95 @@ namespace LogUtils
         private static void RainWorld_HandleLog(ILContext il)
         {
             ILCursor cursor = new ILCursor(il);
+            ILLabel branchLabel = null;
+
+            bool exceptionLogged = false;
 
             cursor.GotoNext(MoveType.After, x => x.MatchLdfld<RainWorld>(nameof(RainWorld.lastLoggedStackTrace)));
-            cursor.GotoNext(MoveType.After, x => x.MatchBrfalse(out _)); //Go to within the duplicate exception report logic
+            cursor.GotoNext(MoveType.After, x => x.MatchBrfalse(out branchLabel)); //Get duplicate report branch label
 
-            beginWriteProcessHook(cursor);
+            gotoWriteInstruction(cursor, "exceptionLog.txt");
 
-            int entriesToFind = 2;
-            while (entriesToFind > 0 && cursor.TryGotoNext(MoveType.After, x => x.MatchLdstr("exceptionLog.txt")))
+            //Cursor is now positioned before exception strings are written to file. Intercept and handle the strings using a LogWriter
+            cursor.Emit(OpCodes.Ldarg_1); //logString
+            cursor.Emit(OpCodes.Ldarg_2); //stackTrace
+            cursor.EmitDelegate((string exceptionString, string stackTrace) =>
             {
-                //Replace all instances of exceptionLog.txt with a full path version
-                cursor.Emit(OpCodes.Pop);
-                cursor.EmitDelegate(() => LogID.Exception.Properties.CurrentFilePath);
+                exceptionLogged = true;
 
-                //Apply log rules directly to the logged message (not the argument)
-                if (cursor.TryGotoNext(MoveType.After, x => x.MatchLdarg(1) || x.MatchLdarg(2))) //Exception, and stacktrace respectively
+                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+
+                //Complete the exception log request in order to handle the two exception string arguments as separate requests
+                if (request != null && request.Data.ID == LogID.Exception)
                 {
-                    cursor.EmitDelegate<Func<string, string>>(message =>
+                    if (stackTrace == string.Empty) //Should we treat this like a normal log request
                     {
-                        exceptionLogged = true;
-                        return LogWriter.Writer.ApplyRules(LogID.Exception, message);
-                    });
+                        LogWriter.Writer.WriteToFile();
+                        return;
+                    }
+
+                    request.Complete();
+                    UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
                 }
-                entriesToFind--;
-            }
 
-            if (entriesToFind > 0)
-                UtilityCore.BaseLogger.LogError("IL hook couldn't find exceptionLog.txt");
-
-            //Active request needs to be rejected if the duplicate report logging check prevents logging to file
-            cursor.GotoNext(MoveType.Before, x => x.MatchLeaveS(out _));
-
-            cursor.MoveAfterLabels();
-            cursor.EmitDelegate(() =>
-            {
-                if (exceptionLogged)
-                {
-                    LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
-                    request.Reject(RejectionReason.ExceptionAlreadyReported);
-                }
+                writeToFile(new LogEvents.LogMessageEventArgs(LogID.Exception, exceptionString, LogType.Exception));
+                writeToFile(new LogEvents.LogMessageEventArgs(LogID.Exception, stackTrace, LogType.Exception));
+                //UtilityCore.RequestHandler.CheckForHandledRequests = true;
             });
 
-            //Replace a single instance of consoleLog.txt with a full path version
-            if (cursor.TryGotoNext(MoveType.Before, x => x.MatchLdstr("consoleLog.txt")))
+            ILLabel afterWriteLabel = cursor.DefineLabel();
+
+            cursor.Emit(OpCodes.Br, afterWriteLabel); //Bypass write attempts
+            cursor.GotoNext(MoveType.Before, x => x.MatchLdarg(0), x => x.MatchLdarg(1));
+            cursor.MarkLabel(afterWriteLabel);
+
+            cursor.GotoLabel(branchLabel); //Move to label, and emit next instructions at label position
+
+            cursor.EmitDelegate(() =>
             {
-                beginWriteProcessHook(cursor);
-
-                cursor.Index++; //Move after matched Ldstr
-                cursor.Emit(OpCodes.Pop);
-                cursor.EmitDelegate(() => LogID.Unity.Properties.CurrentFilePath);
-
-                //Apply log rules directly to the logged message (not the argument)
-                if (cursor.TryGotoNext(MoveType.After, x => x.MatchLdarg(1)))
+                if (!exceptionLogged) //Check if the duplicate exception log check prevented logging
                 {
-                    cursor.EmitDelegate<Func<string, string>>(message =>
-                    {
-                        return LogWriter.Writer.ApplyRules(LogID.Unity, message);
-                    });
+                    //This request will only be created from a utility Logger class, interfacing with the Unity logger directly wont create this
+                    LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+
+                    //Reject the log request, for it has already been logged
+                    if (request != null && request.Data.ID == LogID.Exception)
+                        request.Reject(RejectionReason.ExceptionAlreadyReported);
                 }
-            }
-            else
+                exceptionLogged = false;
+            });
+
+            //Prepare to bypass second write attempt
+            cursor.GotoNext(MoveType.After, x => x.MatchCall<ModManager>("get_ModdingEnabled"));
+            cursor.GotoNext(x => x.MatchBrfalse(out afterWriteLabel));
+
+            gotoWriteInstruction(cursor, "consoleLog.txt");
+
+            cursor.Emit(OpCodes.Ldarg_1);
+            cursor.EmitDelegate((string message) => //If a mod changes the message string, utility Logger requests will not be affected here
             {
-                UtilityCore.BaseLogger.LogError("IL hook couldn't find consoleLog.txt");
+                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+                writeToFile(request.Data);
+            });
+            cursor.Emit(OpCodes.Br, afterWriteLabel); //Bypass write attempt
+
+            static void writeToFile(LogEvents.LogMessageEventArgs requestData)
+            {
+                LogRequest request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, requestData), false);
+
+                if (request.Status != RequestStatus.Rejected)
+                    LogWriter.Writer.WriteToFile();
+            }
+        }
+
+        private static void gotoWriteInstruction(ILCursor cursor, string filename)
+        {
+            //Someone must have tampered with the filename for this to fail
+            if (!cursor.TryGotoNext(MoveType.Before, x => x.MatchLdstr(filename)))
+            {
+                //Fallback IL
+                cursor.GotoNext(x => x.MatchCall(typeof(File), nameof(File.AppendAllText)));
+                cursor.GotoPrev(MoveType.Before, x => x.MatchLdstr(out _));
             }
         }
 
