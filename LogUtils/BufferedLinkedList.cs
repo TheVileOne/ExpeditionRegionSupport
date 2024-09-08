@@ -227,9 +227,11 @@ namespace LogUtils
 
             object IEnumerator.Current => CurrentNode?.Value;
 
-            private BufferedLinkedList<T> items;
-
             private bool firstProcess;
+
+            private int index;
+
+            private BufferedLinkedList<T> items;
 
             public Enumerator(BufferedLinkedList<T> list)
             {
@@ -261,35 +263,36 @@ namespace LogUtils
                     return false;
                 }
 
-                if (items.Count == 0)
+                if (index >= items.Count) //Enumeration must be within the bounds of the collection
                 {
-                    firstProcess = false; //Enumeration cannot start on an empty list
+                    firstProcess = false;
                     return false;
                 }
 
-                if (refNode == null)
+                if (index == 0 && !firstProcess) //The first process returns the first node
                 {
-                    refNode = items.First;
                     firstProcess = true;
-                    return true;
+                    refNode = items.First;
                 }
-
-                firstProcess = false;
-
-                var next = refNode.Next;
-
-                //The reference node is only changed when list can be advanced
-                if (next != null && next != items.First)
+                else
                 {
-                    refNode = next;
-                    return true;
+                    firstProcess = false;
+
+                    if (index > 1) //The second node is accessed from the first node, the third node from the second, and so on
+                        refNode = refNode?.Next;
                 }
-                return false;
+
+                if (Current == null)
+                    FileUtils.WriteLine("test.txt", "Current should not be null");
+
+                index++;
+                return true;
             }
 
             public void Reset()
             {
                 firstProcess = false;
+                index = 0;
                 refNode = null;
             }
         }
