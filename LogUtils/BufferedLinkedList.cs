@@ -247,14 +247,20 @@ namespace LogUtils
                 yield break;
             }
 
+            bool disposed = false;
+
             public void Dispose()
             {
-                refNode = null;
-                items = null;
+                disposed = true;
+                FileUtils.WriteLine("test.txt", "Disposing enumerator");
+                Reset();
             }
 
             public bool MoveNext()
             {
+                if (disposed)
+                    FileUtils.WriteLine("test.txt", "Accessing a disposed enumerator");
+
                 if (items == null)
                 {
                     UtilityCore.BaseLogger.LogWarning("Enumerator items list should not be null");
@@ -314,7 +320,7 @@ namespace LogUtils
 
             public void Dispose()
             {
-                innerEnumerator.Dispose();
+                //FileUtils.WriteLine("test.txt", "Disposing from enumerator wrapper");
             }
 
             public bool MoveNext()
@@ -406,7 +412,7 @@ namespace LogUtils
 
             public void Dispose()
             {
-                innerEnumerator.Dispose();
+                //FileUtils.WriteLine("test.txt", "Disposing from where enumerator");
             }
 
             public bool MoveNext()
