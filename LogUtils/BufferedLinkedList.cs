@@ -196,14 +196,13 @@ namespace LogUtils
         {
             if (AllowModificationsDuringIteration)
                 return new Enumerator(this);
+
             return new EnumeratorWrapper(InnerLinkedList.GetEnumerator());
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            if (AllowModificationsDuringIteration)
-                return new Enumerator(this);
-            return new EnumeratorWrapper(InnerLinkedList.GetEnumerator());
+            return GetEnumerator();
         }
 
         public ILinkedListEnumerator<T> GetLinkedListEnumerator()
@@ -225,7 +224,7 @@ namespace LogUtils
 
             public T Current => CurrentNode?.Value;
 
-            object IEnumerator.Current => CurrentNode?.Value;
+            object IEnumerator.Current => Current;
 
             private bool firstProcess;
 
@@ -384,7 +383,7 @@ namespace LogUtils
 
             IEnumerator IEnumerable.GetEnumerator()
             {
-                return new WhereEnumerator(enumerator, predicate);
+                return GetEnumerator();
             }
 
             public ILinkedListEnumerator<T> GetLinkedListEnumerator()
