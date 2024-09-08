@@ -324,16 +324,16 @@ namespace LogUtils
 
             public void Reset()
             {
-                innerEnumerator.Reset();
+                try
+                {
+                    innerEnumerator.Reset(); //This method might not be implemented
+                }
+                catch (NotImplementedException) { }
             }
 
             public IEnumerable<T> EnumerateAll()
             {
-                try
-                {
-                    Reset(); //This method might not be implemented
-                }
-                catch { };
+                Reset();
 
                 while (MoveNext())
                     yield return Current;
