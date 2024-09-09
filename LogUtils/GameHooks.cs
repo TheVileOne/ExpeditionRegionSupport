@@ -253,11 +253,7 @@ namespace LogUtils
         {
             lock (UtilityCore.RequestHandler.RequestProcessLock)
             {
-                if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake && UtilityCore.ThreadID != Thread.CurrentThread.ManagedThreadId)
-                {
-                    UtilityCore.BaseLogger.LogDebug("Log request not handled on main thread");
-                    UtilityCore.BaseLogger.LogDebug($"ThreadInfo: Id [{Thread.CurrentThread.ManagedThreadId}] Source [Unity]");
-                }
+                logWhenNotOnMainThread(LogID.Unity);
 
                 LogID logFile = !LogCategory.IsUnityErrorCategory(logLevel) ? LogID.Unity : LogID.Exception;
 
@@ -582,11 +578,8 @@ namespace LogUtils
         {
             lock (UtilityCore.RequestHandler.RequestProcessLock)
             {
-                if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake && UtilityCore.ThreadID != Thread.CurrentThread.ManagedThreadId && self.SourceName != UtilityConsts.UTILITY_NAME)
-                {
-                    UtilityCore.BaseLogger.LogDebug("Log request not handled on main thread");
-                    UtilityCore.BaseLogger.LogDebug($"ThreadInfo: Id [{Thread.CurrentThread.ManagedThreadId}] Source [BepInEx]");
-                }
+                if (self.SourceName != UtilityConsts.UTILITY_NAME)
+                    logWhenNotOnMainThread(LogID.BepInEx);
 
                 orig(self, category, data);
             }
@@ -690,6 +683,15 @@ namespace LogUtils
                 cursor.Emit(OpCodes.Pop);
             cursor.Emit(OpCodes.Ret); //Return early if validation check failed
             cursor.MarkLabel(branchLabel);
+        }
+
+        private static void logWhenNotOnMainThread(LogID logFile)
+        {
+            if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake && UtilityCore.ThreadID != Thread.CurrentThread.ManagedThreadId)
+            {
+                UtilityCore.BaseLogger.LogDebug("Log request not handled on main thread");
+                UtilityCore.BaseLogger.LogDebug($"ThreadInfo: Id [{Thread.CurrentThread.ManagedThreadId}] Source [{logFile}]");
+            }
         }
     }
 }
