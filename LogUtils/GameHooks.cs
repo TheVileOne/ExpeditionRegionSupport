@@ -254,6 +254,8 @@ namespace LogUtils
         /// </summary>
         private static int gameHookRequestCounter = 0;
 
+        private static bool exceptionLoggedAlready;
+
         private static void RainWorld_HandleLog(On.RainWorld.orig_HandleLog orig, RainWorld self, string logString, string stackTrace, LogType logLevel)
         {
             lock (UtilityCore.RequestHandler.RequestProcessLock)
@@ -263,10 +265,10 @@ namespace LogUtils
                 LogID logFile = !LogCategory.IsUnityErrorCategory(logLevel) ? LogID.Unity : LogID.Exception;
 
 
+                exceptionLoggedAlready = false;
 
                 if (logFile == LogID.Exception)
-                {
-                }
+                    exceptionLoggedAlready = logString == self.lastLoggedException && stackTrace == self.lastLoggedStackTrace;
 
                 int gameLoggerRequestCounter = UtilityCore.RequestHandler.GameLogger.GameLoggerRequestCounter;
 
@@ -319,31 +321,31 @@ namespace LogUtils
             ILCursor cursor = new ILCursor(il);
             ILLabel branchLabel = null;
 
-            bool exceptionLogged = false;
-
             cursor.GotoNext(MoveType.After, x => x.MatchLdfld<RainWorld>(nameof(RainWorld.lastLoggedStackTrace)));
             cursor.GotoNext(MoveType.After, x => x.MatchBrfalse(out branchLabel)); //Get duplicate report branch label
 
             gotoWriteInstruction(cursor, "exceptionLog.txt");
 
+            /*
             //Cursor is now positioned before exception strings are written to file. Intercept and handle the strings using a LogWriter
             cursor.Emit(OpCodes.Ldarg_1); //logString
             cursor.Emit(OpCodes.Ldarg_2); //stackTrace
             cursor.EmitDelegate((string exceptionString, string stackTrace) =>
             {
-                exceptionLogged = true;
+                exceptionLoggedAlready = true;
 
                 LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
-                //Complete the exception log request in order to handle the two exception string arguments as separate requests
                 if (request != null && request.Data.ID == LogID.Exception)
                 {
-                    if (stackTrace == string.Empty) //Should we treat this like a normal log request
+                    //When only working with one string to log, handle the request directly
+                    if (stackTrace == string.Empty)
                     {
                         LogWriter.Writer.WriteToFile();
                         return;
                     }
 
+                    //Complete the exception log request in order to handle the two exception string arguments as separate requests
                     request.Complete();
                     UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
                 }
@@ -352,6 +354,7 @@ namespace LogUtils
                 writeToFile(new LogEvents.LogMessageEventArgs(LogID.Exception, stackTrace, LogType.Exception));
                 //UtilityCore.RequestHandler.CheckForHandledRequests = true;
             });
+            */
 
             ILLabel afterWriteLabel = cursor.DefineLabel();
 
@@ -361,6 +364,53 @@ namespace LogUtils
 
             cursor.GotoLabel(branchLabel); //Move to label, and emit next instructions at label position
 
+            //Intercept and handle the strings using a LogWriter
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.Emit(OpCodes.Ldarg_1); //logString
+            cursor.Emit(OpCodes.Ldarg_2); //stackTrace
+            cursor.EmitDelegate((RainWorld rainWorld, string exceptionString, string stackTrace) =>
+            {
+                //TODO: Figure out why IL hook prevents these from being set
+                rainWorld.lastLoggedException = exceptionString;
+                rainWorld.lastLoggedStackTrace = stackTrace;
+
+                UtilityCore.BaseLogger.LogDebug("Target: " + exceptionString);
+                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+
+                if (request != null && request.Data.ID == LogID.Exception)
+                {
+                    if (exceptionLoggedAlready)
+                    {
+                        UtilityCore.BaseLogger.LogDebug("Rejected");
+                        //Reject the log request, since it has already been logged
+                        request.Reject(RejectionReason.ExceptionAlreadyReported);
+                        exceptionLoggedAlready = false;
+                        return;
+                    }
+
+                    //When only working with one string to log, handle the request directly
+                    if (stackTrace == string.Empty)
+                    {
+                        UtilityCore.BaseLogger.LogDebug("Logging exception as single request");
+                        LogWriter.Writer.WriteToFile();
+                        return;
+                    }
+
+                    //Complete the exception log request in order to handle the two exception string arguments as separate requests
+                    request.Complete();
+                    UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+                }
+
+                if (!exceptionLoggedAlready)
+                {
+                    UtilityCore.BaseLogger.LogDebug("Logging exception as multiple requests");
+                    writeToFile(new LogEvents.LogMessageEventArgs(LogID.Exception, exceptionString, LogType.Exception));
+                    writeToFile(new LogEvents.LogMessageEventArgs(LogID.Exception, stackTrace, LogType.Exception));
+                    //UtilityCore.RequestHandler.CheckForHandledRequests = true;
+                }
+            });
+
+            /*
             cursor.EmitDelegate(() =>
             {
                 if (!exceptionLogged) //Check if the duplicate exception log check prevented logging
@@ -374,6 +424,7 @@ namespace LogUtils
                 }
                 exceptionLogged = false;
             });
+            */
 
             //Prepare to bypass second write attempt
             cursor.GotoNext(MoveType.After, x => x.MatchCall<ModManager>("get_ModdingEnabled"));
