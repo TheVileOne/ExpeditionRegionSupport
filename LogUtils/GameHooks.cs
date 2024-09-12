@@ -254,6 +254,12 @@ namespace LogUtils
         /// </summary>
         private static int gameHookRequestCounter = 0;
 
+        private static bool checkRecursionRequestCounters()
+        {
+            int gameLoggerRequestCounter = UtilityCore.RequestHandler.GameLogger.GameLoggerRequestCounter;
+            return gameLoggerRequestCounter > 0 && gameHookRequestCounter != gameLoggerRequestCounter;
+        }
+
         private static bool exceptionLoggedAlready;
 
         private static void RainWorld_HandleLog(On.RainWorld.orig_HandleLog orig, RainWorld self, string logString, string stackTrace, LogType logLevel)
@@ -262,26 +268,25 @@ namespace LogUtils
             {
                 logWhenNotOnMainThread(LogID.Unity);
 
+                gameHookRequestCounter++;
+
                 LogID logFile = !LogCategory.IsUnityErrorCategory(logLevel) ? LogID.Unity : LogID.Exception;
-
-
-                exceptionLoggedAlready = false;
 
                 if (logFile == LogID.Exception)
                     exceptionLoggedAlready = logString == self.lastLoggedException && stackTrace == self.lastLoggedStackTrace;
 
-                int gameLoggerRequestCounter = UtilityCore.RequestHandler.GameLogger.GameLoggerRequestCounter;
+                bool recursionDetected = checkRecursionRequestCounters();
 
-                gameHookRequestCounter++;
-
-                if (gameLoggerRequestCounter > 0 && gameHookRequestCounter != gameLoggerRequestCounter)
+                if (recursionDetected)
                 {
                     UtilityCore.BaseLogger.LogWarning("Potential recursive log request handling detected");
-                    UtilityCore.BaseLogger.LogWarning("Logger Counter: " + gameLoggerRequestCounter);
-                    UtilityCore.BaseLogger.LogWarning("Hook Counter: " + gameHookRequestCounter);
 
-                    //While requests are being handled in the pipeline, we cannot handle this request
-                    UtilityCore.RequestHandler.HandleOnNextAvailableFrame.Enqueue(createRequest());
+                    if (!exceptionLoggedAlready)
+                    {
+                        //While requests are being handled in the pipeline, we cannot handle this request
+                        UtilityCore.RequestHandler.HandleOnNextAvailableFrame.Enqueue(createRequest());
+                    }
+                    exceptionLoggedAlready = false;
                     gameHookRequestCounter--;
                     return;
                 }
