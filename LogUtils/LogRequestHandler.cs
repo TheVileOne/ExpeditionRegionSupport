@@ -79,6 +79,7 @@ namespace LogUtils
                     if (lastUnhandledRequest != null)
                     {
                         //Enforce only one pending request by design by consuming the last pending request if it exists
+                        lastUnhandledRequest.Submitted = false;
                         UnhandledRequests.RemoveLast();
                     }
 
@@ -359,9 +360,6 @@ namespace LogUtils
 
                     ILinkedListEnumerable<LogRequest> requests = GetRequests(logFile);
 
-                    //TODO: Get Count() to work with ILinkedListEnumerable
-                    //FileUtils.WriteLine("test.txt", "Count " + requests.Count());
-
                     if (!requests.Any()) return;
 
                     if (!logFile.IsGameControlled)
@@ -405,7 +403,7 @@ namespace LogUtils
                 }
                 catch (Exception ex)
                 {
-                    FileUtils.WriteLine("test.txt", "Process error");
+                    FileUtils.WriteLine("test.txt", "Log process error");
                     FileUtils.WriteLine("test.txt", ex.ToString());
                 }
             }
@@ -455,6 +453,7 @@ namespace LogUtils
         public void ProcessRequests()
         {
             LogID targetID, lastTargetID;
+            LinkedListNode<LogRequest> targetNode = null;
 
             targetID = lastTargetID = null;
             Logger selectedLogger = null;
@@ -468,20 +467,23 @@ namespace LogUtils
                 var requestEnumerator = UnhandledRequests.GetLinkedListEnumerator();
 
                 //Check every unhandled request, removing recently handled or invalid entries, and handling entries that are capable of being handled
-                foreach (LogRequest target in requestEnumerator.EnumerateAll())
+                while (requestEnumerator.MoveNext())
                 {
+                    LogRequest target = requestEnumerator.Current;
+
                     if (target == null)
                     {
                         UtilityCore.BaseLogger.LogWarning("Processed a null log request... aborting operation");
                         break;
                     }
 
-                    FileUtils.WriteLine("test.txt", $"Request # [{requestNumber}] {target.ToString()}");
+                    FileUtils.WriteLine("test.txt", $"Request # [{requestNumber}] {target}");
 
                     requestNumber++;
 
                     lastTargetID = targetID;
                     targetID = target.Data.ID;
+                    targetNode = requestEnumerator.CurrentNode;
 
                     bool requestCanBeHandled = true;
 
@@ -528,16 +530,19 @@ namespace LogUtils
                         }
                     }
 
-                    if (!requestCanBeHandled)
+                    if (target.Submitted && !requestCanBeHandled)
                     {
-                        if (requestEnumerator.CurrentNode == null)
+                        if (targetNode == null)
                         {
+
+                            FileUtils.WriteLine("test.txt", "Status: " + target.Status);
                             FileUtils.WriteLine("test.txt", "Rejection Reason: " + target.UnhandledReason);
                             FileUtils.WriteLine("test.txt", "Attempted to remove a null node");
                             continue;
                         }
 
-                        UnhandledRequests.Remove(requestEnumerator.CurrentNode);
+                        target.Submitted = false;
+                        UnhandledRequests.Remove(targetNode);
                     }
                 }
             }
@@ -564,7 +569,8 @@ namespace LogUtils
         {
             if (request.IsCompleteOrInvalid)
             {
-                UnhandledRequests.Remove(request);
+                if (UnhandledRequests.Remove(request))
+                    request.Submitted = false;
 
                 if (CurrentRequest == request) //Removing the request may not clear this field
                     CurrentRequest = null;

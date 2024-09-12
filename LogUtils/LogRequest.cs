@@ -23,7 +23,7 @@ namespace LogUtils
         public RequestStatus Status { get; private set; }
 
         /// <summary>
-        /// Whether this request has once been handled through the log request system
+        /// Whether this request has once been submitted through the log request system
         /// </summary>
         public bool Submitted;
 

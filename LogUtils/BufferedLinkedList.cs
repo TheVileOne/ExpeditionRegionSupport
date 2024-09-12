@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogUtils.Helpers;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ namespace LogUtils
 {
     public class BufferedLinkedList<T> : ILinkedListEnumerable<T> where T : class
     {
-        private LinkedList<T> nodeLeaser;
+        private readonly LinkedList<T> nodeLeaser;
 
         protected LinkedList<T> InnerLinkedList;
 
@@ -133,11 +134,13 @@ namespace LogUtils
 
         public bool Remove(T value)
         {
+            FileUtils.WriteLine("test.txt", "Removing node by value");
             return InnerLinkedList.Remove(value);
         }
 
         public void Remove(LinkedListNode<T> node)
         {
+            FileUtils.WriteLine("test.txt", "Removing node by reference");
             InnerLinkedList.Remove(node);
         }
 
@@ -187,6 +190,8 @@ namespace LogUtils
 
         public ILinkedListEnumerable<T> Where(Func<T, bool> predicate)
         {
+            FileUtils.WriteLine("test.txt", "Getting Where enumerable");
+
             if (AllowModificationsDuringIteration)
                 return new WhereEnumerable(GetLinkedListEnumerator(), predicate);
             return new WhereEnumerableWrapper(Enumerable.Where(this, predicate));
@@ -194,6 +199,7 @@ namespace LogUtils
 
         public IEnumerator<T> GetEnumerator()
         {
+            FileUtils.WriteLine("test.txt", "Getting enumerator");
             if (AllowModificationsDuringIteration)
                 return new Enumerator(this);
 
@@ -220,30 +226,20 @@ namespace LogUtils
             /// <summary>
             /// The LinkedListNode associated with Current
             /// </summary>
-            public LinkedListNode<T> CurrentNode => firstProcess ? refNode : refNode?.Next;
+            public readonly LinkedListNode<T> CurrentNode => firstProcess ? refNode : refNode?.Next;
 
-            public T Current => CurrentNode?.Value;
+            public readonly T Current => CurrentNode?.Value;
 
-            object IEnumerator.Current => Current;
+            readonly object IEnumerator.Current => Current;
 
-            private bool firstProcess;
+            private bool firstProcess = true;
 
-            private int index;
-
-            private BufferedLinkedList<T> items;
+            private readonly BufferedLinkedList<T> items;
 
             public Enumerator(BufferedLinkedList<T> list)
             {
+                FileUtils.WriteLine("test.txt", "Enumerator created");
                 items = list;
-            }
-
-            public IEnumerable<T> EnumerateAll()
-            {
-                Reset();
-
-                while (MoveNext())
-                    yield return Current;
-                yield break;
             }
 
             bool disposed = false;
@@ -255,6 +251,10 @@ namespace LogUtils
                 Reset();
             }
 
+            /// <summary>
+            /// Advances the enumerator to the next element of the collection
+            /// </summary>
+            /// <returns>true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the collection.</returns>
             public bool MoveNext()
             {
                 if (disposed)
@@ -268,49 +268,58 @@ namespace LogUtils
                     return false;
                 }
 
-                if (index >= items.Count) //Enumeration must be within the bounds of the collection
+                //Move the enumerator by assigning a new reference node
+                if (firstProcess)
                 {
-                    firstProcess = false;
-                    return false;
+                    if (refNode == null)
+                    {
+                        refNode = items.First;
+                    }
+                    else //Transition from first to second element needs only the flag changed, leaving refNode unchanged
+                    {
+                        firstProcess = false;
+                    }
                 }
-
-                if (index == 0 && !firstProcess) //The first process returns the first node
+                else if (refNode == null || refNode.Next == null)
                 {
-                    firstProcess = true;
-                    refNode = items.First;
+                    refNode = null;
+                    return false;
                 }
                 else
                 {
-                    firstProcess = false;
-
-                    if (index > 1) //The second node is accessed from the first node, the third node from the second, and so on
-                        refNode = refNode?.Next;
+                    refNode = refNode.Next;
                 }
 
-                if (Current == null)
-                    FileUtils.WriteLine("test.txt", "Current should not be null");
+                if (CurrentNode != null)
+                    return true;
 
-                index++;
-                return true;
+                firstProcess = false;
+                refNode = null;
+                return false;
             }
 
             public void Reset()
             {
-                firstProcess = false;
-                index = 0;
+                firstProcess = true;
                 refNode = null;
             }
         }
 
-        public readonly struct EnumeratorWrapper : ILinkedListEnumerator<T>
+        /// <summary>
+        /// A simple wrapper for handling an IEnumerable similarly to an ILinkedListEnumerable despite not having the same functionality as one
+        /// </summary>
+        public struct EnumeratorWrapper : ILinkedListEnumerator<T>
         {
             private readonly IEnumerator<T> innerEnumerator;
 
-            public LinkedListNode<T> CurrentNode => throw new NotImplementedException();
+            /// <summary>
+            /// Not implemented by design - data is unavailable
+            /// </summary>
+            public readonly LinkedListNode<T> CurrentNode => throw new NotImplementedException();
 
-            public T Current => innerEnumerator.Current;
+            public readonly T Current => innerEnumerator.Current;
 
-            object IEnumerator.Current => Current;
+            readonly object IEnumerator.Current => Current;
 
             public EnumeratorWrapper(IEnumerator<T> enumerator)
             {
@@ -322,6 +331,10 @@ namespace LogUtils
                 //FileUtils.WriteLine("test.txt", "Disposing from enumerator wrapper");
             }
 
+            /// <summary>
+            /// Advances the enumerator to the next element of the collection
+            /// </summary>
+            /// <returns>true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the collection.</returns>
             public bool MoveNext()
             {
                 return innerEnumerator.MoveNext();
@@ -334,15 +347,6 @@ namespace LogUtils
                     innerEnumerator.Reset(); //This method might not be implemented
                 }
                 catch (NotImplementedException) { }
-            }
-
-            public IEnumerable<T> EnumerateAll()
-            {
-                Reset();
-
-                while (MoveNext())
-                    yield return Current;
-                yield break;
             }
         }
 
@@ -392,19 +396,21 @@ namespace LogUtils
             }
         }
 
-        public readonly struct WhereEnumerator : ILinkedListEnumerator<T>
+        public struct WhereEnumerator : ILinkedListEnumerator<T>
         {
             private readonly ILinkedListEnumerator<T> innerEnumerator;
             private readonly Func<T, bool> predicate;
 
-            public LinkedListNode<T> CurrentNode => innerEnumerator.CurrentNode;
+            public readonly LinkedListNode<T> CurrentNode => innerEnumerator.CurrentNode;
 
-            public T Current => innerEnumerator.Current;
+            public readonly T Current => innerEnumerator.Current;
 
-            object IEnumerator.Current => Current;
+            readonly object IEnumerator.Current => Current;
 
             public WhereEnumerator(ILinkedListEnumerator<T> enumerator, Func<T, bool> predicate)
             {
+                FileUtils.WriteLine("test.txt", "Where enumerator created");
+
                 this.innerEnumerator = enumerator;
                 this.predicate = predicate;
             }
@@ -414,10 +420,14 @@ namespace LogUtils
                 //FileUtils.WriteLine("test.txt", "Disposing from where enumerator");
             }
 
+            /// <summary>
+            /// Advances the enumerator to the next element of the collection
+            /// </summary>
+            /// <returns>true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the collection.</returns>
             public bool MoveNext()
             {
                 bool predicateMatch = false;
-                while (innerEnumerator.MoveNext() && !predicateMatch)
+                while (!predicateMatch && innerEnumerator.MoveNext())
                 {
                     predicateMatch = predicate(innerEnumerator.Current);
                 };
@@ -427,15 +437,6 @@ namespace LogUtils
             public void Reset()
             {
                 innerEnumerator.Reset();
-            }
-
-            public IEnumerable<T> EnumerateAll()
-            {
-                Reset();
-
-                while (MoveNext())
-                    yield return Current;
-                yield break;
             }
         }
     }
@@ -451,6 +452,5 @@ namespace LogUtils
         /// The LinkedListNode associated with Current
         /// </summary>
         public LinkedListNode<T> CurrentNode { get; }
-        public IEnumerable<T> EnumerateAll();
     }
 }
