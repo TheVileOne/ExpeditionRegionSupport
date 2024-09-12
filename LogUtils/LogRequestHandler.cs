@@ -24,7 +24,15 @@ namespace LogUtils
 
         public GameLogger GameLogger = new GameLogger();
 
+        /// <summary>
+        /// Contains LogRequest objects that are submitted and waiting to be handled
+        /// </summary>
         public BufferedLinkedList<LogRequest> UnhandledRequests;
+
+        /// <summary>
+        /// Contains LogRequest objects that need to be submitted on the next available frame
+        /// </summary>
+        public Queue<LogRequest> HandleOnNextAvailableFrame = new Queue<LogRequest>();
 
         private LogRequest _currentRequest;
 
@@ -598,6 +606,36 @@ namespace LogUtils
 
         public void Update()
         {
+            if (HandleOnNextAvailableFrame.Any())
+            {
+                lock (RequestProcessLock)
+                {
+                    FileUtils.WriteLine("test.txt", "Handling scheduled requests");
+                    while (HandleOnNextAvailableFrame.Any())
+                    {
+                        LogRequest request = HandleOnNextAvailableFrame.Dequeue();
+
+                        try
+                        {
+                            request = Submit(request, true);
+                        }
+                        catch
+                        {
+                            //A request of this nature is important enough to bypass the request process by sending the request directly to the LogWriter 
+                            if (request.Data.ID == LogID.Exception && request.CanRetryRequest())
+                            {
+                                UtilityCore.BaseLogger.LogWarning("Exception message forcefully logged to file");
+
+                                request.ResetStatus();
+                                LogWriter.Writer.WriteFromRequest(request);
+                            }
+                        }
+                    }
+                }
+
+                //CheckForHandledRequests = true;
+            }
+
             if (CheckForHandledRequests)
                 DiscardHandledRequests();
 

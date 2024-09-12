@@ -1,9 +1,9 @@
 ﻿using BepInEx.Logging;
+using Expedition;
+using JollyCoop;
+using LogUtils.Helpers;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace LogUtils
@@ -13,6 +13,12 @@ namespace LogUtils
     /// </summary>
     public class GameLogger
     {
+        /// <summary>
+        /// Set to the LogID of a request while it is being handled through an external logging API accessed by a GameLogger instance
+        /// </summary>
+        public LogID LogFileInProcess;
+        public int GameLoggerRequestCounter;
+
         public void HandleRequest(LogRequest request)
         {
             request.ResetStatus(); //Ensure that processing request is handled in a consistent way
@@ -83,14 +89,24 @@ namespace LogUtils
 
         public void LogBepEx(ManualLogSource source, LogLevel category, object data)
         {
-            var bepLogger = source ?? UtilityCore.BaseLogger;
-            bepLogger.Log(category, data);
+            Process(LogID.BepInEx, processLog);
+
+            void processLog()
+            {
+                var bepLogger = source ?? UtilityCore.BaseLogger;
+                bepLogger.Log(category, data);
+            }
         }
 
         public void LogBepEx(ManualLogSource source, LogCategory category, object data)
         {
-            var bepLogger = source ?? UtilityCore.BaseLogger;
-            bepLogger.Log(category.BepInExCategory, data);
+            Process(LogID.BepInEx, processLog);
+
+            void processLog()
+            {
+                var bepLogger = source ?? UtilityCore.BaseLogger;
+                bepLogger.Log(category.BepInExCategory, data);
+            }
         }
 
         public void LogUnity(object data)
@@ -100,12 +116,24 @@ namespace LogUtils
 
         public void LogUnity(LogType category, object data)
         {
-            Debug.unityLogger.Log(category, data);
+            LogID logFile = !LogCategory.IsUnityErrorCategory(category) ? LogID.Unity : LogID.Exception;
+            Process(logFile, processLog);
+
+            void processLog()
+            {
+                Debug.unityLogger.Log(category, data);
+            }
         }
 
         public void LogUnity(LogCategory category, object data)
         {
-            Debug.unityLogger.Log(category.UnityCategory, data);
+            LogID logFile = !LogCategory.IsUnityErrorCategory(category.UnityCategory) ? LogID.Unity : LogID.Exception;
+            Process(logFile, processLog);
+
+            void processLog()
+            {
+                Debug.unityLogger.Log(category.UnityCategory, data);
+            }
         }
 
         public void LogExp(object data)
@@ -115,23 +143,29 @@ namespace LogUtils
 
         public void LogExp(LogCategory category, object data)
         {
-            string message = null;
+            Process(LogID.Expedition, processLog);
 
-            //CurrentRequest has already passed preprocess validation checks if this is not null
-            if (UtilityCore.RequestHandler.CurrentRequest == null)
+            void processLog()
             {
-                LogRequest request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Expedition, data, category)), false);
+                string message = null;
+                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
-                if (request.Status == RequestStatus.Rejected)
-                    return;
+                //CurrentRequest has already passed preprocess validation checks if this is not null
+                if (request == null)
+                {
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Expedition, data, category)), false);
 
-                message = request.Data.Message;
+                    if (request.Status == RequestStatus.Rejected)
+                        return;
+
+                    message = request.Data.Message;
+                }
+
+                if (message == null)
+                    message = data?.ToString();
+
+                ExpLog.Log(message);
             }
-
-            if (message == null)
-                message = data?.ToString();
-
-            Expedition.ExpLog.Log(message);
         }
 
         public void LogJolly(object data)
@@ -141,23 +175,47 @@ namespace LogUtils
 
         public void LogJolly(LogCategory category, object data)
         {
-            string message = null;
+            Process(LogID.JollyCoop, processLog);
 
-            //CurrentRequest has already passed preprocess validation checks if this is not null
-            if (UtilityCore.RequestHandler.CurrentRequest == null)
+            void processLog()
             {
-                LogRequest request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.JollyCoop, data, category)), false);
+                string message = null;
+                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
-                if (request.Status == RequestStatus.Rejected)
-                    return;
+                //CurrentRequest has already passed preprocess validation checks if this is not null
+                if (request == null)
+                {
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.JollyCoop, data, category)), false);
 
-                message = request.Data.Message;
+                    if (request.Status == RequestStatus.Rejected)
+                        return;
+
+                    message = request.Data.Message;
+                }
+
+                if (message == null)
+                    message = data?.ToString();
+
+                JollyCustom.Log(message);
             }
+        }
 
-            if (message == null)
-                message = data?.ToString();
+        protected void Process(LogID logFile, Action processLog)
+        {
+            lock (UtilityCore.RequestHandler.RequestProcessLock)
+            {
+                //Check values to ensure that the same request going into an API is the same request coming out of it
+                GameLoggerRequestCounter++;
 
-            JollyCoop.JollyCustom.Log(message);
+                UtilityCore.BaseLogger.LogDebug("Log request handled: " + logFile);
+                LogID lastProcessState = LogFileInProcess;
+
+                LogFileInProcess = logFile;
+                processLog();
+
+                LogFileInProcess = lastProcessState;
+                GameLoggerRequestCounter--;
+            }
         }
 
         public delegate void LogHandler(LogCategory category, string message);

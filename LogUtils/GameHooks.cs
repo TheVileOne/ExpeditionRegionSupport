@@ -249,6 +249,11 @@ namespace LogUtils
             }
         }
 
+        /// <summary>
+        /// Stores the amount of invocation requests received by the game's logging hooks
+        /// </summary>
+        private static int gameHookRequestCounter = 0;
+
         private static void RainWorld_HandleLog(On.RainWorld.orig_HandleLog orig, RainWorld self, string logString, string stackTrace, LogType logLevel)
         {
             lock (UtilityCore.RequestHandler.RequestProcessLock)
@@ -257,49 +262,54 @@ namespace LogUtils
 
                 LogID logFile = !LogCategory.IsUnityErrorCategory(logLevel) ? LogID.Unity : LogID.Exception;
 
-                LogRequest waitingRequest = null;
+
+
+                if (logFile == LogID.Exception)
+                {
+                }
+
+                int gameLoggerRequestCounter = UtilityCore.RequestHandler.GameLogger.GameLoggerRequestCounter;
+
+                gameHookRequestCounter++;
+
+                if (gameLoggerRequestCounter > 0 && gameHookRequestCounter != gameLoggerRequestCounter)
+                {
+                    UtilityCore.BaseLogger.LogWarning("Potential recursive log request handling detected");
+                    UtilityCore.BaseLogger.LogWarning("Logger Counter: " + gameLoggerRequestCounter);
+                    UtilityCore.BaseLogger.LogWarning("Hook Counter: " + gameHookRequestCounter);
+
+                    //While requests are being handled in the pipeline, we cannot handle this request
+                    UtilityCore.RequestHandler.HandleOnNextAvailableFrame.Enqueue(createRequest());
+                    gameHookRequestCounter--;
+                    return;
+                }
+
+                bool processFinished = false;
                 LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
-
-                bool shouldSubmitRequest = false;
-
-                //Ensure that request is always constructed before a message is logged
-                if (request == null || logFile != LogID.Exception)
-                {
-                    shouldSubmitRequest = true;
-                }
-                else if (request.Data.ID != LogID.Exception) //Happens when the utility throws an exception
-                {
-                    UtilityCore.BaseLogger.LogWarning("Exception message forcefully logged to file");
-
-                    /*
-                    //Null the request, so that a new request can be submitted
-                    UtilityCore.RequestHandler.CurrentRequest = null;
-                    waitingRequest = request;
-
-                    shouldSubmitRequest = true;
-                    */
-                }
-
-                if (shouldSubmitRequest)
-                {
-                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(logFile, logString, LogCategory.ToCategory(logLevel))), false);
-
-                    if (request.Status == RequestStatus.Rejected)
-                        return;
-                }
 
                 try
                 {
+                    if (request == null)
+                    {
+                        request = UtilityCore.RequestHandler.Submit(createRequest(), false);
+
+                        if (request.Status == RequestStatus.Rejected)
+                            return;
+                    }
+
                     orig(self, logString, stackTrace, logLevel);
-                }
-                catch
-                {
-                    request.Reject(RejectionReason.FailedToWrite);
+                    processFinished = true;
                 }
                 finally
                 {
-                    if (waitingRequest != null)
-                        UtilityCore.RequestHandler.CurrentRequest = waitingRequest;
+                    if (!processFinished && request.Status != RequestStatus.Rejected) //Unknown issue - don't retry request
+                        request.Reject(RejectionReason.FailedToWrite);
+                    gameHookRequestCounter--;
+                }
+
+                LogRequest createRequest()
+                {
+                    return new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(logFile, logString, LogCategory.ToCategory(logLevel)));
                 }
             }
         }
