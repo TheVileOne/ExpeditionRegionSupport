@@ -189,6 +189,25 @@ namespace LogUtils
             }
         }
 
+        public LogRequest TrySubmit(LogRequest request, bool handleSubmission)
+        {
+            try
+            {
+                FileUtils.WriteLine("test.txt", "SAFE LOG");
+                return Submit(request, handleSubmission);
+            }
+            catch (Exception ex)
+            {
+                UtilityCore.BaseLogger.LogError("Unable to submit request");
+                UtilityCore.BaseLogger.LogError(ex);
+
+                //Assign request using a safer method with less rigorous validation checks - wont fail
+                if (request.CanRetryRequest())
+                    PendingRequest = request;
+                return request;
+            }
+        }
+
         /// <summary>
         /// Registers a logger for remote logging
         /// </summary>

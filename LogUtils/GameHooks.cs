@@ -298,7 +298,11 @@ namespace LogUtils
                 {
                     if (request == null)
                     {
-                        request = UtilityCore.RequestHandler.Submit(createRequest(), false);
+                        //Make sure that exception requests are handled more safely
+                        if (logFile == LogID.Unity)
+                            request = UtilityCore.RequestHandler.Submit(createRequest(), false);
+                        else
+                            request = UtilityCore.RequestHandler.TrySubmit(createRequest(), false);
 
                         if (request.Status == RequestStatus.Rejected)
                             return;
@@ -383,19 +387,20 @@ namespace LogUtils
                 rainWorld.lastLoggedStackTrace = stackTrace;
 
                 UtilityCore.BaseLogger.LogDebug("Target: " + exceptionString);
+
+                //Only exception request traffic should be handled through here
                 LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
-                if (request != null && request.Data.ID == LogID.Exception)
+                if (exceptionLoggedAlready)
                 {
-                    if (exceptionLoggedAlready)
-                    {
-                        UtilityCore.BaseLogger.LogDebug("Rejected");
-                        //Reject the log request, since it has already been logged
+                    if (request != null)
                         request.Reject(RejectionReason.ExceptionAlreadyReported);
-                        exceptionLoggedAlready = false;
-                        return;
-                    }
+                    exceptionLoggedAlready = false;
+                    return;
+                }
 
+                if (request != null)
+                {
                     //When only working with one string to log, handle the request directly
                     if (stackTrace == string.Empty)
                     {
@@ -409,13 +414,10 @@ namespace LogUtils
                     UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
                 }
 
-                if (!exceptionLoggedAlready)
-                {
-                    UtilityCore.BaseLogger.LogDebug("Logging exception as multiple requests");
-                    writeToFile(new LogEvents.LogMessageEventArgs(LogID.Exception, exceptionString, LogType.Exception));
-                    writeToFile(new LogEvents.LogMessageEventArgs(LogID.Exception, stackTrace, LogType.Exception));
-                    //UtilityCore.RequestHandler.CheckForHandledRequests = true;
-                }
+                UtilityCore.BaseLogger.LogDebug("Logging exception as multiple requests");
+                writeToFile(new LogEvents.LogMessageEventArgs(LogID.Exception, exceptionString, LogType.Exception));
+                writeToFile(new LogEvents.LogMessageEventArgs(LogID.Exception, stackTrace, LogType.Exception));
+                //UtilityCore.RequestHandler.CheckForHandledRequests = true;
             });
 
             /*
@@ -450,7 +452,13 @@ namespace LogUtils
 
             static void writeToFile(LogEvents.LogMessageEventArgs requestData)
             {
-                LogRequest request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, requestData), false);
+                LogRequest request;
+
+                //Make sure that exception requests are handled more safely
+                if (requestData.ID == LogID.Unity)
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, requestData), false);
+                else
+                    request = UtilityCore.RequestHandler.TrySubmit(new LogRequest(RequestType.Game, requestData), false);
 
                 if (request.Status != RequestStatus.Rejected)
                     LogWriter.Writer.WriteToFile();
