@@ -323,8 +323,13 @@ namespace LogUtils
 
                         LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
-                        if (request != null && request.Status != RequestStatus.Rejected) //Unknown issue - don't retry request
-                            request.Reject(RejectionReason.FailedToWrite);
+                        if (request != null)
+                        {
+                            if (request.Status != RequestStatus.Rejected) //Unknown issue - don't retry request
+                                request.Reject(RejectionReason.FailedToWrite);
+
+                            UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+                        }
                     }
                     gameHookRequestCounter--;
                 }
