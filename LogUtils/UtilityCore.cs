@@ -152,9 +152,6 @@ namespace LogUtils
                 Logger.ProcessLogSignal(ManagedLogListener.GetSignal());
         }
 
-        private static string lastLoggedException;
-        private static string lastLoggedStackTrace;
-
         internal static void HandleUnityLog(string message, string stackTrace, LogType category)
         {
             lock (RequestHandler.RequestProcessLock)
@@ -166,13 +163,14 @@ namespace LogUtils
                     if (LogCategory.IsUnityErrorCategory(category))
                     {
                         //Handle Unity error logging similarly to how the game would handle it
-                        if (message != lastLoggedException && stackTrace != lastLoggedStackTrace)
-                        {
-                            RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Exception, message, category)), false);
-                            RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Exception, stackTrace, category)), false);
+                        ExceptionInfo exceptionInfo = new ExceptionInfo(message, stackTrace);
 
-                            lastLoggedException = message;
-                            lastLoggedStackTrace = stackTrace;
+                        //Check that the last exception reported matches information stored
+                        if (!RWInfo.CheckExceptionMatch(LogID.Exception, exceptionInfo))
+                        {
+                            RWInfo.ReportException(LogID.Exception, exceptionInfo);
+
+                            RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Exception, exceptionInfo, category)), false);
                         }
                         return;
                     }

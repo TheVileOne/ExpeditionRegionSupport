@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace LogUtils
 {
@@ -21,6 +17,11 @@ namespace LogUtils
         /// </summary>
         public const SetupPeriod STARTUP_CUTOFF_PERIOD = SetupPeriod.ModsInit;
 
+        /// <summary>
+        /// Dictionary of last reported errors logged to a specific log file
+        /// </summary>
+        public static Dictionary<LogID, ExceptionInfo> LastReportedException = new Dictionary<LogID, ExceptionInfo>();
+
         static RWInfo()
         {
             //Initialize the utility when this class is accessed
@@ -38,6 +39,18 @@ namespace LogUtils
             get => _latestSetupPeriodReached.Value;
             set => _latestSetupPeriodReached.Value = value;
         }*/
+
+        public static void ReportException(LogID logID, ExceptionInfo exceptionInfo)
+        {
+            LastReportedException[logID] = exceptionInfo;
+        }
+
+        public static bool CheckExceptionMatch(LogID logID, ExceptionInfo exceptionInfo)
+        {
+            if (LastReportedException.TryGetValue(logID, out ExceptionInfo lastReported))
+                return lastReported.Equals(exceptionInfo);
+            return false;
+        }
     }
 
     public enum SetupPeriod

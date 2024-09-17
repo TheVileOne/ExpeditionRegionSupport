@@ -1,6 +1,5 @@
 ﻿using BepInEx.Logging;
 using Expedition;
-using LogUtils.Helpers;
 using LogUtils.Properties;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -260,8 +259,6 @@ namespace LogUtils
             return gameLoggerRequestCounter > 0 && gameHookRequestCounter != gameLoggerRequestCounter;
         }
 
-        private static bool exceptionLoggedAlready;
-
         private static void RainWorld_HandleLog(On.RainWorld.orig_HandleLog orig, RainWorld self, string logString, string stackTrace, LogType logLevel)
         {
             lock (UtilityCore.RequestHandler.RequestProcessLock)
@@ -270,44 +267,51 @@ namespace LogUtils
 
                 gameHookRequestCounter++;
 
+                bool recursionDetected = checkRecursionRequestCounters();
+
+                object logTarget = logString;
+
                 LogID logFile = !LogCategory.IsUnityErrorCategory(logLevel) ? LogID.Unity : LogID.Exception;
 
                 if (logFile == LogID.Exception)
-                    exceptionLoggedAlready = logString == self.lastLoggedException && stackTrace == self.lastLoggedStackTrace;
+                {
+                    //Compile the log strings provided by Unity's logging API into an ExceptionInfo object
+                    ExceptionInfo exceptionInfo = new ExceptionInfo(logString, stackTrace);
 
-                bool recursionDetected = checkRecursionRequestCounters();
+                    //Check that the last exception reported matches information stored
+                    if (!RWInfo.CheckExceptionMatch(LogID.Exception, exceptionInfo))
+                    {
+                        RWInfo.ReportException(LogID.Exception, exceptionInfo);
+
+                        //The game is no longer able to set these accurately, and probably better to handle off the stack anyways
+                        self.lastLoggedException = logString;
+                        self.lastLoggedStackTrace = stackTrace;
+
+                        //Replace existing log string with the compiled exception message and stack trace
+                        logString = exceptionInfo.ToString();
+                        logTarget = exceptionInfo;
+                    }
+                    else
+                    {
+                        gameHookRequestCounter--;
+                        return;
+                    }
+                }
 
                 if (recursionDetected)
                 {
                     UtilityCore.BaseLogger.LogWarning("Potential recursive log request handling detected");
 
-                    if (!exceptionLoggedAlready)
-                    {
-                        //While requests are being handled in the pipeline, we cannot handle this request
-                        UtilityCore.RequestHandler.HandleOnNextAvailableFrame.Enqueue(createRequest());
-                    }
-                    exceptionLoggedAlready = false;
+                    //While requests are being handled in the pipeline, we cannot handle this request
+                    UtilityCore.RequestHandler.HandleOnNextAvailableFrame.Enqueue(createRequest());
                     gameHookRequestCounter--;
                     return;
                 }
 
                 bool processFinished = false;
-                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
                 try
                 {
-                    if (request == null)
-                    {
-                        //Make sure that exception requests are handled more safely
-                        if (logFile == LogID.Unity)
-                            request = UtilityCore.RequestHandler.Submit(createRequest(), false);
-                        else
-                            request = UtilityCore.RequestHandler.TrySubmit(createRequest(), false);
-
-                        if (request.Status == RequestStatus.Rejected)
-                            return;
-                    }
-
                     orig(self, logString, stackTrace, logLevel);
                     processFinished = true;
                 }
@@ -315,7 +319,11 @@ namespace LogUtils
                 {
                     if (!processFinished)
                     {
-                        if (request.Status != RequestStatus.Rejected) //Unknown issue - don't retry request
+                        UtilityCore.BaseLogger.LogWarning("Logging operation has ended unexpectedly");
+
+                        LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+
+                        if (request != null && request.Status != RequestStatus.Rejected) //Unknown issue - don't retry request
                             request.Reject(RejectionReason.FailedToWrite);
                     }
                     gameHookRequestCounter--;
@@ -323,7 +331,7 @@ namespace LogUtils
 
                 LogRequest createRequest()
                 {
-                    return new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(logFile, logString, LogCategory.ToCategory(logLevel)));
+                    return new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(logFile, logTarget, LogCategory.ToCategory(logLevel)));
                 }
             }
         }
@@ -331,138 +339,78 @@ namespace LogUtils
         private static void RainWorld_HandleLog(ILContext il)
         {
             ILCursor cursor = new ILCursor(il);
-            ILLabel branchLabel = null;
 
-            cursor.GotoNext(MoveType.After, x => x.MatchLdfld<RainWorld>(nameof(RainWorld.lastLoggedStackTrace)));
-            cursor.GotoNext(MoveType.After, x => x.MatchBrfalse(out branchLabel)); //Get duplicate report branch label
+            handleLog_ExceptionLog(cursor);
+            handleLog_ConsoleLog(cursor);
+        }
 
-            gotoWriteInstruction(cursor, "exceptionLog.txt");
+        private static void handleLog_ExceptionLog(ILCursor cursor)
+        {
+            //Get the label pointing to the instructions that handle exception log messages
+            ILLabel label = null;
+            cursor.GotoNext(x => x.MatchLdarg(3), x => x.MatchBrfalse(out label));
+            cursor.GotoLabel(label);
+            cursor.MoveAfterLabels(); //Move after any labels to ensure emits will be run
 
-            /*
-            //Cursor is now positioned before exception strings are written to file. Intercept and handle the strings using a LogWriter
-            cursor.Emit(OpCodes.Ldarg_1); //logString
-            cursor.Emit(OpCodes.Ldarg_2); //stackTrace
-            cursor.EmitDelegate((string exceptionString, string stackTrace) =>
-            {
-                exceptionLoggedAlready = true;
-
-                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
-
-                if (request != null && request.Data.ID == LogID.Exception)
-                {
-                    //When only working with one string to log, handle the request directly
-                    if (stackTrace == string.Empty)
-                    {
-                        LogWriter.Writer.WriteToFile();
-                        return;
-                    }
-
-                    //Complete the exception log request in order to handle the two exception string arguments as separate requests
-                    request.Complete();
-                    UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
-                }
-
-                writeToFile(new LogEvents.LogMessageEventArgs(LogID.Exception, exceptionString, LogType.Exception));
-                writeToFile(new LogEvents.LogMessageEventArgs(LogID.Exception, stackTrace, LogType.Exception));
-                //UtilityCore.RequestHandler.CheckForHandledRequests = true;
-            });
-            */
-
-            ILLabel afterWriteLabel = cursor.DefineLabel();
-
-            cursor.Emit(OpCodes.Br, afterWriteLabel); //Bypass write attempts
-            cursor.GotoNext(MoveType.Before, x => x.MatchLdarg(0), x => x.MatchLdarg(1));
-            cursor.MarkLabel(afterWriteLabel);
-
-            cursor.GotoLabel(branchLabel); //Move to label, and emit next instructions at label position
-
-            //Intercept and handle the strings using a LogWriter
-            cursor.Emit(OpCodes.Ldarg_0);
-            cursor.Emit(OpCodes.Ldarg_1); //logString
-            cursor.Emit(OpCodes.Ldarg_2); //stackTrace
-            cursor.EmitDelegate((RainWorld rainWorld, string exceptionString, string stackTrace) =>
-            {
-                //TODO: Figure out why IL hook prevents these from being set
-                rainWorld.lastLoggedException = exceptionString;
-                rainWorld.lastLoggedStackTrace = stackTrace;
-
-                UtilityCore.BaseLogger.LogDebug("Target: " + exceptionString);
-
-                //Only exception request traffic should be handled through here
-                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
-
-                if (exceptionLoggedAlready)
-                {
-                    if (request != null)
-                        request.Reject(RejectionReason.ExceptionAlreadyReported);
-                    exceptionLoggedAlready = false;
-                    return;
-                }
-
-                if (request != null)
-                {
-                    //When only working with one string to log, handle the request directly
-                    if (stackTrace == string.Empty)
-                    {
-                        UtilityCore.BaseLogger.LogDebug("Logging exception as single request");
-                        LogWriter.Writer.WriteToFile();
-                        return;
-                    }
-
-                    //Complete the exception log request in order to handle the two exception string arguments as separate requests
-                    request.Complete();
-                    UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
-                }
-
-                UtilityCore.BaseLogger.LogDebug("Logging exception as multiple requests");
-                writeToFile(new LogEvents.LogMessageEventArgs(LogID.Exception, exceptionString, LogType.Exception));
-                writeToFile(new LogEvents.LogMessageEventArgs(LogID.Exception, stackTrace, LogType.Exception));
-                //UtilityCore.RequestHandler.CheckForHandledRequests = true;
-            });
-
-            /*
-            cursor.EmitDelegate(() =>
-            {
-                if (!exceptionLogged) //Check if the duplicate exception log check prevented logging
-                {
-                    //This request will only be created from a utility Logger class, interfacing with the Unity logger directly wont create this
-                    LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
-
-                    //Reject the log request, for it has already been logged
-                    if (request != null && request.Data.ID == LogID.Exception)
-                        request.Reject(RejectionReason.ExceptionAlreadyReported);
-                }
-                exceptionLogged = false;
-            });
-            */
-
-            //Prepare to bypass second write attempt
-            cursor.GotoNext(MoveType.After, x => x.MatchCall<ModManager>("get_ModdingEnabled"));
-            cursor.GotoNext(x => x.MatchBrfalse(out afterWriteLabel));
-
-            gotoWriteInstruction(cursor, "consoleLog.txt");
-
+            //Handle log request
             cursor.Emit(OpCodes.Ldarg_1);
-            cursor.EmitDelegate((string message) => //If a mod changes the message string, utility Logger requests will not be affected here
+            cursor.EmitDelegate((string exceptionString) =>
             {
                 LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
-                writeToFile(request.Data);
+
+                if (request == null)
+                {
+                    request = UtilityCore.RequestHandler.TrySubmit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Exception, exceptionString)), false);
+
+                    if (request.Status == RequestStatus.Rejected)
+                        return;
+                }
+                LogWriter.Writer.WriteToFile();
             });
-            cursor.Emit(OpCodes.Br, afterWriteLabel); //Bypass write attempt
 
-            static void writeToFile(LogEvents.LogMessageEventArgs requestData)
+            //Branch over all exception string handling straight to the next OpCodes.Leave
+            ILLabel returnLabel = cursor.DefineLabel();
+            cursor.Emit(OpCodes.Br, returnLabel);
+            cursor.GotoNext(x => x.MatchLeaveS(out _)); //Find the next Leave instruction
+            cursor.MarkLabel(returnLabel);
+        }
+
+        private static void handleLog_ConsoleLog(ILCursor cursor)
+        {
+            //Get the label to the instructions that send messages to the DevTools console display
+            ILLabel consoleLabel = null;
+            cursor.GotoNext(MoveType.Before, x => x.MatchCallOrCallvirt(typeof(ModManager), "get_ModdingEnabled"));
+            cursor.GotoNext(MoveType.Before, x => x.MatchBrfalse(out consoleLabel));
+
+            gotoWriteInstruction(cursor, "consoleLog.txt"); //Position cursor before log operation occurs
+
+            //Handle log request
+            cursor.Emit(OpCodes.Ldarg_1);
+            cursor.EmitDelegate((string logString) =>
             {
-                LogRequest request;
+                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
-                //Make sure that exception requests are handled more safely
-                if (requestData.ID == LogID.Unity)
-                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, requestData), false);
-                else
-                    request = UtilityCore.RequestHandler.TrySubmit(new LogRequest(RequestType.Game, requestData), false);
+                if (request == null)
+                {
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Unity, logString)), false);
 
-                if (request.Status != RequestStatus.Rejected)
-                    LogWriter.Writer.WriteToFile();
-            }
+                    if (request.Status == RequestStatus.Rejected)
+                        return false;
+                }
+                LogWriter.Writer.WriteToFile();
+                return true;
+            });
+
+            //Branch over log handling instructions
+
+            //When true, branch to console handling instructions
+            cursor.Emit(OpCodes.Brtrue, consoleLabel);
+
+            //When false, branch to next Leave instruction
+            ILLabel returnLabel = cursor.DefineLabel();
+            cursor.Emit(OpCodes.Br, returnLabel);
+            cursor.GotoNext(x => x.MatchLeaveS(out _));
+            cursor.MarkLabel(returnLabel);
         }
 
         private static void gotoWriteInstruction(ILCursor cursor, string filename)
