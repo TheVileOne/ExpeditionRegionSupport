@@ -519,20 +519,11 @@ namespace LogUtils
             showLogsBypassHook(cursor, LogID.Expedition);
 
             cursor.GotoNext(MoveType.After, x => x.MatchBrfalse(out _)); //Move just after the ShowLogs check
-            cursor.EmitDelegate(LogID.Expedition.Properties.EndLogSession); //End the last log session if it exists
-
-            replaceLogPathHook(cursor, LogID.Expedition);
-
-            //Allows Expedition log file to be overwritten with a new log file with the hardcoded intro message.
-            //To have proper control over this file, this process needs to be rewritten to prevent overwriting
-            cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(File), nameof(File.WriteAllText)));
-
-            //By running this after file is overwriting, the hardcoded intro message will appear first
             cursor.EmitDelegate(() =>
             {
-                if (!expeditionOrJollyLogInProgress) //Allow it to be handled in the log method
-                    LogID.Expedition.Properties.BeginLogSession();
+                LogWriter.Writer.ResetFile(LogID.Expedition);
             });
+            branchToReturn(cursor);
         }
 
         private static void JollyCustom_Log(On.JollyCoop.JollyCustom.orig_Log orig, string message, bool throwException)
@@ -576,7 +567,17 @@ namespace LogUtils
             ILCursor cursor = new ILCursor(il);
 
             showLogsBypassHook(cursor, LogID.JollyCoop);
-            replaceLogPathHook(cursor, LogID.JollyCoop);
+            cursor.GotoNext(MoveType.After, x => x.MatchBrfalse(out _)); //Move just after the ShowLogs check
+            cursor.EmitDelegate(() =>
+            {
+                LogWriter.Writer.ResetFile(LogID.JollyCoop);
+            });
+
+            //Branch over file create instructions
+            ILLabel label = cursor.DefineLabel();
+            cursor.Emit(OpCodes.Br, label);
+            cursor.GotoNext(MoveType.After, x => x.MatchEndfinally());
+            cursor.MarkLabel(label);
         }
 
         private static void showLogsBypassHook(ILCursor cursor, LogID logFile)
@@ -713,6 +714,14 @@ namespace LogUtils
                 cursor.Emit(OpCodes.Pop);
             cursor.Emit(OpCodes.Ret); //Return early if validation check failed
             cursor.MarkLabel(branchLabel);
+        }
+
+        private static void branchToReturn(ILCursor cursor)
+        {
+            ILLabel returnLabel = cursor.DefineLabel();
+            cursor.Emit(OpCodes.Br, returnLabel);
+            cursor.GotoNext(MoveType.Before, x => x.MatchRet());
+            cursor.MarkLabel(returnLabel);
         }
 
         private static void logWhenNotOnMainThread(LogID logFile)

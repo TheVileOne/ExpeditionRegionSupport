@@ -29,6 +29,25 @@ namespace LogUtils
             logFile.Properties.BeginLogSession();
         }
 
+        /// <summary>
+        /// Ends the current log session, and prepares a new one
+        /// </summary>
+        public void ResetFile(LogID logFile)
+        {
+            logFile.Properties.EndLogSession();
+
+            try
+            {
+                File.Delete(logFile.Properties.CurrentFilePath);
+                logFile.Properties.FileExists = false;
+            }
+            catch (Exception ex)
+            {
+                UtilityCore.BaseLogger.LogError(new IOException("Unable to delete log file", ex));
+            }
+            PrepareLogFile(logFile);
+        }
+
         public void WriteFromRequest(LogRequest request)
         {
             lock (UtilityCore.RequestHandler.RequestProcessLock)
@@ -209,6 +228,7 @@ namespace LogUtils
     public interface ILogWriter
     {
         public void CreateFile(LogID logFile);
+        public void ResetFile(LogID logFile);
         public void WriteFromRequest(LogRequest request);
         public void WriteToFile();
         public void WriteToFile(LogID logFile, string message);
