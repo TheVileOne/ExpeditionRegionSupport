@@ -76,6 +76,13 @@ namespace LogUtils
             /// </summary>
             public string Message { get; }
 
+            /// <summary>
+            /// Whether this request's message should be filtered after request is successfully handled
+            /// </summary>
+            public bool ShouldFilter;
+
+            public FilterDuration FilterDuration;
+
             public LogMessageEventArgs(LogID logID, object messageData, LogCategory category = null) : base(logID)
             {
                 Category = category ?? LogCategory.Default;

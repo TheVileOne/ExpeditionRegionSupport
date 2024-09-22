@@ -541,6 +541,9 @@ namespace LogUtils.Properties
 
             UtilityCore.BaseLogger.LogInfo($"Log session ended [{ID}]");
 
+            if (LogFilter.FilteredStrings.TryGetValue(ID, out List<FilteredStringEntry> filter))
+                filter.RemoveAll(entry => entry.Duration == FilterDuration.OnClose);
+
             string writePath = CurrentFilePath;
 
             try

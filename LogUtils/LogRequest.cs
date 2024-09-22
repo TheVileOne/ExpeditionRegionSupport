@@ -11,7 +11,7 @@ namespace LogUtils
     /// </summary>
     public class LogRequest
     {
-        public const byte NO_RETRY_MAXIMUM = 4;
+        public const byte NO_RETRY_MAXIMUM = 5;
 
         public LogEvents.LogMessageEventArgs Data;
 
@@ -56,13 +56,16 @@ namespace LogUtils
             if (Status == RequestStatus.Complete) return;
 
             Status = RequestStatus.Complete;
+
+            if (Data.ShouldFilter)
+                LogFilter.AddFilterEntry(Data.ID, new FilteredStringEntry(Data.Message, Data.FilterDuration));
         }
 
         public void Reject(RejectionReason reason)
         {
             if (Status == RequestStatus.Complete)
             {
-                UtilityCore.BaseLogger.LogInfo("Completed requests cannot be rejected");
+                UtilityCore.BaseLogger.LogWarning("Completed requests cannot be rejected");
                 return;
             }
 
@@ -70,7 +73,9 @@ namespace LogUtils
             if (Data.ID != LogID.BepInEx || Data.LogSource?.SourceName != UtilityConsts.UTILITY_NAME)
                 UtilityCore.BaseLogger.LogInfo("Log request was rejected REASON: " + reason);
 
-            if (reason != RejectionReason.None && reason != RejectionReason.ExceptionAlreadyReported) //Temporary conditions should not be recorded
+            if (reason != RejectionReason.None
+             && reason != RejectionReason.ExceptionAlreadyReported
+             && reason != RejectionReason.FilterMatch) //Temporary conditions should not be recorded
                 Data.Properties.HandleRecord.Reason = reason;
 
             if (UnhandledReason == reason) return;
@@ -109,9 +114,10 @@ namespace LogUtils
         LogDisabled = 2, //LogID is not enabled, Logger is not accepting logs, or LogID is ShowLogs aware and ShowLogs is false
         FailedToWrite = 3, //Attempt to log failed due to an error
         ExceptionAlreadyReported = 4, //Attempt to log the same Exception two, or more times to the same log file
-        PathMismatch = 5, //The path information for the LogID accepted by the logger does not match the path information of the LogID in the request
-        LogUnavailable = 6, //No logger is available that accepts the LogID, or the logger accepts the LogID, but enforces a build period on the log file that is not yet satisfied
-        PregameUnityRequest = 7, //Requested action to the Unity logger before the game is initialized
-        ShowLogsNotInitialized = 8 //Requested action to a ShowLogs aware log before ShowLogs is initialized 
+        FilterMatch = 5, //Attempt to log a string that is stored in FilteredStrings
+        PathMismatch = 6, //The path information for the LogID accepted by the logger does not match the path information of the LogID in the request
+        LogUnavailable = 7, //No logger is available that accepts the LogID, or the logger accepts the LogID, but enforces a build period on the log file that is not yet satisfied
+        PregameUnityRequest = 8, //Requested action to the Unity logger before the game is initialized
+        ShowLogsNotInitialized = 9 //Requested action to a ShowLogs aware log before ShowLogs is initialized 
     }
 }

@@ -70,6 +70,12 @@ namespace LogUtils
 
             try
             {
+                if (LogFilter.CheckFilterMatch(request.Data.ID, request.Data.Message))
+                {
+                    request.Reject(RejectionReason.FilterMatch);
+                    return;
+                }
+
                 if (!PrepareLogFile(request.Data.ID))
                 {
                     request.Reject(RejectionReason.LogUnavailable);
@@ -93,12 +99,11 @@ namespace LogUtils
 
         public void WriteToFile(LogID logFile, string message)
         {
+            RequestType requestType = logFile.IsGameControlled ? RequestType.Game : RequestType.Local;
             LogEvents.LogMessageEventArgs logEventData = new LogEvents.LogMessageEventArgs(logFile, message);
 
             lock (UtilityCore.RequestHandler.RequestProcessLock)
             {
-                RequestType requestType = logFile.IsGameControlled ? RequestType.Game : RequestType.Local;
-
                 UtilityCore.RequestHandler.Submit(new LogRequest(requestType, logEventData), false);
                 WriteToFile();
             }

@@ -411,7 +411,7 @@ namespace LogUtils
 
         #endregion
 
-        protected virtual void LogData(IEnumerable<LogID> targets, LogCategory category, object data, bool logOnce)
+        protected virtual void LogData(IEnumerable<LogID> targets, LogCategory category, object data, bool shouldFilter)
         {
             if (!targets.Any())
             {
@@ -421,10 +421,10 @@ namespace LogUtils
 
             //Log data for each targetted LogID
             foreach (LogID target in targets)
-                LogData(target, category, data, logOnce);
+                LogData(target, category, data, shouldFilter);
         }
 
-        protected virtual void LogData(LogID target, LogCategory category, object data, bool logOnce)
+        protected virtual void LogData(LogID target, LogCategory category, object data, bool shouldFilter)
         {
             if (!AllowLogging || !target.IsEnabled) return;
 
@@ -447,6 +447,12 @@ namespace LogUtils
             {
                 LogSource = ManagedLogSource
             });
+
+            if (shouldFilter)
+            {
+                request.Data.ShouldFilter = true;
+                request.Data.FilterDuration = FilterDuration.OnClose;
+            }
 
             lock (UtilityCore.RequestHandler.RequestProcessLock)
             {

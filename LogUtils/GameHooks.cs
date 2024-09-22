@@ -60,17 +60,18 @@ namespace LogUtils
             On.RainWorld.HandleLog += RainWorld_HandleLog;
             IL.RainWorld.HandleLog += RainWorld_HandleLog;
 
+            On.Expedition.ExpLog.Log += ExpLog_Log;
+            On.Expedition.ExpLog.LogOnce += ExpLog_LogOnce;
+
             IL.Expedition.ExpLog.ClearLog += ExpLog_ClearLog;
-            IL.Expedition.ExpLog.Log += expeditionLogProcessHookIL; //This needs to be handled before LogOnce hook
-            IL.Expedition.ExpLog.LogOnce += expeditionLogProcessHookIL;
+            IL.Expedition.ExpLog.Log += ExpLog_Log;
+            IL.Expedition.ExpLog.LogOnce += ExpLog_LogOnce;
             IL.Expedition.ExpLog.LogChallengeTypes += ExpLog_LogChallengeTypes;
 
             IL.JollyCoop.JollyCustom.CreateJollyLog += JollyCustom_CreateJollyLog;
             IL.JollyCoop.JollyCustom.Log += JollyCustom_Log;
             IL.JollyCoop.JollyCustom.WriteToLog += JollyCustom_WriteToLog;
 
-            On.Expedition.ExpLog.Log += ExpLog_Log;
-            On.Expedition.ExpLog.LogOnce += ExpLog_LogOnce;
             On.JollyCoop.JollyCustom.Log += JollyCustom_Log;
 
             managedHooks.ForEach(hook => hook.Apply());
@@ -95,8 +96,6 @@ namespace LogUtils
         {
             if (!UtilityCore.IsControllingAssembly) return;
 
-            expeditionLogProcessFlag = true;
-
             On.RainWorld.Awake -= RainWorld_Awake;
             IL.RainWorld.Awake -= RainWorld_Awake;
             On.RainWorld.OnDestroy -= RainWorld_OnDestroy;
@@ -108,17 +107,18 @@ namespace LogUtils
             On.RainWorld.HandleLog -= RainWorld_HandleLog;
             IL.RainWorld.HandleLog -= RainWorld_HandleLog;
 
+            On.Expedition.ExpLog.Log -= ExpLog_Log;
+            On.Expedition.ExpLog.LogOnce -= ExpLog_LogOnce;
+
             IL.Expedition.ExpLog.ClearLog -= ExpLog_ClearLog;
-            IL.Expedition.ExpLog.Log -= expeditionLogProcessHookIL;
-            IL.Expedition.ExpLog.LogOnce -= expeditionLogProcessHookIL;
+            IL.Expedition.ExpLog.Log -= ExpLog_Log;
+            IL.Expedition.ExpLog.LogOnce -= ExpLog_LogOnce;
             IL.Expedition.ExpLog.LogChallengeTypes -= ExpLog_LogChallengeTypes;
 
             IL.JollyCoop.JollyCustom.CreateJollyLog -= JollyCustom_CreateJollyLog;
             IL.JollyCoop.JollyCustom.Log -= JollyCustom_Log;
             IL.JollyCoop.JollyCustom.WriteToLog -= JollyCustom_WriteToLog;
 
-            On.Expedition.ExpLog.Log -= ExpLog_Log;
-            On.Expedition.ExpLog.LogOnce -= ExpLog_LogOnce;
             On.JollyCoop.JollyCustom.Log -= JollyCustom_Log;
 
             managedHooks.ForEach(hook => hook.Free());
@@ -436,80 +436,70 @@ namespace LogUtils
             showLogsBypassHook(new ILCursor(il), LogID.Expedition);
         }
 
-        private static void ExpLog_Log(On.Expedition.ExpLog.orig_Log orig, string message)
+        private static void ExpLog_Log(On.Expedition.ExpLog.orig_Log orig, string logString)
         {
-            expeditionLogProcessHook(orig, message);
+            try
+            {
+                gameHookRequestCounter++;
+                orig(logString);
+            }
+            finally
+            {
+                gameHookRequestCounter--;
+            }
         }
 
-        private static void ExpLog_LogOnce(On.Expedition.ExpLog.orig_LogOnce orig, string message)
+        private static void ExpLog_LogOnce(On.Expedition.ExpLog.orig_LogOnce orig, string logString)
         {
-            //Utility doesn't yet support LogRequests that target this functionality. Request system does not need to be checked here
-            if (!ExpLog.onceText.Contains(message))
-                expeditionLogProcessHook(orig, message);
+            try
+            {
+                gameHookRequestCounter++;
+                orig(logString);
+            }
+            finally
+            {
+                gameHookRequestCounter--;
+            }
         }
 
-        private static void expeditionLogProcessHook(Delegate orig, string message)
+        private static void ExpLog_Log(ILContext il)
         {
-            lock (UtilityCore.RequestHandler.RequestProcessLock)
+            expeditionLogProcessHookIL(il, shouldFilter: false);
+        }
+
+        private static void ExpLog_LogOnce(ILContext il)
+        {
+            expeditionLogProcessHookIL(il, shouldFilter: true);
+        }
+
+        private static void expeditionLogProcessHookIL(ILContext il, bool shouldFilter)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            cursor.Emit(OpCodes.Ldarg_0); //Static method, this is the log string
+            cursor.EmitDelegate((string logString) =>
             {
                 LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
                 //Ensure that request is always constructed before a message is logged
                 if (request == null)
                 {
-                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Expedition, message)), false);
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Expedition, logString)), false);
 
                     if (request.Status == RequestStatus.Rejected)
                         return;
                 }
 
-                try
+                if (shouldFilter)
                 {
-                    expeditionOrJollyLogInProgress = true;
-                    orig.DynamicInvoke(message);
+                    request.Data.ShouldFilter = true;
+                    request.Data.FilterDuration = FilterDuration.OnClose;
                 }
-                catch
-                {
-                    request.Reject(RejectionReason.FailedToWrite);
-                }
-                finally
-                {
-                    expeditionOrJollyLogInProgress = false;
-                    LogWriter.FinishWriteProcess(request);
-                }
-            }
-        }
 
-        /// <summary>
-        /// This is a hacky way of adding a necessary OpCodes.Pop to ExpLog.Log, but not ExpLog.LogOnce
-        /// </summary>
-        private static bool expeditionLogProcessFlag = true;
-
-        private static void expeditionLogProcessHookIL(ILContext il)
-        {
-            ILCursor cursor = new ILCursor(il);
-
-            showLogsBypassHook(cursor, LogID.Expedition);
-            replaceLogPathHook(cursor, LogID.Expedition);
-
-            //Match this instruction to ensure we are probably matching the correct branch instruction
-            cursor.GotoNext(x => x.MatchCall(typeof(ExpLog), nameof(ExpLog.ClearLog)));
-
-            ILLabel branchLabel = null;
-
-            //Find a suitable place to start the log write process
-            cursor.GotoPrev(x => x.MatchBrtrue(out branchLabel)); //Take the label, so we can move to it
-            cursor.GotoLabel(branchLabel);
-            cursor.MoveAfterLabels();
-
-            beginWriteProcessHook(cursor, expeditionLogProcessFlag);
-            expeditionLogProcessFlag = false;
-
-            cursor.GotoNext(MoveType.After, x => x.MatchLdarg(0)); //Move to after message is about to be logged
-            cursor.EmitDelegate<Func<string, string>>(message =>
-            {
-                return LogWriter.Writer.ApplyRules(LogID.Expedition, message);
+                LogWriter.Writer.WriteToFile();
             });
+
+            branchToReturn(cursor);
         }
 
         private static void ExpLog_ClearLog(ILContext il)
