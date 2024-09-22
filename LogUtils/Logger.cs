@@ -146,6 +146,11 @@ namespace LogUtils
             Log(LogCategory.Default, data);
         }
 
+        public void LogOnce(object data)
+        {
+            LogOnce(LogCategory.Default, data);
+        }
+
         public void LogDebug(object data)
         {
             Log(LogCategory.Debug, data);
@@ -182,81 +187,60 @@ namespace LogUtils
         }
 
         #region Base log overloads
-
+        #region BepInEx
         public void LogBepEx(object data)
         {
-            LogBepEx(LogLevel.Info, data);
+            LogData(LogID.BepInEx, LogCategory.Default, data, false);
         }
 
         public void LogBepEx(LogLevel category, object data)
         {
-            if (!AllowLogging || !LogID.BepInEx.IsEnabled) return;
-
-            UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.BepInEx, data, category)
-            {
-                LogSource = ManagedLogSource
-            }), true);
+            LogData(LogID.BepInEx, LogCategory.ToCategory(category), data, false);
         }
 
         public void LogBepEx(LogCategory category, object data)
         {
-            if (!AllowLogging || !LogID.BepInEx.IsEnabled) return;
-
-            UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.BepInEx, data, category)
-            {
-                LogSource = ManagedLogSource
-            }), true);
+            LogData(LogID.BepInEx, category, data, false);
         }
-
+        #endregion
+        #region Unity
         public void LogUnity(object data)
         {
-            LogUnity(LogCategory.Default, data);
+            LogData(LogID.Unity, LogCategory.Default, data, false);
         }
 
         public void LogUnity(LogType category, object data)
         {
-            if (!AllowLogging) return;
-
-            LogID logFile = !LogCategory.IsUnityErrorCategory(category) ? LogID.Unity : LogID.Exception;
-
-            if (logFile.IsEnabled)
-                UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(logFile, data, category)), true);
+            LogData(LogCategory.GetUnityLogID(category), LogCategory.ToCategory(category), data, false);
         }
 
         public void LogUnity(LogCategory category, object data)
         {
-            if (!AllowLogging) return;
-
-            LogID logFile = !LogCategory.IsUnityErrorCategory(category.UnityCategory) ? LogID.Unity : LogID.Exception;
-
-            if (logFile.IsEnabled)
-                UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(logFile, data, category)), true);
+            LogData(LogCategory.GetUnityLogID(category.UnityCategory), category, data, false);
         }
-
+        #endregion
+        #region Expedition
         public void LogExp(object data)
         {
-            LogExp(LogCategory.Default, data);
+            LogData(LogID.Expedition, LogCategory.Default, data, false);
         }
 
         public void LogExp(LogCategory category, object data)
         {
-            if (!AllowLogging || !LogID.Expedition.IsEnabled) return;
-
-            UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Expedition, data, category)), true);
+            LogData(LogID.Expedition, category, data, false);
         }
-
+        #endregion
+        #region JollyCoop
         public void LogJolly(object data)
         {
-            LogJolly(LogCategory.Default, data);
+            LogData(LogID.JollyCoop, LogCategory.Default, data, false);
         }
 
         public void LogJolly(LogCategory category, object data)
         {
-            if (!AllowLogging || !LogID.JollyCoop.IsEnabled) return;
-
-            UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.JollyCoop, data, category)), true);
+            LogData(LogID.JollyCoop, category, data, false);
         }
-
+        #endregion
         #endregion
 
         public void Log(LogLevel category, object data)
@@ -271,13 +255,33 @@ namespace LogUtils
 
         public void Log(LogCategory category, object data)
         {
-            LogData(LogTargets, category, data);
+            LogData(LogTargets, category, data, false);
+        }
+
+        public void LogOnce(LogLevel category, object data)
+        {
+            LogOnce(LogCategory.ToCategory(category), data);
+        }
+
+        public void LogOnce(string category, object data)
+        {
+            LogOnce(LogCategory.ToCategory(category), data);
+        }
+
+        public void LogOnce(LogCategory category, object data)
+        {
+            LogData(LogTargets, category, data, true);
         }
 
         #endregion
         #region  Log Overloads (LogID, object)
 
         public void Log(LogID target, object data)
+        {
+            Log(target, LogCategory.Default, data);
+        }
+
+        public void LogOnce(LogID target, object data)
         {
             Log(target, LogCategory.Default, data);
         }
@@ -329,13 +333,23 @@ namespace LogUtils
 
         public void Log(LogID target, LogCategory category, object data)
         {
-            LogData(target, category, data);
+            LogData(target, category, data, false);
+        }
+
+        public void LogOnce(LogID target, LogCategory category, object data)
+        {
+            LogData(target, category, data, true);
         }
 
         #endregion
         #region  Log Overloads (IEnumerable<LogID>, object)
 
         public void Log(IEnumerable<LogID> targets, object data)
+        {
+            Log(targets, LogCategory.Default, data);
+        }
+
+        public void LogOnce(IEnumerable<LogID> targets, object data)
         {
             Log(targets, LogCategory.Default, data);
         }
@@ -387,12 +401,17 @@ namespace LogUtils
 
         public void Log(IEnumerable<LogID> targets, LogCategory category, object data)
         {
-            LogData(targets, category, data);
+            LogData(targets, category, data, false);
+        }
+
+        public void LogOnce(IEnumerable<LogID> targets, LogCategory category, object data)
+        {
+            LogData(targets, category, data, true);
         }
 
         #endregion
 
-        protected virtual void LogData(IEnumerable<LogID> targets, LogCategory category, object data)
+        protected virtual void LogData(IEnumerable<LogID> targets, LogCategory category, object data, bool logOnce)
         {
             if (!targets.Any())
             {
@@ -402,50 +421,45 @@ namespace LogUtils
 
             //Log data for each targetted LogID
             foreach (LogID target in targets)
-                LogData(target, category, data);
+                LogData(target, category, data, logOnce);
         }
 
-        protected virtual void LogData(LogID target, LogCategory category, object data)
+        protected virtual void LogData(LogID target, LogCategory category, object data, bool logOnce)
         {
             if (!AllowLogging || !target.IsEnabled) return;
 
-            if (target.Access != LogAccess.RemoteAccessOnly)
+            RequestType requestType;
+
+            if (target.IsGameControlled)
             {
-                if (target.IsGameControlled) //Game controlled LogIDs are always full access
-                {
-                    if (target == LogID.BepInEx)
-                    {
-                        LogBepEx(category, data);
-                    }
-                    else if (target == LogID.Unity)
-                    {
-                        LogUnity(category, data);
-                    }
-                    else if (target == LogID.Expedition)
-                    {
-                        LogExp(category, data);
-                    }
-                    else if (target == LogID.JollyCoop)
-                    {
-                        LogJolly(category, data);
-                    }
-                    else if (target == LogID.Exception)
-                    {
-                        LogUnity(LogType.Error, data);
-                    }
-                }
-                else if (target.Access == LogAccess.FullAccess || target.Access == LogAccess.Private)
-                {
-                    lock (UtilityCore.RequestHandler.RequestProcessLock)
-                    {
-                        UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Local, new LogEvents.LogMessageEventArgs(target, data, category)), false);
-                        Writer.WriteToFile();
-                    }
-                }
+                requestType = RequestType.Game;
+            }
+            else if (target.Access == LogAccess.FullAccess || target.Access == LogAccess.Private)
+            {
+                requestType = RequestType.Local;
             }
             else
             {
-                UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Remote, new LogEvents.LogMessageEventArgs(target, data, category)), true);
+                requestType = RequestType.Remote;
+            }
+
+            LogRequest request = new LogRequest(requestType, new LogEvents.LogMessageEventArgs(target, data, category)
+            {
+                LogSource = ManagedLogSource
+            });
+
+            lock (UtilityCore.RequestHandler.RequestProcessLock)
+            {
+                //Local requests are processed immediately by the logger, while other types of requests are handled through RequestHandler
+                if (request.Type != RequestType.Local)
+                {
+                    UtilityCore.RequestHandler.Submit(request, true);
+                }
+                else
+                {
+                    UtilityCore.RequestHandler.Submit(request, false);
+                    Writer.WriteToFile();
+                }
             }
         }
 

@@ -271,7 +271,7 @@ namespace LogUtils
 
                 object logTarget = logString;
 
-                LogID logFile = !LogCategory.IsUnityErrorCategory(logLevel) ? LogID.Unity : LogID.Exception;
+                LogID logFile = LogCategory.GetUnityLogID(logLevel);
 
                 if (logFile == LogID.Exception)
                 {

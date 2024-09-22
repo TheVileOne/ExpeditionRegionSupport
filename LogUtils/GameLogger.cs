@@ -116,8 +116,7 @@ namespace LogUtils
 
         public void LogUnity(LogType category, object data)
         {
-            LogID logFile = !LogCategory.IsUnityErrorCategory(category) ? LogID.Unity : LogID.Exception;
-            Process(logFile, processLog);
+            Process(LogCategory.GetUnityLogID(category), processLog);
 
             void processLog()
             {
@@ -127,8 +126,7 @@ namespace LogUtils
 
         public void LogUnity(LogCategory category, object data)
         {
-            LogID logFile = !LogCategory.IsUnityErrorCategory(category.UnityCategory) ? LogID.Unity : LogID.Exception;
-            Process(logFile, processLog);
+            Process(LogCategory.GetUnityLogID(category.UnityCategory), processLog);
 
             void processLog()
             {
