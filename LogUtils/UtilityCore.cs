@@ -95,6 +95,8 @@ namespace LogUtils
 
             LogID.InitializeLogIDs(); //This should be called for every assembly that initializes
 
+            LogFilterParser.ParseFile();
+
             if (IsControllingAssembly)
             {
                 PropertyManager.ProcessLogFiles();
