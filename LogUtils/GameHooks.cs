@@ -63,11 +63,13 @@ namespace LogUtils
             On.Expedition.ExpLog.Log += ExpLog_Log;
             On.Expedition.ExpLog.LogOnce += ExpLog_LogOnce;
 
+            On.Expedition.ExpLog.ClearLog += ExpLog_ClearLog;
             IL.Expedition.ExpLog.ClearLog += ExpLog_ClearLog;
             IL.Expedition.ExpLog.Log += ExpLog_Log;
             IL.Expedition.ExpLog.LogOnce += ExpLog_LogOnce;
             IL.Expedition.ExpLog.LogChallengeTypes += ExpLog_LogChallengeTypes;
 
+            On.JollyCoop.JollyCustom.CreateJollyLog += JollyCustom_CreateJollyLog;
             IL.JollyCoop.JollyCustom.CreateJollyLog += JollyCustom_CreateJollyLog;
             IL.JollyCoop.JollyCustom.Log += JollyCustom_Log;
             IL.JollyCoop.JollyCustom.WriteToLog += JollyCustom_WriteToLog;
@@ -110,11 +112,13 @@ namespace LogUtils
             On.Expedition.ExpLog.Log -= ExpLog_Log;
             On.Expedition.ExpLog.LogOnce -= ExpLog_LogOnce;
 
+            On.Expedition.ExpLog.ClearLog -= ExpLog_ClearLog;
             IL.Expedition.ExpLog.ClearLog -= ExpLog_ClearLog;
             IL.Expedition.ExpLog.Log -= ExpLog_Log;
             IL.Expedition.ExpLog.LogOnce -= ExpLog_LogOnce;
             IL.Expedition.ExpLog.LogChallengeTypes -= ExpLog_LogChallengeTypes;
 
+            On.JollyCoop.JollyCustom.CreateJollyLog -= JollyCustom_CreateJollyLog;
             IL.JollyCoop.JollyCustom.CreateJollyLog -= JollyCustom_CreateJollyLog;
             IL.JollyCoop.JollyCustom.Log -= JollyCustom_Log;
             IL.JollyCoop.JollyCustom.WriteToLog -= JollyCustom_WriteToLog;
@@ -201,7 +205,9 @@ namespace LogUtils
                 UtilityCore.RequestHandler.ProcessRequests();
             }
 
+            disableLogClearing = true;
             orig(self);
+            disableLogClearing = false;
 
             //Leave enough time for mods to handle the old log files, before removing them from the folder
             if (RWInfo.LatestSetupPeriodReached == SetupPeriod.ModsInit)
@@ -502,6 +508,18 @@ namespace LogUtils
             branchToReturn(cursor);
         }
 
+        /// <summary>
+        /// This flag prevents clear log functions from activating for Expedition, and JollyCoop
+        /// </summary>
+        private static bool disableLogClearing;
+
+        private static void ExpLog_ClearLog(On.Expedition.ExpLog.orig_ClearLog orig)
+        {
+            if (disableLogClearing) return;
+
+            orig();
+        }
+
         private static void ExpLog_ClearLog(ILContext il)
         {
             ILCursor cursor = new ILCursor(il);
@@ -550,6 +568,13 @@ namespace LogUtils
 
             showLogsBypassHook(cursor, LogID.JollyCoop);
             replaceLogPathHook(cursor, LogID.JollyCoop);
+        }
+
+        private static void JollyCustom_CreateJollyLog(On.JollyCoop.JollyCustom.orig_CreateJollyLog orig)
+        {
+            if (disableLogClearing) return;
+
+            orig();
         }
 
         private static void JollyCustom_CreateJollyLog(ILContext il)
