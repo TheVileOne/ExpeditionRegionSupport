@@ -179,7 +179,7 @@ namespace LogUtils.Properties
             LogProperties bestCandidate = null;
             foreach (LogProperties properties in GetProperties(logID))
             {
-                if (PathUtils.PathsAreEqual(properties.OriginalFolderPath, LogProperties.GetContainingPath(relativePathNoFile)))
+                if (PathUtils.PathsAreEqual(PathUtils.ToPath(properties.OriginalFolderPath), LogProperties.GetContainingPath(relativePathNoFile)))
                 {
                     bestCandidate = properties;
                     break;
