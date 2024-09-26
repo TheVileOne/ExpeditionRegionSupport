@@ -1,5 +1,4 @@
 ﻿using BepInEx.Logging;
-using Expedition;
 using LogUtils.Properties;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -239,6 +238,16 @@ namespace LogUtils
         private static void RainWorld_Update(On.RainWorld.orig_Update orig, RainWorld self)
         {
             orig(self);
+
+            //Functionally similar to how JollyCoop handles its logging
+            foreach (Logger logger in UtilityCore.RequestHandler.AvailableLoggers)
+            {
+                //TODO: Maybe an interface is better here
+                QueueLogWriter queueWriter = logger.Writer as QueueLogWriter;
+
+                if (queueWriter != null)
+                    queueWriter.Flush();
+            }
 
             //Logic is handled after orig for several reasons. The main reason is that all remote loggers are guaranteed to receive any signals set during update
             //no matter where they are in the load order. Signals are created pre-update, or during update only.
