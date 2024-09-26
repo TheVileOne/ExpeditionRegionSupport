@@ -1,6 +1,7 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Properties;
 using System;
+using System.IO;
 using UnityEngine;
 
 namespace LogUtils
@@ -102,7 +103,18 @@ namespace LogUtils
             }
         }
 
+        public class LogStreamEventArgs : LogEventArgs
+        {
+            public StreamWriter Writer { get; }
+
+            public LogStreamEventArgs(LogID logID, StreamWriter writer) : base(logID)
+            {
+                Writer = writer;
+            }
+        }
+
         public delegate void LogEventHandler(LogEventArgs e);
         public delegate void LogMessageEventHandler(LogMessageEventArgs e);
+        public delegate void LogStreamEventHandler(LogStreamEventArgs e);
     }
 }

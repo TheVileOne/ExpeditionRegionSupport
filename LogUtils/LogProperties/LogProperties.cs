@@ -17,7 +17,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// Events triggers at the start, or the end of a log session
         /// </summary>
-        public event LogEvents.LogEventHandler OnLogStart, OnLogFinish;
+        public event LogEvents.LogStreamEventHandler OnLogSessionStart, OnLogSessionFinish;
 
         public bool FileExists
         {
@@ -257,6 +257,11 @@ namespace LogUtils.Properties
         public string PreferredFileExt = FileExt.DEFAULT;
 
         /// <summary>
+        /// A flag, when true, indicates it is not safe to attempt to receive write access, or write directly to the log file
+        /// </summary>
+        public bool IsWriteRestricted;
+
+        /// <summary>
         /// When the log file properties are first initialized, the log file can have its path changed to target the Logs folder if it exists, disabled by default
         /// </summary>
         public bool LogsFolderAware
@@ -405,6 +410,26 @@ namespace LogUtils.Properties
 
             CustomProperties.OnPropertyAdded += onCustomPropertyAdded;
             CustomProperties.OnPropertyRemoved += onCustomPropertyRemoved;
+
+            //Some game logs have hardcoded intro messages - Display these messages before any other content
+            if (propertyID == UtilityConsts.LogNames.Expedition)
+            {
+                OnLogSessionStart += (LogEvents.LogStreamEventArgs e) =>
+                {
+                    e.Writer.WriteLine("[EXPEDITION LOGGER] - " + DateTime.Now);
+                };
+            }
+            else if (propertyID == UtilityConsts.LogNames.JollyCoop)
+            {
+                OnLogSessionStart += (LogEvents.LogStreamEventArgs e) =>
+                {
+                    RainWorld.BuildType buildType = Custom.rainWorld?.buildType ?? default;
+                    e.Writer.WriteLine(string.Format("############################################\n Jolly Coop Log {0} [DEBUG LEVEL: {1}]\n", 0, buildType));
+                };
+            }
+
+            OnLogSessionStart += LogProperties_OnLogSessionStart;
+            OnLogSessionFinish += LogProperties_OnLogSessionFinish;
         }
 
         public LogProperties(string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS) : this(filename, filename, relativePathNoFile)
@@ -422,6 +447,28 @@ namespace LogUtils.Properties
         {
             if (property.IsLogRule)
                 Rules.Remove(property.Name);
+        }
+
+        private void LogProperties_OnLogSessionStart(LogEvents.LogStreamEventArgs e)
+        {
+            if (IsWriteRestricted) return;
+
+            if (IntroMessage != null)
+                e.Writer.WriteLine(IntroMessage);
+
+            if (ShowIntroTimestamp)
+                e.Writer.WriteLine($"[{DateTime.Now}]");
+        }
+
+        private void LogProperties_OnLogSessionFinish(LogEvents.LogStreamEventArgs e)
+        {
+            if (IsWriteRestricted) return;
+
+            if (OutroMessage != null)
+                e.Writer.WriteLine(OutroMessage);
+
+            if (ShowOutroTimestamp)
+                e.Writer.WriteLine($"[{DateTime.Now}]");
         }
 
         public void ChangePath(string newPath)
@@ -507,17 +554,11 @@ namespace LogUtils.Properties
                     {
                         using (StreamWriter writer = new StreamWriter(stream))
                         {
-                            if (IntroMessage != null)
-                                writer.WriteLine(IntroMessage);
-
-                            if (ShowIntroTimestamp)
-                                writer.WriteLine($"[{DateTime.Now}]");
-                        }
+                            OnLogSessionStart(new LogEvents.LogStreamEventArgs(ID, writer));
+                        };
 
                         LogSessionActive = true;
                         LastKnownFilePath = CurrentFilePath;
-
-                        OnLogStart?.Invoke(new LogEvents.LogEventArgs(this));
                     }
                 }
             }
@@ -543,21 +584,30 @@ namespace LogUtils.Properties
             if (LogFilter.FilteredStrings.TryGetValue(ID, out List<FilteredStringEntry> filter))
                 filter.RemoveAll(entry => entry.Duration == FilterDuration.OnClose);
 
+            if (!FileExists)
+            {
+                LogSessionActive = false;
+                return;
+            }
+
             string writePath = CurrentFilePath;
 
             try
             {
-                if (ID != LogID.BepInEx) //Unsupported
+                using (FileStream stream = LogWriter.GetWriteStream(writePath, false))
                 {
-                    if (OutroMessage != null)
-                        FileUtils.WriteLine(writePath, OutroMessage);
+                    FileExists = stream != null;
 
-                    if (ShowOutroTimestamp)
-                        FileUtils.WriteLine(writePath, $"[{DateTime.Now}]");
+                    if (FileExists)
+                    {
+                        using (StreamWriter writer = new StreamWriter(stream))
+                        {
+                            OnLogSessionFinish(new LogEvents.LogStreamEventArgs(ID, writer));
+                        };
+                    }
                 }
-                OnLogFinish?.Invoke(new LogEvents.LogEventArgs(this));
             }
-            catch (IOException ex)
+            catch (IOException ex) //Some issue other than the file existing occurred
             {
                 UtilityCore.BaseLogger.LogError("File handling error occurred");
                 UtilityCore.BaseLogger.LogError(ex);

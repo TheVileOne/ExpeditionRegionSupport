@@ -179,6 +179,7 @@ namespace LogUtils
 
             BepInEx.Properties.AccessPeriod = SetupPeriod.Pregame;
             BepInEx.Properties.AltFilename = UtilityConsts.LogNames.BepInExAlt;
+            BepInEx.Properties.IsWriteRestricted = true;
             BepInEx.Properties.LogSessionActive = true; //BepInEx log is active before the utility can initialize
             BepInEx.Properties.PreferredFileExt = FileExt.LOG;
             BepInEx.Properties.ShowCategories.IsEnabled = true;
