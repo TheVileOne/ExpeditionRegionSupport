@@ -28,7 +28,7 @@ namespace LogUtils
         public static bool CheckFilterMatch(LogID logID, string logString)
         {
             if (FilteredStrings.TryGetValue(logID, out List<FilteredStringEntry> filter))
-                return filter.Exists(entry => entry.Value == logString);
+                return filter.Exists(entry => entry.CheckMatch(logString));
             return false;
         }
     }

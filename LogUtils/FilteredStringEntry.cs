@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace LogUtils
@@ -21,6 +22,16 @@ namespace LogUtils
         public FilteredStringEntry(string entryString, FilterDuration duration, bool useAsRegexPattern) : this(entryString, duration)
         {
             IsRegex = useAsRegexPattern;
+        }
+
+        public bool CheckMatch(string testString)
+        {
+            if (IsRegex)
+            {
+                Regex regex = new Regex(Value);
+                return regex.Match(testString).Success;
+            }
+            return string.Equals(Value, testString);
         }
     }
 
