@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using LogUtils.Helpers;
 using RWCustom;
-using UnityEngine;
 using DataFields = LogUtils.UtilityConsts.DataFields;
 
 namespace LogUtils.Properties
@@ -379,10 +378,10 @@ namespace LogUtils.Properties
         /// </summary>
         public LogRuleCollection Rules = new LogRuleCollection();
 
-        public LogProperties(string propertyID, string filename, string relativePathNoFile = "customroot")
+        public LogProperties(string propertyID, string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS)
         {
             _idValue = propertyID;
-            
+
             Filename = filename;
             FolderPath = GetContainingPath(relativePathNoFile);
 
@@ -408,7 +407,7 @@ namespace LogUtils.Properties
             CustomProperties.OnPropertyRemoved += onCustomPropertyRemoved;
         }
 
-        public LogProperties(string filename, string relativePathNoFile = "customroot") : this(filename, filename, relativePathNoFile)
+        public LogProperties(string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS) : this(filename, filename, relativePathNoFile)
         {
         }
 
@@ -589,8 +588,8 @@ namespace LogUtils.Properties
             sb.AppendPropertyString(DataFields.LOGS_FOLDER_AWARE, LogsFolderAware.ToString());
             sb.AppendPropertyString(DataFields.LOGS_FOLDER_ELIGIBLE, LogsFolderEligible.ToString());
             sb.AppendPropertyString(DataFields.SHOW_LOGS_AWARE, ShowLogsAware.ToString());
-            sb.AppendPropertyString(DataFields.PATH, PathUtils.ToPlaceholderPath(FolderPath));
-            sb.AppendPropertyString(DataFields.ORIGINAL_PATH, PathUtils.ToPlaceholderPath(OriginalFolderPath));
+            sb.AppendPropertyString(DataFields.PATH, PathUtils.GetPathKeyword(FolderPath) ?? FolderPath);
+            sb.AppendPropertyString(DataFields.ORIGINAL_PATH, PathUtils.GetPathKeyword(OriginalFolderPath) ?? OriginalFolderPath);
             sb.AppendPropertyString(DataFields.LAST_KNOWN_PATH, LastKnownFilePath);
             sb.AppendPropertyString(DataFields.Intro.MESSAGE, IntroMessage);
             sb.AppendPropertyString(DataFields.Intro.TIMESTAMP, ShowIntroTimestamp.ToString());
@@ -625,7 +624,7 @@ namespace LogUtils.Properties
         public static string GetContainingPath(string relativePath)
         {
             if (relativePath == null)
-                return Application.streamingAssetsPath;
+                return Paths.StreamingAssetsPath;
 
             //Apply some preprocessing to the path based on whether it is a partial, or full path
             string path;
@@ -653,7 +652,7 @@ namespace LogUtils.Properties
             }
             else
             {
-                path = PathUtils.ToPath(relativePath);
+                path = PathUtils.GetPathFromKeyword(relativePath);
             }
 
             if (PathUtils.PathRootExists(path)) //No need to change the path when it is already valid
@@ -668,7 +667,7 @@ namespace LogUtils.Properties
             UtilityCore.BaseLogger.LogInfo("Defaulting to custom root. Path check run too early to resolve");
 
             //This is what AssetManager.ResolveDirectory would have returned as a fallback path
-            return Path.Combine(Application.streamingAssetsPath, relativePath);
+            return Path.Combine(Paths.StreamingAssetsPath, relativePath);
         }
 
         /// <summary>

@@ -60,34 +60,71 @@ namespace LogUtils.Helpers
             return path;
         }
 
-        /// <summary>
-        /// Converts a placeholder path string into a useable path
-        /// </summary>
-        public static string ToPath(string path)
+        public static bool IsPathKeyword(string pathString)
         {
-            if (string.IsNullOrEmpty(path) || path == "customroot")
-                return Application.streamingAssetsPath;
+            if (pathString == null) return false;
 
-            if (path == "root")
-                return Path.GetDirectoryName(Application.dataPath);
-            return RemoveFileFromPath(path);
+            pathString = pathString.ToLower();
+
+            switch (pathString)
+            {
+                case UtilityConsts.PathKeywords.ROOT:
+                case UtilityConsts.PathKeywords.STREAMING_ASSETS:
+                    return true;
+            }
+            return false;
+        }
+
+        public static string GetPathKeyword(string path)
+        {
+            if (IsPathKeyword(path))
+                return path.ToLower();
+
+            string keyword = null;
+
+            if (InternalPathsAreEqual(path, Paths.StreamingAssetsPath))
+                keyword = UtilityConsts.PathKeywords.STREAMING_ASSETS;
+            else if (InternalPathsAreEqual(path, Paths.GameRootPath))
+                keyword = UtilityConsts.PathKeywords.ROOT;
+
+            return keyword;
+        }
+
+        public static string GetPathFromKeyword(string pathString)
+        {
+            if (!IsPathKeyword(pathString))
+                return RemoveFileFromPath(pathString);
+
+            pathString = pathString.ToLower();
+
+            switch (pathString)
+            {
+                case UtilityConsts.PathKeywords.ROOT:
+                    pathString = Paths.GameRootPath;
+                    break;
+                case UtilityConsts.PathKeywords.STREAMING_ASSETS:
+                    pathString = Paths.StreamingAssetsPath;
+                    break;
+            }
+            return pathString;
         }
 
         /// <summary>
-        /// Converts a path string into a placeholder path string (if applicable)
+        /// Evaluates whether paths are logically equivalent
         /// </summary>
-        public static string ToPlaceholderPath(string path)
-        {
-            if (string.IsNullOrEmpty(path) || PathsAreEqual(path, Application.streamingAssetsPath))
-                return "customroot";
-
-            if (PathsAreEqual(path, Path.GetDirectoryName(Application.dataPath)))
-                return "root";
-            return RemoveFileFromPath(path);
-        }
-
         public static bool PathsAreEqual(string path1, string path2)
         {
+            //Make sure we are comparing path data, not keywords
+            path1 = GetPathFromKeyword(path1);
+            path2 = GetPathFromKeyword(path2);
+
+            return InternalPathsAreEqual(path1, path2);
+        }
+
+        internal static bool InternalPathsAreEqual(string path1, string path2)
+        {
+            FileUtils.WriteLine("test.txt", "Checking path equality " + path1 + " " + path2);
+
             if (path1 == null)
                 return path2 == null;
 
@@ -97,23 +134,7 @@ namespace LogUtils.Helpers
             path1 = Path.GetFullPath(path1).TrimEnd('\\');
             path2 = Path.GetFullPath(path2).TrimEnd('\\');
 
-            var logger = UtilityCore.BaseLogger;
-
-            logger.LogInfo("Comparing paths");
-
-            bool pathsAreEqual = string.Equals(path1, path2, StringComparison.InvariantCultureIgnoreCase);
-
-            if (pathsAreEqual)
-                logger.LogInfo("Paths are equal");
-            else
-            {
-                logger.LogInfo("Comparing path: " + path1);
-                logger.LogInfo("Comparing path: " + path2);
-
-                logger.LogInfo("Paths are not equal");
-            }
-
-            return pathsAreEqual;
+            return string.Equals(path1, path2, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

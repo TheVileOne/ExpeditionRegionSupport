@@ -1,4 +1,5 @@
-﻿using LogUtils.Properties;
+﻿using LogUtils.Helpers;
+using LogUtils.Properties;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,7 +11,7 @@ namespace LogUtils
     {
         public static void ParseFile()
         {
-            string filterPath = "logfilter.txt";
+            string filterPath = Path.Combine(Paths.StreamingAssetsPath, "logfilter.txt");
 
             if (!File.Exists(filterPath)) return;
 

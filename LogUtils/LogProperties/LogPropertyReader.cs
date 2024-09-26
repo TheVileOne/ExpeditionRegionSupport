@@ -1,11 +1,8 @@
-﻿using System;
+﻿using LogUtils.Helpers;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
 
 namespace LogUtils.Properties
 {
@@ -15,7 +12,7 @@ namespace LogUtils.Properties
 
         public LogPropertyReader(string filename)
         {
-            ReadPath = Path.Combine(Application.streamingAssetsPath, filename);
+            ReadPath = Path.Combine(Paths.StreamingAssetsPath, filename);
         }
 
         public IEnumerator<StringDictionary> GetEnumerator()

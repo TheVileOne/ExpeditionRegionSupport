@@ -21,12 +21,12 @@ namespace LogUtils
         /// Rain World root folder
         /// Application.dataPath is RainWorld_data folder
         /// </summary>
-        public static readonly string DefaultPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Application.dataPath)/*Directory.GetParent(Application.dataPath).FullName*/, LOGS_FOLDER_NAME);
+        public static readonly string DefaultPath = System.IO.Path.Combine(Paths.GameRootPath, LOGS_FOLDER_NAME);
 
         /// <summary>
         /// StreamingAssets folder
         /// </summary>
-        public static readonly string AlternativePath = System.IO.Path.Combine(Application.streamingAssetsPath, LOGS_FOLDER_NAME);
+        public static readonly string AlternativePath = System.IO.Path.Combine(Paths.StreamingAssetsPath, LOGS_FOLDER_NAME);
 
         /// <summary>
         /// The path to the Logs directory if it exists, otherwise null
@@ -63,15 +63,7 @@ namespace LogUtils
             UpdatePath();
 
             string basePath = Path;
-
-            if (basePath != null)
-            {
-                path = PathUtils.RemoveFileFromPath(path);
-
-                UtilityCore.BaseLogger.LogInfo("Comparing " + path + " to  base " + basePath);
-                return PathUtils.PathsAreEqual(path, basePath);
-            }
-            return false;
+            return PathUtils.PathsAreEqual(path, basePath);
         }
 
         /// <summary>
@@ -91,7 +83,7 @@ namespace LogUtils
                     Directory.CreateDirectory(Path);
                 }
 
-                string alternativeLogPath = string.Equals(Path, DefaultPath) ? AlternativePath : DefaultPath;
+                string alternativeLogPath = PathUtils.PathsAreEqual(Path, DefaultPath) ? AlternativePath : DefaultPath;
 
                 try
                 {

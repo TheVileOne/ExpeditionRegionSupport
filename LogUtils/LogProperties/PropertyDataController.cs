@@ -179,7 +179,7 @@ namespace LogUtils.Properties
             LogProperties bestCandidate = null;
             foreach (LogProperties properties in GetProperties(logID))
             {
-                if (PathUtils.PathsAreEqual(PathUtils.ToPath(properties.OriginalFolderPath), LogProperties.GetContainingPath(relativePathNoFile)))
+                if (PathUtils.PathsAreEqual(properties.OriginalFolderPath, LogProperties.GetContainingPath(relativePathNoFile)))
                 {
                     bestCandidate = properties;
                     break;
@@ -310,7 +310,7 @@ namespace LogUtils.Properties
                 }
             }
 
-            File.WriteAllText(Path.Combine(Application.streamingAssetsPath, "logs.txt"), sb.ToString());
+            File.WriteAllText(Path.Combine(Paths.StreamingAssetsPath, "logs.txt"), sb.ToString());
         }
 
         public override Dictionary<string, object> GetFields()

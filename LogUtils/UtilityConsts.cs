@@ -63,5 +63,11 @@
             public const string JollyCoopAlt = "jolly";
             public const string UnityAlt = "console";
         }
+
+        public static class PathKeywords
+        {
+            public const string ROOT = "root";
+            public const string STREAMING_ASSETS = "customroot";
+        }
     }
 }

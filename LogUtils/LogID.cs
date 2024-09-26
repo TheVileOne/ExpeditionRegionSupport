@@ -1,5 +1,4 @@
-﻿using BepInEx;
-using LogUtils.Helpers;
+﻿using LogUtils.Helpers;
 using LogUtils.Properties;
 using System;
 using System.IO;
@@ -173,10 +172,10 @@ namespace LogUtils
         internal static void InitializeLogIDs()
         {
             BepInEx = new LogID(null, UtilityConsts.LogNames.BepInEx, Paths.BepInExRootPath, true);
-            Exception = new LogID(null, UtilityConsts.LogNames.Exception, "root", true);
-            Expedition = new LogID(null, UtilityConsts.LogNames.Expedition, "customroot", true);
-            JollyCoop = new LogID(null, UtilityConsts.LogNames.JollyCoop, "customroot", true);
-            Unity = new LogID(null, UtilityConsts.LogNames.Unity, "root", true);
+            Exception = new LogID(null, UtilityConsts.LogNames.Exception, UtilityConsts.PathKeywords.ROOT, true);
+            Expedition = new LogID(null, UtilityConsts.LogNames.Expedition, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
+            JollyCoop = new LogID(null, UtilityConsts.LogNames.JollyCoop, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
+            Unity = new LogID(null, UtilityConsts.LogNames.Unity, UtilityConsts.PathKeywords.ROOT, true);
 
             BepInEx.Properties.AccessPeriod = SetupPeriod.Pregame;
             BepInEx.Properties.AltFilename = UtilityConsts.LogNames.BepInExAlt;
