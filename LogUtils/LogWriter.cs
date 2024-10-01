@@ -276,9 +276,10 @@ namespace LogUtils
     {
         public void CreateFile(LogID logFile);
         public void ResetFile(LogID logFile);
-        public void WriteFromRequest(LogRequest request);
-        public void WriteToFile();
-        public void WriteToFile(LogID logFile, string message);
-        public string ApplyRules(LogID logFile, string message);
+        internal void WriteFrom(LogRequest request);
+        internal void WriteToBuffer();
+        internal void WriteToFile();
+        internal void WriteToFile(LogID logFile, string message);
+        internal string ApplyRules(LogID logFile, string message);
     }
 }
