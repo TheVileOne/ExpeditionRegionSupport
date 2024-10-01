@@ -52,7 +52,8 @@ namespace LogUtils
 
                 lock (RequestProcessLock)
                 {
-                    _currentRequest = value;
+                    if (CurrentRequest != value)
+                        _currentRequest = value;
                 }
             }
         }
@@ -177,7 +178,6 @@ namespace LogUtils
                 //Submission are either going to be handled through the request system, or the submission serves as a notification that the request is being handled at the source
                 if (handleSubmission)
                     ProcessRequest(request); //Processing will clean up for us when there is a rejection
-
                 return request;
             }
 
@@ -646,7 +646,7 @@ namespace LogUtils
                                 UtilityCore.BaseLogger.LogWarning("Exception message forcefully logged to file");
 
                                 request.ResetStatus();
-                                LogWriter.Writer.WriteFromRequest(request);
+                                LogWriter.Writer.WriteFrom(request);
                             }
                         }
                     }

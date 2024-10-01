@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace LogUtils
 {
@@ -22,6 +23,28 @@ namespace LogUtils
                 }
                 return _writer.Value;
             }
+        }
+
+        protected LogRequest WriteRequest;
+
+        private object writeLock = new object();
+
+        protected void AssignRequest(LogRequest request)
+        {
+            bool lockAcquired = Monitor.TryEnter(writeLock);
+
+            if (!lockAcquired)
+            {
+                SpinWait sw = new SpinWait();
+
+                while (WriteRequest != null) //WriteRequest is only set while it is being used
+                    sw.SpinOnce();
+            }
+
+            WriteRequest = request;
+
+            if (lockAcquired)
+                Monitor.Exit(writeLock);
         }
 
         public void CreateFile(LogID logFile)
@@ -48,25 +71,48 @@ namespace LogUtils
             PrepareLogFile(logFile);
         }
 
-        public void WriteFromRequest(LogRequest request)
+        public virtual void WriteFrom(LogRequest request)
         {
-            lock (UtilityCore.RequestHandler.RequestProcessLock)
+            if (request == null) return;
+
+            AssignRequest(request);
+
+            //Check that request state is still valid, this request may have been handled by another thread
+            if (request.Status != RequestStatus.Pending)
             {
-                //This shouldn't under normal circumstances be a rejected request
-                UtilityCore.RequestHandler.CurrentRequest = request;
+                WriteRequest = null;
+                return;
+            }
+
+            try
+            {
                 WriteToFile();
             }
+            finally
+            {
+                WriteRequest = null;
+            }
+        }
+
+        public virtual void WriteToBuffer()
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
         /// Attempts to write the most recently requested message to file
         /// </summary>
-        public void WriteToFile()
+        public virtual void WriteToFile()
         {
-            //This shouldn't under normal circumstances be a rejected request
-            LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+            if (WriteRequest == null)
+            {
+                WriteFrom(UtilityCore.RequestHandler.CurrentRequest);
+                return;
+            }
 
-            if (request == null || request.Status == RequestStatus.Rejected) return;
+            LogRequest request = WriteRequest;
+
+            if (request.Status != RequestStatus.Pending) return;
 
             try
             {
@@ -102,11 +148,7 @@ namespace LogUtils
             RequestType requestType = logFile.IsGameControlled ? RequestType.Game : RequestType.Local;
             LogEvents.LogMessageEventArgs logEventData = new LogEvents.LogMessageEventArgs(logFile, message);
 
-            lock (UtilityCore.RequestHandler.RequestProcessLock)
-            {
-                UtilityCore.RequestHandler.Submit(new LogRequest(requestType, logEventData), false);
-                WriteToFile();
-            }
+            WriteFrom(new LogRequest(requestType, logEventData));
         }
 
         internal bool PrepareLogFile(LogID logFile)

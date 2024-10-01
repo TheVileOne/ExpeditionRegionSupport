@@ -464,7 +464,7 @@ namespace LogUtils
                 else
                 {
                     UtilityCore.RequestHandler.Submit(request, false);
-                    Writer.WriteToFile();
+                    Writer.WriteFrom(request);
                 }
             }
         }
@@ -551,7 +551,7 @@ namespace LogUtils
                 return request.UnhandledReason;
             }
 
-            Writer.WriteFromRequest(request);
+            Writer.WriteFrom(request);
 
             if (request.Status == RequestStatus.Complete)
                 return RejectionReason.None;

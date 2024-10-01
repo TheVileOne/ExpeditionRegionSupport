@@ -385,7 +385,7 @@ namespace LogUtils
                     if (request.Status == RequestStatus.Rejected)
                         return;
                 }
-                LogWriter.Writer.WriteToFile();
+                LogWriter.Writer.WriteFrom(request);
             });
 
             //Branch over all exception string handling straight to the next OpCodes.Leave
@@ -417,7 +417,7 @@ namespace LogUtils
                     if (request.Status == RequestStatus.Rejected)
                         return false;
                 }
-                LogWriter.Writer.WriteToFile();
+                LogWriter.Writer.WriteFrom(request);
                 return true;
             });
 
