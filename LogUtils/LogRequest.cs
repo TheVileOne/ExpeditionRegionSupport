@@ -105,6 +105,13 @@ namespace LogUtils
         {
             if (Status != RequestStatus.Pending) return;
 
+            if (!Submitted)
+            {
+                UtilityCore.RequestHandler.Submit(this, false);
+
+                if (Status == RequestStatus.Rejected) return;
+            }
+
             Status = RequestStatus.WritePending;
             Interlocked.CompareExchange(ref managedThreadID, Thread.CurrentThread.ManagedThreadId, -1);
         }
