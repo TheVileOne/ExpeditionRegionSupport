@@ -1,8 +1,8 @@
 ﻿using JollyCoop;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 
 namespace LogUtils
 {
@@ -16,39 +16,17 @@ namespace LogUtils
 
         public override void WriteFrom(LogRequest request)
         {
-            if (request == null) return;
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
 
-            AssignRequest(request);
+            request.WriteInProcess();
 
-            //Check that request state is still valid, this request may have been handled by another thread
-            if (request.Status != RequestStatus.Pending)
-            {
-                WriteRequest = null;
-                return;
-            }
-
-            try
-            {
-                WriteToBuffer();
-            }
-            finally
-            {
-                WriteRequest = null;
-            }
+            if (request.ThreadCanWrite)
+                WriteToBuffer(request);
         }
 
-        public override void WriteToBuffer()
+        protected override void WriteToBuffer(LogRequest request)
         {
-            if (WriteRequest == null)
-            {
-                WriteFrom(UtilityCore.RequestHandler.CurrentRequest);
-                return;
-            }
-
-            LogRequest request = WriteRequest;
-
-            if (request.Status != RequestStatus.Pending) return;
-
             try
             {
                 if (LogFilter.CheckFilterMatch(request.Data.ID, request.Data.Message))
@@ -86,9 +64,9 @@ namespace LogUtils
             return true;
         }
 
-        public override void WriteToFile()
+        protected override void WriteToFile(LogRequest request)
         {
-            Flush();
+            throw new NotSupportedException();
         }
 
         /// <summary>

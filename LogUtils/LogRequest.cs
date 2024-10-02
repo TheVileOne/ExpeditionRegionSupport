@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading;
 
 namespace LogUtils
 {
@@ -13,6 +9,9 @@ namespace LogUtils
     {
         public const byte NO_RETRY_MAXIMUM = 5;
 
+        private int managedThreadID = -1;
+
+        public event LogRequestEventHandler StatusChanged;
         public LogEvents.LogMessageEventArgs Data;
 
         /// <summary>
@@ -26,6 +25,8 @@ namespace LogUtils
         /// Whether this request has once been submitted through the log request system
         /// </summary>
         public bool Submitted;
+
+        public bool ThreadCanWrite => Status == RequestStatus.WritePending && Thread.CurrentThread.ManagedThreadId == managedThreadID; 
 
         public readonly RequestType Type;
 
@@ -56,17 +57,29 @@ namespace LogUtils
             if (Status == RequestStatus.Complete) return;
 
             Status = RequestStatus.Complete;
+            managedThreadID = -1;
 
             if (Data.ShouldFilter)
                 LogFilter.AddFilterEntry(Data.ID, new FilteredStringEntry(Data.Message, Data.FilterDuration));
+
+            StatusChanged?.Invoke(this);
         }
 
         public void Reject(RejectionReason reason)
         {
-            if (Status == RequestStatus.Complete)
+            try
             {
-                UtilityCore.BaseLogger.LogWarning("Completed requests cannot be rejected");
-                return;
+                if (Status == RequestStatus.Complete)
+                {
+                    UtilityCore.BaseLogger.LogWarning("Completed requests cannot be rejected");
+                    return;
+                }
+
+                Status = RequestStatus.Rejected;
+            }
+            finally
+            {
+                managedThreadID = -1;
             }
 
             //Log any rejection reasons, except those triggered by the utility logger itself, which would cause an infinite loop
@@ -78,24 +91,36 @@ namespace LogUtils
              && reason != RejectionReason.FilterMatch) //Temporary conditions should not be recorded
                 Data.Properties.HandleRecord.Reason = reason;
 
-            if (UnhandledReason == reason) return;
+            if (UnhandledReason != reason)
+            {
+                //A hacky attempt to make it possible to notify of path mismatches without overwriting an already existing reason 
+                if (reason != RejectionReason.PathMismatch || UnhandledReason == RejectionReason.None)
+                    UnhandledReason = reason;
 
-            Status = RequestStatus.Rejected;
+                StatusChanged?.Invoke(this);
+            }
+        }
 
-            //A hacky attempt to make it possible to notify of path mismatches without overwriting an already existing reason 
-            if (reason != RejectionReason.PathMismatch || UnhandledReason == RejectionReason.None)
-                UnhandledReason = reason;
+        public void WriteInProcess()
+        {
+            if (Status != RequestStatus.Pending) return;
+
+            Status = RequestStatus.WritePending;
+            Interlocked.CompareExchange(ref managedThreadID, Thread.CurrentThread.ManagedThreadId, -1);
         }
 
         public override string ToString()
         {
             return string.Format("[Log Request][{0}] {1}", Data.ID, Data.Message);
         }
+
+        public delegate void LogRequestEventHandler(LogRequest request);
     }
 
     public enum RequestStatus
     {
         Pending,
+        WritePending,
         Rejected,
         Complete
     }

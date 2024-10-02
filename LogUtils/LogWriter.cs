@@ -2,7 +2,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Threading;
 
 namespace LogUtils
 {
@@ -23,28 +22,6 @@ namespace LogUtils
                 }
                 return _writer.Value;
             }
-        }
-
-        protected LogRequest WriteRequest;
-
-        private object writeLock = new object();
-
-        protected void AssignRequest(LogRequest request)
-        {
-            bool lockAcquired = Monitor.TryEnter(writeLock);
-
-            if (!lockAcquired)
-            {
-                SpinWait sw = new SpinWait();
-
-                while (WriteRequest != null) //WriteRequest is only set while it is being used
-                    sw.SpinOnce();
-            }
-
-            WriteRequest = request;
-
-            if (lockAcquired)
-                Monitor.Exit(writeLock);
         }
 
         public void CreateFile(LogID logFile)
@@ -73,28 +50,16 @@ namespace LogUtils
 
         public virtual void WriteFrom(LogRequest request)
         {
-            if (request == null) return;
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
 
-            AssignRequest(request);
+            request.WriteInProcess();
 
-            //Check that request state is still valid, this request may have been handled by another thread
-            if (request.Status != RequestStatus.Pending)
-            {
-                WriteRequest = null;
-                return;
-            }
-
-            try
-            {
-                WriteToFile();
-            }
-            finally
-            {
-                WriteRequest = null;
-            }
+            if (request.ThreadCanWrite)
+                WriteToFile(request);
         }
 
-        public virtual void WriteToBuffer()
+        protected virtual void WriteToBuffer(LogRequest request)
         {
             throw new NotImplementedException();
         }
@@ -102,44 +67,40 @@ namespace LogUtils
         /// <summary>
         /// Attempts to write the most recently requested message to file
         /// </summary>
-        public virtual void WriteToFile()
+        protected virtual void WriteToFile(LogRequest request)
         {
-            if (WriteRequest == null)
+            request.WriteInProcess();
+
+            if (request.ThreadCanWrite)
             {
-                WriteFrom(UtilityCore.RequestHandler.CurrentRequest);
-                return;
-            }
-
-            LogRequest request = WriteRequest;
-
-            if (request.Status != RequestStatus.Pending) return;
-
-            try
-            {
-                if (LogFilter.CheckFilterMatch(request.Data.ID, request.Data.Message))
+                //Assume that thread is allowed to write if we get past this point
+                try
                 {
-                    request.Reject(RejectionReason.FilterMatch);
-                    return;
-                }
+                    if (LogFilter.CheckFilterMatch(request.Data.ID, request.Data.Message))
+                    {
+                        request.Reject(RejectionReason.FilterMatch);
+                        return;
+                    }
 
-                if (!PrepareLogFile(request.Data.ID))
+                    if (!PrepareLogFile(request.Data.ID))
+                    {
+                        request.Reject(RejectionReason.LogUnavailable);
+                        return;
+                    }
+
+                    if (!InternalWriteToFile(request.Data))
+                    {
+                        request.Reject(RejectionReason.FailedToWrite);
+                        return;
+                    }
+
+                    //All checks passed is a complete request
+                    request.Complete();
+                }
+                finally
                 {
-                    request.Reject(RejectionReason.LogUnavailable);
-                    return;
+                    UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
                 }
-
-                if (!InternalWriteToFile(request.Data))
-                {
-                    request.Reject(RejectionReason.FailedToWrite);
-                    return;
-                }
-
-                //All checks passed is a complete request
-                request.Complete();
-            }
-            finally
-            {
-                UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
             }
         }
 
@@ -277,8 +238,6 @@ namespace LogUtils
         public void CreateFile(LogID logFile);
         public void ResetFile(LogID logFile);
         internal void WriteFrom(LogRequest request);
-        internal void WriteToBuffer();
-        internal void WriteToFile();
         internal void WriteToFile(LogID logFile, string message);
         internal string ApplyRules(LogID logFile, string message);
     }
