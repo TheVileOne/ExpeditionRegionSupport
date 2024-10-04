@@ -74,6 +74,8 @@ namespace LogUtils
             if (HasInitialized) return;
 
             Path = FindLogsDirectory();
+
+            string errorMsg = null;
             try
             {
                 //The found directory needs to be created if it doesn't yet exist, and the alternative directory removed
@@ -95,14 +97,13 @@ namespace LogUtils
                 }
                 catch (Exception ex)
                 {
-                    UtilityCore.BaseLogger.LogError("Unable to delete log directory");
-                    UtilityCore.BaseLogger.LogError(ex);
+                    errorMsg = "Unable to delete log directory";
+                    throw ex;
                 }
             }
             catch (Exception ex)
             {
-                UtilityCore.BaseLogger.LogError("Unable to create log directory");
-                UtilityCore.BaseLogger.LogError(ex);
+                UtilityCore.LogError(errorMsg ?? "Unable to create log directory", ex);
             }
 
             HasInitialized = true;

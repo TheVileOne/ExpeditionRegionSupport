@@ -181,5 +181,12 @@ namespace LogUtils
                 }
             }
         }
+
+        internal static void LogError(string errorMsg, Exception ex)
+        {
+            if (errorMsg != null)
+                BaseLogger.LogError(errorMsg);
+            BaseLogger.LogError(ex);
+        }
     }
 }

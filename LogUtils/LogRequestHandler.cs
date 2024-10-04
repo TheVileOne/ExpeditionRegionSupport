@@ -193,13 +193,11 @@ namespace LogUtils
         {
             try
             {
-                FileUtils.WriteLine("test.txt", "SAFE LOG");
                 return Submit(request, handleSubmission);
             }
             catch (Exception ex)
             {
-                UtilityCore.BaseLogger.LogError("Unable to submit request");
-                UtilityCore.BaseLogger.LogError(ex);
+                UtilityCore.LogError("Unable to submit request", ex);
 
                 //Assign request using a safer method with less rigorous validation checks - wont fail
                 if (request.CanRetryRequest())

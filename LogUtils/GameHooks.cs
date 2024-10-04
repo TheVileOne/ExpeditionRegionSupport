@@ -33,8 +33,7 @@ namespace LogUtils
             }
             catch (Exception ex)
             {
-                UtilityCore.BaseLogger.LogError("Error occurred while loading hooks");
-                UtilityCore.BaseLogger.LogError(ex);
+                UtilityCore.LogError("Error occurred while loading hooks", ex);
             }
         }
 

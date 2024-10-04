@@ -529,7 +529,7 @@ namespace LogUtils.Properties
             }
             catch (Exception ex)
             {
-                UtilityCore.BaseLogger.LogError(new IOException("Unable to delete temporary file", ex));
+                UtilityCore.LogError(null, new IOException("Unable to delete temporary file", ex));
             }
         }
 
@@ -564,8 +564,7 @@ namespace LogUtils.Properties
             }
             catch (IOException ex) //Some issue other than the file existing occurred
             {
-                UtilityCore.BaseLogger.LogError("File handling error occurred");
-                UtilityCore.BaseLogger.LogError(ex);
+                UtilityCore.LogError("File handling error occurred", ex);
             }
 
             if (!LogSessionActive)
@@ -609,8 +608,7 @@ namespace LogUtils.Properties
             }
             catch (IOException ex) //Some issue other than the file existing occurred
             {
-                UtilityCore.BaseLogger.LogError("File handling error occurred");
-                UtilityCore.BaseLogger.LogError(ex);
+                UtilityCore.LogError("File handling error occurred", ex);
             }
             finally
             {

@@ -45,7 +45,7 @@ namespace LogUtils
                 }
                 catch (Exception ex)
                 {
-                    logMoveError(ex);
+                    UtilityCore.LogError(getErrorMessage(ErrorContext.Move), ex);
                     status = CopyFile(logValidator);
                 }
 
@@ -74,7 +74,7 @@ namespace LogUtils
                 }
                 catch (Exception ex)
                 {
-                    logCopyError(ex);
+                    UtilityCore.LogError(getErrorMessage(ErrorContext.Copy), ex);
                     status = FileStatus.Error;
                 }
 
@@ -97,7 +97,7 @@ namespace LogUtils
             }
             catch (Exception ex)
             {
-                logCopyError(ex);
+                UtilityCore.LogError(getErrorMessage(ErrorContext.Copy), ex);
                 status = FileStatus.Error;
             }
 
@@ -138,16 +138,19 @@ namespace LogUtils
             return FileStatus.MoveRequired;
         }
 
-        private void logMoveError(Exception ex)
+        private string getErrorMessage(ErrorContext context)
         {
-            UtilityCore.BaseLogger.LogError("Unable to move file. Attempting to copy instead");
-            UtilityCore.BaseLogger.LogError(ex);
+            if (context == ErrorContext.Move)
+                return "Unable to move file. Attempting to copy instead";
+            else if (context == ErrorContext.Copy)
+                return "Unable to copy file";
+            return null;
         }
 
-        private void logCopyError(Exception ex)
+        private enum ErrorContext
         {
-            UtilityCore.BaseLogger.LogError("Unable to copy file");
-            UtilityCore.BaseLogger.LogError(ex);
+            Move,
+            Copy
         }
     }
 

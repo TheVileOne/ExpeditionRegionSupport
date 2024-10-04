@@ -88,8 +88,7 @@ namespace LogUtils.Legacy
             }
             catch (Exception ex)
             {
-                UtilityCore.BaseLogger.LogError("Unable to replace existing log file");
-                UtilityCore.BaseLogger.LogError(ex);
+                UtilityCore.LogError("Unable to replace existing log file", ex);
             }
 
             applyEventHandlers();
@@ -136,14 +135,12 @@ namespace LogUtils.Legacy
                 }
                 catch (Exception ex)
                 {
-                    UtilityCore.BaseLogger.LogError("Unable to delete log directory");
-                    UtilityCore.BaseLogger.LogError(ex);
+                    UtilityCore.LogError("Unable to delete log directory", ex);
                 }
             }
             catch (Exception ex)
             {
-                UtilityCore.BaseLogger.LogError("Unable to create log directory");
-                UtilityCore.BaseLogger.LogError(ex);
+                UtilityCore.LogError("Unable to create log directory", ex);
             }
 
             HasInitialized = true;
