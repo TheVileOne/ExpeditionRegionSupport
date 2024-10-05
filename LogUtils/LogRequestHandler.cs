@@ -127,6 +127,8 @@ namespace LogUtils
         {
             lock (RequestProcessLock)
             {
+                FileUtils.WriteLine("test.txt", "Receiving request to log: " + request);
+
                 if (request.Submitted)
                     UtilityCore.BaseLogger.LogWarning("Submitted request has already been submitted at least once");
 
@@ -134,13 +136,17 @@ namespace LogUtils
                 request.ResetStatus();
                 request.Submitted = true;
 
+                LogRequest lastPendingRequest = null;
                 LogID logFile = request.Data.ID;
 
                 //Waiting requests must be handled before the submitted request
                 ProcessRequests(logFile);
 
+                FileUtils.WriteLine("test.txt", "Continuing submission process");
+
                 if (logFile.Properties.HandleRecord.Rejected)
                 {
+                    FileUtils.WriteLine("test.txt", "Aborting early due to rejection");
                     request.Reject(logFile.Properties.HandleRecord.Reason);
 
                     handleRejection(request);
@@ -171,6 +177,10 @@ namespace LogUtils
                         return request;
                     }
                 }
+
+                lastPendingRequest = PendingRequest;
+
+                FileUtils.WriteLine("test.txt", "Setting PendingRequest");
 
                 //The pending request has not been rejected, and is available to be processed 
                 PendingRequest = request;
@@ -314,6 +324,8 @@ namespace LogUtils
         /// <param name="doPathCheck">Should the log file's containing folder bear significance when finding a logger match</param>
         private Logger findCompatibleLogger(LogID logFile, RequestType requestType, bool doPathCheck)
         {
+            FileUtils.WriteLine("test.txt", "Finding logger");
+
             if (requestType == RequestType.Game)
                 return null;
 
@@ -389,73 +401,65 @@ namespace LogUtils
         {
             lock (RequestProcessLock)
             {
-                try
+                FileUtils.WriteLine("test.txt", "Processing requests for " + logFile);
+
+                if (logFile.Properties.HandleRecord.Rejected)
                 {
-                    FileUtils.WriteLine("test.txt", "Processing requests for " + logFile);
+                    FileUtils.WriteLine("test.txt", "Rejection record detected for this request");
+
+                    TryResolveRecord(logFile);
 
                     if (logFile.Properties.HandleRecord.Rejected)
                     {
-                        FileUtils.WriteLine("test.txt", "Rejection record detected for this request");
-
-                        TryResolveRecord(logFile);
-
-                        if (logFile.Properties.HandleRecord.Rejected)
-                        {
-                            RejectRequests(logFile, logFile.Properties.HandleRecord.Reason);
-                            return;
-                        }
+                        RejectRequests(logFile, logFile.Properties.HandleRecord.Reason);
+                        return;
                     }
-
-                    FileUtils.WriteLine("test.txt", "Getting requests");
-
-                    ILinkedListEnumerable<LogRequest> requests = GetRequests(logFile);
-
-                    if (!requests.Any()) return;
-
-                    if (!logFile.IsGameControlled)
-                    {
-                        Logger selectedLogger = null;
-                        Logger localLogger = null;
-                        Logger remoteLogger = null;
-
-                        bool shouldFetchLoggers = true;
-                        LogRequest lastRequest = null;
-
-                        FileUtils.WriteLine("test.txt", "Processing requests");
-                        foreach (LogRequest request in requests)
-                        {
-                            if (lastRequest != null)
-                                shouldFetchLoggers = !lastRequest.Data.Properties.IDMatch(request.Data.ID); //TODO: Need to check for path here
-
-                            if (shouldFetchLoggers)
-                            {
-                                findCompatibleLoggers(logFile, out localLogger, out remoteLogger);
-
-                                selectedLogger = request.Type == RequestType.Remote ? remoteLogger : localLogger;
-                                shouldFetchLoggers = false;
-                            }
-
-                            if (selectedLogger != null)
-                                selectedLogger.HandleRequest(request);
-                            else
-                                request.Reject(RejectionReason.LogUnavailable);
-
-                            lastRequest = request;
-                        }
-                    }
-                    else
-                    {
-                        FileUtils.WriteLine("test.txt", "Handling game request");
-                        GameLogger.HandleRequests(requests);
-                    }
-
-                    DiscardHandledRequests(requests);
                 }
-                catch (Exception ex)
+
+                FileUtils.WriteLine("test.txt", "Getting requests");
+
+                ILinkedListEnumerable<LogRequest> requests = GetRequests(logFile);
+
+                if (!requests.Any()) return;
+
+                if (!logFile.IsGameControlled)
                 {
-                    FileUtils.WriteLine("test.txt", "Log process error");
-                    FileUtils.WriteLine("test.txt", ex.ToString());
+                    Logger selectedLogger = null;
+                    Logger localLogger = null;
+                    Logger remoteLogger = null;
+
+                    bool shouldFetchLoggers = true;
+                    LogRequest lastRequest = null;
+
+                    FileUtils.WriteLine("test.txt", "Processing requests");
+                    foreach (LogRequest request in requests)
+                    {
+                        if (lastRequest != null)
+                            shouldFetchLoggers = !lastRequest.Data.Properties.IDMatch(request.Data.ID); //TODO: Need to check for path here
+
+                        if (shouldFetchLoggers)
+                        {
+                            findCompatibleLoggers(logFile, out localLogger, out remoteLogger);
+
+                            selectedLogger = request.Type == RequestType.Remote ? remoteLogger : localLogger;
+                            shouldFetchLoggers = false;
+                        }
+
+                        if (selectedLogger != null)
+                            selectedLogger.HandleRequest(request);
+                        else
+                            request.Reject(RejectionReason.LogUnavailable);
+
+                        lastRequest = request;
+                    }
                 }
+                else
+                {
+                    FileUtils.WriteLine("test.txt", "Handling game request");
+                    GameLogger.HandleRequests(requests);
+                }
+
+                DiscardHandledRequests(requests);
             }
         }
 
@@ -606,6 +610,8 @@ namespace LogUtils
 
         public void RejectRequests(IEnumerable<LogRequest> requests, RejectionReason reason)
         {
+            UtilityCore.BaseLogger.LogDebug("Rejection requests in bulk for reason: " + reason);
+
             foreach (LogRequest request in requests)
                 request.Reject(reason);
 
@@ -692,16 +698,26 @@ namespace LogUtils
         /// </summary>
         public void DumpRequestsToFile()
         {
-            LogID logDump = new LogID("LogDump"); //TODO: Timestamp, allow new log file to be created at anytime
-            Logger logger = new Logger(logDump);
+            if (!UnhandledRequests.Any()) return;
 
+            LogID logDump = LogID.CreateTemporaryID("LogDump", UtilityConsts.PathKeywords.ROOT); //TODO: Timestamp, allow new log file to be created at anytime
+
+            logDump.Properties.ShowIntroTimestamp = true;
+
+            Logger logger = new Logger(false, logDump);
+
+            /*
             string writePath = logDump.Properties.CurrentFilePath;
 
             //Delete existing log file before write
             if (File.Exists(writePath))
                 File.Delete(writePath);
+            */
 
             logger.Log(UnhandledRequests);
+
+            logDump.Properties.EndLogSession();
+            UtilityCore.RequestHandler.Unregister(logger); //Logger is required to be registered for logging to work, it needs to be unregistered after use
         }
     }
 }
