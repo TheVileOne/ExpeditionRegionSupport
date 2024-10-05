@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+﻿using System.IO;
 
 namespace LogUtils.Helpers
 {
@@ -80,11 +74,12 @@ namespace LogUtils.Helpers
             if (IsPathKeyword(path))
                 return path.ToLower();
 
+            var pathComparer = EqualityComparer.PathComparer;
             string keyword = null;
 
-            if (InternalPathsAreEqual(path, Paths.StreamingAssetsPath))
+            if (pathComparer.InternalEquals(path, Paths.StreamingAssetsPath))
                 keyword = UtilityConsts.PathKeywords.STREAMING_ASSETS;
-            else if (InternalPathsAreEqual(path, Paths.GameRootPath))
+            else if (pathComparer.InternalEquals(path, Paths.GameRootPath))
                 keyword = UtilityConsts.PathKeywords.ROOT;
 
             return keyword;
@@ -114,27 +109,7 @@ namespace LogUtils.Helpers
         /// </summary>
         public static bool PathsAreEqual(string path1, string path2)
         {
-            //Make sure we are comparing path data, not keywords
-            path1 = GetPathFromKeyword(path1);
-            path2 = GetPathFromKeyword(path2);
-
-            return InternalPathsAreEqual(path1, path2);
-        }
-
-        internal static bool InternalPathsAreEqual(string path1, string path2)
-        {
-            FileUtils.WriteLine("test.txt", "Checking path equality " + path1 + " " + path2);
-
-            if (path1 == null)
-                return path2 == null;
-
-            if (path2 == null)
-                return false;
-
-            path1 = Path.GetFullPath(path1).TrimEnd('\\');
-            path2 = Path.GetFullPath(path2).TrimEnd('\\');
-
-            return string.Equals(path1, path2, StringComparison.InvariantCultureIgnoreCase);
+            return EqualityComparer.PathComparer.Equals(path1, path2);
         }
     }
 }

@@ -487,7 +487,7 @@ namespace LogUtils.Properties
             lock (FileLock)
             {
                 //Compare the current filename to the new filename
-                if (newFilename != null && !FileUtils.CompareFilenames(CurrentFilename, newFilename))
+                if (newFilename != null && !EqualityComparer.FilenameComparer.Equals(CurrentFilename, newFilename, true))
                 {
                     CurrentFilename = FileUtils.RemoveExtension(newFilename);
                     changesPresent = true;

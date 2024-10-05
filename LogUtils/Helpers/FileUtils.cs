@@ -8,27 +8,6 @@ namespace LogUtils.Helpers
     {
         public static string[] SupportedExtensions = { FileExt.LOG, FileExt.TEXT, FileExt.TEMP };
 
-        public static bool CompareFilenames(string filename, string filename2, bool ignoreExtensions = true)
-        {
-            if (filename == null)
-                return filename2 == null;
-
-            if (filename2 == null)
-                return false;
-
-            if (ignoreExtensions)
-            {
-                filename = RemoveExtension(filename);
-                filename2 = RemoveExtension(filename);
-            }
-
-            //Strip any path info that may be present
-            filename = Path.GetFileName(filename);
-            filename2 = Path.GetFileName(filename2);
-
-            return string.Equals(filename, filename2, StringComparison.InvariantCultureIgnoreCase);
-        }
-
         public static void CreateTextFile(string filepath)
         {
             var stream = File.CreateText(filepath);
