@@ -563,19 +563,16 @@ namespace LogUtils
 
             showLogsBypassHook(cursor, LogID.JollyCoop);
 
-            cursor.GotoNext(MoveType.After, x => x.MatchBrfalse(out _)); //Move just after the ShowLogs check
+            ILLabel label = null;
+
+            cursor.GotoNext(MoveType.After, x => x.MatchBrfalse(out label)); //Move just after the ShowLogs check
             cursor.EmitDelegate(() =>
             {
                 //Handle logging using a custom log writer designed to imitate the JollyCoop writer
                 JollyCoop.JollyCustom.logCache.Clear();
                 LogWriter.JollyWriter.Flush();
             });
-
-            //Branch over existing logic, and return
-            ILLabel label = cursor.DefineLabel();
-            cursor.Emit(OpCodes.Br, label);
-            cursor.GotoNext(MoveType.After, x => x.MatchRet());
-            cursor.MarkLabel(label);
+            cursor.Emit(OpCodes.Br, label); //Branch over the rest of the instructions, and return
         }
 
         private static void JollyCustom_Log(ILContext il)

@@ -38,6 +38,8 @@ namespace LogUtils
                     return;
                 }
 
+                writingFromBuffer = false; //Ensures that log file is not created too soon
+
                 if (!PrepareLogFile(request.Data.ID))
                 {
                     request.Reject(RejectionReason.LogUnavailable);
@@ -98,6 +100,7 @@ namespace LogUtils
                     {
                         fileLock.SetActivity(logEntry.ID, FileAction.Log);
 
+                        writingFromBuffer = true;
                         string writePath = logEntry.ID.Properties.CurrentFilePath;
                         bool retryAttempt = false;
 
