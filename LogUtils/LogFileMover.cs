@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using LogUtils.Helpers;
-using UnityEngine;
+using static LogUtils.FileHandling.FileEnums;
 
 namespace LogUtils
 {
@@ -152,16 +152,5 @@ namespace LogUtils
             Move,
             Copy
         }
-    }
-
-    public enum FileStatus
-    {
-        AwaitingStatus,
-        NoActionRequired,
-        MoveRequired,
-        MoveComplete,
-        CopyComplete,
-        ValidationFailed,
-        Error
     }
 }

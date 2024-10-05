@@ -1,12 +1,8 @@
 ﻿using LogUtils.Helpers;
 using LogUtils.Properties;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+using static LogUtils.FileHandling.FileEnums;
 
 namespace LogUtils
 {
@@ -146,19 +142,26 @@ namespace LogUtils
         /// </summary>
         public static void AddToFolder(LogProperties properties)
         {
-            if (Path == null || IsLogsFolderPath(properties.CurrentFolderPath)) return;
+            if (Path == null) return;
 
-            string newPath = Path;
-
-            if (properties.FileExists)
+            lock (properties.FileLock)
             {
-                //This particular MoveLog overload doesn't update current path
-                FileStatus moveResult = Helpers.LogUtils.MoveLog(properties.CurrentFolderPath, newPath);
+                if (IsLogsFolderPath(properties.CurrentFolderPath)) return;
 
-                if (moveResult != FileStatus.MoveComplete) //There was an issue moving this file
-                    return;
+                string newPath = Path;
+
+                if (properties.FileExists)
+                {
+                    properties.FileLock.SetActivity(properties.ID, FileAction.Move);
+
+                    //This particular MoveLog overload doesn't update current path
+                    FileStatus moveResult = Helpers.LogUtils.MoveLog(properties.CurrentFolderPath, newPath);
+
+                    if (moveResult != FileStatus.MoveComplete) //There was an issue moving this file
+                        return;
+                }
+                properties.ChangePath(newPath);
             }
-            properties.ChangePath(newPath);
         }
 
         /// <summary>
@@ -166,20 +169,25 @@ namespace LogUtils
         /// </summary>
         internal static void RevokeDesignation(LogProperties properties)
         {
-            if (!IsLogsFolderPath(properties.CurrentFolderPath)) //Check that the log file is currently designated
-                return;
-
-            string newPath = properties.FolderPath;
-
-            if (Path != null && properties.FileExists) //When Path is null, Logs folder does not exist
+            lock (properties.FileLock)
             {
-                //This particular MoveLog overload doesn't update current path
-                FileStatus moveResult = Helpers.LogUtils.MoveLog(properties.CurrentFolderPath, newPath);
-
-                if (moveResult != FileStatus.MoveComplete) //There was an issue moving this file
+                if (!IsLogsFolderPath(properties.CurrentFolderPath)) //Check that the log file is currently designated
                     return;
+
+                string newPath = properties.FolderPath;
+
+                if (Path != null && properties.FileExists) //When Path is null, Logs folder does not exist
+                {
+                    properties.FileLock.SetActivity(properties.ID, FileAction.Move);
+
+                    //This particular MoveLog overload doesn't update current path
+                    FileStatus moveResult = Helpers.LogUtils.MoveLog(properties.CurrentFolderPath, newPath);
+
+                    if (moveResult != FileStatus.MoveComplete) //There was an issue moving this file
+                        return;
+                }
+                properties.ChangePath(newPath);
             }
-            properties.ChangePath(newPath);
         }
 
         /// <summary>

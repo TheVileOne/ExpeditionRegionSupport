@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using LogUtils.FileHandling;
 using LogUtils.Helpers;
 using RWCustom;
 using DataFields = LogUtils.UtilityConsts.DataFields;
+using static LogUtils.FileHandling.FileEnums;
 
 namespace LogUtils.Properties
 {
@@ -262,6 +264,11 @@ namespace LogUtils.Properties
         public bool IsWriteRestricted;
 
         /// <summary>
+        /// Ensures thread safety while accessing the log file
+        /// </summary>
+        public FileLock FileLock = new FileLock();
+
+        /// <summary>
         /// When the log file properties are first initialized, the log file can have its path changed to target the Logs folder if it exists, disabled by default
         /// </summary>
         public bool LogsFolderAware
@@ -477,26 +484,29 @@ namespace LogUtils.Properties
 
             bool changesPresent = false;
 
-            //Compare the current filename to the new filename
-            if (newFilename != null && !FileUtils.CompareFilenames(CurrentFilename, newFilename))
+            lock (FileLock)
             {
-                CurrentFilename = FileUtils.RemoveExtension(newFilename);
-                changesPresent = true;
-            }
+                //Compare the current filename to the new filename
+                if (newFilename != null && !FileUtils.CompareFilenames(CurrentFilename, newFilename))
+                {
+                    CurrentFilename = FileUtils.RemoveExtension(newFilename);
+                    changesPresent = true;
+                }
 
-            //Compare the current path to the new path
-            if (!PathUtils.PathsAreEqual(CurrentFolderPath, newPath)) //The paths are different
-            {
-                CurrentFolderPath = newPath;
-                changesPresent = true;
-            }
+                //Compare the current path to the new path
+                if (!PathUtils.PathsAreEqual(CurrentFolderPath, newPath)) //The paths are different
+                {
+                    CurrentFolderPath = newPath;
+                    changesPresent = true;
+                }
 
-            //Loggers need to be notified of any changes that might affect managed LogIDs
-            if (changesPresent)
-            {
-                FileExists = File.Exists(CurrentFilePath);
-                LastKnownFilePath = CurrentFilePath;
-                NotifyPathChanged();
+                //Loggers need to be notified of any changes that might affect managed LogIDs
+                if (changesPresent)
+                {
+                    FileExists = File.Exists(CurrentFilePath);
+                    LastKnownFilePath = CurrentFilePath;
+                    NotifyPathChanged();
+                }
             }
         }
 
@@ -512,10 +522,17 @@ namespace LogUtils.Properties
 
             ReplacementFilePath = Path.ChangeExtension(LastKnownFilePath, FileExt.TEMP);
 
-            if (copyOnly)
-                return Helpers.LogUtils.CopyLog(LastKnownFilePath, ReplacementFilePath);
+            lock (FileLock)
+            {
+                if (copyOnly)
+                {
+                    FileLock.SetActivity(ID, FileAction.Copy);
+                    return Helpers.LogUtils.CopyLog(LastKnownFilePath, ReplacementFilePath);
+                }
 
-            return Helpers.LogUtils.MoveLog(LastKnownFilePath, ReplacementFilePath);
+                FileLock.SetActivity(ID, FileAction.Move);
+                return Helpers.LogUtils.MoveLog(LastKnownFilePath, ReplacementFilePath);
+            }
         }
 
         public void RemoveTempFile()
@@ -540,25 +557,30 @@ namespace LogUtils.Properties
         {
             if (LogSessionActive) return;
 
-            string writePath = CurrentFilePath;
-
             UtilityCore.BaseLogger.LogInfo($"Attempting to start log session [{ID}]");
 
             try
             {
-                using (FileStream stream = LogWriter.GetWriteStream(writePath, true))
+                lock (FileLock)
                 {
-                    FileExists = stream != null;
+                    FileLock.SetActivity(ID, FileAction.SessionStart);
 
-                    if (FileExists)
+                    string writePath = CurrentFilePath;
+
+                    using (FileStream stream = LogWriter.GetWriteStream(writePath, true))
                     {
-                        using (StreamWriter writer = new StreamWriter(stream))
-                        {
-                            OnLogSessionStart(new LogEvents.LogStreamEventArgs(ID, writer));
-                        };
+                        FileExists = stream != null;
 
-                        LogSessionActive = true;
-                        LastKnownFilePath = CurrentFilePath;
+                        if (FileExists)
+                        {
+                            using (StreamWriter writer = new StreamWriter(stream))
+                            {
+                                OnLogSessionStart(new LogEvents.LogStreamEventArgs(ID, writer));
+                            };
+
+                            LogSessionActive = true;
+                            LastKnownFilePath = CurrentFilePath;
+                        }
                     }
                 }
             }
@@ -589,20 +611,25 @@ namespace LogUtils.Properties
                 return;
             }
 
-            string writePath = CurrentFilePath;
-
             try
             {
-                using (FileStream stream = LogWriter.GetWriteStream(writePath, false))
+                lock (FileLock)
                 {
-                    FileExists = stream != null;
+                    FileLock.SetActivity(ID, FileAction.SessionEnd);
 
-                    if (FileExists)
+                    string writePath = CurrentFilePath;
+
+                    using (FileStream stream = LogWriter.GetWriteStream(writePath, false))
                     {
-                        using (StreamWriter writer = new StreamWriter(stream))
+                        FileExists = stream != null;
+
+                        if (FileExists)
                         {
-                            OnLogSessionFinish(new LogEvents.LogStreamEventArgs(ID, writer));
-                        };
+                            using (StreamWriter writer = new StreamWriter(stream))
+                            {
+                                OnLogSessionFinish(new LogEvents.LogStreamEventArgs(ID, writer));
+                            };
+                        }
                     }
                 }
             }

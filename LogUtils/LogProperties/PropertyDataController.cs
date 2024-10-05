@@ -6,8 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using LogUtils.Helpers;
-using UnityEngine;
 using DataFields = LogUtils.UtilityConsts.DataFields;
+using static LogUtils.FileHandling.FileEnums;
 
 namespace LogUtils.Properties
 {
@@ -92,14 +92,19 @@ namespace LogUtils.Properties
                         properties.SkipStartupRoutine = true;
                     }
 
-                    //Move the file, and if it fails, change the path. Either way, log file exists
-                    if (Helpers.LogUtils.MoveLog(originalFilePath, properties.CurrentFilePath) == FileStatus.MoveComplete)
-                        properties.ChangePath(properties.CurrentFilePath);
-                    else
-                        properties.ChangePath(originalFilePath);
+                    lock (properties.FileLock)
+                    {
+                        properties.FileLock.SetActivity(properties.ID, FileAction.Move);
 
-                    properties.FileExists = true;
-                    properties.LogSessionActive = true;
+                        //Move the file, and if it fails, change the path. Either way, log file exists
+                        if (Helpers.LogUtils.MoveLog(originalFilePath, properties.CurrentFilePath) == FileStatus.MoveComplete)
+                            properties.ChangePath(properties.CurrentFilePath);
+                        else
+                            properties.ChangePath(originalFilePath);
+
+                        properties.FileExists = true;
+                        properties.LogSessionActive = true;
+                    }
                 }
 
                 properties.SkipStartupRoutine |= lastKnownFileOverwritten;

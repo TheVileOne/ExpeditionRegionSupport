@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using static LogUtils.FileHandling.FileEnums;
 
 namespace LogUtils
 {
@@ -133,34 +134,40 @@ namespace LogUtils
             LogID logFile = logEventData.ID;
             string message = logEventData.Message;
 
-            string writePath = logFile.Properties.CurrentFilePath;
-
             try
             {
-                bool retryAttempt = false;
+                var fileLock = logFile.Properties.FileLock;
+
+                lock (fileLock)
+                {
+                    fileLock.SetActivity(logFile, FileAction.Log);
+
+                    string writePath = logFile.Properties.CurrentFilePath;
+                    bool retryAttempt = false;
 
                 retry:
-                using (FileStream stream = GetWriteStream(writePath, false))
-                {
-                    if (stream == null)
+                    using (FileStream stream = GetWriteStream(writePath, false))
                     {
-                        if (!retryAttempt)
+                        if (stream == null)
                         {
-                            logFile.Properties.FileExists = false;
-                            if (PrepareLogFile(logFile)) //Allow a single retry after creating the file once confirming session has been established
+                            if (!retryAttempt)
                             {
-                                retryAttempt = true;
-                                goto retry;
+                                logFile.Properties.FileExists = false;
+                                if (PrepareLogFile(logFile)) //Allow a single retry after creating the file once confirming session has been established
+                                {
+                                    retryAttempt = true;
+                                    goto retry;
+                                }
                             }
+                            throw new IOException("Unable to create log file");
                         }
-                        throw new IOException("Unable to create log file");
-                    }
 
-                    //Assume stream is fine here
-                    using (StreamWriter writer = new StreamWriter(stream))
-                    {
-                        message = ApplyRules(logFile, message);
-                        writer.WriteLine(message);
+                        //Assume stream is fine here
+                        using (StreamWriter writer = new StreamWriter(stream))
+                        {
+                            message = ApplyRules(logFile, message);
+                            writer.WriteLine(message);
+                        }
                     }
                 }
                 return true;
@@ -214,7 +221,7 @@ namespace LogUtils
             UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
         }
 
-        public static FileStream GetWriteStream(string path, bool createFile)
+        internal static FileStream GetWriteStream(string path, bool createFile)
         {
             try
             {

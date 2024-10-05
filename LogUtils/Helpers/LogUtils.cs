@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
+using static LogUtils.FileHandling.FileEnums;
 
 namespace LogUtils.Helpers
 {
@@ -39,7 +40,12 @@ namespace LogUtils.Helpers
 
         public static FileStatus MoveLog(LogID logFile, string newLogPath, string logFilename)
         {
-            return MoveLog(logFile.Properties.CurrentFilePath, Path.Combine(newLogPath, logFilename));
+            var fileLock = logFile.Properties.FileLock;
+            lock (fileLock)
+            {
+                fileLock.SetActivity(logFile, FileAction.Move);
+                return MoveLog(logFile.Properties.CurrentFilePath, Path.Combine(newLogPath, logFilename));
+            }
         }
 
         /// <summary>

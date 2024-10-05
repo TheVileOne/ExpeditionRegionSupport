@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using static LogUtils.FileHandling.FileEnums;
 
 namespace LogUtils
 {
@@ -77,49 +78,57 @@ namespace LogUtils
             while (LogCache.Count > 0)
             {
                 var logEntry = LogCache.Dequeue();
-                string writePath = logEntry.ID.Properties.CurrentFilePath;
-                bool retryAttempt = false;
 
                 try
                 {
-                retry:
-                    using (FileStream stream = GetWriteStream(writePath, false))
+                    var fileLock = logEntry.ID.Properties.FileLock;
+
+                    lock (fileLock)
                     {
-                        if (stream == null)
+                        fileLock.SetActivity(logEntry.ID, FileAction.Log);
+
+                        string writePath = logEntry.ID.Properties.CurrentFilePath;
+                        bool retryAttempt = false;
+
+                    retry:
+                        using (FileStream stream = GetWriteStream(writePath, false))
                         {
-                            if (!retryAttempt)
+                            if (stream == null)
                             {
-                                logEntry.ID.Properties.FileExists = false;
-                                if (PrepareLogFile(logEntry.ID)) //Allow a single retry after creating the file once confirming session has been established
+                                if (!retryAttempt)
                                 {
-                                    retryAttempt = true;
-                                    goto retry;
+                                    logEntry.ID.Properties.FileExists = false;
+                                    if (PrepareLogFile(logEntry.ID)) //Allow a single retry after creating the file once confirming session has been established
+                                    {
+                                        retryAttempt = true;
+                                        goto retry;
+                                    }
                                 }
+                                throw new IOException("Unable to create log file");
                             }
-                            throw new IOException("Unable to create log file");
-                        }
 
-                        using (StreamWriter writer = new StreamWriter(stream))
-                        {
-                            bool fileChanged;
-                            do
+                            using (StreamWriter writer = new StreamWriter(stream))
                             {
-                                string message = logEntry.Element.logText;
+                                bool fileChanged;
+                                do
+                                {
+                                    string message = logEntry.Element.logText;
 
-                                //Behavior taken from JollyCoop, shouldn't be necessary if error category is already going to display
-                                if (!logEntry.ID.Properties.ShowCategories.IsEnabled && logEntry.Element.shouldThrow)
-                                    message = "[ERROR] " + message;
+                                    //Behavior taken from JollyCoop, shouldn't be necessary if error category is already going to display
+                                    if (!logEntry.ID.Properties.ShowCategories.IsEnabled && logEntry.Element.shouldThrow)
+                                        message = "[ERROR] " + message;
 
-                                message = ApplyRules(logEntry.ID, message);
-                                writer.WriteLine(message);
+                                    message = ApplyRules(logEntry.ID, message);
+                                    writer.WriteLine(message);
 
-                                //Keep StreamWriter open while LogID remains unchanged
-                                fileChanged = !LogCache.Any() || LogCache.Peek().ID != logEntry.ID;
+                                    //Keep StreamWriter open while LogID remains unchanged
+                                    fileChanged = !LogCache.Any() || LogCache.Peek().ID != logEntry.ID;
 
-                                if (!fileChanged)
-                                    logEntry = LogCache.Dequeue();
+                                    if (!fileChanged)
+                                        logEntry = LogCache.Dequeue();
+                                }
+                                while (!fileChanged);
                             }
-                            while (!fileChanged);
                         }
                     }
                 }

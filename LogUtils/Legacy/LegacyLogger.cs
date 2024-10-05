@@ -5,6 +5,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
+using static LogUtils.FileHandling.FileEnums;
 
 namespace LogUtils.Legacy
 {
