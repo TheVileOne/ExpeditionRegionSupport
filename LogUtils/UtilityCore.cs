@@ -120,6 +120,7 @@ namespace LogUtils
         {
             Scheduler = ComponentUtils.GetOrCreate<FrameTimer>(UtilityConsts.ComponentTags.SCHEDULER, out _);
             DataHandler = ComponentUtils.GetOrCreate<SharedDataHandler>(UtilityConsts.ComponentTags.SHARED_DATA, out _);
+            RequestHandler = ComponentUtils.GetOrCreate<LogRequestHandler>(UtilityConsts.ComponentTags.REQUEST_DATA, out _);
 
             PropertyManager = ComponentUtils.GetOrCreate<PropertyDataController>(UtilityConsts.ComponentTags.PROPERTY_DATA, out bool wasCreated);
 
@@ -128,8 +129,6 @@ namespace LogUtils
                 IsControllingAssembly = true;
                 PropertyManager.ReadFromFile();
             }
-
-            RequestHandler = ComponentUtils.GetOrCreate<LogRequestHandler>(UtilityConsts.ComponentTags.REQUEST_DATA, out _);
         }
 
         /// <summary>
