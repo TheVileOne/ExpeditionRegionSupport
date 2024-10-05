@@ -20,6 +20,7 @@ namespace LogUtils.FileHandling
             //The activity log should be immune from activity reporting
             //if (logID != activityLog)
             //    activityLogger.Log(string.Format(getResourceString(activity), logID.Properties.CurrentFilename));
+            LastActivity = activity;
         }
 
         private static string getResourceString(FileAction activity)
