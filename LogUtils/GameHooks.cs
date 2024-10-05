@@ -67,12 +67,11 @@ namespace LogUtils
             IL.Expedition.ExpLog.LogOnce += ExpLog_LogOnce;
             IL.Expedition.ExpLog.LogChallengeTypes += ExpLog_LogChallengeTypes;
 
+            On.JollyCoop.JollyCustom.Log += JollyCustom_Log;
             On.JollyCoop.JollyCustom.CreateJollyLog += JollyCustom_CreateJollyLog;
             IL.JollyCoop.JollyCustom.CreateJollyLog += JollyCustom_CreateJollyLog;
             IL.JollyCoop.JollyCustom.Log += JollyCustom_Log;
             IL.JollyCoop.JollyCustom.WriteToLog += JollyCustom_WriteToLog;
-
-            On.JollyCoop.JollyCustom.Log += JollyCustom_Log;
 
             managedHooks.ForEach(hook => hook.Apply());
             UtilityCore.BaseLogger.LogInfo("Hooks loaded successfully");
@@ -116,12 +115,11 @@ namespace LogUtils
             IL.Expedition.ExpLog.LogOnce -= ExpLog_LogOnce;
             IL.Expedition.ExpLog.LogChallengeTypes -= ExpLog_LogChallengeTypes;
 
+            On.JollyCoop.JollyCustom.Log -= JollyCustom_Log;
             On.JollyCoop.JollyCustom.CreateJollyLog -= JollyCustom_CreateJollyLog;
             IL.JollyCoop.JollyCustom.CreateJollyLog -= JollyCustom_CreateJollyLog;
             IL.JollyCoop.JollyCustom.Log -= JollyCustom_Log;
             IL.JollyCoop.JollyCustom.WriteToLog -= JollyCustom_WriteToLog;
-
-            On.JollyCoop.JollyCustom.Log -= JollyCustom_Log;
 
             managedHooks.ForEach(hook => hook.Free());
         }
@@ -133,6 +131,9 @@ namespace LogUtils
 
             UtilityCore.ThreadID = Thread.CurrentThread.ManagedThreadId; //Used for debug purposes
             RainWorld._loggingLock = UtilityCore.RequestHandler.RequestProcessLock;
+
+            //Utility bypasses attempts to define this from the game code. Avoid any potential null references 
+            JollyCoop.JollyCustom.logCache = new Queue<JollyCoop.LogElement>();
             orig(self);
         }
 
@@ -443,8 +444,6 @@ namespace LogUtils
             }
         }
 
-        private static bool expeditionOrJollyLogInProgress;
-
         private static void ExpLog_LogChallengeTypes(ILContext il)
         {
             showLogsBypassHook(new ILCursor(il), LogID.Expedition);
@@ -493,24 +492,27 @@ namespace LogUtils
             cursor.Emit(OpCodes.Ldarg_0); //Static method, this is the log string
             cursor.EmitDelegate((string logString) =>
             {
-                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
-
-                //Ensure that request is always constructed before a message is logged
-                if (request == null)
+                lock (UtilityCore.RequestHandler.RequestProcessLock)
                 {
-                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Expedition, logString)), false);
+                    LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
-                    if (request.Status == RequestStatus.Rejected)
-                        return;
+                    //Ensure that request is always constructed before a message is logged
+                    if (request == null)
+                    {
+                        request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Expedition, logString)), false);
+
+                        if (request.Status == RequestStatus.Rejected)
+                            return;
+                    }
+
+                    if (shouldFilter)
+                    {
+                        request.Data.ShouldFilter = true;
+                        request.Data.FilterDuration = FilterDuration.OnClose;
+                    }
+
+                    LogWriter.Writer.WriteFrom(request);
                 }
-
-                if (shouldFilter)
-                {
-                    request.Data.ShouldFilter = true;
-                    request.Data.FilterDuration = FilterDuration.OnClose;
-                }
-
-                LogWriter.Writer.WriteToFile();
             });
 
             branchToReturn(cursor);
@@ -544,21 +546,14 @@ namespace LogUtils
 
         private static void JollyCustom_Log(On.JollyCoop.JollyCustom.orig_Log orig, string message, bool throwException)
         {
-            lock (UtilityCore.RequestHandler.RequestProcessLock)
+            try
             {
-                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
-
-                //Ensure that request is always constructed before a message is logged
-                if (request == null)
-                {
-                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.JollyCoop, message)), false);
-
-                    if (request.Status == RequestStatus.Rejected)
-                        return;
-                }
-
+                gameHookRequestCounter++;
                 orig(message, throwException);
-                UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+            }
+            finally
+            {
+                gameHookRequestCounter--;
             }
         }
 
@@ -567,7 +562,20 @@ namespace LogUtils
             ILCursor cursor = new ILCursor(il);
 
             showLogsBypassHook(cursor, LogID.JollyCoop);
-            replaceLogPathHook(cursor, LogID.JollyCoop);
+
+            cursor.GotoNext(MoveType.After, x => x.MatchBrfalse(out _)); //Move just after the ShowLogs check
+            cursor.EmitDelegate(() =>
+            {
+                //Handle logging using a custom log writer designed to imitate the JollyCoop writer
+                JollyCoop.JollyCustom.logCache.Clear();
+                LogWriter.JollyWriter.Flush();
+            });
+
+            //Branch over existing logic, and return
+            ILLabel label = cursor.DefineLabel();
+            cursor.Emit(OpCodes.Br, label);
+            cursor.GotoNext(MoveType.After, x => x.MatchRet());
+            cursor.MarkLabel(label);
         }
 
         private static void JollyCustom_Log(ILContext il)
@@ -575,7 +583,39 @@ namespace LogUtils
             ILCursor cursor = new ILCursor(il);
 
             showLogsBypassHook(cursor, LogID.JollyCoop);
-            replaceLogPathHook(cursor, LogID.JollyCoop);
+
+            cursor.GotoNext(MoveType.After, x => x.MatchBrfalse(out _)); //ShowLogs branch check
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.Emit(OpCodes.Ldarg_1);
+            cursor.EmitDelegate((string logString, bool isErrorMessage) =>
+            {
+                lock (UtilityCore.RequestHandler.RequestProcessLock)
+                {
+                    LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+
+                    //Ensure that request is always constructed before a message is logged
+                    if (request == null)
+                    {
+                        LogCategory category = !isErrorMessage ? LogCategory.Default : LogCategory.Error;
+                        request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.JollyCoop, logString, category)), false);
+
+                        if (request.Status == RequestStatus.Rejected)
+                            return false;
+                    }
+                    LogWriter.JollyWriter.WriteFrom(request);
+                    return request.Status == RequestStatus.Complete;
+                }
+            });
+
+            //Branch to place where LogElement is added to log queue. Queue is no longer used, but populate it anyways for legacy purposes
+            ILLabel branchLabel = cursor.DefineLabel();
+            cursor.Emit(OpCodes.Brtrue, branchLabel);
+            cursor.Emit(OpCodes.Ret);
+
+            //Branching to here bypasses file creation process
+            cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(JollyCoop.JollyCustom), "CreateJollyLog"));
+            cursor.MoveAfterLabels();
+            cursor.MarkLabel(branchLabel);
         }
 
         private static void JollyCustom_CreateJollyLog(On.JollyCoop.JollyCustom.orig_CreateJollyLog orig)

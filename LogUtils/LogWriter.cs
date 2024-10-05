@@ -9,6 +9,7 @@ namespace LogUtils
     public class LogWriter : ILogWriter
     {
         private static SharedField<ILogWriter> _writer;
+        private static SharedField<QueueLogWriter> _jollyWriter;
 
         public static ILogWriter Writer
         {
@@ -22,6 +23,21 @@ namespace LogUtils
                         _writer.Value = new LogWriter();
                 }
                 return _writer.Value;
+            }
+        }
+
+        public static QueueLogWriter JollyWriter
+        {
+            get
+            {
+                if (_jollyWriter == null)
+                {
+                    _jollyWriter = UtilityCore.DataHandler.GetField<QueueLogWriter>("logwriter_jolly");
+
+                    if (_jollyWriter.Value == null)
+                        _jollyWriter.Value = new QueueLogWriter();
+                }
+                return _jollyWriter.Value;
             }
         }
 
@@ -113,7 +129,7 @@ namespace LogUtils
             WriteFrom(new LogRequest(requestType, logEventData));
         }
 
-        internal bool PrepareLogFile(LogID logFile)
+        protected virtual bool PrepareLogFile(LogID logFile)
         {
             if (logFile.Properties.LogSessionActive)
                 return true;

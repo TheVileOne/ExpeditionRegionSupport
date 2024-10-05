@@ -15,6 +15,8 @@ namespace LogUtils
     {
         internal Queue<(LogID ID, LogElement Element)> LogCache = new Queue<(LogID ID, LogElement Element)>();
 
+        private bool writingFromBuffer;
+
         public override void WriteFrom(LogRequest request)
         {
             if (request == null)
@@ -68,6 +70,15 @@ namespace LogUtils
         protected override void WriteToFile(LogRequest request)
         {
             throw new NotSupportedException();
+        }
+
+        protected override bool PrepareLogFile(LogID logFile)
+        {
+            //Avoid creating the file until we are ready to write to it
+            if (!writingFromBuffer)
+                return logFile.Properties.LogSessionActive || RWInfo.LatestSetupPeriodReached >= logFile.Properties.AccessPeriod;
+
+            return base.PrepareLogFile(logFile);
         }
 
         /// <summary>
