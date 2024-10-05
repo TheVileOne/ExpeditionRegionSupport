@@ -356,6 +356,31 @@ namespace LogUtils
         public void TryResolveRecord(LogID logFile)
         {
             //TODO: Check the handle record, and attempt to resolve the last known rejection reason
+            logFile.Properties.HandleRecord.Reason = RejectionReason.None;
+            return;
+
+            LogRequestRecord handleRecord = logFile.Properties.HandleRecord;
+
+            bool resolved = false;
+            switch (handleRecord.Reason)
+            {
+                case RejectionReason.LogUnavailable:
+                case RejectionReason.AccessDenied:
+                    //BetaLogger selectedLogger = findCompatibleLogger(logFile, doPathCheck: true);
+
+                    //resolved = selectedLogger != null && selectedLogger.AllowLogging && selectedLogger.LogTargets.Find(log => log == logFile).Access != LogAccess.Private;
+                    break;
+
+                case RejectionReason.ExceptionAlreadyReported:
+                //FailedToWrite is not guaranteed to apply to every request with a specified LogID. It can be resolved immediately
+                case RejectionReason.FailedToWrite:
+                    resolved = true;
+                    break;
+            }
+
+            if (resolved)
+                logFile.Properties.HandleRecord.Reason = RejectionReason.None;
+        }
 
         /// <summary>
         /// Attempts to handle all unhandled log requests belonging to a single LogID in the order they were submitted
