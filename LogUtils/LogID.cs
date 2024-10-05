@@ -38,24 +38,7 @@ namespace LogUtils
         internal LogID(LogProperties properties, string filename, string relativePathNoFile, bool register) : base(Path.GetFileNameWithoutExtension(filename), register)
         {
             //TODO: Check if ManagedReference can be useful for LogIDs
-            if (!UtilityCore.IsInitialized)
-                IsGameControlled = true;
-            else
-            {
-                switch (filename)
-                {
-                    case UtilityConsts.LogNames.BepInEx:
-                    case UtilityConsts.LogNames.Exception:
-                    case UtilityConsts.LogNames.Expedition:
-                    case UtilityConsts.LogNames.JollyCoop:
-                    case UtilityConsts.LogNames.Unity:
-                        IsGameControlled = true;
-                        break;
-                    default:
-                        break;
-                }
-            }
-
+            IsGameControlled = UtilityConsts.LogNames.NameMatch(filename);
             Access = LogAccess.RemoteAccessOnly;
 
             if (IsGameControlled)
@@ -79,25 +62,14 @@ namespace LogUtils
 
         public LogID(string filename, string relativePathNoFile, LogAccess access = LogAccess.RemoteAccessOnly, bool register = false) : base(Path.GetFileNameWithoutExtension(filename), register)
         {
-            if (!UtilityCore.IsInitialized)
-                IsGameControlled = true;
-            else
-            {
-                switch (filename)
-                {
-                    case UtilityConsts.LogNames.BepInEx:
-                    case UtilityConsts.LogNames.Exception:
-                    case UtilityConsts.LogNames.Expedition:
-                    case UtilityConsts.LogNames.JollyCoop:
-                    case UtilityConsts.LogNames.Unity:
-                        IsGameControlled = true;
-                        break;
-                    default:
-                        break;
-                }
-            }
-
+            IsGameControlled = UtilityConsts.LogNames.NameMatch(filename);
             Access = access;
+
+            if (IsGameControlled)
+            {
+                IsEnabled = true;
+                Access = LogAccess.FullAccess;
+            }
 
             InitializeProperties(relativePathNoFile);
 
@@ -109,11 +81,7 @@ namespace LogUtils
 
         protected void InitializeProperties(string logPath)
         {
-            FileUtils.WriteLine("test.txt", "Creating " + value);
-
             Properties = LogProperties.PropertyManager.GetProperties(this, logPath);
-
-            FileUtils.WriteLine("test.txt", "Properties search complete");
 
             if (Properties == null)
             {

@@ -62,6 +62,14 @@
             public const string ExpeditionAlt = "expedition";
             public const string JollyCoopAlt = "jolly";
             public const string UnityAlt = "console";
+
+            /// <summary>
+            /// Evaluates whether given name is a match to a game log filename
+            /// </summary>
+            public static bool NameMatch(string name)
+            {
+                return name == BepInEx || name == Exception || name == Expedition || name == JollyCoop || name == Unity;
+            }
         }
 
         public static class PathKeywords
