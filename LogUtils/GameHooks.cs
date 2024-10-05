@@ -127,7 +127,12 @@ namespace LogUtils
         private static void RainWorld_Awake(On.RainWorld.orig_Awake orig, RainWorld self)
         {
             if (RWInfo.LatestSetupPeriodReached < SetupPeriod.RWAwake)
+            {
                 RWInfo.LatestSetupPeriodReached = SetupPeriod.RWAwake;
+
+                //Any mod that wishes to access old files before they are removed must do so in their plugin's OnEnable, or Awake method
+                LogProperties.PropertyManager.CompleteStartupRoutine();
+            }
 
             UtilityCore.ThreadID = Thread.CurrentThread.ManagedThreadId; //Used for debug purposes
             RainWorld._loggingLock = UtilityCore.RequestHandler.RequestProcessLock;
@@ -207,10 +212,6 @@ namespace LogUtils
             disableLogClearing = true;
             orig(self);
             disableLogClearing = false;
-
-            //Leave enough time for mods to handle the old log files, before removing them from the folder
-            if (RWInfo.LatestSetupPeriodReached == SetupPeriod.ModsInit)
-                LogProperties.PropertyManager.CompleteStartupRoutine();
         }
 
         /// <summary>
