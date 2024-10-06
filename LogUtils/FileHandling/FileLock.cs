@@ -16,10 +16,9 @@ namespace LogUtils.FileHandling
         {
             if (activity == LastActivity) return;
 
-            //TODO: This doesn't work..
             //The activity log should be immune from activity reporting
-            //if (logID != activityLog)
-            //    activityLogger.Log(string.Format(getResourceString(activity), logID.Properties.CurrentFilename));
+            if (logID != activityLog)
+                activityLogger.Log(string.Format(getResourceString(activity), logID.Properties.CurrentFilename));
             LastActivity = activity;
         }
 
@@ -31,7 +30,7 @@ namespace LogUtils.FileHandling
             switch (activity)
             {
                 case FileAction.Log:
-                    appendString = "updated";
+                    appendString = "logging";
                     break;
                 case FileAction.SessionStart:
                     appendString = "started";
