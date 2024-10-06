@@ -11,7 +11,7 @@ namespace LogUtils.Helpers
         {
             if (path == null) return false;
 
-            path = RemoveFileFromPath(path);
+            path = PathWithoutFilename(path);
 
             short maxPathChecksAllowed = 3; //The maximum number of containing paths to check
             for (int i = 0; i < maxPathChecksAllowed; i++)
@@ -23,12 +23,18 @@ namespace LogUtils.Helpers
             return false;
         }
 
-        public static string RemoveFileFromPath(string path)
+        /// <summary>
+        /// Returns a path string without the filename (filename must have an extension)
+        /// </summary>
+        public static string PathWithoutFilename(string path)
         {
-            return RemoveFileFromPath(path, out _);
+            return PathWithoutFilename(path, out _);
         }
 
-        public static string RemoveFileFromPath(string path, out string filename)
+        /// <summary>
+        /// Returns a path string without the filename (filename must have an extension)
+        /// </summary>
+        public static string PathWithoutFilename(string path, out string filename)
         {
             filename = null;
             if (Path.HasExtension(path))
@@ -88,7 +94,7 @@ namespace LogUtils.Helpers
         public static string GetPathFromKeyword(string pathString)
         {
             if (!IsPathKeyword(pathString))
-                return RemoveFileFromPath(pathString);
+                return PathWithoutFilename(pathString);
 
             pathString = pathString.ToLower();
 

@@ -508,7 +508,7 @@ namespace LogUtils.Properties
 
         public void ChangePath(string newPath)
         {
-            newPath = PathUtils.RemoveFileFromPath(newPath, out string newFilename);
+            newPath = PathUtils.PathWithoutFilename(newPath, out string newFilename);
 
             bool changesPresent = false;
 
