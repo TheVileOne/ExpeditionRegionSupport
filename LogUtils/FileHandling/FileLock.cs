@@ -4,7 +4,7 @@ namespace LogUtils.FileHandling
 {
     public sealed class FileLock
     {
-        private static readonly LogID activityLog = new LogID("LogActivity", UtilityConsts.PathKeywords.ROOT, false);
+        private static readonly LogID activityLog = new LogID("LogActivity", UtilityConsts.PathKeywords.ROOT, LogAccess.FullAccess, false);
         private static readonly Logger activityLogger = new Logger(activityLog);
 
         /// <summary>

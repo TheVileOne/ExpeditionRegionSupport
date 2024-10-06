@@ -27,11 +27,26 @@ namespace LogUtils
         /// </summary>
         public bool IsGameControlled;
 
-        public LogID(string filename, string relativePathNoFile, bool register) : this(filename, relativePathNoFile, LogAccess.RemoteAccessOnly, register)
+        /// <summary>
+        /// Creates a new LogID instance
+        /// </summary>
+        /// <param name="filename">The filename, and optional path to target and use for logging
+        /// The ExtEnum value will be equivalent to the filename portion of this parameter without the file extension
+        /// A filename without a path will default to StreamingAssets directory as a path unless an existing LogID with the specified filename is already registered
+        /// </param>
+        /// <param name="access">Modifier that affects who may access and use the log file
+        /// Set to LogAccess.RemoteAccessOnly UNLESS your mod intends to handle LogRequests for this LogID
+        /// </param>
+        /// <param name="register">Whether or not this LogID is registered as an ExtEnum
+        /// Registration affects whether a LogID gets its own properties that write to file on game close
+        /// An unregistered LogID will still get its own properties, those properties, and changes to those properties wont be saved to file
+        /// DO NOT register a LogID that is temporary, and your mod is designated for public release
+        /// </param>
+        public LogID(string filename, LogAccess access, bool register = false) : this(new PathWrapper(filename), access, register)
         {
         }
 
-        public LogID(string filename, LogAccess access = LogAccess.RemoteAccessOnly, bool register = false) : this(filename, null, access, register)
+        internal LogID(PathWrapper pathData, LogAccess access, bool register) : this(pathData.Filename, pathData.Path, access, register)
         {
         }
 
@@ -60,7 +75,23 @@ namespace LogUtils
             }
         }
 
-        public LogID(string filename, string relativePathNoFile, LogAccess access = LogAccess.RemoteAccessOnly, bool register = false) : base(Path.GetFileNameWithoutExtension(filename), register)
+        /// <summary>
+        /// Creates a new LogID instance
+        /// </summary>
+        /// <param name="filename">The filename to target, and use for logging
+        /// The ExtEnum value will be equivalent to the filename without the file extension
+        /// </param>
+        /// <param name="relativePathNoFile">The path to the log file
+        /// Setting to null will default to the StreamingAssets directory as a path unless an existing LogID with the specified filename is already registered</param>
+        /// <param name="access">Modifier that affects who may access and use the log file
+        /// Set to LogAccess.RemoteAccessOnly UNLESS your mod intends to handle LogRequests for this LogID
+        /// </param>
+        /// <param name="register">Whether or not this LogID is registered as an ExtEnum
+        /// Registration affects whether a LogID gets its own properties that write to file on game close
+        /// An unregistered LogID will still get its own properties, those properties, and changes to those properties wont be saved to file
+        /// DO NOT register a LogID that is temporary, and your mod is designated for public release
+        /// </param>
+        public LogID(string filename, string relativePathNoFile, LogAccess access, bool register = false) : base(Path.GetFileNameWithoutExtension(filename), register)
         {
             IsGameControlled = UtilityConsts.LogNames.NameMatch(filename);
             Access = access;
@@ -90,14 +121,6 @@ namespace LogUtils
                 else
                     Properties = new LogProperties(value, logPath);
             }
-        }
-
-        public static LogID FromPath(string logPath, LogAccess access, bool register)
-        {
-            string logName = Path.GetFileNameWithoutExtension(logPath);
-            logPath = Path.GetDirectoryName(logPath);
-
-            return new LogID(logName, logPath, access, register);
         }
 
         public static LogID CreateTemporaryID(string filename, string relativePathNoFile)
