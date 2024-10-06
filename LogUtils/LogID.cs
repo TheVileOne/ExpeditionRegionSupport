@@ -1,7 +1,9 @@
 ﻿using LogUtils.Helpers;
 using LogUtils.Properties;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace LogUtils
 {
@@ -132,6 +134,21 @@ namespace LogUtils
         }
 
         /// <summary>
+        /// Retrieves all LogIDs with the specified tags (case-insensitive)
+        /// </summary>
+        public static LogID[] GetFromTag(params string[] tags)
+        {
+            List<LogID> found = new List<LogID>(LogProperties.PropertyManager.Properties.Count);
+
+            foreach (var properties in LogProperties.PropertyManager.Properties)
+            {
+                if (properties.Tags.Any(tag => tags.Contains(tag, EqualityComparer.StringComparerIgnoreCase)))
+                    found.Add(properties.ID);
+            }
+            return found.ToArray();
+        }
+
+        /// <summary>
         /// Checks whether file, and path combination matches the file and path information of an existing registered LogProperties object
         /// </summary>
         /// <param name="filename">The filename to search for</param>
@@ -172,6 +189,8 @@ namespace LogUtils
             Unity = new LogID(null, UtilityConsts.LogNames.Unity, UtilityConsts.PathKeywords.ROOT, true);
 
             BepInEx.Properties.AccessPeriod = SetupPeriod.Pregame;
+            BepInEx.Properties.AddTag(nameof(BepInEx));
+            BepInEx.Properties.LogSourceName = nameof(BepInEx);
             BepInEx.Properties.AltFilename = UtilityConsts.LogNames.BepInExAlt;
             BepInEx.Properties.IsWriteRestricted = true;
             BepInEx.Properties.LogSessionActive = true; //BepInEx log is active before the utility can initialize
@@ -179,20 +198,28 @@ namespace LogUtils
             BepInEx.Properties.ShowCategories.IsEnabled = true;
 
             Exception.Properties.AccessPeriod = SetupPeriod.RWAwake;
+            Exception.Properties.AddTag(nameof(Exception));
+            Exception.Properties.LogSourceName = nameof(Exception);
             Exception.Properties.AltFilename = UtilityConsts.LogNames.ExceptionAlt;
             Exception.Properties.PreferredFileExt = FileExt.TEXT;
 
             Expedition.Properties.AccessPeriod = SetupPeriod.ModsInit;
+            Expedition.Properties.AddTag(nameof(Expedition));
+            Expedition.Properties.LogSourceName = nameof(Expedition);
             Expedition.Properties.AltFilename = UtilityConsts.LogNames.ExpeditionAlt;
             Expedition.Properties.PreferredFileExt = FileExt.TEXT;
             Expedition.Properties.ShowLogsAware = true;
 
             JollyCoop.Properties.AccessPeriod = SetupPeriod.ModsInit;
+            JollyCoop.Properties.AddTag(nameof(JollyCoop));
+            JollyCoop.Properties.LogSourceName = nameof(JollyCoop);
             JollyCoop.Properties.AltFilename = UtilityConsts.LogNames.JollyCoopAlt;
             JollyCoop.Properties.PreferredFileExt = FileExt.TEXT;
             JollyCoop.Properties.ShowLogsAware = true;
 
             Unity.Properties.AccessPeriod = SetupPeriod.RWAwake;
+            Unity.Properties.AddTag(nameof(Unity));
+            Unity.Properties.LogSourceName = nameof(Unity);
             Unity.Properties.AltFilename = UtilityConsts.LogNames.UnityAlt;
             Unity.Properties.PreferredFileExt = FileExt.TEXT;
         }

@@ -500,6 +500,22 @@ namespace LogUtils.Properties
                 e.Writer.WriteLine($"[{DateTime.Now}]");
         }
 
+        public void AddTag(string tag)
+        {
+            if (_tags == null)
+            {
+                _tags = new string[] { tag };
+                return;
+            }
+
+            //TODO: Exempt Tags field from readonly status, always write changes to file
+            if (!_tags.Contains(tag))
+            {
+                Array.Resize(ref _tags, _tags.Length + 1);
+                _tags[_tags.Length - 1] = tag;
+            }
+        }
+
         public void ChangePath(string newPath)
         {
             newPath = PathUtils.RemoveFileFromPath(newPath, out string newFilename);
