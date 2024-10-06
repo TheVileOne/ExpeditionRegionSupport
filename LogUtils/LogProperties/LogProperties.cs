@@ -116,7 +116,6 @@ namespace LogUtils.Properties
         private string _originalFolderPath = string.Empty;
         private bool _logsFolderAware;
         private bool _logsFolderEligible = true;
-        private string[] _tags;
 
         private string _introMessage, _outroMessage;
         private bool _showIntroTimestamp, _showOutroTimestamp;
@@ -329,15 +328,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// An array of value identifiers for a specific log
         /// </summary>
-        public string[] Tags
-        {
-            get => _tags;
-            set
-            {
-                if (ReadOnly) return;
-                _tags = value;
-            }
-        }
+        public string[] Tags;
 
         /// <summary>
         /// A message that will be logged at the start of a log session
@@ -502,17 +493,16 @@ namespace LogUtils.Properties
 
         public void AddTag(string tag)
         {
-            if (_tags == null)
+            if (Tags == null)
             {
-                _tags = new string[] { tag };
+                Tags = new string[] { tag };
                 return;
             }
 
-            //TODO: Exempt Tags field from readonly status, always write changes to file
-            if (!_tags.Contains(tag))
+            if (!Tags.Contains(tag))
             {
-                Array.Resize(ref _tags, _tags.Length + 1);
-                _tags[_tags.Length - 1] = tag;
+                Array.Resize(ref Tags, Tags.Length + 1);
+                Tags[Tags.Length - 1] = tag;
             }
         }
 
