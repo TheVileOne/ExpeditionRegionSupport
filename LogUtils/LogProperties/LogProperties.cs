@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using BepInEx.Logging;
 using LogUtils.FileHandling;
 using LogUtils.Helpers;
 using RWCustom;
@@ -105,6 +106,7 @@ namespace LogUtils.Properties
 
         private LogID _id;
         private string _idValue;
+        private ManualLogSource _logSource;
         private bool _fileExists;
         private bool _readOnly;
         private string _version = "0.5.0";
@@ -142,7 +144,27 @@ namespace LogUtils.Properties
             }
         }
 
-        public bool IDMatch(LogID logID) => ID == logID;
+        public bool IDMatch(LogID logID)
+        {
+            return ID == logID;
+        }
+
+        public ManualLogSource LogSource
+        {
+            get
+            {
+                if (_logSource == null)
+                    _logSource = BepInEx.Logging.Logger.CreateLogSource(LogSourceName ?? _idValue);
+                return _logSource;
+            }
+
+            set => _logSource = value;
+        }
+
+        /// <summary>
+        /// The name of the BepInEx logging source associated with this log file
+        /// </summary>
+        public string LogSourceName;
 
         /// <summary>
         /// A string representation of the content state. This is useful for preventing user sourced changes from being overwritten by mods
