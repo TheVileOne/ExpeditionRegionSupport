@@ -1,8 +1,8 @@
-﻿using System;
+﻿using LogUtils.Helpers;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace LogUtils.Properties
 {
@@ -12,6 +12,8 @@ namespace LogUtils.Properties
 
         protected List<LogRule> InnerList = new List<LogRule>();
         protected IOrderedEnumerable<LogRule> InnerEnumerable => InnerList.OrderBy(r => r.Priority);
+
+        private static readonly StringComparer nameComparer = EqualityComparer.StringComparerIgnoreCase; 
 
         /// <summary>
         /// Tracks LogRule state changes
@@ -81,7 +83,7 @@ namespace LogUtils.Properties
         /// </summary>
         public void Add(LogRule rule)
         {
-            if (InnerList.Exists(r => LogProperties.CompareNames(r.Name, rule.Name))) //Don't allow more than one rule concept to be added with the same name
+            if (InnerList.Exists(r => nameComparer.Equals(r.Name, rule.Name))) //Don't allow more than one rule concept to be added with the same name
                 return;
 
             rule.Owner = this;
@@ -97,7 +99,7 @@ namespace LogUtils.Properties
         /// </summary>
         public void Replace(LogRule rule)
         {
-            int ruleIndex = InnerList.FindIndex(r => LogProperties.CompareNames(r.Name, rule.Name));
+            int ruleIndex = InnerList.FindIndex(r => nameComparer.Equals(r.Name, rule.Name));
 
             if (ruleIndex != -1)
             {
@@ -125,7 +127,7 @@ namespace LogUtils.Properties
 
         public bool Remove(string name)
         {
-            int ruleIndex = InnerList.FindIndex(r => LogProperties.CompareNames(r.Name, name));
+            int ruleIndex = InnerList.FindIndex(r => nameComparer.Equals(r.Name, name));
 
             if (ruleIndex != -1)
             {
@@ -167,7 +169,7 @@ namespace LogUtils.Properties
 
         public LogRule FindByName(string name)
         {
-            return Find(r => LogProperties.CompareNames(r.Name, name));
+            return Find(r => nameComparer.Equals(r.Name, name));
         }
 
         public LogRule FindByType<T>() where T : LogRule

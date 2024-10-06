@@ -745,14 +745,6 @@ namespace LogUtils.Properties
             return Path.Combine(Paths.StreamingAssetsPath, relativePath);
         }
 
-        /// <summary>
-        /// Compares two names for equality (case insensitive)
-        /// </summary>
-        public static bool CompareNames(string name, string otherName)
-        {
-            return string.Equals(name, otherName, StringComparison.InvariantCultureIgnoreCase);
-        }
-
         public static bool IsPathWildcard(string path)
         {
             return path == null;

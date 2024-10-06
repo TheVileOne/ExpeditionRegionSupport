@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogUtils.Helpers;
+using System;
 using System.Collections.Generic;
 
 namespace LogUtils
@@ -191,7 +192,7 @@ namespace LogUtils
 
         public bool CheckTag(string tag)
         {
-            return string.Equals(Tag, tag, StringComparison.InvariantCultureIgnoreCase);
+            return EqualityComparer.StringComparerIgnoreCase.Equals(Tag, tag);
         }
     }
 

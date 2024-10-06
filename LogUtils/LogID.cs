@@ -120,13 +120,16 @@ namespace LogUtils
 
             bool searchForAnyPath = LogProperties.IsPathWildcard(relativePathNoFile);
 
+            var stringComparer = EqualityComparer.StringComparerIgnoreCase;
+
             bool results = false;
             foreach (LogProperties properties in LogProperties.PropertyManager.Properties)
             {
-                if ((LogProperties.CompareNames(logName, properties.Filename)
-                  || LogProperties.CompareNames(logName, properties.CurrentFilename))
-                  &&
-                    (searchForAnyPath
+                bool namesAreEqual = stringComparer.Equals(logName, properties.Filename)
+                                  || stringComparer.Equals(logName, properties.CurrentFilename);
+
+                if (namesAreEqual &&
+                   (searchForAnyPath
                   || PathUtils.PathsAreEqual(logPath, properties.OriginalFolderPath)
                   || PathUtils.PathsAreEqual(logPath, properties.CurrentFolderPath)))
                 {

@@ -15,6 +15,8 @@ namespace LogUtils
 
             if (!File.Exists(filterPath)) return;
 
+            var stringComparer = EqualityComparer.StringComparerIgnoreCase;
+
             foreach (string line in File.ReadAllLines(filterPath))
             {
                 string[] lineData = line.Split('[', ']');
@@ -43,12 +45,8 @@ namespace LogUtils
                         {
                             foreach (var properties in LogProperties.PropertyManager.Properties)
                             {
-                                if (string.Equals(name, properties.ID.value, StringComparison.InvariantCultureIgnoreCase)
-                                 || string.Equals(name, properties.Filename, StringComparison.InvariantCultureIgnoreCase)
-                                 || string.Equals(name, properties.AltFilename, StringComparison.InvariantCultureIgnoreCase))
-                                {
+                                if (name.MatchAny(stringComparer, properties.ID.value, properties.Filename, properties.AltFilename))
                                     parsedLogIDs.Add(properties.ID);
-                                }
                             }
                         }
 
@@ -61,7 +59,7 @@ namespace LogUtils
                     }
                     else if (data.Length == 1)
                     {
-                        isRegexPattern = string.Equals(data, "r", StringComparison.InvariantCultureIgnoreCase);
+                        isRegexPattern = stringComparer.Equals(data, "r");
                     }
                     else if (Enum.TryParse(data, out SetupPeriod activePeriod))
                     {

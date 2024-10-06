@@ -6,18 +6,11 @@ namespace LogUtils.Helpers
 {
     public static class EqualityComparer
     {
-        public static FilenameEqualityComparer FilenameComparer = new FilenameEqualityComparer();
-        public static PathEqualityComparer PathComparer = new PathEqualityComparer();
-    }
+        public static readonly FilenameEqualityComparer FilenameComparer = new FilenameEqualityComparer();
+        public static readonly PathEqualityComparer PathComparer = new PathEqualityComparer();
+        public static readonly StringComparer StringComparerIgnoreCase = StringComparer.InvariantCultureIgnoreCase;
 
-    public class StringComparer : IEqualityComparer<string>
-    {
-        public virtual bool Equals(string str, string strOther)
-        {
-            return string.Equals(str, strOther, StringComparison.InvariantCultureIgnoreCase);
-        }
-
-        public int GetHashCode(string obj)
+        internal static int GetHashCode(object obj)
         {
             //I don't know how to hashcode - I guess this will work
             return obj?.GetHashCode() ?? 0;
@@ -26,6 +19,11 @@ namespace LogUtils.Helpers
 
     public class FilenameEqualityComparer : StringComparer
     {
+        public override int Compare(string filename, string filenameOther)
+        {
+            return string.Compare(filename, filenameOther, true);
+        }
+
         public bool Equals(string filename, string filenameOther, bool ignoreExtensions)
         {
             if (ignoreExtensions)
@@ -48,12 +46,22 @@ namespace LogUtils.Helpers
             filename = Path.GetFileName(filename);
             filenameOther = Path.GetFileName(filenameOther);
 
-            return base.Equals(filename, filenameOther);
+            return EqualityComparer.StringComparerIgnoreCase.Equals(filename, filenameOther);
+        }
+
+        public override int GetHashCode(string obj)
+        {
+            return EqualityComparer.GetHashCode(obj);
         }
     }
 
     public class PathEqualityComparer : StringComparer
     {
+        public override int Compare(string path, string pathOther)
+        {
+            return string.Compare(path, pathOther, true);
+        }
+
         public override bool Equals(string path, string pathOther)
         {
             //Make sure we are comparing path data, not keywords
@@ -61,6 +69,11 @@ namespace LogUtils.Helpers
             pathOther = PathUtils.GetPathFromKeyword(path);
 
             return InternalEquals(path, pathOther);
+        }
+
+        public override int GetHashCode(string obj)
+        {
+            return EqualityComparer.GetHashCode(obj);
         }
 
         /// <summary>
@@ -77,7 +90,7 @@ namespace LogUtils.Helpers
             path = Path.GetFullPath(path).TrimEnd('\\');
             pathOther = Path.GetFullPath(pathOther).TrimEnd('\\');
 
-            return base.Equals(path, pathOther);
+            return EqualityComparer.StringComparerIgnoreCase.Equals(path, pathOther);
         }
     }
 }
