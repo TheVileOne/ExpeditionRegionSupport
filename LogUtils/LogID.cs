@@ -29,6 +29,8 @@ namespace LogUtils
         /// </summary>
         public bool IsGameControlled;
 
+        public static IEnumerable<LogID> RegisteredIDs => LogProperties.PropertyManager.Properties.Select(p => p.ID);
+
         /// <summary>
         /// Creates a new LogID instance
         /// </summary>
@@ -134,9 +136,47 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Retrieves all LogIDs with the specified tags (case-insensitive)
+        /// Finds a registered LogID with the given filename, and path
         /// </summary>
-        public static LogID[] GetFromTag(params string[] tags)
+        /// <param name="filename">The filename to search for</param>
+        /// <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
+        public static LogID Find(string filename, string relativePathNoFile)
+        {
+            return FindAll(filename, relativePathNoFile).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Finds all registered LogID with the given filename, and path
+        /// </summary>
+        /// <param name="filename">The filename to search for</param>
+        /// <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
+        public static IEnumerable<LogID> FindAll(string filename, string relativePathNoFile)
+        {
+            //Convert string data into something that can be compared to stored file data
+            string logName = Path.GetFileNameWithoutExtension(filename);
+            string logPath = LogProperties.GetContainingPath(relativePathNoFile);
+
+            bool searchForAnyPath = LogProperties.IsPathWildcard(relativePathNoFile);
+
+            foreach (LogProperties properties in LogProperties.PropertyManager.Properties)
+            {
+                bool filenameMatch = logName.MatchAny(EqualityComparer.StringComparerIgnoreCase, properties.Filename, properties.CurrentFilename);
+
+                if (filenameMatch && (searchForAnyPath || hasPathMatch()))
+                    yield return properties.ID;
+
+                bool hasPathMatch()
+                {
+                    return PathUtils.PathsAreEqual(logPath, properties.OriginalFolderPath)
+                        || PathUtils.PathsAreEqual(logPath, properties.CurrentFolderPath);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Finds all registered LogIDs with the given filename, and path
+        /// </summary>
+        public static LogID[] FindByTag(params string[] tags)
         {
             List<LogID> found = new List<LogID>(LogProperties.PropertyManager.Properties.Count);
 
@@ -149,35 +189,13 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Checks whether file, and path combination matches the file and path information of an existing registered LogProperties object
+        /// Checks whether file, and path combination matches the file and path information of an existing registered LogID
         /// </summary>
         /// <param name="filename">The filename to search for</param>
         /// <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
         public static bool IsRegistered(string filename, string relativePathNoFile = null)
         {
-            string logName = Path.GetFileNameWithoutExtension(filename);
-            string logPath = LogProperties.GetContainingPath(relativePathNoFile);
-
-            bool searchForAnyPath = LogProperties.IsPathWildcard(relativePathNoFile);
-
-            var stringComparer = EqualityComparer.StringComparerIgnoreCase;
-
-            bool results = false;
-            foreach (LogProperties properties in LogProperties.PropertyManager.Properties)
-            {
-                bool namesAreEqual = stringComparer.Equals(logName, properties.Filename)
-                                  || stringComparer.Equals(logName, properties.CurrentFilename);
-
-                if (namesAreEqual &&
-                   (searchForAnyPath
-                  || PathUtils.PathsAreEqual(logPath, properties.OriginalFolderPath)
-                  || PathUtils.PathsAreEqual(logPath, properties.CurrentFolderPath)))
-                {
-                    results = true;
-                    break;
-                }
-            }
-            return results;
+            return Find(filename, relativePathNoFile) != null;
         }
 
         internal static void InitializeLogIDs()
