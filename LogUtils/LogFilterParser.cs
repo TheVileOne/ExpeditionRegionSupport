@@ -13,75 +13,95 @@ namespace LogUtils
         {
             string filterPath = Path.Combine(Paths.StreamingAssetsPath, "logfilter.txt");
 
-            if (!File.Exists(filterPath)) return;
-
-            var stringComparer = EqualityComparer.StringComparerIgnoreCase;
-
-            foreach (string line in File.ReadAllLines(filterPath))
+            if (File.Exists(filterPath))
             {
-                string[] lineData = line.Split('[', ']');
-
-                if (lineData.Length <= 1)
+                foreach (string line in File.ReadAllLines(filterPath))
                 {
-                    LogFilter.AddFilterEntry(LogID.Unity, new FilteredStringEntry(line.Trim('"', ' '), FilterDuration.Always));
-                    continue;
-                }
+                    HeaderInfo header = getHeaderData(line);
 
-                List<LogID> parsedLogIDs = null;
-                bool isRegexPattern = false;
-                SetupPeriod? filterActivePeriod = null;
+                    string filterString = header.Length == 0 ? line : line.Substring(header.Length + 1);
+                    FilterDuration duration = header.ExpectedLifetime == SetupPeriod.PostMods ? FilterDuration.Always : FilterDuration.UseLifetime;
 
-                int dataIndex = 0;
-                while (dataIndex < lineData.Length)
-                {
-                    string data = lineData[dataIndex].Trim();
+                    FilteredStringEntry entry = new FilteredStringEntry(filterString, duration);
 
-                    if (parsedLogIDs == null)
-                    {
-                        parsedLogIDs = new List<LogID>();
-                        string[] logNames = data.Split(',');
+                    if (duration == FilterDuration.UseLifetime)
+                        entry.ExpedtedLifetime = header.ExpectedLifetime;
 
-                        foreach (string name in logNames.Select(l => l.Trim()))
-                        {
-                            foreach (var properties in LogProperties.PropertyManager.Properties)
-                            {
-                                if (name.MatchAny(stringComparer, properties.ID.value, properties.Filename, properties.AltFilename))
-                                    parsedLogIDs.Add(properties.ID);
-                            }
-                        }
-
-                        //Default to Unity log when no LogID is specified
-                        if (parsedLogIDs.Count == 0)
-                        {
-                            parsedLogIDs.Add(LogID.Unity);
-                            continue;
-                        }
-                    }
-                    else if (data.Length == 1)
-                    {
-                        isRegexPattern = stringComparer.Equals(data, "r");
-                    }
-                    else if (Enum.TryParse(data, out SetupPeriod activePeriod))
-                    {
-                        filterActivePeriod = activePeriod;
-                    }
-
-                    dataIndex++;
-
-                    if (dataIndex == lineData.Length) //Last array index must contain the filter string
-                        dataIndex = lineData.Length;
-                }
-
-                string filterString = lineData[lineData.Length - 1].Trim('"');
-
-                foreach (LogID logID in parsedLogIDs)
-                {
-                    LogFilter.AddFilterEntry(logID, new FilteredStringEntry(filterString, FilterDuration.Always)
-                    {
-                        IsRegex = isRegexPattern
-                    });
+                    foreach (LogID logID in header.TargetIDs)
+                        LogFilter.AddFilterEntry(logID, entry);
                 }
             }
+        }
+
+        /// <summary>
+        /// Parses out data necessary to process the filter
+        /// </summary>
+        private static HeaderInfo getHeaderData(string line)
+        {
+            //This doesn't guarantee that data is a header, we must validate the data to be sure
+            bool headerTokenDetected = line.StartsWith("[");
+
+            HeaderInfo headerInfo = new HeaderInfo()
+            {
+                ExpectedLifetime = SetupPeriod.PostMods
+            };
+
+            if (headerTokenDetected)
+            {
+                int headerEnd = line.IndexOf(']');
+
+                if (headerEnd != -1)
+                {
+                    string[] headerData = line.Substring(0, headerEnd).Split(',');
+
+                    bool hasData = false;
+                    foreach (string value in headerData.Select(s => s.Trim()))
+                    {
+                        if (EqualityComparer.StringComparerIgnoreCase.Equals(value, "regex"))
+                        {
+                            headerInfo.IsRegex = true;
+                            hasData = true;
+                        }
+                        else if (Enum.TryParse(value, true, out SetupPeriod period))
+                        {
+                            headerInfo.ExpectedLifetime = period;
+                            hasData = true;
+                        }
+                        else
+                        {
+                            IEnumerable<LogID> nameMatches = LogID.FindAll(value, null);
+                            IEnumerable<LogID> tagMatches = LogID.FindByTag(value, null);
+
+                            headerInfo.TargetIDs = nameMatches.Union(tagMatches).ToArray();
+
+                            if (headerInfo.TargetIDs.Length > 0)
+                                hasData = true;
+                        }
+                    }
+
+                    if (hasData)
+                        headerInfo.Length = headerEnd;
+                }
+            }
+
+            //A default LogID is used when one is not specified
+            if (headerInfo.TargetIDs == null || headerInfo.TargetIDs.Length == 0)
+                headerInfo.TargetIDs = new[] { LogID.Unity };
+            return headerInfo;
+        }
+
+        private struct HeaderInfo
+        {
+            public int Length;
+
+            public LogID[] TargetIDs;
+
+            public bool IsRegex;
+
+            /// <summary>
+            /// The latest time when the filter will be functional
+            /// </summary>
+            public SetupPeriod ExpectedLifetime;
         }
     }
 }
