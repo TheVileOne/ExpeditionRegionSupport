@@ -38,8 +38,6 @@ namespace ExpeditionRegionSupport
             set => ExpeditionData.devMode = value;
         }
 
-        public static readonly LogID ErsLog = new LogID("ErsLog", LogAccess.FullAccess, true);
-
         public static new LogUtils.Logger Logger;
 
         public static bool SlugBaseEnabled;
@@ -54,9 +52,7 @@ namespace ExpeditionRegionSupport
 
         public void OnEnable()
         {
-            ErsLog.Properties.ShowCategories.IsEnabled = true;
-
-            Logger = new LogUtils.Logger(LogID.BepInEx)
+            Logger = new LogUtils.Logger(ModEnums.LogID.ErsLog)
             {
                 ManagedLogSource = base.Logger
             };
@@ -793,16 +789,6 @@ namespace ExpeditionRegionSupport
                 Logger.LogInfo(roomInfo);
 
             RegionSelector.Instance.AddRoom(roomInfo);
-        }
-
-        /// <summary>
-        /// Logs to both mod-specific logger, and ExpLog
-        /// </summary>
-        /// <param name="entry"></param>
-        public static void LogBoth(string entry)
-        {
-            ExpLog.Log(entry);
-            Logger.LogInfo(entry);
         }
     }
 }
