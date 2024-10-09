@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using LogUtils.Helpers;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace LogUtils
@@ -37,7 +40,11 @@ namespace LogUtils
         /// <returns>true, when applicable, false otherwise</returns>
         public bool CheckValidation()
         {
-            return Keywords.Count == 0 || Keywords.TrueForAll(LogFilter.ActiveKeywords.Contains); //All keywords for this filter must be active
+            //time_ prefix describes activation range keywords
+            return Keywords.Count == 0 || Keywords.TrueForAll(k =>
+            {
+                return !k.StartsWith("time_", true, CultureInfo.InvariantCulture) || LogFilter.ActiveKeywords.Contains(k, EqualityComparer.StringComparerIgnoreCase);
+            });
         }
     }
 

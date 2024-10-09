@@ -50,6 +50,7 @@ namespace LogUtils
             On.RainWorld.OnModsInit += RainWorld_OnModsInit;
             On.RainWorld.PostModsInit += RainWorld_PostModsInit;
             On.RainWorld.PreModsInit += RainWorld_PreModsInit;
+            On.ModManager.WrapModInitHooks += ModManager_WrapModInitHooks;
 
             //Signal system
             On.RainWorld.Update += RainWorld_Update;
@@ -77,6 +78,13 @@ namespace LogUtils
             UtilityCore.BaseLogger.LogInfo("Hooks loaded successfully");
         }
 
+        private static void ModManager_WrapModInitHooks(On.ModManager.orig_WrapModInitHooks orig)
+        {
+            //Applying this here as it is guaranteed to run before any hooks are applied in typical channels
+            LogFilter.ActivateKeyword(UtilityConsts.FilterKeywords.ACTIVATION_PERIOD_STARTUP);
+            orig();
+        }
+
         /// <summary>
         /// Releases, and then reapply hooks used by the utility module 
         /// </summary>
@@ -101,6 +109,9 @@ namespace LogUtils
             On.RainWorld.OnModsInit -= RainWorld_OnModsInit;
             On.RainWorld.PostModsInit -= RainWorld_PostModsInit;
             On.RainWorld.PreModsInit -= RainWorld_PreModsInit;
+            On.ModManager.WrapModInitHooks -= ModManager_WrapModInitHooks;
+
+            //Signal system
             On.RainWorld.Update -= RainWorld_Update;
 
             On.RainWorld.HandleLog -= RainWorld_HandleLog;
@@ -227,8 +238,12 @@ namespace LogUtils
 
             orig(self);
 
+            //TODO: It could be guaranteed that this runs after all hooks by setting a flag here, that is checked in ModManager.CheckInitIssues,
+            //or we could possibly use the scheduler
             LogProperties.PropertyManager.Properties.ForEach(prop => prop.ReadOnly = true);
             LogProperties.PropertyManager.IsEditGracePeriod = false;
+
+            LogFilter.DeactivateKeyword(UtilityConsts.FilterKeywords.ACTIVATION_PERIOD_STARTUP);
         }
 
         private static bool listenerCheckComplete;

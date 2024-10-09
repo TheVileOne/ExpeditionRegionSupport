@@ -32,5 +32,22 @@ namespace LogUtils
                 return filter.Exists(entry => entry.CheckValidation() && entry.CheckMatch(logString));
             return false;
         }
+
+        /// <summary>
+        /// Designates a keyword as active by adding it to the ActiveKeywords list
+        /// </summary>
+        public static void ActivateKeyword(string keyword)
+        {
+            if (!ActiveKeywords.Contains(keyword))
+                ActiveKeywords.Add(keyword);
+        }
+
+        /// <summary>
+        /// Removes keyword from the ActiveKeywords list
+        /// </summary>
+        public static void DeactivateKeyword(string keyword)
+        {
+            ActiveKeywords.Remove(keyword);
+        }
     }
 }
