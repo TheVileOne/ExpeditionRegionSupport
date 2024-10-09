@@ -1,7 +1,6 @@
 ﻿using LogUtils.Helpers;
-using LogUtils.Properties;
-using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 
@@ -20,12 +19,11 @@ namespace LogUtils
                     HeaderInfo header = getHeaderData(line);
 
                     string filterString = header.Length == 0 ? line : line.Substring(header.Length + 1);
-                    FilterDuration duration = header.ExpectedLifetime == SetupPeriod.PostMods ? FilterDuration.Always : FilterDuration.UseLifetime;
 
-                    FilteredStringEntry entry = new FilteredStringEntry(filterString, duration);
+                    FilteredStringEntry entry = new FilteredStringEntry(filterString, FilterDuration.Always);
 
-                    if (duration == FilterDuration.UseLifetime)
-                        entry.ExpedtedLifetime = header.ExpectedLifetime;
+                    if (header.Keywords != null)
+                        entry.Keywords.AddRange(header.Keywords);
 
                     foreach (LogID logID in header.TargetIDs)
                         LogFilter.AddFilterEntry(logID, entry);
@@ -41,10 +39,7 @@ namespace LogUtils
             //This doesn't guarantee that data is a header, we must validate the data to be sure
             bool headerTokenDetected = line.StartsWith("[");
 
-            HeaderInfo headerInfo = new HeaderInfo()
-            {
-                ExpectedLifetime = SetupPeriod.PostMods
-            };
+            HeaderInfo headerInfo = new HeaderInfo();
 
             if (headerTokenDetected)
             {
@@ -53,18 +48,25 @@ namespace LogUtils
                 if (headerEnd != -1)
                 {
                     string[] headerData = line.Substring(0, headerEnd).Split(',');
+                    string keywordPrefix = UtilityConsts.FilterKeywords.KEYWORD_PREFIX;
+
+                    List<string> parsedKeywords = new List<string>();
 
                     bool hasData = false;
                     foreach (string value in headerData.Select(s => s.Trim()))
                     {
-                        if (EqualityComparer.StringComparerIgnoreCase.Equals(value, "regex"))
+                        //Header data falls into two groups: LogID filenames/tags, and filter keywords. Filter keywords are distinguished by a special prefix
+                        if (value.StartsWith(keywordPrefix, true, CultureInfo.InvariantCulture))
                         {
-                            headerInfo.IsRegex = true;
-                            hasData = true;
-                        }
-                        else if (Enum.TryParse(value, true, out SetupPeriod period))
-                        {
-                            headerInfo.ExpectedLifetime = period;
+                            if (value.Length == keywordPrefix.Length) //Prevent index out of range exception
+                                continue;
+
+                            string keyword = value.Substring(keywordPrefix.Length);
+
+                            if (EqualityComparer.StringComparerIgnoreCase.Equals(value, UtilityConsts.FilterKeywords.REGEX))
+                                headerInfo.IsRegex = true; //This keyword is stored as a bool unlike other keywords
+                            else
+                                parsedKeywords.Add(keyword);
                             hasData = true;
                         }
                         else
@@ -80,7 +82,10 @@ namespace LogUtils
                     }
 
                     if (hasData)
+                    {
                         headerInfo.Length = headerEnd;
+                        headerInfo.Keywords = parsedKeywords.ToArray();
+                    }
                 }
             }
 
@@ -98,10 +103,7 @@ namespace LogUtils
 
             public bool IsRegex;
 
-            /// <summary>
-            /// The latest time when the filter will be functional
-            /// </summary>
-            public SetupPeriod ExpectedLifetime;
+            public string[] Keywords;
         }
     }
 }

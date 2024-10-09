@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace LogUtils
 {
@@ -11,6 +7,7 @@ namespace LogUtils
     {
         public FilterDuration Duration;
         public bool IsRegex;
+        public List<string> Keywords = new List<string>();
         public string Value;
 
         public FilteredStringEntry(string entryString, FilterDuration duration)
@@ -32,6 +29,15 @@ namespace LogUtils
                 return regex.Match(testString).Success;
             }
             return string.Equals(Value, testString);
+        }
+
+        /// <summary>
+        /// Checks whether the filter is currently applicable
+        /// </summary>
+        /// <returns>true, when applicable, false otherwise</returns>
+        public bool CheckValidation()
+        {
+            return Keywords.Count == 0 || Keywords.TrueForAll(LogFilter.ActiveKeywords.Contains); //All keywords for this filter must be active
         }
     }
 

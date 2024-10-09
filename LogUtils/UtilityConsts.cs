@@ -72,6 +72,13 @@
             }
         }
 
+        public static class FilterKeywords
+        {
+            public const string KEYWORD_PREFIX = "fk:"; //Used by the parser
+            public const string REGEX = "regex";
+            public const string ACTIVE_DURING_STARTUP = "time_startup";
+        }
+
         public static class PathKeywords
         {
             public const string ROOT = "root";

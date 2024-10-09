@@ -1,14 +1,15 @@
 ﻿using Expedition;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LogUtils
 {
     public static class LogFilter
     {
+        /// <summary>
+        /// List of filter keywords - A filter entry with a keyword must have that keyword in this list in order for the filter to be effective 
+        /// </summary>
+        public static List<string> ActiveKeywords = new List<string>();
+
         /// <summary>
         /// Dictionary of strings that should be ignored when a log attempt is made
         /// </summary>
@@ -28,7 +29,7 @@ namespace LogUtils
         public static bool CheckFilterMatch(LogID logID, string logString)
         {
             if (FilteredStrings.TryGetValue(logID, out List<FilteredStringEntry> filter))
-                return filter.Exists(entry => entry.CheckMatch(logString));
+                return filter.Exists(entry => entry.CheckValidation() && entry.CheckMatch(logString));
             return false;
         }
     }
