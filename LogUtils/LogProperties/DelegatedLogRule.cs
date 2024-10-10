@@ -27,9 +27,9 @@
             RuleAction = action;
         }
 
-        protected override string ApplyRule(string message)
+        protected override string ApplyRule(string message, LogEvents.LogMessageEventArgs logEventData)
         {
-            return RuleAction.Invoke(message);
+            return RuleAction.Invoke(message, logEventData);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using JollyCoop;
 using LogUtils.Properties;
 using System;
 using System.IO;
@@ -53,34 +54,51 @@ namespace LogUtils
             /// </summary>
             public ManualLogSource LogSource;
 
+            private LogCategory _category;
+            private LogLevel? _categoryBepInEx;
+            private LogType? _categoryUnity;
+
             /// <summary>
             /// The log category associated with the message (equivalent to LogType (Unity), and LogLevel (BepInEx)
             /// </summary>
-            public LogCategory Category { get; }
+            public LogCategory Category
+            {
+                get
+                {
+                    if (_category != null)
+                        return _category;
 
-            private LogLevel? _bepInExCategory;
-            private LogType? _unityCategory;
+                    if (ID == LogID.BepInEx || _categoryBepInEx != null)
+                        return LogCategory.ToCategory(BepInExCategory);
+
+                    if (ID == LogID.Unity || ID == LogID.Exception || _categoryUnity != null)
+                        return LogCategory.ToCategory(UnityCategory);
+
+                    return LogCategory.Default;
+                }
+                private set => _category = value;
+            }
 
             public LogLevel BepInExCategory
             {
                 get
                 {
-                    if (_bepInExCategory == null)
-                        return Category?.BepInExCategory ?? LogCategory.LOG_LEVEL_DEFAULT;
-                    return _bepInExCategory.Value;
+                    if (_categoryBepInEx == null)
+                        return _category?.BepInExCategory ?? LogCategory.LOG_LEVEL_DEFAULT;
+                    return _categoryBepInEx.Value;
                 }
-                private set => _bepInExCategory = value;
+                private set => _categoryBepInEx = value;
             }
 
             public LogType UnityCategory
             {
                 get
                 {
-                    if (_unityCategory == null)
-                        return Category?.UnityCategory ?? LogCategory.LOG_TYPE_DEFAULT;
-                    return _unityCategory.Value;
+                    if (_categoryUnity == null)
+                        return _category?.UnityCategory ?? LogCategory.LOG_TYPE_DEFAULT;
+                    return _categoryUnity.Value;
                 }
-                private set => _unityCategory = value;
+                private set => _categoryUnity = value;
             }
 
             /// <summary>
@@ -116,6 +134,14 @@ namespace LogUtils
             private string processMessage(object data)
             {
                 return data?.ToString() ?? string.Empty;
+            }
+
+            /// <summary>
+            /// Constructs a JollyCoop LogElement struct using stored event data
+            /// </summary>
+            public LogElement GetElement()
+            {
+                return new LogElement(Message, LogCategory.IsErrorCategory(Category));
             }
         }
 

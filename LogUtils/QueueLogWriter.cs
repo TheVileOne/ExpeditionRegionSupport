@@ -1,5 +1,4 @@
-﻿using JollyCoop;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,7 +12,7 @@ namespace LogUtils
     /// </summary>
     public class QueueLogWriter : LogWriter
     {
-        internal Queue<(LogID ID, LogElement Element)> LogCache = new Queue<(LogID ID, LogElement Element)>();
+        internal Queue<LogEvents.LogMessageEventArgs> LogCache = new Queue<LogEvents.LogMessageEventArgs>();
 
         private bool writingFromBuffer;
 
@@ -65,7 +64,7 @@ namespace LogUtils
         {
             OnLogMessageReceived(logEventData);
 
-            LogCache.Enqueue((logEventData.ID, new LogElement(logEventData.Message, logEventData.Category == LogCategory.Error)));
+            LogCache.Enqueue(logEventData);
             return true;
         }
 
@@ -94,14 +93,14 @@ namespace LogUtils
 
                 try
                 {
-                    var fileLock = logEntry.ID.Properties.FileLock;
+                    var fileLock = logEntry.Properties.FileLock;
 
                     lock (fileLock)
                     {
                         fileLock.SetActivity(logEntry.ID, FileAction.Log);
 
                         writingFromBuffer = true;
-                        string writePath = logEntry.ID.Properties.CurrentFilePath;
+                        string writePath = logEntry.Properties.CurrentFilePath;
                         bool retryAttempt = false;
 
                     retry:
@@ -111,7 +110,7 @@ namespace LogUtils
                             {
                                 if (!retryAttempt)
                                 {
-                                    logEntry.ID.Properties.FileExists = false;
+                                    logEntry.Properties.FileExists = false;
                                     if (PrepareLogFile(logEntry.ID)) //Allow a single retry after creating the file once confirming session has been established
                                     {
                                         retryAttempt = true;
@@ -126,13 +125,13 @@ namespace LogUtils
                                 bool fileChanged;
                                 do
                                 {
-                                    string message = logEntry.Element.logText;
+                                    string message = logEntry.Message;
 
                                     //Behavior taken from JollyCoop, shouldn't be necessary if error category is already going to display
-                                    if (!logEntry.ID.Properties.ShowCategories.IsEnabled && logEntry.Element.shouldThrow)
+                                    if (!logEntry.Properties.ShowCategories.IsEnabled && LogCategory.IsErrorCategory(logEntry.Category))
                                         message = "[ERROR] " + message;
 
-                                    message = ApplyRules(logEntry.ID, message);
+                                    message = ApplyRules(logEntry);
                                     writer.WriteLine(message);
 
                                     //Keep StreamWriter open while LogID remains unchanged
@@ -152,10 +151,11 @@ namespace LogUtils
 
                     if (!RWInfo.CheckExceptionMatch(logEntry.ID, exceptionInfo)) //Only log unreported exceptions
                     {
-                        OnLogMessageReceived(new LogEvents.LogMessageEventArgs(logEntry.ID, ex, LogCategory.Error));
+                        logEntry = new LogEvents.LogMessageEventArgs(logEntry.ID, ex, LogCategory.Error);
+
                         RWInfo.ReportException(logEntry.ID, exceptionInfo);
 
-                        logEntry = new(logEntry.ID, new LogElement(exceptionInfo.ToString(), false));
+                        OnLogMessageReceived(logEntry);
                         LogCache.Enqueue(logEntry);
                     }
                     break;

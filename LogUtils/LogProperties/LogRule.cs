@@ -166,17 +166,17 @@ namespace LogUtils.Properties
             Name = name;
         }
 
-        public void Apply(ref string message)
+        public void Apply(ref string message, LogEvents.LogMessageEventArgs logEventData)
         {
             if (TemporaryOverride != null)
             {
-                message = TemporaryOverride.ApplyRule(message); //Apply temporary rule instead
+                message = TemporaryOverride.ApplyRule(message, logEventData); //Apply temporary rule instead
                 return;
             }
-            message = ApplyRule(message);
+            message = ApplyRule(message, logEventData);
         }
 
-        protected virtual string ApplyRule(string message)
+        protected virtual string ApplyRule(string message, LogEvents.LogMessageEventArgs logEventData)
         {
             return message;
         }
@@ -196,7 +196,7 @@ namespace LogUtils.Properties
             return ToPropertyString();
         }
 
-        public delegate string ApplyDelegate(string message);
+        public delegate string ApplyDelegate(string message, LogEvents.LogMessageEventArgs logEventData);
     }
 
     public class ShowCategoryRule : LogRule

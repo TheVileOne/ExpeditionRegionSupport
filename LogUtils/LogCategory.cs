@@ -138,6 +138,11 @@ namespace LogUtils
             return !IsUnityErrorCategory(logType) ? LogID.Unity : LogID.Exception;
         }
 
+        public static bool IsErrorCategory(LogCategory category)
+        {
+            return category == Error || category == Fatal;
+        }
+
         public static bool IsUnityErrorCategory(LogType logType)
         {
             return logType == LogType.Error || logType == LogType.Exception;
@@ -182,7 +187,7 @@ namespace LogUtils
             return new LogCategory(logLevel.ToString());
         }
 
-        public static LogCategory Default => Info;
+        public static readonly LogCategory Default = Info;
 
         public static readonly LogCategory All = new LogCategory("All", LogLevel.All, null);
         public static readonly LogCategory None = new LogCategory("None", LogLevel.None, LogType.Log);

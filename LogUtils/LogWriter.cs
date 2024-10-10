@@ -181,7 +181,7 @@ namespace LogUtils
                         //Assume stream is fine here
                         using (StreamWriter writer = new StreamWriter(stream))
                         {
-                            message = ApplyRules(logFile, message);
+                            message = ApplyRules(logEventData);
                             writer.WriteLine(message);
                         }
                     }
@@ -195,12 +195,13 @@ namespace LogUtils
             }
         }
 
-        public string ApplyRules(LogID logFile, string message)
+        public string ApplyRules(LogEvents.LogMessageEventArgs logEventData)
         {
-            message = message ?? string.Empty;
+            string message = logEventData.Message;
+            var activeRules = logEventData.Properties.Rules.Where(r => r.IsEnabled);
 
-            foreach (LogRule rule in logFile.Properties.Rules.Where(r => r.IsEnabled))
-                rule.Apply(ref message);
+            foreach (LogRule rule in activeRules)
+                rule.Apply(ref message, logEventData);
             return message;
         }
 
@@ -261,6 +262,6 @@ namespace LogUtils
         public void ResetFile(LogID logFile);
         internal void WriteFrom(LogRequest request);
         internal void WriteToFile(LogID logFile, string message);
-        internal string ApplyRules(LogID logFile, string message);
+        internal string ApplyRules(LogEvents.LogMessageEventArgs logEventData);
     }
 }
