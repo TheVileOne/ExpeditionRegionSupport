@@ -60,15 +60,26 @@ namespace LogUtils
 
             private LogLevel? _bepInExCategory;
             private LogType? _unityCategory;
+
             public LogLevel BepInExCategory
             {
-                get => _bepInExCategory ?? Category.BepInExCategory;
+                get
+                {
+                    if (_bepInExCategory == null)
+                        return Category?.BepInExCategory ?? LogCategory.LOG_LEVEL_DEFAULT;
+                    return _bepInExCategory.Value;
+                }
                 private set => _bepInExCategory = value;
             }
 
             public LogType UnityCategory
             {
-                get => _unityCategory ?? Category.UnityCategory;
+                get
+                {
+                    if (_unityCategory == null)
+                        return Category?.UnityCategory ?? LogCategory.LOG_TYPE_DEFAULT;
+                    return _unityCategory.Value;
+                }
                 private set => _unityCategory = value;
             }
 
@@ -87,19 +98,24 @@ namespace LogUtils
             public LogMessageEventArgs(LogID logID, object messageData, LogCategory category = null) : base(logID)
             {
                 Category = category ?? LogCategory.Default;
-                Message = messageData?.ToString();
+                Message = processMessage(messageData);
             }
 
             public LogMessageEventArgs(LogID logID, object messageData, LogLevel category) : base(logID)
             {
                 BepInExCategory = category;
-                Message = messageData?.ToString();
+                Message = processMessage(messageData);
             }
 
             public LogMessageEventArgs(LogID logID, object messageData, LogType category) : base(logID)
             {
                 UnityCategory = category;
-                Message = messageData?.ToString();
+                Message = processMessage(messageData);
+            }
+
+            private string processMessage(object data)
+            {
+                return data?.ToString() ?? string.Empty;
             }
         }
 
