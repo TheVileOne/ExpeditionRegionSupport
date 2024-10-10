@@ -1,11 +1,11 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Enums;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
-using static LogUtils.FileHandling.FileEnums;
 
 namespace LogUtils.Legacy
 {

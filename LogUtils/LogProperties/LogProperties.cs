@@ -4,11 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using BepInEx.Logging;
-using LogUtils.FileHandling;
+using LogUtils.Enums;
 using LogUtils.Helpers;
 using RWCustom;
 using DataFields = LogUtils.UtilityConsts.DataFields;
-using static LogUtils.FileHandling.FileEnums;
 
 namespace LogUtils.Properties
 {

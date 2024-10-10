@@ -1,6 +1,6 @@
-﻿using static LogUtils.FileHandling.FileEnums;
+﻿using LogUtils.Enums;
 
-namespace LogUtils.FileHandling
+namespace LogUtils
 {
     public sealed class FileLock
     {

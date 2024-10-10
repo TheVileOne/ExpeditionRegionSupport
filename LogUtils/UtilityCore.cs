@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Enums;
 using LogUtils.Helpers;
 using LogUtils.Properties;
 using Menu;

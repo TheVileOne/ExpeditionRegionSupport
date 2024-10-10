@@ -5,9 +5,9 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Text;
+using LogUtils.Enums;
 using LogUtils.Helpers;
 using DataFields = LogUtils.UtilityConsts.DataFields;
-using static LogUtils.FileHandling.FileEnums;
 
 namespace LogUtils.Properties
 {

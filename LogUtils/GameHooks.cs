@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Enums;
 using LogUtils.Properties;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -76,13 +77,6 @@ namespace LogUtils
 
             managedHooks.ForEach(hook => hook.Apply());
             UtilityCore.BaseLogger.LogInfo("Hooks loaded successfully");
-        }
-
-        private static void ModManager_WrapModInitHooks(On.ModManager.orig_WrapModInitHooks orig)
-        {
-            //Applying this here as it is guaranteed to run before any hooks are applied in typical channels
-            LogFilter.ActivateKeyword(UtilityConsts.FilterKeywords.ACTIVATION_PERIOD_STARTUP);
-            orig();
         }
 
         /// <summary>
@@ -199,6 +193,13 @@ namespace LogUtils
 
             LogProperties.PropertyManager.SaveToFile();
             orig(self);
+        }
+
+        private static void ModManager_WrapModInitHooks(On.ModManager.orig_WrapModInitHooks orig)
+        {
+            //Applying this here as it is guaranteed to run before any hooks are applied in typical channels
+            LogFilter.ActivateKeyword(UtilityConsts.FilterKeywords.ACTIVATION_PERIOD_STARTUP);
+            orig();
         }
 
         private static void RainWorld_PreModsInit(On.RainWorld.orig_PreModsInit orig, RainWorld self)

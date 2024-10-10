@@ -5,7 +5,7 @@ using Expedition;
 using ExpeditionRegionSupport.Diagnostics;
 using ExpeditionRegionSupport.Filters.Utils;
 using ExpeditionRegionSupport.Regions;
-using LogUtils;
+using LogUtils.Enums;
 
 namespace ExpeditionRegionSupport.Filters
 {

@@ -1,10 +1,10 @@
-﻿using LogUtils;
+﻿using LogUtils.Enums;
 
 namespace ExpeditionRegionSupport
 {
     public static class ModEnums
     {
-        public class LogID : LogUtils.LogID
+        public class LogID : LogUtils.Enums.LogID
         {
             public static readonly LogID ErsLog = new LogID("ErsLog", LogAccess.FullAccess, true);
 

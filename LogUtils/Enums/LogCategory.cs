@@ -1,7 +1,7 @@
 ﻿using BepInEx.Logging;
 using UnityEngine;
 
-namespace LogUtils
+namespace LogUtils.Enums
 {
     public class LogCategory : SharedExtEnum<LogCategory>
     {

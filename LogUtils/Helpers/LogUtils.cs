@@ -1,6 +1,6 @@
-﻿using System.IO;
+﻿using LogUtils.Enums;
+using System.IO;
 using System.Linq;
-using static LogUtils.FileHandling.FileEnums;
 
 namespace LogUtils.Helpers
 {

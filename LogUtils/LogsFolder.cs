@@ -1,8 +1,8 @@
-﻿using LogUtils.Helpers;
+﻿using LogUtils.Enums;
+using LogUtils.Helpers;
 using LogUtils.Properties;
 using System;
 using System.IO;
-using static LogUtils.FileHandling.FileEnums;
 
 namespace LogUtils
 {

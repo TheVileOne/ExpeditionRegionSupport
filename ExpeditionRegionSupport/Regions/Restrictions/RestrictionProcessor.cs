@@ -1,4 +1,4 @@
-﻿using LogUtils;
+﻿using LogUtils.Enums;
 using System;
 using System.Collections.Generic;
 using System.IO;

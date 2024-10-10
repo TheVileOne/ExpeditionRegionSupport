@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace LogUtils
+namespace LogUtils.Enums
 {
     public class LogID : SharedExtEnum<LogID>
     {

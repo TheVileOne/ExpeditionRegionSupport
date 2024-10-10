@@ -1,5 +1,6 @@
 ﻿using BepInEx.Logging;
 using JollyCoop;
+using LogUtils.Enums;
 using LogUtils.Properties;
 using System;
 using System.IO;

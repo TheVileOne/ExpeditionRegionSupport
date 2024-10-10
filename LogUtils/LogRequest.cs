@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using LogUtils.Enums;
+using System.Threading;
 
 namespace LogUtils
 {

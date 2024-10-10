@@ -1,4 +1,5 @@
 ﻿using Expedition;
+using LogUtils.Enums;
 using System.Collections.Generic;
 
 namespace LogUtils

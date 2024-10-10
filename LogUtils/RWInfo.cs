@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using LogUtils.Enums;
+using System.Collections.Generic;
 
 namespace LogUtils
 {

@@ -1,7 +1,7 @@
 ﻿using BepInEx.Logging;
 using Expedition;
 using JollyCoop;
-using LogUtils.Helpers;
+using LogUtils.Enums;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
