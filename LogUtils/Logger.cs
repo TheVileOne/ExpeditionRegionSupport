@@ -77,12 +77,62 @@ namespace LogUtils
         {
         }
 
+        /// <summary>
+        /// Constructs a logger instance
+        /// </summary>
+        /// <param name="mode">Changes the technique used to write messages to file</param>
+        /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
+        /// <param name="visibleToRemoteLoggers">Whether logger is able to handle remote log requests</param>
+        /// <param name="presets">LogIDs that are handled by this logger for untargeted, and remote log requests</param>
+        public Logger(LoggingMode mode, bool allowLogging, bool visibleToRemoteLoggers, params LogID[] presets) : this(allowLogging, visibleToRemoteLoggers, presets)
+        {
+            SetWriter(mode);
+        }
+
+        /// <summary>
+        /// Constructs a logger instance
+        /// </summary>
+        /// <param name="mode">Changes the technique used to write messages to file</param>
+        /// <param name="visibleToRemoteLoggers">Whether logger is able to handle remote log requests</param>
+        /// <param name="presets">LogIDs that are handled by this logger for untargeted, and remote log requests</param>
+        public Logger(LoggingMode mode, bool visibleToRemoteLoggers, params LogID[] presets) : this(true, visibleToRemoteLoggers, presets)
+        {
+            SetWriter(mode);
+        }
+
+        /// <summary>
+        /// Constructs a logger instance
+        /// </summary>
+        /// <param name="mode">Changes the technique used to write messages to file</param>
+        /// <param name="presets">LogIDs that are handled by this logger for untargeted, and remote log requests</param>
+        public Logger(LoggingMode mode, params LogID[] presets) : this(true, true, presets)
+        {
+            SetWriter(mode);
+        }
+
         #endregion
         #region Restore Points
 
         public void SetRestorePoint()
         {
             RestorePoint = new LoggerRestorePoint(this);
+        }
+
+        public void SetWriter(LoggingMode writeMode)
+        {
+            switch (writeMode)
+            {
+                case LoggingMode.Normal:
+                    if (Writer is not LogWriter || Writer.GetType().IsSubclassOf(typeof(LogWriter))) //This logging mode asks for a vanilla LogWriter instance
+                        Writer = new LogWriter();
+                    break;
+                case LoggingMode.Queue:
+                    if (Writer is not QueueLogWriter)
+                        Writer = new QueueLogWriter();
+                    break;
+                case LoggingMode.Buffer:
+                    throw new NotImplementedException();
+            }
         }
 
         public void RestoreState()
@@ -693,6 +743,13 @@ namespace LogUtils
         public void Dispose()
         {
         }
+    }
+
+    public enum LoggingMode
+    {
+        Normal,
+        Queue,
+        Buffer
     }
 
     public static class ExtendedILogListener
