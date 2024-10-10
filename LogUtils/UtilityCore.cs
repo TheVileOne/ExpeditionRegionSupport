@@ -97,6 +97,9 @@ namespace LogUtils
 
             LogFilterParser.ParseFile();
 
+            if (RWInfo.LatestSetupPeriodReached < SetupPeriod.PostMods)
+                LogFilter.ActivateKeyword(UtilityConsts.FilterKeywords.ACTIVATION_PERIOD_STARTUP);
+
             if (IsControllingAssembly)
             {
                 PropertyManager.ProcessLogFiles();
