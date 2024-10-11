@@ -248,6 +248,7 @@ namespace LogUtils.Properties
 
                         //Handle unrecognized, and custom fields by storing them in a list that other mods will be able to access
                         IDictionaryEnumerator fieldEnumerator = (IDictionaryEnumerator)dataFields.GetEnumerator();
+
                         while (unprocessedFieldTotal > 0)
                         {
                             fieldEnumerator.MoveNext();
@@ -275,9 +276,11 @@ namespace LogUtils.Properties
                                 _ => fieldEnumerator.Entry
                             };
 
-                            if (!fieldEntry.Equals(default))
+                            if (!fieldEntry.Equals(default(DictionaryEntry)))
                             {
-                                unrecognizedFields[(string)fieldEntry.Key] = (string)fieldEntry.Value;
+                                if (!fieldEntry.Key.Equals(DataFields.CUSTOM)) //This header does not need to be stored
+                                    unrecognizedFields[(string)fieldEntry.Key] = (string)fieldEntry.Value;
+
                                 unprocessedFieldTotal--;
                             }
                         }
@@ -307,11 +310,19 @@ namespace LogUtils.Properties
 
                 if (UnrecognizedFields.TryGetValue(properties, out StringDictionary unrecognizedPropertyLines) && unrecognizedPropertyLines.Count > 0)
                 {
+                    sb.Append(properties.ToString());
+
                     if (!properties.CustomProperties.Any()) //Ensure that custom field header is only added once
                         sb.AppendPropertyString(DataFields.CUSTOM);
 
-                    foreach (string key in unrecognizedPropertyLines)
+                    foreach (string key in unrecognizedPropertyLines.Keys)
                         sb.AppendPropertyString(key, unrecognizedPropertyLines[key]);
+
+                    sb.AppendLine();
+                }
+                else
+                {
+                    sb.AppendLine(properties.ToString());
                 }
             }
 
