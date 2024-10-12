@@ -17,6 +17,8 @@ namespace LogUtils.Properties
         public CustomLogPropertyCollection CustomLogProperties = new CustomLogPropertyCollection();
         public Dictionary<LogProperties, StringDictionary> UnrecognizedFields = new Dictionary<LogProperties, StringDictionary>();
 
+        internal LogPropertyFile PropertyFile = new LogPropertyFile();
+
         public override string Tag => UtilityConsts.ComponentTags.PROPERTY_DATA;
 
         /// <summary>
@@ -206,9 +208,7 @@ namespace LogUtils.Properties
 
         public void ReadFromFile()
         {
-            LogPropertyReader reader = new LogPropertyReader("logs.txt");
-
-            var enumerator = reader.GetEnumerator();
+            var enumerator = PropertyFile.Reader.GetEnumerator();
 
             while (enumerator.MoveNext())
             {

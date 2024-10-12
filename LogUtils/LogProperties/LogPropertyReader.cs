@@ -1,27 +1,28 @@
-﻿using LogUtils.Helpers;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 
 namespace LogUtils.Properties
 {
-    public class LogPropertyReader
+    internal class LogPropertyReader
     {
-        public string ReadPath;
+        private LogPropertyFile propertyFile;
 
-        public LogPropertyReader(string filename)
+        public LogPropertyReader(LogPropertyFile file)
         {
-            ReadPath = Path.Combine(Paths.StreamingAssetsPath, filename);
+            propertyFile = file;
         }
 
         public IEnumerator<StringDictionary> GetEnumerator()
         {
-            if (!File.Exists(ReadPath))
+            string filePath = propertyFile.FilePath;
+
+            if (!File.Exists(filePath))
                 yield break;
 
             StringDictionary propertyInFile = null;
-            foreach (string line in File.ReadAllLines(ReadPath).Select(l => l.Trim()))
+            foreach (string line in File.ReadAllLines(filePath).Select(l => l.Trim()))
             {
                 if (line == string.Empty || line.StartsWith("//")) continue;
 
