@@ -52,7 +52,7 @@ namespace LogUtils.Enums
 
         internal LogID(string filename) : base(Path.GetFileNameWithoutExtension(filename), false) //Used by ComparisonLogID to bypass LogProperties creation
         {
-            IsGameControlled = UtilityConsts.LogNames.NameMatch(filename);
+            IsGameControlled = UtilityConsts.LogNames.NameMatch(value);
         }
 
         internal LogID(PathWrapper pathData, LogAccess access, bool register) : this(pathData.Filename, pathData.Path, access, register)
@@ -61,9 +61,8 @@ namespace LogUtils.Enums
 
         internal LogID(LogProperties properties, string filename, string relativePathNoFile, bool register) : base(Path.GetFileNameWithoutExtension(filename), register)
         {
-            //TODO: Check if ManagedReference can be useful for LogIDs
-            IsGameControlled = UtilityConsts.LogNames.NameMatch(filename);
             Access = LogAccess.RemoteAccessOnly;
+            IsGameControlled = UtilityConsts.LogNames.NameMatch(value);
 
             if (IsGameControlled)
             {
@@ -77,6 +76,7 @@ namespace LogUtils.Enums
             {
                 InitializeProperties(relativePathNoFile);
 
+                //This extension will overwrite an existing one with unknown side effects
                 string fileExt = Path.GetExtension(filename);
 
                 if (fileExt != string.Empty)
@@ -102,8 +102,8 @@ namespace LogUtils.Enums
         /// </param>
         public LogID(string filename, string relativePathNoFile, LogAccess access, bool register = false) : base(Path.GetFileNameWithoutExtension(filename), register)
         {
-            IsGameControlled = UtilityConsts.LogNames.NameMatch(filename);
             Access = access;
+            IsGameControlled = UtilityConsts.LogNames.NameMatch(value);
 
             if (IsGameControlled)
             {
@@ -113,6 +113,7 @@ namespace LogUtils.Enums
 
             InitializeProperties(relativePathNoFile);
 
+            //This extension will overwrite an existing one with unknown side effects
             string fileExt = Path.GetExtension(filename);
 
             if (fileExt != string.Empty)

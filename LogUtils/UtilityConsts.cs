@@ -1,4 +1,6 @@
-﻿namespace LogUtils
+﻿using LogUtils.Helpers;
+
+namespace LogUtils
 {
     public static class UtilityConsts
     {
@@ -69,7 +71,7 @@
             /// </summary>
             public static bool NameMatch(string name)
             {
-                return name == BepInEx || name == Exception || name == Expedition || name == JollyCoop || name == Unity;
+                return name.MatchAny(EqualityComparer.StringComparerIgnoreCase, BepInEx, Exception, Expedition, JollyCoop, Unity);
             }
         }
 
