@@ -52,7 +52,7 @@ namespace LogUtils.Enums
 
         internal LogID(string filename) : base(Path.GetFileNameWithoutExtension(filename), false) //Used by ComparisonLogID to bypass LogProperties creation
         {
-            IsGameControlled = UtilityConsts.LogNames.NameMatch(value);
+            InitializeFields();
         }
 
         internal LogID(PathWrapper pathData, LogAccess access, bool register) : this(pathData.Filename, pathData.Path, access, register)
@@ -62,13 +62,7 @@ namespace LogUtils.Enums
         internal LogID(LogProperties properties, string filename, string relativePathNoFile, bool register) : base(Path.GetFileNameWithoutExtension(filename), register)
         {
             Access = LogAccess.RemoteAccessOnly;
-            IsGameControlled = UtilityConsts.LogNames.NameMatch(value);
-
-            if (IsGameControlled)
-            {
-                IsEnabled = true;
-                Access = LogAccess.FullAccess;
-            }
+            InitializeFields();
 
             Properties = properties;
 
@@ -103,14 +97,8 @@ namespace LogUtils.Enums
         public LogID(string filename, string relativePathNoFile, LogAccess access, bool register = false) : base(Path.GetFileNameWithoutExtension(filename), register)
         {
             Access = access;
-            IsGameControlled = UtilityConsts.LogNames.NameMatch(value);
 
-            if (IsGameControlled)
-            {
-                IsEnabled = true;
-                Access = LogAccess.FullAccess;
-            }
-
+            InitializeFields();
             InitializeProperties(relativePathNoFile);
 
             //This extension will overwrite an existing one with unknown side effects
@@ -118,6 +106,17 @@ namespace LogUtils.Enums
 
             if (fileExt != string.Empty)
                 Properties.PreferredFileExt = fileExt;
+        }
+
+        protected void InitializeFields()
+        {
+            IsGameControlled = ManagedReference == this ? UtilityConsts.LogNames.NameMatch(value) : ManagedReference.IsGameControlled;
+
+            if (IsGameControlled)
+            {
+                IsEnabled = true;
+                Access = LogAccess.FullAccess;
+            }
         }
 
         protected void InitializeProperties(string logPath)
