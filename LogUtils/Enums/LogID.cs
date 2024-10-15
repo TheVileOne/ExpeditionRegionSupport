@@ -50,6 +50,11 @@ namespace LogUtils.Enums
         {
         }
 
+        internal LogID(string filename) : base(Path.GetFileNameWithoutExtension(filename), false) //Used by ComparisonLogID to bypass LogProperties creation
+        {
+            IsGameControlled = UtilityConsts.LogNames.NameMatch(filename);
+        }
+
         internal LogID(PathWrapper pathData, LogAccess access, bool register) : this(pathData.Filename, pathData.Path, access, register)
         {
         }
@@ -206,6 +211,9 @@ namespace LogUtils.Enums
             JollyCoop = new LogID(null, UtilityConsts.LogNames.JollyCoop, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
             Unity = new LogID(null, UtilityConsts.LogNames.Unity, UtilityConsts.PathKeywords.ROOT, true);
 
+            //Fallback LogID
+            Unknown = new ComparisonLogID(UtilityConsts.LogNames.Unknown);
+
             BepInEx.Properties.AccessPeriod = SetupPeriod.Pregame;
             BepInEx.Properties.AddTag(nameof(BepInEx));
             BepInEx.Properties.LogSourceName = nameof(BepInEx);
@@ -254,6 +262,7 @@ namespace LogUtils.Enums
         public static LogID Expedition;
         public static LogID JollyCoop;
         public static LogID Unity;
+        internal static LogID Unknown;
     }
 
     public enum LogAccess

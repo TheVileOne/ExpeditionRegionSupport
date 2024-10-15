@@ -56,6 +56,7 @@
             public const string Expedition = "ExpLog";
             public const string JollyCoop = "jollyLog";
             public const string Unity = "consoleLog";
+            public const string Unknown = "unknown"; //Fallback log name - log file doesn't exist
 
             public const string BepInExAlt = "mods";
             public const string ExceptionAlt = "exception";

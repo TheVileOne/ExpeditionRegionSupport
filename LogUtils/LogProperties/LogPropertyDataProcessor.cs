@@ -37,7 +37,7 @@ namespace LogUtils.Properties
             {
                 processedWithErrors = true;
                 if (filename == null)
-                    filename = "unknown"; //Use a fallback log file when important id data is missing
+                    filename = UtilityConsts.LogNames.Unknown; //Use a fallback log file when important id data is missing
                 idString = filename;
             }
             else if (filename == null)
