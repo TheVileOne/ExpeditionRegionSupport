@@ -22,7 +22,7 @@ namespace LogUtils.Helpers
         /// </summary>
         /// <param name="sourceLogPath">The full path to the log file that needs to be copied (including filename + ext)</param>
         /// <param name="destLogPath">The full path to the destination of the log file. Log filename is optional</param>
-        public static FileStatus CopyLog(string sourceLogPath, string destLogPath)
+        internal static FileStatus CopyLog(string sourceLogPath, string destLogPath)
         {
             LogFileMover fileMover = new LogFileMover(sourceLogPath, destLogPath);
 
@@ -31,21 +31,28 @@ namespace LogUtils.Helpers
 
         public static FileStatus MoveLog(LogID logFile, string newLogPath)
         {
-            FileStatus moveResult = MoveLog(logFile.Properties.CurrentFilePath, newLogPath);
-
-            if (moveResult == FileStatus.MoveComplete)
-                logFile.Properties.ChangePath(newLogPath);
-            return moveResult;
+            return InternalMoveLog(logFile, newLogPath);
         }
 
         public static FileStatus MoveLog(LogID logFile, string newLogPath, string logFilename)
         {
+            return InternalMoveLog(logFile, Path.Combine(newLogPath, logFilename));
+        }
+
+        internal static FileStatus InternalMoveLog(LogID logFile, string newLogPath)
+        {
+            FileStatus moveResult;
+
             var fileLock = logFile.Properties.FileLock;
             lock (fileLock)
             {
                 fileLock.SetActivity(logFile, FileAction.Move);
-                return MoveLog(logFile.Properties.CurrentFilePath, Path.Combine(newLogPath, logFilename));
+                moveResult = MoveLog(logFile.Properties.CurrentFilePath, newLogPath);
+
+                if (moveResult == FileStatus.MoveComplete)
+                    logFile.Properties.ChangePath(newLogPath);
             }
+            return moveResult;
         }
 
         /// <summary>
@@ -53,8 +60,9 @@ namespace LogUtils.Helpers
         /// </summary>
         /// <param name="sourceLogPath">The full path to the log file that needs to be moved (including filename + ext)</param>
         /// <param name="destLogPath">The full path to the destination of the log file. Log filename is optional</param>
-        public static FileStatus MoveLog(string sourceLogPath, string destLogPath)
+        internal static FileStatus MoveLog(string sourceLogPath, string destLogPath)
         {
+            //TODO: LogFileMover should support LogIDs
             LogFileMover fileMover = new LogFileMover(sourceLogPath, destLogPath);
 
             return fileMover.MoveFile();
