@@ -14,7 +14,7 @@ namespace LogUtils.Properties
             propertyFile = file;
         }
 
-        public IEnumerator<StringDictionary> GetEnumerator()
+        public IEnumerator<LogPropertyData> GetEnumerator()
         {
             string filePath = propertyFile.FilePath;
 
@@ -42,7 +42,7 @@ namespace LogUtils.Properties
                         propertyInFile[header] = value;
 
                         if (lastProcessed != null)
-                            yield return lastProcessed; //Data collection has finished for the last entry - return the data
+                            yield return new LogPropertyData(lastProcessed); //Data collection has finished for the last entry - return the data
                     }
 
                     if (lineData.Length > 2) //This shouldn't be a thing, but lets handle it to be safe
@@ -55,7 +55,7 @@ namespace LogUtils.Properties
 
             //The loop has finished, but the last entry has not yet been returned
             if (propertyInFile != null)
-                yield return propertyInFile;
+                yield return new LogPropertyData(propertyInFile);
         }
     }
 }

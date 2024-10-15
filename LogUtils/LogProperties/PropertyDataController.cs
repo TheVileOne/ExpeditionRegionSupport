@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Text;
 using LogUtils.Enums;
 using LogUtils.Helpers;
-using DataFields = LogUtils.UtilityConsts.DataFields;
 
 namespace LogUtils.Properties
 {
@@ -206,97 +203,27 @@ namespace LogUtils.Properties
             return properties;
         }
 
-        public void ReadFromFile()
+        /// <summary>
+        /// Reads properties data from file and creates LogProperties instances from the data
+        /// </summary>
+        public void SetPropertiesFromFile()
         {
             var enumerator = PropertyFile.Reader.GetEnumerator();
 
             while (enumerator.MoveNext())
             {
-                StringDictionary dataFields = enumerator.Current;
-                LogProperties properties = null;
-                try
-                {
-                    properties = new LogProperties(dataFields[DataFields.LOGID], dataFields[DataFields.FILENAME], dataFields[DataFields.PATH])
-                    {
-                        Version = dataFields[DataFields.VERSION],
-                        AltFilename = dataFields[DataFields.ALTFILENAME],
-                        OriginalFolderPath = dataFields[DataFields.ORIGINAL_PATH],
-                        LastKnownFilePath = dataFields[DataFields.LAST_KNOWN_PATH],
-                        Tags = dataFields[DataFields.TAGS].Split(','),
-                        LogsFolderAware = bool.Parse(dataFields[DataFields.LOGS_FOLDER_AWARE]),
-                        LogsFolderEligible = bool.Parse(dataFields[DataFields.LOGS_FOLDER_ELIGIBLE]),
-                        ShowLogsAware = bool.Parse(dataFields[DataFields.SHOW_LOGS_AWARE]),
-                        IntroMessage = dataFields[DataFields.Intro.MESSAGE],
-                        OutroMessage = dataFields[DataFields.Outro.MESSAGE],
-                        ShowIntroTimestamp = bool.Parse(dataFields[DataFields.Intro.TIMESTAMP]),
-                        ShowOutroTimestamp = bool.Parse(dataFields[DataFields.Outro.TIMESTAMP])
-                    };
+                LogPropertyData data = enumerator.Current;
 
-                    properties.ShowCategories.IsEnabled = bool.Parse(dataFields[DataFields.Rules.SHOW_CATEGORIES]);
-                    properties.ShowLineCount.IsEnabled = bool.Parse(dataFields[DataFields.Rules.SHOW_LINE_COUNT]);
+                data.ProcessFields();
+                LogProperties properties = data.Processor.Results;
 
-                    //This cannot be implemented here as the replacement system needs access to the last known path taken from file
-                    //When the Logs folder is available, favor that path over the original path to the log file 
-                    //if (properties.LogsFolderAware && properties.LogsFolderEligible)
-                    //    LogsFolder.AddToFolder(properties);
+                if (data.UnrecognizedFields.Count > 0)
+                    UnrecognizedFields[properties] = data.UnrecognizedFields;
 
-                    int unprocessedFieldTotal = dataFields.Count - DataFields.EXPECTED_FIELD_COUNT;
+                properties.UpdateWriteHash();
+                properties.ReadOnly = true;
 
-                    if (unprocessedFieldTotal > 0)
-                    {
-                        var unrecognizedFields = UnrecognizedFields[properties] = new StringDictionary();
-
-                        //Handle unrecognized, and custom fields by storing them in a list that other mods will be able to access
-                        IDictionaryEnumerator fieldEnumerator = (IDictionaryEnumerator)dataFields.GetEnumerator();
-
-                        while (unprocessedFieldTotal > 0)
-                        {
-                            fieldEnumerator.MoveNext();
-
-                            DictionaryEntry fieldEntry = fieldEnumerator.Key switch
-                            {
-                                DataFields.LOGID => default,
-                                DataFields.FILENAME => default,
-                                DataFields.ALTFILENAME => default,
-                                DataFields.TAGS => default,
-                                DataFields.VERSION => default,
-                                DataFields.PATH => default,
-                                DataFields.ORIGINAL_PATH => default,
-                                DataFields.LAST_KNOWN_PATH => default,
-                                DataFields.Intro.MESSAGE => default,
-                                DataFields.Intro.TIMESTAMP => default,
-                                DataFields.Outro.MESSAGE => default,
-                                DataFields.Outro.TIMESTAMP => default,
-                                DataFields.LOGS_FOLDER_AWARE => default,
-                                DataFields.LOGS_FOLDER_ELIGIBLE => default,
-                                DataFields.SHOW_LOGS_AWARE => default,
-                                DataFields.Rules.HEADER => default,
-                                DataFields.Rules.SHOW_LINE_COUNT => default,
-                                DataFields.Rules.SHOW_CATEGORIES => default,
-                                _ => fieldEnumerator.Entry
-                            };
-
-                            if (!fieldEntry.Equals(default(DictionaryEntry)))
-                            {
-                                if (!fieldEntry.Key.Equals(DataFields.CUSTOM)) //This header does not need to be stored
-                                    unrecognizedFields[(string)fieldEntry.Key] = (string)fieldEntry.Value;
-
-                                unprocessedFieldTotal--;
-                            }
-                        }
-                    }
-
-                    Properties.Add(properties);
-                }
-                catch (KeyNotFoundException)
-                {
-                    throw new KeyNotFoundException(string.Format("{0}.log is missing a required property. Check logs.txt for issues", dataFields["filename"]));
-                }
-                finally
-                {
-                    if (properties != null)
-                        properties.ReadOnly = true;
-                }
+                Properties.Add(properties);
             }
         }
 
@@ -306,24 +233,27 @@ namespace LogUtils.Properties
 
             foreach (LogProperties properties in Properties)
             {
-                sb.AppendLine(properties.ToString());
+                bool shouldWrite = properties.WriteHash == 0 || properties.ProcessedWithErrors;
 
-                if (UnrecognizedFields.TryGetValue(properties, out StringDictionary unrecognizedPropertyLines) && unrecognizedPropertyLines.Count > 0)
+                if (shouldWrite)
                 {
-                    sb.Append(properties.ToString());
+                    int oldWriteHash, newWriteHash;
 
-                    if (!properties.CustomProperties.Any()) //Ensure that custom field header is only added once
-                        sb.AppendPropertyString(DataFields.CUSTOM);
+                    oldWriteHash = properties.WriteHash;
 
-                    foreach (string key in unrecognizedPropertyLines.Keys)
-                        sb.AppendPropertyString(key, unrecognizedPropertyLines[key]);
+                    properties.UpdateWriteHash();
+                    newWriteHash = properties.WriteHash;
 
-                    sb.AppendLine();
+                    shouldWrite = oldWriteHash != newWriteHash;
+                    FileUtils.WriteLine("test.txt", properties.Filename + " " + oldWriteHash + " " + newWriteHash);
                 }
-                else
+
+                //TODO: Get working
+                if (shouldWrite)
                 {
-                    sb.AppendLine(properties.ToString());
                 }
+
+                sb.AppendLine(properties.GetWriteString());
             }
 
             File.WriteAllText(Path.Combine(Paths.StreamingAssetsPath, "logs.txt"), sb.ToString());

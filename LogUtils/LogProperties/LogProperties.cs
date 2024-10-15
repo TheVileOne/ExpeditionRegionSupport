@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -48,6 +49,11 @@ namespace LogUtils.Properties
         /// It is recommended to keep at the earliest possible write period, or a period that is close to when the log file is used by a mod's logger
         /// </summary>
         public SetupPeriod AccessPeriod = SetupPeriod.Pregame;
+
+        /// <summary>
+        /// Indicates that this instance was read from file, but one or more fields could not be processed
+        /// </summary>
+        public bool ProcessedWithErrors;
 
         /// <summary>
         /// Indicates that the startup routine for this log file should not be run
@@ -678,6 +684,37 @@ namespace LogUtils.Properties
             LogEvents.OnPathChanged?.Invoke(new LogEvents.LogEventArgs(this));
         }
 
+        /// <summary>
+        /// The hashcode produced by the write string cached when properties are read from file
+        /// Note: If the value remains at zero, it means that the properties instance hasn't been updated
+        /// </summary>
+        internal int WriteHash = 0;
+
+        public void UpdateWriteHash()
+        {
+            string writeString = GetWriteString();
+            WriteHash = writeString.GetHashCode();
+        }
+
+        public string GetWriteString()
+        {
+            string writeString = ToString();
+
+            if (PropertyManager.UnrecognizedFields.TryGetValue(this, out StringDictionary unrecognizedPropertyLines) && unrecognizedPropertyLines.Count > 0)
+            {
+                StringBuilder sb = new StringBuilder(writeString);
+
+                if (!CustomProperties.Any()) //Ensure that custom field header is only added once
+                    sb.AppendPropertyString(DataFields.CUSTOM);
+
+                foreach (string key in unrecognizedPropertyLines.Keys)
+                    sb.AppendPropertyString(key, unrecognizedPropertyLines[key]);
+
+                writeString = sb.ToString();
+            }
+            return writeString;
+        }
+
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
@@ -719,7 +756,6 @@ namespace LogUtils.Properties
                     sb.AppendLine(propertyString);
                 }
             }
-
             return sb.ToString();
         }
 

@@ -131,7 +131,7 @@ namespace LogUtils
             if (wasCreated)
             {
                 IsControllingAssembly = true;
-                PropertyManager.ReadFromFile();
+                PropertyManager.SetPropertiesFromFile();
             }
         }
 
