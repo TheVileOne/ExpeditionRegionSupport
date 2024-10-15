@@ -96,7 +96,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// A flag that indicates that a low amount of frames (<= 10) have passed since instance was created
         /// </summary>
-        public bool PropertiesCreatedRecently { get; private set; }
+        public bool IsNewInstance { get; private set; }
 
         /// <summary>
         /// The ID strings of the mod(s) that control these log properties 
@@ -413,15 +413,15 @@ namespace LogUtils.Properties
             CurrentFolderPath = OriginalFolderPath = FolderPath;
             LastKnownFilePath = CurrentFilePath;
 
-            const int age_threshold = 10;
+            const int framesUntilCutoff = 10; //Number of frames before instance is no longer considered a 'new' instance
 
-            PropertiesCreatedRecently = true;
+            IsNewInstance = true;
 
             recentlyCreatedCutoffEvent = UtilityCore.Scheduler.Schedule(() =>
             {
-                PropertiesCreatedRecently = false;
+                IsNewInstance = false;
                 recentlyCreatedCutoffEvent = null;
-            }, age_threshold);
+            }, framesUntilCutoff);
 
             //Utility packaged rules get added to every log file disabled by default 
             Rules.Add(new ShowCategoryRule(false));

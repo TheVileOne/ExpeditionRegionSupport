@@ -129,7 +129,7 @@ namespace LogUtils
 
         public static void OnEligibilityChanged(LogProperties properties)
         {
-            if (!properties.PropertiesCreatedRecently) return; //Eligibility only applies to recently created log properties
+            if (!properties.IsNewInstance) return; //Eligibility only applies to newly created log properties
 
             if (properties.LogsFolderEligible && properties.LogsFolderAware)
                 AddToFolder(properties);
