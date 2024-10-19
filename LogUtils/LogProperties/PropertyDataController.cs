@@ -208,12 +208,8 @@ namespace LogUtils.Properties
         /// </summary>
         public void SetPropertiesFromFile()
         {
-            var enumerator = PropertyFile.Reader.GetEnumerator();
-
-            while (enumerator.MoveNext())
+            foreach (LogPropertyData data in PropertyFile.Reader.ReadData())
             {
-                LogPropertyData data = enumerator.Current;
-
                 data.ProcessFields();
                 LogProperties properties = data.Processor.Results;
 

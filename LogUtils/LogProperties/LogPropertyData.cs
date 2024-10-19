@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using DataFields = LogUtils.UtilityConsts.DataFields;
 
@@ -13,12 +14,15 @@ namespace LogUtils.Properties
         /// </summary>
         public StringDictionary UnrecognizedFields;
 
+        public List<CommentEntry> Comments;
+
         public LogPropertyDataProcessor Processor;
 
-        public LogPropertyData(StringDictionary dataFields)
+        public LogPropertyData(StringDictionary dataFields, List<CommentEntry> comments)
         {
             Fields = dataFields;
             UnrecognizedFields = GetUnrecognizedFields();
+            Comments = comments;
             Processor = new LogPropertyDataProcessor(this);
         }
 
