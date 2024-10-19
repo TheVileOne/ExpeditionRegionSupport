@@ -696,26 +696,12 @@ namespace LogUtils.Properties
             WriteHash = writeString.GetHashCode();
         }
 
-        public string GetWriteString()
+        public override string ToString()
         {
-            string writeString = ToString();
-
-            if (PropertyManager.UnrecognizedFields.TryGetValue(this, out StringDictionary unrecognizedPropertyLines) && unrecognizedPropertyLines.Count > 0)
-            {
-                StringBuilder sb = new StringBuilder(writeString);
-
-                if (!CustomProperties.Any()) //Ensure that custom field header is only added once
-                    sb.AppendPropertyString(DataFields.CUSTOM);
-
-                foreach (string key in unrecognizedPropertyLines.Keys)
-                    sb.AppendPropertyString(key, unrecognizedPropertyLines[key]);
-
-                writeString = sb.ToString();
-            }
-            return writeString;
+            return GetWriteString();
         }
 
-        public override string ToString()
+        public string GetWriteString()
         {
             StringBuilder sb = new StringBuilder();
 
@@ -755,6 +741,15 @@ namespace LogUtils.Properties
                     }
                     sb.AppendLine(propertyString);
                 }
+            }
+
+            if (PropertyManager.UnrecognizedFields.TryGetValue(this, out StringDictionary unrecognizedPropertyLines) && unrecognizedPropertyLines.Count > 0)
+            {
+                if (!CustomProperties.Any()) //Ensure that custom field header is only added once
+                    sb.AppendPropertyString(DataFields.CUSTOM);
+
+                foreach (string key in unrecognizedPropertyLines.Keys)
+                    sb.AppendPropertyString(key, unrecognizedPropertyLines[key]);
             }
             return sb.ToString();
         }
