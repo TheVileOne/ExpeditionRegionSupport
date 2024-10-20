@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 
@@ -27,7 +26,7 @@ namespace LogUtils.Properties
             int commentCountForThisField = 0;
             List<CommentEntry> commentEntries = new List<CommentEntry>();
 
-            StringDictionary propertyInFile = null;
+            LogPropertyStringDictionary propertyInFile = null;
             foreach (string line in File.ReadAllLines(filePath).Select(l => l.Trim()))
             {
                 //An empty line separates each properties section
@@ -80,7 +79,7 @@ namespace LogUtils.Properties
                         var lastComments = commentEntries;
 
                         //Start a new entry for the next set of data fields
-                        propertyInFile = new StringDictionary();
+                        propertyInFile = new LogPropertyStringDictionary();
                         propertyInFile[header] = value;
 
                         if (lastProcessed != null)

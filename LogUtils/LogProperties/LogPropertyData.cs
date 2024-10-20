@@ -1,34 +1,33 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using DataFields = LogUtils.UtilityConsts.DataFields;
 
 namespace LogUtils.Properties
 {
     public class LogPropertyData
     {
-        public StringDictionary Fields;
+        public LogPropertyStringDictionary Fields;
 
         /// <summary>
         /// A subset of the Fields dictionary containing field data not recognized by the utility. This will include all custom field data
         /// </summary>
-        public StringDictionary UnrecognizedFields;
+        public LogPropertyStringDictionary UnrecognizedFields;
 
         public List<CommentEntry> Comments;
 
         public LogPropertyDataProcessor Processor;
 
-        public LogPropertyData(StringDictionary dataFields, List<CommentEntry> comments)
+        public LogPropertyData(LogPropertyStringDictionary dataFields, List<CommentEntry> comments)
         {
+            Comments = comments;
             Fields = dataFields;
             UnrecognizedFields = GetUnrecognizedFields();
-            Comments = comments;
             Processor = new LogPropertyDataProcessor(this);
         }
 
-        internal StringDictionary GetUnrecognizedFields()
+        internal LogPropertyStringDictionary GetUnrecognizedFields()
         {
-            var unrecognizedFields = new StringDictionary();
+            var unrecognizedFields = new LogPropertyStringDictionary();
 
             int unknownFieldTotal = Fields.Count - DataFields.EXPECTED_FIELD_COUNT;
 
