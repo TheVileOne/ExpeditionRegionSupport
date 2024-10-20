@@ -38,7 +38,7 @@ namespace LogUtils.Properties
 
             while (fieldEnumerator.MoveNext())
             {
-                string key = (string)fieldEnumerator.Current;
+                string key = (string)fieldEnumerator.Key;
 
                 //Give unsorted entries priority
                 if (checkUnsorted)

@@ -39,7 +39,7 @@ namespace LogUtils.Properties
 
                     //Determine if data should be added to the write string as is, or if updates are required
                     if (properties == null)
-                        sb.AppendLine(data.ToString());
+                        sb.AppendLine(data.GetWriteString(true));
                     else
                     {
                         properties.UpdateWriteHash();

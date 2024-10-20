@@ -24,30 +24,38 @@ namespace LogUtils.Properties
         /// </summary>
         public void Process()
         {
-            StringDictionary dataFields = data.Fields;
+            LogPropertyStringDictionary dataFields = data.Fields;
 
             bool processedWithErrors = false;
 
-            string idString = dataFields[DataFields.LOGID];
+            string id = dataFields[DataFields.LOGID];
             string filename = dataFields[DataFields.FILENAME];
             string path = dataFields[DataFields.PATH];
 
-            //idString, and filename are closely related, and commonly contain the same value
-            if (idString == null)
-            {
-                processedWithErrors = true;
-                if (filename == null)
-                    filename = UtilityConsts.LogNames.Unknown; //Use a fallback log file when important id data is missing
-                idString = filename;
-            }
-            else if (filename == null)
-            {
-                processedWithErrors = true;
-                filename = idString;
-            }
-            processedWithErrors |= path == null; //Path string is null safe here, but path should not be null
+            bool hasID = !string.IsNullOrEmpty(id);
+            bool hasFilename = !string.IsNullOrEmpty(filename);
 
-            LogProperties properties = new LogProperties(idString, filename, path);
+            processedWithErrors = !hasID || !hasFilename || path == null;
+
+            if (processedWithErrors)
+            {
+                //These properties are necessary - at least one of them must contain valid data
+                if (!hasID && !hasFilename)
+                {
+                    UtilityCore.BaseLogger.LogWarning("Malformed data in properties file");
+                    processedWithErrors = true;
+                    Results = null;
+                    return;
+                }
+
+                //Inherit from the other value if one value happens to be invalid
+                if (!hasID)
+                    id = filename;
+                else if (!hasFilename)
+                    filename = id;
+            }
+
+            LogProperties properties = new LogProperties(id, filename, path);
 
             //Property setters are inaccesible. Define delegate wrappers for each one, and store in a dictionary
             OrderedDictionary fieldAssignments = new OrderedDictionary
@@ -61,8 +69,8 @@ namespace LogUtils.Properties
                 [DataFields.LOGS_FOLDER_ELIGIBLE] = new Action(() => properties.LogsFolderEligible = bool.Parse(dataFields[DataFields.LOGS_FOLDER_ELIGIBLE])),
                 [DataFields.SHOW_LOGS_AWARE]      = new Action(() => properties.ShowLogsAware      = bool.Parse(dataFields[DataFields.SHOW_LOGS_AWARE])),
                 [DataFields.Intro.MESSAGE]        = new Action(() => properties.IntroMessage       = dataFields[DataFields.Intro.MESSAGE]),
-                [DataFields.Outro.MESSAGE]        = new Action(() => properties.OutroMessage       = dataFields[DataFields.Outro.MESSAGE]),
                 [DataFields.Intro.TIMESTAMP]      = new Action(() => properties.ShowIntroTimestamp = bool.Parse(dataFields[DataFields.Intro.TIMESTAMP])),
+                [DataFields.Outro.MESSAGE]        = new Action(() => properties.OutroMessage       = dataFields[DataFields.Outro.MESSAGE]),
                 [DataFields.Outro.TIMESTAMP]      = new Action(() => properties.ShowOutroTimestamp = bool.Parse(dataFields[DataFields.Outro.TIMESTAMP])),
 
                 [DataFields.Rules.SHOW_CATEGORIES] = new Action(() => properties.ShowCategories.IsEnabled = bool.Parse(dataFields[DataFields.Rules.SHOW_CATEGORIES])),
@@ -92,6 +100,10 @@ namespace LogUtils.Properties
             }
 
             properties.ProcessedWithErrors = processedWithErrors;
+
+            if (properties.ProcessedWithErrors)
+                UtilityCore.BaseLogger.LogWarning("There were issues while processing LogID " + id);
+
             Results = properties;
         }
     }

@@ -99,7 +99,12 @@ namespace LogUtils.Properties
 
             //The loop has finished, but the last entry has not yet been returned
             if (propertyInFile != null)
+            {
+                if (commentEntries.Count > 0 && commentEntries[commentEntries.Count - 1].Owner == null)
+                    UtilityCore.BaseLogger.LogWarning("End of file comments are unsupported");
+
                 yield return new LogPropertyData(propertyInFile, commentEntries);
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator()

@@ -71,7 +71,7 @@ namespace LogUtils.Properties
                     if (!fieldEntry.Equals(default(DictionaryEntry)))
                     {
                         if (!fieldEntry.Key.Equals(DataFields.CUSTOM)) //This header does not need to be stored
-                            UnrecognizedFields[(string)fieldEntry.Key] = (string)fieldEntry.Value;
+                            unrecognizedFields[(string)fieldEntry.Key] = (string)fieldEntry.Value;
 
                         unknownFieldTotal--;
                     }

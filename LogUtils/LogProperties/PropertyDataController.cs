@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.IO;
 using System.Linq;
 using LogUtils.Enums;
 using LogUtils.Helpers;
@@ -211,13 +212,16 @@ namespace LogUtils.Properties
                 data.ProcessFields();
                 LogProperties properties = data.Processor.Results;
 
-                if (data.UnrecognizedFields.Count > 0)
-                    UnrecognizedFields[properties] = data.UnrecognizedFields;
+                if (properties != null)
+                {
+                    if (data.UnrecognizedFields.Count > 0)
+                        UnrecognizedFields[properties] = data.UnrecognizedFields;
 
-                properties.UpdateWriteHash();
-                properties.ReadOnly = true;
+                    properties.UpdateWriteHash();
+                    properties.ReadOnly = true;
 
-                Properties.Add(properties);
+                    Properties.Add(properties);
+                }
             }
         }
 
@@ -231,6 +235,9 @@ namespace LogUtils.Properties
         /// </summary>
         internal List<LogProperties> GetUpdateList()
         {
+            if (!File.Exists(PropertyFile.FilePath))
+                return Properties;
+
             //Reasons to update include new log file data, incomplete data read from file, or modifications made to property data 
             return Properties.FindAll(p => p.ProcessedWithErrors || p.HasModifiedData());
         }

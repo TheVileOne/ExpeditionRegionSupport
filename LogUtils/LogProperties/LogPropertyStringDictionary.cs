@@ -17,14 +17,14 @@ namespace LogUtils.Properties
             get
             {
                 if (key == null)
-                    throw new ArgumentNullException("key");
+                    throw new ArgumentNullException(nameof(key));
 
                 return (string)Contents[key];
             }
             set
             {
                 if (key == null)
-                    throw new ArgumentNullException("key");
+                    throw new ArgumentNullException(nameof(key));
 
                 Contents[key] = value;
             }
