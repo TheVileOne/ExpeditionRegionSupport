@@ -55,7 +55,7 @@ namespace LogUtils
 
             var itemCollection = DataCollection[type];
 
-            if (itemCollection.Exists(d => d.CheckTag(tag)))
+            if (itemCollection.Exists(d => d.CheckTag(data.Tag)))
             {
                 UtilityCore.BaseLogger.LogWarning($"Data already exists of type {type} with tag {data.Tag}. Overwriting on register is not allowed");
                 return;
@@ -84,9 +84,9 @@ namespace LogUtils
             RegisterType(type);
 
             var itemCollection = DataCollection[type];
-            int itemIndex = itemCollection.FindIndex(d => d.CheckTag(tag));
+            int itemIndex = itemCollection.FindIndex(d => d.CheckTag(data.Tag));
 
-            if (itemCollection.Exists(d => d.CheckTag(tag)))
+            if (itemIndex != -1)
             {
                 UtilityCore.BaseLogger.LogWarning($"Replacing existing data of type {type} with tag {data.Tag}");
 
