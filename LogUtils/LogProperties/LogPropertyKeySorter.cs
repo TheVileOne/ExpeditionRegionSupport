@@ -32,9 +32,8 @@ namespace LogUtils.Properties
             IDictionaryEnumerator fieldEnumerator = (IDictionaryEnumerator)Dictionary.GetEnumerator();
 
             List<string> unrecognizedFields = new List<string>();
-            List<UnsortedEntry> unsorted = new List<UnsortedEntry>();
+            List<int> unsorted = new List<int>();
 
-            UnsortedEntry found;
             bool checkUnsorted = false;
 
             while (fieldEnumerator.MoveNext())
@@ -45,11 +44,12 @@ namespace LogUtils.Properties
                 if (checkUnsorted)
                 {
                     //Check unsorted entries until no more matches are found
-                    while ((found = unsorted.Find(entry => entry.Index == sortIndex)) != default)
+                    while (unsorted.Contains(sortIndex))
                     {
+                        unsorted.Remove(sortIndex);
+                        yield return sortOrder[sortIndex];
+
                         sortIndex++;
-                        unsorted.Remove(found);
-                        yield return found.Value;
                     }
                     //Yield will break out of loop to here
                     checkUnsorted = false;
@@ -80,18 +80,16 @@ namespace LogUtils.Properties
                 if (actualIndex == -1)
                     unrecognizedFields.Add(key);
                 else //For some reason we have skipped over some entries in the ordered array
-                    unsorted.Add(new UnsortedEntry(actualIndex, key));
+                    unsorted.Add(actualIndex);
             }
 
-            //Any skipped entries that remain after the loop finishes are handled here
+            //There may be entries that were not processed in the loop - handle those entries here 
             while (unsorted.Count > 0)
             {
-                found = unsorted.Find(entry => entry.Index == sortIndex);
-
-                if (found != null)
+                if (unsorted.Contains(sortIndex))
                 {
-                    unsorted.Remove(found);
-                    yield return found.Value;
+                    unsorted.Remove(sortIndex);
+                    yield return sortOrder[sortIndex];
                 }
                 sortIndex++;
             }
@@ -101,7 +99,5 @@ namespace LogUtils.Properties
             foreach (string field in unrecognizedFields)
                 yield return field;
         }
-
-        private record struct UnsortedEntry(int Index, string Value);
     }
 }
