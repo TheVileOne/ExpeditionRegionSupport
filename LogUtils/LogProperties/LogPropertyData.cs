@@ -75,9 +75,19 @@ namespace LogUtils.Properties
             return unrecognizedFields;
         }
 
+        public string GetWriteString(bool useComments)
+        {
+            return Fields.ToString(useComments ? Comments : null, true);
+        }
+
         public void ProcessFields()
         {
             Processor.Process();
+        }
+
+        public override string ToString()
+        {
+            return GetWriteString(false);
         }
     }
 }

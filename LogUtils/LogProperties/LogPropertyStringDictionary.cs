@@ -115,5 +115,46 @@ namespace LogUtils.Properties
 
             Contents.Remove(key);
         }
+
+        public override string ToString()
+        {
+            return ToString(null, false);
+        }
+
+        public string ToString(bool sortFields)
+        {
+            return ToString(null, sortFields);
+        }
+
+        public string ToString(List<CommentEntry> comments, bool sortFields)
+        {
+            if (comments == null)
+                comments = new List<CommentEntry>();
+
+            StringBuilder sb = new StringBuilder();
+
+            if (sortFields)
+            {
+                foreach (string dataField in Sorter.Sort())
+                {
+                    sb.AppendComments(dataField, comments);
+                    sb.AppendPropertyString(dataField, (string)Contents[dataField]);
+                }
+            }
+            else
+            {
+                IDictionaryEnumerator fieldEnumerator = (IDictionaryEnumerator)GetEnumerator();
+
+                while (fieldEnumerator.MoveNext())
+                {
+                    string dataField = (string)fieldEnumerator.Key;
+                    string value = (string)fieldEnumerator.Value;
+
+                    sb.AppendComments(dataField, comments);
+                    sb.AppendPropertyString(dataField, value);
+                }
+            }
+            return sb.ToString();
+        }
     }
 }

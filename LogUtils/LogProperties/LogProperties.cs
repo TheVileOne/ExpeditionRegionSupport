@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
-using System.Text;
 using BepInEx.Logging;
 using LogUtils.Enums;
 using LogUtils.Helpers;
@@ -696,39 +694,42 @@ namespace LogUtils.Properties
             WriteHash = writeString.GetHashCode();
         }
 
-        public override string ToString()
+        public LogPropertyData ToData(List<CommentEntry> comments = null)
         {
-            return GetWriteString();
+            return new LogPropertyData(ToDictionary(), comments);
         }
 
-        public string GetWriteString()
+        public LogPropertyStringDictionary ToDictionary()
         {
-            StringBuilder sb = new StringBuilder();
+            var fields = new LogPropertyStringDictionary
+            {
+                [DataFields.LOGID] = ID.value,
+                [DataFields.FILENAME] = Filename,
+                [DataFields.ALTFILENAME] = AltFilename,
+                [DataFields.VERSION] = Version,
+                [DataFields.TAGS] = Tags != null ? string.Join(",", Tags) : string.Empty,
+                [DataFields.LOGS_FOLDER_AWARE] = LogsFolderAware.ToString(),
+                [DataFields.LOGS_FOLDER_ELIGIBLE] = LogsFolderEligible.ToString(),
+                [DataFields.SHOW_LOGS_AWARE] = ShowLogsAware.ToString(),
+                [DataFields.PATH] = PathUtils.GetPathKeyword(FolderPath) ?? FolderPath,
+                [DataFields.ORIGINAL_PATH] = PathUtils.GetPathKeyword(OriginalFolderPath) ?? OriginalFolderPath,
+                [DataFields.LAST_KNOWN_PATH] = LastKnownFilePath,
+                [DataFields.Intro.MESSAGE] = IntroMessage,
+                [DataFields.Intro.TIMESTAMP] = ShowIntroTimestamp.ToString(),
+                [DataFields.Outro.MESSAGE] = OutroMessage,
+                [DataFields.Outro.TIMESTAMP] = ShowOutroTimestamp.ToString(),
 
-            sb.AppendPropertyString(DataFields.LOGID, ID.value);
-            sb.AppendPropertyString(DataFields.FILENAME, Filename);
-            sb.AppendPropertyString(DataFields.ALTFILENAME, AltFilename);
-            sb.AppendPropertyString(DataFields.VERSION, Version);
-            sb.AppendPropertyString(DataFields.TAGS, Tags != null ? string.Join(",", Tags) : string.Empty);
-            sb.AppendPropertyString(DataFields.LOGS_FOLDER_AWARE, LogsFolderAware.ToString());
-            sb.AppendPropertyString(DataFields.LOGS_FOLDER_ELIGIBLE, LogsFolderEligible.ToString());
-            sb.AppendPropertyString(DataFields.SHOW_LOGS_AWARE, ShowLogsAware.ToString());
-            sb.AppendPropertyString(DataFields.PATH, PathUtils.GetPathKeyword(FolderPath) ?? FolderPath);
-            sb.AppendPropertyString(DataFields.ORIGINAL_PATH, PathUtils.GetPathKeyword(OriginalFolderPath) ?? OriginalFolderPath);
-            sb.AppendPropertyString(DataFields.LAST_KNOWN_PATH, LastKnownFilePath);
-            sb.AppendPropertyString(DataFields.Intro.MESSAGE, IntroMessage);
-            sb.AppendPropertyString(DataFields.Intro.TIMESTAMP, ShowIntroTimestamp.ToString());
-            sb.AppendPropertyString(DataFields.Outro.MESSAGE, OutroMessage);
-            sb.AppendPropertyString(DataFields.Outro.TIMESTAMP, ShowOutroTimestamp.ToString());
-            sb.AppendPropertyString(DataFields.Rules.HEADER);
+                [DataFields.Rules.HEADER] = string.Empty //Not an actual property field
+            };
 
-            sb.AppendLine(ShowLineCount.PropertyString);
-            sb.AppendLine(ShowCategories.PropertyString);
+            fields.Add(ShowLineCount.PropertyString);
+            fields.Add(ShowCategories.PropertyString);
 
             if (CustomProperties.Any())
             {
-                sb.AppendPropertyString(DataFields.CUSTOM);
+                fields[DataFields.CUSTOM] = string.Empty; //Not an actual property field
 
+                //TODO: Check behavior
                 foreach (var customProperty in CustomProperties)
                 {
                     //Log properties with names that are not unique are unsupported, and may cause unwanted behavior
@@ -739,19 +740,24 @@ namespace LogUtils.Properties
                         LogRule customRule = Rules.FindByName(customProperty.Name);
                         propertyString = customRule.PropertyString;
                     }
-                    sb.AppendLine(propertyString);
+
+                    //TODO: Don't allow custom property strings to overwrite existing property strings
+                    fields.Add(propertyString);
                 }
             }
+            return fields;
+        }
 
-            if (PropertyManager.UnrecognizedFields.TryGetValue(this, out StringDictionary unrecognizedPropertyLines) && unrecognizedPropertyLines.Count > 0)
-            {
-                if (!CustomProperties.Any()) //Ensure that custom field header is only added once
-                    sb.AppendPropertyString(DataFields.CUSTOM);
+        public override string ToString()
+        {
+            return GetWriteString();
+        }
 
-                foreach (string key in unrecognizedPropertyLines.Keys)
-                    sb.AppendPropertyString(key, unrecognizedPropertyLines[key]);
-            }
-            return sb.ToString();
+        public string GetWriteString(List<CommentEntry> comments = null)
+        {
+            LogPropertyStringDictionary dataFields = ToDictionary();
+
+            return dataFields.ToString(comments, true);
         }
 
         public static string GetContainingPath(string relativePath)
