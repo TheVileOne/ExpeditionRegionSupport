@@ -1,8 +1,7 @@
-﻿using System;
+﻿using LogUtils.Enums;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace LogUtils.Properties
 {
@@ -13,6 +12,53 @@ namespace LogUtils.Properties
         public LogPropertyWriter(LogPropertyFile file)
         {
             propertyFile = file;
+        }
+
+        /// <summary>
+        /// Writes property data to file. If the content already exists, it is overwritten, if it doesn't exist, it is written at the current stream position.
+        /// </summary>
+        public void Write(List<LogProperties> needToUpdate)
+        {
+            if (needToUpdate.Count == 0) return;
+
+            File.WriteAllText(propertyFile.FilePath, compileWriteString(needToUpdate));
+        }
+
+        private string compileWriteString(List<LogProperties> updateList)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            //Read all data from file
+            foreach (LogPropertyData data in propertyFile.Reader.ReadData())
+            {
+                string dataID = data.GetID();
+
+                if (dataID != null) //Invalid entry when dataID is null - do not include it in write string 
+                {
+                    LogProperties properties = updateList.Find(p => p.IDMatch(new ComparisonLogID(dataID)));
+
+                    //Determine if data should be added to the write string as is, or if updates are required
+                    if (properties == null)
+                        sb.AppendLine(data.ToString());
+                    else
+                    {
+                        properties.UpdateWriteHash();
+                        sb.AppendLine(properties.GetWriteString(data.Comments));
+
+                        updateList.Remove(properties);
+                    }
+                }
+            }
+
+            //All remaining entries must be new, and can be written after all existing entries
+            foreach (LogProperties properties in updateList)
+            {
+                properties.UpdateWriteHash();
+                sb.AppendLine(properties.GetWriteString());
+            }
+
+            updateList.Clear(); //Task complete - list no longer needed
+            return sb.ToString();
         }
     }
 }

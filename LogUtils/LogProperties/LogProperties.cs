@@ -688,6 +688,24 @@ namespace LogUtils.Properties
         /// </summary>
         internal int WriteHash = 0;
 
+        /// <summary>
+        /// Checks whether this instance has writeable data that hasn't yet been written to file
+        /// </summary>
+        public bool HasModifiedData()
+        {
+            if (WriteHash == 0) return true;
+
+            int oldHash = WriteHash;
+            UpdateWriteHash(); //Update write hash temporarily in order to check state
+
+            if (oldHash != WriteHash)
+            {
+                WriteHash = oldHash;
+                return true;
+            }
+            return false;
+        }
+
         public void UpdateWriteHash()
         {
             string writeString = GetWriteString();

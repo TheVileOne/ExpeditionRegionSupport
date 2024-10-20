@@ -25,6 +25,11 @@ namespace LogUtils.Properties
             Processor = new LogPropertyDataProcessor(this);
         }
 
+        public string GetID()
+        {
+            return Fields[DataFields.LOGID] ?? Fields[DataFields.FILENAME];
+        }
+
         internal LogPropertyStringDictionary GetUnrecognizedFields()
         {
             var unrecognizedFields = new LogPropertyStringDictionary();

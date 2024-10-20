@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.IO;
 using System.Linq;
-using System.Text;
 using LogUtils.Enums;
 using LogUtils.Helpers;
 
@@ -225,34 +223,16 @@ namespace LogUtils.Properties
 
         public void SaveToFile()
         {
-            StringBuilder sb = new StringBuilder();
+            PropertyFile.Writer.Write(GetUpdateList());
+        }
 
-            foreach (LogProperties properties in Properties)
-            {
-                bool shouldWrite = properties.WriteHash == 0 || properties.ProcessedWithErrors;
-
-                if (shouldWrite)
-                {
-                    int oldWriteHash, newWriteHash;
-
-                    oldWriteHash = properties.WriteHash;
-
-                    properties.UpdateWriteHash();
-                    newWriteHash = properties.WriteHash;
-
-                    shouldWrite = oldWriteHash != newWriteHash;
-                    FileUtils.WriteLine("test.txt", properties.Filename + " " + oldWriteHash + " " + newWriteHash);
-                }
-
-                //TODO: Get working
-                if (shouldWrite)
-                {
-                }
-
-                sb.AppendLine(properties.GetWriteString());
-            }
-
-            File.WriteAllText(Path.Combine(Paths.StreamingAssetsPath, "logs.txt"), sb.ToString());
+        /// <summary>
+        /// Returns a list of property instances that have data that needs to be written to file
+        /// </summary>
+        internal List<LogProperties> GetUpdateList()
+        {
+            //Reasons to update include new log file data, incomplete data read from file, or modifications made to property data 
+            return Properties.FindAll(p => p.ProcessedWithErrors || p.HasModifiedData());
         }
 
         public override Dictionary<string, object> GetFields()
