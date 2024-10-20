@@ -10,6 +10,8 @@ namespace LogUtils
         {
             public const int EXPECTED_FIELD_COUNT = 18;
 
+            public readonly static string[] OrderedFields;
+
             public const string LOGID = "logid";
             public const string FILENAME = "filename";
             public const string ALTFILENAME = "altfilename";
@@ -40,6 +42,32 @@ namespace LogUtils
                 public const string HEADER = "logrules";
                 public const string SHOW_LINE_COUNT = "showlinecount";
                 public const string SHOW_CATEGORIES = "showcategories";
+            }
+
+            static DataFields()
+            {
+                OrderedFields = new[]
+                {
+                    LOGID,
+                    FILENAME,
+                    ALTFILENAME,
+                    TAGS,
+                    VERSION,
+                    PATH,
+                    ORIGINAL_PATH,
+                    LAST_KNOWN_PATH,
+                    LOGS_FOLDER_AWARE,
+                    LOGS_FOLDER_ELIGIBLE,
+                    SHOW_LOGS_AWARE,
+                    Intro.MESSAGE,
+                    Intro.TIMESTAMP,
+                    Outro.MESSAGE,
+                    Outro.TIMESTAMP,
+                    Rules.HEADER,
+                    Rules.SHOW_LINE_COUNT,
+                    Rules.SHOW_CATEGORIES,
+                    CUSTOM
+                };
             }
         }
 
