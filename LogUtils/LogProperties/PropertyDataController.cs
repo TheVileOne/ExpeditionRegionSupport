@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using LogUtils.Enums;
@@ -11,7 +10,7 @@ namespace LogUtils.Properties
     {
         public List<LogProperties> Properties = new List<LogProperties>();
         public CustomLogPropertyCollection CustomLogProperties = new CustomLogPropertyCollection();
-        public Dictionary<LogProperties, StringDictionary> UnrecognizedFields = new Dictionary<LogProperties, StringDictionary>();
+        public Dictionary<LogProperties, LogPropertyStringDictionary> UnrecognizedFields = new Dictionary<LogProperties, LogPropertyStringDictionary>();
 
         internal LogPropertyFile PropertyFile = new LogPropertyFile();
 
@@ -146,7 +145,7 @@ namespace LogUtils.Properties
                 CustomLogProperty customProperty = property.Clone(); //Create an instance of the custom property for each item in the property list
 
                 //Search for unrecognized fields that match the custom property
-                if (UnrecognizedFields.TryGetValue(properties, out StringDictionary fieldDictionary))
+                if (UnrecognizedFields.TryGetValue(properties, out LogPropertyStringDictionary fieldDictionary))
                 {
                     if (fieldDictionary.ContainsKey(customProperty.Name))
                     {

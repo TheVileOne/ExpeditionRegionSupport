@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -743,24 +744,38 @@ namespace LogUtils.Properties
             fields.Add(ShowLineCount.PropertyString);
             fields.Add(ShowCategories.PropertyString);
 
-            if (CustomProperties.Any())
+            LogPropertyStringDictionary unrecognizedFields;
+            PropertyManager.UnrecognizedFields.TryGetValue(this, out unrecognizedFields);
+
+            bool hasCustomFields = CustomProperties.Any() || unrecognizedFields != null;
+
+            if (hasCustomFields)
             {
                 fields[DataFields.CUSTOM] = string.Empty; //Not an actual property field
 
-                //TODO: Check behavior
-                foreach (var customProperty in CustomProperties)
+                if (CustomProperties.Any())
                 {
-                    //Log properties with names that are not unique are unsupported, and may cause unwanted behavior
-                    //Duplicate named property strings will still be written to file the way this is currently handled
-                    string propertyString = customProperty.PropertyString;
-                    if (customProperty.IsLogRule)
+                    //TODO: Check behavior
+                    foreach (var customProperty in CustomProperties)
                     {
-                        LogRule customRule = Rules.FindByName(customProperty.Name);
-                        propertyString = customRule.PropertyString;
-                    }
+                        //Log properties with names that are not unique are unsupported, and may cause unwanted behavior
+                        //Duplicate named property strings will still be written to file the way this is currently handled
+                        string propertyString = customProperty.PropertyString;
+                        if (customProperty.IsLogRule)
+                        {
+                            LogRule customRule = Rules.FindByName(customProperty.Name);
+                            propertyString = customRule.PropertyString;
+                        }
 
-                    //TODO: Don't allow custom property strings to overwrite existing property strings
-                    fields.Add(propertyString);
+                        //TODO: Don't allow custom property strings to overwrite existing property strings
+                        fields.Add(propertyString);
+                    }
+                }
+
+                if (unrecognizedFields != null)
+                {
+                    foreach (DictionaryEntry field in unrecognizedFields)
+                        fields[(string)field.Key] = (string)field.Value;
                 }
             }
             return fields;
