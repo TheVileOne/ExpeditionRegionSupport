@@ -17,6 +17,11 @@ namespace LogUtils.Properties
 
         public LogPropertyDataProcessor Processor;
 
+        /// <summary>
+        /// Stores a flag describing whether the field state read from file matches the expected field order
+        /// </summary>
+        internal bool FieldOrderMismatch;
+
         public LogPropertyData(LogPropertyStringDictionary dataFields, List<CommentEntry> comments)
         {
             Comments = comments;

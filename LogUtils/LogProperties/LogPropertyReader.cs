@@ -23,6 +23,8 @@ namespace LogUtils.Properties
 
             bool expectingNextEntry = true;
 
+            bool expectedFieldsMatch = true;
+            int fieldMatchCount = 0; //Amount of consecuative fields that are consistent with the expected write order 
             int commentCountForThisField = 0;
             List<CommentEntry> commentEntries = new List<CommentEntry>();
 
@@ -56,6 +58,9 @@ namespace LogUtils.Properties
                     string header = lineData[0];
                     string value = lineData[1];
 
+                    if (lineData.Length > 2) //This shouldn't be a thing, but lets handle it to be safe
+                        value = line.Substring(line.IndexOf(":") + 1);
+
                     //Comment entries can now be associated with an owner
                     if (commentCountForThisField > 0)
                     {
@@ -80,17 +85,31 @@ namespace LogUtils.Properties
 
                         //Start a new entry for the next set of data fields
                         propertyInFile = new LogPropertyStringDictionary();
-                        propertyInFile[header] = value;
 
                         if (lastProcessed != null)
                         {
                             commentEntries = new List<CommentEntry>();
-                            yield return new LogPropertyData(lastProcessed, lastComments); //Data collection has finished for the last entry - return the data
+
+                            LogPropertyData data = new LogPropertyData(lastProcessed, lastComments)
+                            {
+                                FieldOrderMismatch = !expectedFieldsMatch
+                            };
+                            yield return data; //Data collection has finished for the last entry - return the data
                         }
+
+                        //Reset values to default
+                        expectedFieldsMatch = true;
+                        fieldMatchCount = 0;
                     }
 
-                    if (lineData.Length > 2) //This shouldn't be a thing, but lets handle it to be safe
-                        value = line.Substring(line.IndexOf(":") + 1);
+                    //Check that the actual field order read from file matches the field order expected by the utility
+                    if (expectedFieldsMatch && fieldMatchCount < UtilityConsts.DataFields.OrderedFields.Length)
+                    {
+                        expectedFieldsMatch = header == UtilityConsts.DataFields.OrderedFields[fieldMatchCount];
+
+                        if (expectedFieldsMatch)
+                            fieldMatchCount++;
+                    }
 
                     //Store each data field in a dictionary until all lines pertaining to the current property are read
                     propertyInFile[header] = value;
@@ -103,7 +122,11 @@ namespace LogUtils.Properties
                 if (commentEntries.Count > 0 && commentEntries[commentEntries.Count - 1].Owner == null)
                     UtilityCore.BaseLogger.LogWarning("End of file comments are unsupported");
 
-                yield return new LogPropertyData(propertyInFile, commentEntries);
+                LogPropertyData data = new LogPropertyData(propertyInFile, commentEntries)
+                {
+                    FieldOrderMismatch = !expectedFieldsMatch
+                };
+                yield return data;
             }
         }
 

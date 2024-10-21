@@ -18,6 +18,11 @@ namespace LogUtils.Properties
         public override string Tag => UtilityConsts.ComponentTags.PROPERTY_DATA;
 
         /// <summary>
+        /// A flag that forces all properties instances to write to file on the next save attempt
+        /// </summary>
+        public bool ForceWriteAll;
+
+        /// <summary>
         /// The game is within a period of time when ReadOnly can be toggled off for the duration of the period before turning back on at the end of the period
         /// </summary>
         internal bool IsEditGracePeriod;
@@ -209,6 +214,9 @@ namespace LogUtils.Properties
         {
             foreach (LogPropertyData data in PropertyFile.Reader.ReadData())
             {
+                if (data.FieldOrderMismatch)
+                    ForceWriteAll = true;
+
                 data.ProcessFields();
                 LogProperties properties = data.Processor.Results;
 
@@ -235,7 +243,7 @@ namespace LogUtils.Properties
         /// </summary>
         internal List<LogProperties> GetUpdateList()
         {
-            if (!File.Exists(PropertyFile.FilePath))
+            if (ForceWriteAll || !File.Exists(PropertyFile.FilePath))
                 return Properties;
 
             //Reasons to update include new log file data, incomplete data read from file, or modifications made to property data 
