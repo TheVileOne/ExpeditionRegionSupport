@@ -50,33 +50,13 @@ namespace LogUtils.Properties
                 {
                     fieldEnumerator.MoveNext();
 
-                    DictionaryEntry fieldEntry = fieldEnumerator.Key switch
-                    {
-                        DataFields.LOGID => default,
-                        DataFields.FILENAME => default,
-                        DataFields.ALTFILENAME => default,
-                        DataFields.TAGS => default,
-                        DataFields.VERSION => default,
-                        DataFields.PATH => default,
-                        DataFields.ORIGINAL_PATH => default,
-                        DataFields.LAST_KNOWN_PATH => default,
-                        DataFields.Intro.MESSAGE => default,
-                        DataFields.Intro.TIMESTAMP => default,
-                        DataFields.Outro.MESSAGE => default,
-                        DataFields.Outro.TIMESTAMP => default,
-                        DataFields.LOGS_FOLDER_AWARE => default,
-                        DataFields.LOGS_FOLDER_ELIGIBLE => default,
-                        DataFields.SHOW_LOGS_AWARE => default,
-                        DataFields.Rules.HEADER => default,
-                        DataFields.Rules.SHOW_LINE_COUNT => default,
-                        DataFields.Rules.SHOW_CATEGORIES => default,
-                        _ => fieldEnumerator.Entry
-                    };
+                    string fieldName = (string)fieldEnumerator.Key;
+                    string fieldValue = (string)fieldEnumerator.Value;
 
-                    if (!fieldEntry.Equals(default(DictionaryEntry)))
+                    if (!DataFields.IsRecognizedField(fieldName))
                     {
-                        if (!fieldEntry.Key.Equals(DataFields.CUSTOM)) //This header does not need to be stored
-                            unrecognizedFields[(string)fieldEntry.Key] = (string)fieldEntry.Value;
+                        if (!fieldName.Equals(DataFields.CUSTOM)) //This header does not need to be stored
+                            unrecognizedFields[fieldName] = fieldValue;
 
                         unknownFieldTotal--;
                     }

@@ -44,6 +44,38 @@ namespace LogUtils
                 public const string SHOW_CATEGORIES = "showcategories";
             }
 
+            /// <summary>
+            /// Case sensitive comparison of a string against known utility DataFields
+            /// </summary>
+            public static bool IsRecognizedField(string match)
+            {
+                //CUSTOM intentionally left out of this check - it is an optional line
+                switch (match)
+                {
+                    case LOGID:
+                    case FILENAME:
+                    case ALTFILENAME:
+                    case TAGS:
+                    case VERSION:
+                    case PATH:
+                    case ORIGINAL_PATH:
+                    case LAST_KNOWN_PATH:
+                    case Intro.MESSAGE:
+                    case Intro.TIMESTAMP:
+                    case Outro.MESSAGE:
+                    case Outro.TIMESTAMP:
+                    case LOGS_FOLDER_AWARE:
+                    case LOGS_FOLDER_ELIGIBLE:
+                    case SHOW_LOGS_AWARE:
+                    case Rules.HEADER:
+                    case Rules.SHOW_LINE_COUNT:
+                    case Rules.SHOW_CATEGORIES:
+                        return true;
+                    default:
+                        return false;
+                };
+            }
+
             static DataFields()
             {
                 OrderedFields = new[]

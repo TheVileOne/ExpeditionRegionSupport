@@ -26,7 +26,7 @@ namespace LogUtils.Properties
                 yield break;
             }
 
-            int sortIndex = 0; //The place in the OrderedArray
+            int sortIndex = 0; //The place in the OrderedFields array
             string[] sortOrder = UtilityConsts.DataFields.OrderedFields; //The expected order of the fields
 
             IDictionaryEnumerator fieldEnumerator = (IDictionaryEnumerator)Dictionary.GetEnumerator();
