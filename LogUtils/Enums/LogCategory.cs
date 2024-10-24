@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using System;
 using UnityEngine;
 
 namespace LogUtils.Enums
@@ -161,30 +162,44 @@ namespace LogUtils.Enums
             if (enumValue >= CONVERSION_OFFSET)
             {
                 int categoryIndex = enumValue - CONVERSION_OFFSET;
-                string[] categoryNames = GetNames(typeof(LogCategory));
 
-                return new LogCategory(categoryNames[categoryIndex]);
+                try
+                {
+                    return EntryAt(categoryIndex);
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    UtilityLogger.LogWarning("Invalid conversion offset processed during LogCategory conversion");
+                }
+                return Default;
             }
 
             //More typical enum type values can be translated directly to string
             return new LogCategory(logLevel.ToString());
         }
 
-        public static LogCategory ToCategory(LogType logLevel)
+        public static LogCategory ToCategory(LogType logType)
         {
-            int enumValue = (int)logLevel;
+            int enumValue = (int)logType;
 
             //A high enum value indicates that we are handling a custom LogCategory converted to an enum type
             if (enumValue >= CONVERSION_OFFSET)
             {
                 int categoryIndex = enumValue - CONVERSION_OFFSET;
-                string[] categoryNames = GetNames(typeof(LogCategory));
 
-                return new LogCategory(categoryNames[categoryIndex]);
+                try
+                {
+                    return EntryAt(categoryIndex);
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    UtilityLogger.LogWarning("Invalid conversion offset processed during LogCategory conversion");
+                }
+                return Default;
             }
 
             //More typical enum type values can be translated directly to string
-            return new LogCategory(logLevel.ToString());
+            return new LogCategory(logType.ToString());
         }
 
         public static readonly LogCategory Default = Info;

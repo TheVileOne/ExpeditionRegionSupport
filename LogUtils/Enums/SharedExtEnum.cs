@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LogUtils.Enums
 {
@@ -60,6 +56,59 @@ namespace LogUtils.Enums
             }
         }
 
+        /// <summary>
+        /// Retrieves an ExtEnum instance at the specified index
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">The index provided is outside the bounds of the collection</exception>
+        public static T EntryAt(int index)
+        {
+            Type enumType = typeof(T);
+            string[] enumNames = GetNames(enumType);
+
+            if (index < 0 || index >= enumNames.Length)
+                throw new ArgumentOutOfRangeException(nameof(index));
+
+            return (T)Activator.CreateInstance(enumType, enumNames[index], false);
+        }
+
+        /// <summary>
+        /// A static means of finding a registered instance, or creating a new instance if there are no registered instances
+        /// </summary>
+        /// <param name="value">Case insensitive value to compare with</param>
+        /// <param name="result">The instance created from the provided value</param>
+        /// <exception cref="ArgumentException">The argument provided was not of a valid format</exception>
+        /// <exception cref="ValueNotFoundException">A registered entry was not found with the given value</exception>
+        public static T Parse(string value)
+        {
+            value = value.Trim();
+
+            if (value == string.Empty)
+                throw new ArgumentException("An empty string is not considered a valid value.");
+
+            T result = (T)Activator.CreateInstance(typeof(T), value, false);
+            if (!result.Registered)
+                throw new ValueNotFoundException(string.Format("An ExtEnum of the type {0} does not exist with the value {1}.", typeof(T), value));
+            return result;
+        }
+
+        /// <summary>
+        /// A static means of finding a registered instance
+        /// </summary>
+        /// <param name="value">Case insensitive value to compare with</param>
+        /// <param name="result">The instance created from the provided value</param>
+        /// <returns>Returns whether a registered instance was found</returns>
+        public static bool TryParse(string value, out T result)
+        {
+            result = null;
+            value = value.Trim();
+
+            if (value == string.Empty)
+                return false;
+
+            result = (T)Activator.CreateInstance(typeof(T), value, false);
+            return result.Registered;
+        }
+
         public virtual void Register()
         {
             //The shared reference may already exist. Sync any value differences between the two references
@@ -92,6 +141,13 @@ namespace LogUtils.Enums
         public virtual bool CheckTag(string tag)
         {
             return string.Equals(value, tag, StringComparison.InvariantCultureIgnoreCase);
+        }
+    }
+
+    public class ValueNotFoundException : Exception
+    {
+        public ValueNotFoundException(string message) : base(message)
+        {
         }
     }
 }

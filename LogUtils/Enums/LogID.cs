@@ -50,9 +50,19 @@ namespace LogUtils.Enums
         {
         }
 
+        /// <summary>
+        /// Creates a new LogID instance without attempting to create a LogProperties instance
+        /// </summary>
         internal LogID(string filename) : base(Path.GetFileNameWithoutExtension(filename), false) //Used by ComparisonLogID to bypass LogProperties creation
         {
             InitializeFields();
+        }
+
+        /// <summary>
+        /// Creates a new LogID instance using a filename, and assuming a default/preexisting registered path
+        /// </summary>
+        internal LogID(string filename, bool register) : this(filename, null, LogAccess.RemoteAccessOnly) //Exists to satisfy Activator parameters for SharedExtEnum
+        {
         }
 
         internal LogID(PathWrapper pathData, LogAccess access, bool register) : this(pathData.Filename, pathData.Path, access, register)
