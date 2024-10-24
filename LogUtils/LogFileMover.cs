@@ -45,7 +45,7 @@ namespace LogUtils
                 }
                 catch (Exception ex)
                 {
-                    UtilityCore.LogError(getErrorMessage(ErrorContext.Move), ex);
+                    UtilityLogger.LogError(getErrorMessage(ErrorContext.Move), ex);
                     status = CopyFile(logValidator);
                 }
 
@@ -74,7 +74,7 @@ namespace LogUtils
                 }
                 catch (Exception ex)
                 {
-                    UtilityCore.LogError(getErrorMessage(ErrorContext.Copy), ex);
+                    UtilityLogger.LogError(getErrorMessage(ErrorContext.Copy), ex);
                     status = FileStatus.Error;
                 }
 
@@ -97,7 +97,7 @@ namespace LogUtils
             }
             catch (Exception ex)
             {
-                UtilityCore.LogError(getErrorMessage(ErrorContext.Copy), ex);
+                UtilityLogger.LogError(getErrorMessage(ErrorContext.Copy), ex);
                 status = FileStatus.Error;
             }
 

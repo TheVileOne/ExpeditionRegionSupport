@@ -1,4 +1,3 @@
-﻿using LogUtils.Helpers;
 ﻿using LogUtils.Enums;
 using System;
 using System.Collections.Generic;
@@ -128,10 +127,8 @@ namespace LogUtils
         {
             lock (RequestProcessLock)
             {
-                FileUtils.WriteLine("test.txt", "Receiving request to log: " + request);
-
                 if (request.Submitted)
-                    UtilityCore.BaseLogger.LogWarning("Submitted request has already been submitted at least once");
+                    UtilityLogger.LogWarning("Submitted request has already been submitted at least once");
 
                 //Ensures consistent handling of the request
                 request.ResetStatus();
@@ -143,11 +140,9 @@ namespace LogUtils
                 //Waiting requests must be handled before the submitted request
                 ProcessRequests(logFile);
 
-                FileUtils.WriteLine("test.txt", "Continuing submission process");
-
                 if (logFile.Properties.HandleRecord.Rejected)
                 {
-                    FileUtils.WriteLine("test.txt", "Aborting early due to rejection");
+                    UtilityLogger.DebugLog("Aborting early due to rejection");
                     request.Reject(logFile.Properties.HandleRecord.Reason);
 
                     handleRejection(request);
@@ -181,8 +176,6 @@ namespace LogUtils
 
                 lastPendingRequest = PendingRequest;
 
-                FileUtils.WriteLine("test.txt", "Setting PendingRequest");
-
                 //The pending request has not been rejected, and is available to be processed 
                 PendingRequest = request;
 
@@ -208,7 +201,7 @@ namespace LogUtils
             }
             catch (Exception ex)
             {
-                UtilityCore.LogError("Unable to submit request", ex);
+                UtilityLogger.LogError("Unable to submit request", ex);
 
                 //Assign request using a safer method with less rigorous validation checks - wont fail
                 if (request.CanRetryRequest())
@@ -222,8 +215,8 @@ namespace LogUtils
         /// </summary>
         public void Register(Logger logger)
         {
-            UtilityCore.BaseLogger.LogInfo("Registering logger");
-            UtilityCore.BaseLogger.LogInfo("Log targets: " + string.Join(" ,", logger.LogTargets));
+            UtilityLogger.Log("Registering logger");
+            UtilityLogger.Log("Log targets: " + string.Join(" ,", logger.LogTargets));
 
             availableLoggers.Add(logger);
 
@@ -241,8 +234,8 @@ namespace LogUtils
         /// </summary>
         public void Unregister(Logger logger)
         {
-            UtilityCore.BaseLogger.LogInfo("Unregistering logger");
-            UtilityCore.BaseLogger.LogInfo("Log targets: " + string.Join(" ,", logger.LogTargets));
+            UtilityLogger.Log("Unregistering logger");
+            UtilityLogger.Log("Log targets: " + string.Join(" ,", logger.LogTargets));
             availableLoggers.Remove(logger);
         }
 
@@ -325,7 +318,7 @@ namespace LogUtils
         /// <param name="doPathCheck">Should the log file's containing folder bear significance when finding a logger match</param>
         private Logger findCompatibleLogger(LogID logFile, RequestType requestType, bool doPathCheck)
         {
-            FileUtils.WriteLine("test.txt", "Finding logger");
+            UtilityLogger.DebugLog("Finding logger");
 
             if (requestType == RequestType.Game)
                 return null;
@@ -402,11 +395,9 @@ namespace LogUtils
         {
             lock (RequestProcessLock)
             {
-                FileUtils.WriteLine("test.txt", "Processing requests for " + logFile);
-
                 if (logFile.Properties.HandleRecord.Rejected)
                 {
-                    FileUtils.WriteLine("test.txt", "Rejection record detected for this request");
+                    UtilityLogger.DebugLog("Rejection record detected for this request");
 
                     TryResolveRecord(logFile);
 
@@ -416,8 +407,6 @@ namespace LogUtils
                         return;
                     }
                 }
-
-                FileUtils.WriteLine("test.txt", "Getting requests");
 
                 ILinkedListEnumerable<LogRequest> requests = GetRequests(logFile);
 
@@ -432,7 +421,6 @@ namespace LogUtils
                     bool shouldFetchLoggers = true;
                     LogRequest lastRequest = null;
 
-                    FileUtils.WriteLine("test.txt", "Processing requests");
                     foreach (LogRequest request in requests)
                     {
                         if (lastRequest != null)
@@ -456,7 +444,6 @@ namespace LogUtils
                 }
                 else
                 {
-                    FileUtils.WriteLine("test.txt", "Handling game request");
                     GameLogger.HandleRequests(requests);
                 }
 
@@ -528,11 +515,11 @@ namespace LogUtils
 
                     if (target == null)
                     {
-                        UtilityCore.BaseLogger.LogWarning("Processed a null log request... aborting operation");
+                        UtilityLogger.LogWarning("Processed a null log request... aborting operation");
                         break;
                     }
 
-                    FileUtils.WriteLine("test.txt", $"Request # [{requestNumber}] {target}");
+                    UtilityLogger.DebugLog($"Request # [{requestNumber}] {target}");
 
                     requestNumber++;
 
@@ -579,7 +566,7 @@ namespace LogUtils
                         }
                         else
                         {
-                            FileUtils.WriteLine("test.txt", "Handling game request");
+                            UtilityLogger.DebugLog("Handling game request");
                             GameLogger.HandleRequest(target);
                             requestCanBeHandled = !target.IsCompleteOrInvalid;
                         }
@@ -589,10 +576,9 @@ namespace LogUtils
                     {
                         if (targetNode == null)
                         {
-
-                            FileUtils.WriteLine("test.txt", "Status: " + target.Status);
-                            FileUtils.WriteLine("test.txt", "Rejection Reason: " + target.UnhandledReason);
-                            FileUtils.WriteLine("test.txt", "Attempted to remove a null node");
+                            UtilityLogger.DebugLog("Status: " + target.Status);
+                            UtilityLogger.DebugLog("Rejection Reason: " + target.UnhandledReason);
+                            UtilityLogger.DebugLog("Attempted to remove a null node");
                             continue;
                         }
 
@@ -611,7 +597,7 @@ namespace LogUtils
 
         public void RejectRequests(IEnumerable<LogRequest> requests, RejectionReason reason)
         {
-            UtilityCore.BaseLogger.LogDebug("Rejection requests in bulk for reason: " + reason);
+            UtilityLogger.Log(LogCategory.Debug, "Rejection requests in bulk for reason: " + reason);
 
             foreach (LogRequest request in requests)
                 request.Reject(reason);
@@ -659,7 +645,7 @@ namespace LogUtils
             {
                 lock (RequestProcessLock)
                 {
-                    FileUtils.WriteLine("test.txt", "Handling scheduled requests");
+                    UtilityLogger.DebugLog("Handling scheduled requests");
                     while (HandleOnNextAvailableFrame.Any())
                     {
                         LogRequest request = HandleOnNextAvailableFrame.Dequeue();
@@ -673,7 +659,7 @@ namespace LogUtils
                             //A request of this nature is important enough to bypass the request process by sending the request directly to the LogWriter 
                             if (request.Data.ID == LogID.Exception && request.CanRetryRequest())
                             {
-                                UtilityCore.BaseLogger.LogWarning("Exception message forcefully logged to file");
+                                UtilityLogger.LogWarning("Exception message forcefully logged to file");
 
                                 request.ResetStatus();
                                 LogWriter.Writer.WriteFrom(request);

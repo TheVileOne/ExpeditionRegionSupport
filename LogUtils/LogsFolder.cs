@@ -77,7 +77,7 @@ namespace LogUtils
                 //The found directory needs to be created if it doesn't yet exist, and the alternative directory removed
                 if (!Directory.Exists(Path))
                 {
-                    UtilityCore.BaseLogger.LogInfo("Creating directory: " + Path);
+                    UtilityLogger.Log("Creating directory: " + Path);
                     Directory.CreateDirectory(Path);
                 }
 
@@ -87,7 +87,7 @@ namespace LogUtils
                 {
                     if (Directory.Exists(alternativeLogPath))
                     {
-                        UtilityCore.BaseLogger.LogInfo("Removing directory: " + alternativeLogPath);
+                        UtilityLogger.Log("Removing directory: " + alternativeLogPath);
                         Directory.Delete(alternativeLogPath, true);
                     }
                 }
@@ -99,7 +99,7 @@ namespace LogUtils
             }
             catch (Exception ex)
             {
-                UtilityCore.LogError(errorMsg ?? "Unable to create log directory", ex);
+                UtilityLogger.LogError(errorMsg ?? "Unable to create log directory", ex);
             }
 
             HasInitialized = true;

@@ -93,7 +93,7 @@ namespace LogUtils
 
             void processLog()
             {
-                var bepLogger = source ?? UtilityCore.BaseLogger;
+                var bepLogger = source ?? UtilityLogger.Logger;
                 bepLogger.Log(category, data);
             }
         }
@@ -104,7 +104,7 @@ namespace LogUtils
 
             void processLog()
             {
-                var bepLogger = source ?? UtilityCore.BaseLogger;
+                var bepLogger = source ?? UtilityLogger.Logger;
                 bepLogger.Log(category.BepInExCategory, data);
             }
         }
@@ -205,7 +205,6 @@ namespace LogUtils
                 //Check values to ensure that the same request going into an API is the same request coming out of it
                 GameLoggerRequestCounter++;
 
-                UtilityCore.BaseLogger.LogDebug("Log request handled: " + logFile);
                 LogID lastProcessState = LogFileInProcess;
 
                 LogFileInProcess = logFile;

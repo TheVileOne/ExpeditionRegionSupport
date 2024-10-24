@@ -60,7 +60,7 @@ namespace LogUtils
             }
             catch (Exception ex)
             {
-                UtilityCore.LogError(null, new IOException("Unable to delete log file", ex));
+                UtilityLogger.LogError(null, new IOException("Unable to delete log file", ex));
             }
             PrepareLogFile(logFile);
         }
@@ -190,7 +190,7 @@ namespace LogUtils
             }
             catch (IOException ex)
             {
-                UtilityCore.LogError("Log write error", ex);
+                UtilityLogger.LogError("Log write error", ex);
                 return false;
             }
         }

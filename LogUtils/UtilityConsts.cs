@@ -4,6 +4,7 @@ namespace LogUtils
 {
     public static class UtilityConsts
     {
+        public const int FILTER_MAX = 1000;
         public const string UTILITY_NAME = "LogUtils";
 
         public static class DataFields

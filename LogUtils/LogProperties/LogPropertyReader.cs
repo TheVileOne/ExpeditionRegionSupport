@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace LogUtils.Properties
 {
@@ -125,7 +124,7 @@ namespace LogUtils.Properties
             if (propertyInFile != null)
             {
                 if (commentEntries.Count > 0 && commentEntries[commentEntries.Count - 1].Owner == null)
-                    UtilityCore.BaseLogger.LogWarning("End of file comments are unsupported");
+                    UtilityLogger.LogWarning("End of file comments are unsupported");
 
                 LogPropertyData data = new LogPropertyData(propertyInFile, commentEntries)
                 {

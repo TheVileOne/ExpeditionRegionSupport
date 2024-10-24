@@ -42,7 +42,7 @@ namespace LogUtils.Properties
                 //These properties are necessary - at least one of them must contain valid data
                 if (!hasID && !hasFilename)
                 {
-                    UtilityCore.BaseLogger.LogWarning("Malformed data in properties file");
+                    UtilityLogger.LogWarning("Malformed data in properties file");
                     processedWithErrors = true;
                     Results = null;
                     return;
@@ -94,7 +94,7 @@ namespace LogUtils.Properties
                     if (dataField == DataFields.TAGS)
                         properties.Tags = Array.Empty<string>();
 
-                    UtilityCore.BaseLogger.LogError(ex);
+                    UtilityLogger.LogError(ex);
                     processedWithErrors = true;
                 }
             }
@@ -102,7 +102,7 @@ namespace LogUtils.Properties
             properties.ProcessedWithErrors = processedWithErrors;
 
             if (properties.ProcessedWithErrors)
-                UtilityCore.BaseLogger.LogWarning("There were issues while processing LogID " + id);
+                UtilityLogger.LogWarning("There were issues while processing LogID " + id);
 
             Results = properties;
         }

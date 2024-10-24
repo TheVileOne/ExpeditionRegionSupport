@@ -72,7 +72,7 @@ namespace LogUtils
             {
                 if (Status == RequestStatus.Complete)
                 {
-                    UtilityCore.BaseLogger.LogWarning("Completed requests cannot be rejected");
+                    UtilityLogger.LogWarning("Completed requests cannot be rejected");
                     return;
                 }
 
@@ -85,7 +85,7 @@ namespace LogUtils
 
             //Log any rejection reasons, except those triggered by the utility logger itself, which would cause an infinite loop
             if (Data.ID != LogID.BepInEx || Data.LogSource?.SourceName != UtilityConsts.UTILITY_NAME)
-                UtilityCore.BaseLogger.LogInfo("Log request was rejected REASON: " + reason);
+                UtilityLogger.Log("Log request was rejected REASON: " + reason);
 
             if (reason != RejectionReason.None
              && reason != RejectionReason.ExceptionAlreadyReported

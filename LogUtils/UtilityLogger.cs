@@ -1,52 +1,126 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Enums;
+using LogUtils.Helpers;
 using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using UnityEngine;
 
 namespace LogUtils
 {
-    public static class UtilityLogger
+    internal static class UtilityLogger
     {
-        /*
-        private static ManualLogSource logger;
+        public static ManualLogSource Logger;
+
+        private static bool _receiveUnityLogEvents;
 
         internal static void Initialize()
         {
-            logger = BepInEx.Logging.Logger.Sources.FirstOrDefault(l => l.SourceName == "LogUtils") as ManualLogSource
-                  ?? BepInEx.Logging.Logger.CreateLogSource("LogUtils");
+            Logger = BepInEx.Logging.Logger.Sources.FirstOrDefault(l => l.SourceName == UtilityConsts.UTILITY_NAME) as ManualLogSource
+                  ?? BepInEx.Logging.Logger.CreateLogSource(UtilityConsts.UTILITY_NAME);
+
+            //TODO: Deprecate use of test.txt when utility is close to release
+            File.Delete("test.txt");
         }
 
-        public void LogFatal(object data)
+        internal static bool ReceiveUnityLogEvents
         {
-            Log(LogLevel.Fatal, data);
+            get => _receiveUnityLogEvents;
+            set
+            {
+                if (_receiveUnityLogEvents == value) return;
+
+                if (value)
+                    Application.logMessageReceivedThreaded += handleUnityLog;
+                else
+                    Application.logMessageReceivedThreaded -= handleUnityLog;
+
+                _receiveUnityLogEvents = value;
+            }
         }
 
-        public void LogError(object data)
+        /// <summary>
+        /// Gets the LogType stored in the filterLogType property for Unity's logger converted to an integer
+        /// </summary>
+        internal static int GetFilterTypeMaximum()
         {
-            Log(LogLevel.Error, data);
+            return (int)Debug.unityLogger.filterLogType;
         }
 
-        public void LogWarning(object data)
+        /// <summary>
+        /// Sets filterLogType property for Unity's logger to a desired value
+        /// </summary>
+        /// <param name="value">The value to convert to UnityEngine.LogType</param>
+        internal static void SetFilterTypeMaximum(int value)
         {
-            Log(LogLevel.Warning, data);
+            Debug.unityLogger.filterLogType = (LogType)value;
         }
 
-        public void LogMessage(object data)
+        public static void DebugLog(object data)
         {
-            Log(LogLevel.Message, data);
+            FileUtils.WriteLine("test.txt", data?.ToString());
         }
 
-        public void LogInfo(object data)
+        public static void Log(object data)
         {
-            Log(LogLevel.Info, data);
+            Logger.LogInfo(data);
         }
 
-        public void LogDebug(object data)
+        public static void Log(LogCategory category, object data)
         {
-            Log(LogLevel.Debug, data);
+            Logger.Log(category.BepInExCategory, data);
         }
-        */
+
+        public static void LogError(object data)
+        {
+            Logger.LogError(data);
+        }
+
+        public static void LogError(string errorMessage, Exception ex)
+        {
+            if (errorMessage != null)
+                Logger.LogError(errorMessage);
+            Logger.LogError(ex);
+        }
+
+        public static void LogWarning(object data)
+        {
+            Logger.LogError(data);
+        }
+
+        private static void handleUnityLog(string message, string stackTrace, LogType category)
+        {
+            lock (UtilityCore.RequestHandler.RequestProcessLock)
+            {
+                /*
+                DebugLog(message);
+
+                if (!string.IsNullOrEmpty(stackTrace))
+                    DebugLog(stackTrace);
+                */
+
+                //TODO: Is this check necessary?
+                //This submission wont be able to be logged until Rain World can initialize
+                if (UtilityCore.RequestHandler.CurrentRequest == null)
+                {
+                    if (LogCategory.IsUnityErrorCategory(category))
+                    {
+                        //Handle Unity error logging similarly to how the game would handle it
+                        ExceptionInfo exceptionInfo = new ExceptionInfo(message, stackTrace);
+
+                        //Check that the last exception reported matches information stored
+                        if (!RWInfo.CheckExceptionMatch(LogID.Exception, exceptionInfo))
+                        {
+                            RWInfo.ReportException(LogID.Exception, exceptionInfo);
+
+                            UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Exception, exceptionInfo, category)), false);
+                        }
+                        return;
+                    }
+
+                    UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Unity, message, category)), false);
+                }
+            }
+        }
     }
 }

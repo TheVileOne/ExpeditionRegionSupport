@@ -47,11 +47,11 @@ namespace LogUtils.Helpers
             finally
             {
                 if (managedComponent == null) //Loading the component failed for some reason
-                    UtilityCore.BaseLogger.LogWarning("Utility component failed to load");
+                    UtilityLogger.LogWarning("Utility component failed to load");
 
                 if (activeVersion < UtilityCore.AssemblyVersion)
                 {
-                    UtilityCore.BaseLogger.LogWarning("Utility component version out of date");
+                    UtilityLogger.LogWarning("Utility component version out of date");
                     //TODO: Replace UtilityComponent with most up to data version
                 }
             }

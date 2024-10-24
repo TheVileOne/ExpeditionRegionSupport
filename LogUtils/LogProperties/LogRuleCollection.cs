@@ -48,7 +48,7 @@ namespace LogUtils.Properties
             //Rule changes should be tracked when the initialization period has ended
             if (!ReadOnly)
             {
-                UtilityCore.BaseLogger.LogInfo("LogRule change in progress");
+                UtilityLogger.Log("LogRule change in progress");
                 TrackChanges = true;
             }
         }
@@ -64,7 +64,7 @@ namespace LogUtils.Properties
 
         public void RestoreRecord()
         {
-            UtilityCore.BaseLogger.LogInfo("Attempting to restore rule modifications");
+            UtilityLogger.Log("Attempting to restore rule modifications");
             if (TrackChanges)
             {
                 while (ChangeRecord.Any())
@@ -73,7 +73,7 @@ namespace LogUtils.Properties
             }
             else
             {
-                UtilityCore.BaseLogger.LogInfo("Nothing to restore...");
+                UtilityLogger.Log("Nothing to restore...");
             }
         }
 

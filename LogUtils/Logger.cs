@@ -181,7 +181,7 @@ namespace LogUtils
             {
                 string path = signalData[2];
 
-                UtilityCore.BaseLogger.LogInfo("Log directory changed to " + path);
+                UtilityLogger.Log("Log directory changed to " + path);
 
                 OnMoveComplete?.Invoke(path);
                 LogsFolder.Path = path; //This gets updated last. It is needed for comparison purposes.
@@ -596,7 +596,7 @@ namespace LogUtils
         {
             if (!targets.Any())
             {
-                UtilityCore.BaseLogger.LogWarning("Attempted to log message with no available log targets");
+                UtilityLogger.LogWarning("Attempted to log message with no available log targets");
                 return;
             }
 
@@ -702,7 +702,7 @@ namespace LogUtils
 
             if (loggerID.Properties.CurrentFolderPath != requestID.Properties.CurrentFolderPath) //Same LogID, different log paths - do not handle
             {
-                UtilityCore.BaseLogger.LogInfo("Request not handled, log paths do not match");
+                UtilityLogger.Log("Request not handled, log paths do not match");
 
                 //This particular rejection reason has problematic support, and is not guaranteed to be recorded by the request
                 request.Reject(RejectionReason.PathMismatch);

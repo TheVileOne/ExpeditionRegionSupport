@@ -6,9 +6,7 @@ using Menu;
 using RWCustom;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using UnityEngine;
 
 namespace LogUtils
 {
@@ -37,8 +35,6 @@ namespace LogUtils
         /// </summary>
         public static ILogListener ManagedLogListener;
 
-        public static ManualLogSource BaseLogger { get; private set; }
-
         public static PropertyDataController PropertyManager;
 
         /// <summary>
@@ -61,10 +57,10 @@ namespace LogUtils
 
             initializingInProgress = true;
 
-            Debug.unityLogger.filterLogType = (LogType)Math.Max((int)Debug.unityLogger.filterLogType, 1000); //Allow space for custom LogTypes to be defined
+            if (UtilityLogger.GetFilterTypeMaximum() < UtilityConsts.FILTER_MAX)
+                UtilityLogger.SetFilterTypeMaximum(UtilityConsts.FILTER_MAX); //Allow space for custom LogTypes to be defined
 
-            BaseLogger = BepInEx.Logging.Logger.Sources.FirstOrDefault(l => l.SourceName == UtilityConsts.UTILITY_NAME) as ManualLogSource
-                      ?? BepInEx.Logging.Logger.CreateLogSource(UtilityConsts.UTILITY_NAME);
+            UtilityLogger.Initialize();
 
             //This is before hooks are established. It is highly likely that the utility will load very early, and any mod could force it. Since we cannot control
             //this factor, we have to infer using specific game fields to tell which part of the initialization period we are in
@@ -107,7 +103,7 @@ namespace LogUtils
 
                 //Listen for Unity log requests while the log file is unavailable
                 if (RWInfo.LatestSetupPeriodReached < LogID.Unity.Properties.AccessPeriod)
-                    Application.logMessageReceivedThreaded += HandleUnityLog;
+                    UtilityLogger.ReceiveUnityLogEvents = true;
 
                 AppDomain.CurrentDomain.UnhandledException += (o, e) => RequestHandler.DumpRequestsToFile();
                 GameHooks.Initialize();
@@ -155,41 +151,6 @@ namespace LogUtils
         {
             if (ManagedLogListener != null)
                 Logger.ProcessLogSignal(ManagedLogListener.GetSignal());
-        }
-
-        internal static void HandleUnityLog(string message, string stackTrace, LogType category)
-        {
-            lock (RequestHandler.RequestProcessLock)
-            {
-                //TODO: Is this check necessary?
-                //This submission wont be able to be logged until Rain World can initialize
-                if (RequestHandler.CurrentRequest == null)
-                {
-                    if (LogCategory.IsUnityErrorCategory(category))
-                    {
-                        //Handle Unity error logging similarly to how the game would handle it
-                        ExceptionInfo exceptionInfo = new ExceptionInfo(message, stackTrace);
-
-                        //Check that the last exception reported matches information stored
-                        if (!RWInfo.CheckExceptionMatch(LogID.Exception, exceptionInfo))
-                        {
-                            RWInfo.ReportException(LogID.Exception, exceptionInfo);
-
-                            RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Exception, exceptionInfo, category)), false);
-                        }
-                        return;
-                    }
-
-                    RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Unity, message, category)), false);
-                }
-            }
-        }
-
-        internal static void LogError(string errorMsg, Exception ex)
-        {
-            if (errorMsg != null)
-                BaseLogger.LogError(errorMsg);
-            BaseLogger.LogError(ex);
         }
     }
 }

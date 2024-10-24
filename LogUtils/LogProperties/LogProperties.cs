@@ -85,11 +85,11 @@ namespace LogUtils.Properties
                             ReadOnly = true;
                         }, disable_frames_allowed);
                     }
-                    UtilityCore.BaseLogger.LogDebug(reportMessage);
+                    UtilityLogger.Log(LogCategory.Debug, reportMessage);
                 }
                 else
                 {
-                    UtilityCore.BaseLogger.LogDebug($"Read Only mode enabled for {ID}");
+                    //UtilityLogger.Log($"Read Only mode enabled for {ID}");
 
                     readOnlyRestoreEvent?.Cancel();
                     readOnlyRestoreEvent = null;
@@ -137,11 +137,7 @@ namespace LogUtils.Properties
                 {
                     if (_idValue == null)
                         return null;
-
-                    FileUtils.WriteLine("test.txt", "Generating property id for " + _idValue);
                     _id = new LogID(this, _idValue, OriginalFolderPath, false);
-
-                    FileUtils.WriteLine("test.txt", "Generation complete");
                 }
                 return _id;
             }
@@ -409,6 +405,8 @@ namespace LogUtils.Properties
 
         public LogProperties(string propertyID, string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS)
         {
+            UtilityLogger.DebugLog("Generating properties for " + propertyID);
+            UtilityLogger.Log("Generating properties for " + propertyID);
             _idValue = propertyID;
 
             Filename = filename;
@@ -578,7 +576,7 @@ namespace LogUtils.Properties
             }
             catch (Exception ex)
             {
-                UtilityCore.LogError(null, new IOException("Unable to delete temporary file", ex));
+                UtilityLogger.LogError(null, new IOException("Unable to delete temporary file", ex));
             }
         }
 
@@ -589,7 +587,7 @@ namespace LogUtils.Properties
         {
             if (LogSessionActive) return;
 
-            UtilityCore.BaseLogger.LogInfo($"Attempting to start log session [{ID}]");
+            UtilityLogger.Log($"Attempting to start log session [{ID}]");
 
             try
             {
@@ -618,11 +616,11 @@ namespace LogUtils.Properties
             }
             catch (IOException ex) //Some issue other than the file existing occurred
             {
-                UtilityCore.LogError("File handling error occurred", ex);
+                UtilityLogger.LogError("File handling error occurred", ex);
             }
 
             if (!LogSessionActive)
-                UtilityCore.BaseLogger.LogWarning($"Session failed to start");
+                UtilityLogger.LogWarning($"Session failed to start");
         }
 
         /// <summary>
@@ -632,7 +630,7 @@ namespace LogUtils.Properties
         {
             if (!LogSessionActive) return;
 
-            UtilityCore.BaseLogger.LogInfo($"Log session ended [{ID}]");
+            UtilityLogger.Log($"Log session ended [{ID}]");
 
             if (LogFilter.FilteredStrings.TryGetValue(ID, out List<FilteredStringEntry> filter))
                 filter.RemoveAll(entry => entry.Duration == FilterDuration.OnClose);
@@ -667,7 +665,7 @@ namespace LogUtils.Properties
             }
             catch (IOException ex) //Some issue other than the file existing occurred
             {
-                UtilityCore.LogError("File handling error occurred", ex);
+                UtilityLogger.LogError("File handling error occurred", ex);
             }
             finally
             {
@@ -802,12 +800,12 @@ namespace LogUtils.Properties
             string path;
             if (Path.IsPathRooted(relativePath))
             {
-                UtilityCore.BaseLogger.LogInfo("Processing a rooted path when expecting a partial one");
+                UtilityLogger.Log("Processing a rooted path when expecting a partial one");
 
                 if (Directory.Exists(relativePath)) //As long as it exists, we shouldn't care if it is rooted
                     return relativePath;
 
-                UtilityCore.BaseLogger.LogInfo("Rooted path could not be found. Unrooting...");
+                UtilityLogger.Log("Rooted path could not be found. Unrooting...");
 
                 //Unrooting allows us to still find a possibly valid Rain World path
                 relativePath = PathUtils.Unroot(relativePath);
@@ -816,7 +814,7 @@ namespace LogUtils.Properties
 
                 if (PathUtils.PathRootExists(path))
                 {
-                    UtilityCore.BaseLogger.LogInfo("Unroot successful");
+                    UtilityLogger.Log("Unroot successful");
                     return path;
                 }
 
@@ -830,13 +828,13 @@ namespace LogUtils.Properties
             if (PathUtils.PathRootExists(path)) //No need to change the path when it is already valid
                 return path;
 
-            UtilityCore.BaseLogger.LogInfo("Attempting to resolve path");
+            UtilityLogger.Log("Attempting to resolve path");
 
             //Resolve directory the game supported way if we're not too early to do so (most likely will be too early)
             if (Custom.rainWorld != null)
                 return AssetManager.ResolveDirectory(path);
 
-            UtilityCore.BaseLogger.LogInfo("Defaulting to custom root. Path check run too early to resolve");
+            UtilityLogger.Log("Defaulting to custom root. Path check run too early to resolve");
 
             //This is what AssetManager.ResolveDirectory would have returned as a fallback path
             return Path.Combine(Paths.StreamingAssetsPath, relativePath);

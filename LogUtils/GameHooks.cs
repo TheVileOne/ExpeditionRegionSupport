@@ -34,7 +34,7 @@ namespace LogUtils
             }
             catch (Exception ex)
             {
-                UtilityCore.LogError("Error occurred while loading hooks", ex);
+                UtilityLogger.LogError("Error occurred while loading hooks", ex);
             }
         }
 
@@ -76,7 +76,7 @@ namespace LogUtils
             IL.JollyCoop.JollyCustom.WriteToLog += JollyCustom_WriteToLog;
 
             managedHooks.ForEach(hook => hook.Apply());
-            UtilityCore.BaseLogger.LogInfo("Hooks loaded successfully");
+            UtilityLogger.Log("Hooks loaded successfully");
         }
 
         /// <summary>
@@ -174,7 +174,7 @@ namespace LogUtils
                 if (RWInfo.LatestSetupPeriodReached == SetupPeriod.RWAwake)
                 {
                     UtilityCore.RequestHandler.ProcessRequests();
-                    Application.logMessageReceivedThreaded -= UtilityCore.HandleUnityLog;
+                    UtilityLogger.ReceiveUnityLogEvents = false;
                 }
             });
         }
@@ -332,7 +332,7 @@ namespace LogUtils
 
                 if (recursionDetected)
                 {
-                    UtilityCore.BaseLogger.LogWarning("Potential recursive log request handling detected");
+                    UtilityLogger.LogWarning("Potential recursive log request handling detected");
 
                     //While requests are being handled in the pipeline, we cannot handle this request
                     UtilityCore.RequestHandler.HandleOnNextAvailableFrame.Enqueue(createRequest());
@@ -351,7 +351,7 @@ namespace LogUtils
                 {
                     if (!processFinished)
                     {
-                        UtilityCore.BaseLogger.LogWarning("Logging operation has ended unexpectedly");
+                        UtilityLogger.LogWarning("Logging operation has ended unexpectedly");
 
                         LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
@@ -678,7 +678,7 @@ namespace LogUtils
             }
             else
             {
-                UtilityCore.BaseLogger.LogError("Expected directory IL could not be found");
+                UtilityLogger.LogError("Expected directory IL could not be found");
             }
         }
 
@@ -764,8 +764,6 @@ namespace LogUtils
                 else
                     transferObject = data;
 
-                FileUtils.WriteLine("test.txt", "LOG MESSAGE: " + transferObject?.ToString());
-
                 //TODO: LogRules need to be applied here
                 return true;
             }
@@ -805,8 +803,8 @@ namespace LogUtils
         {
             if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake && UtilityCore.ThreadID != Thread.CurrentThread.ManagedThreadId)
             {
-                UtilityCore.BaseLogger.LogDebug("Log request not handled on main thread");
-                UtilityCore.BaseLogger.LogDebug($"ThreadInfo: Id [{Thread.CurrentThread.ManagedThreadId}] Source [{logFile}]");
+                UtilityLogger.Log(LogCategory.Debug, "Log request not handled on main thread");
+                UtilityLogger.Log(LogCategory.Debug, $"ThreadInfo: Id [{Thread.CurrentThread.ManagedThreadId}] Source [{logFile}]");
             }
         }
     }

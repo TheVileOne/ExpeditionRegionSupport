@@ -1,5 +1,4 @@
-﻿using LogUtils.Helpers;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -134,13 +133,13 @@ namespace LogUtils
 
         public bool Remove(T value)
         {
-            FileUtils.WriteLine("test.txt", "Removing node by value");
+            //UtilityLogger.DebugLog("Removing node by value");
             return InnerLinkedList.Remove(value);
         }
 
         public void Remove(LinkedListNode<T> node)
         {
-            FileUtils.WriteLine("test.txt", "Removing node by reference");
+            //UtilityLogger.DebugLog("Removing node by reference");
             InnerLinkedList.Remove(node);
         }
 
@@ -190,8 +189,7 @@ namespace LogUtils
 
         public ILinkedListEnumerable<T> Where(Func<T, bool> predicate)
         {
-            FileUtils.WriteLine("test.txt", "Getting Where enumerable");
-
+            //UtilityLogger.DebugLog("Getting Where enumerable");
             if (AllowModificationsDuringIteration)
                 return new WhereEnumerable(GetLinkedListEnumerator(), predicate);
             return new WhereEnumerableWrapper(Enumerable.Where(this, predicate));
@@ -199,7 +197,7 @@ namespace LogUtils
 
         public IEnumerator<T> GetEnumerator()
         {
-            FileUtils.WriteLine("test.txt", "Getting enumerator");
+            //UtilityLogger.DebugLog("Getting enumerator");
             if (AllowModificationsDuringIteration)
                 return new Enumerator(this);
 
@@ -238,7 +236,6 @@ namespace LogUtils
 
             public Enumerator(BufferedLinkedList<T> list)
             {
-                FileUtils.WriteLine("test.txt", "Enumerator created");
                 items = list;
             }
 
@@ -246,8 +243,8 @@ namespace LogUtils
 
             public void Dispose()
             {
+                UtilityLogger.DebugLog("Disposing enumerator");
                 disposed = true;
-                FileUtils.WriteLine("test.txt", "Disposing enumerator");
                 Reset();
             }
 
@@ -258,11 +255,11 @@ namespace LogUtils
             public bool MoveNext()
             {
                 if (disposed)
-                    FileUtils.WriteLine("test.txt", "Accessing a disposed enumerator");
+                    UtilityLogger.DebugLog("Accessing a disposed enumerator");
 
                 if (items == null)
                 {
-                    UtilityCore.BaseLogger.LogWarning("Enumerator items list should not be null");
+                    UtilityLogger.LogWarning("Enumerator items list should not be null");
 
                     firstProcess = false; //Enumeration cannot start on an empty list
                     return false;
@@ -328,7 +325,6 @@ namespace LogUtils
 
             public void Dispose()
             {
-                //FileUtils.WriteLine("test.txt", "Disposing from enumerator wrapper");
             }
 
             /// <summary>
@@ -337,6 +333,12 @@ namespace LogUtils
             /// <returns>true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the collection.</returns>
             public bool MoveNext()
             {
+                if (innerEnumerator == null)
+                {
+                    UtilityLogger.LogWarning(nameof(innerEnumerator) + " should not be null");
+                    return false;
+                }
+
                 return innerEnumerator.MoveNext();
             }
 
@@ -409,15 +411,12 @@ namespace LogUtils
 
             public WhereEnumerator(ILinkedListEnumerator<T> enumerator, Func<T, bool> predicate)
             {
-                FileUtils.WriteLine("test.txt", "Where enumerator created");
-
                 this.innerEnumerator = enumerator;
                 this.predicate = predicate;
             }
 
             public void Dispose()
             {
-                //FileUtils.WriteLine("test.txt", "Disposing from where enumerator");
             }
 
             /// <summary>
@@ -426,6 +425,12 @@ namespace LogUtils
             /// <returns>true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the collection.</returns>
             public bool MoveNext()
             {
+                if (innerEnumerator == null)
+                {
+                    UtilityLogger.LogWarning(nameof(innerEnumerator) + " should not be null");
+                    return false;
+                }
+
                 bool predicateMatch = false;
                 while (!predicateMatch && innerEnumerator.MoveNext())
                 {

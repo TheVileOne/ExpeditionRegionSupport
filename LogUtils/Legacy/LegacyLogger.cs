@@ -89,7 +89,7 @@ namespace LogUtils.Legacy
             }
             catch (Exception ex)
             {
-                UtilityCore.LogError("Unable to replace existing log file", ex);
+                UtilityLogger.LogError("Unable to replace existing log file", ex);
             }
 
             applyEventHandlers();
@@ -120,7 +120,7 @@ namespace LogUtils.Legacy
                 //The found directory needs to be created if it doesn't yet exist, and the alternative directory removed
                 if (!Directory.Exists(BaseDirectory))
                 {
-                    UtilityCore.BaseLogger.LogInfo("Creating directory: " + BaseDirectory);
+                    UtilityLogger.Log("Creating directory: " + BaseDirectory);
                     Directory.CreateDirectory(BaseDirectory);
                 }
 
@@ -130,18 +130,18 @@ namespace LogUtils.Legacy
                 {
                     if (Directory.Exists(alternativeLogPath))
                     {
-                        UtilityCore.BaseLogger.LogInfo("Removing directory: " + alternativeLogPath);
+                        UtilityLogger.Log("Removing directory: " + alternativeLogPath);
                         Directory.Delete(alternativeLogPath, true);
                     }
                 }
                 catch (Exception ex)
                 {
-                    UtilityCore.LogError("Unable to delete log directory", ex);
+                    UtilityLogger.LogError("Unable to delete log directory", ex);
                 }
             }
             catch (Exception ex)
             {
-                UtilityCore.LogError("Unable to create log directory", ex);
+                UtilityLogger.LogError("Unable to create log directory", ex);
             }
 
             HasInitialized = true;
@@ -259,7 +259,7 @@ namespace LogUtils.Legacy
 
             string basePath = Path.GetFullPath(BaseDirectory).TrimEnd('\\');
 
-            UtilityCore.BaseLogger.LogInfo("Comparing " + path + " to  base " + basePath);
+            UtilityLogger.Log("Comparing " + path + " to  base " + basePath);
 
             return string.Equals(path, basePath, StringComparison.InvariantCultureIgnoreCase);
         }
@@ -302,7 +302,7 @@ namespace LogUtils.Legacy
             {
                 string path = signalData[2];
 
-                UtilityCore.BaseLogger.LogInfo("Log directory changed to " + path);
+                UtilityLogger.Log("Log directory changed to " + path);
 
                 OnMoveComplete?.Invoke(path);
                 BaseDirectory = path; //This gets updated last. It is needed for comparison purposes.
