@@ -21,7 +21,14 @@ namespace LogUtils.Properties
         {
             if (needToUpdate.Count == 0) return;
 
-            File.WriteAllText(propertyFile.FilePath, compileWriteString(needToUpdate));
+            string writeString = compileWriteString(needToUpdate);
+
+            propertyFile.PrepareStream();
+
+            StreamWriter writer = new StreamWriter(propertyFile.FileStream);
+
+            writer.WriteLine(writeString);
+            writer.Flush();
         }
 
         private string compileWriteString(List<LogProperties> updateList)

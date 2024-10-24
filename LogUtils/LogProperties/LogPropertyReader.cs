@@ -16,10 +16,11 @@ namespace LogUtils.Properties
 
         public IEnumerator<LogPropertyData> GetEnumerator()
         {
-            string filePath = propertyFile.FilePath;
-
-            if (!File.Exists(filePath))
+            //Avoid creating the property file during an attempt to read from it
+            if (propertyFile.IsClosed)
                 yield break;
+
+            propertyFile.PrepareStream();
 
             bool expectingNextEntry = true;
 
@@ -28,9 +29,13 @@ namespace LogUtils.Properties
             int commentCountForThisField = 0;
             List<CommentEntry> commentEntries = new List<CommentEntry>();
 
+            StreamReader reader = new StreamReader(propertyFile.FileStream);
+
             LogPropertyStringDictionary propertyInFile = null;
-            foreach (string line in File.ReadAllLines(filePath).Select(l => l.Trim()))
+            while (!reader.EndOfStream)
             {
+                string line = reader.ReadLine().Trim();
+
                 //An empty line separates each properties section
                 if (line == string.Empty)
                 {
