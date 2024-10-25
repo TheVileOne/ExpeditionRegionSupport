@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LogUtils
 {
@@ -20,7 +16,25 @@ namespace LogUtils
         public ChangeState(object target, string fieldName)
         {
             TargetObject = target;
-            TargetField = TargetObject.GetType().GetField(fieldName);
+
+            BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+
+            Type type = TargetObject.GetType();
+
+            //Checks for the first field match from all inherited types, starting with the most specific type
+            do
+            {
+                TargetField = Array.Find(type.GetFields(flags), field => field.Name == fieldName);
+
+                if (TargetField != null)
+                    break;
+                type = type.BaseType;
+            }
+            while (type.BaseType != null);
+
+            if (TargetField == null)
+                throw new InvalidOperationException("Field does not exist");
+
             FieldState = TargetField.GetValue(TargetObject);
         }
 

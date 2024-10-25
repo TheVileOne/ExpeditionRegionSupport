@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace LogUtils.Properties
 {
@@ -10,7 +9,16 @@ namespace LogUtils.Properties
         /// </summary>
         public LogRuleCollection Owner;
 
-        public bool ReadOnly => !IsTemporary || Owner?.ReadOnly == true;
+        public bool ReadOnly
+        {
+            get
+            {
+                //Temporary rules can always be changed, because the utility wont write this data to file, unlike a non-temporary rule
+                if (IsTemporary)
+                    return false;
+                return Owner?.ReadOnly == true;
+            }
+        }
 
         /// <summary>
         /// An unique string that identifies a particular LogRule. LogRules with the same value in this field will be treated as interchangable within the LogRuleCollection class
@@ -68,7 +76,8 @@ namespace LogUtils.Properties
 
         public bool IsTemporary { get; set; }
 
-        private bool _enabled = true;
+        private bool _enabled;
+
         public bool IsEnabled
         {
             get
