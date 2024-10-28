@@ -214,6 +214,12 @@ namespace LogUtils.Properties
         {
         }
 
+        protected override string ApplyRule(string message, LogEvents.LogMessageEventArgs logEventData)
+        {
+            //TODO: Padding doesn't work
+            return string.Format("[{0,-4}] {1}", logEventData.Category, message);
+        }
+
         protected override float GetPriority()
         {
             return 0.995f; //This rule has the second highest defined priority
@@ -224,6 +230,11 @@ namespace LogUtils.Properties
     {
         public ShowLineCountRule(bool enabled) : base(UtilityConsts.DataFields.Rules.SHOW_LINE_COUNT, enabled)
         {
+        }
+
+        protected override string ApplyRule(string message, LogEvents.LogMessageEventArgs logEventData)
+        {
+            return string.Format("[{0}] {1}", logEventData.Properties.MessagesLoggedThisSession, message);
         }
 
         protected override float GetPriority()

@@ -133,6 +133,7 @@ namespace LogUtils
 
                                     message = ApplyRules(logEntry);
                                     writer.WriteLine(message);
+                                    logEntry.Properties.MessagesLoggedThisSession++;
 
                                     //Keep StreamWriter open while LogID remains unchanged
                                     fileChanged = !LogCache.Any() || LogCache.Peek().ID != logEntry.ID;

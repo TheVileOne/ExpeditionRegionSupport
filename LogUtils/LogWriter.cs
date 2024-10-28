@@ -183,6 +183,7 @@ namespace LogUtils
                         {
                             message = ApplyRules(logEventData);
                             writer.WriteLine(message);
+                            logFile.Properties.MessagesLoggedThisSession++;
                         }
                     }
                 }

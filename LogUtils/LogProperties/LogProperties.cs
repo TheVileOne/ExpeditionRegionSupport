@@ -403,6 +403,8 @@ namespace LogUtils.Properties
         /// </summary>
         public LogRuleCollection Rules = new LogRuleCollection();
 
+        public int MessagesLoggedThisSession;
+
         public LogProperties(string propertyID, string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS)
         {
             UtilityLogger.DebugLog("Generating properties for " + propertyID);
@@ -634,6 +636,8 @@ namespace LogUtils.Properties
 
             if (LogFilter.FilteredStrings.TryGetValue(ID, out List<FilteredStringEntry> filter))
                 filter.RemoveAll(entry => entry.Duration == FilterDuration.OnClose);
+
+            MessagesLoggedThisSession = 0;
 
             if (!FileExists)
             {
