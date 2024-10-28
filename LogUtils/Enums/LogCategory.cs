@@ -198,11 +198,17 @@ namespace LogUtils.Enums
                 return Default;
             }
 
+            if (logType == LogType.Log)
+                return Default;
+
             //More typical enum type values can be translated directly to string
             return new LogCategory(logType.ToString());
         }
 
-        public static readonly LogCategory Default = Info;
+        static LogCategory()
+        {
+            Default = Info;
+        }
 
         public static readonly LogCategory All = new LogCategory("All", LogLevel.All, null);
         public static readonly LogCategory None = new LogCategory("None", LogLevel.None, LogType.Log);
@@ -214,5 +220,7 @@ namespace LogUtils.Enums
         public static readonly LogCategory Warning = new LogCategory("Warning", LogLevel.Warning, LogType.Warning);
         public static readonly LogCategory Error = new LogCategory("Error", LogLevel.Error, LogType.Error);
         public static readonly LogCategory Fatal = new LogCategory("Fatal", LogLevel.Fatal, LogType.Error);
+
+        public static readonly LogCategory Default;
     }
 }
