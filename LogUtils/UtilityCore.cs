@@ -58,9 +58,7 @@ namespace LogUtils
 
             initializingInProgress = true;
 
-            if (UtilityLogger.GetFilterTypeMaximum() < UtilityConsts.FILTER_MAX)
-                UtilityLogger.SetFilterTypeMaximum(UtilityConsts.FILTER_MAX); //Allow space for custom LogTypes to be defined
-
+            UtilityLogger.EnsureLogTypeCapacity(UtilityConsts.CUSTOM_LOGTYPE_LIMIT);
             UtilityLogger.Initialize();
 
             //This is before hooks are established. It is highly likely that the utility will load very early, and any mod could force it. Since we cannot control

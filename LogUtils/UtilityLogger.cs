@@ -41,20 +41,15 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Gets the LogType stored in the filterLogType property for Unity's logger converted to an integer
+        /// Ensures that the maximum LogType value able to be processed by the Unity logger is at least the specified capacity value </br>
         /// </summary>
-        internal static int GetFilterTypeMaximum()
+        /// <param name="capacity">The desired maximum FilterType value as an integer</param>
+        internal static void EnsureLogTypeCapacity(int capacity)
         {
-            return (int)Debug.unityLogger.filterLogType;
-        }
+            LogType capacityWanted = (LogType)capacity;
 
-        /// <summary>
-        /// Sets filterLogType property for Unity's logger to a desired value
-        /// </summary>
-        /// <param name="value">The value to convert to UnityEngine.LogType</param>
-        internal static void SetFilterTypeMaximum(int value)
-        {
-            Debug.unityLogger.filterLogType = (LogType)value;
+            if (Debug.unityLogger.filterLogType < capacityWanted)
+                Debug.unityLogger.filterLogType = capacityWanted;
         }
 
         public static void DebugLog(object data)
