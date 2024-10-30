@@ -1,5 +1,6 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
+using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Properties;
 using Menu;
@@ -88,6 +89,8 @@ namespace LogUtils
 
             RWInfo.LatestSetupPeriodReached = startupPeriod;
 
+            UtilityEvents.OnSetupPeriodReached += onSetupPeriodReached;
+
             LoadComponents();
 
             LogID.InitializeLogIDs(); //This should be called for every assembly that initializes
@@ -128,6 +131,26 @@ namespace LogUtils
             {
                 IsControllingAssembly = true;
                 PropertyManager.SetPropertiesFromFile();
+            }
+        }
+
+        private static void onSetupPeriodReached(SetupPeriodEventArgs e)
+        {
+            if (e.CurrentPeriod > e.LastPeriod)
+            {
+                RWInfo.LatestSetupPeriodReached = e.CurrentPeriod;
+
+                if (RWInfo.LatestSetupPeriodReached == SetupPeriod.RWAwake)
+                {
+                    //When the game starts, we need to clean up old log files. Any mod that wishes to access these files
+                    //must do so in their plugin's OnEnable, or Awake method
+                    PropertyManager.CompleteStartupRoutine();
+                }
+                else
+                {
+                    //In every other situation the period changes, we process requests that may have gone unhandled since the last setup period
+                    RequestHandler.ProcessRequests();
+                }
             }
         }
 

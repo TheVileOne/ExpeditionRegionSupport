@@ -1,4 +1,5 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Events;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,7 +13,7 @@ namespace LogUtils
     /// </summary>
     public class QueueLogWriter : LogWriter
     {
-        internal Queue<LogEvents.LogMessageEventArgs> LogCache = new Queue<LogEvents.LogMessageEventArgs>();
+        internal Queue<LogMessageEventArgs> LogCache = new Queue<LogMessageEventArgs>();
 
         private bool writingFromBuffer;
 
@@ -60,7 +61,7 @@ namespace LogUtils
             }
         }
 
-        internal bool InternalWriteToBuffer(LogEvents.LogMessageEventArgs logEventData)
+        internal bool InternalWriteToBuffer(LogMessageEventArgs logEventData)
         {
             OnLogMessageReceived(logEventData);
 
@@ -152,7 +153,7 @@ namespace LogUtils
 
                     if (!RWInfo.CheckExceptionMatch(logEntry.ID, exceptionInfo)) //Only log unreported exceptions
                     {
-                        logEntry = new LogEvents.LogMessageEventArgs(logEntry.ID, ex, LogCategory.Error);
+                        logEntry = new LogMessageEventArgs(logEntry.ID, ex, LogCategory.Error);
 
                         RWInfo.ReportException(logEntry.ID, exceptionInfo);
 

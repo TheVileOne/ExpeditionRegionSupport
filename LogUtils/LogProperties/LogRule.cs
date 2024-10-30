@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogUtils.Events;
+using System;
 
 namespace LogUtils.Properties
 {
@@ -175,7 +176,7 @@ namespace LogUtils.Properties
             Name = name;
         }
 
-        public void Apply(ref string message, LogEvents.LogMessageEventArgs logEventData)
+        public void Apply(ref string message, LogMessageEventArgs logEventData)
         {
             if (TemporaryOverride != null)
             {
@@ -185,7 +186,7 @@ namespace LogUtils.Properties
             message = ApplyRule(message, logEventData);
         }
 
-        protected virtual string ApplyRule(string message, LogEvents.LogMessageEventArgs logEventData)
+        protected virtual string ApplyRule(string message, LogMessageEventArgs logEventData)
         {
             return message;
         }
@@ -205,7 +206,7 @@ namespace LogUtils.Properties
             return ToPropertyString();
         }
 
-        public delegate string ApplyDelegate(string message, LogEvents.LogMessageEventArgs logEventData);
+        public delegate string ApplyDelegate(string message, LogMessageEventArgs logEventData);
     }
 
     public class ShowCategoryRule : LogRule
@@ -214,7 +215,7 @@ namespace LogUtils.Properties
         {
         }
 
-        protected override string ApplyRule(string message, LogEvents.LogMessageEventArgs logEventData)
+        protected override string ApplyRule(string message, LogMessageEventArgs logEventData)
         {
             //TODO: Padding doesn't work
             return string.Format("[{0,-4}] {1}", logEventData.Category, message);
@@ -232,7 +233,7 @@ namespace LogUtils.Properties
         {
         }
 
-        protected override string ApplyRule(string message, LogEvents.LogMessageEventArgs logEventData)
+        protected override string ApplyRule(string message, LogMessageEventArgs logEventData)
         {
             return string.Format("[{0}] {1}", logEventData.Properties.MessagesLoggedThisSession, message);
         }

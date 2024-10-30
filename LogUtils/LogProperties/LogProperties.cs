@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using BepInEx.Logging;
 using LogUtils.Enums;
+using LogUtils.Events;
 using LogUtils.Helpers;
 using RWCustom;
 using DataFields = LogUtils.UtilityConsts.DataFields;
@@ -19,7 +20,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// Events triggers at the start, or the end of a log session
         /// </summary>
-        public event LogEvents.LogStreamEventHandler OnLogSessionStart, OnLogSessionFinish;
+        public event LogStreamEventHandler OnLogSessionStart, OnLogSessionFinish;
 
         public bool FileExists
         {
@@ -438,14 +439,14 @@ namespace LogUtils.Properties
             //Some game logs have hardcoded intro messages - Display these messages before any other content
             if (propertyID == UtilityConsts.LogNames.Expedition)
             {
-                OnLogSessionStart += (LogEvents.LogStreamEventArgs e) =>
+                OnLogSessionStart += (LogStreamEventArgs e) =>
                 {
                     e.Writer.WriteLine("[EXPEDITION LOGGER] - " + DateTime.Now);
                 };
             }
             else if (propertyID == UtilityConsts.LogNames.JollyCoop)
             {
-                OnLogSessionStart += (LogEvents.LogStreamEventArgs e) =>
+                OnLogSessionStart += (LogStreamEventArgs e) =>
                 {
                     RainWorld.BuildType buildType = Custom.rainWorld?.buildType ?? default;
                     e.Writer.WriteLine(string.Format("############################################\n Jolly Coop Log {0} [DEBUG LEVEL: {1}]\n", 0, buildType));
@@ -473,7 +474,7 @@ namespace LogUtils.Properties
                 Rules.Remove(property.Name);
         }
 
-        private void LogProperties_OnLogSessionStart(LogEvents.LogStreamEventArgs e)
+        private void LogProperties_OnLogSessionStart(LogStreamEventArgs e)
         {
             if (IsWriteRestricted) return;
 
@@ -484,7 +485,7 @@ namespace LogUtils.Properties
                 e.Writer.WriteLine($"[{DateTime.Now}]");
         }
 
-        private void LogProperties_OnLogSessionFinish(LogEvents.LogStreamEventArgs e)
+        private void LogProperties_OnLogSessionFinish(LogStreamEventArgs e)
         {
             if (IsWriteRestricted) return;
 
@@ -607,7 +608,7 @@ namespace LogUtils.Properties
                         {
                             using (StreamWriter writer = new StreamWriter(stream))
                             {
-                                OnLogSessionStart(new LogEvents.LogStreamEventArgs(ID, writer));
+                                OnLogSessionStart(new LogStreamEventArgs(ID, writer));
                             };
 
                             LogSessionActive = true;
@@ -661,7 +662,7 @@ namespace LogUtils.Properties
                         {
                             using (StreamWriter writer = new StreamWriter(stream))
                             {
-                                OnLogSessionFinish(new LogEvents.LogStreamEventArgs(ID, writer));
+                                OnLogSessionFinish(new LogStreamEventArgs(ID, writer));
                             };
                         }
                     }
@@ -682,7 +683,7 @@ namespace LogUtils.Properties
         /// </summary>
         public void NotifyPathChanged()
         {
-            LogEvents.OnPathChanged?.Invoke(new LogEvents.LogEventArgs(this));
+            UtilityEvents.OnPathChanged?.Invoke(new Events.LogEventArgs(this));
         }
 
         /// <summary>

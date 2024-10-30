@@ -1,4 +1,5 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Events;
 using System.Threading;
 
 namespace LogUtils
@@ -13,7 +14,7 @@ namespace LogUtils
         private int managedThreadID = -1;
 
         public event LogRequestEventHandler StatusChanged;
-        public LogEvents.LogMessageEventArgs Data;
+        public LogMessageEventArgs Data;
 
         /// <summary>
         /// Request has been handled, and no more attempts to process the request should be made
@@ -33,7 +34,7 @@ namespace LogUtils
 
         public RejectionReason UnhandledReason { get; private set; }
 
-        public LogRequest(RequestType type, LogEvents.LogMessageEventArgs data)
+        public LogRequest(RequestType type, LogMessageEventArgs data)
         {
             Data = data;
             Status = RequestStatus.Pending;

@@ -1,5 +1,6 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
+using LogUtils.Events;
 using LogUtils.Properties;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -131,19 +132,13 @@ namespace LogUtils
 
         private static void RainWorld_Awake(On.RainWorld.orig_Awake orig, RainWorld self)
         {
-            if (RWInfo.LatestSetupPeriodReached < SetupPeriod.RWAwake)
-            {
-                RWInfo.LatestSetupPeriodReached = SetupPeriod.RWAwake;
-
-                //Any mod that wishes to access old files before they are removed must do so in their plugin's OnEnable, or Awake method
-                LogProperties.PropertyManager.CompleteStartupRoutine();
-            }
-
             UtilityCore.ThreadID = Thread.CurrentThread.ManagedThreadId; //Used for debug purposes
             RainWorld._loggingLock = UtilityCore.RequestHandler.RequestProcessLock;
 
             //Utility bypasses attempts to define this from the game code. Avoid any potential null references 
             JollyCoop.JollyCustom.logCache = new Queue<JollyCoop.LogElement>();
+
+            RWInfo.NotifyOnPeriodReached(SetupPeriod.RWAwake);
             orig(self);
         }
 
@@ -204,22 +199,13 @@ namespace LogUtils
 
         private static void RainWorld_PreModsInit(On.RainWorld.orig_PreModsInit orig, RainWorld self)
         {
-            if (RWInfo.LatestSetupPeriodReached < SetupPeriod.PreMods)
-            {
-                RWInfo.LatestSetupPeriodReached = SetupPeriod.PreMods;
-                UtilityCore.RequestHandler.ProcessRequests();
-            }
-
+            RWInfo.NotifyOnPeriodReached(SetupPeriod.PreMods);
             orig(self);
         }
 
         private static void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
         {
-            if (RWInfo.LatestSetupPeriodReached < SetupPeriod.ModsInit)
-            {
-                RWInfo.LatestSetupPeriodReached = SetupPeriod.ModsInit;
-                UtilityCore.RequestHandler.ProcessRequests();
-            }
+            RWInfo.NotifyOnPeriodReached(SetupPeriod.ModsInit);
 
             disableLogClearing = true;
             orig(self);
@@ -231,12 +217,7 @@ namespace LogUtils
         /// </summary>
         private static void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)
         {
-            if (RWInfo.LatestSetupPeriodReached < SetupPeriod.PostMods)
-            {
-                RWInfo.LatestSetupPeriodReached = SetupPeriod.PostMods;
-                UtilityCore.RequestHandler.ProcessRequests();
-            }
-
+            RWInfo.NotifyOnPeriodReached(SetupPeriod.PostMods);
             orig(self);
 
             //TODO: It could be guaranteed that this runs after all hooks by setting a flag here, that is checked in ModManager.CheckInitIssues,
@@ -368,7 +349,7 @@ namespace LogUtils
 
                 LogRequest createRequest()
                 {
-                    return new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(logFile, logTarget, LogCategory.ToCategory(logLevel)));
+                    return new LogRequest(RequestType.Game, new LogMessageEventArgs(logFile, logTarget, LogCategory.ToCategory(logLevel)));
                 }
             }
         }
@@ -397,7 +378,7 @@ namespace LogUtils
 
                 if (request == null)
                 {
-                    request = UtilityCore.RequestHandler.TrySubmit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Exception, exceptionString)), false);
+                    request = UtilityCore.RequestHandler.TrySubmit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.Exception, exceptionString)), false);
 
                     if (request.Status == RequestStatus.Rejected)
                         return;
@@ -429,7 +410,7 @@ namespace LogUtils
 
                 if (request == null)
                 {
-                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Unity, logString)), false);
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.Unity, logString)), false);
 
                     if (request.Status == RequestStatus.Rejected)
                         return false;
@@ -516,7 +497,7 @@ namespace LogUtils
                     //Ensure that request is always constructed before a message is logged
                     if (request == null)
                     {
-                        request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Expedition, logString)), false);
+                        request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.Expedition, logString)), false);
 
                         if (request.Status == RequestStatus.Rejected)
                             return;
@@ -611,7 +592,7 @@ namespace LogUtils
                     if (request == null)
                     {
                         LogCategory category = !isErrorMessage ? LogCategory.Default : LogCategory.Error;
-                        request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.JollyCoop, logString, category)), false);
+                        request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.JollyCoop, logString, category)), false);
 
                         if (request.Status == RequestStatus.Rejected)
                             return false;
@@ -746,7 +727,7 @@ namespace LogUtils
 
                     if (request == null)
                     {
-                        request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.BepInEx, data, category)), false);
+                        request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.BepInEx, data, category)), false);
 
                         if (request.Status == RequestStatus.Rejected)
                             return false;

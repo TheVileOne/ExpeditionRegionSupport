@@ -1,5 +1,6 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
+using LogUtils.Events;
 using LogUtils.Helpers;
 using System;
 using System.IO;
@@ -113,12 +114,12 @@ namespace LogUtils
                         {
                             RWInfo.ReportException(LogID.Exception, exceptionInfo);
 
-                            UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Exception, exceptionInfo, category)), false);
+                            UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.Exception, exceptionInfo, category)), false);
                         }
                         return;
                     }
 
-                    UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Unity, message, category)), false);
+                    UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.Unity, message, category)), false);
                 }
             }
         }

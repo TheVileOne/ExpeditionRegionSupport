@@ -1,4 +1,6 @@
-﻿namespace LogUtils.Properties
+﻿using LogUtils.Events;
+
+namespace LogUtils.Properties
 {
     /// <summary>
     /// A LogRule that stores its apply logic inside of a delegate
@@ -27,7 +29,7 @@
             RuleAction = action;
         }
 
-        protected override string ApplyRule(string message, LogEvents.LogMessageEventArgs logEventData)
+        protected override string ApplyRule(string message, LogMessageEventArgs logEventData)
         {
             return RuleAction.Invoke(message, logEventData);
         }

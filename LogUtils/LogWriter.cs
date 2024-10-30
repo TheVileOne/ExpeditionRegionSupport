@@ -1,4 +1,5 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Events;
 using LogUtils.Properties;
 using System;
 using System.IO;
@@ -124,7 +125,7 @@ namespace LogUtils
         public void WriteToFile(LogID logFile, string message)
         {
             RequestType requestType = logFile.IsGameControlled ? RequestType.Game : RequestType.Local;
-            LogEvents.LogMessageEventArgs logEventData = new LogEvents.LogMessageEventArgs(logFile, message);
+            LogMessageEventArgs logEventData = new LogMessageEventArgs(logFile, message);
 
             WriteFrom(new LogRequest(requestType, logEventData));
         }
@@ -143,7 +144,7 @@ namespace LogUtils
             return logFile.Properties.LogSessionActive;
         }
 
-        internal bool InternalWriteToFile(LogEvents.LogMessageEventArgs logEventData)
+        internal bool InternalWriteToFile(LogMessageEventArgs logEventData)
         {
             OnLogMessageReceived(logEventData);
 
@@ -196,7 +197,7 @@ namespace LogUtils
             }
         }
 
-        public string ApplyRules(LogEvents.LogMessageEventArgs logEventData)
+        public string ApplyRules(LogMessageEventArgs logEventData)
         {
             string message = logEventData.Message;
             var activeRules = logEventData.Properties.Rules.Where(r => r.IsEnabled);
@@ -206,9 +207,9 @@ namespace LogUtils
             return message;
         }
 
-        protected virtual void OnLogMessageReceived(LogEvents.LogMessageEventArgs e)
+        protected virtual void OnLogMessageReceived(LogMessageEventArgs e)
         {
-            LogEvents.OnMessageReceived?.Invoke(e);
+            UtilityEvents.OnMessageReceived?.Invoke(e);
         }
 
         /// <summary>
@@ -226,7 +227,7 @@ namespace LogUtils
                 return;
             }
 
-            LogEvents.OnMessageReceived?.Invoke(request.Data);
+            UtilityEvents.OnMessageReceived?.Invoke(request.Data);
         }
 
         /// <summary>
@@ -263,6 +264,6 @@ namespace LogUtils
         public void ResetFile(LogID logFile);
         internal void WriteFrom(LogRequest request);
         internal void WriteToFile(LogID logFile, string message);
-        internal string ApplyRules(LogEvents.LogMessageEventArgs logEventData);
+        internal string ApplyRules(LogMessageEventArgs logEventData);
     }
 }

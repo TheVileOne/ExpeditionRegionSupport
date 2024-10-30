@@ -2,6 +2,7 @@
 using Expedition;
 using JollyCoop;
 using LogUtils.Enums;
+using LogUtils.Events;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -151,7 +152,7 @@ namespace LogUtils
                 //CurrentRequest has already passed preprocess validation checks if this is not null
                 if (request == null)
                 {
-                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.Expedition, data, category)), false);
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.Expedition, data, category)), false);
 
                     if (request.Status == RequestStatus.Rejected)
                         return;
@@ -183,7 +184,7 @@ namespace LogUtils
                 //CurrentRequest has already passed preprocess validation checks if this is not null
                 if (request == null)
                 {
-                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogEvents.LogMessageEventArgs(LogID.JollyCoop, data, category)), false);
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.JollyCoop, data, category)), false);
 
                     if (request.Status == RequestStatus.Rejected)
                         return;

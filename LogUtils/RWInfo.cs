@@ -1,4 +1,5 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Events;
 using System.Collections.Generic;
 
 namespace LogUtils
@@ -30,16 +31,17 @@ namespace LogUtils
                 UtilityCore.Initialize();
         }
 
-        //private static SharedField<SetupPeriod> _latestSetupPeriodReached = UtilityCore.DataHandler.GetField<SetupPeriod>(nameof(LatestSetupPeriodReached));
-
         /// <summary>
-        /// The latest point in the initialization process that Rain World has reached since the application began
+        /// The latest point in the initialization process that Rain World has reached since the application began </br>
+        /// Note: Do not modify directly, use NotifyOnPeriodReached instead
         /// </summary>
-        public static SetupPeriod LatestSetupPeriodReached = SetupPeriod.Pregame;
-        /*{
-            get => _latestSetupPeriodReached.Value;
-            set => _latestSetupPeriodReached.Value = value;
-        }*/
+        public static SetupPeriod LatestSetupPeriodReached;
+
+        public static void NotifyOnPeriodReached(SetupPeriod period)
+        {
+            //Wont be null
+            UtilityEvents.OnSetupPeriodReached.Invoke(new SetupPeriodEventArgs(LatestSetupPeriodReached, period));
+        }
 
         public static void ReportException(LogID logID, ExceptionInfo exceptionInfo)
         {

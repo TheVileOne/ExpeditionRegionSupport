@@ -1,5 +1,6 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
+using LogUtils.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -624,7 +625,7 @@ namespace LogUtils
                 requestType = RequestType.Remote;
             }
 
-            LogRequest request = new LogRequest(requestType, new LogEvents.LogMessageEventArgs(target, data, category)
+            LogRequest request = new LogRequest(requestType, new LogMessageEventArgs(target, data, category)
             {
                 LogSource = ManagedLogSource
             });
