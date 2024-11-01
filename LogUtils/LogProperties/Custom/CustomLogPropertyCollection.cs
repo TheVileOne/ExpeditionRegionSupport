@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace LogUtils.Properties
+namespace LogUtils.Properties.Custom
 {
     public class CustomLogPropertyCollection : IEnumerable<CustomLogProperty>
     {

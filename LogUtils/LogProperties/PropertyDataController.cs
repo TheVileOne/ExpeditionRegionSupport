@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using LogUtils.Enums;
 using LogUtils.Helpers;
+using LogUtils.Properties.Custom;
 
 namespace LogUtils.Properties
 {

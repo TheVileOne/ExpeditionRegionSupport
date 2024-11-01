@@ -7,7 +7,7 @@ using BepInEx.Logging;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
-using RWCustom;
+using LogUtils.Properties.Custom;
 using DataFields = LogUtils.UtilityConsts.DataFields;
 
 namespace LogUtils.Properties
@@ -448,7 +448,7 @@ namespace LogUtils.Properties
             {
                 OnLogSessionStart += (LogStreamEventArgs e) =>
                 {
-                    RainWorld.BuildType buildType = Custom.rainWorld?.buildType ?? default;
+                    RainWorld.BuildType buildType = RWCustom.Custom.rainWorld?.buildType ?? default;
                     e.Writer.WriteLine(string.Format("############################################\n Jolly Coop Log {0} [DEBUG LEVEL: {1}]\n", 0, buildType));
                 };
             }
@@ -836,7 +836,7 @@ namespace LogUtils.Properties
             UtilityLogger.Log("Attempting to resolve path");
 
             //Resolve directory the game supported way if we're not too early to do so (most likely will be too early)
-            if (Custom.rainWorld != null)
+            if (RWCustom.Custom.rainWorld != null)
                 return AssetManager.ResolveDirectory(path);
 
             UtilityLogger.Log("Defaulting to custom root. Path check run too early to resolve");
