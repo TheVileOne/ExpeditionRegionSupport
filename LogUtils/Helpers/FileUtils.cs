@@ -16,9 +16,20 @@ namespace LogUtils.Helpers
             stream = null;
         }
 
-        public static string RemoveExtension(string filename)
+        public static string GetFilenameWithoutExtension(string filename, out string fileExt)
         {
-            return Path.ChangeExtension(filename, string.Empty);
+            if (filename != null)
+            {
+                int extIndex = filename.LastIndexOf('.');
+
+                if (extIndex != -1 && extIndex != filename.Length)
+                {
+                    fileExt = filename.Substring(extIndex + 1);
+                    return filename.Substring(0, extIndex);
+                }
+            }
+            fileExt = string.Empty;
+            return filename;
         }
 
         public static string GetExtension(string filename, bool normalize = true)
@@ -26,6 +37,16 @@ namespace LogUtils.Helpers
             if (normalize)
                 return Path.GetExtension(filename).ToLower();
             return Path.GetExtension(filename);
+        }
+
+        public static string RemoveExtension(string filename)
+        {
+            return Path.ChangeExtension(filename, string.Empty);
+        }
+
+        public static string TransferExtension(string transferFrom, string transferTo)
+        {
+            return Path.ChangeExtension(transferTo, GetExtension(transferFrom));
         }
 
         /// <summary>

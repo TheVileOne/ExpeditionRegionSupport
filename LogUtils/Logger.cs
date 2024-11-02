@@ -659,7 +659,7 @@ namespace LogUtils
             if (logID.IsGameControlled) return false; //This check is here to prevent TryHandleRequest from potentially handling requests that should be handled by a GameLogger
 
             //Find the LogID equivalent accepted by the Logger instance - only one LogID with this value can be stored
-            LogID loggerID = LogTargets.Find(log => log.Properties.IDMatch(logID));
+            LogID loggerID = LogTargets.Find(log => log.Properties.HasID(logID));
 
             //Enabled status is currently not evaluated here - It is unclear whether it should be part of the access check
             if (loggerID != null)

@@ -172,7 +172,7 @@ namespace LogUtils.Properties
 
         public IEnumerable<LogProperties> GetProperties(LogID logID)
         {
-            return Properties.Where(p => p.IDMatch(logID));
+            return Properties.Where(p => p.HasID(logID));
         }
 
         /// <summary>

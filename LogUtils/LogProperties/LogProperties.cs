@@ -144,11 +144,6 @@ namespace LogUtils.Properties
             }
         }
 
-        public bool IDMatch(LogID logID)
-        {
-            return ID == logID;
-        }
-
         public ManualLogSource LogSource
         {
             get
@@ -789,11 +784,102 @@ namespace LogUtils.Properties
             return GetWriteString();
         }
 
+        internal string[] GetFilenamesToCompare(MatchOptions matchOptions)
+        {
+            if ((matchOptions & MatchOptions.Basic) != 0)
+            {
+                return new string[3]
+                {
+                    _idValue,
+                    Filename,
+                    CurrentFilename,
+                };
+            }
+
+            if ((matchOptions & MatchOptions.All) != 0)
+            {
+                return new string[4]
+                {
+                    _idValue,
+                    Filename,
+                    CurrentFilename,
+                    AltFilename
+                };
+            }
+
+            List<string> matchStrings = new List<string>();
+
+            if ((matchOptions & MatchOptions.ID) != 0)
+                matchStrings.Add(_idValue);
+            if ((matchOptions & MatchOptions.Filename) != 0)
+                matchStrings.Add(Filename);
+            if ((matchOptions & MatchOptions.CurrentFilename) != 0)
+                matchStrings.Add(CurrentFilename);
+            if ((matchOptions & MatchOptions.AltFilename) != 0)
+                matchStrings.Add(AltFilename);
+            return matchStrings.ToArray();
+        }
+
         public string GetWriteString(List<CommentEntry> comments = null)
         {
             LogPropertyStringDictionary dataFields = ToDictionary();
 
             return dataFields.ToString(comments, true);
+        }
+
+        /// <summary>
+        /// Compares a filename against one, or more filename fields controlled by the properties instance
+        /// <br>
+        /// Filename is not case sensitive; file extension is unused
+        /// </br>
+        /// <param name="filename">The filename to compare</param>
+        /// <param name="matchOptions">Represents options for specific filename fields</param>
+        public bool HasFilename(string filename, MatchOptions matchOptions)
+        {
+            if (filename != null)
+            {
+                filename = Path.GetFileNameWithoutExtension(filename);
+
+                string[] compareOptions = GetFilenamesToCompare(matchOptions);
+                return filename.MatchAny(EqualityComparer.StringComparerIgnoreCase, compareOptions);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Compares a filename against one, or more filename fields controlled by the properties instance
+        /// <br>
+        /// Filename is not case sensitive; file extension is unused
+        /// </br>
+        /// </summary>
+        /// <param name="filename">The filename to compare</param>
+        /// <param name="relativePathNoFile">The filepath to compare. When set to null, the filepath check will be skipped</param>
+        /// <param name="matchOptions">Represents options for specific filename fields</param>
+        public bool HasFilename(string filename, string relativePathNoFile, MatchOptions matchOptions)
+        {
+            if (!HasFilename(filename, matchOptions))
+                return false;
+
+            if (IsPathWildcard(relativePathNoFile))
+                return true;
+
+            return HasFolderPath(GetContainingPath(relativePathNoFile));
+        }
+
+        /// <summary>
+        /// Compares a folder path to the original, and current folder path fields
+        /// </summary>
+        /// <param name="relativePathNoFile">The path to compare</param>
+        /// <returns>Returns whether a match was found</returns>
+        public bool HasFolderPath(string relativePathNoFile)
+        {
+            return PathUtils.PathsAreEqual(relativePathNoFile, OriginalFolderPath)
+                || PathUtils.PathsAreEqual(relativePathNoFile, CurrentFolderPath);
+        }
+
+        public bool HasID(LogID logID)
+        {
+            return ID == logID;
         }
 
         public static string GetContainingPath(string relativePath)
@@ -854,5 +940,17 @@ namespace LogUtils.Properties
         {
             return name + ':' + value;
         }
+    }
+
+    [Flags]
+    public enum MatchOptions
+    {
+        None = 0,
+        ID = 1, //Compare against the ID field
+        Filename = 2, //Compare against the Filename field
+        CurrentFilename = 4, //Compare against the CurrentFilename field
+        AltFilename = 8, //Compare against the AltFilename field
+        Basic = ID & Filename & CurrentFilename,
+        All = Basic & AltFilename
     }
 }

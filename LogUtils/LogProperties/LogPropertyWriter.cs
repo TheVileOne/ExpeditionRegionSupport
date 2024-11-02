@@ -42,7 +42,7 @@ namespace LogUtils.Properties
 
                 if (dataID != null) //Invalid entry when dataID is null - do not include it in write string 
                 {
-                    LogProperties properties = updateList.Find(p => p.IDMatch(new ComparisonLogID(dataID)));
+                    LogProperties properties = updateList.Find(p => p.HasID(new ComparisonLogID(dataID)));
 
                     //Determine if data should be added to the write string as is, or if updates are required
                     if (properties == null)

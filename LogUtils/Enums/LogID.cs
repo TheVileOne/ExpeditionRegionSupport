@@ -152,44 +152,61 @@ namespace LogUtils.Enums
 
         /// <summary>
         /// Finds a registered LogID with the given filename, and path
+        /// <br>
+        /// Compares ID, Filename, and CurrentFilename fields
+        /// </br>
         /// </summary>
         /// <param name="filename">The filename to search for</param>
         /// <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
         public static LogID Find(string filename, string relativePathNoFile)
         {
-            return FindAll(filename, relativePathNoFile).FirstOrDefault();
-        }
+            IEnumerable<LogID> results = FindAll(filename, MatchOptions.Basic);
 
-        /// <summary>
-        /// Finds all registered LogID with the given filename, and path
-        /// </summary>
-        /// <param name="filename">The filename to search for</param>
-        /// <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
-        public static IEnumerable<LogID> FindAll(string filename, string relativePathNoFile)
-        {
-            //Convert string data into something that can be compared to stored file data
-            string logName = Path.GetFileNameWithoutExtension(filename);
-            string logPath = LogProperties.GetContainingPath(relativePathNoFile);
+            if (!results.Any())
+                return null;
 
             bool searchForAnyPath = LogProperties.IsPathWildcard(relativePathNoFile);
+            string searchPath = LogProperties.GetContainingPath(relativePathNoFile);
 
-            foreach (LogProperties properties in LogProperties.PropertyManager.Properties)
+            LogID bestCandidate = null;
+            foreach (LogID logID in results)
             {
-                bool filenameMatch = logName.MatchAny(EqualityComparer.StringComparerIgnoreCase, properties.Filename, properties.CurrentFilename);
-
-                if (filenameMatch && (searchForAnyPath || hasPathMatch()))
-                    yield return properties.ID;
-
-                bool hasPathMatch()
+                if (logID.Properties.HasFolderPath(searchPath))
                 {
-                    return PathUtils.PathsAreEqual(logPath, properties.OriginalFolderPath)
-                        || PathUtils.PathsAreEqual(logPath, properties.CurrentFolderPath);
+                    bestCandidate = logID;
+                    break; //Best match has been found
                 }
+
+                if (searchForAnyPath && bestCandidate == null) //First match is prioritized over any other match when all paths are valid
+                    bestCandidate = logID;
             }
+            return bestCandidate;
         }
 
         /// <summary>
-        /// Finds all registered LogIDs with the given filename, and path
+        /// Finds all registered LogID with the given filename
+        /// <br>
+        /// Compares ID, Filename, and CurrentFilename fields
+        /// </br>
+        /// </summary>
+        /// <param name="filename">The filename to search for</param>
+        public static IEnumerable<LogID> FindAll(string filename)
+        {
+            return FindAll(filename, MatchOptions.Basic);
+        }
+
+        /// <summary>
+        /// Finds all registered LogID with the given filename
+        /// </summary>
+        /// <param name="filename">The filename to search for</param>
+        /// <param name="matchOptions">Represents options that determine which fields to check against</param>
+        public static IEnumerable<LogID> FindAll(string filename, MatchOptions matchOptions)
+        {
+            return LogProperties.PropertyManager.Properties.Where(p => p.HasFilename(filename, matchOptions)).Select(p => p.ID);
+        }
+
+        /// <summary>
+        /// Finds all registered LogIDs with the given tags
         /// </summary>
         public static LogID[] FindByTag(params string[] tags)
         {

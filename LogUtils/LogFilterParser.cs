@@ -72,7 +72,7 @@ namespace LogUtils
                         }
                         else
                         {
-                            IEnumerable<LogID> nameMatches = LogID.FindAll(value, null);
+                            IEnumerable<LogID> nameMatches = LogID.FindAll(value);
                             IEnumerable<LogID> tagMatches = LogID.FindByTag(value, null);
 
                             headerInfo.TargetIDs = nameMatches.Union(tagMatches).ToArray();

@@ -111,7 +111,7 @@ namespace LogUtils
 
         public ILinkedListEnumerable<LogRequest> GetRequests(LogID logFile)
         {
-            return UnhandledRequests.Where(req => req.Data.Properties.IDMatch(logFile));
+            return UnhandledRequests.Where(req => req.Data.Properties.HasID(logFile));
         }
 
         /// <summary>
@@ -424,7 +424,7 @@ namespace LogUtils
                     foreach (LogRequest request in requests)
                     {
                         if (lastRequest != null)
-                            shouldFetchLoggers = !lastRequest.Data.Properties.IDMatch(request.Data.ID); //TODO: Need to check for path here
+                            shouldFetchLoggers = !lastRequest.Data.Properties.HasID(request.Data.ID); //TODO: Need to check for path here
 
                         if (shouldFetchLoggers)
                         {
