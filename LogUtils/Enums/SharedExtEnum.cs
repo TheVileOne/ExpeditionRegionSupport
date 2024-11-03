@@ -2,7 +2,7 @@
 
 namespace LogUtils.Enums
 {
-    public class SharedExtEnum<T> : ExtEnum<T>, IShareable where T : SharedExtEnum<T>, IShareable
+    public class SharedExtEnum<T> : ExtEnum<T>, IComparable, IComparable<T>, IShareable where T : SharedExtEnum<T>, IShareable
     {
         public override int Index
         {
@@ -141,6 +141,25 @@ namespace LogUtils.Enums
         public virtual bool CheckTag(string tag)
         {
             return string.Equals(value, tag, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        public int CompareTo(T value)
+        {
+            if (value == null)
+                return int.MaxValue;
+
+            return Index - value.Index;
+        }
+
+        public new int CompareTo(object value)
+        {
+            if (value == null)
+                return int.MaxValue;
+
+            if (value is not T)
+                throw new ArgumentException(string.Format("Object must be the same type as the extEnum. The type passed in was {0}; the extEnum type was {1}.", value.GetType(), enumType));
+
+            return CompareTo((T)value);
         }
     }
 

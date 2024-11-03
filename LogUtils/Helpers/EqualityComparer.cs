@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 
 namespace LogUtils.Helpers
@@ -14,6 +13,26 @@ namespace LogUtils.Helpers
         {
             //I don't know how to hashcode - I guess this will work
             return obj?.GetHashCode() ?? 0;
+        }
+
+        public static StringComparer GetComparer(StringComparison compareOption)
+        {
+            switch (compareOption)
+            {
+                case StringComparison.CurrentCulture:
+                    return StringComparer.CurrentCulture;
+                case StringComparison.CurrentCultureIgnoreCase:
+                    return StringComparer.CurrentCultureIgnoreCase;
+                case StringComparison.InvariantCulture:
+                    return StringComparer.InvariantCulture;
+                case StringComparison.InvariantCultureIgnoreCase:
+                    return StringComparer.InvariantCultureIgnoreCase;
+                case StringComparison.Ordinal:
+                    return StringComparer.Ordinal;
+                case StringComparison.OrdinalIgnoreCase:
+                    return StringComparer.OrdinalIgnoreCase;
+            }
+            throw new ArgumentException("Invalid comparison option");
         }
     }
 
