@@ -1,4 +1,4 @@
-﻿using LogUtils.Helpers;
+﻿using LogUtils.Helpers.Comparers;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -63,7 +63,7 @@ namespace LogUtils.Properties
                 }
 
                 //Evaluate key against value at current sort index
-                if (EqualityComparer.StringComparerIgnoreCase.Equals(key, sortOrder[sortIndex]))
+                if (ComparerUtils.StringComparerIgnoreCase.Equals(key, sortOrder[sortIndex]))
                 {
                     sortIndex++;
                     checkUnsorted = true;
@@ -75,7 +75,7 @@ namespace LogUtils.Properties
                  * We know the order has been interrupted somehow either by a missing field, or an unrecognized field
                  * Check if this key is part of the ordered array, or an unrecognized field
                  */
-                int actualIndex = Array.FindIndex(sortOrder, sortIndex, k => EqualityComparer.StringComparerIgnoreCase.Equals(k, key));
+                int actualIndex = Array.FindIndex(sortOrder, sortIndex, k => ComparerUtils.StringComparerIgnoreCase.Equals(k, key));
 
                 if (actualIndex == -1)
                     unrecognizedFields.Add(key);

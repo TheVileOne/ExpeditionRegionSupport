@@ -1,5 +1,6 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Helpers;
+using LogUtils.Helpers.Comparers;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -64,7 +65,7 @@ namespace LogUtils
 
                             string keyword = value.Substring(keywordPrefix.Length);
 
-                            if (EqualityComparer.StringComparerIgnoreCase.Equals(value, UtilityConsts.FilterKeywords.REGEX))
+                            if (ComparerUtils.StringComparerIgnoreCase.Equals(value, UtilityConsts.FilterKeywords.REGEX))
                                 headerInfo.IsRegex = true; //This keyword is stored as a bool unlike other keywords
                             else
                                 parsedKeywords.Add(keyword);

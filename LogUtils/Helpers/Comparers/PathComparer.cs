@@ -1,0 +1,37 @@
+﻿using System;
+using System.IO;
+using LogUtils.Helpers;
+using LogUtils.Helpers.Comparers;
+
+public class PathComparer : ComparerBase<string>
+{
+    public PathComparer(StringComparison comparisonOption) : base(comparisonOption)
+    {
+    }
+
+    public override bool Equals(string path, string pathOther)
+    {
+        //Make sure we are comparing path data, not keywords
+        path = PathUtils.GetPathFromKeyword(path);
+        pathOther = PathUtils.GetPathFromKeyword(path);
+
+        return InternalEquals(path, pathOther);
+    }
+
+    /// <summary>
+    /// Assumes path info is being compared, not keywords
+    /// </summary>
+    internal bool InternalEquals(string path, string pathOther)
+    {
+        if (path == null)
+            return pathOther == null;
+
+        if (pathOther == null)
+            return false;
+
+        path = Path.GetFullPath(path).TrimEnd('\\');
+        pathOther = Path.GetFullPath(pathOther).TrimEnd('\\');
+
+        return base.Equals(path, pathOther);
+    }
+}

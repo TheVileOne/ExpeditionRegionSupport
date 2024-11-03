@@ -1,4 +1,5 @@
 ﻿using LogUtils.Helpers;
+using LogUtils.Helpers.Comparers;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ namespace LogUtils.Properties
 {
     public class LogPropertyStringDictionary : StringDictionary
     {
-        protected Hashtable Contents = new Hashtable(EqualityComparer.StringComparerIgnoreCase);
+        protected Hashtable Contents = new Hashtable(ComparerUtils.StringComparerIgnoreCase);
         protected LogPropertyKeySorter Sorter;
 
         public override string this[string key]

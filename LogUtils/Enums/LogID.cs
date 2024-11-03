@@ -1,4 +1,5 @@
 ﻿using LogUtils.Helpers;
+using LogUtils.Helpers.Comparers;
 using LogUtils.Properties;
 using System;
 using System.Collections.Generic;
@@ -214,7 +215,7 @@ namespace LogUtils.Enums
 
             foreach (var properties in LogProperties.PropertyManager.Properties)
             {
-                if (properties.Tags.Any(tag => tags.Contains(tag, EqualityComparer.StringComparerIgnoreCase)))
+                if (properties.Tags.Any(tag => tags.Contains(tag, ComparerUtils.StringComparerIgnoreCase)))
                     found.Add(properties.ID);
             }
             return found.ToArray();

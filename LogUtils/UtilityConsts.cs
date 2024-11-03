@@ -1,4 +1,5 @@
 ﻿using LogUtils.Helpers;
+using LogUtils.Helpers.Comparers;
 
 namespace LogUtils
 {
@@ -132,7 +133,7 @@ namespace LogUtils
             /// </summary>
             public static bool NameMatch(string name)
             {
-                return name.MatchAny(EqualityComparer.StringComparerIgnoreCase, BepInEx, Exception, Expedition, JollyCoop, Unity);
+                return name.MatchAny(ComparerUtils.StringComparerIgnoreCase, BepInEx, Exception, Expedition, JollyCoop, Unity);
             }
         }
 

@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using LogUtils.Helpers.Comparers;
 
 namespace LogUtils.Helpers
 {
@@ -80,7 +81,7 @@ namespace LogUtils.Helpers
             if (IsPathKeyword(path))
                 return path.ToLower();
 
-            var pathComparer = EqualityComparer.PathComparer;
+            var pathComparer = ComparerUtils.PathComparer;
             string keyword = null;
 
             if (pathComparer.InternalEquals(path, Paths.StreamingAssetsPath))
@@ -115,7 +116,7 @@ namespace LogUtils.Helpers
         /// </summary>
         public static bool PathsAreEqual(string path1, string path2)
         {
-            return EqualityComparer.PathComparer.Equals(path1, path2);
+            return ComparerUtils.PathComparer.Equals(path1, path2);
         }
     }
 }

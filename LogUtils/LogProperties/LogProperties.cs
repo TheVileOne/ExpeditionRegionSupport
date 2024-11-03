@@ -7,6 +7,7 @@ using BepInEx.Logging;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
+using LogUtils.Helpers.Comparers;
 using LogUtils.Properties.Custom;
 using DataFields = LogUtils.UtilityConsts.DataFields;
 
@@ -515,7 +516,7 @@ namespace LogUtils.Properties
             lock (FileLock)
             {
                 //Compare the current filename to the new filename
-                if (newFilename != null && !EqualityComparer.FilenameComparer.Equals(CurrentFilename, newFilename, true))
+                if (newFilename != null && !ComparerUtils.FilenameComparer.Equals(CurrentFilename, newFilename, true))
                 {
                     CurrentFilename = FileUtils.RemoveExtension(newFilename);
                     changesPresent = true;
@@ -841,7 +842,7 @@ namespace LogUtils.Properties
                 filename = Path.GetFileNameWithoutExtension(filename);
 
                 string[] compareOptions = GetFilenamesToCompare(matchOptions);
-                return filename.MatchAny(EqualityComparer.StringComparerIgnoreCase, compareOptions);
+                return filename.MatchAny(ComparerUtils.StringComparerIgnoreCase, compareOptions);
             }
             return false;
         }

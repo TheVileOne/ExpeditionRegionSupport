@@ -1,4 +1,4 @@
-﻿using LogUtils.Helpers;
+﻿using LogUtils.Helpers.Comparers;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -43,7 +43,7 @@ namespace LogUtils
             //time_ prefix describes activation range keywords
             return Keywords.Count == 0 || Keywords.TrueForAll(k =>
             {
-                return !k.StartsWith("time_", true, CultureInfo.InvariantCulture) || LogFilter.ActiveKeywords.Contains(k, EqualityComparer.StringComparerIgnoreCase);
+                return !k.StartsWith("time_", true, CultureInfo.InvariantCulture) || LogFilter.ActiveKeywords.Contains(k, ComparerUtils.StringComparerIgnoreCase);
             });
         }
     }
