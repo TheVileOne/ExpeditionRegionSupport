@@ -1,10 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using LogUtils.Enums;
 
 namespace LogUtils.Helpers.Comparers
 {
     public class ExtEnumValueComparer<T> : ComparerBase<string>, IComparer<T>, IEqualityComparer<T> where T : SharedExtEnum<T>
     {
+        public ExtEnumValueComparer(StringComparison comparisonOption) : base(comparisonOption)
+        {
+        }
+
         public virtual int Compare(T extEnum, T extEnumOther)
         {
             if (extEnum == null)
@@ -16,7 +21,7 @@ namespace LogUtils.Helpers.Comparers
             return extEnum.valueHash.CompareTo(extEnumOther.valueHash);
         }
 
-        public bool Equals(T extEnum, T extEnumOther)
+        public virtual bool Equals(T extEnum, T extEnumOther)
         {
             return Compare(extEnum, extEnumOther) == 0;
         }

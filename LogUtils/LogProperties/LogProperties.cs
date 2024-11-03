@@ -785,9 +785,9 @@ namespace LogUtils.Properties
             return GetWriteString();
         }
 
-        internal string[] GetFilenamesToCompare(MatchOptions matchOptions)
+        internal string[] GetFilenamesToCompare(CompareOptions compareOptions)
         {
-            if ((matchOptions & MatchOptions.Basic) != 0)
+            if ((compareOptions & CompareOptions.Basic) != 0)
             {
                 return new string[3]
                 {
@@ -797,7 +797,7 @@ namespace LogUtils.Properties
                 };
             }
 
-            if ((matchOptions & MatchOptions.All) != 0)
+            if ((compareOptions & CompareOptions.All) != 0)
             {
                 return new string[4]
                 {
@@ -808,17 +808,17 @@ namespace LogUtils.Properties
                 };
             }
 
-            List<string> matchStrings = new List<string>();
+            List<string> compareStrings = new List<string>();
 
-            if ((matchOptions & MatchOptions.ID) != 0)
-                matchStrings.Add(_idValue);
-            if ((matchOptions & MatchOptions.Filename) != 0)
-                matchStrings.Add(Filename);
-            if ((matchOptions & MatchOptions.CurrentFilename) != 0)
-                matchStrings.Add(CurrentFilename);
-            if ((matchOptions & MatchOptions.AltFilename) != 0)
-                matchStrings.Add(AltFilename);
-            return matchStrings.ToArray();
+            if ((compareOptions & CompareOptions.ID) != 0)
+                compareStrings.Add(_idValue);
+            if ((compareOptions & CompareOptions.Filename) != 0)
+                compareStrings.Add(Filename);
+            if ((compareOptions & CompareOptions.CurrentFilename) != 0)
+                compareStrings.Add(CurrentFilename);
+            if ((compareOptions & CompareOptions.AltFilename) != 0)
+                compareStrings.Add(AltFilename);
+            return compareStrings.ToArray();
         }
 
         public string GetWriteString(List<CommentEntry> comments = null)
@@ -834,15 +834,13 @@ namespace LogUtils.Properties
         /// Filename is not case sensitive; file extension is unused
         /// </br>
         /// <param name="filename">The filename to compare</param>
-        /// <param name="matchOptions">Represents options for specific filename fields</param>
-        public bool HasFilename(string filename, MatchOptions matchOptions)
+        /// <param name="compareOptions">Represents options for specific filename fields</param>
+        public bool HasFilename(string filename, CompareOptions compareOptions)
         {
             if (filename != null)
             {
                 filename = Path.GetFileNameWithoutExtension(filename);
-
-                string[] compareOptions = GetFilenamesToCompare(matchOptions);
-                return filename.MatchAny(ComparerUtils.StringComparerIgnoreCase, compareOptions);
+                return filename.MatchAny(ComparerUtils.StringComparerIgnoreCase, GetFilenamesToCompare(compareOptions));
             }
             return false;
         }
@@ -855,10 +853,10 @@ namespace LogUtils.Properties
         /// </summary>
         /// <param name="filename">The filename to compare</param>
         /// <param name="relativePathNoFile">The filepath to compare. When set to null, the filepath check will be skipped</param>
-        /// <param name="matchOptions">Represents options for specific filename fields</param>
-        public bool HasFilename(string filename, string relativePathNoFile, MatchOptions matchOptions)
+        /// <param name="compareOptions">Represents options for specific filename fields</param>
+        public bool HasFilename(string filename, string relativePathNoFile, CompareOptions compareOptions)
         {
-            if (!HasFilename(filename, matchOptions))
+            if (!HasFilename(filename, compareOptions))
                 return false;
 
             if (IsPathWildcard(relativePathNoFile))
@@ -944,7 +942,7 @@ namespace LogUtils.Properties
     }
 
     [Flags]
-    public enum MatchOptions
+    public enum CompareOptions
     {
         None = 0,
         ID = 1, //Compare against the ID field

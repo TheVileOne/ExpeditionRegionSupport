@@ -161,7 +161,7 @@ namespace LogUtils.Enums
         /// <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
         public static LogID Find(string filename, string relativePathNoFile)
         {
-            IEnumerable<LogID> results = FindAll(filename, MatchOptions.Basic);
+            IEnumerable<LogID> results = FindAll(filename, CompareOptions.Basic);
 
             if (!results.Any())
                 return null;
@@ -193,17 +193,17 @@ namespace LogUtils.Enums
         /// <param name="filename">The filename to search for</param>
         public static IEnumerable<LogID> FindAll(string filename)
         {
-            return FindAll(filename, MatchOptions.Basic);
+            return FindAll(filename, CompareOptions.Basic);
         }
 
         /// <summary>
         /// Finds all registered LogID with the given filename
         /// </summary>
         /// <param name="filename">The filename to search for</param>
-        /// <param name="matchOptions">Represents options that determine which fields to check against</param>
-        public static IEnumerable<LogID> FindAll(string filename, MatchOptions matchOptions)
+        /// <param name="compareOptions">Represents options that determine which fields to check against</param>
+        public static IEnumerable<LogID> FindAll(string filename, CompareOptions compareOptions)
         {
-            return LogProperties.PropertyManager.Properties.Where(p => p.HasFilename(filename, matchOptions)).Select(p => p.ID);
+            return LogProperties.PropertyManager.Properties.Where(p => p.HasFilename(filename, compareOptions)).Select(p => p.ID);
         }
 
         /// <summary>
