@@ -66,10 +66,6 @@ namespace LogUtils.Helpers.Comparers
             if (!hasAtLeastOneNonEmptyPair) //Arrays are either empty, or only contain empty strings - consider as equal
                 compareValue = 0;
             end:
-            //Filenames are equal, but filepaths may not be. Compare the paths too
-            if (compareValue == 0)
-                compareValue = ComparerUtils.PathComparer.Compare(id.Properties.CurrentFolderPath, idOther.Properties.CurrentFolderPath);
-
             return compareValue;
         }
 
