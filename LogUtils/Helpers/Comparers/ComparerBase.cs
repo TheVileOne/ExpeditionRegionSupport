@@ -4,10 +4,10 @@ using System.Collections.Generic;
 
 namespace LogUtils.Helpers.Comparers
 {
-    public abstract class ComparerBase<T> : IComparer, IEqualityComparer, IComparer<T>, IEqualityComparer<T>
+    public abstract class ComparerBase<T> : IComparer<T>, IEqualityComparer<T>
     {
-        protected IComparer<T> InnerComparer;
-        protected IEqualityComparer<T> InnerEqualityComparer;
+        protected readonly IComparer<T> InnerComparer;
+        protected readonly IEqualityComparer<T> InnerEqualityComparer;
 
         protected ComparerBase()
         {
@@ -23,16 +23,6 @@ namespace LogUtils.Helpers.Comparers
             InnerEqualityComparer = (IEqualityComparer<T>)comparer;
         }
 
-        public virtual int Compare(object obj, object objOther)
-        {
-            if (obj == null)
-                return objOther != null ? int.MinValue : 0;
-
-            if (objOther == null)
-                return int.MaxValue;
-            return obj.GetHashCode().CompareTo(objOther.GetHashCode());
-        }
-
         public virtual int Compare(T obj, T objOther)
         {
             return InnerComparer.Compare(obj, objOther);
@@ -43,19 +33,9 @@ namespace LogUtils.Helpers.Comparers
             return InnerEqualityComparer.Equals(obj, objOther);
         }
 
-        public new bool Equals(object obj, object objOther)
-        {
-            return Compare(obj, objOther) == 0;
-        }
-
         public virtual int GetHashCode(T obj)
         {
             return InnerEqualityComparer.GetHashCode(obj);
-        }
-
-        public virtual int GetHashCode(object obj)
-        {
-            return obj?.GetHashCode() ?? 0;
         }
     }
 }
