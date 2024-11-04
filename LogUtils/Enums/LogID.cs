@@ -159,7 +159,7 @@ namespace LogUtils.Enums
         /// </summary>
         /// <param name="filename">The filename to search for</param>
         /// <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
-        public static LogID Find(string filename, string relativePathNoFile)
+        public static LogID Find(string filename, string relativePathNoFile = null)
         {
             IEnumerable<LogID> results = FindAll(filename, CompareOptions.Basic);
 

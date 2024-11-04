@@ -1,10 +1,43 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using LogUtils.Helpers.Comparers;
 
 namespace LogUtils.Helpers
 {
     public static class PathUtils
     {
+        /// <summary>
+        /// Checks that a directory is contained within a path string
+        /// </summary>
+        /// <param name="dirName">The directory name to check</param>
+        /// <param name="dirLevelsToCheck">The number of directory separators to check starting from the right</param>
+        public static bool ContainsDirectory(string path, string dirName, int dirLevelsToCheck)
+        {
+            if (path == null) return false;
+
+            path = PathWithoutFilename(path);
+
+            bool dirFound = false;
+            while (dirLevelsToCheck > 0)
+            {
+                if (path.EndsWith(dirName, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    dirFound = true;
+                    dirLevelsToCheck = 0;
+                }
+                else
+                {
+                    //Keep stripping away directories, 
+                    path = Path.GetDirectoryName(path);
+                    dirLevelsToCheck--;
+
+                    if (path == string.Empty)
+                        dirLevelsToCheck = 0;
+                }
+            }
+            return dirFound;
+        }
+
         /// <summary>
         /// Checks that some portion of a path exists
         /// </summary>
