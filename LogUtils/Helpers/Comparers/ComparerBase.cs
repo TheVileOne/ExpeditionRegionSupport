@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace LogUtils.Helpers.Comparers
 {
     public abstract class ComparerBase<T> : IComparer<T>, IEqualityComparer<T>
     {
-        protected readonly IComparer<T> InnerComparer;
-        protected readonly IEqualityComparer<T> InnerEqualityComparer;
+        protected IComparer<T> InnerComparer;
+        protected IEqualityComparer<T> InnerEqualityComparer;
 
         protected ComparerBase()
         {

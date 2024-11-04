@@ -6,6 +6,10 @@ namespace LogUtils.Helpers.Comparers
 {
     public class ExtEnumValueComparer<T> : ComparerBase<string>, IComparer<T>, IEqualityComparer<T> where T : SharedExtEnum<T>
     {
+        public ExtEnumValueComparer() : base()
+        {
+        }
+
         public ExtEnumValueComparer(StringComparison comparisonOption) : base(comparisonOption)
         {
         }

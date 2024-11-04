@@ -5,6 +5,10 @@ namespace LogUtils.Helpers.Comparers
 {
     public class FilenameComparer : ComparerBase<string>
     {
+        public FilenameComparer() : base()
+        {
+        }
+
         public FilenameComparer(StringComparison comparisonOption) : base(comparisonOption)
         {
         }

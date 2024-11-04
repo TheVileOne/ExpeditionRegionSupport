@@ -5,6 +5,10 @@ using LogUtils.Helpers.Comparers;
 
 public class PathComparer : ComparerBase<string>
 {
+    public PathComparer() : base()
+    {
+    }
+
     public PathComparer(StringComparison comparisonOption) : base(comparisonOption)
     {
     }
