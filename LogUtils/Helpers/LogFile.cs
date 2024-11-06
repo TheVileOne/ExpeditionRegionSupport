@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace LogUtils.Helpers
 {
-    public static class LogUtils
+    public static class LogFile
     {
 
         /// <summary>
@@ -12,9 +12,9 @@ namespace LogUtils.Helpers
         /// </summary>
         /// <param name="logFile">The LogID giving access to the filepath of the log file</param>
         /// <param name="copyPath">The full path to the destination of the log file. Log filename is optional</param>
-        public static FileStatus CopyLog(LogID logFile, string copyPath)
+        public static FileStatus Copy(LogID logFile, string copyPath)
         {
-            return CopyLog(logFile.Properties.CurrentFilename, copyPath);
+            return Copy(logFile.Properties.CurrentFilename, copyPath);
         }
 
         /// <summary>
@@ -22,24 +22,24 @@ namespace LogUtils.Helpers
         /// </summary>
         /// <param name="sourceLogPath">The full path to the log file that needs to be copied (including filename + ext)</param>
         /// <param name="destLogPath">The full path to the destination of the log file. Log filename is optional</param>
-        internal static FileStatus CopyLog(string sourceLogPath, string destLogPath)
+        internal static FileStatus Copy(string sourceLogPath, string destLogPath)
         {
             LogFileMover fileMover = new LogFileMover(sourceLogPath, destLogPath);
 
             return fileMover.CopyFile();
         }
 
-        public static FileStatus MoveLog(LogID logFile, string newLogPath)
+        public static FileStatus Move(LogID logFile, string newLogPath)
         {
-            return InternalMoveLog(logFile, newLogPath);
+            return InternalMove(logFile, newLogPath);
         }
 
-        public static FileStatus MoveLog(LogID logFile, string newLogPath, string logFilename)
+        public static FileStatus Move(LogID logFile, string newLogPath, string logFilename)
         {
-            return InternalMoveLog(logFile, Path.Combine(newLogPath, logFilename));
+            return InternalMove(logFile, Path.Combine(newLogPath, logFilename));
         }
 
-        internal static FileStatus InternalMoveLog(LogID logFile, string newLogPath)
+        internal static FileStatus InternalMove(LogID logFile, string newLogPath)
         {
             FileStatus moveResult;
 
@@ -47,7 +47,7 @@ namespace LogUtils.Helpers
             lock (fileLock)
             {
                 fileLock.SetActivity(logFile, FileAction.Move);
-                moveResult = MoveLog(logFile.Properties.CurrentFilePath, newLogPath);
+                moveResult = Move(logFile.Properties.CurrentFilePath, newLogPath);
 
                 if (moveResult == FileStatus.MoveComplete)
                     logFile.Properties.ChangePath(newLogPath);
@@ -60,7 +60,7 @@ namespace LogUtils.Helpers
         /// </summary>
         /// <param name="sourceLogPath">The full path to the log file that needs to be moved (including filename + ext)</param>
         /// <param name="destLogPath">The full path to the destination of the log file. Log filename is optional</param>
-        internal static FileStatus MoveLog(string sourceLogPath, string destLogPath)
+        internal static FileStatus Move(string sourceLogPath, string destLogPath)
         {
             //TODO: LogFileMover should support LogIDs
             LogFileMover fileMover = new LogFileMover(sourceLogPath, destLogPath);
@@ -68,7 +68,7 @@ namespace LogUtils.Helpers
             return fileMover.MoveFile();
         }
 
-        public static string FindLogPathWithoutFileExtension(string searchPath, string filename)
+        public static string FindPathWithoutFileExtension(string searchPath, string filename)
         {
             return FileUtils.SupportedExtensions.Select(fileExt => Path.Combine(searchPath, filename + fileExt)).FirstOrDefault(File.Exists);
         }

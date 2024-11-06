@@ -155,7 +155,7 @@ namespace LogUtils
                     properties.FileLock.SetActivity(properties.ID, FileAction.Move);
 
                     //This particular MoveLog overload doesn't update current path
-                    FileStatus moveResult = Helpers.LogUtils.MoveLog(properties.CurrentFolderPath, newPath);
+                    FileStatus moveResult = LogFile.Move(properties.CurrentFolderPath, newPath);
 
                     if (moveResult != FileStatus.MoveComplete) //There was an issue moving this file
                         return;
@@ -181,7 +181,7 @@ namespace LogUtils
                     properties.FileLock.SetActivity(properties.ID, FileAction.Move);
 
                     //This particular MoveLog overload doesn't update current path
-                    FileStatus moveResult = Helpers.LogUtils.MoveLog(properties.CurrentFolderPath, newPath);
+                    FileStatus moveResult = LogFile.Move(properties.CurrentFolderPath, newPath);
 
                     if (moveResult != FileStatus.MoveComplete) //There was an issue moving this file
                         return;

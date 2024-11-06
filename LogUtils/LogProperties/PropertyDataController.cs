@@ -79,7 +79,7 @@ namespace LogUtils.Properties
             LogProperties properties = logFile.Properties;
 
             //The original filename is stored without its original file extension in the value field of the LogID
-            string originalFilePath = Helpers.LogUtils.FindLogPathWithoutFileExtension(properties.OriginalFolderPath, logFile.value);
+            string originalFilePath = LogFile.FindPathWithoutFileExtension(properties.OriginalFolderPath, logFile.value);
 
             if (originalFilePath != null) //This shouldn't be null under typical circumstances
             {
@@ -100,7 +100,7 @@ namespace LogUtils.Properties
                         properties.FileLock.SetActivity(properties.ID, FileAction.Move);
 
                         //Move the file, and if it fails, change the path. Either way, log file exists
-                        if (Helpers.LogUtils.MoveLog(originalFilePath, properties.CurrentFilePath) == FileStatus.MoveComplete)
+                        if (LogFile.Move(originalFilePath, properties.CurrentFilePath) == FileStatus.MoveComplete)
                             properties.ChangePath(properties.CurrentFilePath);
                         else
                             properties.ChangePath(originalFilePath);

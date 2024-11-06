@@ -556,11 +556,11 @@ namespace LogUtils.Properties
                 if (copyOnly)
                 {
                     FileLock.SetActivity(ID, FileAction.Copy);
-                    return Helpers.LogUtils.CopyLog(LastKnownFilePath, ReplacementFilePath);
+                    return LogFile.Copy(LastKnownFilePath, ReplacementFilePath);
                 }
 
                 FileLock.SetActivity(ID, FileAction.Move);
-                return Helpers.LogUtils.MoveLog(LastKnownFilePath, ReplacementFilePath);
+                return LogFile.Move(LastKnownFilePath, ReplacementFilePath);
             }
         }
 
