@@ -185,7 +185,7 @@ namespace LogUtils
                 UtilityLogger.Log("Log directory changed to " + path);
 
                 OnMoveComplete?.Invoke(path);
-                LogsFolder.Path = path; //This gets updated last. It is needed for comparison purposes.
+                LogsFolder.SetPath(path); //This gets updated last. It is needed for comparison purposes.
             }
             else if (signalWord == "MoveAborted")
                 OnMoveAborted?.Invoke();

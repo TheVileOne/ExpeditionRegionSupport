@@ -9,15 +9,9 @@ namespace LogUtils
     public static class LogsFolder
     {
         /// <summary>
-        /// The folder name that will store log files. Do not change this. It is case-sensitive.
+        /// The folder that will store log files
         /// </summary>
-        public static readonly string LOGS_FOLDER_NAME = "Logs";
-
-        /// <summary>
-        /// Rain World root folder
-        /// Application.dataPath is RainWorld_data folder
-        /// </summary>
-        public static readonly string DefaultPath = System.IO.Path.Combine(Paths.GameRootPath, LOGS_FOLDER_NAME);
+        public const string LOGS_FOLDER_NAME = "Logs";
 
         /// <summary>
         /// StreamingAssets folder
@@ -25,33 +19,25 @@ namespace LogUtils
         public static readonly string AlternativePath = System.IO.Path.Combine(Paths.StreamingAssetsPath, LOGS_FOLDER_NAME);
 
         /// <summary>
+        /// Rain World root folder
+        /// </summary>
+        public static readonly string DefaultPath = System.IO.Path.Combine(Paths.GameRootPath, LOGS_FOLDER_NAME);
+
+        /// <summary>
         /// The path to the Logs directory if it exists, otherwise null
         /// </summary>
-        public static string Path;
+        public static string Path { get; private set; }
+
+        public static string InitialPath { get; private set; }
+
+        public static string CustomPath { get; private set; }
 
         public static bool HasInitialized;
 
         /// <summary>
-        /// Check that a path matches one of the two supported Logs directories.
-        /// </summary>
-        public static bool ContainsPath(string path)
-        {
-            if (path == null) return false;
-
-            path = System.IO.Path.GetFullPath(path);
-
-            return IsLogsFolderPath(path);
-        }
-
-        public static bool IsLogsFolderPath(string path)
-        {
-            return PathUtils.PathsAreEqual(path, DefaultPath) || PathUtils.PathsAreEqual(path, AlternativePath);
-        }
-
-        /// <summary>
         /// Checks a path against the current Logs directory path
         /// </summary>
-        public static bool IsBaseLogPath(string path)
+        public static bool IsCurrentPath(string path)
         {
             if (path == null)
                 return false;
@@ -63,38 +49,44 @@ namespace LogUtils
         }
 
         /// <summary>
+        /// Check that a path matches one of the two supported Logs directories
+        /// </summary>
+        public static bool IsLogsFolderPath(string path)
+        {
+            return PathUtils.PathsAreEqual(path, DefaultPath) || PathUtils.PathsAreEqual(path, AlternativePath);
+        }
+
+        /// <summary>
         /// Establishes the path for the Logs directory, creating it if it doesn't exist. This is not called by LogUtils directly
         /// </summary>
         public static void Initialize()
         {
             if (HasInitialized) return;
 
-            Path = FindLogsDirectory();
-
             string errorMsg = null;
             try
             {
-                //The found directory needs to be created if it doesn't yet exist, and the alternative directory removed
-                if (!Directory.Exists(Path))
-                {
-                    UtilityLogger.Log("Creating directory: " + Path);
-                    Directory.CreateDirectory(Path);
-                }
+                //SetPath creates the directory for us
+                SetPath(FindLogsDirectory());
 
-                string alternativeLogPath = PathUtils.PathsAreEqual(Path, DefaultPath) ? AlternativePath : DefaultPath;
-
-                try
+                if (IsLogsFolderPath(Path))
                 {
-                    if (Directory.Exists(alternativeLogPath))
+                    //The alternative log path needs to be removed if it exists
+                    string alternativeLogPath = IsCurrentPath(DefaultPath) ? AlternativePath : DefaultPath;
+
+                    try
                     {
-                        UtilityLogger.Log("Removing directory: " + alternativeLogPath);
-                        Directory.Delete(alternativeLogPath, true);
+                        if (Directory.Exists(alternativeLogPath))
+                        {
+                            UtilityLogger.Log("Removing directory: " + alternativeLogPath);
+                            Directory.Delete(alternativeLogPath, true);
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    errorMsg = "Unable to delete log directory";
-                    throw ex;
+                    catch (Exception ex)
+                    {
+                        errorMsg = "Unable to delete log directory";
+                        throw ex;
+                    }
                 }
             }
             catch (Exception ex)
@@ -137,6 +129,22 @@ namespace LogUtils
                 RevokeDesignation(properties); //TODO: LogManager needs a way to ignore this when LogsFolderAware is set to false
         }
 
+        internal static void OnPathChanged(string newPath)
+        {
+            if (!Directory.Exists(newPath))
+            {
+                UtilityLogger.Log("Creating directory: " + newPath);
+                Directory.CreateDirectory(newPath);
+            }
+
+            //Searches all LogProperties that contain the old path, and migrate them to the new path
+            foreach (LogID logFile in LogID.FindAll(p => PathUtils.PathsAreEqual(p.CurrentFolderPath, Path)))
+            {
+                if (LogFile.Move(logFile, newPath) != FileStatus.MoveComplete)
+                    UtilityLogger.LogWarning("Unable to move log file");
+            }
+        }
+
         /// <summary>
         /// Designates a log file to write to the Logs folder if it exists
         /// </summary>
@@ -146,7 +154,7 @@ namespace LogUtils
 
             lock (properties.FileLock)
             {
-                if (IsLogsFolderPath(properties.CurrentFolderPath)) return;
+                if (IsCurrentPath(properties.CurrentFolderPath)) return;
 
                 string newPath = Path;
 
@@ -187,6 +195,29 @@ namespace LogUtils
                         return;
                 }
                 properties.ChangePath(newPath);
+            }
+        }
+
+        /// <summary>
+        /// This method controls the directory that eligible log files target instead of the normal log path. Log files will be moved when the path is set
+        /// </summary>
+        /// <param name="path">The path (including folder name). Path is assumed to be valid, resolve path before invoking this method if path resolution is required</param>
+        public static void SetPath(string path)
+        {
+            if (IsLogsFolderPath(path) && !IsCurrentPath(path))
+            {
+                if (CustomPath == null) //Prioritize any custom paths over the initial path
+                    OnPathChanged(path);
+
+                Path = InitialPath = path;
+            }
+            else if (!PathUtils.PathsAreEqual(CustomPath, path))
+            {
+                if (path != null || InitialPath != null)
+                    OnPathChanged(path);
+
+                CustomPath = path;
+                Path = CustomPath == null ? InitialPath : CustomPath;
             }
         }
 
