@@ -206,6 +206,11 @@ namespace LogUtils.Enums
             return LogProperties.PropertyManager.Properties.Where(p => p.HasFilename(filename, compareOptions)).Select(p => p.ID);
         }
 
+        public static IEnumerable<LogID> FindAll(Func<LogProperties, bool> predicate)
+        {
+            return LogProperties.PropertyManager.Properties.Where(predicate).Select(p => p.ID);
+        }
+
         /// <summary>
         /// Finds all registered LogIDs with the given tags
         /// </summary>
