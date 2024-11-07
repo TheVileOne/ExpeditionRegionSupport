@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 
-namespace LogUtils.Helpers
+namespace LogUtils.Helpers.FileHandling
 {
     public static class FileUtils
     {

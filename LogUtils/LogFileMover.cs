@@ -1,7 +1,7 @@
-﻿using System;
+﻿using LogUtils.Enums;
+using LogUtils.Helpers.FileHandling;
+using System;
 using System.IO;
-using LogUtils.Enums;
-using LogUtils.Helpers;
 
 namespace LogUtils
 {

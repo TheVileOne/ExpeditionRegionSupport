@@ -1,7 +1,7 @@
-﻿using System;
+﻿using LogUtils.Helpers.Comparers;
+using LogUtils.Helpers.FileHandling;
+using System;
 using System.IO;
-using LogUtils.Helpers;
-using LogUtils.Helpers.Comparers;
 
 public class PathComparer : ComparerBase<string>
 {

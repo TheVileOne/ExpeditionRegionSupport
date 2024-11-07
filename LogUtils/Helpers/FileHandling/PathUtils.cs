@@ -2,7 +2,7 @@
 using System.IO;
 using LogUtils.Helpers.Comparers;
 
-namespace LogUtils.Helpers
+namespace LogUtils.Helpers.FileHandling
 {
     public static class PathUtils
     {

@@ -8,6 +8,7 @@ using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Helpers.Comparers;
+using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties.Custom;
 using DataFields = LogUtils.UtilityConsts.DataFields;
 

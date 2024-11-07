@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogUtils.Helpers.FileHandling;
+using System;
 using System.IO;
 
 namespace LogUtils.Helpers.Comparers

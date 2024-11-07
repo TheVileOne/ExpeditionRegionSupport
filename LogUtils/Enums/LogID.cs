@@ -1,5 +1,6 @@
 ﻿using LogUtils.Helpers;
 using LogUtils.Helpers.Comparers;
+using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties;
 using System;
 using System.Collections.Generic;

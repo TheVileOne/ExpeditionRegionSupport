@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Debug = UnityEngine.Debug;
 
-namespace LogUtils.Helpers
+namespace LogUtils.Helpers.FileHandling
 {
     public static class FileSystemUtils
     {

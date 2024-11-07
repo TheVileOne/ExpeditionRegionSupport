@@ -1,7 +1,7 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
 using LogUtils.Events;
-using LogUtils.Helpers;
+using LogUtils.Helpers.FileHandling;
 using System;
 using System.IO;
 using System.Linq;

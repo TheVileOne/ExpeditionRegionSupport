@@ -1,5 +1,5 @@
 ﻿using System.IO;
-using LogUtils.Helpers;
+using LogUtils.Helpers.FileHandling;
 
 namespace LogUtils
 {
