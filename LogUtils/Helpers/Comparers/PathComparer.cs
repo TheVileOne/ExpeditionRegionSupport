@@ -42,8 +42,8 @@ public class PathComparer : ComparerBase<string>
         if (pathOther == null)
             return int.MaxValue;
 
-        path = Path.GetFullPath(path).TrimEnd('\\');
-        pathOther = Path.GetFullPath(pathOther).TrimEnd('\\');
+        path = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar);
+        pathOther = Path.GetFullPath(pathOther).TrimEnd(Path.DirectorySeparatorChar);
 
         return base.Compare(path, pathOther);
     }
@@ -59,8 +59,8 @@ public class PathComparer : ComparerBase<string>
         if (pathOther == null)
             return false;
 
-        path = Path.GetFullPath(path).TrimEnd('\\');
-        pathOther = Path.GetFullPath(pathOther).TrimEnd('\\');
+        path = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar);
+        pathOther = Path.GetFullPath(pathOther).TrimEnd(Path.DirectorySeparatorChar);
 
         return base.Equals(path, pathOther);
     }

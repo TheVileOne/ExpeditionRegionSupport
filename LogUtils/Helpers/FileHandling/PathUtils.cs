@@ -38,6 +38,29 @@ namespace LogUtils.Helpers.FileHandling
             return dirFound;
         }
 
+        public static bool HaveSameRoot(string path, string pathOther, bool pathsAreFull)
+        {
+            if (path == null || pathOther == null)
+                return false;
+
+            if (!pathsAreFull)
+            {
+                path = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar);
+                pathOther = Path.GetFullPath(pathOther).TrimEnd(Path.DirectorySeparatorChar);
+            }
+
+            return path.StartsWith(pathOther, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        /// <summary>
+        /// Replace all directory separator characters with the default platform-specific directory separator character 
+        /// </summary>
+        public static string Normalize(string path)
+        {
+            //Path.GetFullPath will replace Path.DirectorySeparatorChar '//' for us, but not Path.Combine
+            return path?.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+        }
+
         /// <summary>
         /// Checks that some portion of a path exists
         /// </summary>
@@ -77,6 +100,20 @@ namespace LogUtils.Helpers.FileHandling
                 return Path.GetDirectoryName(path); //Gets the path of the containing directory of a file/directory path
             }
             return path;
+        }
+
+        /// <summary>
+        /// Separates a path into its directory and/or file components
+        /// </summary>
+        public static string[] Separate(string path)
+        {
+            if (path == null)
+                return Array.Empty<string>();
+
+            //Leading, and trailing separator characters will create misleading results, trim them out
+            path = Normalize(path).Trim(Path.DirectorySeparatorChar);
+
+            return path.Split(Path.DirectorySeparatorChar);
         }
 
         /// <summary>
@@ -147,9 +184,9 @@ namespace LogUtils.Helpers.FileHandling
         /// <summary>
         /// Evaluates whether paths are logically equivalent
         /// </summary>
-        public static bool PathsAreEqual(string path1, string path2)
+        public static bool PathsAreEqual(string path, string pathOther)
         {
-            return ComparerUtils.PathComparer.Equals(path1, path2);
+            return ComparerUtils.PathComparer.Equals(path, pathOther);
         }
     }
 }
