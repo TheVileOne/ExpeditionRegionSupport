@@ -24,6 +24,12 @@ namespace LogUtils
         /// </summary>
         public static Dictionary<LogID, ExceptionInfo> LastReportedException = new Dictionary<LogID, ExceptionInfo>();
 
+        /// <summary>
+        /// A flag indicating merge folder is ready to access
+        /// TODO: Refine this check to be more accurate
+        /// </summary>
+        public static bool MergeProcessComplete => LatestSetupPeriodReached > SetupPeriod.Pregame;
+
         static RWInfo()
         {
             //Initialize the utility when this class is accessed
