@@ -1,8 +1,11 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Events;
 using LogUtils.Helpers;
+using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace LogUtils
@@ -32,6 +35,11 @@ namespace LogUtils
         public static string InitialPath { get; private set; }
 
         public static string CustomPath { get; private set; }
+
+        /// <summary>
+        /// PathCycler is responsible for moving forward, or backward through a collection of valid paths
+        /// </summary>
+        public static PathCycler PathCycler;
 
         public static bool HasInitialized;
 
@@ -120,8 +128,21 @@ namespace LogUtils
             return FindExistingLogsDirectory() ?? DefaultPath;
         }
 
-        public static void OnEligibilityChanged(LogProperties properties)
+        /// <summary>
+        /// Returns log file IDs that have the Logs folder as a current folder path
+        /// </summary>
+        public static IEnumerable<LogID> GetContainedLogFiles()
         {
+            if (Path == null)
+                return Array.Empty<LogID>();
+
+            return LogID.FindAll(properties => PathUtils.PathsAreEqual(properties.CurrentFolderPath, Path));
+        }
+
+        public static void OnEligibilityChanged(LogEventArgs e)
+        {
+            LogProperties properties = e.Properties;
+
             if (!properties.IsNewInstance) return; //Eligibility only applies to newly created log properties
 
             if (properties.LogsFolderEligible && properties.LogsFolderAware)
@@ -130,8 +151,12 @@ namespace LogUtils
                 RevokeDesignation(properties); //TODO: LogManager needs a way to ignore this when LogsFolderAware is set to false
         }
 
-        internal static void OnPathChanged(string newPath)
+        internal static void OnPathChanged(PathChangedEventArgs e)
         {
+            //TODO: Finish event handler
+            string newPath = e.NewPath;
+            string oldPath = e.OldPath;
+
             if (!Directory.Exists(newPath))
             {
                 UtilityLogger.Log("Creating directory: " + newPath);
@@ -199,23 +224,178 @@ namespace LogUtils
             }
         }
 
+        public static bool TryMove(LogsFolderAccessToken accessToken, string path)
+        {
+            try
+            {
+                Move(accessToken, path);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                UtilityLogger.LogError("Unable to move logs directory", ex);
+
+                foreach (LogID logFile in GetContainedLogFiles())
+                    logFile.Properties.NotifyPendingMoveAborted();
+                return false;
+            }
+        }
+
+        public static void Move(LogsFolderAccessToken accessToken, string path)
+        {
+            if (path == null)
+                throw new ArgumentNullException("Path argument cannot be null");
+
+            string basePath = Path;
+            if (PathUtils.PathsAreEqual(path, basePath))
+                return;
+
+            bool canProceed = RequestAccess(accessToken, path);
+
+            if (!canProceed)
+                throw new InvalidOperationException("Unable to change path. Access is denied");
+
+            lock (UtilityCore.RequestHandler.RequestProcessLock)
+            {
+                //TODO: Notify LogIDs of a pending move, shut down their Filestreams (reopen when finished)
+                try
+                {
+                    //TODO: Code for shutting down Filestreams at the LogWriter level
+                    foreach (LogID logFile in GetContainedLogFiles())
+                        logFile.Properties.NotifyPendingMove(path);
+
+                    Directory.Move(basePath, path);
+                }
+                finally
+                {
+                    //Open streams
+                }
+            }
+        }
+
+        public static bool TryCycle(LogsFolderAccessToken accessToken, bool cycleForward = true)
+        {
+            try
+            {
+                Cycle(accessToken, cycleForward);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                UtilityLogger.LogError("Unable to cycle logs directory", ex);
+
+                foreach (LogID logFile in GetContainedLogFiles())
+                    logFile.Properties.NotifyPendingMoveAborted();
+                return false;
+            }
+        }
+
+        public static void Cycle(LogsFolderAccessToken accessToken, bool cycleForward = true)
+        {
+            if (cycleForward)
+                PathCycler.CycleNext(accessToken);
+            else
+                PathCycler.CyclePrev(accessToken);
+
+            try
+            {
+                Move(accessToken, PathCycler.Result);
+            }
+            finally
+            {
+                PathCycler.Result = null;
+            }
+        }
+
+        /// <summary>
+        /// Moves log files back to the filepath read from file
+        /// </summary>
+        public static void Restore()
+        {
+            //TODO: Immplement
+            throw new NotImplementedException();
+        }
+
+        internal static bool RequestAccess(LogsFolderAccessToken accessToken, string requestPath)
+        {
+            if (accessToken.Access == FolderAccess.Unrestricted)
+                return true;
+
+            bool hasPermission = false;
+            string basePath = Path;
+
+            //We need to check access permissions before we can touch any folders
+            FolderRelationship currentRelationship = GetAccessRelationship(accessToken, basePath);
+            FolderRelationship incomingRelationship = GetAccessRelationship(accessToken, requestPath);
+
+            if (currentRelationship != FolderRelationship.None)
+            {
+                switch (currentRelationship)
+                {
+                    case FolderRelationship.Familiar:
+                        hasPermission = true;
+                        break;
+                    case FolderRelationship.Base:
+                        hasPermission = accessToken.Access != FolderAccess.Strict;
+                        break;
+                    case FolderRelationship.Foreign:
+                        hasPermission = false;
+                        break;
+                }
+
+                if (hasPermission)
+                {
+                    switch (incomingRelationship)
+                    {
+                        case FolderRelationship.Familiar:
+                            hasPermission = true;
+                            break;
+                        case FolderRelationship.Base:
+                            hasPermission = accessToken.Access != FolderAccess.Strict;
+                            break;
+                        case FolderRelationship.Foreign:
+                            hasPermission = false;
+                            break;
+                    }
+                }
+            }
+            return hasPermission;
+        }
+
+        public static FolderRelationship GetAccessRelationship(LogsFolderAccessToken accessToken, string path)
+        {
+            if (path == null)
+                return FolderRelationship.None;
+
+            bool pathAllowed = Path.MatchAny(ComparerUtils.PathComparer, accessToken.AllowedPaths);
+
+            if (pathAllowed)
+                return FolderRelationship.Familiar;
+
+            if (IsLogsFolderPath(path))
+                return FolderRelationship.Base;
+
+            return FolderRelationship.Foreign;
+        }
+
         /// <summary>
         /// This method controls the directory that eligible log files target instead of the normal log path. Log files will be moved when the path is set
         /// </summary>
         /// <param name="path">The path (including folder name). Path is assumed to be valid, resolve path before invoking this method if path resolution is required</param>
         public static void SetPath(string path)
         {
+            string currentPath = Path;
             if (IsLogsFolderPath(path) && !IsCurrentPath(path))
             {
                 if (CustomPath == null) //Prioritize any custom paths over the initial path
-                    OnPathChanged(path);
+                    OnPathChanged(new PathChangedEventArgs(path, currentPath));
 
                 Path = InitialPath = path;
             }
             else if (!PathUtils.PathsAreEqual(CustomPath, path))
             {
                 if (path != null || InitialPath != null)
-                    OnPathChanged(path);
+                    OnPathChanged(new PathChangedEventArgs(path, currentPath));
 
                 CustomPath = path;
                 Path = CustomPath == null ? InitialPath : CustomPath;

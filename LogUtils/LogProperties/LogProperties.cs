@@ -301,7 +301,7 @@ namespace LogUtils.Properties
 
                 //During post initialization changes can still be recognized and handled for a short period of time
                 if (UtilityCore.IsInitialized)
-                    LogsFolder.OnEligibilityChanged(this);
+                    LogsFolder.OnEligibilityChanged(new Events.LogEventArgs(this));
             }
         }
 
@@ -319,7 +319,7 @@ namespace LogUtils.Properties
 
                 //During post initialization changes can still be recognized and handled for a short period of time
                 if (UtilityCore.IsInitialized)
-                    LogsFolder.OnEligibilityChanged(this);
+                    LogsFolder.OnEligibilityChanged(new Events.LogEventArgs(this));
             }
         }
 
@@ -676,11 +676,27 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
-        /// Triggers the LogEvents.OnPathChanged event for this instance
+        /// Triggers the UtilityEvents.OnPathChanged event for this instance
         /// </summary>
         public void NotifyPathChanged()
         {
             UtilityEvents.OnPathChanged?.Invoke(new Events.LogEventArgs(this));
+        }
+
+        /// <summary>
+        /// Triggers the UtilityEvents.OnMovePending event for this instance
+        /// </summary>
+        /// <param name="movePath">The pending log path for this instance (include filename with extension if filename has changed)</param>
+        public void NotifyPendingMove(string movePath)
+        {
+            string filename;
+            movePath = PathUtils.PathWithoutFilename(movePath, out filename);
+            UtilityEvents.OnMovePending?.Invoke(new LogMovePendingEventArgs(this, movePath, filename));
+        }
+
+        public void NotifyPendingMoveAborted()
+        {
+            UtilityEvents.OnMoveAborted?.Invoke(new Events.LogEventArgs(this));
         }
 
         /// <summary>

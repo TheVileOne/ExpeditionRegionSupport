@@ -23,6 +23,9 @@ namespace LogUtils.Events
             }
         }
 
+        public static LogMovePendingEventHandler OnMovePending;
+        public static LogEventHandler OnMoveAborted;
+
         public static LogEventHandler OnPathChanged
         {
             get
@@ -38,6 +41,7 @@ namespace LogUtils.Events
 
     public delegate void LogEventHandler(LogEventArgs e);
     public delegate void LogMessageEventHandler(LogMessageEventArgs e);
+    public delegate void LogMovePendingEventHandler(LogMovePendingEventArgs e);
     public delegate void LogStreamEventHandler(LogStreamEventArgs e);
     public delegate void SetupPeriodEventHandler(SetupPeriodEventArgs e);
 }
