@@ -38,18 +38,48 @@ namespace LogUtils.Helpers.FileHandling
             return dirFound;
         }
 
-        public static bool HaveSameRoot(string path, string pathOther, bool pathsAreFull)
+        /// <summary>
+        /// Finds a path string that two provided paths have in common
+        /// </summary>
+        public static string FindCommonRoot(string path, string pathOther)
         {
-            if (path == null || pathOther == null)
-                return false;
+            if (!Path.IsPathRooted(path)) //Check that we are dealing with a full path
+                path = Path.GetFullPath(path);
 
-            if (!pathsAreFull)
+            if (!Path.IsPathRooted(pathOther))
+                pathOther = Path.GetFullPath(pathOther);
+
+            int charsMatched = 0;
+            int charsMatchedThisDir = 0;
+            for (charsMatched = 0; charsMatched < Math.Min(path.Length, pathOther.Length); charsMatched++)
             {
-                path = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar);
-                pathOther = Path.GetFullPath(pathOther).TrimEnd(Path.DirectorySeparatorChar);
+                char pathChar = path[charsMatched];
+                char pathCharOther = pathOther[charsMatched];
+
+                //Ensure that directory separators can be compared
+                if (pathChar == Path.AltDirectorySeparatorChar)
+                    pathChar = Path.DirectorySeparatorChar;
+
+                if (pathCharOther == Path.AltDirectorySeparatorChar)
+                    pathCharOther = Path.DirectorySeparatorChar;
+
+                if (pathChar == pathCharOther)
+                {
+                    //Register that another char has been matched for the current directory, or set back to zero for the next directory
+                    charsMatchedThisDir = pathChar == Path.DirectorySeparatorChar ? 0 : charsMatchedThisDir + 1;
+                }
+                else
+                {
+                    //Chars matched should only include full directory matches - exclude partial matches
+                    if (pathChar == Path.DirectorySeparatorChar || pathCharOther == Path.DirectorySeparatorChar)
+                        charsMatched -= charsMatchedThisDir;
+                    break;
+                }
             }
 
-            return path.StartsWith(pathOther, StringComparison.InvariantCultureIgnoreCase);
+            if (charsMatched <= path.Length)
+                return path.Substring(0, charsMatched);
+            return pathOther.Substring(0, charsMatched);
         }
 
         /// <summary>

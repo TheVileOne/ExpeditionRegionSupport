@@ -10,20 +10,20 @@ namespace LogUtils
         /// <summary>
         /// Hardcoded tree of directory names associated with a vanilla Rain world installation 
         /// </summary>
-        public static Tree<string> FolderTree;
+        public static DirectoryTree FolderTree;
 
         /// <summary>
         /// Shortcut accessor for StreamingAssets path
         /// </summary>
-        private static Tree<string>.TreeNode customRoot;
+        private static DirectoryTree.DirectoryTreeNode customRoot;
 
         public static void Initialize()
         {
-            FolderTree = new Tree<string>();
+            FolderTree = new DirectoryTree(Paths.GameRootPath);
 
             //Rain World
             #region Root
-            var rootNode = FolderTree.AddNode(Path.GetFileName(Paths.GameRootPath));
+            var rootNode = FolderTree.Root;
 
             //BepInEx
             #region BepInEx
@@ -144,7 +144,10 @@ namespace LogUtils
             path = PathUtils.PathWithoutFilename(path);
 
             //The path may already be resolved - search for it in the directory tree
-            var pathNode = FindPositionInTree(path);
+            var pathNode = FolderTree.FindPositionInTree(path);
+
+            if (pathNode == null)
+                UtilityLogger.Log("Path not part of Rain World directory");
 
             PathCategory category = getDirectoryCategory(pathNode, path);
 
@@ -155,85 +158,77 @@ namespace LogUtils
             if (!RWInfo.MergeProcessComplete) //Too early to resolve paths
             {
                 UtilityLogger.LogWarning("Path category could not be accurately determined");
-                return category;
+                return PathCategory.NotRooted;
             }
 
             ResolveResults results = PathResolution.ResolveDirectory(path);
 
-            if (results.ModOwner != null)
-                return PathCategory.ModFolderPlugin;
-
             if (!results.Exists)
                 return PathCategory.NotRooted; //Don't consider the resolved path as the true path, treat it as a foreign path
+
+            //This will never target the mod containing folder itself, nor will it target any version folders
+            if (results.ModOwner != null)
+            {
+                if (isRequiredModDirectory(results.CombinedResult))
+                {
+                    UtilityLogger.Log("Path belongs to a mod required directory");
+                    return PathCategory.ModRequiredFolder;
+                }
+                return PathCategory.ModSourced;
+            }
 
             //Check if directory is game-installed - Path result is guaranteed to be within StreamingAssets
             return category = getDirectoryCategory(customRoot, results.CombinedResult);
         }
 
-        /// <summary>
-        /// Finds the nearest common directory within the Rain World directory to a provided path
-        /// </summary>
-        internal static Tree<string>.TreeNode FindPositionInTree(string path)
+        private static PathCategory getDirectoryCategory(DirectoryTree.DirectoryTreeNode node, string path)
         {
-            if (!PathUtils.HaveSameRoot(path, Paths.GameRootPath, true))
-            {
-                UtilityLogger.Log("Path not part of Rain World directory");
-                return null;
-            }
-
-            //Guaranteed to not have filenames at this stage
-            string[] directories = PathUtils.Separate(Path.GetFullPath(path));
-
-            //Case sensitivity should never be an issue here?
-            int rootIndex = directories.IndexOf("Rain World");
-
-            var currentNode = FolderTree.Root;
-            int currentNodeIndex = rootIndex + 1;
-
-            //Keep checking directories until we cannot find a match, or run out of directories strings
-            while (currentNodeIndex < directories.Length)
-            {
-                //Check the child subdirectories for the current directory string in our path
-                var foundNode = currentNode.FindChild(directories[currentNodeIndex]);
-
-                if (foundNode != null)
-                {
-                    currentNodeIndex++;
-                    currentNode = foundNode;
-                }
-            }
-            return currentNode; //This will represent the nearest common directory pertaining to the provided path
-        }
-
-        private static PathCategory getDirectoryCategory(Tree<string>.TreeNode node, string path)
-        {
-            if (node == null || path == null)
+            if (node == null)
                 return PathCategory.NotRooted;
 
-            //TODO: This is wrong. The common path portion needs to be stripped from path, and the first directory after needs to be compared, not the last
-            //Get the last directory
-            string pathDir = Path.GetFileName(path);
-
-            if (ComparerUtils.StringComparerIgnoreCase.Equals(pathDir, node.Value))
+            //The possible states include the path being a game directory, or a directory inside a game directory 
+            if (PathUtils.PathsAreEqual(node.DirPath, path))
                 return PathCategory.Game;
 
-            //These directories are generally unsupported by the utility, and a nearest common directory match  on any of these
-            //will be assumed to be game-related
+            //The path is within the mods directory - supported paths include 
+            if (ComparerUtils.StringComparerIgnoreCase.Equals(node.DirName, "mods"))
+            {
+                if (isRequiredModDirectory(path))
+                {
+                    UtilityLogger.Log("Path belongs to a mod required directory");
+                    return PathCategory.ModRequiredFolder;
+                }
+                return PathCategory.ModSourced;
+            }
+
+            //We know this path isn't directing to a tracked game directory, but it could still be an untracked one
             string[] gameDirs =
             {
                 "mergedmods",
-                "mods",
                 "scenes",
                 "text"
             };
 
-            if (pathDir.MatchAny(ComparerUtils.StringComparerIgnoreCase, gameDirs))
-            {
-                if (pathDir == "mods")
-                    return PathCategory.ModFolderTopLevel;
+            if (node.DirName.MatchAny(ComparerUtils.StringComparerIgnoreCase, gameDirs))
                 return PathCategory.Game;
-            }
+
+            //All other possibilities involve a directory not put there by the game
             return PathCategory.ModSourced;
+        }
+
+        private static bool isRequiredModDirectory(string path)
+        {
+            string targetDir = Path.GetFileName(path);
+            string containingDir = Path.GetFileName(Path.GetDirectoryName(path));
+
+            string[] requiredModDirs =
+            {
+                "modify",
+                "newest",
+                "plugins"
+            };
+
+            return targetDir.MatchAny(ComparerUtils.StringComparerIgnoreCase, requiredModDirs) || ComparerUtils.StringComparerIgnoreCase.Equals(containingDir, "mods");
         }
 
         static RainWorldDirectory()
@@ -253,15 +248,11 @@ namespace LogUtils
         /// </summary>
         Game,
         /// <summary>
-        /// Path points to a sub-folder inside a top-level directory inside the mods directory
+        /// Path points to a top-level directory inside the mods directory, or similar directory for mods, or a required mod subdirectory
         /// </summary>
-        ModFolderPlugin,
+        ModRequiredFolder,
         /// <summary>
-        /// Path points to the mods directory, or a top-level directory inside the mods directory
-        /// </summary>
-        ModFolderTopLevel,
-        /// <summary>
-        /// Path is part of the RainWorld folder, is not game-installed, part of mergedmods directory, or contained within mods directory
+        /// Path is not a game-installed directory, not associated with a mod's directory structure, and is defined within the Rain World direcotry or a mod-specific directory
         /// </summary>
         ModSourced
     }

@@ -23,7 +23,7 @@ namespace LogUtils.Helpers.FileHandling
             if (!RWInfo.MergeProcessComplete)
                 UtilityLogger.LogWarning("Resolving path before mod merging has completed");
 
-            if (path == null)
+            if (string.IsNullOrWhiteSpace(path))
             {
                 return new ResolveResults()
                 {
@@ -54,7 +54,7 @@ namespace LogUtils.Helpers.FileHandling
                 if (mod.hasTargetedVersionFolder)
                 {
                     resolvePath = mod.TargetedPath;
-                    if (existCallback(resolvePath))
+                    if (existCallback(Path.Combine(resolvePath, path)))
                     {
                         return new ResolveResults()
                         {
@@ -68,7 +68,7 @@ namespace LogUtils.Helpers.FileHandling
                 if (mod.hasNewestFolder)
                 {
                     resolvePath = mod.NewestPath;
-                    if (existCallback(resolvePath))
+                    if (existCallback(Path.Combine(resolvePath, path)))
                     {
                         return new ResolveResults()
                         {
@@ -80,7 +80,7 @@ namespace LogUtils.Helpers.FileHandling
                     }
                 }
                 resolvePath = mod.path;
-                if (existCallback(resolvePath))
+                if (existCallback(Path.Combine(resolvePath, path)))
                 {
                     return new ResolveResults()
                     {
