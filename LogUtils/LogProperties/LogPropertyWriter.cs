@@ -25,7 +25,7 @@ namespace LogUtils.Properties
 
             propertyFile.PrepareStream();
 
-            StreamWriter writer = new StreamWriter(propertyFile.FileStream);
+            StreamWriter writer = new StreamWriter(propertyFile.Stream);
 
             writer.WriteLine(writeString);
             writer.Flush();

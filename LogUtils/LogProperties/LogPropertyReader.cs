@@ -28,7 +28,7 @@ namespace LogUtils.Properties
             int commentCountForThisField = 0;
             List<CommentEntry> commentEntries = new List<CommentEntry>();
 
-            StreamReader reader = new StreamReader(propertyFile.FileStream);
+            StreamReader reader = new StreamReader(propertyFile.Stream);
 
             LogPropertyStringDictionary propertyInFile = null;
             while (!reader.EndOfStream)
