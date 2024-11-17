@@ -379,11 +379,16 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// This method controls the directory that eligible log files target instead of the normal log path. Log files will be moved when the path is set
+        /// Sets the logs folder path to that of an existing directory
+        /// <br>DO NOT set to any directory you don't want moved around</br>
         /// </summary>
-        /// <param name="path">The path (including folder name). Path is assumed to be valid, resolve path before invoking this method if path resolution is required</param>
+        /// <param name="path">A valid directory path</param>
         public static void SetPath(string path)
         {
+            //Mods are responsible for creating directory, if the utility is unable to do so
+            if (!Directory.Exists(path))
+                throw new DirectoryNotFoundException(path);
+
             string currentPath = Path;
             if (IsLogsFolderPath(path) && !IsCurrentPath(path))
             {
