@@ -1,6 +1,7 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
 using LogUtils.Events;
+using LogUtils.Helpers;
 using LogUtils.Properties;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -276,8 +277,6 @@ namespace LogUtils
         {
             lock (UtilityCore.RequestHandler.RequestProcessLock)
             {
-                logWhenNotOnMainThread(LogID.Unity);
-
                 gameHookRequestCounter++;
 
                 bool recursionDetected = checkRecursionRequestCounters();
@@ -285,6 +284,9 @@ namespace LogUtils
                 object logTarget = logString;
 
                 LogID logFile = LogCategory.GetUnityLogID(logLevel);
+
+                if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake)
+                    ThreadUtils.AssertRunningOnMainThread(logFile);
 
                 if (logFile == LogID.Exception)
                 {
@@ -667,8 +669,8 @@ namespace LogUtils
         {
             lock (UtilityCore.RequestHandler.RequestProcessLock)
             {
-                if (self.SourceName != UtilityConsts.UTILITY_NAME)
-                    logWhenNotOnMainThread(LogID.BepInEx);
+                if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake && self.SourceName != UtilityConsts.UTILITY_NAME)
+                    ThreadUtils.AssertRunningOnMainThread(LogID.BepInEx);
 
                 orig(self, category, data);
             }
@@ -778,15 +780,6 @@ namespace LogUtils
             cursor.Emit(OpCodes.Br, returnLabel);
             cursor.GotoNext(MoveType.Before, x => x.MatchRet());
             cursor.MarkLabel(returnLabel);
-        }
-
-        private static void logWhenNotOnMainThread(LogID logFile)
-        {
-            if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake && UtilityCore.ThreadID != Thread.CurrentThread.ManagedThreadId)
-            {
-                UtilityLogger.Log(LogCategory.Debug, "Log request not handled on main thread");
-                UtilityLogger.Log(LogCategory.Debug, $"ThreadInfo: Id [{Thread.CurrentThread.ManagedThreadId}] Source [{logFile}]");
-            }
         }
     }
 }
