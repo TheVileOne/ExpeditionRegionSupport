@@ -257,18 +257,25 @@ namespace LogUtils
 
             lock (UtilityCore.RequestHandler.RequestProcessLock)
             {
+                List<StreamResumer> streamsToResume = new List<StreamResumer>();
                 //TODO: Notify LogIDs of a pending move, shut down their Filestreams (reopen when finished)
                 try
                 {
                     //TODO: Code for shutting down Filestreams at the LogWriter level
                     foreach (LogID logFile in GetContainedLogFiles())
+                    {
                         logFile.Properties.NotifyPendingMove(path);
+
+                        foreach (PersistentFileHandle streamHandle in logFile.Properties.PersistentStreamHandles)
+                            streamsToResume.Add(streamHandle.InterruptStream());
+                    }
 
                     Directory.Move(basePath, path);
                 }
                 finally
                 {
                     //Open streams
+                    streamsToResume.ForEach(stream => stream.Resume());
                 }
             }
         }
@@ -308,7 +315,7 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Moves log files back to the filepath read from file
+        /// Attempts to move log files back to where they were before the files were moved to a Logs folder
         /// </summary>
         public static void Restore()
         {

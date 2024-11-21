@@ -324,6 +324,11 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
+        /// A list of persistent FileStreams known to be open for this log file
+        /// </summary>
+        public List<PersistentLogFileHandle> PersistentStreamHandles = new List<PersistentLogFileHandle>();
+
+        /// <summary>
         /// An array of value identifiers for a specific log
         /// </summary>
         public string[] Tags;

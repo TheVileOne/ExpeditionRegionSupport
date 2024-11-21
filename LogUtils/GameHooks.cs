@@ -1,5 +1,4 @@
-﻿using BepInEx.Logging;
-using LogUtils.Enums;
+﻿using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Properties;
@@ -9,7 +8,6 @@ using MonoMod.RuntimeDetour;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Threading;
 using UnityEngine;
 
@@ -26,12 +24,6 @@ namespace LogUtils
         {
             try
             {
-                Type type = typeof(ManualLogSource);
-                MethodInfo method = type.GetMethod(nameof(ManualLogSource.Log));
-
-                //Allows LogRules to apply to BepInEx log traffic
-                managedHooks.Add(new Hook(method, bepInExLogProcessHook));
-                managedHooks.Add(new ILHook(method, bepInExLogProcessHookIL));
                 Apply();
             }
             catch (Exception ex)
@@ -647,131 +639,6 @@ namespace LogUtils
             {
                 return showLogs || !logFile.Properties.ShowLogsAware;
             });
-        }
-
-        private static void replaceLogPathHook(ILCursor cursor, LogID logFile)
-        {
-            if (cursor.TryGotoNext(MoveType.After, x => x.MatchCall(typeof(RWCustom.Custom).GetMethod("RootFolderDirectory"))))
-            {
-                cursor.Emit(OpCodes.Pop); //Get method return value off the stack
-                cursor.EmitDelegate(() => logFile.Properties.CurrentFolderPath);//Load current filepath onto stack
-                cursor.GotoNext(MoveType.After, x => x.Match(OpCodes.Ldstr));
-                cursor.Emit(OpCodes.Pop); //Replace filename extension with new one
-                cursor.EmitDelegate(() => logFile.Properties.CurrentFilenameWithExtension);//Load current filename onto stack
-            }
-            else
-            {
-                UtilityLogger.LogError("Expected directory IL could not be found");
-            }
-        }
-
-        private static void bepInExLogProcessHook(Action<ManualLogSource, LogLevel, object> orig, ManualLogSource self, LogLevel category, object data)
-        {
-            lock (UtilityCore.RequestHandler.RequestProcessLock)
-            {
-                if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake && self.SourceName != UtilityConsts.UTILITY_NAME)
-                    ThreadUtils.AssertRunningOnMainThread(LogID.BepInEx);
-
-                orig(self, category, data);
-            }
-        }
-
-        private static void bepInExLogProcessHookIL(ILContext il)
-        {
-            ILCursor cursor = new ILCursor(il);
-
-            cursor.GotoNext(MoveType.After, x => x.MatchLdarg(0));
-            cursor.Emit(OpCodes.Ldarg_1)
-                  .Emit(OpCodes.Ldarg_2);
-
-            bool isUtilityLogger = false;
-            object transferObject = null;
-
-            cursor.EmitDelegate(onLogReceived);
-
-            //Check that LogRequest has passed validation
-            ILLabel branchLabel = cursor.DefineLabel();
-
-            cursor.Emit(OpCodes.Brtrue, branchLabel);
-            cursor.Emit(OpCodes.Ret); //Return early if validation check failed
-
-            cursor.MarkLabel(branchLabel);
-
-            //Take handled log message and store it back on the stack
-            cursor.EmitDelegate(() => transferObject);
-            cursor.Emit(OpCodes.Starg, 2);
-            cursor.Emit(OpCodes.Ldarg_0); //Replace the one taken off the stack
-
-            //Whenever this method returns, treat this request as complete. BepInEx uses a flush timer, so message may not log immediately on completion
-            while (cursor.TryGotoNext(MoveType.Before, x => x.MatchRet()))
-            {
-                cursor.EmitDelegate(() =>
-                {
-                    transferObject = null;
-
-                    if (!isUtilityLogger)
-                    {
-                        LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
-                        LogWriter.FinishWriteProcess(request);
-                    }
-                    isUtilityLogger = false;
-                });
-                cursor.Index++;
-            }
-
-            bool onLogReceived(ManualLogSource self, LogLevel category, object data)
-            {
-                isUtilityLogger = self.SourceName == UtilityConsts.UTILITY_NAME;
-
-                if (!isUtilityLogger) //Utility must be allowed to log without disturbing utility functions
-                {
-                    LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
-
-                    if (request == null)
-                    {
-                        request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.BepInEx, data, category)), false);
-
-                        if (request.Status == RequestStatus.Rejected)
-                            return false;
-                    }
-
-                    LogWriter.BeginWriteProcess(request);
-
-                    if (request.Status == RequestStatus.Rejected)
-                        return false;
-
-                    //Prepare data to be put back on the stack
-                    //category = request.Data.BepInExCategory;
-                    transferObject = request.Data.Message;
-                }
-                else
-                    transferObject = data;
-
-                //TODO: LogRules need to be applied here
-                return true;
-            }
-        }
-
-        private static void beginWriteProcessHook(ILCursor cursor, bool requiresExtraPop = false)
-        {
-            //Begin write process from the IL stack
-            cursor.EmitDelegate(() =>
-            {
-                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
-
-                LogWriter.BeginWriteProcess(request);
-                return request.Status != RequestStatus.Rejected;
-            });
-
-            //Check that LogRequest has passed validation
-            ILLabel branchLabel = cursor.DefineLabel();
-
-            cursor.Emit(OpCodes.Brtrue, branchLabel);
-
-            if (requiresExtraPop)
-                cursor.Emit(OpCodes.Pop);
-            cursor.Emit(OpCodes.Ret); //Return early if validation check failed
-            cursor.MarkLabel(branchLabel);
         }
 
         private static void branchToReturn(ILCursor cursor)

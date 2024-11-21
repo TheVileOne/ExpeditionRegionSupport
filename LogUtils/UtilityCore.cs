@@ -102,6 +102,16 @@ namespace LogUtils
             {
                 PropertyManager.ProcessLogFiles();
 
+                List<ILogListener> listenerInstances = (List<ILogListener>)BepInEx.Logging.Logger.Listeners;
+
+                //Replace the first DiskLogListener we can find with a utility controlled instance
+                int listenerIndex = listenerInstances.FindIndex(l => l is DiskLogListener);
+
+                if (listenerIndex >= 0)
+                    listenerInstances[listenerIndex] = new BepInExDiskLogListener(new TimedLogWriter());
+                else
+                    listenerInstances.Add(new BepInExDiskLogListener(new TimedLogWriter()));
+
                 //Listen for Unity log requests while the log file is unavailable
                 if (RWInfo.LatestSetupPeriodReached < LogID.Unity.Properties.AccessPeriod)
                     UtilityLogger.ReceiveUnityLogEvents = true;
