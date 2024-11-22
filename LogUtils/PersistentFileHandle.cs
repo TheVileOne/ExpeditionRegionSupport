@@ -6,7 +6,7 @@ namespace LogUtils
     /// <summary>
     /// A mod friendly class for handling persistent file stream operations 
     /// </summary>
-    public abstract class PersistentFileHandle
+    public abstract class PersistentFileHandle : IDisposable
     {
         public bool IsAlive => Lifetime.IsAlive;
 
@@ -15,11 +15,13 @@ namespace LogUtils
         /// </summary>
         public bool IsClosed => Stream == null || (!Stream.CanWrite && !Stream.CanRead);
 
+        protected bool IsDisposed;
 
         /// <summary>
         /// A managed representation of the time remaining before filestream is disposed in milliseconds
         /// </summary>
         public Lifetime Lifetime = new Lifetime();
+
         /// <summary>
         /// The underlying filestream if it exists, null otherwise. This stream is always active when the file is present. 
         /// Please do not close the stream. Interrupt and resume the stream instead.
@@ -41,6 +43,12 @@ namespace LogUtils
         }
 
         protected abstract void CreateFileStream();
+
+        public void Dispose()
+        {
+            IsDisposed = true;
+            Stream?.Dispose();
+        }
 
         public void UpdateLifetime()
         {
