@@ -40,8 +40,10 @@ namespace LogUtils
             if (isDisposed)
                 throw new ObjectDisposedException("Cannot access a disposed LogWriter");
 
+            int logFilesProcessed = 0;
             foreach (PersistentLogFileHandle logFile in LogFiles.Where(file => !file.IsClosed))
             {
+                logFilesProcessed++;
                 try
                 {
                     logFile.Stream.Flush();
@@ -49,6 +51,19 @@ namespace LogUtils
                 catch (IOException)
                 {
                     //TODO: Error logging
+                }
+            }
+
+            bool hasClosedLogFiles = logFilesProcessed != LogFiles.Count;
+
+            if (hasClosedLogFiles)
+            {
+                List<PersistentLogFileHandle> closedLogFiles = LogFiles.FindAll(file => file.IsClosed); 
+                
+                foreach (PersistentLogFileHandle logFile in closedLogFiles)
+                {
+                    logFile.FileID.Properties.PersistentStreamHandles.Remove(logFile);
+                    LogFiles.Remove(logFile);
                 }
             }
         }
