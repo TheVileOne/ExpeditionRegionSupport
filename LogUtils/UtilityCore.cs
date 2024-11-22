@@ -36,6 +36,8 @@ namespace LogUtils
         /// </summary>
         public static ILogListener ManagedLogListener;
 
+        public static PersistenceManager PersistenceManager;
+
         public static PropertyDataController PropertyManager;
 
         /// <summary>
@@ -130,6 +132,7 @@ namespace LogUtils
         internal static void LoadComponents()
         {
             Scheduler = ComponentUtils.GetOrCreate<FrameTimer>(UtilityConsts.ComponentTags.SCHEDULER, out _);
+            PersistenceManager = ComponentUtils.GetOrCreate<PersistenceManager>(UtilityConsts.ComponentTags.PERSISTENCE_MANAGER, out _);
             DataHandler = ComponentUtils.GetOrCreate<SharedDataHandler>(UtilityConsts.ComponentTags.SHARED_DATA, out _);
             RequestHandler = ComponentUtils.GetOrCreate<LogRequestHandler>(UtilityConsts.ComponentTags.REQUEST_DATA, out _);
 

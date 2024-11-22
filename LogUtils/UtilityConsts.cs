@@ -107,10 +107,11 @@ namespace LogUtils
 
         public static class ComponentTags
         {
+            public const string PERSISTENCE_MANAGER = "PersistenceManager";
             public const string PROPERTY_DATA = "LogProperties";
+            public const string REQUEST_DATA = "RequestData";
             public const string SCHEDULER = "Scheduler";
             public const string SHARED_DATA = "SharedData";
-            public const string REQUEST_DATA = "RequestData";
         }
 
         public static class LogNames

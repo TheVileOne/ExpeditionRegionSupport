@@ -6,7 +6,7 @@ namespace LogUtils
     {
         public readonly LogID FileID;
 
-        public PersistentLogFileHandle(LogID logFile)
+        public PersistentLogFileHandle(LogID logFile) : base()
         {
             FileID = logFile;
         }

@@ -17,7 +17,7 @@ namespace LogUtils.Properties
         internal LogPropertyReader Reader;
         internal LogPropertyWriter Writer;
 
-        public LogPropertyFile()
+        public LogPropertyFile() : base()
         {
             FilePath = Path.Combine(Paths.StreamingAssetsPath, "logs.txt");
 
