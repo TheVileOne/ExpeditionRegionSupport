@@ -14,7 +14,7 @@ namespace LogUtils.Properties
         public CustomLogPropertyCollection CustomLogProperties = new CustomLogPropertyCollection();
         public Dictionary<LogProperties, LogPropertyStringDictionary> UnrecognizedFields = new Dictionary<LogProperties, LogPropertyStringDictionary>();
 
-        internal LogPropertyFile PropertyFile = new LogPropertyFile();
+        public LogPropertyFile PropertyFile = new LogPropertyFile();
 
         public override string Tag => UtilityConsts.ComponentTags.PROPERTY_DATA;
 
