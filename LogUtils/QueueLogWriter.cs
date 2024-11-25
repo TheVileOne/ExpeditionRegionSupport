@@ -1,5 +1,6 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Events;
+using LogUtils.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -101,25 +102,11 @@ namespace LogUtils
                         fileLock.SetActivity(logEntry.ID, FileAction.Log);
 
                         writingFromBuffer = true;
-                        string writePath = logEntry.Properties.CurrentFilePath;
-                        bool retryAttempt = false;
 
-                    retry:
-                        using (FileStream stream = GetWriteStream(writePath, false))
+                        using (FileStream stream = LogFile.Open(logEntry.ID))
                         {
-                            if (stream == null)
-                            {
-                                if (!retryAttempt)
-                                {
-                                    logEntry.Properties.FileExists = false;
-                                    if (PrepareLogFile(logEntry.ID)) //Allow a single retry after creating the file once confirming session has been established
-                                    {
-                                        retryAttempt = true;
-                                        goto retry;
-                                    }
-                                }
-                                throw new IOException("Unable to create log file");
-                            }
+                            //if (!logFile.Properties.FileExists)
+                            //    throw new IOException("Unable to create log file");
 
                             using (StreamWriter writer = new StreamWriter(stream))
                             {

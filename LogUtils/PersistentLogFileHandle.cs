@@ -1,4 +1,5 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Helpers;
 
 namespace LogUtils
 {
@@ -13,7 +14,7 @@ namespace LogUtils
 
         protected override void CreateFileStream()
         {
-            Stream = LogWriter.GetWriteStream(FileID.Properties.CurrentFilePath, true);
+            Stream = LogFile.Open(FileID);
         }
     }
 }

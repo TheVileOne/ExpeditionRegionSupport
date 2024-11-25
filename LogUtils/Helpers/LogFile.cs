@@ -11,7 +11,7 @@ namespace LogUtils.Helpers
         /// <summary>
         /// Creates a copy of a log file
         /// </summary>
-        /// <param name="logFile">The LogID giving access to the filepath of the log file</param>
+        /// <param name="logFile">The LogID that accesses the log file path</param>
         /// <param name="copyPath">The full path to the destination of the log file. Log filename is optional</param>
         public static FileStatus Copy(LogID logFile, string copyPath)
         {
@@ -67,6 +67,90 @@ namespace LogUtils.Helpers
             LogFileMover fileMover = new LogFileMover(sourceLogPath, destLogPath);
 
             return fileMover.MoveFile();
+        }
+
+        /// <summary>
+        /// Opens a FileStream instance for a log file
+        /// </summary>
+        /// <param name="logFile">The LogID that accesses the log file path</param>
+        /// <returns>The opened FileStream, or null if the file could not be opened, or created</returns>
+        /// <exception cref="IOException"></exception>
+        public static FileStream Open(LogID logFile)
+        {
+            var fileLock = logFile.Properties.FileLock;
+
+            lock (fileLock)
+            {
+                fileLock.SetActivity(logFile, FileAction.Open);
+
+                string writePath = logFile.Properties.CurrentFilePath;
+                bool retryAttempt = false;
+
+            retry:
+                FileStream stream = OpenNoCreate(logFile);
+
+                if (stream == null)
+                {
+                    if (!retryAttempt)
+                    {
+                        logFile.Properties.FileExists = false;
+
+                        //Try to create the file, and reattempt to open stream
+                        if (TryCreate(logFile))
+                        {
+                            retryAttempt = true;
+                            goto retry;
+                        }
+                    }
+                    throw new IOException("Unable to create log file");
+                }
+                return stream;
+            }
+        }
+
+        internal static FileStream OpenNoCreate(LogID logFile)
+        {
+            return InternalOpen(logFile, FileMode.Open);
+        }
+
+        internal static FileStream InternalOpen(LogID logFile, FileMode mode)
+        {
+            try
+            {
+                //Open filestream using maximal FileShare privileges
+                FileStream stream = File.Open(logFile.Properties.CurrentFilePath, mode, FileAccess.ReadWrite, FileShare.ReadWrite);
+
+                //Seeks to the end of the file - I don't know of a better way of handling this. Other methods that append to the file also create the file
+                //for us. It is important for the utility to handle creating the file using its own process
+                stream.Seek(0, SeekOrigin.End);
+                return stream;
+            }
+            catch (IOException ex) when (ex is FileNotFoundException || ex is DirectoryNotFoundException)
+            {
+                return null;
+            }
+        }
+
+        internal static FileStream Create(LogID logFile)
+        {
+            return InternalOpen(logFile, FileMode.OpenOrCreate);
+        }
+
+        /// <summary>
+        /// Starts a log file session creating the log file if it doesn't exist
+        /// </summary>
+        /// <param name="logFile">The LogID that accesses the log file path</param>
+        /// <returns>The active state of the log session</returns>
+        public static bool TryCreate(LogID logFile)
+        {
+            if (logFile.Properties.LogSessionActive) return true;
+
+            //No log file shall be created before its assigned access period
+            if (RWInfo.LatestSetupPeriodReached < logFile.Properties.AccessPeriod)
+                return false;
+
+            logFile.Properties.BeginLogSession();
+            return logFile.Properties.LogSessionActive;
         }
 
         public static string FindPathWithoutFileExtension(string searchPath, string filename)

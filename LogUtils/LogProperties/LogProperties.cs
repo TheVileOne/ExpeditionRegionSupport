@@ -592,17 +592,16 @@ namespace LogUtils.Properties
         {
             if (LogSessionActive) return;
 
-            UtilityLogger.Log($"Attempting to start log session [{ID}]");
+            LogID logID = ID;
+            UtilityLogger.Log($"Attempting to start log session [{logID}]");
 
             try
             {
                 lock (FileLock)
                 {
-                    FileLock.SetActivity(ID, FileAction.SessionStart);
+                    FileLock.SetActivity(logID, FileAction.SessionStart);
 
-                    string writePath = CurrentFilePath;
-
-                    using (FileStream stream = LogWriter.GetWriteStream(writePath, true))
+                    using (FileStream stream = LogFile.Create(logID))
                     {
                         FileExists = stream != null;
 
@@ -610,7 +609,7 @@ namespace LogUtils.Properties
                         {
                             using (StreamWriter writer = new StreamWriter(stream))
                             {
-                                OnLogSessionStart(new LogStreamEventArgs(ID, writer));
+                                OnLogSessionStart(new LogStreamEventArgs(logID, writer));
                             };
 
                             LogSessionActive = true;
@@ -635,9 +634,10 @@ namespace LogUtils.Properties
         {
             if (!LogSessionActive) return;
 
-            UtilityLogger.Log($"Log session ended [{ID}]");
+            LogID logID = ID;
+            UtilityLogger.Log($"Log session ended [{logID}]");
 
-            if (LogFilter.FilteredStrings.TryGetValue(ID, out List<FilteredStringEntry> filter))
+            if (LogFilter.FilteredStrings.TryGetValue(logID, out List<FilteredStringEntry> filter))
                 filter.RemoveAll(entry => entry.Duration == FilterDuration.OnClose);
 
             MessagesLoggedThisSession = 0;
@@ -652,11 +652,9 @@ namespace LogUtils.Properties
             {
                 lock (FileLock)
                 {
-                    FileLock.SetActivity(ID, FileAction.SessionEnd);
+                    FileLock.SetActivity(logID, FileAction.SessionEnd);
 
-                    string writePath = CurrentFilePath;
-
-                    using (FileStream stream = LogWriter.GetWriteStream(writePath, false))
+                    using (FileStream stream = LogFile.OpenNoCreate(logID))
                     {
                         FileExists = stream != null;
 
@@ -664,7 +662,7 @@ namespace LogUtils.Properties
                         {
                             using (StreamWriter writer = new StreamWriter(stream))
                             {
-                                OnLogSessionFinish(new LogStreamEventArgs(ID, writer));
+                                OnLogSessionFinish(new LogStreamEventArgs(logID, writer));
                             };
                         }
                     }

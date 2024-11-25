@@ -18,6 +18,7 @@
         Delete,
         Move,
         Copy,
+        Open,
         PathUpdate,
         SessionStart,
         SessionEnd,

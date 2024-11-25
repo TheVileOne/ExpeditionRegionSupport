@@ -1,5 +1,6 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Events;
+using LogUtils.Helpers;
 using LogUtils.Properties;
 using System;
 using System.IO;
@@ -40,11 +41,6 @@ namespace LogUtils
                 }
                 return _jollyWriter.Value;
             }
-        }
-
-        public void CreateFile(LogID logFile)
-        {
-            logFile.Properties.BeginLogSession();
         }
 
         /// <summary>
@@ -132,16 +128,7 @@ namespace LogUtils
 
         protected virtual bool PrepareLogFile(LogID logFile)
         {
-            if (logFile.Properties.LogSessionActive)
-                return true;
-
-            //Have you reached a point where this LogID can log to file
-            if (RWInfo.LatestSetupPeriodReached < logFile.Properties.AccessPeriod)
-                return false;
-
-            //Start routine for a new log session
-            CreateFile(logFile);
-            return logFile.Properties.LogSessionActive;
+            return LogFile.TryCreate(logFile);
         }
 
         internal bool InternalWriteToFile(LogMessageEventArgs logEventData)
@@ -159,27 +146,11 @@ namespace LogUtils
                 {
                     fileLock.SetActivity(logFile, FileAction.Log);
 
-                    string writePath = logFile.Properties.CurrentFilePath;
-                    bool retryAttempt = false;
-
-                retry:
-                    using (FileStream stream = GetWriteStream(writePath, false))
+                    using (FileStream stream = LogFile.Open(logFile))
                     {
-                        if (stream == null)
-                        {
-                            if (!retryAttempt)
-                            {
-                                logFile.Properties.FileExists = false;
-                                if (PrepareLogFile(logFile)) //Allow a single retry after creating the file once confirming session has been established
-                                {
-                                    retryAttempt = true;
-                                    goto retry;
-                                }
-                            }
-                            throw new IOException("Unable to create log file");
-                        }
+                        //if (!logFile.Properties.FileExists)
+                        //    throw new IOException("Unable to create log file");
 
-                        //Assume stream is fine here
                         using (StreamWriter writer = new StreamWriter(stream))
                         {
                             message = ApplyRules(logEventData);
@@ -211,28 +182,10 @@ namespace LogUtils
         {
             UtilityEvents.OnMessageReceived?.Invoke(e);
         }
-
-        internal static FileStream GetWriteStream(string path, bool createFile)
-        {
-            try
-            {
-                FileMode mode = createFile ? FileMode.OpenOrCreate : FileMode.Open;
-
-                //Accessing the write stream this way provides better control over file creation and write access
-                FileStream stream = File.Open(path, mode, FileAccess.ReadWrite, FileShare.ReadWrite);
-                stream.Seek(0, SeekOrigin.End);
-                return stream;
-            }
-            catch (Exception ex) when (ex is FileNotFoundException || ex is DirectoryNotFoundException)
-            {
-                return null;
-            }
-        }
     }
 
     public interface ILogWriter
     {
-        public void CreateFile(LogID logFile);
         public void ResetFile(LogID logFile);
         internal void WriteFrom(LogRequest request);
         internal void WriteToFile(LogID logFile, string message);
