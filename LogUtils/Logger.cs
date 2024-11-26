@@ -743,6 +743,7 @@ namespace LogUtils
 
         public void Dispose()
         {
+            Writer = null;
         }
     }
 
