@@ -21,8 +21,7 @@ namespace LogUtils
                     return RejectionReason.LogDisabled;
             }
 
-            //Makes sure that the log file can be initialized
-            if (!logFile.Properties.LogSessionActive && RWInfo.LatestSetupPeriodReached < logFile.Properties.AccessPeriod)
+            if (!logFile.Properties.CanBeAccessed)
                 return RejectionReason.LogUnavailable;
 
             return RejectionReason.None;
@@ -42,8 +41,7 @@ namespace LogUtils
                 return;
             }
 
-            //Makes sure that the log file can be initialized
-            if (!logFile.Properties.LogSessionActive && RWInfo.LatestSetupPeriodReached < logFile.Properties.AccessPeriod)
+            if (!logFile.Properties.CanBeAccessed)
                 request.Reject(RejectionReason.LogUnavailable);
         }
     }

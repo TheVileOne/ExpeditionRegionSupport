@@ -79,7 +79,7 @@ namespace LogUtils
         {
             //Avoid creating the file until we are ready to write to it
             if (!writingFromBuffer)
-                return logFile.Properties.LogSessionActive || RWInfo.LatestSetupPeriodReached >= logFile.Properties.AccessPeriod;
+                return logFile.Properties.CanBeAccessed;
 
             return base.PrepareLogFile(logFile);
         }

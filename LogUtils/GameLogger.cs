@@ -38,8 +38,7 @@ namespace LogUtils
                 return;
             }
 
-            //Check that the log file can be initialized
-            if (!logFile.Properties.LogSessionActive && RWInfo.LatestSetupPeriodReached < logFile.Properties.AccessPeriod)
+            if (!logFile.Properties.CanBeAccessed)
                 request.Reject(RejectionReason.LogUnavailable);
 
             if (request.Status == RequestStatus.Rejected) return;

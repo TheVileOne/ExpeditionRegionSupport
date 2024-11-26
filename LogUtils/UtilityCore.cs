@@ -115,7 +115,7 @@ namespace LogUtils
                     listenerInstances.Add(new BepInExDiskLogListener(new TimedLogWriter()));
 
                 //Listen for Unity log requests while the log file is unavailable
-                if (RWInfo.LatestSetupPeriodReached < LogID.Unity.Properties.AccessPeriod)
+                if (!LogID.Unity.Properties.CanBeAccessed)
                     UtilityLogger.ReceiveUnityLogEvents = true;
 
                 AppDomain.CurrentDomain.UnhandledException += (o, e) => RequestHandler.DumpRequestsToFile();

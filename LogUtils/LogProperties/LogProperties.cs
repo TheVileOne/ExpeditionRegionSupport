@@ -53,6 +53,11 @@ namespace LogUtils.Properties
         public SetupPeriod AccessPeriod = SetupPeriod.Pregame;
 
         /// <summary>
+        /// A flag that indicates whether a log session can be, or already is established
+        /// </summary>
+        public bool CanBeAccessed => LogSessionActive || RWInfo.LatestSetupPeriodReached >= AccessPeriod;
+
+        /// <summary>
         /// Indicates that this instance was read from file, but one or more fields could not be processed
         /// </summary>
         public bool ProcessedWithErrors;
@@ -607,18 +612,24 @@ namespace LogUtils.Properties
 
                         if (FileExists)
                         {
-                            using (StreamWriter writer = new StreamWriter(stream))
+                            StreamWriter writer = new StreamWriter(stream);
+
+                            try
                             {
                                 OnLogSessionStart(new LogStreamEventArgs(logID, writer));
-                            };
+                            }
+                            finally
+                            {
+                                writer.Close();
 
-                            LogSessionActive = true;
-                            LastKnownFilePath = CurrentFilePath;
+                                LogSessionActive = true;
+                                LastKnownFilePath = CurrentFilePath;
+                            }
                         }
                     }
                 }
             }
-            catch (IOException ex) //Some issue other than the file existing occurred
+            catch (IOException ex)
             {
                 UtilityLogger.LogError("File handling error occurred", ex);
             }

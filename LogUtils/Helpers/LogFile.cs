@@ -143,14 +143,11 @@ namespace LogUtils.Helpers
         /// <returns>The active state of the log session</returns>
         public static bool TryCreate(LogID logFile)
         {
-            if (logFile.Properties.LogSessionActive) return true;
+            //Check access state to prevent log file from being created too early
+            if (logFile.Properties.CanBeAccessed)
+                logFile.Properties.BeginLogSession();
 
-            //No log file shall be created before its assigned access period
-            if (RWInfo.LatestSetupPeriodReached < logFile.Properties.AccessPeriod)
-                return false;
-
-            logFile.Properties.BeginLogSession();
-            return logFile.Properties.LogSessionActive;
+            return logFile.Properties.FileExists;
         }
 
         public static string FindPathWithoutFileExtension(string searchPath, string filename)

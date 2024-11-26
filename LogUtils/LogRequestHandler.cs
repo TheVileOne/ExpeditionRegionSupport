@@ -162,8 +162,7 @@ namespace LogUtils
                             request.Reject(RejectionReason.LogDisabled);
                     }
 
-                    //Check that the log file can be initialized
-                    if (!logFile.Properties.LogSessionActive && RWInfo.LatestSetupPeriodReached < logFile.Properties.AccessPeriod)
+                    if (!logFile.Properties.CanBeAccessed)
                         request.Reject(RejectionReason.LogUnavailable);
 
                     //Check one last time for rejected status
