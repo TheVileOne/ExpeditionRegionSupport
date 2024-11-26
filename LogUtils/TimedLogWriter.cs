@@ -1,4 +1,6 @@
-﻿using System;
+﻿using BepInEx;
+using LogUtils.Enums;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,6 +11,7 @@ namespace LogUtils
     public class TimedLogWriter : LogWriter, IDisposable
     {
         protected List<PersistentLogFileHandle> LogFiles = new List<PersistentLogFileHandle>();
+        protected List<StreamWriter> LogWriters = new List<StreamWriter>();
 
         public Timer FlushTimer;
 
@@ -58,40 +61,118 @@ namespace LogUtils
 
             if (hasClosedLogFiles)
             {
-                List<PersistentLogFileHandle> closedLogFiles = LogFiles.FindAll(file => file.IsClosed); 
-                
+                List<PersistentLogFileHandle> closedLogFiles = LogFiles.FindAll(file => file.IsClosed);
+
                 foreach (PersistentLogFileHandle logFile in closedLogFiles)
+                    ReleaseHandle(logFile);
+            }
+        }
+
+        protected override void WriteToFile(LogRequest request)
+        {
+            //Get locally controlled LogIDs from the logger, and compare against the persistent file handles managed by the LogWriter
+            if (request.Host != null)
+            {
+                IEnumerable<PersistentLogFileHandle> handlesToRelease = request.Host.GetUnusedHandles(LogFiles);
+
+                foreach (PersistentLogFileHandle handle in handlesToRelease)
+                    ReleaseHandle(handle);
+            }
+        }
+
+        /// <summary>
+        /// Ensures that a persistent filestream with infinite lifetime is stored in the LogWriter instance
+        /// </summary>
+        internal void UpdateStreamHandles(List<LogID> logFiles)
+        {
+            //TODO: Find infinite duration stream handles that aren't represented by the updated list and change them to temporary streams
+            foreach (LogID logFile in logFiles)
+            {
+                PersistentLogFileHandle handle = LogFiles.Find(h => h.FileID == logFile);
+
+                //TODO: Check that LogID is writeable, before opening a stream 
+                if (handle != null)
                 {
-                    logFile.FileID.Properties.PersistentStreamHandles.Remove(logFile);
-                    LogFiles.Remove(logFile);
+                    if (!handle.IsClosed)
+                        handle.Lifetime.SetDuration(LifetimeDuration.Infinite);
+                    else //Handling a disposed stream
+                    {
+                        ReleaseHandle(handle);
+                        AttachHandle(new PersistentLogFileHandle(logFile));
+                    }
+                }
+                else if (logFile.Properties.CanBeAccessed)
+                {
+                    AttachHandle(new PersistentLogFileHandle(logFile));
                 }
             }
+        }
+
+        /// <summary>
+        /// Opens a threadsafe filestream for writing messages
+        /// </summary>
+        public void OpenFileStream(LogID logFile)
+        {
+            //TODO: This wont prepare logfiles properly
+            FileStream fileStream;
+            while (!Utility.TryOpenFileStream(logFile.Properties.CurrentFilePath, FileMode.OpenOrCreate, out fileStream, FileAccess.Write, FileShare.ReadWrite))
+            {
+                if (num == max_open_attempts)
+                {
+                    //if (!hasBackup)
+                    {
+                        Debug.LogError("Couldn't open a log file for writing. Skipping log file creation");
+                        return;
+                    }
+
+                    backupRequired = true;
+                    break;
+                }
+
+                Debug.LogWarning("Couldn't open log file '" + LogName + "' for writing, trying another...");
+                string logName = $"{LogName}.log.{num++}";
+                LogFullPath = Path.Combine(logPath, logName);
+            }
+
+            if (!backupRequired)
+            {
+                LogWriter = TextWriter.Synchronized(new StreamWriter(fileStream, Utility.UTF8NoBom));
+                FlushTimer = new Timer(delegate
+                {
+                    LogWriter?.Flush();
+                }, null, 2000, 2000);
+            }
+        }
+
+        protected void AttachHandle(PersistentLogFileHandle handle)
+        {
+            handle.FileID.Properties.PersistentStreamHandles.Add(handle);
+            LogFiles.Add(handle);
+        }
+
+        protected void ReleaseHandle(PersistentLogFileHandle handle)
+        {
+            handle.FileID.Properties.PersistentStreamHandles.Remove(handle);
+            LogFiles.Remove(handle);
         }
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!isDisposed)
+            if (isDisposed) return;
+
+            if (disposing)
             {
-                if (disposing)
-                {
-                    FlushTimer.Dispose();
-                    FlushTimer = null;
+                FlushTimer.Dispose();
+                FlushTimer = null;
 
-                    Flush();
+                Flush();
 
-                    LogFiles.ForEach(logFile => logFile.FileID.Properties.PersistentStreamHandles.Remove(logFile));
-                    LogFiles = null;
-                }
-                isDisposed = true;
+                foreach (PersistentLogFileHandle handle in LogFiles)
+                    ReleaseHandle(handle);
+                LogFiles = null;
             }
+            isDisposed = true;
         }
-
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~TimedLogWriter()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
 
         public void Dispose()
         {

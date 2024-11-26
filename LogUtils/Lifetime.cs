@@ -4,7 +4,7 @@ namespace LogUtils
 {
     public struct Lifetime
     {
-        public readonly bool IsAlive => TimeRemaining == Duration.Infinite || TimeRemaining > 0;
+        public readonly bool IsAlive => TimeRemaining == LifetimeDuration.Infinite || TimeRemaining > 0;
 
         /// <summary>
         /// A managed representation of the time remaining before filestream is disposed in milliseconds
@@ -19,14 +19,14 @@ namespace LogUtils
         public void SetDuration(int duration)
         {
             //LifetimeStart is reset whenever duration is infinite, and assigned when a duration is changed to a finite duration from infinite
-            if (duration == Duration.Infinite)
+            if (duration == LifetimeDuration.Infinite)
             {
                 lastCheckedTime = 0;
-                TimeRemaining = Duration.Infinite;
+                TimeRemaining = LifetimeDuration.Infinite;
             }
             else if (duration != TimeRemaining)
             {
-                if (TimeRemaining == Duration.Infinite)
+                if (TimeRemaining == LifetimeDuration.Infinite)
                     lastCheckedTime = DateTime.Now.Millisecond;
                 TimeRemaining = Math.Max(0, duration);
             }
@@ -34,7 +34,7 @@ namespace LogUtils
 
         public void Update()
         {
-            if (TimeRemaining == Duration.Infinite) return;
+            if (TimeRemaining == LifetimeDuration.Infinite) return;
 
             int currentTime = DateTime.Now.Millisecond;
             int timePassed = currentTime - lastCheckedTime;
@@ -43,10 +43,10 @@ namespace LogUtils
             lastCheckedTime = currentTime;
             TimeRemaining = Math.Max(0, TimeRemaining - timePassed);
         }
+    }
 
-        public static class Duration
-        {
-            public const int Infinite = -1;
-        }
+    public static class LifetimeDuration
+    {
+        public const int Infinite = -1;
     }
 }

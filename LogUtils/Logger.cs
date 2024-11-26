@@ -131,8 +131,10 @@ namespace LogUtils
                     if (Writer is not QueueLogWriter)
                         Writer = new QueueLogWriter();
                     break;
-                case LoggingMode.Buffer:
-                    throw new NotImplementedException();
+                case LoggingMode.Timed:
+                    if (Writer is not TimedLogWriter)
+                        Writer = new TimedLogWriter();
+                    break;
             }
         }
 
@@ -646,6 +648,8 @@ namespace LogUtils
                 else
                 {
                     UtilityCore.RequestHandler.Submit(request, false);
+
+                    request.Host = this;
                     Writer.WriteFrom(request);
                 }
             }
@@ -733,6 +737,7 @@ namespace LogUtils
                 return request.UnhandledReason;
             }
 
+            request.Host = this;
             Writer.WriteFrom(request);
 
             if (request.Status == RequestStatus.Complete)
@@ -745,13 +750,18 @@ namespace LogUtils
         {
             Writer = null;
         }
+
+        internal static bool CanLogBeHandledLocally(LogID logID)
+        {
+            return !logID.IsGameControlled && (logID.Access == LogAccess.FullAccess || logID.Access == LogAccess.Private);
+        }
     }
 
     public enum LoggingMode
     {
         Normal,
         Queue,
-        Buffer
+        Timed
     }
 
     public static class ExtendedILogListener
