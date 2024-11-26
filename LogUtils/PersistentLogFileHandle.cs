@@ -10,6 +10,7 @@ namespace LogUtils
         public PersistentLogFileHandle(LogID logFile) : base()
         {
             FileID = logFile;
+            CreateFileStream();
         }
 
         protected override void CreateFileStream()
