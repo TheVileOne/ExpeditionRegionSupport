@@ -17,6 +17,8 @@ namespace LogUtils
 
         protected bool IsDisposed;
 
+        protected int WriteInterval;
+
         /// <summary>
         /// The flush interval in milliseconds
         /// </summary>
@@ -32,10 +34,14 @@ namespace LogUtils
             if (writeInterval <= 0)
                 throw new ArgumentOutOfRangeException("Write interval must be greater than zero");
 
+            WriteInterval = writeInterval;
+
             FlushTimer = new Timer(delegate
             {
                 Flush();
-            }, null, writeInterval, writeInterval);
+            }, null, WriteInterval, WriteInterval);
+
+            UtilityCore.PersistenceManager.OnHandleDisposed += onHandleDisposed;
         }
 
         public void Flush()
@@ -64,7 +70,7 @@ namespace LogUtils
                 List<PersistentLogFileHandle> closedLogFiles = LogFiles.FindAll(file => file.IsClosed);
 
                 foreach (PersistentLogFileHandle logFile in closedLogFiles)
-                    ReleaseHandle(logFile);
+                    ReleaseHandle(logFile, false);
             }
         }
 
@@ -76,84 +82,61 @@ namespace LogUtils
                 IEnumerable<PersistentLogFileHandle> handlesToRelease = request.Host.GetUnusedHandles(LogFiles);
 
                 foreach (PersistentLogFileHandle handle in handlesToRelease)
-                    ReleaseHandle(handle);
+                    ReleaseHandle(handle, false);
             }
+
+            LogID requestID = request.Data.ID;
+
+            int handleIndex = LogFiles.FindIndex(handle => handle.FileID == requestID);
+            bool handleExists = handleIndex >= 0;
+
+            PersistentLogFileHandle writeHandle = handleExists ? LogFiles[handleIndex] : new PersistentLogFileHandle(requestID);
+
+            //TODO: Check that temporarily closing the FileStream wont cause weird behavior here
+            if (writeHandle.IsClosed)
+                writeHandle = ReplaceHandle(writeHandle);
+            else if (!handleExists)
+            {
+                AttachHandle(writeHandle);
+                handleIndex = LogFiles.Count - 1;
+            }
+
+            //FileStream was unable to open for an unknown reason
+            if (writeHandle.IsClosed)
+            {
+                request.Reject(RejectionReason.FailedToWrite);
+                UtilityLogger.LogError("LogWriter was unable to handle request");
+                return;
+            }
+
+            //TODO: Filter logic, applying rules, and other writer checks
+            LogWriters[handleIndex].WriteLine(request.Data.Message);
         }
 
-        /// <summary>
-        /// Ensures that a persistent filestream with infinite lifetime is stored in the LogWriter instance
-        /// </summary>
-        internal void UpdateStreamHandles(List<LogID> logFiles)
+        protected PersistentLogFileHandle AttachHandle(PersistentLogFileHandle handle)
         {
-            //TODO: Find infinite duration stream handles that aren't represented by the updated list and change them to temporary streams
-            foreach (LogID logFile in logFiles)
-            {
-                PersistentLogFileHandle handle = LogFiles.Find(h => h.FileID == logFile);
-
-                //TODO: Check that LogID is writeable, before opening a stream 
-                if (handle != null)
-                {
-                    if (!handle.IsClosed)
-                        handle.Lifetime.SetDuration(LifetimeDuration.Infinite);
-                    else //Handling a disposed stream
-                    {
-                        ReleaseHandle(handle);
-                        AttachHandle(new PersistentLogFileHandle(logFile));
-                    }
-                }
-                else if (logFile.Properties.CanBeAccessed)
-                {
-                    AttachHandle(new PersistentLogFileHandle(logFile));
-                }
-            }
-        }
-
-        /// <summary>
-        /// Opens a threadsafe filestream for writing messages
-        /// </summary>
-        public void OpenFileStream(LogID logFile)
-        {
-            //TODO: This wont prepare logfiles properly
-            FileStream fileStream;
-            while (!Utility.TryOpenFileStream(logFile.Properties.CurrentFilePath, FileMode.OpenOrCreate, out fileStream, FileAccess.Write, FileShare.ReadWrite))
-            {
-                if (num == max_open_attempts)
-                {
-                    //if (!hasBackup)
-                    {
-                        Debug.LogError("Couldn't open a log file for writing. Skipping log file creation");
-                        return;
-                    }
-
-                    backupRequired = true;
-                    break;
-                }
-
-                Debug.LogWarning("Couldn't open log file '" + LogName + "' for writing, trying another...");
-                string logName = $"{LogName}.log.{num++}";
-                LogFullPath = Path.Combine(logPath, logName);
-            }
-
-            if (!backupRequired)
-            {
-                LogWriter = TextWriter.Synchronized(new StreamWriter(fileStream, Utility.UTF8NoBom));
-                FlushTimer = new Timer(delegate
-                {
-                    LogWriter?.Flush();
-                }, null, 2000, 2000);
-            }
-        }
-
-        protected void AttachHandle(PersistentLogFileHandle handle)
-        {
-            handle.FileID.Properties.PersistentStreamHandles.Add(handle);
             LogFiles.Add(handle);
+            LogWriters.Add(new StreamWriter(handle.Stream, Utility.UTF8NoBom));
+            return handle;
         }
 
-        protected void ReleaseHandle(PersistentLogFileHandle handle)
+        protected void ReleaseHandle(PersistentLogFileHandle handle, bool disposing)
         {
-            handle.FileID.Properties.PersistentStreamHandles.Remove(handle);
-            LogFiles.Remove(handle);
+            if (!handle.IsAlive) return;
+
+            //This needs to drop handle immediately if LogWriter is being disposed, or at the next write interval if it is being lazy disposed
+            //Currently no way to tell when the next interval will be, so the full interval period is used here
+            int disposalDelay = disposing ? 0 : WriteInterval;
+
+            handle.Lifetime.SetDuration(disposalDelay);
+        }
+
+        protected PersistentLogFileHandle ReplaceHandle(PersistentLogFileHandle handle)
+        {
+            ReleaseHandle(handle, disposing: true); //Handle situation as if handle was being disposed
+            onHandleDisposed(handle);
+
+            return AttachHandle(new PersistentLogFileHandle(handle.FileID));
         }
 
         protected virtual void Dispose(bool disposing)
@@ -168,9 +151,11 @@ namespace LogUtils
                 Flush();
 
                 foreach (PersistentLogFileHandle handle in LogFiles)
-                    ReleaseHandle(handle);
+                    ReleaseHandle(handle, disposing);
                 LogFiles = null;
             }
+
+            UtilityCore.PersistenceManager.OnHandleDisposed -= onHandleDisposed;
             IsDisposed = true;
         }
 
@@ -179,6 +164,18 @@ namespace LogUtils
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
+        }
+
+        private void onHandleDisposed(PersistentFileHandle handle)
+        {
+            //Handle wont necessarily belong to this writer
+            int handleIndex = LogFiles.IndexOf(handle as PersistentLogFileHandle);
+
+            if (handleIndex != -1)
+            {
+                LogFiles.RemoveAt(handleIndex);
+                LogWriters.RemoveAt(handleIndex);
+            }
         }
     }
 }
