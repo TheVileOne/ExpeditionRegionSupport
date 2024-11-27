@@ -15,12 +15,12 @@ namespace LogUtils
 
         public Timer FlushTimer;
 
+        protected bool IsDisposed;
+
         /// <summary>
         /// The flush interval in milliseconds
         /// </summary>
         public const int INTERVAL_DEFAULT = 2000;
-
-        private bool isDisposed;
 
         /// <summary>
         /// Construct a TimedLogWriter instance
@@ -40,7 +40,7 @@ namespace LogUtils
 
         public void Flush()
         {
-            if (isDisposed)
+            if (IsDisposed)
                 throw new ObjectDisposedException("Cannot access a disposed LogWriter");
 
             int logFilesProcessed = 0;
@@ -158,7 +158,7 @@ namespace LogUtils
 
         protected virtual void Dispose(bool disposing)
         {
-            if (isDisposed) return;
+            if (IsDisposed) return;
 
             if (disposing)
             {
@@ -171,7 +171,7 @@ namespace LogUtils
                     ReleaseHandle(handle);
                 LogFiles = null;
             }
-            isDisposed = true;
+            IsDisposed = true;
         }
 
         public void Dispose()

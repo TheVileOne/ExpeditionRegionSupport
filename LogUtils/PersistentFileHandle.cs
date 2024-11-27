@@ -44,10 +44,18 @@ namespace LogUtils
 
         protected abstract void CreateFileStream();
 
-        public void Dispose()
+        public virtual void Dispose()
         {
+            if (IsDisposed) return;
+
+            Lifetime.SetDuration(0);
+
+            if (Stream != null)
+            {
+                Stream.Dispose();
+                Stream = null;
+            }
             IsDisposed = true;
-            Stream?.Dispose();
         }
 
         public void UpdateLifetime()

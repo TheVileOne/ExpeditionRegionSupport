@@ -9,6 +9,11 @@ namespace LogUtils
 
         public override string Tag => UtilityConsts.ComponentTags.PERSISTENCE_MANAGER;
 
+        /// <summary>
+        /// Called whenever a PersistentFileHandle is disposed
+        /// </summary>
+        public event Action<PersistentFileHandle> OnHandleDisposed;
+
         public PersistenceManager()
         {
             enabled = true;
@@ -27,6 +32,7 @@ namespace LogUtils
                     {
                         handle.Dispose();
                         hasDisposedReferences = true;
+                        OnHandleDisposed?.Invoke(handle);
                     }
                 }
                 else
