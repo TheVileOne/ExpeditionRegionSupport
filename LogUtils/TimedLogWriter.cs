@@ -40,7 +40,10 @@ namespace LogUtils
                 throw new ArgumentOutOfRangeException("Write interval must be greater than zero");
 
             WriteInterval = TimeSpan.FromMilliseconds(writeInterval);
-            WriteTask = LogTasker.Schedule(new Task(Flush, WriteInterval));
+            WriteTask = LogTasker.Schedule(new Task(Flush, WriteInterval)
+            {
+                IsContinuous = true
+            });
 
             UtilityCore.PersistenceManager.OnHandleDisposed += onHandleDisposed;
         }
