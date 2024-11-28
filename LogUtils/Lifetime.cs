@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogUtils.Helpers;
+using System;
 
 namespace LogUtils
 {
@@ -27,7 +28,7 @@ namespace LogUtils
             else if (duration != TimeRemaining)
             {
                 if (TimeRemaining == LifetimeDuration.Infinite)
-                    lastCheckedTime = DateTime.Now.Millisecond;
+                    lastCheckedTime = (int)TimeConversion.DateTimeInMilliseconds(DateTime.Now);
                 TimeRemaining = Math.Max(0, duration);
             }
         }
@@ -36,7 +37,7 @@ namespace LogUtils
         {
             if (TimeRemaining == LifetimeDuration.Infinite) return;
 
-            int currentTime = DateTime.Now.Millisecond;
+            int currentTime = (int)TimeConversion.DateTimeInMilliseconds(DateTime.Now);
             int timePassed = currentTime - lastCheckedTime;
 
             //Updating lastCheckedTime makes timePassed relative to last update time
