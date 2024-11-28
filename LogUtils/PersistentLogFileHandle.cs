@@ -30,8 +30,15 @@ namespace LogUtils
         {
             if (IsDisposed) return;
 
-            base.Dispose();
-            FileID.Properties.PersistentStreamHandles.Remove(this);
+            FileLock fileLock = FileID.Properties.FileLock;
+
+            //Locked to avoid interfering with any write operations
+            lock (fileLock)
+            {
+                fileLock.SetActivity(FileID, FileAction.StreamDisposal);
+                base.Dispose();
+                FileID.Properties.PersistentStreamHandles.Remove(this);
+            }
         }
     }
 }

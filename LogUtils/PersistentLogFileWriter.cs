@@ -1,10 +1,6 @@
 ﻿using BepInEx;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LogUtils
 {
@@ -20,17 +16,17 @@ namespace LogUtils
         /// <summary>
         /// Writes the log buffer to file
         /// </summary>
-        /// <exception cref="ObjectDisposedException"></exception>
+        /// <exception cref="ObjectDisposedException">The underlying stream element for this instance has been disposed of</exception>
         public override void Flush()
         {
-            if (Handle.IsClosed)
+            if (Handle == null || Handle.IsClosed)
                 throw new ObjectDisposedException("Cannot access a disposed LogWriter");
             base.Flush();
         }
 
         public new void Dispose()
         {
-            base.Dispose();
+            if (Handle == null) return; //In case Dispose is called more than once
 
             Handle.Dispose();
             Handle = null;

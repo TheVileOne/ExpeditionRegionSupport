@@ -16,12 +16,13 @@
         None,
         Create,
         Delete,
+        Log,
         Move,
         Copy,
         Open,
         PathUpdate,
         SessionStart,
         SessionEnd,
-        Log
+        StreamDisposal,
     }
 }

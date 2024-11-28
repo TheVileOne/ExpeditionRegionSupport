@@ -38,6 +38,9 @@ namespace LogUtils
                 case FileAction.SessionEnd:
                     appendString = "ended";
                     break;
+                case FileAction.Open:
+                    appendString = "opened";
+                    break;
                 case FileAction.PathUpdate:
                     appendString = "path updated";
                     break;
@@ -52,6 +55,9 @@ namespace LogUtils
                     break;
                 case FileAction.Delete:
                     appendString = "deleted";
+                    break;
+                case FileAction.StreamDisposal:
+                    appendString = "stream disposed";
                     break;
                 default:
                     appendString = "accessed";
