@@ -1,6 +1,5 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Events;
-using LogUtils.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,8 +14,6 @@ namespace LogUtils
     public class QueueLogWriter : LogWriter
     {
         internal Queue<LogMessageEventArgs> LogCache = new Queue<LogMessageEventArgs>();
-
-        private bool writingFromBuffer;
 
         public override void WriteFrom(LogRequest request)
         {
@@ -38,8 +35,6 @@ namespace LogUtils
                     request.Reject(RejectionReason.FilterMatch);
                     return;
                 }
-
-                writingFromBuffer = false; //Ensures that log file is not created too soon
 
                 if (!PrepareLogFile(request.Data.ID))
                 {
@@ -77,11 +72,8 @@ namespace LogUtils
 
         protected override bool PrepareLogFile(LogID logFile)
         {
-            //Avoid creating the file until we are ready to write to it
-            if (!writingFromBuffer)
-                return logFile.Properties.CanBeAccessed;
-
-            return base.PrepareLogFile(logFile);
+            //Does not attempt to create the file. Code is handled in a different place
+            return logFile.Properties.CanBeAccessed;
         }
 
         /// <summary>
@@ -93,6 +85,7 @@ namespace LogUtils
             {
                 var logEntry = LogCache.Dequeue();
 
+                StreamWriter writer = null;
                 try
                 {
                     var fileLock = logEntry.Properties.FileLock;
@@ -101,46 +94,40 @@ namespace LogUtils
                     {
                         fileLock.SetActivity(logEntry.ID, FileAction.Log);
 
-                        writingFromBuffer = true;
+                        ProcessResult streamResult = AssignWriter(logEntry.ID, out writer);
 
-                        using (FileStream stream = LogFile.Open(logEntry.ID))
+                        if (streamResult != ProcessResult.Success)
+                            throw new IOException("Unable to create stream");
+
+                        bool fileChanged;
+                        do
                         {
-                            //if (!logFile.Properties.FileExists)
-                            //    throw new IOException("Unable to create log file");
+                            string message = logEntry.Message;
 
-                            using (StreamWriter writer = new StreamWriter(stream))
-                            {
-                                bool fileChanged;
-                                do
-                                {
-                                    string message = logEntry.Message;
+                            //Behavior taken from JollyCoop, shouldn't be necessary if error category is already going to display
+                            if (!logEntry.Properties.ShowCategories.IsEnabled && LogCategory.IsErrorCategory(logEntry.Category))
+                                message = "[ERROR] " + message;
 
-                                    //Behavior taken from JollyCoop, shouldn't be necessary if error category is already going to display
-                                    if (!logEntry.Properties.ShowCategories.IsEnabled && LogCategory.IsErrorCategory(logEntry.Category))
-                                        message = "[ERROR] " + message;
+                            message = ApplyRules(logEntry);
+                            writer.WriteLine(message);
+                            logEntry.ID.Properties.MessagesLoggedThisSession++;
 
-                                    message = ApplyRules(logEntry);
-                                    writer.WriteLine(message);
-                                    logEntry.Properties.MessagesLoggedThisSession++;
+                            //Keep StreamWriter open while LogID remains unchanged
+                            fileChanged = !LogCache.Any() || LogCache.Peek().ID != logEntry.ID;
 
-                                    //Keep StreamWriter open while LogID remains unchanged
-                                    fileChanged = !LogCache.Any() || LogCache.Peek().ID != logEntry.ID;
-
-                                    if (!fileChanged)
-                                        logEntry = LogCache.Dequeue();
-                                }
-                                while (!fileChanged);
-                            }
+                            if (!fileChanged)
+                                logEntry = LogCache.Dequeue();
                         }
+                        while (!fileChanged);
                     }
                 }
-                catch (IOException ex)
+                catch (IOException writeException)
                 {
-                    ExceptionInfo exceptionInfo = new ExceptionInfo(ex);
+                    ExceptionInfo exceptionInfo = new ExceptionInfo(writeException);
 
                     if (!RWInfo.CheckExceptionMatch(logEntry.ID, exceptionInfo)) //Only log unreported exceptions
                     {
-                        logEntry = new LogMessageEventArgs(logEntry.ID, ex, LogCategory.Error);
+                        logEntry = new LogMessageEventArgs(logEntry.ID, writeException, LogCategory.Error);
 
                         RWInfo.ReportException(logEntry.ID, exceptionInfo);
 
@@ -148,6 +135,11 @@ namespace LogUtils
                         LogCache.Enqueue(logEntry);
                     }
                     break;
+                }
+                finally
+                {
+                    if (ShouldCloseWriterAfterUse && writer != null)
+                        writer.Close();
                 }
             }
         }

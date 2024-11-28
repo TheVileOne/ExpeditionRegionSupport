@@ -44,6 +44,11 @@ namespace LogUtils
         }
 
         /// <summary>
+        /// A flag that prevents StreamWriter from being closed
+        /// </summary>
+        protected bool ShouldCloseWriterAfterUse = true;
+
+        /// <summary>
         /// Ends the current log session, and prepares a new one
         /// </summary>
         public void ResetFile(LogID logFile)
@@ -138,6 +143,7 @@ namespace LogUtils
             LogID logFile = logEventData.ID;
             string message = logEventData.Message;
 
+            StreamWriter writer = null;
             try
             {
                 var fileLock = logFile.Properties.FileLock;
@@ -145,30 +151,46 @@ namespace LogUtils
                 lock (fileLock)
                 {
                     fileLock.SetActivity(logFile, FileAction.Log);
+                    ProcessResult streamResult = AssignWriter(logFile, out writer);
 
-                    using (FileStream stream = LogFile.Open(logFile))
-                    {
-                        //if (!logFile.Properties.FileExists)
-                        //    throw new IOException("Unable to create log file");
+                    if (streamResult != ProcessResult.Success)
+                        throw new IOException("Unable to create stream");
 
-                        using (StreamWriter writer = new StreamWriter(stream))
-                        {
-                            message = ApplyRules(logEventData);
-                            writer.WriteLine(message);
-                            logFile.Properties.MessagesLoggedThisSession++;
-                        }
-                    }
+                    message = ApplyRules(logEventData);
+                    writer.WriteLine(message);
+                    logFile.Properties.MessagesLoggedThisSession++;
                 }
                 return true;
             }
-            catch (IOException ex)
+            catch (IOException writeException)
             {
-                UtilityLogger.LogError("Log write error", ex);
+                UtilityLogger.LogError("Log write error", writeException);
                 return false;
+            }
+            finally
+            {
+                if (ShouldCloseWriterAfterUse && writer != null)
+                    writer.Close();
             }
         }
 
-        public string ApplyRules(LogMessageEventArgs logEventData)
+        /// <summary>
+        /// Assigns a writer instance for handling a specified log file
+        /// </summary>
+        protected ProcessResult AssignWriter(LogID logFile, out StreamWriter writer)
+        {
+            FileStream stream = LogFile.Open(logFile);
+
+            if (stream == null)
+            {
+                writer = null;
+                return ProcessResult.FailedToCreate;
+            }
+            writer = new StreamWriter(stream);
+            return ProcessResult.Success;
+        }
+
+        public virtual string ApplyRules(LogMessageEventArgs logEventData)
         {
             string message = logEventData.Message;
             var activeRules = logEventData.Properties.Rules.Where(r => r.IsEnabled);
@@ -182,13 +204,20 @@ namespace LogUtils
         {
             UtilityEvents.OnMessageReceived?.Invoke(e);
         }
+
+        protected enum ProcessResult
+        {
+            Success,
+            WaitingToResume, //The FileStream is temporarily closed
+            FailedToCreate,
+        }
     }
 
     public interface ILogWriter
     {
+        public string ApplyRules(LogMessageEventArgs logEventData);
         public void ResetFile(LogID logFile);
         internal void WriteFrom(LogRequest request);
         internal void WriteToFile(LogID logFile, string message);
-        internal string ApplyRules(LogMessageEventArgs logEventData);
     }
 }
