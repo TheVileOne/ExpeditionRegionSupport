@@ -31,7 +31,7 @@ namespace LogUtils.Threading
 
         private static void threadUpdate()
         {
-            Thread.CurrentThread.Name = "LogUtils";
+            Thread.CurrentThread.Name = UtilityConsts.UTILITY_NAME;
 
             while(true)
             {
