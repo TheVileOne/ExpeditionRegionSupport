@@ -1,56 +1,56 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace LogUtils.Threading
 {
     public static class LogTasker
     {
-        public static Task ActiveTask;
+        private static Thread thread;
+        private static List<Task> tasks = new List<Task>();
 
-        public static Queue<Task> AwaitingTasks = new Queue<Task>();
-
-        public static Thread TaskThread;
-
-        /// <summary>
-        /// The ThreadID currently processing logging tasks, -1 if no tasks are running
-        /// </summary>
-        public static int TaskThreadID => TaskThread != null ? TaskThread.ManagedThreadId : -1;
-
-        public static bool RunningTasksOnCurrentThread => Thread.CurrentThread.ManagedThreadId == TaskThreadID;
-
-        public static void RunTask(Action work)
+        internal static void Start()
         {
-            Task task = new Task(work);
+            thread = new Thread(threadUpdate);
+            thread.IsBackground = true;
+            thread.Start();
+        }
 
-            if (ActiveTask != null && !ActiveTask.IsCompleted)
+        public static Task Schedule(Task task)
+        {
+            task.InitialTime = new TimeSpan(DateTime.Now.Ticks);
+            tasks.Add(task);
+            return task;
+        }
+
+        private static void threadUpdate()
+        {
+            Thread.CurrentThread.Name = "LogUtils";
+
+            while(true)
             {
-                AwaitingTasks.Enqueue(task);
-            }
-            else
-            {
-                ActiveTask = task;
+                TimeSpan currentTime = new TimeSpan(DateTime.Now.Ticks);
 
-                ActiveTask.Start();
-                ActiveTask.ContinueWith(taskAfter);
-
-                static void taskAfter(Task t)
+                int taskIndex = 0;
+                while (taskIndex < tasks.Count)
                 {
-                    t.Dispose();
+                    Task task = tasks[taskIndex];
 
-                    if (AwaitingTasks.Any())
+                    //Time since last activation, or task subscription time
+                    TimeSpan timeElapsedSinceLastActivation = currentTime - (task.HasRunOnce ? task.LastActivationTime : task.InitialTime);
+
+                    if (timeElapsedSinceLastActivation >= task.WaitTimeInterval)
                     {
-                        ActiveTask = AwaitingTasks.Dequeue();
-                        ActiveTask.Start();
-                        ActiveTask.ContinueWith(taskAfter);
+                        task.Run();
+                        task.LastActivationTime = currentTime;
+
+                        if (!task.IsContinuous)
+                        {
+                            tasks.Remove(task);
+                            continue; //Next task will reuse the task index
+                        }
                     }
-                    else
-                    {
-                        ActiveTask = null;
-                    }
+                    taskIndex++;
                 }
             }
         }

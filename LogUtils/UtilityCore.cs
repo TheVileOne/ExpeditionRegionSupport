@@ -3,6 +3,7 @@ using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Properties;
+using LogUtils.Threading;
 using Menu;
 using RWCustom;
 using System;
@@ -62,6 +63,8 @@ namespace LogUtils
 
             UtilityLogger.EnsureLogTypeCapacity(UtilityConsts.CUSTOM_LOGTYPE_LIMIT);
             UtilityLogger.Initialize();
+
+            LogTasker.Start();
 
             //This is before hooks are established. It is highly likely that the utility will load very early, and any mod could force it. Since we cannot control
             //this factor, we have to infer using specific game fields to tell which part of the initialization period we are in
