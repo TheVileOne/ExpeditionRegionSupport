@@ -1,5 +1,4 @@
-﻿using BepInEx;
-using LogUtils.Enums;
+﻿using LogUtils.Enums;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,8 +9,7 @@ namespace LogUtils
 {
     public class TimedLogWriter : LogWriter, IDisposable
     {
-        protected List<PersistentLogFileHandle> LogFiles = new List<PersistentLogFileHandle>();
-        protected List<StreamWriter> LogWriters = new List<StreamWriter>();
+        protected List<PersistentLogFileWriter> LogWriters = new List<PersistentLogFileWriter>();
 
         public Timer FlushTimer;
 
@@ -44,80 +42,132 @@ namespace LogUtils
             UtilityCore.PersistenceManager.OnHandleDisposed += onHandleDisposed;
         }
 
+        /// <summary>
+        /// Writes the log buffer to file for managed log files
+        /// </summary>
         public void Flush()
         {
-            if (IsDisposed)
-                throw new ObjectDisposedException("Cannot access a disposed LogWriter");
-
-            int logFilesProcessed = 0;
-            foreach (PersistentLogFileHandle logFile in LogFiles.Where(file => !file.IsClosed))
+            try
             {
-                logFilesProcessed++;
-                try
-                {
-                    logFile.Stream.Flush();
-                }
-                catch (IOException)
-                {
-                    //TODO: Error logging
-                }
+                if (IsDisposed)
+                    throw new ObjectDisposedException("Cannot access a disposed LogWriter");
+
+                foreach (var writer in LogWriters)
+                    writer.Flush();
             }
-
-            bool hasClosedLogFiles = logFilesProcessed != LogFiles.Count;
-
-            if (hasClosedLogFiles)
+            catch (ObjectDisposedException ex)
             {
-                List<PersistentLogFileHandle> closedLogFiles = LogFiles.FindAll(file => file.IsClosed);
-
-                foreach (PersistentLogFileHandle logFile in closedLogFiles)
-                    ReleaseHandle(logFile, false);
+                UtilityLogger.LogError(ex);
             }
         }
 
         protected override void WriteToFile(LogRequest request)
         {
-            //Get locally controlled LogIDs from the logger, and compare against the persistent file handles managed by the LogWriter
-            if (request.Host != null)
+            request.WriteInProcess();
+
+            if (request.ThreadCanWrite)
             {
-                IEnumerable<PersistentLogFileHandle> handlesToRelease = request.Host.GetUnusedHandles(LogFiles);
+                //Assume that thread is allowed to write if we get past this point
+                try
+                {
+                    LogID logFile = request.Data.ID;
+                    string message = request.Data.Message;
 
-                foreach (PersistentLogFileHandle handle in handlesToRelease)
-                    ReleaseHandle(handle, false);
+                    if (LogFilter.CheckFilterMatch(logFile, message))
+                    {
+                        request.Reject(RejectionReason.FilterMatch);
+                        return;
+                    }
+
+                    //Get locally controlled LogIDs from the logger, and compare against the persistent file handles managed by the LogWriter
+                    if (request.Host != null)
+                    {
+                        IEnumerable<PersistentLogFileHandle> handlesToRelease = request.Host.GetUnusedHandles(LogWriters.Select(writer => writer.Handle));
+
+                        foreach (PersistentLogFileHandle handle in handlesToRelease)
+                            ReleaseHandle(handle, false);
+                    }
+
+                    ProcessResult streamResult = AssignWriter(logFile, out PersistentLogFileWriter writer);
+
+                    switch (streamResult)
+                    {
+                        case ProcessResult.Success:
+                            OnLogMessageReceived(request.Data);
+
+                            try
+                            {
+                                var fileLock = logFile.Properties.FileLock;
+
+                                lock (fileLock)
+                                {
+                                    fileLock.SetActivity(logFile, FileAction.Log);
+
+                                    message = ApplyRules(request.Data);
+                                    writer.WriteLine(message);
+                                    logFile.Properties.MessagesLoggedThisSession++;
+                                }
+                            }
+                            catch (IOException writeException)
+                            {
+                                request.Reject(RejectionReason.FailedToWrite);
+                                UtilityLogger.LogError("Log write error", writeException);
+                                return;
+                            }
+                            break;
+                        case ProcessResult.WaitingToResume:
+                            request.Reject(RejectionReason.LogUnavailable);
+                            break;
+                        case ProcessResult.FailedToCreate:
+                            request.Reject(RejectionReason.FailedToWrite);
+                            break;
+                    }
+
+                    //All checks passed is a complete request
+                    request.Complete();
+                }
+                finally
+                {
+                    UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+                }
             }
-
-            LogID requestID = request.Data.ID;
-
-            int handleIndex = LogFiles.FindIndex(handle => handle.FileID == requestID);
-            bool handleExists = handleIndex >= 0;
-
-            PersistentLogFileHandle writeHandle = handleExists ? LogFiles[handleIndex] : new PersistentLogFileHandle(requestID);
-
-            //TODO: Check that temporarily closing the FileStream wont cause weird behavior here
-            if (writeHandle.IsClosed)
-                writeHandle = ReplaceHandle(writeHandle);
-            else if (!handleExists)
-            {
-                AttachHandle(writeHandle);
-                handleIndex = LogFiles.Count - 1;
-            }
-
-            //FileStream was unable to open for an unknown reason
-            if (writeHandle.IsClosed)
-            {
-                request.Reject(RejectionReason.FailedToWrite);
-                UtilityLogger.LogError("LogWriter was unable to handle request");
-                return;
-            }
-
-            //TODO: Filter logic, applying rules, and other writer checks
-            LogWriters[handleIndex].WriteLine(request.Data.Message);
         }
 
-        protected PersistentLogFileHandle AttachHandle(PersistentLogFileHandle handle)
+        protected ProcessResult AssignWriter(LogID logFile, out PersistentLogFileWriter writer)
         {
-            LogFiles.Add(handle);
-            LogWriters.Add(new StreamWriter(handle.Stream, Utility.UTF8NoBom));
-            return handle;
+            writer = LogWriters.Find(writer => writer.Handle.FileID.Properties.HasID(logFile));
+
+        retry:
+            PersistentLogFileHandle writeHandle;
+            if (writer == null)
+            {
+                writeHandle = new PersistentLogFileHandle(logFile);
+
+                //An exception will be thrown if we try to create a StreamWriter with an invalid stream
+                if (!writeHandle.IsClosed)
+                {
+                    writer = new PersistentLogFileWriter(writeHandle);
+                    LogWriters.Add(writer);
+                    return ProcessResult.Success;
+                }
+                return ProcessResult.FailedToCreate;
+            }
+
+            writeHandle = writer.Handle;
+
+            if (writeHandle.IsClosed)
+            {
+                if (writeHandle.WaitingToResume)
+                    return ProcessResult.WaitingToResume;
+
+                //This writer is no longer useful - time to replace it with a new instance
+                writer.Dispose();
+                LogWriters.Remove(writer);
+
+                writer = null;
+                goto retry;
+            }
+            return ProcessResult.Success;
         }
 
         protected void ReleaseHandle(PersistentLogFileHandle handle, bool disposing)
@@ -131,14 +181,6 @@ namespace LogUtils
             handle.Lifetime.SetDuration(disposalDelay);
         }
 
-        protected PersistentLogFileHandle ReplaceHandle(PersistentLogFileHandle handle)
-        {
-            ReleaseHandle(handle, disposing: true); //Handle situation as if handle was being disposed
-            onHandleDisposed(handle);
-
-            return AttachHandle(new PersistentLogFileHandle(handle.FileID));
-        }
-
         protected virtual void Dispose(bool disposing)
         {
             if (IsDisposed) return;
@@ -150,9 +192,9 @@ namespace LogUtils
 
                 Flush();
 
-                foreach (PersistentLogFileHandle handle in LogFiles)
+                foreach (PersistentLogFileHandle handle in LogWriters.Select(writer => writer.Handle))
                     ReleaseHandle(handle, disposing);
-                LogFiles = null;
+                LogWriters = null;
             }
 
             UtilityCore.PersistenceManager.OnHandleDisposed -= onHandleDisposed;
@@ -169,13 +211,10 @@ namespace LogUtils
         private void onHandleDisposed(PersistentFileHandle handle)
         {
             //Handle wont necessarily belong to this writer
-            int handleIndex = LogFiles.IndexOf(handle as PersistentLogFileHandle);
+            int handleIndex = LogWriters.FindIndex(writer => writer.Handle == handle);
 
             if (handleIndex != -1)
-            {
-                LogFiles.RemoveAt(handleIndex);
                 LogWriters.RemoveAt(handleIndex);
-            }
         }
     }
 }

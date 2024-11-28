@@ -43,6 +43,7 @@ namespace LogUtils.Properties
 
         protected override void CreateFileStream()
         {
+            WaitingToResume = false;
             Stream = new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read, 4096, FileOptions.SequentialScan);
         }
     }

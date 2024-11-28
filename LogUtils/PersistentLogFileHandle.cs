@@ -22,6 +22,7 @@ namespace LogUtils
 
         protected override void CreateFileStream()
         {
+            WaitingToResume = false;
             Stream = LogFile.Open(FileID);
         }
 

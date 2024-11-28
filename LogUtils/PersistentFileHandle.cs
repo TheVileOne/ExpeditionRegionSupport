@@ -23,10 +23,12 @@ namespace LogUtils
         public Lifetime Lifetime = new Lifetime();
 
         /// <summary>
-        /// The underlying filestream if it exists, null otherwise. This stream is always active when the file is present. 
-        /// Please do not close the stream. Interrupt and resume the stream instead.
+        /// The underlying filestream if it exists, null otherwise. This stream is always active when the file is present 
+        /// <br>Please do not close the stream. Interrupt and resume the stream instead</br>
         /// </summary>
         public FileStream Stream;
+
+        public bool WaitingToResume { get; protected set; }
 
         public PersistentFileHandle()
         {
@@ -38,6 +40,7 @@ namespace LogUtils
         /// </summary>
         public StreamResumer InterruptStream()
         {
+            WaitingToResume = true;
             Stream?.Close();
             return new StreamResumer(CreateFileStream);
         }
