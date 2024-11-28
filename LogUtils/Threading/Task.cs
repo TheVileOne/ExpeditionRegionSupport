@@ -13,6 +13,8 @@ namespace LogUtils.Threading
 
         public TimeSpan LastActivationTime = TimeSpan.Zero;
 
+        public TimeSpan NextActivationTime => (HasRunOnce ? LastActivationTime : InitialTime) + WaitTimeInterval;
+
         /// <summary>
         /// The time to wait in between task runs
         /// </summary>
@@ -58,6 +60,11 @@ namespace LogUtils.Threading
         {
             InitialTime = TimeSpan.Zero;
             LastActivationTime = TimeSpan.Zero;
+        }
+
+        public TimeSpan TimeUntilNextActivation()
+        {
+            return NextActivationTime - new TimeSpan(DateTime.Now.Ticks);
         }
     }
 }

@@ -1,21 +1,28 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 
 namespace LogUtils
 {
     public class TimedLogWriter : LogWriter, IDisposable
     {
-        protected List<PersistentLogFileWriter> LogWriters = new List<PersistentLogFileWriter>();
-
-        public Timer FlushTimer;
-
         protected bool IsDisposed;
 
-        protected int WriteInterval;
+        protected List<PersistentLogFileWriter> LogWriters = new List<PersistentLogFileWriter>();
+
+        /// <summary>
+        /// This task handles writing to file, on a fixed interval off the main thread
+        /// </summary>
+        public Task WriteTask;
+
+        public TimeSpan WriteInterval
+        {
+            get => WriteTask.WaitTimeInterval;
+            set => WriteTask.WaitTimeInterval = value;
+        }
 
         /// <summary>
         /// The flush interval in milliseconds
@@ -23,7 +30,7 @@ namespace LogUtils
         public const int INTERVAL_DEFAULT = 2000;
 
         /// <summary>
-        /// Construct a TimedLogWriter instance
+        /// Constructs a TimedLogWriter instance
         /// </summary>
         /// <param name="writeInterval">The flush interval in milliseconds</param>
         /// <exception cref="ArgumentOutOfRangeException">The flush interval is an invalid value</exception>
@@ -32,12 +39,8 @@ namespace LogUtils
             if (writeInterval <= 0)
                 throw new ArgumentOutOfRangeException("Write interval must be greater than zero");
 
-            WriteInterval = writeInterval;
-
-            FlushTimer = new Timer(delegate
-            {
-                Flush();
-            }, null, WriteInterval, WriteInterval);
+            WriteInterval = TimeSpan.FromMilliseconds(writeInterval);
+            WriteTask = LogTasker.Schedule(new Task(Flush, WriteInterval));
 
             UtilityCore.PersistenceManager.OnHandleDisposed += onHandleDisposed;
         }
@@ -175,8 +178,7 @@ namespace LogUtils
             if (!handle.IsAlive) return;
 
             //This needs to drop handle immediately if LogWriter is being disposed, or at the next write interval if it is being lazy disposed
-            //Currently no way to tell when the next interval will be, so the full interval period is used here
-            int disposalDelay = disposing ? 0 : WriteInterval;
+            int disposalDelay = disposing ? 0 : (int)WriteTask.TimeUntilNextActivation().TotalMilliseconds;
 
             handle.Lifetime.SetDuration(disposalDelay);
         }
@@ -187,10 +189,8 @@ namespace LogUtils
 
             if (disposing)
             {
-                FlushTimer.Dispose();
-                FlushTimer = null;
-
-                Flush();
+                WriteTask.Run();
+                WriteTask.End();
 
                 foreach (PersistentLogFileHandle handle in LogWriters.Select(writer => writer.Handle))
                     ReleaseHandle(handle, disposing);
