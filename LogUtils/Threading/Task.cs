@@ -62,6 +62,28 @@ namespace LogUtils.Threading
             LastActivationTime = TimeSpan.Zero;
         }
 
+        /// <summary>
+        /// Positions this task before another task in the task run list
+        /// </summary>
+        /// <param name="otherTask">The task that shall run after</param>
+        /// <exception cref="TaskNotFoundException">Exception that throws if the targeted task does not exist</exception>
+        /// <exception cref="ArgumentException">Exception that throws if the task instances are the same</exception>
+        public void RunBefore(Task otherTask)
+        {
+            LogTasker.ScheduleBefore(this, otherTask);
+        }
+
+        /// <summary>
+        /// Positions this task after another task in the task run list
+        /// </summary>
+        /// <param name="otherTask">The task that shall run before</param>
+        /// <exception cref="TaskNotFoundException">Exception that throws if the targeted task does not exist</exception>
+        /// <exception cref="ArgumentException">Exception that throws if the task instances are the same</exception>
+        public void RunAfter(Task otherTask)
+        {
+            LogTasker.ScheduleAfter(this, otherTask);
+        }
+
         public TimeSpan TimeUntilNextActivation()
         {
             return NextActivationTime - new TimeSpan(DateTime.Now.Ticks);

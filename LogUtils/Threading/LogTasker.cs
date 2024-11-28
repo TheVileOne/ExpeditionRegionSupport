@@ -23,10 +23,56 @@ namespace LogUtils.Threading
             return task;
         }
 
+        /// <summary>
+        /// Schedules a task to run before another task
+        /// </summary>
+        /// <param name="task">Task to run</param>
+        /// <param name="taskOther">Task that should run after</param>
+        /// <exception cref="TaskNotFoundException">Exception that throws if the targeted task does not exist</exception>
+        /// <exception cref="ArgumentException">Exception that throws if the task instances are the same</exception>
+        public static void ScheduleBefore(Task task, Task taskOther)
+        {
+            int insertIndex = tasks.IndexOf(taskOther);
+
+            if (insertIndex == -1)
+                throw new TaskNotFoundException();
+
+            if (task == taskOther)
+                throw new ArgumentException("Tasks refer to the same instance when expecting different instances");
+
+            EndTask(task); //Limit tasks list to one instance per task
+
+            task.InitialTime = new TimeSpan(DateTime.Now.Ticks);
+            tasks.Insert(insertIndex, task);
+        }
+
+        /// <summary>
+        /// Schedules a task to run after another task
+        /// </summary>
+        /// <param name="task">Task to run</param>
+        /// <param name="taskOther">Task that should run before</param>
+        /// <exception cref="TaskNotFoundException">Exception that throws if the targeted task does not exist</exception>
+        /// <exception cref="ArgumentException">Exception that throws if the task instances are the same</exception>
+        public static void ScheduleAfter(Task task, Task taskOther)
+        {
+            int insertIndex = tasks.IndexOf(taskOther);
+
+            if (insertIndex == -1)
+                throw new TaskNotFoundException();
+
+            if (task == taskOther)
+                throw new ArgumentException("Tasks refer to the same instance when expecting different instances");
+
+            EndTask(task); //Limit tasks list to one instance per task
+
+            task.InitialTime = new TimeSpan(DateTime.Now.Ticks);
+            tasks.Insert(insertIndex + 1, task);
+        }
+
         public static void EndTask(Task task)
         {
-            task.ResetToDefaults();
-            tasks.Remove(task);
+            if (tasks.Remove(task))
+                task.ResetToDefaults();
         }
 
         private static void threadUpdate()
