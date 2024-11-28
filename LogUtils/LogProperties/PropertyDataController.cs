@@ -54,6 +54,8 @@ namespace LogUtils.Properties
 
             bool shouldRunStartupRoutine = RWInfo.LatestSetupPeriodReached < RWInfo.STARTUP_CUTOFF_PERIOD;
 
+            ProcessLateInitializedLogFile(LogID.BepInEx);
+
             //It is important for normal function of the utility for it to initialize before the game does. The following code handles the situation when
             //the utility is initialized too late, and the game has been allowed to intialize the log files without the necessary utility hooks active
             if (RWInfo.LatestSetupPeriodReached > SetupPeriod.Pregame)

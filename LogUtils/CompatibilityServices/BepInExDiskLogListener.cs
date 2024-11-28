@@ -4,7 +4,7 @@ using LogUtils.Events;
 using LogUtils.Helpers;
 using System;
 
-namespace LogUtils
+namespace LogUtils.CompatibilityServices
 {
     public sealed class BepInExDiskLogListener : ILogListener
     {

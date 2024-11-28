@@ -1,4 +1,4 @@
-﻿using BepInEx.Logging;
+﻿using LogUtils.CompatibilityServices;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
@@ -105,17 +105,9 @@ namespace LogUtils
 
             if (IsControllingAssembly)
             {
+                //This must be run before late initialized log files are handled to allow BepInEx log file to be moved
+                BepInExAdapter.Run();
                 PropertyManager.ProcessLogFiles();
-
-                List<ILogListener> listenerInstances = (List<ILogListener>)BepInEx.Logging.Logger.Listeners;
-
-                //Replace the first DiskLogListener we can find with a utility controlled instance
-                int listenerIndex = listenerInstances.FindIndex(l => l is DiskLogListener);
-
-                if (listenerIndex >= 0)
-                    listenerInstances[listenerIndex] = new BepInExDiskLogListener(new TimedLogWriter());
-                else
-                    listenerInstances.Add(new BepInExDiskLogListener(new TimedLogWriter()));
 
                 //Listen for Unity log requests while the log file is unavailable
                 if (!LogID.Unity.Properties.CanBeAccessed)
