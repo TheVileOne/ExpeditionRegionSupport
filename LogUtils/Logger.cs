@@ -679,6 +679,14 @@ namespace LogUtils
             return false;
         }
 
+        internal IEnumerable<PersistentLogFileHandle> GetUnusedHandles(IEnumerable<PersistentLogFileHandle> handlePool)
+        {
+            //No game-controlled, or remote targets
+            var localTargets = LogTargets.FindAll(CanLogBeHandledLocally);
+
+            return handlePool.Where(handle => !localTargets.Contains(handle.FileID));
+        }
+
         public void HandleRequests(IEnumerable<LogRequest> requests, bool skipValidation = false)
         {
             LogID loggerID = null;
