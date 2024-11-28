@@ -1,4 +1,5 @@
 ﻿using LogUtils.Helpers;
+using LogUtils.Threading;
 using System;
 
 namespace LogUtils
@@ -13,6 +14,16 @@ namespace LogUtils
         public int TimeRemaining { get; private set; }
 
         private int lastCheckedTime;
+
+        public Task UpdateTask;
+
+        public Lifetime()
+        {
+            UpdateTask = LogTasker.Schedule(new Task(Update, 0)
+            {
+                IsContinuous = true
+            });
+        }
 
         /// <summary>
         /// Set the lifetime remaining to a duration in milliseconds
@@ -43,6 +54,10 @@ namespace LogUtils
             //Updating lastCheckedTime makes timePassed relative to last update time
             lastCheckedTime = currentTime;
             TimeRemaining = Math.Max(0, TimeRemaining - timePassed);
+
+            //Once a lifetime has ended, stop running updates
+            if (!IsAlive)
+                UpdateTask.End();
         }
     }
 

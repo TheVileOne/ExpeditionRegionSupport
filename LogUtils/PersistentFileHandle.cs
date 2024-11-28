@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogUtils.Threading;
+using System;
 using System.IO;
 
 namespace LogUtils
@@ -59,11 +60,6 @@ namespace LogUtils
                 Stream = null;
             }
             IsDisposed = true;
-        }
-
-        public void UpdateLifetime()
-        {
-            Lifetime.Update();
         }
     }
 

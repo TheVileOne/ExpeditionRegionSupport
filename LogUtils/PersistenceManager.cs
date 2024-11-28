@@ -26,8 +26,6 @@ namespace LogUtils
             {
                 if (reference.TryGetTarget(out PersistentFileHandle handle))
                 {
-                    handle.UpdateLifetime();
-
                     if (!handle.IsAlive)
                     {
                         handle.Dispose();
