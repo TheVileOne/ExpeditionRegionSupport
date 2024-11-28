@@ -150,7 +150,7 @@ namespace LogUtils
 
                 lock (fileLock)
                 {
-                    fileLock.SetActivity(logFile, FileAction.Log);
+                    fileLock.SetActivity(logFile, FileAction.Write);
                     ProcessResult streamResult = AssignWriter(logFile, out writer);
 
                     if (streamResult != ProcessResult.Success)

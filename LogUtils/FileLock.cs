@@ -29,8 +29,8 @@ namespace LogUtils
             string appendString;
             switch (activity)
             {
-                case FileAction.Log:
-                    appendString = "logging";
+                case FileAction.Write:
+                    appendString = "write in process";
                     break;
                 case FileAction.SessionStart:
                     appendString = "started";

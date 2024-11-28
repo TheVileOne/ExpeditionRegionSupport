@@ -107,7 +107,7 @@ namespace LogUtils
 
                                 lock (fileLock)
                                 {
-                                    fileLock.SetActivity(logFile, FileAction.Log);
+                                    fileLock.SetActivity(logFile, FileAction.Write);
 
                                     message = ApplyRules(request.Data);
                                     writer.WriteLine(message);

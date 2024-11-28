@@ -16,7 +16,7 @@
         None,
         Create,
         Delete,
-        Log,
+        Write,
         Move,
         Copy,
         Open,
