@@ -45,5 +45,19 @@ namespace LogUtils.Threading
             Run = runTask;
             WaitTimeInterval = waitTime;
         }
+
+        public void End()
+        {
+            LogTasker.EndTask(this);
+        }
+
+        /// <summary>
+        /// Sets fields back to before first activation, and task subscription, doesn't affect wait time, or run delegate
+        /// </summary>
+        internal void ResetToDefaults()
+        {
+            InitialTime = TimeSpan.Zero;
+            LastActivationTime = TimeSpan.Zero;
+        }
     }
 }

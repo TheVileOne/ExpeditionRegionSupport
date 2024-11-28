@@ -23,6 +23,12 @@ namespace LogUtils.Threading
             return task;
         }
 
+        public static void EndTask(Task task)
+        {
+            task.ResetToDefaults();
+            tasks.Remove(task);
+        }
+
         private static void threadUpdate()
         {
             Thread.CurrentThread.Name = "LogUtils";
@@ -46,7 +52,7 @@ namespace LogUtils.Threading
 
                         if (!task.IsContinuous)
                         {
-                            tasks.Remove(task);
+                            EndTask(task);
                             continue; //Next task will reuse the task index
                         }
                     }
