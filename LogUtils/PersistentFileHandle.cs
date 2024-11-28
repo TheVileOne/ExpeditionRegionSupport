@@ -21,7 +21,7 @@ namespace LogUtils
         /// <summary>
         /// A managed representation of the time remaining before filestream is disposed in milliseconds
         /// </summary>
-        public Lifetime Lifetime = new Lifetime();
+        public readonly Lifetime Lifetime = new Lifetime();
 
         /// <summary>
         /// The underlying filestream if it exists, null otherwise. This stream is always active when the file is present 
