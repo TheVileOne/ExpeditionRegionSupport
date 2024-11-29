@@ -4,7 +4,6 @@ using LogUtils.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace LogUtils
@@ -148,50 +147,6 @@ namespace LogUtils
         }
 
         #endregion
-
-        /// <summary>
-        /// Action is invoked when the Logs directory is going to be moved on the next Update frame. May get called multiple times if move fails.
-        /// If your logger uses a FileStream for logging to the Logs folder, please make sure it is closed upon activation of this event.
-        /// </summary>
-        public static Action OnMovePending;
-
-        /// <summary>
-        /// Action is invoked when all move attempts have failed. Signal will return to Signal.None on the following frame.
-        /// </summary>
-        public static Action OnMoveAborted;
-
-        /// <summary>
-        /// Action is invoked immediately after the Logs directory is successfully moved. The new path is given as an argument.
-        /// If your logger uses a FileStream for logging to the Logs folder, it is safe to reenable it here.
-        /// </summary>
-        public static Action<string> OnMoveComplete;
-
-        /// <summary>
-        /// Handles an event based on a provided signal word
-        /// </summary>
-        internal static void ProcessLogSignal(string signal)
-        {
-            if (signal == "Signal.None") return;
-
-            string[] signalData = Regex.Split(signal, "\\.");
-            string signalWord = signalData[1]; //Signal.Keyword.Other data
-
-            //Remote loggers need to be informed of when the Logs folder is moved.
-            //The folder cannot be moved if any log file has an open filestream active
-            if (signalWord == "MovePending")
-                OnMovePending?.Invoke();
-            else if (signalWord == "MoveComplete")
-            {
-                string path = signalData[2];
-
-                UtilityLogger.Log("Log directory changed to " + path);
-
-                OnMoveComplete?.Invoke(path);
-                LogsFolder.SetPath(path); //This gets updated last. It is needed for comparison purposes.
-            }
-            else if (signalWord == "MoveAborted")
-                OnMoveAborted?.Invoke();
-        }
 
         #region Log Overloads (object)
 
@@ -689,8 +644,10 @@ namespace LogUtils
 
         public void HandleRequests(IEnumerable<LogRequest> requests, bool skipValidation = false)
         {
+            IEnumerable<LogRequest> validatedRequests = skipValidation ? requests : requests.Where(req => CanAccess(req.Data.ID, req.Type, doPathCheck: true));
+
             LogID loggerID = null;
-            foreach (LogRequest request in requests.Where(req => skipValidation || CanAccess(req.Data.ID, req.Type, doPathCheck: true)))
+            foreach (LogRequest request in validatedRequests)
                 TryHandleRequest(request, ref loggerID);
         }
 
@@ -706,7 +663,7 @@ namespace LogUtils
         internal RejectionReason TryHandleRequest(LogRequest request, ref LogID loggerID)
         {
             LogID requestID = request.Data.ID;
-            if (loggerID == null || (loggerID != requestID)) //ExtEnums are not compared by reference
+            if (loggerID == null || loggerID != requestID) //ExtEnums are not compared by reference
             {
                 //The local LogID stored in LogTargets will be a different instance to the one stored in a remote log request
                 //It is important to check the local id instead of the remote id in certain situations
@@ -770,18 +727,5 @@ namespace LogUtils
         Normal,
         Queue,
         Timed
-    }
-
-    public static class ExtendedILogListener
-    {
-        /// <summary>
-        /// Fetches signal data produced by a custom ILogListener
-        /// </summary>
-        public static string GetSignal(this ILogListener self)
-        {
-            string stringToProcess = self.ToString();
-
-            return stringToProcess.StartsWith("Signal") ? stringToProcess : null;
-        }
     }
 }

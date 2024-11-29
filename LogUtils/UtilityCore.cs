@@ -7,7 +7,6 @@ using LogUtils.Threading;
 using Menu;
 using RWCustom;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace LogUtils
@@ -31,11 +30,6 @@ namespace LogUtils
         /// The initialization process is in progress for the current assembly
         /// </summary>
         private static bool initializingInProgress;
-
-        /// <summary>
-        /// The ILogListener managed by the LogManager plugin. Null when LogManager isn't enabled.
-        /// </summary>
-        public static ILogListener ManagedLogListener;
 
         public static PersistenceManager PersistenceManager;
 
@@ -158,28 +152,6 @@ namespace LogUtils
                     RequestHandler.ProcessRequests();
                 }
             }
-        }
-
-        /// <summary>
-        /// Searches for an ILogListener that returns a signal sent through ToString().
-        /// This listener belongs to the LogManager plugin.
-        /// </summary>
-        internal static void FindManagedListener()
-        {
-            IEnumerator<ILogListener> enumerator = BepInEx.Logging.Logger.Listeners.GetEnumerator();
-
-            ILogListener managedListener = null;
-            while (enumerator.MoveNext() && managedListener == null)
-            {
-                if (enumerator.Current.GetSignal() != null)
-                    managedListener = enumerator.Current;
-            }
-        }
-
-        internal static void HandleLogSignal()
-        {
-            if (ManagedLogListener != null)
-                Logger.ProcessLogSignal(ManagedLogListener.GetSignal());
         }
     }
 }

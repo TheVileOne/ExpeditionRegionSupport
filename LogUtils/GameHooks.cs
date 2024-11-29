@@ -239,19 +239,6 @@ namespace LogUtils
                 if (queueWriter != null)
                     queueWriter.Flush();
             }
-
-            //Logic is handled after orig for several reasons. The main reason is that all remote loggers are guaranteed to receive any signals set during update
-            //no matter where they are in the load order. Signals are created pre-update, or during update only.
-            if (self.started)
-            {
-                if (!listenerCheckComplete)
-                {
-                    UtilityCore.FindManagedListener();
-                    listenerCheckComplete = true;
-                }
-
-                UtilityCore.HandleLogSignal();
-            }
         }
 
         /// <summary>
