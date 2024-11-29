@@ -1,5 +1,6 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Helpers.FileHandling;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -7,7 +8,6 @@ namespace LogUtils.Helpers
 {
     public static class LogFile
     {
-
         /// <summary>
         /// Creates a copy of a log file
         /// </summary>
@@ -153,6 +153,26 @@ namespace LogUtils.Helpers
         public static string FindPathWithoutFileExtension(string searchPath, string filename)
         {
             return FileUtils.SupportedExtensions.Select(fileExt => Path.Combine(searchPath, filename + fileExt)).FirstOrDefault(File.Exists);
+        }
+
+        /// <summary>
+        /// Retrieves all file handles for log files with at least one persistent FileStream open (file is currently in use), or temporarily closed
+        /// </summary>
+        public static IEnumerable<PersistentLogFileHandle> GetPersistentLogFiles()
+        {
+            var enumerator = UtilityCore.PersistenceManager.References.GetEnumerator();
+
+            PersistentFileHandle handle;
+            while (enumerator.MoveNext())
+            {
+                if (enumerator.Current.TryGetTarget(out handle))
+                {
+                    var logFileHandle = handle as PersistentLogFileHandle;
+                    if (logFileHandle != null)
+                        yield return logFileHandle;
+                }
+            }
+            yield break;
         }
     }
 }
