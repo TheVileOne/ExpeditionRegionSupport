@@ -29,25 +29,28 @@ namespace LogUtils.CompatibilityServices
 
         public void LogEvent(object sender, BepInEx.Logging.LogEventArgs eventArgs)
         {
-            lock (UtilityCore.RequestHandler.RequestProcessLock)
+            if (eventArgs.Source is UnityLogSource) return;
+
+            bool isUtilityLogger = eventArgs.Source.SourceName == UtilityConsts.UTILITY_NAME;
+
+            if (!isUtilityLogger) //Utility must be allowed to log without disturbing utility functions
             {
-                bool isUtilityLogger = eventArgs.Source.SourceName == UtilityConsts.UTILITY_NAME;
+                if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake)
+                    ThreadUtils.AssertRunningOnMainThread(LogID.BepInEx);
 
-                if (!isUtilityLogger) //Utility must be allowed to log without disturbing utility functions
+                lock (UtilityCore.RequestHandler.RequestProcessLock)
                 {
-                    if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake)
-                        ThreadUtils.AssertRunningOnMainThread(LogID.BepInEx);
-
                     LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
                     if (request == null)
                     {
-                        request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.BepInEx, eventArgs.Data, eventArgs.Level)), false);
+                        request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.BepInEx, eventArgs)), false);
 
                         if (request.Status == RequestStatus.Rejected)
                             return;
                     }
 
+                    request.Data.LogSource = eventArgs.Source;
                     Writer.WriteFrom(request);
                 }
             }

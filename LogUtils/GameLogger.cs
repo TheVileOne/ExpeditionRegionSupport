@@ -47,7 +47,7 @@ namespace LogUtils
 
             if (logFile == LogID.BepInEx) //The only logger example that needs an extra parameter
             {
-                LogBepEx(request.Data.LogSource, request.Data.BepInExCategory, message);
+                LogBepEx(request.Data.LogSource as ManualLogSource, request.Data.BepInExCategory, message);
             }
             else if (logFile == LogID.Unity) //Unity, and Exception log requests are not guaranteed to have a defined LogCategory instance
             {

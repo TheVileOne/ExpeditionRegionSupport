@@ -1,5 +1,6 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Events;
+using LogUtils.Properties;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,6 +15,30 @@ namespace LogUtils
     public class QueueLogWriter : LogWriter
     {
         internal Queue<LogMessageEventArgs> LogCache = new Queue<LogMessageEventArgs>();
+
+        public override string ApplyRules(LogMessageEventArgs logEventData)
+        {
+            LogID logFile = logEventData.ID;
+            LogRule headerRule = logFile.Properties.ShowCategories;
+
+            //All requests that are handled by this type of LogWriter shall display an error header even if the LogID doesn't have all headers enabled
+            if (!headerRule.IsEnabled && LogCategory.IsErrorCategory(logEventData.Category))
+            {
+                headerRule = new ErrorsOnlyHeaderRule(true);
+                logFile.Properties.Rules.SetTemporaryRule(headerRule);
+            }
+
+            try
+            {
+                return base.ApplyRules(logEventData);
+            }
+            finally
+            {
+                //The rule that we added gets removed after application
+                if (headerRule.IsTemporary && headerRule is ErrorsOnlyHeaderRule)
+                    logFile.Properties.Rules.RemoveTemporaryRule(headerRule);
+            }
+        }
 
         public override void WriteFrom(LogRequest request)
         {
@@ -99,15 +124,10 @@ namespace LogUtils
                         if (streamResult != ProcessResult.Success)
                             throw new IOException("Unable to create stream");
 
+                        string message;
                         bool fileChanged;
                         do
                         {
-                            string message = logEntry.Message;
-
-                            //Behavior taken from JollyCoop, shouldn't be necessary if error category is already going to display
-                            if (!logEntry.Properties.ShowCategories.IsEnabled && LogCategory.IsErrorCategory(logEntry.Category))
-                                message = "[ERROR] " + message;
-
                             message = ApplyRules(logEntry);
                             writer.WriteLine(message);
                             logEntry.ID.Properties.MessagesLoggedThisSession++;

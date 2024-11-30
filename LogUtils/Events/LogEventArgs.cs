@@ -28,7 +28,7 @@ namespace LogUtils.Events
         /// <summary>
         /// Contains source information needed to log through the BepInEx logger
         /// </summary>
-        public ManualLogSource LogSource;
+        public ILogSource LogSource;
 
         private LogCategory _category;
         private LogLevel? _categoryBepInEx;
@@ -105,6 +105,11 @@ namespace LogUtils.Events
         {
             UnityCategory = category;
             Message = processMessage(messageData);
+        }
+
+        internal LogMessageEventArgs(LogID logID, BepInEx.Logging.LogEventArgs args) : this(logID, args.Data, args.Level)
+        {
+            LogSource = args.Source;
         }
 
         private string processMessage(object data)
