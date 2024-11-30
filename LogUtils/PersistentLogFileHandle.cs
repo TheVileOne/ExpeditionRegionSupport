@@ -20,6 +20,17 @@ namespace LogUtils
             FileID.Properties.PersistentStreamHandles.Add(this);
         }
 
+        public override StreamResumer InterruptStream()
+        {
+            var fileLock = FileID.Properties.FileLock;
+
+            lock (fileLock)
+            {
+                fileLock.SetActivity(FileID, FileAction.StreamDisposal);
+                return base.InterruptStream();
+            }
+        }
+
         protected override void CreateFileStream()
         {
             WaitingToResume = false;
@@ -30,7 +41,7 @@ namespace LogUtils
         {
             if (IsDisposed) return;
 
-            FileLock fileLock = FileID.Properties.FileLock;
+            var fileLock = FileID.Properties.FileLock;
 
             //Locked to avoid interfering with any write operations
             lock (fileLock)

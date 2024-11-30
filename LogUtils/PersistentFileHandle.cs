@@ -39,7 +39,7 @@ namespace LogUtils
         /// <summary>
         /// Closes the stream. Mod should resume stream when file operations are finished
         /// </summary>
-        public StreamResumer InterruptStream()
+        public virtual StreamResumer InterruptStream()
         {
             WaitingToResume = true;
             Stream?.Close();

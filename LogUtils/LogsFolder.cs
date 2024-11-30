@@ -4,9 +4,11 @@ using LogUtils.Helpers;
 using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties;
+using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace LogUtils
 {
@@ -255,29 +257,39 @@ namespace LogUtils
             if (!canProceed)
                 throw new InvalidOperationException("Unable to change path. Access is denied");
 
-            lock (UtilityCore.RequestHandler.RequestProcessLock)
+            var logFilesInFolder = GetContainedLogFiles();
+
+            ThreadSafeWorker worker = new ThreadSafeWorker(logFilesInFolder.Select(logFile => logFile.Properties.FileLock));
+
+            worker.DoWork(() =>
             {
                 List<StreamResumer> streamsToResume = new List<StreamResumer>();
-                //TODO: Notify LogIDs of a pending move, shut down their Filestreams (reopen when finished)
                 try
                 {
-                    //TODO: Code for shutting down Filestreams at the LogWriter level
-                    foreach (LogID logFile in GetContainedLogFiles())
+                    lock (UtilityCore.RequestHandler.RequestProcessLock)
                     {
-                        logFile.Properties.NotifyPendingMove(path);
+                        foreach (LogID logFile in logFilesInFolder)
+                        {
+                            logFile.Properties.FileLock.SetActivity(logFile, FileAction.Move); //Lock activated by ThreadSafeWorker
+                            logFile.Properties.NotifyPendingMove(path);
 
-                        foreach (PersistentFileHandle streamHandle in logFile.Properties.PersistentStreamHandles)
-                            streamsToResume.Add(streamHandle.InterruptStream());
+                            //The move operation requires that all persistent file activity be closed until move is complete
+                            foreach (PersistentFileHandle streamHandle in logFile.Properties.PersistentStreamHandles)
+                                streamsToResume.Add(streamHandle.InterruptStream());
+                        }
                     }
-
                     Directory.Move(basePath, path);
+
+                    //Update path info for affected log files
+                    foreach (LogID logFile in logFilesInFolder)
+                        logFile.Properties.ChangePath(path);
                 }
                 finally
                 {
-                    //Open streams
+                    //Reopen the streams
                     streamsToResume.ForEach(stream => stream.Resume());
                 }
-            }
+            });
         }
 
         public static bool TryCycle(LogsFolderAccessToken accessToken, bool cycleForward = true)

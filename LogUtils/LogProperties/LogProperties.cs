@@ -10,6 +10,7 @@ using LogUtils.Helpers;
 using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties.Custom;
+using LogUtils.Threading;
 using DataFields = LogUtils.UtilityConsts.DataFields;
 
 namespace LogUtils.Properties

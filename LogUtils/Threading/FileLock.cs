@@ -1,6 +1,6 @@
 ﻿using LogUtils.Enums;
 
-namespace LogUtils
+namespace LogUtils.Threading
 {
     public sealed class FileLock
     {
