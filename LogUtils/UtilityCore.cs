@@ -27,6 +27,11 @@ namespace LogUtils
         public static bool IsInitialized { get; private set; }
 
         /// <summary>
+        /// The initialized state encountered a problem during initialization
+        /// </summary>
+        public static bool InitializedWithErrors { get; private set; }
+
+        /// <summary>
         /// The initialization process is in progress for the current assembly
         /// </summary>
         private static bool initializingInProgress;
@@ -55,11 +60,122 @@ namespace LogUtils
 
             initializingInProgress = true;
 
-            UtilityLogger.EnsureLogTypeCapacity(UtilityConsts.CUSTOM_LOGTYPE_LIMIT);
-            UtilityLogger.Initialize();
+            UtilitySetup.InitializationStep currentStep = UtilitySetup.InitializationStep.NOT_STARTED;
+            try
+            {
+                currentStep = UtilitySetup.InitializationStep.INITALIZE_CORE_LOGGER;
+                while (currentStep != UtilitySetup.InitializationStep.COMPLETE)
+                {
+                    currentStep = ApplyStep(currentStep);
+                }
+            }
+            catch (Exception ex)
+            {
+                InitializedWithErrors = true;
 
-            LogTasker.Start();
+                //TODO: An exception during utility initialization is most likely unrecoverable. Utility must try to restore original logging functionality here
+                UtilityLogger.LogFatal("A fatal error has occurred during setup process. Utility will no longer function as expected");
+                UtilityLogger.LogFatal($"FAILED STEP: {currentStep}");
+                UtilityLogger.LogFatal(ex);
+            }
 
+            initializingInProgress = false;
+            IsInitialized = true;
+        }
+
+        internal static UtilitySetup.InitializationStep ApplyStep(UtilitySetup.InitializationStep currentStep)
+        {
+            UtilitySetup.InitializationStep nextStep = currentStep;
+            switch (currentStep)
+            {
+                case UtilitySetup.InitializationStep.INITALIZE_CORE_LOGGER:
+                    {
+                        UtilityLogger.EnsureLogTypeCapacity(UtilityConsts.CUSTOM_LOGTYPE_LIMIT);
+                        UtilityLogger.Initialize();
+
+                        nextStep = UtilitySetup.InitializationStep.START_SCHEDULER;
+                        break;
+                    }
+                case UtilitySetup.InitializationStep.START_SCHEDULER:
+                    {
+                        LogTasker.Start();
+
+                        nextStep = UtilitySetup.InitializationStep.ESTABLISH_SETUP_PERIOD;
+                        break;
+                    }
+                case UtilitySetup.InitializationStep.ESTABLISH_SETUP_PERIOD:
+                    {
+                        InitializeSetupPeriod();
+
+                        nextStep = UtilitySetup.InitializationStep.INITIALIZE_COMPONENTS;
+                        break;
+                    }
+                case UtilitySetup.InitializationStep.INITIALIZE_COMPONENTS:
+                    {
+                        LoadComponents();
+
+                        nextStep = UtilitySetup.InitializationStep.INITIALIZE_LOGIDS;
+                        break;
+                    }
+                case UtilitySetup.InitializationStep.INITIALIZE_LOGIDS:
+                    {
+                        LogID.InitializeLogIDs(); //This should be called for every assembly that initializes
+
+                        nextStep = UtilitySetup.InitializationStep.PARSE_FILTER_RULES;
+                        break;
+                    }
+                case UtilitySetup.InitializationStep.PARSE_FILTER_RULES:
+                    {
+                        LogFilterParser.ParseFile();
+
+                        if (RWInfo.LatestSetupPeriodReached < SetupPeriod.PostMods)
+                            LogFilter.ActivateKeyword(UtilityConsts.FilterKeywords.ACTIVATION_PERIOD_STARTUP);
+
+                        nextStep = UtilitySetup.InitializationStep.ADAPT_LOGGING_SYSTEM;
+                        break;
+                    }
+            }
+
+            //The steps after this point should only be run by a single assembly
+            if (nextStep != currentStep)
+                return nextStep;
+
+            if (IsControllingAssembly)
+            {
+                switch (currentStep)
+                {
+                    case UtilitySetup.InitializationStep.ADAPT_LOGGING_SYSTEM:
+                        {
+                            //This must be run before late initialized log files are handled to allow BepInEx log file to be moved
+                            BepInExAdapter.Run();
+
+                            nextStep = UtilitySetup.InitializationStep.POST_LOGID_PROCESSING;
+                            break;
+                        }
+                    case UtilitySetup.InitializationStep.POST_LOGID_PROCESSING:
+                        {
+                            PropertyManager.ProcessLogFiles();
+
+                            //Listen for Unity log requests while the log file is unavailable
+                            if (!LogID.Unity.Properties.CanBeAccessed)
+                                UtilityLogger.ReceiveUnityLogEvents = true;
+
+                            nextStep = UtilitySetup.InitializationStep.APPLY_HOOKS;
+                            break;
+                        }
+                    case UtilitySetup.InitializationStep.APPLY_HOOKS:
+                        {
+                            AppDomain.CurrentDomain.UnhandledException += (o, e) => RequestHandler.DumpRequestsToFile();
+                            GameHooks.Initialize();
+                            break;
+                        }
+                }
+            }
+            return nextStep = UtilitySetup.InitializationStep.COMPLETE;
+        }
+
+        internal static void InitializeSetupPeriod()
+        {
             //This is before hooks are established. It is highly likely that the utility will load very early, and any mod could force it. Since we cannot control
             //this factor, we have to infer using specific game fields to tell which part of the initialization period we are in
             SetupPeriod startupPeriod = SetupPeriod.Pregame;
@@ -84,35 +200,8 @@ namespace LogUtils
                 }
             }
 
-            RWInfo.LatestSetupPeriodReached = startupPeriod;
-
             UtilityEvents.OnSetupPeriodReached += onSetupPeriodReached;
-
-            LoadComponents();
-
-            LogID.InitializeLogIDs(); //This should be called for every assembly that initializes
-
-            LogFilterParser.ParseFile();
-
-            if (RWInfo.LatestSetupPeriodReached < SetupPeriod.PostMods)
-                LogFilter.ActivateKeyword(UtilityConsts.FilterKeywords.ACTIVATION_PERIOD_STARTUP);
-
-            if (IsControllingAssembly)
-            {
-                //This must be run before late initialized log files are handled to allow BepInEx log file to be moved
-                BepInExAdapter.Run();
-                PropertyManager.ProcessLogFiles();
-
-                //Listen for Unity log requests while the log file is unavailable
-                if (!LogID.Unity.Properties.CanBeAccessed)
-                    UtilityLogger.ReceiveUnityLogEvents = true;
-
-                AppDomain.CurrentDomain.UnhandledException += (o, e) => RequestHandler.DumpRequestsToFile();
-                GameHooks.Initialize();
-            }
-
-            initializingInProgress = false;
-            IsInitialized = true;
+            RWInfo.LatestSetupPeriodReached = startupPeriod;
         }
 
         /// <summary>

@@ -79,6 +79,18 @@ namespace LogUtils
             Logger.LogError(ex);
         }
 
+        public static void LogFatal(object data)
+        {
+            Logger.LogFatal(data);
+        }
+
+        public static void LogFatal(string errorMessage, Exception ex)
+        {
+            if (errorMessage != null)
+                Logger.LogFatal(errorMessage);
+            Logger.LogFatal(ex);
+        }
+
         public static void LogWarning(object data)
         {
             Logger.LogError(data);
