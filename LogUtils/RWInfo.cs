@@ -1,5 +1,6 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Events;
+using RWCustom;
 using System.Collections.Generic;
 
 namespace LogUtils
@@ -18,6 +19,12 @@ namespace LogUtils
         /// The period during which it becomes too late to initiate the startup routine (such as for replacing log files)
         /// </summary>
         public const SetupPeriod STARTUP_CUTOFF_PERIOD = SetupPeriod.ModsInit;
+
+        public static RainWorld RainWorld => Custom.rainWorld;
+
+        public static bool IsRainWorldRunning => RainWorld != null;
+
+        public static RainWorld.BuildType Build => IsRainWorldRunning ? RainWorld.buildType : default;
 
         /// <summary>
         /// Dictionary of last reported errors logged to a specific log file

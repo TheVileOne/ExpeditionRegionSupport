@@ -456,8 +456,7 @@ namespace LogUtils.Properties
             {
                 OnLogSessionStart += (LogStreamEventArgs e) =>
                 {
-                    RainWorld.BuildType buildType = RWCustom.Custom.rainWorld?.buildType ?? default;
-                    e.Writer.WriteLine(string.Format("############################################\n Jolly Coop Log {0} [DEBUG LEVEL: {1}]\n", 0, buildType));
+                    e.Writer.WriteLine(string.Format("############################################\n Jolly Coop Log {0} [DEBUG LEVEL: {1}]\n", 0, RWInfo.Build));
                 };
             }
 
@@ -953,7 +952,7 @@ namespace LogUtils.Properties
             UtilityLogger.Log("Attempting to resolve path");
 
             //Resolve directory the game supported way if we're not too early to do so (most likely will be too early)
-            if (RWCustom.Custom.rainWorld != null)
+            if (RWInfo.IsRainWorldRunning)
                 return AssetManager.ResolveDirectory(path);
 
             UtilityLogger.Log("Defaulting to custom root. Path check run too early to resolve");

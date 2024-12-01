@@ -5,7 +5,6 @@ using LogUtils.Helpers;
 using LogUtils.Properties;
 using LogUtils.Threading;
 using Menu;
-using RWCustom;
 using System;
 using System.Linq;
 
@@ -180,13 +179,13 @@ namespace LogUtils
             //this factor, we have to infer using specific game fields to tell which part of the initialization period we are in
             SetupPeriod startupPeriod = SetupPeriod.Pregame;
 
-            if (Custom.rainWorld != null)
+            if (RWInfo.IsRainWorldRunning)
             {
                 if (Menu.Remix.OptionalText.engText == null) //This is set in PreModsInIt
                 {
                     startupPeriod = SetupPeriod.RWAwake;
                 }
-                else if (Custom.rainWorld.processManager?.currentMainLoop is InitializationScreen)
+                else if (RWInfo.RainWorld.processManager?.currentMainLoop is InitializationScreen)
                 {
                     //All ExtEnumTypes are forcefully updated as part of the OnModsInit run routine. Look for initialized types
                     if (ExtEnumBase.valueDictionary.Count() < 50) //Somewhere between PreModsInIt and OnModsInit, we don't know where exactly
