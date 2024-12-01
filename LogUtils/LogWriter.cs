@@ -3,6 +3,7 @@ using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Properties;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -55,16 +56,31 @@ namespace LogUtils
         {
             logFile.Properties.EndLogSession();
 
+            List<StreamResumer> streamsToResume = new List<StreamResumer>();
             try
             {
-                File.Delete(logFile.Properties.CurrentFilePath);
-                logFile.Properties.FileExists = false;
+                var fileLock = logFile.Properties.FileLock;
+
+                lock (fileLock)
+                {
+                    fileLock.SetActivity(logFile, FileAction.Delete);
+
+                    if (logFile.Properties.FileExists)
+                    {
+                        File.Delete(logFile.Properties.CurrentFilePath);
+                        logFile.Properties.FileExists = false;
+                    }
+                }
             }
             catch (Exception ex)
             {
-                UtilityLogger.LogError(null, new IOException("Unable to delete log file", ex));
+                UtilityLogger.LogError("Unable to delete log file", ex);
             }
-            PrepareLogFile(logFile);
+            finally
+            {
+                PrepareLogFile(logFile);
+                streamsToResume.ForEach(stream => stream.Resume());
+            }
         }
 
         public virtual void WriteFrom(LogRequest request)
