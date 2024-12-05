@@ -34,14 +34,14 @@ namespace LogUtils
         /// </summary>
         public LoggerRestorePoint RestorePoint;
 
+        #region Initialization
+
         static Logger()
         {
             //Initialize the utility when this class is accessed
             if (!UtilityCore.IsInitialized)
                 UtilityCore.Initialize();
         }
-
-        #region Constructors
 
         /// <summary>
         /// Constructs a logger instance
@@ -110,14 +110,6 @@ namespace LogUtils
             SetWriter(mode);
         }
 
-        #endregion
-        #region Restore Points
-
-        public void SetRestorePoint()
-        {
-            RestorePoint = new LoggerRestorePoint(this);
-        }
-
         public void SetWriter(LoggingMode writeMode)
         {
             switch (writeMode)
@@ -137,6 +129,14 @@ namespace LogUtils
             }
         }
 
+        #endregion
+        #region Restore Points
+
+        public void SetRestorePoint()
+        {
+            RestorePoint = new LoggerRestorePoint(this);
+        }
+
         public void RestoreState()
         {
             AllowLogging = RestorePoint.AllowLogging;
@@ -147,6 +147,8 @@ namespace LogUtils
         }
 
         #endregion
+
+        #region Logging
 
         #region Log Overloads (object)
 
@@ -710,6 +712,8 @@ namespace LogUtils
 
             return request.UnhandledReason;
         }
+
+        #endregion
 
         public void Dispose()
         {
