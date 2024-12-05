@@ -717,6 +717,15 @@ namespace LogUtils
 
         public void Dispose()
         {
+            ILogWriter localWriter = Writer;
+
+            if (localWriter != LogWriter.Writer) //Avoid disposing a shared resource
+            {
+                IDisposable disposable = localWriter as IDisposable;
+
+                if (disposable != null)
+                    disposable.Dispose();
+            }
             Writer = null;
         }
 
