@@ -4,9 +4,9 @@ using System;
 
 namespace LogUtils
 {
-    public struct Lifetime
+    public class Lifetime
     {
-        public readonly bool IsAlive => TimeRemaining == LifetimeDuration.Infinite || TimeRemaining > 0;
+        public bool IsAlive => TimeRemaining == LifetimeDuration.Infinite || TimeRemaining > 0;
 
         /// <summary>
         /// A managed representation of the time remaining before filestream is disposed in milliseconds
