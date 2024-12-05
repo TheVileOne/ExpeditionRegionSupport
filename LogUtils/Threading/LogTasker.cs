@@ -329,17 +329,20 @@ namespace LogUtils.Threading
                 WaitingOnSignal = false;
             }
 
+            SyncCallback eventHandler = null;
+            switch (crawlMark)
+            {
+                case CrawlMark.BeginUpdate:
+                    eventHandler = OnThreadUpdate;
+                    break;
+                case CrawlMark.EndUpdate:
+                    eventHandler = OnThreadUpdateComplete;
+                    break;
+            }
+
             try
             {
-                switch (crawlMark) //Not all crawlmarks have their own event handler
-                {
-                    case CrawlMark.BeginUpdate:
-                        OnThreadUpdate?.Invoke();
-                        break;
-                    case CrawlMark.EndUpdate:
-                        OnThreadUpdateComplete?.Invoke();
-                        break;
-                }
+                eventHandler?.Invoke();
             }
             catch (Exception ex)
             {
@@ -354,19 +357,12 @@ namespace LogUtils.Threading
                 UtilityLogger.DebugLog("Process started");
                 for (int i = 0; i < tasksInProcess.Count; i++)
                 {
-                    Task task = null;
-                    try
-                    {
-                        task = tasksInProcess[i];
-                    }
-                    catch (ArgumentOutOfRangeException)
-                    {
-                        UtilityLogger.DebugLog("Argument out of range");
-                    }
+                    Task task = tasksInProcess[i];
 
                     if (task != null)
                     {
-                        UtilityLogger.DebugLog("Yield task with " + task.NextActivationTime);
+                        UtilityLogger.DebugLog("Processing task: NAME " + task.Name + " ID " + task.ID);
+                        UtilityLogger.DebugLog("Is Continuous " + task.IsContinuous);
                         yield return task;
                     }
                 }
