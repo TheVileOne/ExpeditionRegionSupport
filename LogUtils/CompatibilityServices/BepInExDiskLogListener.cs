@@ -72,8 +72,6 @@ namespace LogUtils.CompatibilityServices
         {
             const int retry_request_time = 5; //milliseconds
 
-            ThreadUtils.AssertRunningOnMainThread(request);
-
             if (utilityRequestsInProcess.Count > 0)
             {
                 Task utilityRequestTask = new Task(() =>
