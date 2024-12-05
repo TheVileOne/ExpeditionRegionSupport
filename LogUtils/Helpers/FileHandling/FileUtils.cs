@@ -233,9 +233,25 @@ namespace LogUtils.Helpers.FileHandling
             }
         }
 
+        private static object writeLock = new object();
+
         public static void WriteLine(string path, string message)
         {
-            File.AppendAllText(path, message + Environment.NewLine);
+            /*
+            using (FileStream stream = File.Open(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
+            {
+                stream.Seek(0, SeekOrigin.End);
+                using (StreamWriter writer = new StreamWriter(stream))
+                {
+                    writer.Write(message);
+                }
+            } 
+            */
+
+            lock (writeLock)
+            {
+                File.AppendAllText(path, message + Environment.NewLine);
+            }
         }
     }
 
