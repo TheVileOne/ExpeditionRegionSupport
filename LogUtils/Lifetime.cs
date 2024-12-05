@@ -21,6 +21,7 @@ namespace LogUtils
         {
             UpdateTask = LogTasker.Schedule(new Task(Update, 0)
             {
+                Name = "Lifetime",
                 IsContinuous = true
             });
         }

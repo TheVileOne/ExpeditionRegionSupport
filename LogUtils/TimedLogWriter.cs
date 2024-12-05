@@ -43,6 +43,7 @@ namespace LogUtils
 
             WriteTask = LogTasker.Schedule(new Task(Flush, taskInterval)
             {
+                Name = "LogWriter",
                 IsContinuous = true
             });
             WriteInterval = taskInterval;

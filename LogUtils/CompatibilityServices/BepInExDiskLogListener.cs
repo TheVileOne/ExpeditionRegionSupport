@@ -80,6 +80,8 @@ namespace LogUtils.CompatibilityServices
                 {
                     logUtilityEvent(request);
                 }, retry_request_time);
+
+                utilityRequestTask.Name = UtilityConsts.UTILITY_NAME;
                 LogTasker.Schedule(utilityRequestTask);
                 return;
             }

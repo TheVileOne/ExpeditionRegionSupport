@@ -4,6 +4,10 @@ namespace LogUtils.Threading
 {
     public class Task
     {
+        public string Name = "Unknown";
+
+        public int ID;
+
         public readonly Action Run;
 
         public TimeSpan InitialTime = TimeSpan.Zero;
@@ -36,6 +40,7 @@ namespace LogUtils.Threading
         {
             Run = runTask;
             WaitTimeInterval = TimeSpan.FromMilliseconds(waitTimeInMS);
+            SetID();
             SetState(TaskState.NotReady);
         }
 
@@ -46,6 +51,7 @@ namespace LogUtils.Threading
         {
             Run = runTask;
             WaitTimeInterval = waitTime;
+            SetID();
             SetState(TaskState.NotReady);
         }
 
@@ -83,6 +89,11 @@ namespace LogUtils.Threading
         public void RunAfter(Task otherTask)
         {
             LogTasker.ScheduleAfter(this, otherTask);
+        }
+
+        public void SetID()
+        {
+            ID = UnityEngine.Random.Range(0, 1000);
         }
 
         public void SetInitialTime()
