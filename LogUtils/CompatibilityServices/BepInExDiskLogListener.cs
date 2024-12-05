@@ -2,7 +2,9 @@
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
+using LogUtils.Threading;
 using System;
+using System.Collections.Generic;
 
 namespace LogUtils.CompatibilityServices
 {
@@ -12,6 +14,11 @@ namespace LogUtils.CompatibilityServices
         /// This writer handles all BepInEx log traffic for Rain World
         /// </summary>
         public LogWriter Writer;
+
+        /// <summary>
+        /// Stores LogUtils requests until they are able to be handled
+        /// </summary>
+        private List<LogRequest> utilityRequestsInProcess = new List<LogRequest>();
 
         public BepInExDiskLogListener(LogWriter writer)
         {
@@ -31,28 +38,69 @@ namespace LogUtils.CompatibilityServices
         {
             if (eventArgs.Source is UnityLogSource) return;
 
-            bool isUtilityLogger = eventArgs.Source.SourceName == UtilityConsts.UTILITY_NAME;
-
-            if (!isUtilityLogger) //Utility must be allowed to log without disturbing utility functions
+            LogRequest request;
+            if (eventArgs.Source.SourceName == UtilityConsts.UTILITY_NAME)
             {
-                if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake)
-                    ThreadUtils.AssertRunningOnMainThread(LogID.BepInEx);
+                request = new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.BepInEx, eventArgs));
+                logUtilityEvent(request);
+                return;
+            }
 
-                lock (UtilityCore.RequestHandler.RequestProcessLock)
+            if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake)
+                ThreadUtils.AssertRunningOnMainThread(LogID.BepInEx);
+
+            lock (UtilityCore.RequestHandler.RequestProcessLock)
+            {
+                request = UtilityCore.RequestHandler.CurrentRequest;
+
+                if (request == null)
                 {
-                    LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.BepInEx, eventArgs)), false);
 
-                    if (request == null)
-                    {
-                        request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.BepInEx, eventArgs)), false);
-
-                        if (request.Status == RequestStatus.Rejected)
-                            return;
-                    }
-
-                    request.Data.LogSource = eventArgs.Source;
-                    Writer.WriteFrom(request);
+                    if (request.Status == RequestStatus.Rejected)
+                        return;
                 }
+
+                request.Data.LogSource = eventArgs.Source;
+                Writer.WriteFrom(request);
+            }
+        }
+
+        bool flag;
+
+        private void logUtilityEvent(LogRequest request)
+        {
+            const int retry_request_time = 5; //milliseconds
+
+            ThreadUtils.AssertRunningOnMainThread(request);
+
+            if (utilityRequestsInProcess.Count > 0)
+            {
+                Task utilityRequestTask = new Task(() =>
+                {
+                    logUtilityEvent(request);
+                }, retry_request_time);
+                LogTasker.Schedule(utilityRequestTask);
+                return;
+            }
+
+            //TODO: Check thread safety
+            utilityRequestsInProcess.Add(request);
+
+            try
+            {
+                //LogUtils is given logging priority and must not be handled through the request submission process like other log requests. This makes
+                //it possible for LogUtils to write to process without interfering with requests in process 
+                Writer.WriteFrom(request);
+            }
+            catch (Exception ex)
+            {
+                UtilityLogger.DebugLog("Could not handle LogUtils request");
+                UtilityLogger.DebugLog(ex);
+            }
+            finally
+            {
+                utilityRequestsInProcess.Remove(request);
             }
         }
     }
