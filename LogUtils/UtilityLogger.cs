@@ -93,7 +93,7 @@ namespace LogUtils
 
         public static void LogWarning(object data)
         {
-            Logger.LogError(data);
+            Logger.LogWarning(data);
         }
 
         private static void handleUnityLog(string message, string stackTrace, LogType category)
