@@ -6,9 +6,6 @@ namespace LogUtils.Threading
     {
         public readonly Action Run;
 
-        /// <summary>
-        /// The schedule time for the task
-        /// </summary>
         public TimeSpan InitialTime = TimeSpan.Zero;
 
         public TimeSpan LastActivationTime = TimeSpan.Zero;
@@ -30,6 +27,8 @@ namespace LogUtils.Threading
         /// </summary>
         public bool IsContinuous;
 
+        public TaskState State { get; protected set; }
+
         /// <summary>
         /// Constructs a Task object - Pass this object into LogTasker to run a task on a background thread
         /// </summary>
@@ -37,6 +36,7 @@ namespace LogUtils.Threading
         {
             Run = runTask;
             WaitTimeInterval = TimeSpan.FromMilliseconds(waitTimeInMS);
+            SetState(TaskState.NotReady);
         }
 
         /// <summary>
@@ -46,11 +46,12 @@ namespace LogUtils.Threading
         {
             Run = runTask;
             WaitTimeInterval = waitTime;
+            SetState(TaskState.NotReady);
         }
 
         public void End()
         {
-            LogTasker.EndTask(this);
+            LogTasker.EndTask(this, true);
         }
 
         /// <summary>
@@ -84,9 +85,28 @@ namespace LogUtils.Threading
             LogTasker.ScheduleAfter(this, otherTask);
         }
 
+        public void SetInitialTime()
+        {
+            InitialTime = new TimeSpan(DateTime.UtcNow.Ticks);
+        }
+
+        public void SetState(TaskState state)
+        {
+            State = state;
+        }
+
         public TimeSpan TimeUntilNextActivation()
         {
-            return NextActivationTime - new TimeSpan(DateTime.Now.Ticks);
+            return NextActivationTime - new TimeSpan(DateTime.UtcNow.Ticks);
         }
+    }
+
+    public enum TaskState
+    {
+        NotReady,
+        PendingSubmission,
+        Submitted,
+        Complete,
+        Aborted
     }
 }

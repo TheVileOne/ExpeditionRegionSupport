@@ -7,9 +7,7 @@ namespace LogUtils.Threading
     /// </summary>
     public class TaskNotFoundException : InvalidOperationException
     {
-        public TaskNotFoundException() : base()
-        {
-        }
+        public TaskNotFoundException() : base() { }
 
         public TaskNotFoundException(string message) : base(message)
         {

@@ -1,110 +1,385 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 
 namespace LogUtils.Threading
 {
     public static class LogTasker
     {
-        private static Thread thread;
-        private static List<Task> tasks = new List<Task>();
+        private static List<Task> tasksInProcess = new List<Task>();
+
+        private static Thread _thread;
+        //private static Timer _timer; //TODO: Is it worth it?
+
+        internal static CrawlMark CurrentCrawlMark = CrawlMark.None;
+
+        public static CrawlMark WaitOnCrawlMark = CrawlMark.None;
+
+        /// <summary>
+        /// Task thread is waiting on another thread to signal it to continue
+        /// </summary>
+        public static bool WaitingOnSignal { get; private set; }
+
+        private static Queue<SyncCallback> _submissionBuffer = new Queue<SyncCallback>();
+
+        private static object _submissionLock = new object();
+
+        public static bool IsBatching { get; private set; }
+
+        /// <summary>
+        /// Allows tasks to be scheduled in an uninterrupted sequence
+        /// </summary>
+        public static void StartBatching()
+        {
+            lock (_submissionLock)
+                IsBatching = true;
+        }
+
+        public static void SubmitBatch()
+        {
+            lock (_submissionLock)
+            {
+                IsBatching = false;
+
+                if (_submissionBuffer.Count > 0)
+                {
+                    OnThreadUpdate += new SyncCallback(invokeBatch);
+                    void invokeBatch()
+                    {
+                        SyncCallback self = invokeBatch;
+                        var submissions = _submissionBuffer;
+
+                        while (submissions.Count > 0)
+                        {
+                            var submitAction = submissions.Dequeue();
+
+                            try
+                            {
+                                submitAction.Invoke();
+                            }
+                            catch (Exception ex)
+                            {
+                                UtilityLogger.LogError("Task submission error", ex);
+                            }
+                        }
+                        OnThreadUpdate -= self;
+                    };
+                }
+            }
+        }
 
         internal static void Start()
         {
-            thread = new Thread(threadUpdate);
-            thread.IsBackground = true;
-            thread.Start();
+            _thread = new Thread(threadUpdate);
+            _thread.IsBackground = true;
+            _thread.Start();
         }
 
+        /// <summary>
+        /// Schedules a task to run on a background thread
+        /// </summary>
+        /// <param name="task">Task to run</param>
+        /// <exception cref="ArgumentNullException">Exception that throws when passing in a null task</exception>
         public static Task Schedule(Task task)
         {
-            task.InitialTime = new TimeSpan(DateTime.Now.Ticks);
-            tasks.Add(task);
+            if (task == null)
+                throw new ArgumentNullException(nameof(task));
+
+            if (task.State != TaskState.NotReady)
+                throw new InvalidStateException(nameof(task));
+
+            bool isBatched = IsBatching;
+            InternalSchedule(task, addTask);
+
+            void addTask()
+            {
+                SyncCallback self = addTask;
+                tasksInProcess.Add(task);
+
+                //Batched process will unsubscribe from event instead
+                if (!isBatched)
+                    OnThreadUpdate -= self;
+            }
             return task;
         }
 
         /// <summary>
-        /// Schedules a task to run before another task
+        /// Schedules a task to run before another task on a background thread
         /// </summary>
         /// <param name="task">Task to run</param>
         /// <param name="taskOther">Task that should run after</param>
         /// <exception cref="TaskNotFoundException">Exception that throws if the targeted task does not exist</exception>
+        /// <exception cref="ArgumentNullException">Exception that throws when passing in a null task</exception>
         /// <exception cref="ArgumentException">Exception that throws if the task instances are the same</exception>
-        public static void ScheduleBefore(Task task, Task taskOther)
+        public static Task ScheduleBefore(Task task, Task taskOther)
         {
-            int insertIndex = tasks.IndexOf(taskOther);
-
-            if (insertIndex == -1)
-                throw new TaskNotFoundException();
+            if (task == null)
+                throw new ArgumentNullException(nameof(task));
 
             if (task == taskOther)
                 throw new ArgumentException("Tasks refer to the same instance when expecting different instances");
 
-            EndTask(task); //Limit tasks list to one instance per task
+            if (task.State != TaskState.NotReady)
+                throw new InvalidStateException(nameof(task));
 
-            task.InitialTime = new TimeSpan(DateTime.Now.Ticks);
-            tasks.Insert(insertIndex, task);
+            bool isBatched = IsBatching;
+            InternalSchedule(task, addTaskBefore);
+
+            void addTaskBefore()
+            {
+                SyncCallback self = addTaskBefore;
+                try
+                {
+                    int insertIndex = tasksInProcess.IndexOf(taskOther);
+
+                    if (insertIndex == -1)
+                    {
+                        EndTask(task, true);
+                        throw new TaskNotFoundException();
+                    }
+
+                    task.SetState(TaskState.Submitted);
+                    tasksInProcess.Insert(insertIndex, task);
+                }
+                finally
+                {
+                    if (!isBatched)
+                        OnThreadUpdate -= self;
+                }
+            }
+            return task;
         }
 
         /// <summary>
-        /// Schedules a task to run after another task
+        /// Schedules a task to run after another task on a background thread
         /// </summary>
         /// <param name="task">Task to run</param>
         /// <param name="taskOther">Task that should run before</param>
         /// <exception cref="TaskNotFoundException">Exception that throws if the targeted task does not exist</exception>
+        /// <exception cref="ArgumentNullException">Exception that throws when passing in a null task</exception>
         /// <exception cref="ArgumentException">Exception that throws if the task instances are the same</exception>
-        public static void ScheduleAfter(Task task, Task taskOther)
+        public static Task ScheduleAfter(Task task, Task taskOther)
         {
-            int insertIndex = tasks.IndexOf(taskOther);
-
-            if (insertIndex == -1)
-                throw new TaskNotFoundException();
+            if (task == null)
+                throw new ArgumentNullException(nameof(task));
 
             if (task == taskOther)
                 throw new ArgumentException("Tasks refer to the same instance when expecting different instances");
 
-            EndTask(task); //Limit tasks list to one instance per task
+            if (task.State != TaskState.NotReady)
+                throw new InvalidStateException(nameof(task));
 
-            task.InitialTime = new TimeSpan(DateTime.Now.Ticks);
-            tasks.Insert(insertIndex + 1, task);
+            bool isBatched = IsBatching;
+            InternalSchedule(task, addTaskAfter);
+
+            void addTaskAfter()
+            {
+                SyncCallback self = addTaskAfter;
+                try
+                {
+                    int insertIndex = tasksInProcess.IndexOf(taskOther);
+
+                    if (insertIndex == -1)
+                    {
+                        EndTask(task, true);
+                        throw new TaskNotFoundException();
+                    }
+
+                    task.SetState(TaskState.Submitted);
+                    tasksInProcess.Insert(insertIndex + 1, task);
+                }
+                finally
+                {
+                    if (!isBatched)
+                        OnThreadUpdate -= self;
+                }
+            }
+            return task;
         }
 
-        public static void EndTask(Task task)
+        internal static void InternalSchedule(Task task, SyncCallback taskDeliveryProcess)
         {
-            if (tasks.Remove(task))
-                task.ResetToDefaults();
+            UtilityLogger.DebugLog("Scheduling task");
+            task.SetInitialTime();
+
+            bool isBatchedProcess = IsBatching;
+
+            if (isBatchedProcess)
+            {
+                BatchTask(task, taskDeliveryProcess);
+                return;
+            }
+            OnThreadUpdate += taskDeliveryProcess;
         }
+
+        internal static void BatchTask(Task task, SyncCallback taskDeliveryProcess)
+        {
+            task.SetState(TaskState.PendingSubmission);
+            _submissionBuffer.Enqueue(taskDeliveryProcess);
+        }
+
+        public static void EndTask(Task task, bool rejected)
+        {
+            task.ResetToDefaults();
+            task.SetState(rejected ? TaskState.Aborted : TaskState.Complete);
+
+            tasksInProcess.Remove(task);
+            UtilityLogger.DebugLog("Task ended");
+        }
+
+        private static Stopwatch _timer = new Stopwatch();
+
+        /// <summary>
+        /// A debug field for detecting thread hangs
+        /// </summary>
+        private static int _ticksWaitedThisFrame;
 
         private static void threadUpdate()
         {
             Thread.CurrentThread.Name = UtilityConsts.UTILITY_NAME;
 
-            while(true)
+            while (true)
             {
-                TimeSpan currentTime = new TimeSpan(DateTime.Now.Ticks);
+                TimeSpan currentTime = new TimeSpan(DateTime.UtcNow.Ticks);
 
-                int taskIndex = 0;
-                while (taskIndex < tasks.Count)
+                _timer.Restart();
+                _ticksWaitedThisFrame = 0;
+
+                crawlMarkReached(CrawlMark.BeginUpdate);
+                int tasksProcessedCount = 0;
+                foreach (Task task in safeGetTasks())
                 {
-                    Task task = tasks[taskIndex];
+                    UtilityLogger.DebugLog("Handling task " + tasksProcessedCount);
 
                     //Time since last activation, or task subscription time
                     TimeSpan timeElapsedSinceLastActivation = currentTime - (task.HasRunOnce ? task.LastActivationTime : task.InitialTime);
 
                     if (timeElapsedSinceLastActivation >= task.WaitTimeInterval)
                     {
-                        task.Run();
-                        task.LastActivationTime = currentTime;
-
-                        if (!task.IsContinuous)
+                        bool taskRanWithErrors = false;
+                        if (!TryRun(task))
                         {
-                            EndTask(task);
-                            continue; //Next task will reuse the task index
+                            task.IsContinuous = false; //Don't allow task to try again
+                            taskRanWithErrors = true;
                         }
+
+                        task.LastActivationTime = currentTime;
+                        if (!task.IsContinuous)
+                            EndTask(task, taskRanWithErrors);
                     }
-                    taskIndex++;
+                    tasksProcessedCount++;
                 }
+                crawlMarkReached(CrawlMark.EndUpdate);
+
+                if (_timer.ElapsedMilliseconds > 5)
+                    UtilityLogger.LogWarning("Frame took longer than 5 milliseconds");
+
+                double waitTimeInMilliseconds = (int)(_ticksWaitedThisFrame / Stopwatch.Frequency) * 1000;
+
+                if (waitTimeInMilliseconds > 1.0d)
+                    UtilityLogger.LogWarning("Wait time took longer than 1 milliseconds");
             }
         }
+
+        internal static bool TryRun(Task task)
+        {
+            try
+            {
+                UtilityLogger.DebugLog("Running task");
+                task.Run();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                UtilityLogger.DebugLog(ex);
+                UtilityLogger.DebugLog("Task failed to execute");
+                return false;
+            }
+        }
+
+        internal static void SyncWaitOnCrawlMark(CrawlMark crawlMark)
+        {
+            WaitOnCrawlMark = crawlMark;
+
+            if (crawlMark != CrawlMark.None)
+            {
+                while (!WaitingOnSignal)
+                    continue;
+            }
+        }
+
+        public delegate void SyncCallback();
+        internal static event SyncCallback OnThreadUpdate;
+        internal static event SyncCallback OnThreadUpdateComplete;
+
+        private static void crawlMarkReached(CrawlMark crawlMark)
+        {
+            CurrentCrawlMark = crawlMark;
+
+            if (WaitOnCrawlMark == CurrentCrawlMark)
+            {
+                long ticksBeforeWait = _timer.ElapsedTicks;
+                while (WaitOnCrawlMark == CurrentCrawlMark)
+                {
+                    WaitingOnSignal = true;
+                    continue;
+                }
+                _ticksWaitedThisFrame += (int)(_timer.ElapsedTicks - ticksBeforeWait);
+                WaitingOnSignal = false;
+            }
+
+            try
+            {
+                switch (crawlMark) //Not all crawlmarks have their own event handler
+                {
+                    case CrawlMark.BeginUpdate:
+                        OnThreadUpdate?.Invoke();
+                        break;
+                    case CrawlMark.EndUpdate:
+                        OnThreadUpdateComplete?.Invoke();
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                UtilityLogger.LogError(ex);
+            }
+        }
+
+        private static IEnumerable<Task> safeGetTasks()
+        {
+            if (tasksInProcess.Count > 0)
+            {
+                UtilityLogger.DebugLog("Process started");
+                for (int i = 0; i < tasksInProcess.Count; i++)
+                {
+                    Task task = null;
+                    try
+                    {
+                        task = tasksInProcess[i];
+                    }
+                    catch (ArgumentOutOfRangeException)
+                    {
+                        UtilityLogger.DebugLog("Argument out of range");
+                    }
+
+                    if (task != null)
+                    {
+                        UtilityLogger.DebugLog("Yield task with " + task.NextActivationTime);
+                        yield return task;
+                    }
+                }
+                UtilityLogger.DebugLog("Process complete");
+            }
+            yield break;
+        }
+    }
+
+    public enum CrawlMark
+    {
+        None,
+        BeginUpdate,
+        EndUpdate
     }
 }
