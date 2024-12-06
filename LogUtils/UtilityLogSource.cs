@@ -1,12 +1,15 @@
 ﻿using BepInEx.Logging;
 using LogUtils.CompatibilityServices;
 using System;
+using System.Threading;
 
 namespace LogUtils
 {
     internal class UtilityLogSource : IExtendedLogSource
     {
         private bool recursiveAccessFlag;
+
+        private object sourceLock = new object();
 
         public string SourceName => UtilityConsts.UTILITY_NAME;
 
@@ -19,8 +22,13 @@ namespace LogUtils
 
         public void Log(LogLevel level, object data)
         {
+            Monitor.Enter(sourceLock);
+
             if (IsAccessRecursive()) //Game will be put into a bad state if we allow log event to execute
+            {
+                Monitor.Exit(sourceLock);
                 return;
+            }
 
             recursiveAccessFlag = true;
             try
@@ -30,6 +38,7 @@ namespace LogUtils
             finally
             {
                 recursiveAccessFlag = false;
+                Monitor.Exit(sourceLock);
             }
         }
 
