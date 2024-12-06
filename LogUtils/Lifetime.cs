@@ -13,7 +13,7 @@ namespace LogUtils
         /// </summary>
         public int TimeRemaining { get; private set; }
 
-        private int lastCheckedTime;
+        private TimeSpan lastCheckedTime = TimeSpan.Zero;
 
         /// <summary>
         /// Task assigned to update the life span for this object
@@ -46,27 +46,33 @@ namespace LogUtils
             //LifetimeStart is reset whenever duration is infinite, and assigned when a duration is changed to a finite duration from infinite
             if (duration == LifetimeDuration.Infinite)
             {
-                lastCheckedTime = 0;
+                lastCheckedTime = TimeSpan.Zero;
                 TimeRemaining = LifetimeDuration.Infinite;
             }
             else if (duration != TimeRemaining)
             {
                 if (TimeRemaining == LifetimeDuration.Infinite)
-                    lastCheckedTime = (int)TimeConversion.DateTimeInMilliseconds(DateTime.UtcNow);
+                    lastCheckedTime = TimeSpan.FromTicks(DateTime.UtcNow.Ticks);
                 TimeRemaining = Math.Max(0, duration);
             }
+        }
+
+        private void calculateTimeRemaining()
+        {
+            TimeSpan currentTime = TimeSpan.FromTicks(DateTime.UtcNow.Ticks);
+
+            int timePassed = (int)(currentTime - lastCheckedTime).TotalMilliseconds;
+
+            //Updating lastCheckedTime makes timePassed relative to last update time
+            lastCheckedTime = currentTime;
+            TimeRemaining = Math.Max(0, TimeRemaining - timePassed);
         }
 
         public void Update()
         {
             if (TimeRemaining == LifetimeDuration.Infinite) return;
 
-            int currentTime = (int)TimeConversion.DateTimeInMilliseconds(DateTime.UtcNow);
-            int timePassed = currentTime - lastCheckedTime;
-
-            //Updating lastCheckedTime makes timePassed relative to last update time
-            lastCheckedTime = currentTime;
-            TimeRemaining = Math.Max(0, TimeRemaining - timePassed);
+            calculateTimeRemaining();
 
             //Once a lifetime has ended, stop running updates
             if (!IsAlive)
