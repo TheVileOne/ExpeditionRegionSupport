@@ -179,6 +179,11 @@ namespace LogUtils
                 writer = null;
                 goto retry;
             }
+            else if (writeHandle.Lifetime.TimeRemaining != LifetimeDuration.Infinite)
+            {
+                UtilityLogger.Log("Lifetime of filestream has been extended");
+                writeHandle.Lifetime.SetDuration(LifetimeDuration.Infinite);
+            }
             return ProcessResult.Success;
         }
 

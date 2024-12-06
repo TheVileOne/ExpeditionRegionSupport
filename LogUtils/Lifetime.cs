@@ -15,15 +15,27 @@ namespace LogUtils
 
         private int lastCheckedTime;
 
+        /// <summary>
+        /// Task assigned to update the life span for this object
+        /// </summary>
         public Task UpdateTask;
 
-        public Lifetime()
+        private Lifetime(int duration)
         {
+            SetDuration(duration);
             UpdateTask = LogTasker.Schedule(new Task(Update, 0)
             {
                 Name = "Lifetime",
                 IsContinuous = true
             });
+        }
+
+        /// <summary>
+        /// Constructs a representation of a Lifetime with a given duration in milliseconds
+        /// </summary>
+        public static Lifetime FromMilliseconds(int duration)
+        {
+            return new Lifetime(duration);
         }
 
         /// <summary>
@@ -40,7 +52,7 @@ namespace LogUtils
             else if (duration != TimeRemaining)
             {
                 if (TimeRemaining == LifetimeDuration.Infinite)
-                    lastCheckedTime = (int)TimeConversion.DateTimeInMilliseconds(DateTime.Now);
+                    lastCheckedTime = (int)TimeConversion.DateTimeInMilliseconds(DateTime.UtcNow);
                 TimeRemaining = Math.Max(0, duration);
             }
         }
@@ -49,7 +61,7 @@ namespace LogUtils
         {
             if (TimeRemaining == LifetimeDuration.Infinite) return;
 
-            int currentTime = (int)TimeConversion.DateTimeInMilliseconds(DateTime.Now);
+            int currentTime = (int)TimeConversion.DateTimeInMilliseconds(DateTime.UtcNow);
             int timePassed = currentTime - lastCheckedTime;
 
             //Updating lastCheckedTime makes timePassed relative to last update time
