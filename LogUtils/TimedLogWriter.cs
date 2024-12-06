@@ -155,7 +155,10 @@ namespace LogUtils
                 //An exception will be thrown if we try to create a StreamWriter with an invalid stream
                 if (!writeHandle.IsClosed)
                 {
-                    writer = new PersistentLogFileWriter(writeHandle);
+                    writer = new PersistentLogFileWriter(writeHandle)
+                    {
+                        AutoFlush = false
+                    };
                     LogWriters.Add(writer);
                     return ProcessResult.Success;
                 }
