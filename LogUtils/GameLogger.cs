@@ -1,6 +1,7 @@
 ﻿using BepInEx.Logging;
 using Expedition;
 using JollyCoop;
+using LogUtils.CompatibilityServices;
 using LogUtils.Enums;
 using LogUtils.Events;
 using System;
@@ -47,7 +48,7 @@ namespace LogUtils
 
             if (logFile == LogID.BepInEx) //The only logger example that needs an extra parameter
             {
-                LogBepEx(request.Data.LogSource as ManualLogSource, request.Data.BepInExCategory, message);
+                LogBepEx(request.Data.LogSource, request.Data.BepInExCategory, message);
             }
             else if (logFile == LogID.Unity) //Unity, and Exception log requests are not guaranteed to have a defined LogCategory instance
             {
@@ -87,25 +88,33 @@ namespace LogUtils
             LogBepEx(null, LogLevel.Info, data);
         }
 
-        public void LogBepEx(ManualLogSource source, LogLevel category, object data)
+        public void LogBepEx(ILogSource source, LogLevel category, object data)
         {
             Process(LogID.BepInEx, processLog);
 
             void processLog()
             {
-                var bepLogger = source ?? UtilityLogger.Logger;
-                bepLogger.Log(category, data);
+                IExtendedLogSource sourceLogger = source as IExtendedLogSource;
+
+                if (sourceLogger == null)
+                    sourceLogger = UtilityLogger.Logger;
+
+                sourceLogger.Log(category, data);
             }
         }
 
-        public void LogBepEx(ManualLogSource source, LogCategory category, object data)
+        public void LogBepEx(ILogSource source, LogCategory category, object data)
         {
             Process(LogID.BepInEx, processLog);
 
             void processLog()
             {
-                var bepLogger = source ?? UtilityLogger.Logger;
-                bepLogger.Log(category.BepInExCategory, data);
+                IExtendedLogSource sourceLogger = source as IExtendedLogSource;
+
+                if (sourceLogger == null)
+                    sourceLogger = UtilityLogger.Logger;
+
+                sourceLogger.Log(category.BepInExCategory, data);
             }
         }
 

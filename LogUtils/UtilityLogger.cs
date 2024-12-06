@@ -11,14 +11,21 @@ namespace LogUtils
 {
     internal static class UtilityLogger
     {
-        public static ManualLogSource Logger;
+        public static UtilityLogSource Logger;
 
         private static bool _receiveUnityLogEvents;
 
         internal static void Initialize()
         {
-            Logger = BepInEx.Logging.Logger.Sources.FirstOrDefault(l => l.SourceName == UtilityConsts.UTILITY_NAME) as ManualLogSource
-                  ?? BepInEx.Logging.Logger.CreateLogSource(UtilityConsts.UTILITY_NAME);
+            var sources = BepInEx.Logging.Logger.Sources;
+
+            Logger = sources.FirstOrDefault(l => l.SourceName == UtilityConsts.UTILITY_NAME) as UtilityLogSource;
+
+            if (Logger == null)
+            {
+                Logger = new UtilityLogSource();
+                sources.Add(Logger);
+            }
 
             //TODO: Deprecate use of test.txt when utility is close to release
             File.Delete("test.txt");
