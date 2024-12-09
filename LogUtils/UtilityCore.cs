@@ -169,6 +169,9 @@ namespace LogUtils
                             break;
                         }
                 }
+
+                if (nextStep != currentStep)
+                    return nextStep;
             }
             return nextStep = UtilitySetup.InitializationStep.COMPLETE;
         }
