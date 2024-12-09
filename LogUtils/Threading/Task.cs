@@ -57,6 +57,7 @@ namespace LogUtils.Threading
 
         public void End()
         {
+            UtilityLogger.DebugLog("Task forced to end");
             LogTasker.EndTask(this, true);
         }
 

@@ -1,6 +1,8 @@
-﻿using System;
+﻿using LogUtils.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 
 namespace LogUtils.Threading
@@ -221,11 +223,13 @@ namespace LogUtils.Threading
 
         public static void EndTask(Task task, bool rejected)
         {
+            UtilityLogger.DebugLog("Task ended after " + TimeConversion.DateTimeInMilliseconds(DateTime.UtcNow - task.InitialTime) + " milliseconds");
+            UtilityLogger.DebugLog("Wait interval " + task.WaitTimeInterval.TotalMilliseconds + " milliseconds");
+
             task.ResetToDefaults();
             task.SetState(rejected ? TaskState.Aborted : TaskState.Complete);
 
             tasksInProcess.Remove(task);
-            UtilityLogger.DebugLog("Task ended");
         }
 
         private static Stopwatch _timer = new Stopwatch();
@@ -241,7 +245,7 @@ namespace LogUtils.Threading
 
             while (true)
             {
-                TimeSpan currentTime = new TimeSpan(DateTime.UtcNow.Ticks);
+                TimeSpan currentTime = TimeSpan.FromTicks(DateTime.UtcNow.Ticks);
 
                 _timer.Restart();
                 _ticksWaitedThisFrame = 0;
@@ -250,8 +254,6 @@ namespace LogUtils.Threading
                 int tasksProcessedCount = 0;
                 foreach (Task task in safeGetTasks())
                 {
-                    UtilityLogger.DebugLog("Handling task " + tasksProcessedCount);
-
                     //Time since last activation, or task subscription time
                     TimeSpan timeElapsedSinceLastActivation = currentTime - (task.HasRunOnce ? task.LastActivationTime : task.InitialTime);
 
@@ -273,7 +275,7 @@ namespace LogUtils.Threading
                 crawlMarkReached(CrawlMark.EndUpdate);
 
                 if (_timer.ElapsedMilliseconds > 5)
-                    UtilityLogger.LogWarning("Frame took longer than 5 milliseconds");
+                    UtilityLogger.LogWarning($"Frame took longer than 5 milliseconds [{_timer.ElapsedMilliseconds} ms]");
 
                 double waitTimeInMilliseconds = (int)(_ticksWaitedThisFrame / Stopwatch.Frequency) * 1000;
 
@@ -286,14 +288,12 @@ namespace LogUtils.Threading
         {
             try
             {
-                UtilityLogger.DebugLog("Running task");
                 task.Run();
                 return true;
             }
             catch (Exception ex)
             {
-                UtilityLogger.DebugLog(ex);
-                UtilityLogger.DebugLog("Task failed to execute");
+                UtilityLogger.LogError("Task failed to execute", ex);
                 return false;
             }
         }
@@ -350,23 +350,27 @@ namespace LogUtils.Threading
             }
         }
 
+        private static HashSet<int> handledTaskIDs = new HashSet<int>();
+
         private static IEnumerable<Task> safeGetTasks()
         {
             if (tasksInProcess.Count > 0)
             {
-                UtilityLogger.DebugLog("Process started");
                 for (int i = 0; i < tasksInProcess.Count; i++)
                 {
                     Task task = tasksInProcess[i];
 
                     if (task != null)
                     {
-                        UtilityLogger.DebugLog("Processing task: NAME " + task.Name + " ID " + task.ID);
-                        UtilityLogger.DebugLog("Is Continuous " + task.IsContinuous);
+                        if (!handledTaskIDs.Contains(task.ID))
+                        {
+                            UtilityLogger.DebugLog("Processing task: NAME " + task.Name + " ID " + task.ID);
+                            UtilityLogger.DebugLog("Is Continuous " + task.IsContinuous);
+                            handledTaskIDs.Add(task.ID);
+                        }
                         yield return task;
                     }
                 }
-                UtilityLogger.DebugLog("Process complete");
             }
             yield break;
         }

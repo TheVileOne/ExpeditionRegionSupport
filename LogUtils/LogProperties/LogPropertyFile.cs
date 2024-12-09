@@ -1,5 +1,4 @@
 ﻿using LogUtils.Helpers;
-using System;
 using System.IO;
 
 namespace LogUtils.Properties
@@ -19,6 +18,7 @@ namespace LogUtils.Properties
 
         public LogPropertyFile() : base()
         {
+            Lifetime.UpdateTask.Name = "PropertyFile";
             FilePath = Path.Combine(Paths.StreamingAssetsPath, "logs.txt");
 
             if (File.Exists(FilePath))
