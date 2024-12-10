@@ -37,7 +37,7 @@ namespace LogUtils
             Stream = LogFile.Open(FileID);
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
             if (IsDisposed) return;
 
@@ -47,8 +47,10 @@ namespace LogUtils
             lock (fileLock)
             {
                 fileLock.SetActivity(FileID, FileAction.StreamDisposal);
-                base.Dispose();
-                FileID.Properties.PersistentStreamHandles.Remove(this);
+                base.Dispose(disposing);
+
+                if (disposing)
+                    FileID.Properties.PersistentStreamHandles.Remove(this);
             }
         }
     }

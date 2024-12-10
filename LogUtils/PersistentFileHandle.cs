@@ -16,8 +16,6 @@ namespace LogUtils
         /// </summary>
         public bool IsClosed => Stream == null || (!Stream.CanWrite && !Stream.CanRead);
 
-        protected bool IsDisposed;
-
         /// <summary>
         /// A managed representation of the time remaining before filestream is disposed in milliseconds
         /// </summary>
@@ -48,11 +46,16 @@ namespace LogUtils
 
         protected abstract void CreateFileStream();
 
-        public virtual void Dispose()
+        #region Dispose pattern
+
+        protected bool IsDisposed;
+
+        protected virtual void Dispose(bool disposing)
         {
             if (IsDisposed) return;
 
-            Lifetime.SetDuration(0);
+            if (disposing)
+                Lifetime.SetDuration(0);
 
             if (Stream != null)
             {
@@ -61,6 +64,20 @@ namespace LogUtils
             }
             IsDisposed = true;
         }
+
+        ~PersistentFileHandle()
+        {
+            //Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: false);
+        }
+
+        public void Dispose()
+        {
+            //Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 
     public class StreamResumer

@@ -24,12 +24,19 @@ namespace LogUtils
             base.Flush();
         }
 
-        public new void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            if (Handle == null) return; //In case Dispose is called more than once
+            if (Handle != null)
+            {
+                Handle.Dispose();
+                Handle = null;
+            }
+            base.Dispose(disposing);
+        }
 
-            Handle.Dispose();
-            Handle = null;
+        ~PersistentLogFileWriter()
+        {
+            Dispose(false);
         }
     }
 }

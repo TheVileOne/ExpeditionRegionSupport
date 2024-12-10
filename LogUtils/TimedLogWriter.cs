@@ -222,6 +222,11 @@ namespace LogUtils
             GC.SuppressFinalize(this);
         }
 
+        ~TimedLogWriter()
+        {
+            Dispose(disposing: false);
+        }
+
         private void onHandleDisposed(PersistentFileHandle handle)
         {
             //Handle wont necessarily belong to this writer

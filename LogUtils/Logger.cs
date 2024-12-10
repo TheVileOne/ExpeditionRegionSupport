@@ -715,8 +715,14 @@ namespace LogUtils
 
         #endregion
 
-        public void Dispose()
+        #region Dispose pattern
+
+        protected bool IsDisposed;
+
+        protected virtual void Dispose(bool disposing)
         {
+            if (IsDisposed) return;
+
             ILogWriter localWriter = Writer;
 
             if (localWriter != LogWriter.Writer) //Avoid disposing a shared resource
@@ -726,8 +732,24 @@ namespace LogUtils
                 if (disposable != null)
                     disposable.Dispose();
             }
+
             Writer = null;
+            IsDisposed = true;
         }
+
+        public void Dispose()
+        {
+            //Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~Logger()
+        {
+            Dispose(disposing: false);
+        }
+
+        #endregion
 
         internal static bool CanLogBeHandledLocally(LogID logID)
         {
