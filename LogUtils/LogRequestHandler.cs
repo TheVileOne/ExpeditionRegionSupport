@@ -15,7 +15,7 @@ namespace LogUtils
 
         public override string Tag => UtilityConsts.ComponentTags.REQUEST_DATA;
 
-        private List<Logger> availableLoggers = new List<Logger>();
+        private WeakReferenceCollection<Logger> availableLoggers = new WeakReferenceCollection<Logger>();
 
         /// <summary>
         /// A list of loggers available to handle remote log requests
@@ -116,9 +116,9 @@ namespace LogUtils
 
         /// <summary>
         /// Submit a request - Treated as an active pending log request unless the request itself did not qualify for submission. A request must meet the following conditions: 
-        /// I. No rejection reasons were found during initial processing of the request
-        /// II. Under the situation that there is a reason to reject, that reason is not severe enough to prevent future attempts to process the request
-        /// Submitted request may be retrieved through CurrentRequest under the above conditions, or from the return value
+        /// <br>I. No rejection reasons were found during initial processing of the request</br>
+        /// <br>II. Under the situation that there is a reason to reject, that reason is not severe enough to prevent future attempts to process the request</br>
+        /// <br>Submitted request may be retrieved through CurrentRequest under the above conditions, or from the return value</br>
         /// </summary>
         /// <param name="request">The request to be processed</param>
         /// <param name="handleSubmission">Whether a log attempt should be made on the request</param>
@@ -233,8 +233,6 @@ namespace LogUtils
         /// </summary>
         public void Unregister(Logger logger)
         {
-            UtilityLogger.Log("Unregistering logger");
-            UtilityLogger.Log("Log targets: " + string.Join(" ,", logger.LogTargets));
             availableLoggers.Remove(logger);
         }
 
@@ -466,7 +464,7 @@ namespace LogUtils
                 }
 
                 //Waiting requests need to be checked and request will be included in the process operation 
-                ProcessRequests(logFile); 
+                ProcessRequests(logFile);
                 return;
             }
 
@@ -501,7 +499,6 @@ namespace LogUtils
             bool verifyRemoteAccess = false;
 
             int requestNumber = 1;
-            string targetString = string.Empty;
 
             lock (RequestProcessLock)
             {
@@ -703,7 +700,7 @@ namespace LogUtils
             logger.Log(UnhandledRequests);
 
             logDump.Properties.EndLogSession();
-            UtilityCore.RequestHandler.Unregister(logger); //Logger is required to be registered for logging to work, it needs to be unregistered after use
+            logger.Dispose();
         }
     }
 }

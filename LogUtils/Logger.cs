@@ -734,6 +734,7 @@ namespace LogUtils
             }
 
             Writer = null;
+            UtilityCore.RequestHandler.Unregister(this);
             IsDisposed = true;
         }
 
