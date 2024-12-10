@@ -8,10 +8,10 @@ using UnityEngine;
 
 namespace LogUtils.Events
 {
-    public class LogEventArgs : EventArgs
+    public class LogEventArgs : EventArgs, ICloneable
     {
-        public LogID ID => Properties.ID;
-        public LogProperties Properties { get; }
+        public LogID ID { get; protected set; }
+        public LogProperties Properties => ID.Properties;
 
         public LogEventArgs(LogID logID) : this(logID.Properties)
         {
@@ -19,7 +19,20 @@ namespace LogUtils.Events
 
         public LogEventArgs(LogProperties properties)
         {
-            Properties = properties;
+            ID = properties?.ID;
+        }
+
+        public virtual LogEventArgs Clone(LogID newID)
+        {
+            LogEventArgs copy = (LogEventArgs)Clone();
+
+            copy.ID = newID;
+            return copy;
+        }
+
+        public virtual object Clone()
+        {
+            return MemberwiseClone();
         }
     }
 
