@@ -88,7 +88,7 @@ namespace LogUtils.Threading
             if (task == null)
                 throw new ArgumentNullException(nameof(task));
 
-            if (task.State != TaskState.NotReady)
+            if (task.State != TaskState.NotSubmitted)
                 throw new InvalidStateException(nameof(task));
 
             bool isBatched = IsBatching;
@@ -122,7 +122,7 @@ namespace LogUtils.Threading
             if (task == taskOther)
                 throw new ArgumentException("Tasks refer to the same instance when expecting different instances");
 
-            if (task.State != TaskState.NotReady)
+            if (task.State != TaskState.NotSubmitted)
                 throw new InvalidStateException(nameof(task));
 
             bool isBatched = IsBatching;
@@ -169,7 +169,7 @@ namespace LogUtils.Threading
             if (task == taskOther)
                 throw new ArgumentException("Tasks refer to the same instance when expecting different instances");
 
-            if (task.State != TaskState.NotReady)
+            if (task.State != TaskState.NotSubmitted)
                 throw new InvalidStateException(nameof(task));
 
             bool isBatched = IsBatching;
@@ -223,6 +223,8 @@ namespace LogUtils.Threading
 
         public static void EndTask(Task task, bool rejected)
         {
+            if (task.State == TaskState.NotSubmitted) return;
+
             UtilityLogger.DebugLog("Task ended after " + TimeConversion.DateTimeInMilliseconds(DateTime.UtcNow - task.InitialTime) + " milliseconds");
             UtilityLogger.DebugLog("Wait interval " + task.WaitTimeInterval.TotalMilliseconds + " milliseconds");
 

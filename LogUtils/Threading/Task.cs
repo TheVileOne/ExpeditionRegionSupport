@@ -31,6 +31,8 @@ namespace LogUtils.Threading
         /// </summary>
         public bool IsContinuous;
 
+        public bool PossibleToRun => State != TaskState.Complete && State != TaskState.Aborted;
+
         public TaskState State { get; protected set; }
 
         /// <summary>
@@ -41,7 +43,7 @@ namespace LogUtils.Threading
             Run = runTask;
             WaitTimeInterval = TimeSpan.FromMilliseconds(waitTimeInMS);
             SetID();
-            SetState(TaskState.NotReady);
+            SetState(TaskState.NotSubmitted);
         }
 
         /// <summary>
@@ -52,7 +54,31 @@ namespace LogUtils.Threading
             Run = runTask;
             WaitTimeInterval = waitTime;
             SetID();
-            SetState(TaskState.NotReady);
+            SetState(TaskState.NotSubmitted);
+        }
+
+        /// <summary>
+        /// Runs the task a single time before terminating
+        /// </summary>
+        /// <param name="force">Should this task bypass the scheduling process</param>
+        /// <exception cref="InvalidStateException">The state has failed, or has been marked as complete</exception>
+        public void RunOnceAndEnd(bool force)
+        {
+            IsContinuous = false;
+
+            if (!PossibleToRun)
+                throw new InvalidStateException("Unable to run");
+
+            if (force)
+            {
+                Run.Invoke();
+                End();
+                return;
+            }
+
+            //Unforced runs should be scheduled
+            if (State == TaskState.NotSubmitted)
+                LogTasker.Schedule(this);
         }
 
         public void End()
@@ -115,7 +141,7 @@ namespace LogUtils.Threading
 
     public enum TaskState
     {
-        NotReady,
+        NotSubmitted,
         PendingSubmission,
         Submitted,
         Complete,

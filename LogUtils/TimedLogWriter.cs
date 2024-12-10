@@ -201,11 +201,16 @@ namespace LogUtils
         {
             if (IsDisposed) return;
 
+            try
+            {
+                WriteTask.RunOnceAndEnd(true);
+            }
+            catch
+            {
+            }
+
             if (disposing)
             {
-                WriteTask.Run();
-                WriteTask.End();
-
                 foreach (PersistentLogFileHandle handle in LogWriters.Select(writer => writer.Handle))
                     ReleaseHandle(handle, disposing);
                 LogWriters = null;
