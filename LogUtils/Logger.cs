@@ -46,6 +46,15 @@ namespace LogUtils
         /// <summary>
         /// Constructs a logger instance
         /// </summary>
+        /// <param name="logSource">Assigns a BepInEx log source to this logger, targeting BepInEx log file</param>
+        public Logger(ManualLogSource logSource) : this(LoggingMode.Inherit, true, LogID.BepInEx)
+        {
+            ManagedLogSource = logSource;
+        }
+
+        /// <summary>
+        /// Constructs a logger instance
+        /// </summary>
         /// <param name="presets">Include any LogIDs that this logger targets, or handles on request</param>
         public Logger(params LogID[] presets) : this(LoggingMode.Inherit, true, presets)
         {
