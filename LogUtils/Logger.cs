@@ -46,68 +46,50 @@ namespace LogUtils
         /// <summary>
         /// Constructs a logger instance
         /// </summary>
+        /// <param name="presets">Include any LogIDs that this logger targets, or handles on request</param>
+        public Logger(params LogID[] presets) : this(LoggingMode.Inherit, true, presets)
+        {
+        }
+
+        /// <summary>
+        /// Constructs a logger instance
+        /// </summary>
         /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
-        /// <param name="visibleToRemoteLoggers">Whether logger is able to handle remote log requests</param>
-        /// <param name="presets">LogIDs that are handled by this logger for untargeted, and remote log requests</param>
-        public Logger(bool allowLogging, bool visibleToRemoteLoggers, params LogID[] presets)
+        /// <param name="presets">Include any LogIDs that this logger targets, or handles on request</param>
+        public Logger(bool allowLogging, params LogID[] presets) : this(LoggingMode.Inherit, allowLogging, presets)
+        {
+        }
+
+        /// <summary>
+        /// Constructs a logger instance
+        /// </summary>
+        /// <param name="mode">Changes the technique used to write messages to file</param>
+        /// <param name="presets">Include any LogIDs that this logger targets, or handles on request</param>
+        public Logger(LoggingMode mode, params LogID[] presets) : this(mode, true, presets)
+        {
+        }
+
+        /// <summary>
+        /// Constructs a logger instance
+        /// </summary>
+        /// <param name="mode">Changes the technique used to write messages to file</param>
+        /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
+        /// <param name="presets">Include any LogIDs that this logger targets, or handles on request</param>
+        public Logger(LoggingMode mode, bool allowLogging, params LogID[] presets)
         {
             AllowLogging = allowLogging;
-            AllowRemoteLogging = visibleToRemoteLoggers;
 
             LogTargets.AddRange(presets);
+
+            if (mode != LoggingMode.Inherit)
+                SetWriter(mode);
+            FinalizeConstruction();
+        }
+
+        protected virtual void FinalizeConstruction()
+        {
             SetRestorePoint();
-
             UtilityCore.RequestHandler.Register(this);
-        }
-
-        /// <summary>
-        /// Constructs a logger instance
-        /// </summary>
-        /// <param name="visibleToRemoteLoggers">Whether logger is able to handle remote log requests</param>
-        /// <param name="presets">LogIDs that are handled by this logger for untargeted, and remote log requests</param>
-        public Logger(bool visibleToRemoteLoggers, params LogID[] presets) : this(true, visibleToRemoteLoggers, presets)
-        {
-        }
-
-        /// <summary>
-        /// Constructs a logger instance
-        /// </summary>
-        /// <param name="presets">LogIDs that are handled by this logger for untargeted, and remote log requests</param>
-        public Logger(params LogID[] presets) : this(true, true, presets)
-        {
-        }
-
-        /// <summary>
-        /// Constructs a logger instance
-        /// </summary>
-        /// <param name="mode">Changes the technique used to write messages to file</param>
-        /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
-        /// <param name="visibleToRemoteLoggers">Whether logger is able to handle remote log requests</param>
-        /// <param name="presets">LogIDs that are handled by this logger for untargeted, and remote log requests</param>
-        public Logger(LoggingMode mode, bool allowLogging, bool visibleToRemoteLoggers, params LogID[] presets) : this(allowLogging, visibleToRemoteLoggers, presets)
-        {
-            SetWriter(mode);
-        }
-
-        /// <summary>
-        /// Constructs a logger instance
-        /// </summary>
-        /// <param name="mode">Changes the technique used to write messages to file</param>
-        /// <param name="visibleToRemoteLoggers">Whether logger is able to handle remote log requests</param>
-        /// <param name="presets">LogIDs that are handled by this logger for untargeted, and remote log requests</param>
-        public Logger(LoggingMode mode, bool visibleToRemoteLoggers, params LogID[] presets) : this(true, visibleToRemoteLoggers, presets)
-        {
-            SetWriter(mode);
-        }
-
-        /// <summary>
-        /// Constructs a logger instance
-        /// </summary>
-        /// <param name="mode">Changes the technique used to write messages to file</param>
-        /// <param name="presets">LogIDs that are handled by this logger for untargeted, and remote log requests</param>
-        public Logger(LoggingMode mode, params LogID[] presets) : this(true, true, presets)
-        {
-            SetWriter(mode);
         }
 
         public void SetWriter(LoggingMode writeMode)
@@ -125,6 +107,9 @@ namespace LogUtils
                 case LoggingMode.Timed:
                     if (Writer is not TimedLogWriter)
                         Writer = new TimedLogWriter();
+                    break;
+                case LoggingMode.Inherit:
+                    Writer = LogWriter.Writer;
                     break;
             }
         }
@@ -760,6 +745,7 @@ namespace LogUtils
 
     public enum LoggingMode
     {
+        Inherit = 0,
         Normal,
         Queue,
         Timed
