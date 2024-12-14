@@ -7,11 +7,14 @@ using LogUtils.Threading;
 using Menu;
 using System;
 using System.Linq;
+using System.Reflection;
 
 namespace LogUtils
 {
     public static class UtilityCore
     {
+        public static Assembly ExecutingAssembly = Assembly.GetExecutingAssembly();
+
         public static Version AssemblyVersion = new Version(0, 8, 5);
 
         /// <summary>
