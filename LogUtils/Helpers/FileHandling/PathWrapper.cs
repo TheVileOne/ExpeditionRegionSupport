@@ -1,4 +1,4 @@
-﻿namespace LogUtils.Helpers
+﻿namespace LogUtils.Helpers.FileHandling
 {
     /// <summary>
     /// Simple wrapper for a path string

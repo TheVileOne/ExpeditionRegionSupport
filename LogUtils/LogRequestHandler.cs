@@ -1,4 +1,5 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Helpers.Comparers;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,9 +1,8 @@
 ﻿using LogUtils.Helpers.Comparers;
-using LogUtils.Helpers.FileHandling;
 using System.Collections.Generic;
 using System.IO;
 
-namespace LogUtils.Helpers
+namespace LogUtils.Helpers.FileHandling
 {
     public class DirectoryTree
     {

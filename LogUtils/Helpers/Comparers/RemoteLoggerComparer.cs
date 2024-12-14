@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace LogUtils
+namespace LogUtils.Helpers.Comparers
 {
     public class RemoteLoggerComparer : Comparer<Logger>
     {
