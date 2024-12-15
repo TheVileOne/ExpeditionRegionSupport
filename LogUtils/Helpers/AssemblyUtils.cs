@@ -23,6 +23,9 @@ namespace LogUtils.Helpers
 
         public static PluginInfo GetPluginInfo(Assembly assembly)
         {
+            if (assembly == null)
+                return null;
+
             return PluginInfos.Find(p => p.Location == assembly.Location);
         }
 

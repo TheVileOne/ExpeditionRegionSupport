@@ -15,9 +15,40 @@ namespace LogUtils
         /// </summary>
         public static Dictionary<string, ModData> DataDictionary = new Dictionary<string, ModData>();
 
+        public static bool HasDataEntries => DataDictionary.Count > 0;
+
+        public static bool HasAssertTargets
+        {
+            get
+            {
+                if (!HasDataEntries) return false;
+
+                var enumerator = DataDictionary.Values.GetEnumerator();
+
+                bool targetsFound = false;
+                while (!targetsFound && enumerator.MoveNext())
+                {
+                    ModData data = enumerator.Current;
+
+                    if (data != null)
+                        targetsFound = data.AssertTargets.Count > 0;
+                }
+                return targetsFound;
+            }
+        }
+
         public static ModData Get(BaseUnityPlugin plugin)
         {
-            return DataDictionary[plugin.Info.Metadata.GUID];
+            string dataKey = plugin.Info.Metadata.GUID;
+            ModData data = DataDictionary[dataKey];
+
+            //We shouldn't keep empty data instances registered
+            if (data == null)
+            {
+                DataDictionary.Remove(dataKey);
+                throw new KeyNotFoundException();
+            }
+            return data;
         }
 
         public static bool TryGet(BaseUnityPlugin plugin, out ModData data)
