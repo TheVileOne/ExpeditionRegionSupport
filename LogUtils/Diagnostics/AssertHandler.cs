@@ -8,11 +8,6 @@ namespace LogUtils.Diagnostics
 {
     public class AssertHandler : IConditionHandler
     {
-        /// <summary>
-        /// The default log file used to log assert results when a mod plugin doesn't specify a preference
-        /// </summary>
-        public static LogID DefaultLogID = LogID.Unity;
-
         public Assembly Caller { get; set; }
 
         public bool AcceptsCallerOnCondition(bool conditionPassed)
@@ -35,17 +30,15 @@ namespace LogUtils.Diagnostics
 
         private List<LogID> getLogTargets()
         {
+            //Attempt to get mod data based on the calling assembly
             bool hasData = ModData.TryGet(AssemblyUtils.GetPlugin(Caller), out ModData data);
 
-            List<LogID> logTargets = new List<LogID>();
+            //Fallback to defaults when no valid targets are available
             if (!hasData || data.AssertTargets.Count == 0)
-            {
-                logTargets.Add(DefaultLogID);
-                return logTargets;
-            }
+                data = ModData.Default;
 
-            logTargets.AddRange(data.AssertTargets);
-            return logTargets;
+            //Return targets as a new collection to avoid potential modification to the list
+            return new List<LogID>(data.AssertTargets);
         }
     }
 

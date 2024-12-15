@@ -15,6 +15,17 @@ namespace LogUtils
         /// </summary>
         public static Dictionary<string, ModData> DataDictionary = new Dictionary<string, ModData>();
 
+        /// <summary>
+        /// The utility uses data from this class when mod-specific data is unavailable
+        /// </summary>
+        public static ModData Default;
+
+        static ModData()
+        {
+            Default = new ModData();
+            Default.AssertTargets.Add(LogID.Unity);
+        }
+
         public static bool HasDataEntries => DataDictionary.Count > 0;
 
         public static bool HasAssertTargets
