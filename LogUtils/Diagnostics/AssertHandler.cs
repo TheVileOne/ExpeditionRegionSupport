@@ -1,11 +1,11 @@
 ﻿using LogUtils.Enums;
-using LogUtils.Helpers;
-using System.Collections.Generic;
 
 namespace LogUtils.Diagnostics
 {
     public class AssertHandler : IConditionHandler
     {
+        public const string DEFAULT_FAIL_MESSAGE = "Assertion failed";
+
         public static readonly AssertHandler DefaultHandler = new AssertHandler(new Logger(LogID.Unity));
 
         static AssertHandler()
@@ -13,48 +13,21 @@ namespace LogUtils.Diagnostics
             Condition.AssertHandlers.Add(DefaultHandler);
         }
 
-        public Logger AssertLogger; 
+        public Logger AssertLogger;
 
-        public AssertHandler()
-        {
-        }
+        public string FailMessage = DEFAULT_FAIL_MESSAGE;
 
         public AssertHandler(Logger logger)
         {
             AssertLogger = logger;
         }
 
-        public bool AcceptsCallerOnCondition(bool conditionPassed)
+        public virtual void Handle(ConditionResults condition)
         {
-            return conditionPassed == false && ModData.HasAssertTargets; //No targets, no need to fetch the calling assembly
-        }
-
-        public void Handle(ConditionResults condition)
-        {
-            if (!condition.HasPassed)
-            {
-                List<LogID> logTargets = getLogTargets();
-
-                foreach (LogID logTarget in logTargets)
-                {
-                    //TODO: Log
-                }
-            }
-        }
-
-        private List<LogID> getLogTargets()
-        {
-            //Attempt to get mod data based on the calling assembly
-            bool hasData = ModData.TryGet(AssemblyUtils.GetPlugin(Caller), out ModData data);
-
-            //Fallback to defaults when no valid targets are available
-            if (!hasData || data.AssertTargets.Count == 0)
-                data = ModData.Default;
-
-            //Return targets as a new collection to avoid potential modification to the list
-            return new List<LogID>(data.AssertTargets);
+            if (!condition.Passed)
+                AssertLogger.Log(LogCategory.Assert, FailMessage);
         }
     }
 
-    public record struct ConditionResults(ConditionID ID, bool HasPassed);
+    public record struct ConditionResults(ConditionID ID, bool Passed);
 }
