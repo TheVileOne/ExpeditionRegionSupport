@@ -1,14 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace LogUtils.Diagnostics
 {
-    public record struct NumericAssert(IConditionHandler Handler, double Value)
+    public record struct NumericAssert(List<IConditionHandler> Handlers, double Value)
     {
         public bool IsEqualTo(double checkValue)
         {
             bool conditionPassed = Value == checkValue;
 
-            Assert.OnResult(Handler, new ConditionResults(null, conditionPassed));
+            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
             return conditionPassed;
         }
 
@@ -16,7 +17,7 @@ namespace LogUtils.Diagnostics
         {
             bool conditionPassed = Value != checkValue;
 
-            Assert.OnResult(Handler, new ConditionResults(null, conditionPassed));
+            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
             return conditionPassed;
         }
 
@@ -24,7 +25,7 @@ namespace LogUtils.Diagnostics
         {
             bool conditionPassed = Value > checkValue;
 
-            Assert.OnResult(Handler, new ConditionResults(null, conditionPassed));
+            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
             return conditionPassed;
         }
 
@@ -32,7 +33,7 @@ namespace LogUtils.Diagnostics
         {
             bool conditionPassed = Value >= checkValue;
 
-            Assert.OnResult(Handler, new ConditionResults(null, conditionPassed));
+            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
             return conditionPassed;
         }
 
@@ -40,7 +41,7 @@ namespace LogUtils.Diagnostics
         {
             bool conditionPassed = Value < checkValue;
 
-            Assert.OnResult(Handler, new ConditionResults(null, conditionPassed));
+            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
             return conditionPassed;
         }
 
@@ -48,7 +49,7 @@ namespace LogUtils.Diagnostics
         {
             bool conditionPassed = Value <= checkValue;
 
-            Assert.OnResult(Handler, new ConditionResults(null, conditionPassed));
+            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
             return conditionPassed;
         }
 
@@ -72,7 +73,7 @@ namespace LogUtils.Diagnostics
                 conditionPassed = Value > lowBound && Value < highBound;
             }
 
-            Assert.OnResult(Handler, new ConditionResults(null, conditionPassed));
+            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
             return conditionPassed;
         }
 
@@ -80,7 +81,7 @@ namespace LogUtils.Diagnostics
         {
             bool conditionPassed = Value == 0;
 
-            Assert.OnResult(Handler, new ConditionResults(null, conditionPassed));
+            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
             return conditionPassed;
         }
 
@@ -88,7 +89,7 @@ namespace LogUtils.Diagnostics
         {
             bool conditionPassed = double.IsNaN(Value);
 
-            Assert.OnResult(Handler, new ConditionResults(null, conditionPassed));
+            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
             return conditionPassed;
         }
 
@@ -106,7 +107,7 @@ namespace LogUtils.Diagnostics
                    (criteria == EvaluationCriteria.MustBeTrue && conditionIsTrue)
                 || (criteria == EvaluationCriteria.MustBeFalse && !conditionIsTrue);
 
-            Assert.OnResult(Handler, new ConditionResults(null, conditionIsTrue));
+            Assert.OnResult(Handlers, new ConditionResults(null, conditionIsTrue));
             return conditionIsTrue;
         }
 
@@ -125,7 +126,7 @@ namespace LogUtils.Diagnostics
                    (criteria == EvaluationCriteria.MustBeTrue && conditionIsTrue)
                 || (criteria == EvaluationCriteria.MustBeFalse && !conditionIsTrue);
 
-            Assert.OnResult(Handler, new ConditionResults(null, conditionIsTrue));
+            Assert.OnResult(Handlers, new ConditionResults(null, conditionIsTrue));
             return conditionIsTrue;
         }
     }

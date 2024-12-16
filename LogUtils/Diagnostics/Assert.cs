@@ -1,23 +1,13 @@
-﻿using LogUtils.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace LogUtils.Diagnostics
 {
     internal static class Assert
     {
-        internal static void OnResult(IConditionHandler handler, ConditionResults result)
+        internal static void OnResult(List<IConditionHandler> handlers, ConditionResults result)
         {
-            if (handler != null)
-            {
-                if (handler.AcceptsCallerOnCondition(result.HasPassed))
-                    handler.Caller = AssemblyUtils.GetCallingAssembly();
-
+            foreach (var handler in handlers)
                 handler.Handle(result);
-            }
         }
     }
 }

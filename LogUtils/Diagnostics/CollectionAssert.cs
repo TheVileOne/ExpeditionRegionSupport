@@ -3,13 +3,13 @@ using System.Linq;
 
 namespace LogUtils.Diagnostics
 {
-    public record struct CollectionAssert<T>(IConditionHandler Handler, IEnumerable<T> Enumerable)
+    public record struct CollectionAssert<T>(List<IConditionHandler> Handlers, IEnumerable<T> Enumerable)
     {
         public bool IsEmpty()
         {
             bool conditionPassed = !Enumerable.Any();
 
-            Assert.OnResult(Handler, new ConditionResults(null, conditionPassed));
+            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
             return conditionPassed;
         }
 
@@ -17,18 +17,18 @@ namespace LogUtils.Diagnostics
         {
             bool conditionPassed = Enumerable.Any();
 
-            Assert.OnResult(Handler, new ConditionResults(null, conditionPassed));
+            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
             return conditionPassed;
         }
 
         public bool IsNull()
         {
-            return new ObjectAssert(Handler, Enumerable).IsNull();
+            return new ObjectAssert(Handlers, Enumerable).IsNull();
         }
 
         public bool IsNotNull()
         {
-            return new ObjectAssert(Handler, Enumerable).IsNotNull();
+            return new ObjectAssert(Handlers, Enumerable).IsNotNull();
         }
     }
 }

@@ -1,12 +1,14 @@
-﻿namespace LogUtils.Diagnostics
+﻿using System.Collections.Generic;
+
+namespace LogUtils.Diagnostics
 {
-    public record struct BooleanAssert(IConditionHandler Handler, bool Condition)
+    public record struct BooleanAssert(List<IConditionHandler> Handlers, bool Condition)
     {
         public bool IsTrue()
         {
             bool conditionPassed = Condition == true;
 
-            Assert.OnResult(Handler, new ConditionResults(null, conditionPassed));
+            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
             return conditionPassed;
         }
 
@@ -14,7 +16,7 @@
         {
             bool conditionPassed = Condition == false;
 
-            Assert.OnResult(Handler, new ConditionResults(null, conditionPassed));
+            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
             return conditionPassed;
         }
     }

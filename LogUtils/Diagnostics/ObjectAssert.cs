@@ -1,12 +1,14 @@
-﻿namespace LogUtils.Diagnostics
+﻿using System.Collections.Generic;
+
+namespace LogUtils.Diagnostics
 {
-    public record struct ObjectAssert(IConditionHandler Handler, object Data)
+    public record struct ObjectAssert(List<IConditionHandler> Handlers, object Data)
     {
         public bool IsEqualTo(object checkData)
         {
             bool conditionPassed = Equals(Data, checkData);
             
-            Assert.OnResult(Handler, new ConditionResults(null, conditionPassed));
+            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
             return conditionPassed;
         }
 
@@ -14,7 +16,7 @@
         {
             bool conditionPassed = !Equals(Data, checkValue);
 
-            Assert.OnResult(Handler, new ConditionResults(null, conditionPassed));
+            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
             return conditionPassed;
         }
 
@@ -22,7 +24,7 @@
         {
             bool conditionPassed = Data == null;
 
-            Assert.OnResult(Handler, new ConditionResults(null, conditionPassed));
+            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
             return conditionPassed;
         }
 
@@ -30,7 +32,7 @@
         {
             bool conditionPassed = Data != null;
 
-            Assert.OnResult(Handler, new ConditionResults(null, conditionPassed));
+            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
             return conditionPassed;
         }
     }

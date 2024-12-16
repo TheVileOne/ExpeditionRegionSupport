@@ -1,14 +1,28 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Helpers;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 
 namespace LogUtils.Diagnostics
 {
     public class AssertHandler : IConditionHandler
     {
-        public Assembly Caller { get; set; }
+        public static readonly AssertHandler DefaultHandler = new AssertHandler(new Logger(LogID.Unity));
+
+        static AssertHandler()
+        {
+            Condition.AssertHandlers.Add(DefaultHandler);
+        }
+
+        public Logger AssertLogger; 
+
+        public AssertHandler()
+        {
+        }
+
+        public AssertHandler(Logger logger)
+        {
+            AssertLogger = logger;
+        }
 
         public bool AcceptsCallerOnCondition(bool conditionPassed)
         {
