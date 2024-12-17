@@ -6,18 +6,18 @@ namespace LogUtils.Diagnostics
     {
         public bool IsTrue()
         {
-            bool conditionPassed = Condition == true;
+            var result = Assert.IsTrue(Condition);
 
-            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
-            return conditionPassed;
+            Assert.OnResult(Handlers, result);
+            return result.Passed;
         }
 
         public bool IsFalse()
         {
-            bool conditionPassed = Condition == false;
+            var result = Assert.IsFalse(Condition);
 
-            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
-            return conditionPassed;
+            Assert.OnResult(Handlers, result);
+            return result.Passed;
         }
     }
 }

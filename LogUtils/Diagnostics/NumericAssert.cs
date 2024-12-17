@@ -7,90 +7,66 @@ namespace LogUtils.Diagnostics
     {
         public bool IsEqualTo(double checkValue)
         {
-            bool conditionPassed = Value == checkValue;
+            var result = Assert.IsEqual(Value, checkValue);
 
-            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
-            return conditionPassed;
+            Assert.OnResult(Handlers, result);
+            return result.Passed;
         }
 
-        public bool IsNotEqualTo(double checkValue)
+        public bool DoesNotEqual(double checkValue)
         {
-            bool conditionPassed = Value != checkValue;
+            var result = Assert.DoesNotEqual(Value, checkValue);
 
-            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
-            return conditionPassed;
+            Assert.OnResult(Handlers, result);
+            return result.Passed;
         }
 
         public bool IsGreaterThan(double checkValue)
         {
-            bool conditionPassed = Value > checkValue;
+            var result = Assert.IsGreaterThan(Value, checkValue);
 
-            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
-            return conditionPassed;
+            Assert.OnResult(Handlers, result);
+            return result.Passed;
         }
 
         public bool IsGreaterThanOrEqualTo(double checkValue)
         {
-            bool conditionPassed = Value >= checkValue;
+            var result = Assert.IsGreaterThanOrEqualTo(Value, checkValue);
 
-            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
-            return conditionPassed;
+            Assert.OnResult(Handlers, result);
+            return result.Passed;
         }
 
         public bool IsLessThan(double checkValue)
         {
-            bool conditionPassed = Value < checkValue;
+            var result = Assert.IsLessThan(Value, checkValue);
 
-            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
-            return conditionPassed;
+            Assert.OnResult(Handlers, result);
+            return result.Passed;
         }
 
         public bool IsLessThanOrEqualTo(double checkValue)
         {
-            bool conditionPassed = Value <= checkValue;
+            var result = Assert.IsLessThanOrEqualTo(Value, checkValue);
 
-            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
-            return conditionPassed;
+            Assert.OnResult(Handlers, result);
+            return result.Passed;
         }
 
         public bool IsBetween(double checkValue, double checkValue2)
         {
-            bool conditionPassed = false;
-            if (checkValue != checkValue2)
-            {
-                double lowBound, highBound;
+            var result = Assert.IsBetween(Value, checkValue, checkValue2);
 
-                if (checkValue < checkValue2)
-                {
-                    lowBound = checkValue;
-                    highBound = checkValue2;
-                }
-                else
-                {
-                    lowBound = checkValue2;
-                    highBound = checkValue;
-                }
-                conditionPassed = Value > lowBound && Value < highBound;
-            }
-
-            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
-            return conditionPassed;
+            Assert.OnResult(Handlers, result);
+            return result.Passed;
         }
 
         public bool IsZero()
         {
-            bool conditionPassed = Value == 0;
+            var result = Assert.IsZero(Value);
 
-            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
-            return conditionPassed;
-        }
-
-        public bool IsNaN()
-        {
-            bool conditionPassed = double.IsNaN(Value);
-
-            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
-            return conditionPassed;
+            Assert.OnResult(Handlers, result);
+            return result.Passed;
         }
 
         /// <summary>
@@ -101,14 +77,10 @@ namespace LogUtils.Diagnostics
         /// <returns>true, if the condition state matches expectations, otherwise false</returns>
         public bool EvaluateCondition(Func<double, bool> condition, EvaluationCriteria criteria)
         {
-            bool conditionIsTrue = condition(Value);
+            var result = Assert.EvaluateCondition(Value, condition, criteria);
 
-            conditionIsTrue =
-                   (criteria == EvaluationCriteria.MustBeTrue && conditionIsTrue)
-                || (criteria == EvaluationCriteria.MustBeFalse && !conditionIsTrue);
-
-            Assert.OnResult(Handlers, new ConditionResults(null, conditionIsTrue));
-            return conditionIsTrue;
+            Assert.OnResult(Handlers, result);
+            return result.Passed;
         }
 
         /// <summary>
@@ -120,14 +92,10 @@ namespace LogUtils.Diagnostics
         /// <returns>true, if the condition state matches expectations, otherwise false</returns>
         public bool EvaluateCondition(double checkValue, Func<double, double, bool> condition, EvaluationCriteria criteria)
         {
-            bool conditionIsTrue = condition(Value, checkValue);
+            var result = Assert.EvaluateCondition(Value, checkValue, condition, criteria);
 
-            conditionIsTrue =
-                   (criteria == EvaluationCriteria.MustBeTrue && conditionIsTrue)
-                || (criteria == EvaluationCriteria.MustBeFalse && !conditionIsTrue);
-
-            Assert.OnResult(Handlers, new ConditionResults(null, conditionIsTrue));
-            return conditionIsTrue;
+            Assert.OnResult(Handlers, result);
+            return result.Passed;
         }
     }
 

@@ -6,34 +6,34 @@ namespace LogUtils.Diagnostics
     {
         public bool IsEqualTo(object checkData)
         {
-            bool conditionPassed = Equals(Data, checkData);
-            
-            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
-            return conditionPassed;
+            var result = Assert.IsEqual(Data, checkData);
+
+            Assert.OnResult(Handlers, result);
+            return result.Passed;
         }
 
-        public bool IsNotEqualTo(double checkValue)
+        public bool DoesNotEqual(object checkData)
         {
-            bool conditionPassed = !Equals(Data, checkValue);
+            var result = Assert.DoesNotEqual(Data, checkData);
 
-            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
-            return conditionPassed;
+            Assert.OnResult(Handlers, result);
+            return result.Passed;
         }
 
         public bool IsNull()
         {
-            bool conditionPassed = Data == null;
+            var result = Assert.IsNull(Data);
 
-            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
-            return conditionPassed;
+            Assert.OnResult(Handlers, result);
+            return result.Passed;
         }
 
         public bool IsNotNull()
         {
-            bool conditionPassed = Data != null;
+            var result = Assert.IsNotNull(Data);
 
-            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
-            return conditionPassed;
+            Assert.OnResult(Handlers, result);
+            return result.Passed;
         }
     }
 }

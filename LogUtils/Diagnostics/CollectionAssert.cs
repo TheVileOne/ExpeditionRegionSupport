@@ -7,28 +7,36 @@ namespace LogUtils.Diagnostics
     {
         public bool IsEmpty()
         {
-            bool conditionPassed = !Enumerable.Any();
+            var result = Assert.IsEmpty(Enumerable);
 
-            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
-            return conditionPassed;
+            Assert.OnResult(Handlers, result);
+            return result.Passed;
         }
 
         public bool HasItems()
         {
-            bool conditionPassed = Enumerable.Any();
+            var result = Assert.HasItems(Enumerable);
 
-            Assert.OnResult(Handlers, new ConditionResults(null, conditionPassed));
-            return conditionPassed;
+            Assert.OnResult(Handlers, result);
+            return result.Passed;
         }
 
         public bool IsNull()
         {
-            return new ObjectAssert(Handlers, Enumerable).IsNull();
+            var result = Assert.IsNull(Enumerable);
+            result.SetDescriptors("Collection");
+
+            Assert.OnResult(Handlers, result);
+            return result.Passed;
         }
 
         public bool IsNotNull()
         {
-            return new ObjectAssert(Handlers, Enumerable).IsNotNull();
+            var result = Assert.IsNotNull(Enumerable);
+            result.SetDescriptors("Collection");
+
+            Assert.OnResult(Handlers, result);
+            return result.Passed;
         }
     }
 }

@@ -28,6 +28,4 @@ namespace LogUtils.Diagnostics
                 AssertLogger.Log(LogCategory.Assert, FailMessage);
         }
     }
-
-    public record struct ConditionResults(ConditionID ID, bool Passed);
 }

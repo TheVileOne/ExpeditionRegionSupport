@@ -150,5 +150,34 @@ namespace LogUtils
             public const string ROOT = "root";
             public const string STREAMING_ASSETS = "customroot";
         }
+
+        public static class AssertMessages
+        {
+            public const string CONDITION_TRUE = "{0} is true";
+            public const string CONDITION_FALSE = "{0} is false";
+            public const string VALUES_EQUAL = "{0} are equal";
+            public const string VALUES_NOT_EQUAL = "{0} are not equal";
+            public const string VALUE_NULL = "{0} is null";
+            public const string VALUE_NOT_NULL = "{0} is not null";
+            public const string VALUE_ABOVE = "{0} is above {1}";
+            public const string VALUE_ABOVE_OR_EQUAL = "{0} is above or equal to {1}";
+            public const string VALUE_NOT_ABOVE = "{0} is not above {1}";
+            public const string VALUE_BELOW = "{0} is below {1}";
+            public const string VALUE_BELOW_OR_EQUAL = "{0} is below or equal to {1}";
+            public const string VALUE_NOT_BELOW = "{0} is not below {1}";
+            public const string VALUE_IN_RANGE = "{0} in range";
+            public const string VALUE_OUT_OF_RANGE = "{0} not in range";
+            public const string VALUE_ZERO = "{0} is zero";
+            public const string VALUE_NOT_ZERO = "{0} is not zero";
+            public const string VALUE_NEGATIVE = "{0} is negative";
+            public const string VALUE_NOT_NEGATIVE = "{0} is not negative";
+            public const string VALUE_POSITIVE = "{0} is positive";
+            public const string VALUE_NOT_POSITIVE = "{0} is not positive";
+            public const string VALUE_NOT_A_NUMBER = "{0} is not a number";
+            public const string EXPECTED_VALUE = "{0} is expected";
+            public const string UNEXPECTED_VALUE = "{0} is not expected";
+            public const string COLLECTION_EMPTY = "{0} is empty";
+            public const string COLLECTION_HAS_ITEMS = "{0} has items";
+        }
     }
 }
