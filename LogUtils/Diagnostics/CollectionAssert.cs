@@ -5,9 +5,9 @@ namespace LogUtils.Diagnostics
 {
     public record struct CollectionAssert<T>(List<IConditionHandler> Handlers, IEnumerable<T> Enumerable)
     {
-        public bool IsEmpty()
+        public bool IsNullOrEmpty()
         {
-            var result = Assert.IsEmpty(Enumerable);
+            var result = Assert.IsNullOrEmpty(Enumerable);
 
             Assert.OnResult(Handlers, result);
             return result.Passed;

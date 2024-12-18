@@ -151,33 +151,40 @@ namespace LogUtils
             public const string STREAMING_ASSETS = "customroot";
         }
 
-        public static class AssertMessages
+        public static class AssertResponse
         {
-            public const string CONDITION_TRUE = "{0} is true";
-            public const string CONDITION_FALSE = "{0} is false";
-            public const string VALUES_EQUAL = "{0} are equal";
-            public const string VALUES_NOT_EQUAL = "{0} are not equal";
-            public const string VALUE_NULL = "{0} is null";
-            public const string VALUE_NOT_NULL = "{0} is not null";
-            public const string VALUE_ABOVE = "{0} is above {1}";
-            public const string VALUE_ABOVE_OR_EQUAL = "{0} is above or equal to {1}";
-            public const string VALUE_NOT_ABOVE = "{0} is not above {1}";
-            public const string VALUE_BELOW = "{0} is below {1}";
-            public const string VALUE_BELOW_OR_EQUAL = "{0} is below or equal to {1}";
-            public const string VALUE_NOT_BELOW = "{0} is not below {1}";
-            public const string VALUE_IN_RANGE = "{0} in range";
-            public const string VALUE_OUT_OF_RANGE = "{0} not in range";
-            public const string VALUE_ZERO = "{0} is zero";
-            public const string VALUE_NOT_ZERO = "{0} is not zero";
-            public const string VALUE_NEGATIVE = "{0} is negative";
-            public const string VALUE_NOT_NEGATIVE = "{0} is not negative";
-            public const string VALUE_POSITIVE = "{0} is positive";
-            public const string VALUE_NOT_POSITIVE = "{0} is not positive";
-            public const string VALUE_NOT_A_NUMBER = "{0} is not a number";
-            public const string EXPECTED_VALUE = "{0} is expected";
-            public const string UNEXPECTED_VALUE = "{0} is not expected";
-            public const string COLLECTION_EMPTY = "{0} is empty";
-            public const string COLLECTION_HAS_ITEMS = "{0} has items";
+            //Boolean data
+            public const string MUST_BE_TRUE = "{0} must be true";
+            public const string MUST_BE_FALSE = "{0} must be false";
+
+            //Object and struct data
+            public const string MUST_BE_EQUAL = "{0} must be equivalent";
+            public const string MUST_NOT_BE_EQUAL = "{0} must not be equivalent";
+            public const string MUST_BE_NULL = "{0} must be null";
+            public const string MUST_NOT_BE_NULL = "{0} must not be null";
+
+            //Collection data
+            public const string NOT_ENOUGH_ENTRIES = "{0} does not have enough entries";
+            public const string TOO_MANY_ENTRIES = "{0} has too many entries";
+
+            public const string MUST_BE_EMPTY = "{0} must be empty";
+            public const string MUST_HAVE_ITEMS = "{0} must not be null or empty";
+
+            //Numeric data
+            public const string TOO_LOW = "{0} is too low";
+            public const string TOO_HIGH = "{0} is too high";
+
+            //public const string MUST_BE_HIGHER = "{0} must be higher than {1}";
+            //public const string MUST_BE_LOWER = "{0} must be lower than {1}";
+
+            //public const string MUST_NOT_BE_HIGHER = "{0} must not be higher than {1}";
+            //public const string MUST_NOT_BE_LOWER = "{0} must not be lower than {1}";
+            public const string MUST_NOT_BE_ZERO = "{0} must not be zero";
+
+            public const string MUST_BE_IN_RANGE = "{0} must be between {1} and {2}";
+            public const string MUST_BE_NEGATIVE = "{0} must be negative";
+            public const string MUST_BE_POSITIVE = "{0} must be positive";
+            public const string MUST_NOT_BE_NEGATIVE = "{0} must not be negative";
         }
     }
 }

@@ -18,8 +18,7 @@ namespace LogUtils.Diagnostics
             bool conditionPassed = condition == true;
             var result = new ConditionResults(conditionPassed)
             {
-                PassMessage = UtilityConsts.AssertMessages.CONDITION_TRUE,
-                FailMessage = UtilityConsts.AssertMessages.CONDITION_FALSE
+                FailMessage = UtilityConsts.AssertResponse.MUST_BE_TRUE
             };
 
             result.Descriptors.Add("Condition");
@@ -31,8 +30,7 @@ namespace LogUtils.Diagnostics
             bool conditionPassed = condition == false;
             var result = new ConditionResults(conditionPassed)
             {
-                PassMessage = UtilityConsts.AssertMessages.CONDITION_FALSE,
-                FailMessage = UtilityConsts.AssertMessages.CONDITION_TRUE
+                FailMessage = UtilityConsts.AssertResponse.MUST_BE_FALSE
             };
 
             result.Descriptors.Add("Condition");
@@ -45,8 +43,7 @@ namespace LogUtils.Diagnostics
             bool conditionPassed = object.Equals(obj, obj2);
             var result = new ConditionResults(conditionPassed)
             {
-                PassMessage = UtilityConsts.AssertMessages.VALUES_EQUAL,
-                FailMessage = UtilityConsts.AssertMessages.VALUES_NOT_EQUAL
+                FailMessage = UtilityConsts.AssertResponse.MUST_BE_EQUAL
             };
 
             result.Descriptors.Add("Objects");
@@ -58,8 +55,7 @@ namespace LogUtils.Diagnostics
             bool conditionPassed = !object.Equals(obj, obj2);
             var result = new ConditionResults(conditionPassed)
             {
-                PassMessage = UtilityConsts.AssertMessages.VALUES_NOT_EQUAL,
-                FailMessage = UtilityConsts.AssertMessages.VALUES_EQUAL
+                FailMessage = UtilityConsts.AssertResponse.MUST_NOT_BE_EQUAL
             };
 
             result.Descriptors.Add("Objects");
@@ -71,8 +67,7 @@ namespace LogUtils.Diagnostics
             bool conditionPassed = value.Equals(value2);
             var result = new ConditionResults(conditionPassed)
             {
-                PassMessage = UtilityConsts.AssertMessages.VALUES_EQUAL,
-                FailMessage = UtilityConsts.AssertMessages.VALUES_NOT_EQUAL
+                FailMessage = UtilityConsts.AssertResponse.MUST_BE_EQUAL
             };
 
             result.Descriptors.Add("Value types");
@@ -84,8 +79,7 @@ namespace LogUtils.Diagnostics
             bool conditionPassed = !value.Equals(value2);
             var result = new ConditionResults(conditionPassed)
             {
-                PassMessage = UtilityConsts.AssertMessages.VALUES_NOT_EQUAL,
-                FailMessage = UtilityConsts.AssertMessages.VALUES_EQUAL
+                FailMessage = UtilityConsts.AssertResponse.MUST_NOT_BE_EQUAL
             };
 
             result.Descriptors.Add("Value types");
@@ -97,8 +91,7 @@ namespace LogUtils.Diagnostics
             bool conditionPassed = obj == null;
             var result = new ConditionResults(conditionPassed)
             {
-                PassMessage = UtilityConsts.AssertMessages.VALUE_NULL,
-                FailMessage = UtilityConsts.AssertMessages.VALUE_NOT_NULL
+                FailMessage = UtilityConsts.AssertResponse.MUST_BE_NULL
             };
 
             result.Descriptors.Add("Object");
@@ -110,8 +103,7 @@ namespace LogUtils.Diagnostics
             bool conditionPassed = obj != null;
             var result = new ConditionResults(conditionPassed)
             {
-                PassMessage = UtilityConsts.AssertMessages.VALUE_NOT_NULL,
-                FailMessage = UtilityConsts.AssertMessages.VALUE_NULL
+                FailMessage = UtilityConsts.AssertResponse.MUST_NOT_BE_NULL
             };
 
             result.Descriptors.Add("Object");
@@ -119,13 +111,12 @@ namespace LogUtils.Diagnostics
         }
         #endregion
         #region Collections
-        public static ConditionResults IsEmpty<T>(IEnumerable<T> collection)
+        public static ConditionResults IsNullOrEmpty<T>(IEnumerable<T> collection)
         {
-            bool conditionPassed = !collection.Any();
+            bool conditionPassed = collection == null || !collection.Any();
             var result = new ConditionResults(conditionPassed)
             {
-                PassMessage = UtilityConsts.AssertMessages.COLLECTION_EMPTY,
-                FailMessage = UtilityConsts.AssertMessages.COLLECTION_HAS_ITEMS
+                FailMessage = UtilityConsts.AssertResponse.MUST_BE_EMPTY
             };
 
             result.Descriptors.Add("Collection");
@@ -134,11 +125,10 @@ namespace LogUtils.Diagnostics
 
         public static ConditionResults HasItems<T>(IEnumerable<T> collection)
         {
-            bool conditionPassed = collection.Any();
+            bool conditionPassed = collection != null && collection.Any();
             var result = new ConditionResults(conditionPassed)
             {
-                PassMessage = UtilityConsts.AssertMessages.COLLECTION_HAS_ITEMS,
-                FailMessage = UtilityConsts.AssertMessages.COLLECTION_EMPTY
+                FailMessage = UtilityConsts.AssertResponse.MUST_HAVE_ITEMS
             };
 
             result.Descriptors.Add("Collection");
@@ -146,16 +136,29 @@ namespace LogUtils.Diagnostics
         }
         #endregion
         #region Numerics
+        public static ConditionResults IsEqual(double value, double value2)
+        {
+            int valueDiff = value.CompareTo(value2);
+
+            bool conditionPassed = valueDiff == 0;
+            var result = new ConditionResults(conditionPassed)
+            {
+                FailMessage = valueDiff < 0 ? UtilityConsts.AssertResponse.TOO_LOW : UtilityConsts.AssertResponse.TOO_HIGH
+            };
+
+            result.Descriptors.Add("Value");
+            return result;
+        }
+
         public static ConditionResults IsGreaterThan(double value, double value2)
         {
             bool conditionPassed = value > value2;
             var result = new ConditionResults(conditionPassed)
             {
-                PassMessage = UtilityConsts.AssertMessages.VALUE_ABOVE,
-                FailMessage = UtilityConsts.AssertMessages.VALUE_NOT_ABOVE
+                FailMessage = UtilityConsts.AssertResponse.TOO_LOW
             };
 
-            result.SetDescriptors("Value", value2.ToString());
+            result.Descriptors.Add("Value");
             return result;
         }
 
@@ -164,11 +167,10 @@ namespace LogUtils.Diagnostics
             bool conditionPassed = value >= value2;
             var result = new ConditionResults(conditionPassed)
             {
-                PassMessage = UtilityConsts.AssertMessages.VALUE_ABOVE_OR_EQUAL,
-                FailMessage = UtilityConsts.AssertMessages.VALUE_BELOW
+                FailMessage = UtilityConsts.AssertResponse.TOO_LOW
             };
 
-            result.SetDescriptors("Value", value2.ToString());
+            result.Descriptors.Add("Value");
             return result;
         }
 
@@ -177,11 +179,10 @@ namespace LogUtils.Diagnostics
             bool conditionPassed = value < value2;
             var result = new ConditionResults(conditionPassed)
             {
-                PassMessage = UtilityConsts.AssertMessages.VALUE_BELOW,
-                FailMessage = UtilityConsts.AssertMessages.VALUE_NOT_BELOW
+                FailMessage = UtilityConsts.AssertResponse.TOO_HIGH
             };
 
-            result.SetDescriptors("Value", value2.ToString());
+            result.Descriptors.Add("Value");
             return result;
         }
 
@@ -190,21 +191,19 @@ namespace LogUtils.Diagnostics
             bool conditionPassed = value >= value2;
             var result = new ConditionResults(conditionPassed)
             {
-                PassMessage = UtilityConsts.AssertMessages.VALUE_BELOW_OR_EQUAL,
-                FailMessage = UtilityConsts.AssertMessages.VALUE_ABOVE
+                FailMessage = UtilityConsts.AssertResponse.TOO_HIGH
             };
 
-            result.SetDescriptors("Value", value2.ToString());
+            result.Descriptors.Add("Value");
             return result;
         }
 
         public static ConditionResults IsBetween(double value, double bound, double bound2)
         {
             bool conditionPassed = false;
+            double lowBound, highBound;
             if (bound != bound2)
             {
-                double lowBound, highBound;
-
                 if (bound < bound2)
                 {
                     lowBound = bound;
@@ -217,24 +216,26 @@ namespace LogUtils.Diagnostics
                 }
                 conditionPassed = value > lowBound && value < highBound;
             }
+            else
+                lowBound = highBound = bound;
 
             var result = new ConditionResults(conditionPassed)
             {
-                PassMessage = UtilityConsts.AssertMessages.VALUE_IN_RANGE,
-                FailMessage = UtilityConsts.AssertMessages.VALUE_OUT_OF_RANGE
+                FailMessage = UtilityConsts.AssertResponse.MUST_BE_IN_RANGE
             };
 
-            result.Descriptors.Add("Value");
+            result.SetDescriptors("Value", lowBound.ToString(), highBound.ToString());
             return result;
         }
 
         public static ConditionResults IsZero(double value)
         {
-            bool conditionPassed = value == 0;
+            int valueDiff = value.CompareTo(0);
+
+            bool conditionPassed = valueDiff == 0;
             var result = new ConditionResults(conditionPassed)
             {
-                PassMessage = UtilityConsts.AssertMessages.VALUE_ZERO,
-                FailMessage = UtilityConsts.AssertMessages.VALUE_NOT_ZERO
+                FailMessage = valueDiff < 0 ? UtilityConsts.AssertResponse.TOO_LOW : UtilityConsts.AssertResponse.TOO_HIGH
             };
 
             result.Descriptors.Add("Value");
@@ -243,11 +244,12 @@ namespace LogUtils.Diagnostics
 
         public static ConditionResults IsNotZero(double value)
         {
-            bool conditionPassed = value != 0;
+            int valueDiff = value.CompareTo(0);
+
+            bool conditionPassed = valueDiff != 0;
             var result = new ConditionResults(conditionPassed)
             {
-                PassMessage = UtilityConsts.AssertMessages.VALUE_NOT_ZERO,
-                FailMessage = UtilityConsts.AssertMessages.VALUE_ZERO
+                FailMessage = UtilityConsts.AssertResponse.MUST_NOT_BE_ZERO
             };
 
             result.Descriptors.Add("Value");
@@ -259,8 +261,7 @@ namespace LogUtils.Diagnostics
             bool conditionPassed = value < 0;
             var result = new ConditionResults(conditionPassed)
             {
-                PassMessage = UtilityConsts.AssertMessages.VALUE_NEGATIVE,
-                FailMessage = UtilityConsts.AssertMessages.UNEXPECTED_VALUE
+                FailMessage = UtilityConsts.AssertResponse.MUST_BE_NEGATIVE
             };
 
             result.Descriptors.Add("Value");
@@ -272,7 +273,7 @@ namespace LogUtils.Diagnostics
             bool conditionPassed = value > 0;
             var result = new ConditionResults(conditionPassed)
             {
-                FailMessage = UtilityConsts.AssertMessages.VALUE_ZERO
+                FailMessage = UtilityConsts.AssertResponse.MUST_BE_POSITIVE
             };
 
             result.Descriptors.Add("Value");
@@ -284,8 +285,7 @@ namespace LogUtils.Diagnostics
             bool conditionPassed = value >= 0;
             var result = new ConditionResults(conditionPassed)
             {
-                PassMessage = UtilityConsts.AssertMessages.VALUE_NOT_ZERO,
-                FailMessage = UtilityConsts.AssertMessages.VALUE_ZERO
+                FailMessage = UtilityConsts.AssertResponse.MUST_NOT_BE_NEGATIVE
             };
 
             result.Descriptors.Add("Value");
@@ -305,7 +305,20 @@ namespace LogUtils.Diagnostics
                    (criteria == EvaluationCriteria.MustBeTrue && conditionIsTrue)
                 || (criteria == EvaluationCriteria.MustBeFalse && !conditionIsTrue);
 
-            return new ConditionResults(conditionIsTrue);
+            string failMessage = null;
+            if (criteria == EvaluationCriteria.MustBeTrue)
+                failMessage = UtilityConsts.AssertResponse.MUST_BE_TRUE;
+            else if (criteria == EvaluationCriteria.MustBeFalse)
+                failMessage = UtilityConsts.AssertResponse.MUST_BE_FALSE;
+
+            var result = new ConditionResults(conditionIsTrue)
+            {
+                FailMessage = failMessage
+            };
+
+            if (failMessage != null)
+                result.Descriptors.Add("Condition");
+            return result;
         }
 
         /// <summary>
@@ -322,7 +335,20 @@ namespace LogUtils.Diagnostics
                    (criteria == EvaluationCriteria.MustBeTrue && conditionIsTrue)
                 || (criteria == EvaluationCriteria.MustBeFalse && !conditionIsTrue);
 
-            return new ConditionResults(conditionIsTrue);
+            string failMessage = null;
+            if (criteria == EvaluationCriteria.MustBeTrue)
+                failMessage = UtilityConsts.AssertResponse.MUST_BE_TRUE;
+            else if (criteria == EvaluationCriteria.MustBeFalse)
+                failMessage = UtilityConsts.AssertResponse.MUST_BE_FALSE;
+
+            var result = new ConditionResults(conditionIsTrue)
+            {
+                FailMessage = failMessage
+            };
+
+            if (failMessage != null)
+                result.Descriptors.Add("Condition");
+            return result;
         }
         #endregion
     }
