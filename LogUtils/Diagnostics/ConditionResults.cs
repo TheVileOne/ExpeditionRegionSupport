@@ -9,10 +9,21 @@ namespace LogUtils.Diagnostics
         public static ConditionResults Fail => new ConditionResults(false);
         public static ConditionResults Pass => new ConditionResults(true);
 
+        private Message _response;
+
         /// <summary>
         /// The response message object created from processing the assert conditions 
         /// </summary>
-        public Message Response;
+        public Message Response
+        {
+            get
+            {
+                if (_response == null)
+                    _response = Message.Empty;
+                return _response;
+            }
+            set => _response = value;
+        }
 
         public readonly ConditionStatus Status;
 
@@ -26,11 +37,13 @@ namespace LogUtils.Diagnostics
 
         public override string ToString()
         {
-            return Response?.ToString();
+            return Response.ToString();
         }
 
         public class Message
         {
+            public static Message Empty => new Message(string.Empty);
+
             /// <summary>
             /// When applicable, this contains descriptor terms used to format result messages
             /// </summary>
