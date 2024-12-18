@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace LogUtils.Diagnostics
 {
@@ -24,7 +23,7 @@ namespace LogUtils.Diagnostics
         public bool IsNull()
         {
             var result = Assert.IsNull(Enumerable);
-            result.SetDescriptors("Collection");
+            result.Response.SetDescriptors(new string[] { "Collection" });
 
             Assert.OnResult(Handlers, result);
             return result.Passed;
@@ -33,7 +32,7 @@ namespace LogUtils.Diagnostics
         public bool IsNotNull()
         {
             var result = Assert.IsNotNull(Enumerable);
-            result.SetDescriptors("Collection");
+            result.Response.SetDescriptors(new string[] { "Collection" });
 
             Assert.OnResult(Handlers, result);
             return result.Passed;

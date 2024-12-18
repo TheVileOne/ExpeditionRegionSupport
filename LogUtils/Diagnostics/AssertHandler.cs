@@ -4,8 +4,6 @@ namespace LogUtils.Diagnostics
 {
     public class AssertHandler : IConditionHandler
     {
-        public const string DEFAULT_FAIL_MESSAGE = "Assertion failed";
-
         public static readonly AssertHandler DefaultHandler = new AssertHandler(new Logger(LogID.Unity));
 
         static AssertHandler()
@@ -15,8 +13,6 @@ namespace LogUtils.Diagnostics
 
         public Logger AssertLogger;
 
-        public string FailMessage = DEFAULT_FAIL_MESSAGE;
-
         public AssertHandler(Logger logger)
         {
             AssertLogger = logger;
@@ -24,8 +20,10 @@ namespace LogUtils.Diagnostics
 
         public virtual void Handle(ConditionResults condition)
         {
-            if (!condition.Passed)
-                AssertLogger.Log(LogCategory.Assert, FailMessage);
+            if (condition.Passed) return;
+
+            string response = (UtilityConsts.AssertResponse.FAIL + ": " + condition.ToString()).TrimEnd();
+            AssertLogger.Log(LogCategory.Assert, response);
         }
     }
 }
