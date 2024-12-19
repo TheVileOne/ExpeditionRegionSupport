@@ -33,8 +33,9 @@ namespace LogUtils.Diagnostics
         public bool IsNull()
         {
             var result = Assert.IsNull(_target);
-            result.Response.SetDescriptors(ArrayUtils.CreateFromValues("Collection"));
 
+            if (result.Failed)
+                result.Response.SetDescriptors(ArrayUtils.CreateFromValues("Collection"));
             Assert.OnResult(_settings, result);
             return result.Passed;
         }
@@ -42,8 +43,9 @@ namespace LogUtils.Diagnostics
         public bool IsNotNull()
         {
             var result = Assert.IsNotNull(_target);
-            result.Response.SetDescriptors(ArrayUtils.CreateFromValues("Collection"));
 
+            if (result.Failed)
+                result.Response.SetDescriptors(ArrayUtils.CreateFromValues("Collection"));
             Assert.OnResult(_settings, result);
             return result.Passed;
         }
