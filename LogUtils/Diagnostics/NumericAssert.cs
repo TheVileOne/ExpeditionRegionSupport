@@ -3,69 +3,78 @@ using System.Collections.Generic;
 
 namespace LogUtils.Diagnostics
 {
-    public record struct NumericAssert(List<IConditionHandler> Handlers, double Value)
+    public readonly struct NumericAssert
     {
+        private readonly double _target;
+        private readonly List<IConditionHandler> _handlers;
+
+        public NumericAssert(List<IConditionHandler> handlers, double assertTarget)
+        {
+            _target = assertTarget;
+            _handlers = handlers;
+        }
+
         public bool IsEqualTo(double checkValue)
         {
-            var result = Assert.IsEqual(Value, checkValue);
+            var result = Assert.IsEqual(_target, checkValue);
 
-            Assert.OnResult(Handlers, result);
+            Assert.OnResult(_handlers, result);
             return result.Passed;
         }
 
         public bool DoesNotEqual(double checkValue)
         {
-            var result = Assert.DoesNotEqual(Value, checkValue);
+            var result = Assert.DoesNotEqual(_target, checkValue);
 
-            Assert.OnResult(Handlers, result);
+            Assert.OnResult(_handlers, result);
             return result.Passed;
         }
 
         public bool IsGreaterThan(double checkValue)
         {
-            var result = Assert.IsGreaterThan(Value, checkValue);
+            var result = Assert.IsGreaterThan(_target, checkValue);
 
-            Assert.OnResult(Handlers, result);
+            Assert.OnResult(_handlers, result);
             return result.Passed;
         }
 
         public bool IsGreaterThanOrEqualTo(double checkValue)
         {
-            var result = Assert.IsGreaterThanOrEqualTo(Value, checkValue);
+            var result = Assert.IsGreaterThanOrEqualTo(_target, checkValue);
 
-            Assert.OnResult(Handlers, result);
+            Assert.OnResult(_handlers, result);
             return result.Passed;
         }
 
         public bool IsLessThan(double checkValue)
         {
-            var result = Assert.IsLessThan(Value, checkValue);
+            var result = Assert.IsLessThan(_target, checkValue);
 
-            Assert.OnResult(Handlers, result);
+            Assert.OnResult(_handlers, result);
             return result.Passed;
         }
 
         public bool IsLessThanOrEqualTo(double checkValue)
         {
-            var result = Assert.IsLessThanOrEqualTo(Value, checkValue);
+            var result = Assert.IsLessThanOrEqualTo(_target, checkValue);
 
-            Assert.OnResult(Handlers, result);
+            Assert.OnResult(_handlers, result);
             return result.Passed;
         }
 
         public bool IsBetween(double checkValue, double checkValue2)
         {
-            var result = Assert.IsBetween(Value, checkValue, checkValue2);
+            var result = Assert.IsBetween(_target, checkValue, checkValue2);
 
-            Assert.OnResult(Handlers, result);
+            Assert.OnResult(_handlers, result);
             return result.Passed;
         }
 
         public bool IsZero()
         {
-            var result = Assert.IsZero(Value);
+            var result = Assert.IsZero(_target);
 
-            Assert.OnResult(Handlers, result);
+            Assert.OnResult(_handlers, result);
             return result.Passed;
         }
 
@@ -77,9 +86,9 @@ namespace LogUtils.Diagnostics
         /// <returns>true, if the condition state matches expectations, otherwise false</returns>
         public bool EvaluateCondition(Func<double, bool> condition, EvaluationCriteria criteria)
         {
-            var result = Assert.EvaluateCondition(Value, condition, criteria);
+            var result = Assert.EvaluateCondition(_target, condition, criteria);
 
-            Assert.OnResult(Handlers, result);
+            Assert.OnResult(_handlers, result);
             return result.Passed;
         }
 
@@ -92,9 +101,9 @@ namespace LogUtils.Diagnostics
         /// <returns>true, if the condition state matches expectations, otherwise false</returns>
         public bool EvaluateCondition(double checkValue, Func<double, double, bool> condition, EvaluationCriteria criteria)
         {
-            var result = Assert.EvaluateCondition(Value, checkValue, condition, criteria);
+            var result = Assert.EvaluateCondition(_target, checkValue, condition, criteria);
 
-            Assert.OnResult(Handlers, result);
+            Assert.OnResult(_handlers, result);
             return result.Passed;
         }
     }

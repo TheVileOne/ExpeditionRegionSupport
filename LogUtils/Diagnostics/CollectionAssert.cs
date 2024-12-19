@@ -2,39 +2,48 @@
 
 namespace LogUtils.Diagnostics
 {
-    public record struct CollectionAssert<T>(List<IConditionHandler> Handlers, IEnumerable<T> Enumerable)
+    public readonly struct CollectionAssert<T>
     {
+        private readonly IEnumerable<T> _target;
+        private readonly List<IConditionHandler> _handlers;
+
+        public CollectionAssert(List<IConditionHandler> handlers, IEnumerable<T> assertTarget)
+        {
+            _target = assertTarget;
+            _handlers = handlers;
+        }
+
         public bool IsNullOrEmpty()
         {
-            var result = Assert.IsNullOrEmpty(Enumerable);
+            var result = Assert.IsNullOrEmpty(_target);
 
-            Assert.OnResult(Handlers, result);
+            Assert.OnResult(_handlers, result);
             return result.Passed;
         }
 
         public bool HasItems()
         {
-            var result = Assert.HasItems(Enumerable);
+            var result = Assert.HasItems(_target);
 
-            Assert.OnResult(Handlers, result);
+            Assert.OnResult(_handlers, result);
             return result.Passed;
         }
 
         public bool IsNull()
         {
-            var result = Assert.IsNull(Enumerable);
+            var result = Assert.IsNull(_target);
             result.Response.SetDescriptors(new string[] { "Collection" });
 
-            Assert.OnResult(Handlers, result);
+            Assert.OnResult(_handlers, result);
             return result.Passed;
         }
 
         public bool IsNotNull()
         {
-            var result = Assert.IsNotNull(Enumerable);
+            var result = Assert.IsNotNull(_target);
             result.Response.SetDescriptors(new string[] { "Collection" });
 
-            Assert.OnResult(Handlers, result);
+            Assert.OnResult(_handlers, result);
             return result.Passed;
         }
     }
