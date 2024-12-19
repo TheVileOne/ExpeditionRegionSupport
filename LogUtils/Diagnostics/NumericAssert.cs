@@ -1,24 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace LogUtils.Diagnostics
 {
     public readonly struct NumericAssert
     {
+        public readonly AssertArgs _settings;
         private readonly double _target;
-        private readonly List<IConditionHandler> _handlers;
 
-        public NumericAssert(List<IConditionHandler> handlers, double assertTarget)
+        public NumericAssert(double assertTarget, AssertArgs assertArgs)
         {
             _target = assertTarget;
-            _handlers = handlers;
+            _settings = assertArgs;
         }
 
         public bool IsEqualTo(double checkValue)
         {
             var result = Assert.IsEqual(_target, checkValue);
 
-            Assert.OnResult(_handlers, result);
+            Assert.OnResult(_settings, result);
             return result.Passed;
         }
 
@@ -26,7 +25,7 @@ namespace LogUtils.Diagnostics
         {
             var result = Assert.DoesNotEqual(_target, checkValue);
 
-            Assert.OnResult(_handlers, result);
+            Assert.OnResult(_settings, result);
             return result.Passed;
         }
 
@@ -34,7 +33,7 @@ namespace LogUtils.Diagnostics
         {
             var result = Assert.IsGreaterThan(_target, checkValue);
 
-            Assert.OnResult(_handlers, result);
+            Assert.OnResult(_settings, result);
             return result.Passed;
         }
 
@@ -42,7 +41,7 @@ namespace LogUtils.Diagnostics
         {
             var result = Assert.IsGreaterThanOrEqualTo(_target, checkValue);
 
-            Assert.OnResult(_handlers, result);
+            Assert.OnResult(_settings, result);
             return result.Passed;
         }
 
@@ -50,7 +49,7 @@ namespace LogUtils.Diagnostics
         {
             var result = Assert.IsLessThan(_target, checkValue);
 
-            Assert.OnResult(_handlers, result);
+            Assert.OnResult(_settings, result);
             return result.Passed;
         }
 
@@ -58,7 +57,7 @@ namespace LogUtils.Diagnostics
         {
             var result = Assert.IsLessThanOrEqualTo(_target, checkValue);
 
-            Assert.OnResult(_handlers, result);
+            Assert.OnResult(_settings, result);
             return result.Passed;
         }
 
@@ -66,7 +65,7 @@ namespace LogUtils.Diagnostics
         {
             var result = Assert.IsBetween(_target, checkValue, checkValue2);
 
-            Assert.OnResult(_handlers, result);
+            Assert.OnResult(_settings, result);
             return result.Passed;
         }
 
@@ -74,7 +73,7 @@ namespace LogUtils.Diagnostics
         {
             var result = Assert.IsZero(_target);
 
-            Assert.OnResult(_handlers, result);
+            Assert.OnResult(_settings, result);
             return result.Passed;
         }
 
@@ -88,7 +87,7 @@ namespace LogUtils.Diagnostics
         {
             var result = Assert.EvaluateCondition(_target, condition, criteria);
 
-            Assert.OnResult(_handlers, result);
+            Assert.OnResult(_settings, result);
             return result.Passed;
         }
 
@@ -103,7 +102,7 @@ namespace LogUtils.Diagnostics
         {
             var result = Assert.EvaluateCondition(_target, checkValue, condition, criteria);
 
-            Assert.OnResult(_handlers, result);
+            Assert.OnResult(_settings, result);
             return result.Passed;
         }
     }

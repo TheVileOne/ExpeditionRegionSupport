@@ -1,23 +1,24 @@
-﻿using System.Collections.Generic;
+﻿using LogUtils.Helpers;
+using System.Collections.Generic;
 
 namespace LogUtils.Diagnostics
 {
     public readonly struct CollectionAssert<T>
     {
+        private readonly AssertArgs _settings;
         private readonly IEnumerable<T> _target;
-        private readonly List<IConditionHandler> _handlers;
 
-        public CollectionAssert(List<IConditionHandler> handlers, IEnumerable<T> assertTarget)
+        public CollectionAssert(IEnumerable<T> assertTarget, AssertArgs assertArgs)
         {
             _target = assertTarget;
-            _handlers = handlers;
+            _settings = assertArgs;
         }
 
         public bool IsNullOrEmpty()
         {
             var result = Assert.IsNullOrEmpty(_target);
 
-            Assert.OnResult(_handlers, result);
+            Assert.OnResult(_settings, result);
             return result.Passed;
         }
 
@@ -25,25 +26,25 @@ namespace LogUtils.Diagnostics
         {
             var result = Assert.HasItems(_target);
 
-            Assert.OnResult(_handlers, result);
+            Assert.OnResult(_settings, result);
             return result.Passed;
         }
 
         public bool IsNull()
         {
             var result = Assert.IsNull(_target);
-            result.Response.SetDescriptors(new string[] { "Collection" });
+            result.Response.SetDescriptors(ArrayUtils.CreateFromValues("Collection"));
 
-            Assert.OnResult(_handlers, result);
+            Assert.OnResult(_settings, result);
             return result.Passed;
         }
 
         public bool IsNotNull()
         {
             var result = Assert.IsNotNull(_target);
-            result.Response.SetDescriptors(new string[] { "Collection" });
+            result.Response.SetDescriptors(ArrayUtils.CreateFromValues("Collection"));
 
-            Assert.OnResult(_handlers, result);
+            Assert.OnResult(_settings, result);
             return result.Passed;
         }
     }

@@ -1,4 +1,5 @@
 ﻿using LogUtils.Enums;
+using System;
 
 namespace LogUtils.Diagnostics
 {
@@ -11,19 +12,33 @@ namespace LogUtils.Diagnostics
             Condition.AssertHandlers.Add(DefaultHandler);
         }
 
-        public Logger AssertLogger;
+        public Logger Logger;
 
         public AssertHandler(Logger logger)
         {
-            AssertLogger = logger;
+            Logger = logger;
         }
 
-        public virtual void Handle(ConditionResults condition)
+        public virtual void Handle(AssertArgs assertSettings, ConditionResults condition)
         {
-            if (condition.Passed) return;
+            if (condition.Passed || assertSettings.Behavior == AssertBehavior.DoNothing) return;
 
-            string response = (UtilityConsts.AssertResponse.FAIL + ": " + condition.ToString()).TrimEnd();
-            AssertLogger.Log(LogCategory.Assert, response);
+            bool shouldLog = assertSettings.Behavior == AssertBehavior.Log || assertSettings.Behavior == AssertBehavior.LogAndThrow;
+            bool shouldThrow = assertSettings.Behavior == AssertBehavior.ThrowOnly || assertSettings.Behavior == AssertBehavior.LogAndThrow;
+
+            if (shouldLog)
+            {
+                string response = UtilityConsts.AssertResponse.FAIL + ": " + condition.ToString();
+                Logger.Log(LogCategory.Assert, response);
+            }
+
+            if (shouldThrow)
+                throw new AssertFailedException("Assert triggered");
         }
+    }
+
+    public class AssertFailedException : Exception
+    {
+        public AssertFailedException(string message) : base(message) { }
     }
 }

@@ -1,23 +1,21 @@
-﻿using System.Collections.Generic;
-
-namespace LogUtils.Diagnostics
+﻿namespace LogUtils.Diagnostics
 {
     public readonly struct ObjectAssert
     {
+        public readonly AssertArgs _settings;
         private readonly object _target;
-        private readonly List<IConditionHandler> _handlers;
 
-        public ObjectAssert(List<IConditionHandler> handlers, object assertTarget)
+        public ObjectAssert(object assertTarget, AssertArgs assertArgs)
         {
             _target = assertTarget;
-            _handlers = handlers;
+            _settings = assertArgs;
         }
 
         public bool IsEqualTo(object checkData)
         {
             var result = Assert.IsEqual(_target, checkData);
 
-            Assert.OnResult(_handlers, result);
+            Assert.OnResult(_settings, result);
             return result.Passed;
         }
 
@@ -25,7 +23,7 @@ namespace LogUtils.Diagnostics
         {
             var result = Assert.DoesNotEqual(_target, checkData);
 
-            Assert.OnResult(_handlers, result);
+            Assert.OnResult(_settings, result);
             return result.Passed;
         }
 
@@ -33,7 +31,7 @@ namespace LogUtils.Diagnostics
         {
             var result = Assert.IsNull(_target);
 
-            Assert.OnResult(_handlers, result);
+            Assert.OnResult(_settings, result);
             return result.Passed;
         }
 
@@ -41,7 +39,7 @@ namespace LogUtils.Diagnostics
         {
             var result = Assert.IsNotNull(_target);
 
-            Assert.OnResult(_handlers, result);
+            Assert.OnResult(_settings, result);
             return result.Passed;
         }
     }

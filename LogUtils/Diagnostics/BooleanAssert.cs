@@ -1,23 +1,21 @@
-﻿using System.Collections.Generic;
-
-namespace LogUtils.Diagnostics
+﻿namespace LogUtils.Diagnostics
 {
     public readonly struct BooleanAssert
     {
+        public readonly AssertArgs _settings;
         private readonly bool _target;
-        private readonly List<IConditionHandler> _handlers;
 
-        public BooleanAssert(List<IConditionHandler> handlers, bool assertTarget)
+        public BooleanAssert(bool assertTarget, AssertArgs assertArgs)
         {
             _target = assertTarget;
-            _handlers = handlers;
+            _settings = assertArgs;
         }
 
         public bool IsTrue()
         {
             var result = Assert.IsTrue(_target);
 
-            Assert.OnResult(_handlers, result);
+            Assert.OnResult(_settings, result);
             return result.Passed;
         }
 
@@ -25,7 +23,7 @@ namespace LogUtils.Diagnostics
         {
             var result = Assert.IsFalse(_target);
 
-            Assert.OnResult(_handlers, result);
+            Assert.OnResult(_settings, result);
             return result.Passed;
         }
     }

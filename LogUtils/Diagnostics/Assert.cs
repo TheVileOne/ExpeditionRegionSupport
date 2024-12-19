@@ -7,10 +7,10 @@ namespace LogUtils.Diagnostics
 {
     public static class Assert
     {
-        internal static void OnResult(List<IConditionHandler> handlers, ConditionResults result)
+        internal static void OnResult(AssertArgs assertArgs, ConditionResults result)
         {
-            foreach (var handler in handlers)
-                handler.Handle(result);
+            foreach (var handler in assertArgs.Handlers)
+                handler.Handle(assertArgs, result);
         }
 
         #region Boolean
