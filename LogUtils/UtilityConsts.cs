@@ -153,6 +153,9 @@ namespace LogUtils
 
         public static class AssertResponse
         {
+            public const string FAIL = "Assertion failed";
+            public const string PASS = "Assertion passed";
+
             //Boolean data
             public const string MUST_BE_TRUE = "{0} must be true";
             public const string MUST_BE_FALSE = "{0} must be false";
