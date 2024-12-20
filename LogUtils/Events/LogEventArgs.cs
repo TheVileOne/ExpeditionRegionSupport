@@ -2,8 +2,9 @@
 using JollyCoop;
 using LogUtils.Enums;
 using LogUtils.Properties;
-using System.IO;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 namespace LogUtils.Events
@@ -12,6 +13,11 @@ namespace LogUtils.Events
     {
         public LogID ID { get; protected set; }
         public LogProperties Properties => ID.Properties;
+
+        /// <summary>
+        /// A tag used to easily distinguish log event data
+        /// </summary>
+        public EventTag Tag = EventTag.Utility;
 
         public LogEventArgs(LogID logID) : this(logID.Properties)
         {
@@ -38,6 +44,11 @@ namespace LogUtils.Events
 
     public class LogMessageEventArgs : LogEventArgs
     {
+        /// <summary>
+        /// A field for extra arguments - Use in cases when it is inconvenient to replace existing argument data  
+        /// </summary>
+        public readonly List<LogEventArgs> ExtraArgs = new List<LogEventArgs>();
+
         /// <summary>
         /// Contains source information needed to log through the BepInEx logger
         /// </summary>

@@ -42,8 +42,9 @@ namespace LogUtils
             public static class Rules
             {
                 public const string HEADER = "logrules";
-                public const string SHOW_LINE_COUNT = "showlinecount";
+                public const string LOG_DUMP = "logdump";
                 public const string SHOW_CATEGORIES = "showcategories";
+                public const string SHOW_LINE_COUNT = "showlinecount";
             }
 
             /// <summary>

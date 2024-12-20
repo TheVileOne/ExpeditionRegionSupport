@@ -1,5 +1,7 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Events;
 using LogUtils.Helpers.Comparers;
+using LogUtils.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -678,30 +680,38 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Dumps all unhandled log requests to a special dump file
+        /// Dumps all unhandled log requests to a dump file
         /// </summary>
-        public void DumpRequestsToFile()
+        public void DumpRequestsToFile(LogID writeFileID)
         {
-            if (!UnhandledRequests.Any()) return;
+            LogRule rule = new LogDumpHeaderRule(true);
 
-            LogID logDump = LogID.CreateTemporaryID("LogDump", UtilityConsts.PathKeywords.ROOT); //TODO: Timestamp, allow new log file to be created at anytime
+            writeFileID.Properties.Rules.Add(rule);
 
-            logDump.Properties.ShowIntroTimestamp = true;
+            var pendingRequests = new List<LogRequest>();
+            lock (RequestProcessLock)
+            {
+                var currentRequests = UnhandledRequests.Where(r => r.Status != RequestStatus.Complete && r.Status != RequestStatus.WritePending).GetLinkedListEnumerator();
 
-            Logger logger = new Logger(false, logDump);
+                while (currentRequests.MoveNext())
+                {
+                    LogRequest request = currentRequests.Current;
 
-            /*
-            string writePath = logDump.Properties.CurrentFilePath;
+                    LogMessageEventArgs copy = request.Data.Clone(writeFileID) as LogMessageEventArgs;
 
-            //Delete existing log file before write
-            if (File.Exists(writePath))
-                File.Delete(writePath);
-            */
+                    copy.ExtraArgs.Add(request.Data);
 
-            logger.Log(UnhandledRequests);
+                    //Change requests to target new LogID
+                    pendingRequests.Add(new LogRequest(RequestType.Local, copy));
+                }
+            }
 
-            logDump.Properties.EndLogSession();
+            Logger logger = new DiscreteLogger(writeFileID);
+
+            logger.HandleRequests(pendingRequests, skipValidation: true);
             logger.Dispose();
+
+            writeFileID.Properties.Rules.Remove(rule);
         }
     }
 }

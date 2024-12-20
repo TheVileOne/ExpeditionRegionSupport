@@ -39,6 +39,8 @@ namespace LogUtils
 
         public RejectionReason UnhandledReason { get; private set; }
 
+        public static string StringFormat = "[Log Request][{0}] {1}";
+
         public LogRequest(RequestType type, LogMessageEventArgs data)
         {
             Data = data;
@@ -123,7 +125,7 @@ namespace LogUtils
 
         public override string ToString()
         {
-            return string.Format("[Log Request][{0}] {1}", Data.ID, Data.Message);
+            return string.Format(StringFormat, Data.ID, Data.Message);
         }
 
         public delegate void LogRequestEventHandler(LogRequest request);
