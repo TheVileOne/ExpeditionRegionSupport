@@ -94,12 +94,21 @@ namespace LogUtils
 
             void processLog()
             {
-                IExtendedLogSource sourceLogger = source as IExtendedLogSource;
+                if (source is ManualLogSource)
+                {
+                    ManualLogSource sourceLogger = (ManualLogSource)source;
+                    sourceLogger.Log(category, data);
+                    return;
+                }
+                else
+                {
+                    IExtendedLogSource sourceLogger = source as IExtendedLogSource;
 
-                if (sourceLogger == null)
-                    sourceLogger = UtilityLogger.Logger;
+                    if (sourceLogger == null)
+                        sourceLogger = UtilityLogger.Logger;
 
-                sourceLogger.Log(category, data);
+                    sourceLogger.Log(category, data);
+                }
             }
         }
 
@@ -109,12 +118,21 @@ namespace LogUtils
 
             void processLog()
             {
-                IExtendedLogSource sourceLogger = source as IExtendedLogSource;
+                if (source is ManualLogSource)
+                {
+                    ManualLogSource sourceLogger = (ManualLogSource)source;
+                    sourceLogger.Log(category.BepInExCategory, data);
+                    return;
+                }
+                else
+                {
+                    IExtendedLogSource sourceLogger = source as IExtendedLogSource;
 
-                if (sourceLogger == null)
-                    sourceLogger = UtilityLogger.Logger;
+                    if (sourceLogger == null)
+                        sourceLogger = UtilityLogger.Logger;
 
-                sourceLogger.Log(category.BepInExCategory, data);
+                    sourceLogger.Log(category.BepInExCategory, data);
+                }
             }
         }
 
