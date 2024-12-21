@@ -1,5 +1,6 @@
 ﻿using BepInEx.Logging;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace LogUtils.CompatibilityServices
 {
@@ -23,18 +24,19 @@ namespace LogUtils.CompatibilityServices
         /// </summary>
         internal static void AdaptLoggingSystem()
         {
-            List<ILogListener> listeners = GetListeners();
+            ICollection<ILogListener> listeners = GetListeners();
 
-            //The first DiskLogListener should be the one that writes to the BepInEx root directory
-            int listenerIndex = listeners.FindIndex(l => l is DiskLogListener);
+            //Find the LogListener that writes to the BepInEx root directory
+            ILogListener found = listeners.FirstOrDefault(l => l is DiskLogListener);
 
-            if (listenerIndex >= 0)
+            //This listener is incompatible with LogUtils, and must be replaced
+            if (found != null)
             {
-                listeners[listenerIndex].Dispose(); //This will flush any messages held by the original listener
-                listeners[listenerIndex] = _listener;
+                found.Dispose(); //This will flush any messages held by the original listener
+                listeners.Remove(found);
             }
-            else
-                listeners.Add(_listener);
+
+            listeners.Add(_listener);
         }
 
         /// <summary>
@@ -61,9 +63,9 @@ namespace LogUtils.CompatibilityServices
             */
         }
 
-        internal static List<ILogListener> GetListeners()
+        internal static ICollection<ILogListener> GetListeners()
         {
-            return (List<ILogListener>)BepInEx.Logging.Logger.Listeners;
+            return BepInEx.Logging.Logger.Listeners;
         }
     }
 }
