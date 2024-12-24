@@ -85,7 +85,7 @@ namespace LogUtils.Diagnostics
         /// </summary>
         /// <param name="data">The object to evaluate</param>
         /// <returns>The assert structure is returned</returns>
-        public static ObjectAssert Make(object data) => new ObjectAssert(data, assertArgs: default);
+        public static ObjectAssert<T> Make<T>(T data) => new ObjectAssert<T>(data, assertArgs: default);
 
         /// <summary>
         /// Creates an assert structure designed to evaluate an object
@@ -93,7 +93,7 @@ namespace LogUtils.Diagnostics
         /// <param name="data">The object to evaluate</param>
         /// <param name="assertArgs">A consolidated group of arguments</param>
         /// <returns>The assert structure is returned</returns>
-        public static ObjectAssert Make(object data, AssertArgs assertArgs) => new ObjectAssert(data, assertArgs);
+        public static ObjectAssert<T> Make<T>(T data, AssertArgs assertArgs) => new ObjectAssert<T>(data, assertArgs);
 
         /// <summary>
         /// Creates an assert structure designed to evaluate an object
@@ -101,7 +101,7 @@ namespace LogUtils.Diagnostics
         /// <param name="data">The object to evaluate</param>
         /// <param name="handler">The exclusive handler to receive the assert result</param>
         /// <returns>The assert structure is returned</returns>
-        public static ObjectAssert Make(object data, IConditionHandler handler) => new ObjectAssert(data, new AssertArgs(handler));
+        public static ObjectAssert<T> Make<T>(T data, IConditionHandler handler) => new ObjectAssert<T>(data, new AssertArgs(handler));
         #endregion
 
         internal static void OnResult(AssertArgs assertArgs, ConditionResults result)
@@ -406,7 +406,7 @@ namespace LogUtils.Diagnostics
         /// <param name="conditionArg">Condition argument for delegate</param>
         /// <param name="condition">Delegate that evaluates a condition</param>
         /// <param name="criteria">The expected state of the condition</param>
-        public static ConditionResults EvaluateCondition(double conditionArg, Func<double, bool> condition, EvaluationCriteria criteria)
+        public static ConditionResults EvaluateCondition<T>(T conditionArg, Func<T, bool> condition, EvaluationCriteria criteria)
         {
             bool conditionIsTrue = condition.Invoke(conditionArg);
 
