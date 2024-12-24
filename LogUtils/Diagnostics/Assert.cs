@@ -310,33 +310,25 @@ namespace LogUtils.Diagnostics
             return result;
         }
 
-        public static ConditionResults IsBetween(double value, double bound, double bound2)
+        public static ConditionResults IsBetween(double value, double minimum, double maximum)
         {
-            bool conditionPassed = false;
-            double lowBound, highBound;
-            if (bound != bound2)
+            //Just in case the values are out of order
+            if (minimum > maximum)
             {
-                if (bound < bound2)
-                {
-                    lowBound = bound;
-                    highBound = bound2;
-                }
-                else
-                {
-                    lowBound = bound2;
-                    highBound = bound;
-                }
-                conditionPassed = value > lowBound && value < highBound;
+                double swapValue = minimum;
+
+                minimum = maximum;
+                maximum = swapValue;
             }
-            else
-                lowBound = highBound = bound;
+
+            bool conditionPassed = value > minimum && value < maximum;
 
             if (conditionPassed)
                 return ConditionResults.Pass;
 
             var result = ConditionResults.Fail;
 
-            result.Response = new Message(UtilityConsts.AssertResponse.MUST_BE_IN_RANGE, "Value", lowBound.ToString(), highBound.ToString());
+            result.Response = new Message(UtilityConsts.AssertResponse.MUST_BE_IN_RANGE, "Value", minimum.ToString(), maximum.ToString());
             return result;
         }
 
@@ -409,18 +401,18 @@ namespace LogUtils.Diagnostics
         }
 
         /// <summary>
-        /// Uses the provided check condition delegate to assert a condition
+        /// Asserts a condition by invoking a delegate using specified values as arguments
         /// </summary>
-        /// <param name="condition">A delegate that evaluates the assigned value</param>
+        /// <param name="conditionArg">Condition argument for delegate</param>
+        /// <param name="condition">Delegate that evaluates a condition</param>
         /// <param name="criteria">The expected state of the condition</param>
-        public static ConditionResults EvaluateCondition(double value, Func<double, bool> condition, EvaluationCriteria criteria)
+        public static ConditionResults EvaluateCondition(double conditionArg, Func<double, bool> condition, EvaluationCriteria criteria)
         {
-            bool conditionIsTrue = condition(value);
+            bool conditionIsTrue = condition.Invoke(conditionArg);
 
             conditionIsTrue =
                    (criteria == EvaluationCriteria.MustBeTrue && conditionIsTrue)
                 || (criteria == EvaluationCriteria.MustBeFalse && !conditionIsTrue);
-
 
             if (conditionIsTrue)
                 return ConditionResults.Pass;
@@ -438,18 +430,44 @@ namespace LogUtils.Diagnostics
         }
 
         /// <summary>
-        /// Uses the provided check condition delegate to assert a condition
+        /// Asserts a condition by invoking a delegate using specified values as arguments
         /// </summary>
-        /// <param name="condition">A delegate that evaluates the assigned value</param>
-        /// <param name="value2">A value to be used for the evaluation process</param>
+        /// <param name="firstArg">First condition argument</param>
+        /// <param name="secondArg">Second condition argument</param>
+        /// <param name="condition">Delegate that evaluates a condition</param>
         /// <param name="criteria">The expected state of the condition</param>
-        public static ConditionResults EvaluateCondition(double value, double value2, Func<double, double, bool> condition, EvaluationCriteria criteria)
+        public static ConditionResults EvaluateCondition<T>(T firstArg, T secondArg, Func<T, T, bool> condition, EvaluationCriteria criteria)
         {
-            bool conditionIsTrue = condition(value, value2);
+            return processCondition(condition.Invoke(firstArg, secondArg), criteria);
+        }
+        #endregion
 
+        /// <summary>
+        /// Asserts a condition by dynamically invoking a delegate
+        /// </summary>
+        /// <param name="dynamicCondition">Delegate that evaluates a condition (must return a Boolean)</param>
+        /// <param name="criteria">The expected state of the condition</param>
+        /// <param name="dynamicParams">Parameters for evaluating a condition</param>
+        /// <exception cref="MemberAccessException">
+        ///    The caller does not have access to the method represented by the delegate (for
+        ///    example, if the method is private). -or- The number, order, or type of parameters
+        ///    listed in args is invalid.</exception>
+        /// <exception cref="ArgumentException">
+        ///     The method represented by the delegate is invoked on an object or a class that
+        ///     does not support it.</exception>
+        /// <exception cref="System.Reflection.TargetInvocationException">
+        ///     The method represented by the delegate is an instance method and the target object
+        ///     is null. -or- One of the encapsulated methods throws an exception.</exception>
+        public static ConditionResults EvaluateCondition(Delegate dynamicCondition, EvaluationCriteria criteria, params object[] dynamicParams)
+        {
+            return processCondition((bool)dynamicCondition.DynamicInvoke(dynamicParams), criteria);
+        }
+
+        private static ConditionResults processCondition(bool conditionIsTrue, EvaluationCriteria criteria)
+        {
             conditionIsTrue =
-                   (criteria == EvaluationCriteria.MustBeTrue && conditionIsTrue)
-                || (criteria == EvaluationCriteria.MustBeFalse && !conditionIsTrue);
+                  (criteria == EvaluationCriteria.MustBeTrue && conditionIsTrue)
+               || (criteria == EvaluationCriteria.MustBeFalse && !conditionIsTrue);
 
             if (conditionIsTrue)
                 return ConditionResults.Pass;
@@ -465,6 +483,5 @@ namespace LogUtils.Diagnostics
             result.Response = new Message(failMessage, "Condition");
             return result;
         }
-        #endregion
     }
 }

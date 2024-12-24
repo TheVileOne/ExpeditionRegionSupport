@@ -11,6 +11,10 @@
             _settings = assertArgs;
         }
 
+        /// <summary>
+        /// Asserts that target value must be true
+        /// </summary>
+        /// <returns>true if the assert passes, otherwise false</returns>
         public bool IsTrue()
         {
             var result = Assert.IsTrue(_target);
@@ -19,6 +23,10 @@
             return result.Passed;
         }
 
+        /// <summary>
+        /// Asserts that target value must be false
+        /// </summary>
+        /// <returns>true if the assert passes, otherwise false</returns>
         public bool IsFalse()
         {
             var result = Assert.IsFalse(_target);
