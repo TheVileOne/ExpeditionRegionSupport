@@ -6,20 +6,76 @@ namespace LogUtils.Diagnostics
     {
         public static readonly List<IConditionHandler> AssertHandlers = new List<IConditionHandler>();
 
-        public static BooleanAssert Assert(bool condition)                            => new BooleanAssert(condition, assertArgs: default);
-        public static BooleanAssert Assert(bool condition, AssertArgs assertArgs)     => new BooleanAssert(condition, assertArgs);
-        public static BooleanAssert Assert(bool condition, IConditionHandler handler) => new BooleanAssert(condition, new AssertArgs(handler));
+        /// <summary>
+        /// Asserts that the input value is true. Default handle behavior is to log a message when the asserted value is not true
+        /// </summary>
+        /// <param name="condition">The condition to evaluate</param>
+        /// <returns>true, when the condition is true, otherwise false</returns>
+        public static bool Assert(bool condition)
+        {
+            BooleanAssert assert = new BooleanAssert(condition, assertArgs: default);
+            return assert.IsTrue();
+        }
 
-        public static NumericAssert Assert(double value)                              => new NumericAssert(value, assertArgs: default);
-        public static NumericAssert Assert(double value, AssertArgs assertArgs)       => new NumericAssert(value, assertArgs);
-        public static NumericAssert Assert(double value, IConditionHandler handler)   => new NumericAssert(value, new AssertArgs(handler));
+        /// <summary>
+        /// Asserts that the input value is true. Default handle behavior is to log a message when the asserted value is not true
+        /// </summary>
+        /// <param name="condition">The condition to evaluate</param>
+        /// <param name="assertArgs">A consolidated group of arguments</param>
+        /// <returns>true, when the condition is true, otherwise false</returns>
+        public static bool Assert(bool condition, AssertArgs assertArgs)
+        {
+            BooleanAssert assert = new BooleanAssert(condition, assertArgs);
+            return assert.IsTrue();
+        }
 
-        public static CollectionAssert<T> Assert<T>(IEnumerable<T> enumerable)                            => new CollectionAssert<T>(enumerable, assertArgs: default);
-        public static CollectionAssert<T> Assert<T>(IEnumerable<T> enumerable, AssertArgs assertArgs)     => new CollectionAssert<T>(enumerable, assertArgs);
-        public static CollectionAssert<T> Assert<T>(IEnumerable<T> enumerable, IConditionHandler handler) => new CollectionAssert<T>(enumerable, new AssertArgs(handler));
+        /// <summary>
+        /// Asserts that the input value is true. Default handle behavior is to log a message when the asserted value is not true
+        /// </summary>
+        /// <param name="condition">The condition to evaluate</param>
+        /// <param name="handler">The exclusive handler to receive the assert result</param>
+        /// <returns>true, when the condition is true, otherwise false</returns>
+        public static bool Assert(bool condition, IConditionHandler handler)
+        {
+            BooleanAssert assert = new BooleanAssert(condition, new AssertArgs(handler));
+            return assert.IsTrue();
+        }
 
-        public static ObjectAssert Assert(object data)                            => new ObjectAssert(data, assertArgs: default);
-        public static ObjectAssert Assert(object data, AssertArgs assertArgs)     => new ObjectAssert(data, assertArgs);
-        public static ObjectAssert Assert(object data, IConditionHandler handler) => new ObjectAssert(data, new AssertArgs(handler));
+        private static BooleanAssert assert;
+
+        /// <summary>
+        /// Asserts that the input value is false. Default handle behavior is to log a message when the asserted value is true
+        /// </summary>
+        /// <param name="condition">The condition to evaluate</param>
+        /// <returns>true, when the condition is false, otherwise false</returns>
+        public static bool AssertFalse(bool condition)
+        {
+            BooleanAssert assert = new BooleanAssert(condition, assertArgs: default);
+            return assert.IsFalse();
+        }
+
+        /// <summary>
+        /// Asserts that the input value is false. Default handle behavior is to log a message when the asserted value is true
+        /// </summary>
+        /// <param name="condition">The condition to evaluate</param>
+        /// <param name="assertArgs">A consolidated group of arguments</param>
+        /// <returns>true, when the condition is false, otherwise false</returns>
+        public static bool AssertFalse(bool condition, AssertArgs assertArgs)
+        {
+            BooleanAssert assert = new BooleanAssert(condition, assertArgs);
+            return assert.IsFalse();
+        }
+
+        /// <summary>
+        /// Asserts that the input value is false. Default handle behavior is to log a message when the asserted value is true
+        /// </summary>
+        /// <param name="condition">The condition to evaluate</param>
+        /// <param name="handler">The exclusive handler to receive the assert result</param>
+        /// <returns>true, when the condition is false, otherwise false</returns>
+        public static bool AssertFalse(bool condition, IConditionHandler handler)
+        {
+            BooleanAssert assert = new BooleanAssert(condition, new AssertArgs(handler));
+            return assert.IsFalse();
+        }
     }
 }
