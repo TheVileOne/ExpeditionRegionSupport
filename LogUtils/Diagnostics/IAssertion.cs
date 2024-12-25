@@ -114,7 +114,7 @@ namespace LogUtils.Diagnostics
         public bool IsZero();
     }
 
-    public interface IObjectAssertion<T> : IAssertion<T>
+    public interface INullableAssertion<T> : IAssertion<T>
     {
         /// <summary>
         /// Asserts that the target value must be null
@@ -129,7 +129,7 @@ namespace LogUtils.Diagnostics
         public bool IsNotNull();
     }
 
-    public interface ICollectionAssertion<T> : IObjectAssertion<T>
+    public interface ICollectionAssertion<T> : INullableAssertion<T>
     {
         /// <summary>
         /// Asserts that the target collection must be null or empty

@@ -2,9 +2,9 @@
 
 namespace LogUtils.Diagnostics
 {
-    public readonly struct ObjectAssert<T> : IObjectAssertion<T>
+    public readonly struct ObjectAssert<T> : INullableAssertion<T>
     {
-        public readonly AssertArgs _settings;
+        private readonly AssertArgs _settings;
         private readonly T _target;
 
         public ObjectAssert(T assertTarget, AssertArgs assertArgs)
