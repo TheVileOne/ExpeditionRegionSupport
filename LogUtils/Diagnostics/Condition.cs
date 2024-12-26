@@ -11,7 +11,7 @@ namespace LogUtils.Diagnostics
         /// <returns>true, when the condition is true, otherwise false</returns>
         public static Condition<bool> Assert(bool condition)
         {
-            var assert = new Condition<bool>(condition, AssertHandler.DefaultHandler);
+            var assert = Diagnostics.Assert.For(condition);
             return assert.IsTrue();
         }
 
@@ -23,7 +23,7 @@ namespace LogUtils.Diagnostics
         /// <returns>true, when the condition is true, otherwise false</returns>
         public static Condition<bool> Assert(bool condition, AssertBehavior behavior)
         {
-            var assert = new Condition<bool>(condition, AssertHandler.DefaultHandler.Clone(behavior));
+            var assert = Diagnostics.Assert.For(condition, behavior);
             return assert.IsTrue();
         }
 
@@ -35,7 +35,7 @@ namespace LogUtils.Diagnostics
         /// <returns>true, when the condition is true, otherwise false</returns>
         public static Condition<bool> Assert(bool condition, IConditionHandler handler)
         {
-            var assert = new Condition<bool>(condition, handler);
+            var assert = Diagnostics.Assert.For(condition, handler);
             return assert.IsTrue();
         }
 
@@ -46,7 +46,7 @@ namespace LogUtils.Diagnostics
         /// <returns>true, when the condition is false, otherwise false</returns>
         public static Condition<bool> AssertFalse(bool condition)
         {
-            var assert = new Condition<bool>(condition, AssertHandler.DefaultHandler);
+            var assert = Diagnostics.Assert.For(condition);
             return assert.IsFalse();
         }
 
@@ -58,7 +58,7 @@ namespace LogUtils.Diagnostics
         /// <returns>true, when the condition is false, otherwise false</returns>
         public static Condition<bool> AssertFalse(bool condition, AssertBehavior behavior)
         {
-            var assert = new Condition<bool>(condition, AssertHandler.DefaultHandler.Clone(behavior));
+            var assert = Diagnostics.Assert.For(condition, behavior);
             return assert.IsFalse();
         }
 
@@ -70,7 +70,7 @@ namespace LogUtils.Diagnostics
         /// <returns>true, when the condition is false, otherwise false</returns>
         public static Condition<bool> AssertFalse(bool condition, IConditionHandler handler)
         {
-            var assert = new Condition<bool>(condition, handler);
+            var assert = Diagnostics.Assert.For(condition, handler);
             return assert.IsFalse();
         }
 
