@@ -14,7 +14,7 @@ namespace LogUtils.Diagnostics
         /// <returns>true, when the condition is true, otherwise false</returns>
         public static bool Assert(bool condition)
         {
-            BooleanAssert assert = new BooleanAssert(condition, assertArgs: default);
+            var assert = new Condition<bool>(condition, AssertHandler.DefaultHandler);
             return assert.IsTrue();
         }
 
@@ -22,11 +22,11 @@ namespace LogUtils.Diagnostics
         /// Asserts that the input value is true. Default handle behavior is to log a message when the asserted value is not true
         /// </summary>
         /// <param name="condition">The condition to evaluate</param>
-        /// <param name="assertArgs">A consolidated group of arguments</param>
+        /// <param name="behavior">The expected behavior of the assert</param>
         /// <returns>true, when the condition is true, otherwise false</returns>
-        public static bool Assert(bool condition, AssertArgs assertArgs)
+        public static bool Assert(bool condition, AssertBehavior behavior)
         {
-            BooleanAssert assert = new BooleanAssert(condition, assertArgs);
+            var assert = new Condition<bool>(condition, AssertHandler.DefaultHandler.Clone(behavior));
             return assert.IsTrue();
         }
 
@@ -38,7 +38,7 @@ namespace LogUtils.Diagnostics
         /// <returns>true, when the condition is true, otherwise false</returns>
         public static bool Assert(bool condition, IConditionHandler handler)
         {
-            BooleanAssert assert = new BooleanAssert(condition, new AssertArgs(handler));
+            var assert = new Condition<bool>(condition, handler);
             return assert.IsTrue();
         }
 
@@ -49,7 +49,7 @@ namespace LogUtils.Diagnostics
         /// <returns>true, when the condition is false, otherwise false</returns>
         public static bool AssertFalse(bool condition)
         {
-            BooleanAssert assert = new BooleanAssert(condition, assertArgs: default);
+            var assert = new Condition<bool>(condition, AssertHandler.DefaultHandler);
             return assert.IsFalse();
         }
 
@@ -57,11 +57,11 @@ namespace LogUtils.Diagnostics
         /// Asserts that the input value is false. Default handle behavior is to log a message when the asserted value is true
         /// </summary>
         /// <param name="condition">The condition to evaluate</param>
-        /// <param name="assertArgs">A consolidated group of arguments</param>
+        /// <param name="behavior">The expected behavior of the assert</param>
         /// <returns>true, when the condition is false, otherwise false</returns>
-        public static bool AssertFalse(bool condition, AssertArgs assertArgs)
+        public static bool AssertFalse(bool condition, AssertBehavior behavior)
         {
-            BooleanAssert assert = new BooleanAssert(condition, assertArgs);
+            var assert = new Condition<bool>(condition, AssertHandler.DefaultHandler.Clone(behavior));
             return assert.IsFalse();
         }
 
@@ -73,7 +73,7 @@ namespace LogUtils.Diagnostics
         /// <returns>true, when the condition is false, otherwise false</returns>
         public static bool AssertFalse(bool condition, IConditionHandler handler)
         {
-            BooleanAssert assert = new BooleanAssert(condition, new AssertArgs(handler));
+            var assert = new Condition<bool>(condition, handler);
             return assert.IsFalse();
         }
 
@@ -145,7 +145,7 @@ namespace LogUtils.Diagnostics
         public struct Result
         {
             public bool Passed;
-            public Condition.Message Message;
+            public Message Message;
         }
     }
 }

@@ -3,7 +3,7 @@ using System;
 
 namespace LogUtils.Diagnostics
 {
-    public class AssertHandler : IConditionHandler
+    public class AssertHandler : IConditionHandler, ICloneable
     {
         public static readonly AssertHandler DefaultHandler = new AssertHandler(new Logger(LogID.Unity));
 
@@ -12,6 +12,8 @@ namespace LogUtils.Diagnostics
             Condition.AssertHandlers.Add(DefaultHandler);
         }
 
+        public AssertBehavior Behavior = AssertBehavior.Log;
+
         public Logger Logger;
 
         public AssertHandler(Logger logger)
@@ -19,12 +21,12 @@ namespace LogUtils.Diagnostics
             Logger = logger;
         }
 
-        public virtual void Handle(AssertArgs assertSettings, ConditionResults condition)
+        public virtual void Handle<T>(Condition<T> condition)
         {
-            if (condition.Passed || assertSettings.Behavior == AssertBehavior.DoNothing) return;
+            if (condition.Passed || Behavior == AssertBehavior.DoNothing) return;
 
-            bool shouldLog = assertSettings.Behavior == AssertBehavior.Log || assertSettings.Behavior == AssertBehavior.LogAndThrow;
-            bool shouldThrow = assertSettings.Behavior == AssertBehavior.ThrowOnly || assertSettings.Behavior == AssertBehavior.LogAndThrow;
+            bool shouldLog = Behavior == AssertBehavior.Log || Behavior == AssertBehavior.LogAndThrow;
+            bool shouldThrow = Behavior == AssertBehavior.Throw || Behavior == AssertBehavior.LogAndThrow;
 
             if (shouldLog)
             {
@@ -35,6 +37,27 @@ namespace LogUtils.Diagnostics
             if (shouldThrow)
                 throw new AssertFailedException("Assert triggered");
         }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
+
+        public AssertHandler Clone(AssertBehavior behavior)
+        {
+            var clone = (AssertHandler)Clone();
+
+            clone.Behavior = behavior;
+            return clone;
+        }
+    }
+
+    public enum AssertBehavior
+    {
+        Log,
+        LogAndThrow,
+        Throw,
+        DoNothing //Disable
     }
 
     public class AssertFailedException : Exception

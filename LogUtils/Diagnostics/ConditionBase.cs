@@ -27,9 +27,10 @@ namespace LogUtils.Diagnostics
 
         public readonly bool ShouldProcess => Passed;
 
-        public Condition(T value)
+        public Condition(T value, IConditionHandler handler)
         {
             Value = value;
+            Handler = handler;
             Result.Passed = true;
         }
 

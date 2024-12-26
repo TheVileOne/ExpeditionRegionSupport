@@ -1,9 +1,5 @@
 ﻿using LogUtils.Helpers;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LogUtils.Diagnostics
 {
@@ -46,13 +42,5 @@ namespace LogUtils.Diagnostics
                 return Condition.AssertHandlers;
             }
         }
-    }
-
-    public enum AssertBehavior
-    {
-        Log,
-        LogAndThrow,
-        ThrowOnly,
-        DoNothing //Disable
     }
 }

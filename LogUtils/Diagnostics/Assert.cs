@@ -6,17 +6,6 @@ namespace LogUtils.Diagnostics
 {
     public static partial class Assert
     {
-        internal static void OnResult(AssertArgs assertArgs, ConditionResults result)
-        {
-            foreach (var handler in assertArgs.Handlers)
-                handler.Handle(assertArgs, result);
-        }
-
-        public static Condition<T> For<T>(T value)
-        {
-            return new Condition<T>(value);
-        }
-
         #region Boolean
         /// <summary>
         /// Asserts that target value must be true
@@ -517,5 +506,11 @@ namespace LogUtils.Diagnostics
             }
         }
         #endregion
+
+        public enum EvaluationCriteria
+        {
+            MustBeTrue,
+            MustBeFalse
+        }
     }
 }
