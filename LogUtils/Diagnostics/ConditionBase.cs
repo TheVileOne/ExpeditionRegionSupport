@@ -46,7 +46,7 @@
 
         private void onResult()
         {
-            //TODO: Pass condition to handler
+            Handler?.Handle(in this);
         }
     }
 }

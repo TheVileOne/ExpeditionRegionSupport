@@ -16,7 +16,7 @@ namespace LogUtils.Diagnostics
             Logger = logger;
         }
 
-        public virtual void Handle<T>(Condition<T> condition)
+        public virtual void Handle<T>(in Condition<T> condition)
         {
             if (condition.Passed || Behavior == AssertBehavior.DoNothing) return;
 
