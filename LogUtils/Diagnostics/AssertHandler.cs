@@ -7,11 +7,6 @@ namespace LogUtils.Diagnostics
     {
         public static readonly AssertHandler DefaultHandler = new AssertHandler(new Logger(LogID.Unity));
 
-        static AssertHandler()
-        {
-            Condition.AssertHandlers.Add(DefaultHandler);
-        }
-
         public AssertBehavior Behavior = AssertBehavior.Log;
 
         public Logger Logger;

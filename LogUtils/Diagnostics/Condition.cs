@@ -5,8 +5,6 @@ namespace LogUtils.Diagnostics
 {
     public static class Condition
     {
-        public static readonly List<IConditionHandler> AssertHandlers = new List<IConditionHandler>();
-
         /// <summary>
         /// Asserts that the input value is true. Default handle behavior is to log a message when the asserted value is not true
         /// </summary>

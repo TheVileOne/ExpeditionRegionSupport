@@ -32,15 +32,5 @@ namespace LogUtils.Diagnostics
             ExclusiveHandler = handler;
             Behavior = behavior;
         }
-
-        internal IEnumerable<IConditionHandler> Handlers
-        {
-            get
-            {
-                if (ExclusiveHandler != null)
-                    return ArrayUtils.CreateFromValues(ExclusiveHandler);
-                return Condition.AssertHandlers;
-            }
-        }
     }
 }
