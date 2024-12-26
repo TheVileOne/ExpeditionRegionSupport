@@ -237,12 +237,12 @@ namespace LogUtils.Diagnostics
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
         /// <param name="compareValue">The value to compare to</param>
-        public static Condition<T> IsGreaterThan<T>(this Condition<T> condition, T compareValue) where T : IComparable<T>
+        public static Condition<double> IsGreaterThan(this Condition<double> condition, double compareValue)
         {
             if (!condition.ShouldProcess)
                 return condition;
 
-            int valueDiff = Comparer<T>.Default.Compare(condition.Value, compareValue);
+            int valueDiff = Comparer<double>.Default.Compare(condition.Value, compareValue);
 
             bool conditionPassed = valueDiff > 0;
 
@@ -257,12 +257,12 @@ namespace LogUtils.Diagnostics
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
         /// <param name="compareValue">The value to compare to</param>
-        public static Condition<T> IsGreaterThanOrEqualTo<T>(this Condition<T> condition, T compareValue) where T : IComparable<T>
+        public static Condition<double> IsGreaterThanOrEqualTo(this Condition<double> condition, double compareValue)
         {
             if (!condition.ShouldProcess)
                 return condition;
 
-            int valueDiff = Comparer<T>.Default.Compare(condition.Value, compareValue);
+            int valueDiff = Comparer<double>.Default.Compare(condition.Value, compareValue);
 
             bool conditionPassed = valueDiff >= 0;
 
@@ -277,12 +277,12 @@ namespace LogUtils.Diagnostics
         /// Asserts that the target value must be less than a specified value
         /// </summary>
         /// <param name="compareValue">The value to compare to</param>
-        public static Condition<T> IsLessThan<T>(this Condition<T> condition, T compareValue) where T : IComparable<T>
+        public static Condition<double> IsLessThan(this Condition<double> condition, double compareValue)
         {
             if (!condition.ShouldProcess)
                 return condition;
 
-            int valueDiff = Comparer<T>.Default.Compare(condition.Value, compareValue);
+            int valueDiff = Comparer<double>.Default.Compare(condition.Value, compareValue);
 
             bool conditionPassed = valueDiff < 0;
 
@@ -297,12 +297,12 @@ namespace LogUtils.Diagnostics
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
         /// <param name="compareValue">The value to compare to</param>
-        public static Condition<T> IsLessThanOrEqualTo<T>(this Condition<T> condition, T compareValue) where T : IComparable<T>
+        public static Condition<double> IsLessThanOrEqualTo(this Condition<double> condition, double compareValue)
         {
             if (!condition.ShouldProcess)
                 return condition;
 
-            int valueDiff = Comparer<T>.Default.Compare(condition.Value, compareValue);
+            int valueDiff = Comparer<double>.Default.Compare(condition.Value, compareValue);
 
             bool conditionPassed = valueDiff <= 0;
 
@@ -318,17 +318,17 @@ namespace LogUtils.Diagnostics
         /// </summary>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
-        public static Condition<T> IsBetween<T>(this Condition<T> condition, T minimum, T maximum) where T : IComparable<T>
+        public static Condition<double> IsBetween(this Condition<double> condition, double minimum, double maximum)
         {
             if (!condition.ShouldProcess)
                 return condition;
 
-            var comparer = Comparer<T>.Default;
+            var comparer = Comparer<double>.Default;
 
             //Just in case the values are out of order
             if (comparer.Compare(minimum, maximum) > 0)
             {
-                T swapValue = minimum;
+                double swapValue = minimum;
 
                 minimum = maximum;
                 maximum = swapValue;
@@ -341,8 +341,8 @@ namespace LogUtils.Diagnostics
                 condition.Pass();
             else
             {
-                string reportDescriptorMin = minimum?.ToString() ?? "NULL";
-                string reportDescriptorMax = maximum?.ToString() ?? "NULL";
+                string reportDescriptorMin = minimum.ToString();
+                string reportDescriptorMax = maximum.ToString();
 
                 condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_IN_RANGE, "Value", reportDescriptorMin, reportDescriptorMax));
             }
@@ -511,6 +511,129 @@ namespace LogUtils.Diagnostics
         {
             MustBeTrue,
             MustBeFalse
+        }
+    }
+
+    //This namespace helps reduce noise in the form of Assert options suggested by an IDE for types that do not need those options
+    namespace Extensions
+    {
+        public static partial class Assert
+        {
+            /// <summary>
+            /// Asserts that the target value must be greater than a specified value
+            /// </summary>
+            /// <param name="compareValue">The value to compare to</param>
+            public static Condition<T> IsGreaterThan<T>(this Condition<T> condition, T compareValue) where T : IComparable<T>
+            {
+                if (!condition.ShouldProcess)
+                    return condition;
+
+                int valueDiff = Comparer<T>.Default.Compare(condition.Value, compareValue);
+
+                bool conditionPassed = valueDiff > 0;
+
+                if (conditionPassed)
+                    condition.Pass();
+                else
+                    condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.TOO_LOW, "Value"));
+                return condition;
+            }
+
+            /// <summary>
+            /// Asserts that the target value must be greater than or equal to a specified value
+            /// </summary>
+            /// <param name="compareValue">The value to compare to</param>
+            public static Condition<T> IsGreaterThanOrEqualTo<T>(this Condition<T> condition, T compareValue) where T : IComparable<T>
+            {
+                if (!condition.ShouldProcess)
+                    return condition;
+
+                int valueDiff = Comparer<T>.Default.Compare(condition.Value, compareValue);
+
+                bool conditionPassed = valueDiff >= 0;
+
+                if (conditionPassed)
+                    condition.Pass();
+                else
+                    condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.TOO_LOW, "Value"));
+                return condition;
+            }
+
+            /// <summary>
+            /// Asserts that the target value must be less than a specified value
+            /// </summary>
+            /// <param name="compareValue">The value to compare to</param>
+            public static Condition<T> IsLessThan<T>(this Condition<T> condition, T compareValue) where T : IComparable<T>
+            {
+                if (!condition.ShouldProcess)
+                    return condition;
+
+                int valueDiff = Comparer<T>.Default.Compare(condition.Value, compareValue);
+
+                bool conditionPassed = valueDiff < 0;
+
+                if (conditionPassed)
+                    condition.Pass();
+                else
+                    condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.TOO_HIGH, "Value"));
+                return condition;
+            }
+
+            /// <summary>
+            /// Asserts that the target value must be less than or equal to a specified value
+            /// </summary>
+            /// <param name="compareValue">The value to compare to</param>
+            public static Condition<T> IsLessThanOrEqualTo<T>(this Condition<T> condition, T compareValue) where T : IComparable<T>
+            {
+                if (!condition.ShouldProcess)
+                    return condition;
+
+                int valueDiff = Comparer<T>.Default.Compare(condition.Value, compareValue);
+
+                bool conditionPassed = valueDiff <= 0;
+
+                if (conditionPassed)
+                    condition.Pass();
+                else
+                    condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.TOO_HIGH, "Value"));
+                return condition;
+            }
+
+            /// <summary>
+            /// Asserts that the target value must be in a given interval
+            /// </summary>
+            /// <param name="minimum">The lower bound</param>
+            /// <param name="maximum">The upper bound</param>
+            public static Condition<T> IsBetween<T>(this Condition<T> condition, T minimum, T maximum) where T : IComparable<T>
+            {
+                if (!condition.ShouldProcess)
+                    return condition;
+
+                var comparer = Comparer<T>.Default;
+
+                //Just in case the values are out of order
+                if (comparer.Compare(minimum, maximum) > 0)
+                {
+                    T swapValue = minimum;
+
+                    minimum = maximum;
+                    maximum = swapValue;
+                }
+
+                bool conditionPassed = comparer.Compare(condition.Value, minimum) > 0
+                                    && comparer.Compare(condition.Value, maximum) < 0;
+
+                if (conditionPassed)
+                    condition.Pass();
+                else
+                {
+                    string reportDescriptorMin = minimum?.ToString() ?? "NULL";
+                    string reportDescriptorMax = maximum?.ToString() ?? "NULL";
+
+                    condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_IN_RANGE, "Value", reportDescriptorMin, reportDescriptorMax));
+                }
+                return condition;
+            }
         }
     }
 }
