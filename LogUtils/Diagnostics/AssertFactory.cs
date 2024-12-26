@@ -6,7 +6,7 @@
         /// Creates a structure for asserting the state of a specified value
         /// </summary>
         /// <param name="value">Object, or value type to be used as an assert target</param>
-        public static Condition<T> For<T>(T value)
+        public static Condition<T> That<T>(T value)
         {
             return new Condition<T>(value, AssertHandler.DefaultHandler);
         }
@@ -16,7 +16,7 @@
         /// </summary>
         /// <param name="value">Object, or value type to be used as an assert target</param>
         /// <param name="behavior">Represents options for handling assert behavior</param>
-        public static Condition<T> For<T>(T value, AssertBehavior behavior)
+        public static Condition<T> That<T>(T value, AssertBehavior behavior)
         {
             return new Condition<T>(value, AssertHandler.DefaultHandler.Clone(behavior));
         }
@@ -26,7 +26,7 @@
         /// </summary>
         /// <param name="value">Object, or value type to be used as an assert target</param>
         /// <param name="handler">The exclusive handler to receive the assert result</param>
-        public static Condition<T> For<T>(T value, IConditionHandler handler)
+        public static Condition<T> That<T>(T value, IConditionHandler handler)
         {
             return new Condition<T>(value, handler);
         }

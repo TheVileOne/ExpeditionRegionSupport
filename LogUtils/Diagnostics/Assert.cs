@@ -47,7 +47,7 @@ namespace LogUtils.Diagnostics
         /// Asserts that the target value must be equal to a specified value
         /// </summary>
         /// <param name="compareObject">The value to compare to</param>
-        public static Condition<T> IsEqual<T>(this Condition<T> condition, T compareObject)
+        public static Condition<T> IsEqualTo<T>(this Condition<T> condition, T compareObject)
         {
             if (!condition.ShouldProcess)
                 return condition;
@@ -203,7 +203,7 @@ namespace LogUtils.Diagnostics
         /// Asserts that the target value must be equal to a specified value
         /// </summary>
         /// <param name="compareValue">The value to compare to</param>
-        public static Condition<IComparable<T>> IsEqual<T>(this Condition<IComparable<T>> condition, T compareValue)
+        public static Condition<IComparable<T>> IsEqualTo<T>(this Condition<IComparable<T>> condition, T compareValue)
         {
             if (!condition.ShouldProcess)
                 return condition;
