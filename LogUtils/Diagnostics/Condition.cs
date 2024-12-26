@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace LogUtils.Diagnostics
 {
@@ -10,7 +9,7 @@ namespace LogUtils.Diagnostics
         /// </summary>
         /// <param name="condition">The condition to evaluate</param>
         /// <returns>true, when the condition is true, otherwise false</returns>
-        public static bool Assert(bool condition)
+        public static Condition<bool> Assert(bool condition)
         {
             var assert = new Condition<bool>(condition, AssertHandler.DefaultHandler);
             return assert.IsTrue();
@@ -22,7 +21,7 @@ namespace LogUtils.Diagnostics
         /// <param name="condition">The condition to evaluate</param>
         /// <param name="behavior">The expected behavior of the assert</param>
         /// <returns>true, when the condition is true, otherwise false</returns>
-        public static bool Assert(bool condition, AssertBehavior behavior)
+        public static Condition<bool> Assert(bool condition, AssertBehavior behavior)
         {
             var assert = new Condition<bool>(condition, AssertHandler.DefaultHandler.Clone(behavior));
             return assert.IsTrue();
@@ -34,7 +33,7 @@ namespace LogUtils.Diagnostics
         /// <param name="condition">The condition to evaluate</param>
         /// <param name="handler">The exclusive handler to receive the assert result</param>
         /// <returns>true, when the condition is true, otherwise false</returns>
-        public static bool Assert(bool condition, IConditionHandler handler)
+        public static Condition<bool> Assert(bool condition, IConditionHandler handler)
         {
             var assert = new Condition<bool>(condition, handler);
             return assert.IsTrue();
@@ -45,7 +44,7 @@ namespace LogUtils.Diagnostics
         /// </summary>
         /// <param name="condition">The condition to evaluate</param>
         /// <returns>true, when the condition is false, otherwise false</returns>
-        public static bool AssertFalse(bool condition)
+        public static Condition<bool> AssertFalse(bool condition)
         {
             var assert = new Condition<bool>(condition, AssertHandler.DefaultHandler);
             return assert.IsFalse();
@@ -57,7 +56,7 @@ namespace LogUtils.Diagnostics
         /// <param name="condition">The condition to evaluate</param>
         /// <param name="behavior">The expected behavior of the assert</param>
         /// <returns>true, when the condition is false, otherwise false</returns>
-        public static bool AssertFalse(bool condition, AssertBehavior behavior)
+        public static Condition<bool> AssertFalse(bool condition, AssertBehavior behavior)
         {
             var assert = new Condition<bool>(condition, AssertHandler.DefaultHandler.Clone(behavior));
             return assert.IsFalse();
@@ -69,7 +68,7 @@ namespace LogUtils.Diagnostics
         /// <param name="condition">The condition to evaluate</param>
         /// <param name="handler">The exclusive handler to receive the assert result</param>
         /// <returns>true, when the condition is false, otherwise false</returns>
-        public static bool AssertFalse(bool condition, IConditionHandler handler)
+        public static Condition<bool> AssertFalse(bool condition, IConditionHandler handler)
         {
             var assert = new Condition<bool>(condition, handler);
             return assert.IsFalse();

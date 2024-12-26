@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace LogUtils.Diagnostics
+﻿namespace LogUtils.Diagnostics
 {
     public struct Condition<T>
     {
+        public static bool operator true(Condition<T> condition) => condition.Passed;
+        public static bool operator false(Condition<T> condition) => !condition.Passed;
+
         /// <summary>
         /// Contains the state of the condition to evaluate
         /// </summary>

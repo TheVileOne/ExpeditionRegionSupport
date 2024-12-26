@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace LogUtils.Diagnostics
+﻿namespace LogUtils.Diagnostics
 {
     public interface IConditionHandler
     {
