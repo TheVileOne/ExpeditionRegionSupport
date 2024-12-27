@@ -1712,14 +1712,7 @@ namespace LogUtils.Diagnostics
                 if (!condition.ShouldProcess)
                     return condition;
 
-                int valueDiff = Comparer<T>.Default.Compare(condition.Value, compareValue);
-
-                bool conditionPassed = valueDiff > 0;
-
-                if (conditionPassed)
-                    condition.Pass();
-                else
-                    condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.TOO_LOW, "Value"));
+                AssertHelper.MustBeGreaterThan(ref condition, compareValue);
                 return condition;
             }
 
@@ -1732,14 +1725,7 @@ namespace LogUtils.Diagnostics
                 if (!condition.ShouldProcess)
                     return condition;
 
-                int valueDiff = Comparer<T>.Default.Compare(condition.Value, compareValue);
-
-                bool conditionPassed = valueDiff >= 0;
-
-                if (conditionPassed)
-                    condition.Pass();
-                else
-                    condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.TOO_LOW, "Value"));
+                AssertHelper.MustBeGreaterThanOrEqualTo(ref condition, compareValue);
                 return condition;
             }
 
@@ -1752,14 +1738,7 @@ namespace LogUtils.Diagnostics
                 if (!condition.ShouldProcess)
                     return condition;
 
-                int valueDiff = Comparer<T>.Default.Compare(condition.Value, compareValue);
-
-                bool conditionPassed = valueDiff < 0;
-
-                if (conditionPassed)
-                    condition.Pass();
-                else
-                    condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.TOO_HIGH, "Value"));
+                AssertHelper.MustBeLessThan(ref condition, compareValue);
                 return condition;
             }
 
@@ -1772,14 +1751,7 @@ namespace LogUtils.Diagnostics
                 if (!condition.ShouldProcess)
                     return condition;
 
-                int valueDiff = Comparer<T>.Default.Compare(condition.Value, compareValue);
-
-                bool conditionPassed = valueDiff <= 0;
-
-                if (conditionPassed)
-                    condition.Pass();
-                else
-                    condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.TOO_HIGH, "Value"));
+                AssertHelper.MustBeLessThanOrEqualTo(ref condition, compareValue);
                 return condition;
             }
 
@@ -1793,29 +1765,7 @@ namespace LogUtils.Diagnostics
                 if (!condition.ShouldProcess)
                     return condition;
 
-                var comparer = Comparer<T>.Default;
-
-                //Just in case the values are out of order
-                if (comparer.Compare(minimum, maximum) > 0)
-                {
-                    T swapValue = minimum;
-
-                    minimum = maximum;
-                    maximum = swapValue;
-                }
-
-                bool conditionPassed = comparer.Compare(condition.Value, minimum) > 0
-                                    && comparer.Compare(condition.Value, maximum) < 0;
-
-                if (conditionPassed)
-                    condition.Pass();
-                else
-                {
-                    string reportDescriptorMin = minimum?.ToString() ?? "NULL";
-                    string reportDescriptorMax = maximum?.ToString() ?? "NULL";
-
-                    condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_IN_RANGE, "Value", reportDescriptorMin, reportDescriptorMax));
-                }
+                AssertHelper.MustBeBetween(ref condition, minimum, maximum);
                 return condition;
             }
         }

@@ -87,8 +87,8 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Pass();
             else
             {
-                string reportDescriptorMin = minimum.ToString();
-                string reportDescriptorMax = maximum.ToString();
+                string reportDescriptorMin = minimum?.ToString() ?? "NULL";
+                string reportDescriptorMax = maximum?.ToString() ?? "NULL";
 
                 condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_IN_RANGE, "Value", reportDescriptorMin, reportDescriptorMax));
             }
