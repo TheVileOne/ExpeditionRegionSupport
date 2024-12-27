@@ -41,6 +41,41 @@ namespace LogUtils.Diagnostics
                 condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_FALSE, "Condition"));
             return condition;
         }
+
+        /// <summary>
+        /// Asserts that target value must be true
+        /// </summary>
+        public static Condition<bool?> IsTrue(this Condition<bool?> condition)
+        {
+            if (!condition.ShouldProcess)
+                return condition;
+
+            bool conditionPassed = condition.Value.HasValue && condition.Value == true;
+
+            if (conditionPassed)
+                condition.Pass();
+            else
+                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_TRUE, "Condition"));
+            return condition;
+        }
+
+        /// <summary>
+        /// Asserts that target value must be false
+        /// </summary>
+        public static Condition<bool?> IsFalse(this Condition<bool?> condition)
+        {
+            if (!condition.ShouldProcess)
+                return condition;
+
+            //Null is considered different than false
+            bool conditionPassed = condition.Value.HasValue && condition.Value == false;
+
+            if (conditionPassed)
+                condition.Pass();
+            else
+                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_FALSE, "Condition"));
+            return condition;
+        }
         #endregion
         #region Objects and Structs
 
