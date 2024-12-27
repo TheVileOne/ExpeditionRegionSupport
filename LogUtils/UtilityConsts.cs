@@ -189,6 +189,8 @@ namespace LogUtils
             public const string MUST_BE_NEGATIVE = "{0} must be negative";
             public const string MUST_BE_POSITIVE = "{0} must be positive";
             public const string MUST_NOT_BE_NEGATIVE = "{0} must not be negative";
+
+            public const string NO_COMPARISON = "{0} could not be compared";
         }
     }
 }
