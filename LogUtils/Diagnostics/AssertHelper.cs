@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace LogUtils.Diagnostics.Extensions
 {
@@ -9,10 +8,9 @@ namespace LogUtils.Diagnostics.Extensions
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
         /// <param name="compareValue">The value to compare to</param>
-        internal static void MustBeGreaterThan<T>(ref Condition<T> condition, T compareValue) where T : IComparable<T>, IComparable
+        internal static void MustBeGreaterThan<T>(ref Condition<T> condition, T compareValue) where T : IComparable<T>
         {
-            int valueDiff = Comparer<T>.Default.Compare(condition.Value, compareValue);
-
+            int valueDiff = compareValues(condition.Value, compareValue);
             bool conditionPassed = valueDiff > 0;
 
             if (conditionPassed)
@@ -25,10 +23,9 @@ namespace LogUtils.Diagnostics.Extensions
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
         /// <param name="compareValue">The value to compare to</param>
-        internal static void MustBeGreaterThanOrEqualTo<T>(ref Condition<T> condition, T compareValue) where T : IComparable<T>, IComparable
+        internal static void MustBeGreaterThanOrEqualTo<T>(ref Condition<T> condition, T compareValue) where T : IComparable<T>
         {
-            int valueDiff = Comparer<T>.Default.Compare(condition.Value, compareValue);
-
+            int valueDiff = compareValues(condition.Value, compareValue);
             bool conditionPassed = valueDiff >= 0;
 
             if (conditionPassed)
@@ -41,10 +38,9 @@ namespace LogUtils.Diagnostics.Extensions
         /// Asserts that the target value must be less than a specified value
         /// </summary>
         /// <param name="compareValue">The value to compare to</param>
-        internal static void MustBeLessThan<T>(ref Condition<T> condition, T compareValue) where T : IComparable<T>, IComparable
+        internal static void MustBeLessThan<T>(ref Condition<T> condition, T compareValue) where T : IComparable<T>
         {
-            int valueDiff = Comparer<T>.Default.Compare(condition.Value, compareValue);
-
+            int valueDiff = compareValues(condition.Value, compareValue);
             bool conditionPassed = valueDiff < 0;
 
             if (conditionPassed)
@@ -57,10 +53,9 @@ namespace LogUtils.Diagnostics.Extensions
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
         /// <param name="compareValue">The value to compare to</param>
-        internal static void MustBeLessThanOrEqualTo<T>(ref Condition<T> condition, T compareValue) where T : IComparable<T>, IComparable
+        internal static void MustBeLessThanOrEqualTo<T>(ref Condition<T> condition, T compareValue) where T : IComparable<T>
         {
-            int valueDiff = Comparer<T>.Default.Compare(condition.Value, compareValue);
-
+            int valueDiff = compareValues(condition.Value, compareValue);
             bool conditionPassed = valueDiff <= 0;
 
             if (conditionPassed)
@@ -74,12 +69,10 @@ namespace LogUtils.Diagnostics.Extensions
         /// </summary>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
-        internal static void MustBeBetween<T>(ref Condition<T> condition, T minimum, T maximum) where T : IComparable<T>, IComparable
+        internal static void MustBeBetween<T>(ref Condition<T> condition, T minimum, T maximum) where T : IComparable<T>
         {
-            var comparer = Comparer<T>.Default;
-
             //Just in case the values are out of order
-            if (comparer.Compare(minimum, maximum) > 0)
+            if (compareValues(minimum, maximum) > 0)
             {
                 T swapValue = minimum;
 
@@ -87,8 +80,8 @@ namespace LogUtils.Diagnostics.Extensions
                 maximum = swapValue;
             }
 
-            bool conditionPassed = comparer.Compare(condition.Value, minimum) > 0
-                                && comparer.Compare(condition.Value, maximum) < 0;
+            bool conditionPassed = compareValues(condition.Value, minimum) > 0
+                                && compareValues(condition.Value, maximum) < 0;
 
             if (conditionPassed)
                 condition.Pass();
@@ -166,6 +159,16 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Pass();
             else
                 condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_NEGATIVE, "Value"));
+        }
+
+        private static int compareValues<T>(in T val, in T val2) where T : IComparable<T>
+        {
+            if (val != null)
+                return val.CompareTo(val2);
+
+            if (val2 != null)
+                return -val2.CompareTo(val);
+            return 0; //Both values must be null
         }
     }
 }
