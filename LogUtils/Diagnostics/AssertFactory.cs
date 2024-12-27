@@ -5,7 +5,7 @@
         /// <summary>
         /// Creates a structure for asserting the state of a specified value
         /// </summary>
-        /// <param name="value">Object, or value type to be used as an assert target</param>
+        /// <param name="value">Value to be used as an assert target</param>
         public static Condition<T> That<T>(T value)
         {
             return new Condition<T>(value, AssertHandler.DefaultHandler);
@@ -14,7 +14,7 @@
         /// <summary>
         /// Creates a structure for asserting the state of a specified value
         /// </summary>
-        /// <param name="value">Object, or value type to be used as an assert target</param>
+        /// <param name="value">Value to be used as an assert target</param>
         /// <param name="behavior">Represents options for handling assert behavior</param>
         public static Condition<T> That<T>(T value, AssertBehavior behavior)
         {
@@ -24,7 +24,7 @@
         /// <summary>
         /// Creates a structure for asserting the state of a specified value
         /// </summary>
-        /// <param name="value">Object, or value type to be used as an assert target</param>
+        /// <param name="value">Value to be used as an assert target</param>
         /// <param name="handler">The exclusive handler to receive the assert result</param>
         public static Condition<T> That<T>(T value, IConditionHandler handler)
         {
