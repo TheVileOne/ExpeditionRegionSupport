@@ -295,12 +295,7 @@ namespace LogUtils.Diagnostics
             if (!condition.ShouldProcess)
                 return condition;
 
-            bool conditionPassed = condition.Value == null || !condition.Value.Any();
-
-            if (conditionPassed)
-                condition.Pass();
-            else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_EMPTY, "Collection"));
+            AssertHelper.MustNotContainItems<IEnumerable<T>, T>(ref condition);
             return condition;
         }
 
@@ -312,12 +307,103 @@ namespace LogUtils.Diagnostics
             if (!condition.ShouldProcess)
                 return condition;
 
-            bool conditionPassed = condition.Value != null && condition.Value.Any();
+            AssertHelper.MustContainItems<IEnumerable<T>, T>(ref condition);
+            return condition;
+        }
 
-            if (conditionPassed)
-                condition.Pass();
-            else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_HAVE_ITEMS, "Collection"));
+        /// <summary>
+        /// Asserts that the target collection must be null or empty
+        /// </summary>
+        public static Condition<ICollection<T>> IsNullOrEmpty<T>(this Condition<ICollection<T>> condition)
+        {
+            if (!condition.ShouldProcess)
+                return condition;
+
+            AssertHelper.MustNotContainItems<ICollection<T>, T>(ref condition);
+            return condition;
+        }
+
+        /// <summary>
+        /// Asserts that the target collection must have at least one entry
+        /// </summary>
+        public static Condition<ICollection<T>> HasItems<T>(this Condition<ICollection<T>> condition)
+        {
+            if (!condition.ShouldProcess)
+                return condition;
+
+            AssertHelper.MustContainItems<ICollection<T>, T>(ref condition);
+            return condition;
+        }
+
+        /// <summary>
+        /// Asserts that the target collection must be null or empty
+        /// </summary>
+        public static Condition<IList<T>> IsNullOrEmpty<T>(this Condition<IList<T>> condition)
+        {
+            if (!condition.ShouldProcess)
+                return condition;
+
+            AssertHelper.MustNotContainItems<IList<T>, T>(ref condition);
+            return condition;
+        }
+
+        /// <summary>
+        /// Asserts that the target collection must have at least one entry
+        /// </summary>
+        public static Condition<IList<T>> HasItems<T>(this Condition<IList<T>> condition)
+        {
+            if (!condition.ShouldProcess)
+                return condition;
+
+            AssertHelper.MustContainItems<IList<T>, T>(ref condition);
+            return condition;
+        }
+
+        /// <summary>
+        /// Asserts that the target collection must be null or empty
+        /// </summary>
+        public static Condition<List<T>> IsNullOrEmpty<T>(this Condition<List<T>> condition)
+        {
+            if (!condition.ShouldProcess)
+                return condition;
+
+            AssertHelper.MustNotContainItems<List<T>, T>(ref condition);
+            return condition;
+        }
+
+        /// <summary>
+        /// Asserts that the target collection must have at least one entry
+        /// </summary>
+        public static Condition<List<T>> HasItems<T>(this Condition<List<T>> condition)
+        {
+            if (!condition.ShouldProcess)
+                return condition;
+
+            AssertHelper.MustContainItems<List<T>, T>(ref condition);
+            return condition;
+        }
+
+        /// <summary>
+        /// Asserts that the target collection must be null or empty
+        /// </summary>
+        public static Condition<T[]> IsNullOrEmpty<T>(this Condition<T[]> condition)
+        {
+            if (!condition.ShouldProcess)
+                return condition;
+
+            AssertHelper.MustNotContainItems<T[], T>(ref condition);
+            return condition;
+        }
+
+        /// <summary>
+        /// Asserts that the target collection must have at least one entry
+        /// </summary>
+        public static Condition<T[]> HasItems<T>(this Condition<T[]> condition)
+        {
+            if (!condition.ShouldProcess)
+                return condition;
+
+            AssertHelper.MustContainItems<T[], T>(ref condition);
             return condition;
         }
         #endregion

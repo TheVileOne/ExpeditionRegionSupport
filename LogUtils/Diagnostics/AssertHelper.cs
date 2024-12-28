@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace LogUtils.Diagnostics.Extensions
 {
@@ -468,6 +470,26 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Pass();
             else
                 condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_NEGATIVE, "Value"));
+        }
+
+        internal static void MustContainItems<T, U>(ref Condition<T> condition) where T : IEnumerable<U>
+        {
+            bool conditionPassed = condition.Value != null && condition.Value.Any();
+
+            if (conditionPassed)
+                condition.Pass();
+            else
+                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_HAVE_ITEMS, "Collection"));
+        }
+
+        internal static void MustNotContainItems<T, U>(ref Condition<T> condition) where T : IEnumerable<U>
+        {
+            bool conditionPassed = condition.Value == null || !condition.Value.Any();
+
+            if (conditionPassed)
+                condition.Pass();
+            else
+                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_EMPTY, "Collection"));
         }
 
         private static int compareValues<T>(in T val, in T val2) where T : IComparable<T>
