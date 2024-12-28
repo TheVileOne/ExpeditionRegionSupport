@@ -1,7 +1,6 @@
 ﻿using LogUtils.Diagnostics.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace LogUtils.Diagnostics
 {
@@ -214,6 +213,36 @@ namespace LogUtils.Diagnostics
                 condition.Pass();
             else
                 condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_EQUAL, "Values"));
+            return condition;
+        }
+
+        /// <summary>
+        /// Asserts that the target object refers to the same object as a specified object
+        /// </summary>
+        /// <param name="compareObject">The object to compare to</param>
+        public static Condition<T> IsSameInstance<T>(this Condition<T> condition, T compareObject) where T : class
+        {
+            bool conditionPassed = ReferenceEquals(condition, compareObject);
+
+            if (conditionPassed)
+                condition.Pass();
+            else
+                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_SAME_INSTANCE, "Object"));
+            return condition;
+        }
+
+        /// <summary>
+        /// Asserts that the target object refers to a different object than a specified object
+        /// </summary>
+        /// <param name="compareObject">The object to compare to</param>
+        public static Condition<T> IsNotThisInstance<T>(this Condition<T> condition, T compareObject) where T : class
+        {
+            bool conditionPassed = ReferenceEquals(condition, compareObject);
+
+            if (conditionPassed)
+                condition.Pass();
+            else
+                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_SAME_INSTANCE, "Object"));
             return condition;
         }
 

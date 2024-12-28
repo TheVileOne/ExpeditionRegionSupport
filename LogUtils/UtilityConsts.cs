@@ -164,6 +164,8 @@ namespace LogUtils
             //Object and struct data
             public const string MUST_BE_EQUAL = "{0} must be equivalent";
             public const string MUST_NOT_BE_EQUAL = "{0} must not be equivalent";
+            public const string MUST_BE_SAME_INSTANCE = "{0} must match the specified instance";
+            public const string MUST_NOT_BE_SAME_INSTANCE = "{0} must be a different instance";
             public const string MUST_BE_NULL = "{0} must be null";
             public const string MUST_NOT_BE_NULL = "{0} must not be null";
 
