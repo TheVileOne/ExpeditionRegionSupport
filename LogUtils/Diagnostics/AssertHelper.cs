@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AssertResponse = LogUtils.UtilityConsts.AssertResponse;
 
 namespace LogUtils.Diagnostics.Extensions
 {
@@ -18,7 +19,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.TOO_LOW, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.TOO_LOW, "Value"));
         }
 
         /// <summary>
@@ -33,7 +34,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.TOO_LOW, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.TOO_LOW, "Value"));
         }
 
         /// <summary>
@@ -48,7 +49,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.TOO_HIGH, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.TOO_HIGH, "Value"));
         }
 
         /// <summary>
@@ -63,7 +64,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.TOO_HIGH, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.TOO_HIGH, "Value"));
         }
 
         /// <summary>
@@ -92,7 +93,7 @@ namespace LogUtils.Diagnostics.Extensions
                 string reportDescriptorMin = minimum?.ToString() ?? "NULL";
                 string reportDescriptorMax = maximum?.ToString() ?? "NULL";
 
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_IN_RANGE, "Value", reportDescriptorMin, reportDescriptorMax));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_BE_IN_RANGE, "Value", reportDescriptorMin, reportDescriptorMax));
             }
         }
 
@@ -107,7 +108,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(valueDiff < 0 ? UtilityConsts.AssertResponse.TOO_LOW : UtilityConsts.AssertResponse.TOO_HIGH, "Value"));
+                condition.Fail(new Condition.Message(valueDiff < 0 ? AssertResponse.TOO_LOW : AssertResponse.TOO_HIGH, "Value"));
         }
 
         /// <summary>
@@ -121,7 +122,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_ZERO, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_BE_ZERO, "Value"));
         }
 
         /// <summary>
@@ -134,7 +135,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_NEGATIVE, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_BE_NEGATIVE, "Value"));
         }
 
         /// <summary>
@@ -147,7 +148,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_POSITIVE, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_BE_POSITIVE, "Value"));
         }
 
         /// <summary>
@@ -160,7 +161,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_NEGATIVE, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_BE_NEGATIVE, "Value"));
         }
 
         /// <summary>
@@ -171,7 +172,7 @@ namespace LogUtils.Diagnostics.Extensions
         {
             if (compareValue == null)
             {
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_NULL, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_BE_NULL, "Value"));
                 return;
             }
 
@@ -181,7 +182,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.TOO_LOW, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.TOO_LOW, "Value"));
         }
 
         /// <summary>
@@ -192,7 +193,7 @@ namespace LogUtils.Diagnostics.Extensions
         {
             if (compareValue == null)
             {
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_NULL, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_BE_NULL, "Value"));
                 return;
             }
 
@@ -202,7 +203,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.TOO_LOW, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.TOO_LOW, "Value"));
         }
 
         /// <summary>
@@ -213,7 +214,7 @@ namespace LogUtils.Diagnostics.Extensions
         {
             if (compareValue == null)
             {
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_NULL, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_BE_NULL, "Value"));
                 return;
             }
 
@@ -223,7 +224,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.TOO_HIGH, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.TOO_HIGH, "Value"));
         }
 
         /// <summary>
@@ -234,7 +235,7 @@ namespace LogUtils.Diagnostics.Extensions
         {
             if (compareValue == null)
             {
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_NULL, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_BE_NULL, "Value"));
                 return;
             }
 
@@ -244,7 +245,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.TOO_HIGH, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.TOO_HIGH, "Value"));
         }
 
         /// <summary>
@@ -255,7 +256,7 @@ namespace LogUtils.Diagnostics.Extensions
         {
             if (condition.Value == null || compareValue == null)
             {
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.NO_COMPARISON, "Nullable values"));
+                condition.Fail(new Condition.Message(AssertResponse.NO_COMPARISON, "Nullable values"));
                 return;
             }
 
@@ -265,7 +266,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.TOO_LOW, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.TOO_LOW, "Value"));
         }
 
         /// <summary>
@@ -280,7 +281,7 @@ namespace LogUtils.Diagnostics.Extensions
                 if (!condition.Value.HasValue && !compareValue.HasValue)
                     condition.Pass();
                 else
-                    condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.NO_COMPARISON, "Nullable values"));
+                    condition.Fail(new Condition.Message(AssertResponse.NO_COMPARISON, "Nullable values"));
                 return;
             }
 
@@ -290,7 +291,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.TOO_LOW, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.TOO_LOW, "Value"));
         }
 
         /// <summary>
@@ -301,7 +302,7 @@ namespace LogUtils.Diagnostics.Extensions
         {
             if (condition.Value == null || compareValue == null)
             {
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.NO_COMPARISON, "Nullable values"));
+                condition.Fail(new Condition.Message(AssertResponse.NO_COMPARISON, "Nullable values"));
                 return;
             }
 
@@ -311,7 +312,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.TOO_HIGH, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.TOO_HIGH, "Value"));
         }
 
         /// <summary>
@@ -326,7 +327,7 @@ namespace LogUtils.Diagnostics.Extensions
                 if (!condition.Value.HasValue && !compareValue.HasValue)
                     condition.Pass();
                 else
-                    condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.NO_COMPARISON, "Nullable values"));
+                    condition.Fail(new Condition.Message(AssertResponse.NO_COMPARISON, "Nullable values"));
                 return;
             }
 
@@ -336,7 +337,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.TOO_HIGH, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.TOO_HIGH, "Value"));
         }
 
         /// <summary>
@@ -348,7 +349,7 @@ namespace LogUtils.Diagnostics.Extensions
         {
             if (condition.Value == null)
             {
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_NULL, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_BE_NULL, "Value"));
                 return;
             }
 
@@ -371,7 +372,7 @@ namespace LogUtils.Diagnostics.Extensions
                 string reportDescriptorMin = minimum.ToString() ?? "NULL";
                 string reportDescriptorMax = maximum.ToString() ?? "NULL";
 
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_IN_RANGE, "Value", reportDescriptorMin, reportDescriptorMax));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_BE_IN_RANGE, "Value", reportDescriptorMin, reportDescriptorMax));
             }
         }
 
@@ -382,7 +383,7 @@ namespace LogUtils.Diagnostics.Extensions
         {
             if (condition.Value == null) //Null is not the same as zero in this context
             {
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_NULL, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_BE_NULL, "Value"));
                 return;
             }
 
@@ -392,7 +393,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(valueDiff < 0 ? UtilityConsts.AssertResponse.TOO_LOW : UtilityConsts.AssertResponse.TOO_HIGH, "Value"));
+                condition.Fail(new Condition.Message(valueDiff < 0 ? AssertResponse.TOO_LOW : AssertResponse.TOO_HIGH, "Value"));
         }
 
         /// <summary>
@@ -412,7 +413,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_ZERO, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_BE_ZERO, "Value"));
         }
 
         /// <summary>
@@ -422,7 +423,7 @@ namespace LogUtils.Diagnostics.Extensions
         {
             if (condition.Value == null)
             {
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_NULL, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_BE_NULL, "Value"));
                 return;
             }
 
@@ -431,7 +432,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_NEGATIVE, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_BE_NEGATIVE, "Value"));
         }
 
         /// <summary>
@@ -441,7 +442,7 @@ namespace LogUtils.Diagnostics.Extensions
         {
             if (condition.Value == null)
             {
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_NULL, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_BE_NULL, "Value"));
                 return;
             }
 
@@ -450,7 +451,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_POSITIVE, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_BE_POSITIVE, "Value"));
         }
 
         /// <summary>
@@ -460,7 +461,7 @@ namespace LogUtils.Diagnostics.Extensions
         {
             if (condition.Value == null)
             {
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_NULL, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_BE_NULL, "Value"));
                 return;
             }
 
@@ -469,7 +470,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_NEGATIVE, "Value"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_BE_NEGATIVE, "Value"));
         }
 
         internal static void MustContainItems<T, U>(ref Condition<T> condition) where T : IEnumerable<U>
@@ -479,7 +480,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_HAVE_ITEMS, "Collection"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_HAVE_ITEMS, "Collection"));
         }
 
         internal static void MustNotContainItems<T, U>(ref Condition<T> condition) where T : IEnumerable<U>
@@ -489,7 +490,7 @@ namespace LogUtils.Diagnostics.Extensions
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_EMPTY, "Collection"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_BE_EMPTY, "Collection"));
         }
 
         private static int compareValues<T>(in T val, in T val2) where T : IComparable<T>

@@ -1,6 +1,7 @@
 ﻿using LogUtils.Diagnostics.Extensions;
 using System;
 using System.Collections.Generic;
+using AssertResponse = LogUtils.UtilityConsts.AssertResponse; 
 
 namespace LogUtils.Diagnostics
 {
@@ -20,7 +21,7 @@ namespace LogUtils.Diagnostics
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_TRUE, "Condition"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_BE_TRUE, "Condition"));
             return condition;
         }
 
@@ -37,7 +38,7 @@ namespace LogUtils.Diagnostics
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_FALSE, "Condition"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_BE_FALSE, "Condition"));
             return condition;
         }
 
@@ -54,7 +55,7 @@ namespace LogUtils.Diagnostics
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_TRUE, "Condition"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_BE_TRUE, "Condition"));
             return condition;
         }
 
@@ -72,7 +73,7 @@ namespace LogUtils.Diagnostics
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_FALSE, "Condition"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_BE_FALSE, "Condition"));
             return condition;
         }
         #endregion
@@ -98,7 +99,7 @@ namespace LogUtils.Diagnostics
                 if (typeof(T).IsValueType)
                     reportDescriptor = "Values";
 
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_EQUAL, reportDescriptor));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_BE_EQUAL, reportDescriptor));
             }
             return condition;
         }
@@ -117,7 +118,7 @@ namespace LogUtils.Diagnostics
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_EQUAL, "Values"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_BE_EQUAL, "Values"));
             return condition;
         }
 
@@ -142,7 +143,7 @@ namespace LogUtils.Diagnostics
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_EQUAL, "Values"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_BE_EQUAL, "Values"));
             return condition;
         }
 
@@ -166,7 +167,7 @@ namespace LogUtils.Diagnostics
                 if (typeof(T).IsValueType)
                     reportDescriptor = "Values";
 
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_EQUAL, reportDescriptor));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_BE_EQUAL, reportDescriptor));
             }
             return condition;
         }
@@ -185,7 +186,7 @@ namespace LogUtils.Diagnostics
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_EQUAL, "Values"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_BE_EQUAL, "Values"));
             return condition;
         }
 
@@ -212,7 +213,7 @@ namespace LogUtils.Diagnostics
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_EQUAL, "Values"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_BE_EQUAL, "Values"));
             return condition;
         }
 
@@ -227,7 +228,7 @@ namespace LogUtils.Diagnostics
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_SAME_INSTANCE, "Object"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_BE_SAME_INSTANCE, "Object"));
             return condition;
         }
 
@@ -242,7 +243,7 @@ namespace LogUtils.Diagnostics
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_SAME_INSTANCE, "Object"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_BE_SAME_INSTANCE, "Object"));
             return condition;
         }
 
@@ -259,7 +260,7 @@ namespace LogUtils.Diagnostics
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_NULL, "Object"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_BE_NULL, "Object"));
             return condition;
         }
 
@@ -276,7 +277,7 @@ namespace LogUtils.Diagnostics
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_NULL, "Nullable value"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_BE_NULL, "Nullable value"));
             return condition;
         }
 
@@ -293,7 +294,7 @@ namespace LogUtils.Diagnostics
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_NULL, "Object"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_BE_NULL, "Object"));
             return condition;
         }
 
@@ -310,7 +311,7 @@ namespace LogUtils.Diagnostics
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_NOT_BE_NULL, "Nullable value"));
+                condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_BE_NULL, "Nullable value"));
             return condition;
         }
         #endregion
@@ -457,7 +458,7 @@ namespace LogUtils.Diagnostics
                 if (conditionPassed)
                     condition.Pass();
                 else
-                    condition.Fail(new Condition.Message(UtilityConsts.AssertResponse.MUST_BE_EQUAL, "Objects"));
+                    condition.Fail(new Condition.Message(AssertResponse.MUST_BE_EQUAL, "Objects"));
                 return condition;
             }
 
@@ -468,7 +469,7 @@ namespace LogUtils.Diagnostics
             if (conditionPassed)
                 condition.Pass();
             else
-                condition.Fail(new Condition.Message(valueDiff < 0 ? UtilityConsts.AssertResponse.TOO_LOW : UtilityConsts.AssertResponse.TOO_HIGH, "Value"));
+                condition.Fail(new Condition.Message(valueDiff < 0 ? AssertResponse.TOO_LOW : AssertResponse.TOO_HIGH, "Value"));
             return condition;
         }
 
@@ -3883,9 +3884,9 @@ namespace LogUtils.Diagnostics
             {
                 string failMessage = null;
                 if (criteria == EvaluationCriteria.MustBeTrue)
-                    failMessage = UtilityConsts.AssertResponse.MUST_BE_TRUE;
+                    failMessage = AssertResponse.MUST_BE_TRUE;
                 else if (criteria == EvaluationCriteria.MustBeFalse)
-                    failMessage = UtilityConsts.AssertResponse.MUST_BE_FALSE;
+                    failMessage = AssertResponse.MUST_BE_FALSE;
 
                 condition.Fail(new Condition.Message(failMessage, "Condition"));
             }
