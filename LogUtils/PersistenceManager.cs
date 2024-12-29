@@ -30,7 +30,6 @@ namespace LogUtils
                     {
                         handle.Dispose();
                         hasDisposedReferences = true;
-                        OnHandleDisposed?.Invoke(handle);
                     }
                 }
                 else
@@ -39,6 +38,11 @@ namespace LogUtils
 
             if (hasDisposedReferences)
                 References.RemoveAll(r => !r.TryGetTarget(out PersistentFileHandle handle) || !handle.IsAlive);
+        }
+
+        internal void NotifyOnDispose(PersistentFileHandle handle)
+        {
+            OnHandleDisposed?.Invoke(handle);
         }
     }
 }

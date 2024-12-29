@@ -39,13 +39,16 @@ namespace LogUtils
 
         protected override void Dispose(bool disposing)
         {
-            if (IsDisposed) return;
-
             var fileLock = FileID.Properties.FileLock;
 
             //Locked to avoid interfering with any write operations
             lock (fileLock)
             {
+                if (IsDisposed) return;
+
+                if (disposing)
+                    OnDispose();
+
                 fileLock.SetActivity(FileID, FileAction.StreamDisposal);
                 base.Dispose(disposing);
 

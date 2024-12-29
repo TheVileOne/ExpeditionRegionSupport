@@ -59,7 +59,7 @@ namespace LogUtils
             try
             {
                 if (IsDisposed)
-                    throw new ObjectDisposedException("Cannot access a disposed LogWriter");
+                    throw new ObjectDisposedException("Cannot access a disposed object");
 
                 foreach (var writer in LogWriters)
                     writer.Flush();
@@ -144,7 +144,17 @@ namespace LogUtils
 
         protected ProcessResult AssignWriter(LogID logFile, out PersistentLogFileWriter writer)
         {
-            writer = LogWriters.Find(writer => writer.Handle.FileID.Properties.HasID(logFile));
+            writer = FindWriter(logFile);
+
+            //Ensure that the writer we found will not be disposed during assignment
+            if (writer != null)
+            {
+                if (!writer.CanWrite)
+                {
+                    UtilityLogger.DebugLog("Writer rejected due to impermissible write state");
+                    writer = null;
+                }
+            }
 
         retry:
             PersistentLogFileHandle writeHandle;
@@ -185,6 +195,11 @@ namespace LogUtils
                 writeHandle.Lifetime.SetDuration(LifetimeDuration.Infinite);
             }
             return ProcessResult.Success;
+        }
+
+        protected PersistentLogFileWriter FindWriter(LogID logFile)
+        {
+            return LogWriters.Find(writer => writer.Handle.FileID.Properties.HasID(logFile));
         }
 
         protected void ReleaseHandle(PersistentLogFileHandle handle, bool disposing)

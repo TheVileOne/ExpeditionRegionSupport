@@ -1,5 +1,4 @@
-﻿using LogUtils.Threading;
-using System;
+﻿using System;
 using System.IO;
 
 namespace LogUtils
@@ -49,20 +48,26 @@ namespace LogUtils
         #region Dispose pattern
 
         protected bool IsDisposed;
+        protected bool IsDisposing;
+
+        public void Dispose()
+        {
+            //Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
 
         protected virtual void Dispose(bool disposing)
         {
             if (IsDisposed) return;
 
             if (disposing)
-                Lifetime.SetDuration(0);
+                OnDispose();
 
-            if (Stream != null)
-            {
-                Stream.Dispose();
-                Stream = null;
-            }
+            Stream?.Dispose();
+            Stream = null;
             IsDisposed = true;
+            IsDisposing = false;
         }
 
         ~PersistentFileHandle()
@@ -71,11 +76,16 @@ namespace LogUtils
             Dispose(disposing: false);
         }
 
-        public void Dispose()
+        /// <summary>
+        /// Runs logic that should happen at the very start of a dispose request
+        /// </summary>
+        protected void OnDispose()
         {
-            //Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            if (IsDisposing) return;
+
+            IsDisposing = true; //Ensures that OnDispose is only handled once
+            UtilityCore.PersistenceManager.NotifyOnDispose(this);
+            Lifetime.SetDuration(0); //Disposed handles should not be considered alive
         }
         #endregion
     }
