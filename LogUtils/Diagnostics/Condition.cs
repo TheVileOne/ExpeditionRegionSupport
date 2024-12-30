@@ -50,6 +50,13 @@ namespace LogUtils.Diagnostics
         {
             Handler?.Handle(in this);
         }
+
+        public override string ToString()
+        {
+            var messageTemplate = Result.Message;
+
+            return messageTemplate?.ToString() ?? string.Empty;
+        }
     }
 
     public static class Condition
