@@ -21,11 +21,11 @@ namespace LogUtils.Diagnostics
         }
 
         /// <summary>
-        /// Process the result of an assertion
+        /// Process a condition result
         /// </summary>
-        /// <param name="condition">The condition to evaluate</param>
+        /// <param name="result">The result to evaluate</param>
         /// <exception cref="AssertionException">Throws when AssertBehavior.Throw is set, and assert fails</exception>
-        public virtual void Handle<T>(in Condition<T> condition)
+        public virtual void Handle(in Condition.Result result)
         {
             if (Behavior == AssertBehavior.DoNothing) return;
 
@@ -33,7 +33,7 @@ namespace LogUtils.Diagnostics
             bool shouldLog = false,
                  shouldThrow = false;
             string responseString = null;
-            if (condition.Passed)
+            if (result.Passed)
             {
                 if ((Behavior & AssertBehavior.LogOnPass) != 0)
                 {
@@ -56,14 +56,14 @@ namespace LogUtils.Diagnostics
             if (shouldLog)
             {
                 if (string.IsNullOrEmpty(responseString))
-                    responseString = condition.ToString();
+                    responseString = result.ToString();
                 else
-                    responseString += ": " + condition.ToString();
+                    responseString += ": " + result.ToString();
                 Logger.Log(LogCategory.Assert, responseString);
             }
 
             if (shouldThrow)
-                throw new AssertionException("Assertion failed", condition.ToString());
+                throw new AssertionException("Assertion failed", result.ToString());
         }
 
         public object Clone()

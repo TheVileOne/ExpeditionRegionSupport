@@ -48,14 +48,7 @@ namespace LogUtils.Diagnostics
 
         private void onResult()
         {
-            Handler?.Handle(in this);
-        }
-
-        public override string ToString()
-        {
-            var messageTemplate = Result.Message;
-
-            return messageTemplate?.ToString() ?? string.Empty;
+            Handler?.Handle(Result);
         }
     }
 
@@ -194,6 +187,11 @@ namespace LogUtils.Diagnostics
         {
             public bool Passed;
             public Message Message;
+
+            public override string ToString()
+            {
+                return Message?.ToString() ?? string.Empty;
+            }
         }
     }
 }

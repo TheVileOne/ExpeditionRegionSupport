@@ -3,8 +3,8 @@
     public interface IConditionHandler
     {
         /// <summary>
-        /// Apply post-processing logic to the condition results
+        /// Apply post-processing logic to a condition result
         /// </summary>
-        public void Handle<T>(in Condition<T> condition);
+        public void Handle(in Condition.Result result);
     }
 }
