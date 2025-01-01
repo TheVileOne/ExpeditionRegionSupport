@@ -8,12 +8,19 @@ namespace LogUtils.Diagnostics
     {
         public static readonly AssertHandler DefaultHandler = new AssertHandler(new Logger(LogID.Unity));
 
-        public AssertBehavior Behavior = AssertBehavior.LogOnFail;
+        private AssertBehavior _behavior = AssertBehavior.LogOnFail;
+        public AssertBehavior Behavior
+        {
+            get => IsEnabled ? _behavior : AssertBehavior.DoNothing;
+            set => _behavior = value;
+        }
 
         public Logger Logger;
 
         public string FailResponse = UtilityConsts.AssertResponse.FAIL;
         public string PassResponse = UtilityConsts.AssertResponse.PASS;
+
+        public virtual bool IsEnabled => Debug.AssertsEnabled;
 
         public AssertHandler(Logger logger)
         {

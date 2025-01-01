@@ -18,6 +18,9 @@
         /// <param name="behavior">Represents options for handling assert behavior</param>
         public static Condition<T> That<T>(T value, AssertBehavior behavior)
         {
+            if (behavior == AssertHandler.DefaultHandler.Behavior)
+                return That(value);
+
             return new Condition<T>(value, AssertHandler.DefaultHandler.Clone(behavior));
         }
 
@@ -47,6 +50,9 @@
         /// <param name="behavior">Represents options for handling assert behavior</param>
         public static Condition<T?> That<T>(T? value, AssertBehavior behavior) where T : struct
         {
+            if (behavior == AssertHandler.DefaultHandler.Behavior)
+                return That(value);
+
             return new Condition<T?>(value, AssertHandler.DefaultHandler.Clone(behavior));
         }
 
