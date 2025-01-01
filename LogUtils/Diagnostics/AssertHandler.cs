@@ -1,5 +1,6 @@
 ﻿using LogUtils.Enums;
 using System;
+using UnityEngine.Assertions;
 
 namespace LogUtils.Diagnostics
 {
@@ -7,30 +8,62 @@ namespace LogUtils.Diagnostics
     {
         public static readonly AssertHandler DefaultHandler = new AssertHandler(new Logger(LogID.Unity));
 
-        public AssertBehavior Behavior = AssertBehavior.Log;
+        public AssertBehavior Behavior = AssertBehavior.LogOnFail;
 
         public Logger Logger;
+
+        public string FailResponse = UtilityConsts.AssertResponse.FAIL;
+        public string PassResponse = UtilityConsts.AssertResponse.PASS;
 
         public AssertHandler(Logger logger)
         {
             Logger = logger;
         }
 
+        /// <summary>
+        /// Process the result of an assertion
+        /// </summary>
+        /// <param name="condition">The condition to evaluate</param>
+        /// <exception cref="AssertionException">Throws when AssertBehavior.Throw is set, and assert fails</exception>
         public virtual void Handle<T>(in Condition<T> condition)
         {
-            if (condition.Passed || Behavior == AssertBehavior.DoNothing) return;
+            if (Behavior == AssertBehavior.DoNothing) return;
 
-            bool shouldLog = Behavior == AssertBehavior.Log || Behavior == AssertBehavior.LogAndThrow;
-            bool shouldThrow = Behavior == AssertBehavior.Throw || Behavior == AssertBehavior.LogAndThrow;
+            //Set flags that will determine if we will log, throw an exception, or both
+            bool shouldLog = false,
+                 shouldThrow = false;
+            string responseString = null;
+            if (condition.Passed)
+            {
+                if ((Behavior & AssertBehavior.LogOnPass) != 0)
+                {
+                    shouldLog = true;
+                    responseString = PassResponse;
+                }
+                shouldThrow = false;
+            }
+            else
+            {
+                if ((Behavior & AssertBehavior.LogOnFail) != 0)
+                {
+                    shouldLog = true;
+                    responseString = FailResponse;
+                }
+                shouldThrow = (Behavior & AssertBehavior.Throw) != 0;
+            }
 
+            //Check the behavior flags, and apply the appropriate behaviors
             if (shouldLog)
             {
-                string response = UtilityConsts.AssertResponse.FAIL + ": " + condition.ToString();
-                Logger.Log(LogCategory.Assert, response);
+                if (string.IsNullOrEmpty(responseString))
+                    responseString = condition.ToString();
+                else
+                    responseString += ": " + condition.ToString();
+                Logger.Log(LogCategory.Assert, responseString);
             }
 
             if (shouldThrow)
-                throw new AssertFailedException("Assert triggered");
+                throw new AssertionException("Assertion failed", condition.ToString());
         }
 
         public object Clone()
@@ -47,16 +80,13 @@ namespace LogUtils.Diagnostics
         }
     }
 
+    [Flags]
     public enum AssertBehavior
     {
-        Log,
-        LogAndThrow,
-        Throw,
-        DoNothing //Disable
-    }
-
-    public class AssertFailedException : Exception
-    {
-        public AssertFailedException(string message) : base(message) { }
+        DoNothing = 0,
+        LogOnFail = 1,
+        LogOnPass = 2,
+        Throw = 4,
+        LogAndThrow = LogOnFail & Throw,
     }
 }
