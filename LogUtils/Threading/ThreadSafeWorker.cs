@@ -8,6 +8,11 @@ namespace LogUtils.Threading
     {
         private readonly IEnumerable<object> _locks;
 
+        public ThreadSafeWorker(object lockObject)
+        {
+            _locks = new[] { lockObject };
+        }
+
         public ThreadSafeWorker(IEnumerable<object> locks)
         {
             _locks = locks;
