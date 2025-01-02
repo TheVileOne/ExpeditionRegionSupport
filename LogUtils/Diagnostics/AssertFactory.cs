@@ -1,4 +1,6 @@
-﻿namespace LogUtils.Diagnostics
+﻿using LogUtils.Diagnostics.Tests;
+
+namespace LogUtils.Diagnostics
 {
     public static partial class Assert
     {
@@ -8,7 +10,7 @@
         /// <param name="value">Value to be used as an assert target</param>
         public static Condition<T> That<T>(T value)
         {
-            return new Condition<T>(value, AssertHandler.DefaultHandler);
+            return new Condition<T>(value, getHandler());
         }
 
         /// <summary>
@@ -18,10 +20,19 @@
         /// <param name="behavior">Represents options for handling assert behavior</param>
         public static Condition<T> That<T>(T value, AssertBehavior behavior)
         {
-            if (behavior == AssertHandler.DefaultHandler.Behavior)
-                return That(value);
+            AssertHandler handler = getHandler() as AssertHandler;
 
-            return new Condition<T>(value, AssertHandler.DefaultHandler.Clone(behavior));
+            //In order to apply the AssertBehavior, we must be using an instance type that can handle it
+            if (handler == null)
+                handler = AssertHandler.DefaultHandler;
+
+            bool isNewBehavior = behavior != handler.Behavior;
+
+            //On new behaviors, we must clone the existing handler to ensure that this behavior only applies to a single assert chain
+            if (isNewBehavior)
+                handler = handler.Clone(behavior);
+
+            return new Condition<T>(value, handler);
         }
 
         /// <summary>
@@ -40,7 +51,7 @@
         /// <param name="value">Value to be used as an assert target</param>
         public static Condition<T?> That<T>(T? value) where T : struct
         {
-            return new Condition<T?>(value, AssertHandler.DefaultHandler);
+            return new Condition<T?>(value, getHandler());
         }
 
         /// <summary>
@@ -50,10 +61,19 @@
         /// <param name="behavior">Represents options for handling assert behavior</param>
         public static Condition<T?> That<T>(T? value, AssertBehavior behavior) where T : struct
         {
-            if (behavior == AssertHandler.DefaultHandler.Behavior)
-                return That(value);
+            AssertHandler handler = getHandler() as AssertHandler;
 
-            return new Condition<T?>(value, AssertHandler.DefaultHandler.Clone(behavior));
+            //In order to apply the AssertBehavior, we must be using an instance type that can handle it
+            if (handler == null)
+                handler = AssertHandler.DefaultHandler;
+
+            bool isNewBehavior = behavior != handler.Behavior;
+
+            //On new behaviors, we must clone the existing handler to ensure that this behavior only applies to a single assert chain
+            if (isNewBehavior)
+                handler = handler.Clone(behavior);
+
+            return new Condition<T?>(value, handler);
         }
 
         /// <summary>
@@ -64,6 +84,11 @@
         public static Condition<T?> That<T>(T? value, IConditionHandler handler) where T : struct
         {
             return new Condition<T?>(value, handler);
+        }
+
+        private static IConditionHandler getHandler()
+        {
+            return TestSuite.ActiveSuite?.Handler ?? AssertHandler.DefaultHandler;
         }
     }
 }

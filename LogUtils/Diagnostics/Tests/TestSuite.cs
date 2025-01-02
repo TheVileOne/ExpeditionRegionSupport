@@ -9,7 +9,19 @@ namespace LogUtils.Diagnostics.Tests
     /// </summary>
     public class TestSuite : ICollection<ITestable>
     {
+        protected internal static TestSuite ActiveSuite;
+
         protected const int DEFAULT_CAPACITY = 4;
+
+        /// <summary>
+        /// The handler to be used for all tests run through this test suite
+        /// <br></br>
+        /// <remarks>
+        /// <br>Defaults to the instance defined at AssertHandler.DefaultHandler when not set.</br>
+        /// <br>Field does not affect asserts that use a custom handler overload.</br>
+        /// </remarks>
+        /// </summary>
+        public IConditionHandler Handler;
 
         protected ITestable[] InnerCollection;
 
@@ -29,8 +41,6 @@ namespace LogUtils.Diagnostics.Tests
 
         public TestSuite()
         {
-            List<int> list = new List<int>();
-            list.Capacity = DEFAULT_CAPACITY;
         }
 
         public TestSuite(int capacity)
@@ -159,12 +169,44 @@ namespace LogUtils.Diagnostics.Tests
         #region Application code
         public void RunAllTests()
         {
-            var enumerator = GetEnumerator();
-
-            while (enumerator.MoveNext())
+            ActiveSuite = this;
+            try
             {
-                var currentTest = enumerator.Current;
-                currentTest.Test();
+                var enumerator = GetEnumerator();
+
+                while (enumerator.MoveNext())
+                {
+                    var currentTest = enumerator.Current;
+                    currentTest.Test();
+                }
+            }
+            finally
+            {
+                ActiveSuite = null;
+            }
+        }
+
+        /// <summary>
+        /// Run tests that match a specific predicate
+        /// </summary>
+        public void RunTests(Func<ITestable, bool> predicate)
+        {
+            ActiveSuite = this;
+            try
+            {
+                var enumerator = GetEnumerator();
+
+                while (enumerator.MoveNext())
+                {
+                    var currentTest = enumerator.Current;
+
+                    if (predicate(currentTest))
+                        currentTest.Test();
+                }
+            }
+            finally
+            {
+                ActiveSuite = null;
             }
         }
         #endregion
