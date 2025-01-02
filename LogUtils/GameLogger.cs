@@ -46,7 +46,7 @@ namespace LogUtils
 
             string message = request.Data.Message;
 
-            if (logFile == LogID.BepInEx) //The only logger example that needs an extra parameter
+            if (logFile == LogID.BepInEx)
             {
                 LogBepEx(request.Data.LogSource, request.Data.BepInExCategory, message);
             }
@@ -58,22 +58,13 @@ namespace LogUtils
             {
                 LogUnity(LogType.Error, message);
             }
-            else
+            else if (logFile == LogID.JollyCoop)
             {
-                LogCategory category = request.Data.Category;
-                LogHandler logMethod = LogUnity;
-
-                if (logFile != LogID.Unity)
-                {
-                    if (logFile == LogID.Expedition)
-                        logMethod = LogExp;
-                    else if (logFile == LogID.JollyCoop)
-                        logMethod = LogJolly;
-                    else if (logFile == LogID.Exception)
-                        logMethod = LogUnity;
-                }
-
-                logMethod(category, message);
+                LogJolly(request.Data.Category, message);
+            }
+            else if (logFile == LogID.Expedition)
+            {
+                LogExp(request.Data.Category, message);
             }
         }
 
