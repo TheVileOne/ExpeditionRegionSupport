@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace LogUtils.Diagnostics
+namespace LogUtils.Diagnostics.Tools
 {
     /// <summary>
     /// A simple struct that helps with identifying sources of null data

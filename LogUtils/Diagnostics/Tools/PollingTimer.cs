@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Timers;
 
-namespace LogUtils.Diagnostics
+namespace LogUtils.Diagnostics.Tools
 {
     public class PollingTimer : Timer
     {
@@ -16,7 +16,7 @@ namespace LogUtils.Diagnostics
         /// </summary>
         private long lastPollTime;
 
-        public TimeSpan TimeSinceLastPoll => lastPollTime <= 0 ? TimeSpan.Zero : TimeSpan.FromTicks(Stopwatch.GetTimestamp() - lastPollTime); 
+        public TimeSpan TimeSinceLastPoll => lastPollTime <= 0 ? TimeSpan.Zero : TimeSpan.FromTicks(Stopwatch.GetTimestamp() - lastPollTime);
 
         /// <summary>
         /// The poll state since the last elapsed time interval
