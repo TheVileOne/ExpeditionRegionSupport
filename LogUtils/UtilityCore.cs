@@ -84,6 +84,7 @@ namespace LogUtils
                 UtilityLogger.LogFatal(ex);
             }
 
+            Diagnostics.Debug.InitializeTestSuite();
             initializingInProgress = false;
             IsInitialized = true;
         }
