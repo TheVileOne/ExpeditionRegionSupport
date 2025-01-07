@@ -193,5 +193,12 @@ namespace LogUtils.Diagnostics
                 return Message?.ToString() ?? string.Empty;
             }
         }
+
+        public enum State
+        {
+            None,
+            Pass,
+            Fail
+        }
     }
 }

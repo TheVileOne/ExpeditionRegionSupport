@@ -66,11 +66,20 @@ namespace LogUtils.Diagnostics
                     responseString = result.ToString();
                 else
                     responseString += ": " + result.ToString();
+
+                PostProcessResponseString(ref responseString);
                 Logger.Log(LogCategory.Assert, responseString);
             }
 
             if (shouldThrow)
-                throw new AssertionException("Assertion failed", result.ToString());
+                throw new AssertionException(UtilityConsts.AssertResponse.FAIL, result.ToString());
+        }
+
+        /// <summary>
+        /// Allows changes to the response string prior to logging the response
+        /// </summary>
+        protected virtual void PostProcessResponseString(ref string response)
+        {
         }
 
         public object Clone()

@@ -16,6 +16,11 @@ namespace LogUtils.Diagnostics
 
         public bool HasResults => Results.Any();
 
+        /// <summary>
+        /// An optional field for analyzing expected outcomes in result data
+        /// </summary>
+        private Condition.State expectedResult = Condition.State.None;
+
         public DeferredAssertHandler(Logger logger) : base(logger)
         {
         }
@@ -64,6 +69,20 @@ namespace LogUtils.Diagnostics
                 base.Handle(Results.Dequeue());
         }
 
+        public void HandleCurrent(Condition.State expectation)
+        {
+            if (HasResults)
+            {
+                expectedResult = expectation;
+
+                //Peeks at the current result instead of dequeues, because we need to reference the result in another method before we can remove it
+                base.Handle(Current);
+
+                Results.Dequeue();
+                expectedResult = Condition.State.None;
+            }
+        }
+
         /// <summary>
         /// Handles the currently enumerated result
         /// <br></br>
@@ -79,6 +98,23 @@ namespace LogUtils.Diagnostics
 
                 if (shouldHandle(result))
                     base.Handle(result);
+            }
+        }
+
+        protected override void PostProcessResponseString(ref string response)
+        {
+            base.PostProcessResponseString(ref response);
+
+            switch (expectedResult)
+            {
+                case Condition.State.None:
+                    break;
+                case Condition.State.Pass:
+                    response += Current.Passed ? " (Expected)" : " (Unexpected)";
+                    break;
+                case Condition.State.Fail:
+                    response += !Current.Passed ? " (Expected)" : " (Unexpected)";
+                    break;
             }
         }
 
