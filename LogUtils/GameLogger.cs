@@ -20,7 +20,7 @@ namespace LogUtils
         public LogID LogFileInProcess;
         public int GameLoggerRequestCounter;
 
-        public void HandleRequest(LogRequest request)
+        public RejectionReason HandleRequest(LogRequest request)
         {
             request.ResetStatus(); //Ensure that processing request is handled in a consistent way
 
@@ -29,7 +29,11 @@ namespace LogUtils
 
             LogID logFile = request.Data.ID;
 
-            if (!logFile.IsGameControlled) return;
+            if (!logFile.IsGameControlled)
+            {
+                UtilityLogger.LogWarning("Rain World controlled loggers cannot handle this request");
+                return RejectionReason.None;
+            }
 
             //Check RainWorld.ShowLogs for logs that are restricted by it
             if (logFile.Properties.ShowLogsAware && !RainWorld.ShowLogs)
@@ -38,13 +42,14 @@ namespace LogUtils
                     request.Reject(RejectionReason.ShowLogsNotInitialized);
                 else
                     request.Reject(RejectionReason.LogDisabled);
-                return;
+                return request.UnhandledReason;
             }
 
             if (!logFile.Properties.CanBeAccessed)
                 request.Reject(RejectionReason.LogUnavailable);
 
-            if (request.Status == RequestStatus.Rejected) return;
+            if (request.Status == RequestStatus.Rejected)
+                return request.UnhandledReason;
 
             string message = request.Data.Message;
 
@@ -68,6 +73,7 @@ namespace LogUtils
             {
                 LogExp(request.Data.Category, message);
             }
+            return request.UnhandledReason;
         }
 
         public void LogBepEx(object data)
