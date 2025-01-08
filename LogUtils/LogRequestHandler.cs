@@ -45,7 +45,7 @@ namespace LogUtils
         public LogRequest CurrentRequest
         {
             get => _currentRequest ?? PendingRequest;
-            set
+            protected internal set
             {
                 if (value != null && !value.Submitted)
                 {
@@ -419,12 +419,10 @@ namespace LogUtils
                     Logger remoteLogger = null;
 
                     bool shouldFetchLoggers = true;
-                    LogRequest lastRequest = null;
 
                     foreach (LogRequest request in requests)
                     {
-                        if (lastRequest != null)
-                            shouldFetchLoggers = !lastRequest.Data.Properties.HasID(request.Data.ID); //TODO: Need to check for path here
+                        shouldFetchLoggers = selectedLogger == null || !CurrentRequest.Data.Properties.HasID(request.Data.ID); //TODO: Need to check for path here
 
                         if (shouldFetchLoggers)
                         {
@@ -438,13 +436,12 @@ namespace LogUtils
                             selectedLogger.HandleRequest(request);
                         else
                             request.Reject(RejectionReason.LogUnavailable);
-
-                        lastRequest = request;
                     }
                 }
                 else
                 {
-                    GameLogger.HandleRequests(requests);
+                    foreach (LogRequest request in requests)
+                        GameLogger.HandleRequest(request);
                 }
 
                 DiscardHandledRequests(requests);
@@ -525,6 +522,8 @@ namespace LogUtils
                     lastTargetID = targetID;
                     targetID = target.Data.ID;
                     targetNode = requestEnumerator.CurrentNode;
+
+                    CurrentRequest = target;
 
                     bool requestCanBeHandled = true;
 

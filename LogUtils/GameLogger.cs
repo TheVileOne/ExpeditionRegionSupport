@@ -5,7 +5,6 @@ using LogUtils.CompatibilityServices;
 using LogUtils.Enums;
 using LogUtils.Events;
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace LogUtils
@@ -24,6 +23,9 @@ namespace LogUtils
         public void HandleRequest(LogRequest request)
         {
             request.ResetStatus(); //Ensure that processing request is handled in a consistent way
+
+            if (request.Submitted)
+                UtilityCore.RequestHandler.CurrentRequest = request;
 
             LogID logFile = request.Data.ID;
 
@@ -66,12 +68,6 @@ namespace LogUtils
             {
                 LogExp(request.Data.Category, message);
             }
-        }
-
-        public void HandleRequests(IEnumerable<LogRequest> requests)
-        {
-            foreach (LogRequest request in requests)
-                HandleRequest(request);
         }
 
         public void LogBepEx(object data)

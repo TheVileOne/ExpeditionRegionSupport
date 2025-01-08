@@ -658,6 +658,9 @@ namespace LogUtils
 
         internal RejectionReason TryHandleRequest(LogRequest request, ref LogID loggerID)
         {
+            if (request.Submitted)
+                UtilityCore.RequestHandler.CurrentRequest = request;
+
             LogID requestID = request.Data.ID;
             if (loggerID == null || loggerID != requestID) //ExtEnums are not compared by reference
             {
