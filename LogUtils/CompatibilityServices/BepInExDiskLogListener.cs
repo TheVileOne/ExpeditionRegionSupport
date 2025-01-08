@@ -39,11 +39,19 @@ namespace LogUtils.CompatibilityServices
             if (eventArgs.Source is UnityLogSource) return;
 
             LogRequest request;
-            if (eventArgs.Source.SourceName == UtilityConsts.UTILITY_NAME)
+            lock (UtilityCore.RequestHandler.RequestProcessLock)
             {
-                request = new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.BepInEx, eventArgs));
-                logUtilityEvent(request);
-                return;
+                request = UtilityCore.RequestHandler.CurrentRequest;
+
+                if (request == null || request.Data.ID != LogID.BepInEx)
+                {
+                    if (eventArgs.Source.SourceName == UtilityConsts.UTILITY_NAME)
+                    {
+                        request = new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.BepInEx, eventArgs));
+                        logUtilityEvent(request);
+                        return;
+                    }
+                }
             }
 
             if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake)
@@ -65,8 +73,6 @@ namespace LogUtils.CompatibilityServices
                 Writer.WriteFrom(request);
             }
         }
-
-        bool flag;
 
         private void logUtilityEvent(LogRequest request)
         {
