@@ -415,18 +415,14 @@ namespace LogUtils
                 if (!logFile.IsGameControlled)
                 {
                     Logger selectedLogger = null;
-                    Logger localLogger = null;
-                    Logger remoteLogger = null;
-
-                    bool shouldFetchLoggers = true;
-
+                    LogRequest lastRequest = null;
                     foreach (LogRequest request in requests)
                     {
-                        shouldFetchLoggers = selectedLogger == null || !CurrentRequest.Data.Properties.HasID(request.Data.ID); //TODO: Need to check for path here
+                        bool shouldFetchLoggers = selectedLogger == null || !lastRequest.Data.Properties.HasID(request.Data.ID); //TODO: Need to check for path here
 
                         if (shouldFetchLoggers)
                         {
-                            findCompatibleLoggers(logFile, out localLogger, out remoteLogger);
+                            findCompatibleLoggers(logFile, out Logger localLogger, out Logger remoteLogger);
 
                             selectedLogger = request.Type == RequestType.Remote ? remoteLogger : localLogger;
                             shouldFetchLoggers = false;
@@ -436,6 +432,8 @@ namespace LogUtils
                             selectedLogger.HandleRequest(request);
                         else
                             request.Reject(RejectionReason.LogUnavailable);
+
+                        lastRequest = request;
                     }
                 }
                 else
