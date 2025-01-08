@@ -1,4 +1,5 @@
-﻿using LogUtils.Enums;
+﻿using LogUtils.Diagnostics.Tests;
+using LogUtils.Enums;
 using System;
 using UnityEngine.Assertions;
 
@@ -6,6 +7,8 @@ namespace LogUtils.Diagnostics
 {
     public class AssertHandler : IConditionHandler, ICloneable
     {
+        public static IConditionHandler CurrentTemplate => TestSuite.ActiveSuite?.Handler ?? DefaultHandler;
+
         public static readonly AssertHandler DefaultHandler = new AssertHandler(new Logger(LogID.Unity));
 
         private AssertBehavior _behavior = AssertBehavior.LogOnFail;

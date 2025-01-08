@@ -1,6 +1,4 @@
-﻿using LogUtils.Diagnostics.Tests;
-
-namespace LogUtils.Diagnostics
+﻿namespace LogUtils.Diagnostics
 {
     public static partial class Assert
     {
@@ -10,7 +8,7 @@ namespace LogUtils.Diagnostics
         /// <param name="value">Value to be used as an assert target</param>
         public static Condition<T> That<T>(T value)
         {
-            return new Condition<T>(value, getHandler());
+            return new Condition<T>(value, AssertHandler.CurrentTemplate);
         }
 
         /// <summary>
@@ -20,7 +18,7 @@ namespace LogUtils.Diagnostics
         /// <param name="behavior">Represents options for handling assert behavior</param>
         public static Condition<T> That<T>(T value, AssertBehavior behavior)
         {
-            AssertHandler handler = getHandler() as AssertHandler;
+            AssertHandler handler = AssertHandler.CurrentTemplate as AssertHandler;
 
             //In order to apply the AssertBehavior, we must be using an instance type that can handle it
             if (handler == null)
@@ -51,7 +49,7 @@ namespace LogUtils.Diagnostics
         /// <param name="value">Value to be used as an assert target</param>
         public static Condition<T?> That<T>(T? value) where T : struct
         {
-            return new Condition<T?>(value, getHandler());
+            return new Condition<T?>(value, AssertHandler.CurrentTemplate);
         }
 
         /// <summary>
@@ -61,7 +59,7 @@ namespace LogUtils.Diagnostics
         /// <param name="behavior">Represents options for handling assert behavior</param>
         public static Condition<T?> That<T>(T? value, AssertBehavior behavior) where T : struct
         {
-            AssertHandler handler = getHandler() as AssertHandler;
+            AssertHandler handler = AssertHandler.CurrentTemplate as AssertHandler;
 
             //In order to apply the AssertBehavior, we must be using an instance type that can handle it
             if (handler == null)
@@ -84,11 +82,6 @@ namespace LogUtils.Diagnostics
         public static Condition<T?> That<T>(T? value, IConditionHandler handler) where T : struct
         {
             return new Condition<T?>(value, handler);
-        }
-
-        private static IConditionHandler getHandler()
-        {
-            return TestSuite.ActiveSuite?.Handler ?? AssertHandler.DefaultHandler;
         }
     }
 }
