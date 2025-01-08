@@ -131,13 +131,15 @@ namespace LogUtils
             lock (RequestProcessLock)
             {
                 if (request.Submitted)
+                {
                     UtilityLogger.LogWarning("Submitted request has already been submitted at least once");
+                    return request;
+                }
 
                 //Ensures consistent handling of the request
                 request.ResetStatus();
                 request.Submitted = true;
 
-                LogRequest lastPendingRequest = null;
                 LogID logFile = request.Data.ID;
 
                 //Waiting requests must be handled before the submitted request
@@ -175,8 +177,6 @@ namespace LogUtils
                         return request;
                     }
                 }
-
-                lastPendingRequest = PendingRequest;
 
                 //The pending request has not been rejected, and is available to be processed 
                 PendingRequest = request;
