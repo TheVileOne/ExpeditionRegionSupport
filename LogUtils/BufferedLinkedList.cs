@@ -139,6 +139,9 @@ namespace LogUtils
 
         public void Remove(LinkedListNode<T> node)
         {
+            //Handling an invalidated node will throw an exception if we don't return here.
+            if (node.List == null) return;
+
             //UtilityLogger.DebugLog("Removing node by reference");
             InnerLinkedList.Remove(node);
         }
