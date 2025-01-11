@@ -149,14 +149,41 @@ namespace LogUtils
     public enum RejectionReason : byte
     {
         None = 0,
-        AccessDenied = 1, //LogID is private
-        LogDisabled = 2, //LogID is not enabled, Logger is not accepting logs, or LogID is ShowLogs aware and ShowLogs is false
-        FailedToWrite = 3, //Attempt to log failed due to an error
-        ExceptionAlreadyReported = 4, //Attempt to log the same Exception two, or more times to the same log file
-        FilterMatch = 5, //Attempt to log a string that is stored in FilteredStrings
-        PathMismatch = 6, //The path information for the LogID accepted by the logger does not match the path information of the LogID in the request
-        LogUnavailable = 7, //No logger is available that accepts the LogID, or the logger accepts the LogID, but enforces a build period on the log file that is not yet satisfied
-        PregameUnityRequest = 8, //Requested action to the Unity logger before the game is initialized
-        ShowLogsNotInitialized = 9 //Requested action to a ShowLogs aware log before ShowLogs is initialized 
+        /// <summary>
+        /// Logger available to handle the log request is private
+        /// </summary>
+        AccessDenied = 1,
+        /// <summary>
+        /// LogID is not enabled, Logger is not accepting logs, or LogID is ShowLogs aware and ShowLogs is false
+        /// </summary>
+        LogDisabled = 2,
+        /// <summary>
+        /// Attempt to log failed due to an error
+        /// </summary>
+        FailedToWrite = 3,
+        /// <summary>
+        /// Attempt to log the same Exception two, or more times to the same log file
+        /// </summary>
+        ExceptionAlreadyReported = 4,
+        /// <summary>
+        /// Attempt to log a string that is stored in FilteredStrings
+        /// </summary>
+        FilterMatch = 5,
+        /// <summary>
+        /// The path information for the LogID accepted by the logger does not match the path information of the LogID in the request
+        /// </summary>
+        PathMismatch = 6,
+        /// <summary>
+        /// A log request was sent to a logger that cannot handle the request
+        /// </summary>
+        NotAllowedToHandle = 7,
+        /// <summary>
+        /// No logger is available that accepts the LogID, or the logger accepts the LogID, but enforces a build period on the log file that is not yet satisfied
+        /// </summary>
+        LogUnavailable = 8,
+        /// <summary>
+        /// Attempt to log to a ShowLogs aware log before ShowLogs is initialized
+        /// </summary>
+        ShowLogsNotInitialized = 9
     }
 }

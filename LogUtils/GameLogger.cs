@@ -12,7 +12,7 @@ namespace LogUtils
     /// <summary>
     /// A class for handling game-controlled log content
     /// </summary>
-    public class GameLogger
+    public class GameLogger : ILoggerBase
     {
         /// <summary>
         /// Set to the LogID of a request while it is being handled through an external logging API accessed by a GameLogger instance
@@ -20,20 +20,26 @@ namespace LogUtils
         public LogID LogFileInProcess;
         public int GameLoggerRequestCounter;
 
-        public RejectionReason HandleRequest(LogRequest request)
+        public bool CanHandle(LogRequest request, bool doPathCheck = false)
+        {
+            return request.Data.ID.IsGameControlled;
+        }
+
+        public RejectionReason HandleRequest(LogRequest request, bool skipAccessValidation = false)
         {
             request.ResetStatus(); //Ensure that processing request is handled in a consistent way
 
             if (request.Submitted)
                 UtilityCore.RequestHandler.CurrentRequest = request;
 
-            LogID logFile = request.Data.ID;
-
-            if (!logFile.IsGameControlled)
+            //Normal utility code paths should not allow for this guard to be triggered
+            if (!skipAccessValidation && !CanHandle(request))
             {
-                UtilityLogger.LogWarning("Rain World controlled loggers cannot handle this request");
-                return RejectionReason.None;
+                UtilityLogger.LogWarning("Request sent to a logger that cannot handle it");
+                return RejectionReason.NotAllowedToHandle;
             }
+
+            LogID logFile = request.Data.ID;
 
             //Check RainWorld.ShowLogs for logs that are restricted by it
             if (logFile.Properties.ShowLogsAware && !RainWorld.ShowLogs)

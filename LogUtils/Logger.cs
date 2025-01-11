@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace LogUtils
 {
-    public class Logger : IDisposable
+    public class Logger : ILoggerBase, IDisposable
     {
         public ILogWriter Writer = LogWriter.Writer;
 
@@ -606,6 +606,11 @@ namespace LogUtils
             }
         }
 
+        public bool CanHandle(LogRequest request, bool doPathCheck = false)
+        {
+            return CanAccess(request.Data.ID, request.Type, doPathCheck);
+        }
+
         /// <summary>
         /// Returns whether logger instance is able to handle a specified LogID
         /// </summary>
@@ -638,19 +643,24 @@ namespace LogUtils
             return handlePool.Where(handle => !localTargets.Contains(handle.FileID));
         }
 
-        public void HandleRequests(IEnumerable<LogRequest> requests, bool skipValidation = false)
+        public void HandleRequests(IEnumerable<LogRequest> requests, bool skipAccessValidation = false)
         {
-            IEnumerable<LogRequest> validatedRequests = skipValidation ? requests : requests.Where(req => CanAccess(req.Data.ID, req.Type, doPathCheck: true));
+            IEnumerable<LogRequest> validatedRequests = skipAccessValidation ? requests : requests.Where(req => CanHandle(req, doPathCheck: true));
 
             LogID loggerID = null;
             foreach (LogRequest request in validatedRequests)
                 TryHandleRequest(request, ref loggerID);
         }
 
-        public RejectionReason HandleRequest(LogRequest request, bool skipValidation = false)
+        public RejectionReason HandleRequest(LogRequest request, bool skipAccessValidation = false)
         {
-            if (!skipValidation && !CanAccess(request.Data.ID, request.Type, doPathCheck: true))
-                return request.UnhandledReason;
+            if (!skipAccessValidation && !CanHandle(request, doPathCheck: true))
+            {
+                //TODO: CanHandle should be replaced with a function that returns an AccessViolation enum that tells us which specific reason
+                //to reject the request
+                UtilityLogger.LogWarning("Request sent to a logger that cannot handle it");
+                return RejectionReason.NotAllowedToHandle;
+            }
 
             LogID loggerID = null;
             return TryHandleRequest(request, ref loggerID);

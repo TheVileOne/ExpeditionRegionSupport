@@ -226,7 +226,7 @@ namespace LogUtils
             {
                 ILinkedListEnumerable<LogRequest> requests = GetRequests(logFile);
 
-                logger.HandleRequests(requests, true);
+                logger.HandleRequests(requests, skipAccessValidation: true);
                 DiscardHandledRequests(requests);
             }
         }
@@ -359,6 +359,15 @@ namespace LogUtils
             return bestCandidate;
         }
 
+        private ILoggerBase findCompatibleLoggerBase(LogID logFile, RequestType requestType)
+        {
+            if (logFile.IsGameControlled)
+                return GameLogger;
+
+            findCompatibleLoggers(logFile, out Logger localLogger, out Logger remoteLogger);
+            return requestType == RequestType.Local ? localLogger : remoteLogger;
+        }
+
         public void TryResolveRecord(LogID logFile)
         {
             //TODO: Check the handle record, and attempt to resolve the last known rejection reason
@@ -408,40 +417,29 @@ namespace LogUtils
                     }
                 }
 
+                //Ensures path is resolved avoiding the need to resolve the path in the loop
                 ILinkedListEnumerable<LogRequest> requests = GetRequests(logFile);
 
                 if (!requests.Any()) return;
 
-                if (!logFile.IsGameControlled)
+                ILoggerBase selectedLogger = null;
+                //LogRequest lastRequest = null;
+
+                //Evaluate all requests waiting to be handled for this log file
+                foreach (LogRequest request in requests)
                 {
-                    Logger selectedLogger = null;
-                    LogRequest lastRequest = null;
-                    foreach (LogRequest request in requests)
+                    if (selectedLogger == null || !selectedLogger.CanHandle(request))
                     {
-                        bool shouldFetchLoggers = selectedLogger == null || !lastRequest.Data.Properties.HasID(request.Data.ID); //TODO: Need to check for path here
-
-                        if (shouldFetchLoggers)
-                        {
-                            findCompatibleLoggers(logFile, out Logger localLogger, out Logger remoteLogger);
-
-                            selectedLogger = request.Type == RequestType.Remote ? remoteLogger : localLogger;
-                            shouldFetchLoggers = false;
-                        }
-
-                        if (selectedLogger != null)
-                            selectedLogger.HandleRequest(request);
-                        else
-                            request.Reject(RejectionReason.LogUnavailable);
-
-                        lastRequest = request;
+                        //Select a logger to handle the request
+                        selectedLogger = findCompatibleLoggerBase(logFile, request.Type);
                     }
-                }
-                else
-                {
-                    foreach (LogRequest request in requests)
-                        GameLogger.HandleRequest(request);
-                }
 
+                    //Handle the request if a logger is available to handle it
+                    if (selectedLogger != null)
+                        selectedLogger.HandleRequest(request, skipAccessValidation: true);
+                    else
+                        request.Reject(RejectionReason.LogUnavailable);
+                }
                 DiscardHandledRequests(requests);
             }
         }
@@ -467,19 +465,13 @@ namespace LogUtils
             }
 
             //Beyond this point, we can assume that there are no preexisting unhandled requests for this log file
-            if (!logFile.IsGameControlled)
-            {
-                Logger selectedLogger = findCompatibleLogger(logFile, request.Type, doPathCheck: true);
+            ILoggerBase selectedLogger = !logFile.IsGameControlled
+                ? findCompatibleLogger(logFile, request.Type, doPathCheck: true) : GameLogger;
 
-                if (selectedLogger != null)
-                    selectedLogger.HandleRequest(request, true);
-                else
-                    request.Reject(RejectionReason.LogUnavailable);
-            }
+            if (selectedLogger != null)
+                selectedLogger.HandleRequest(request, skipAccessValidation: true);
             else
-            {
-                GameLogger.HandleRequest(request);
-            }
+                request.Reject(RejectionReason.LogUnavailable);
 
             RequestMayBeCompleteOrInvalid(request);
         }
@@ -539,7 +531,7 @@ namespace LogUtils
                             if (selectedLogger != null)
                             {
                                 //Try to handle the log request, and recheck the status
-                                RejectionReason result = selectedLogger.HandleRequest(target, true);
+                                RejectionReason result = selectedLogger.HandleRequest(target, skipAccessValidation: true);
 
                                 if (requestCanBeHandled = !target.IsCompleteOrInvalid)
                                 {
@@ -550,9 +542,9 @@ namespace LogUtils
 
                                         if (selectedLogger != null)
                                         {
-                                            selectedLogger.HandleRequest(target, true);
                                             requestCanBeHandled = !target.IsCompleteOrInvalid;
                                         }
+                                            selectedLogger.HandleRequest(target, skipAccessValidation: true);
                                     }
                                 }
 
@@ -593,7 +585,7 @@ namespace LogUtils
 
         public void RejectRequests(IEnumerable<LogRequest> requests, RejectionReason reason)
         {
-            UtilityLogger.Log(LogCategory.Debug, "Rejection requests in bulk for reason: " + reason);
+            UtilityLogger.Log(LogCategory.Debug, "Rejecting requests in bulk for reason: " + reason);
 
             foreach (LogRequest request in requests)
                 request.Reject(reason);
@@ -705,7 +697,7 @@ namespace LogUtils
 
             Logger logger = new DiscreteLogger(writeFileID);
 
-            logger.HandleRequests(pendingRequests, skipValidation: true);
+            logger.HandleRequests(pendingRequests, skipAccessValidation: true);
             logger.Dispose();
 
             writeFileID.Properties.Rules.Remove(rule);
