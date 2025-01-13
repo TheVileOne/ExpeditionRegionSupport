@@ -643,13 +643,12 @@ namespace LogUtils
             return handlePool.Where(handle => !localTargets.Contains(handle.FileID));
         }
 
-        public void HandleRequests(IEnumerable<LogRequest> requests, bool skipAccessValidation = false)
+        /// <summary>
+        /// Retrieves all log files this logger instance can handle directly
+        /// </summary>
+        internal IEnumerable<LogID> GetTargetsForHandler()
         {
-            IEnumerable<LogRequest> validatedRequests = skipAccessValidation ? requests : requests.Where(req => CanHandle(req, doPathCheck: true));
-
-            LogID loggerID = null;
-            foreach (LogRequest request in validatedRequests)
-                TryHandleRequest(request, ref loggerID);
+            return LogTargets.Where(log => !log.IsGameControlled && log.Access != LogAccess.RemoteAccessOnly);
         }
 
         public RejectionReason HandleRequest(LogRequest request, bool skipAccessValidation = false)
@@ -663,10 +662,10 @@ namespace LogUtils
             }
 
             LogID loggerID = null;
-            return TryHandleRequest(request, ref loggerID);
+            return HandleRequest(request, ref loggerID);
         }
 
-        internal RejectionReason TryHandleRequest(LogRequest request, ref LogID loggerID)
+        internal RejectionReason HandleRequest(LogRequest request, ref LogID loggerID)
         {
             if (request.Submitted)
                 UtilityCore.RequestHandler.CurrentRequest = request;

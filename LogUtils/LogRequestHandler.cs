@@ -221,14 +221,7 @@ namespace LogUtils
             UtilityLogger.Log("Log targets: " + string.Join(" ,", logger.LogTargets));
 
             availableLoggers.Add(logger);
-
-            foreach (LogID logFile in logger.LogTargets.Where(log => !log.IsGameControlled && log.Access != LogAccess.RemoteAccessOnly)) //Game controlled logids cannot be handled here
-            {
-                ILinkedListEnumerable<LogRequest> requests = GetRequests(logFile);
-
-                logger.HandleRequests(requests, skipAccessValidation: true);
-                DiscardHandledRequests(requests);
-            }
+            ProcessRequests(logger);
         }
 
         /// <summary>
@@ -399,6 +392,22 @@ namespace LogUtils
                         request.Reject(RejectionReason.LogUnavailable);
                 }
                 DiscardHandledRequests(requests);
+            }
+        }
+
+        public void ProcessRequests(Logger logger)
+        {
+            lock (RequestProcessLock)
+            {
+                foreach (LogID logFile in logger.GetTargetsForHandler())
+                {
+                    ILinkedListEnumerable<LogRequest> requests = GetRequests(logFile);
+
+                    LogID loggerID = null;
+                    foreach (LogRequest request in requests)
+                        logger.HandleRequest(request, ref loggerID);
+                    DiscardHandledRequests(requests);
+                }
             }
         }
 
@@ -639,7 +648,8 @@ namespace LogUtils
 
             Logger logger = new DiscreteLogger(writeFileID);
 
-            logger.HandleRequests(pendingRequests, skipAccessValidation: true);
+            //TODO: Replace me
+            //logger.HandleRequests(pendingRequests, skipAccessValidation: true);
             logger.Dispose();
 
             writeFileID.Properties.Rules.Remove(rule);
