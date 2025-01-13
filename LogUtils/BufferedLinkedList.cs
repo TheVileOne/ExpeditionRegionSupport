@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace LogUtils
 {
-    public class BufferedLinkedList<T> : ILinkedListEnumerable<T> where T : class
+    public class BufferedLinkedList<T> : ICollection<T>, ILinkedListEnumerable<T> where T : class
     {
         private readonly LinkedList<T> nodeLeaser;
 
@@ -53,6 +53,8 @@ namespace LogUtils
 
         public bool AllowModificationsDuringIteration = true;
 
+        public bool IsReadOnly => false;
+
         public BufferedLinkedList(int capacity = default_capacity)
         {
             InnerLinkedList = new LinkedList<T>();
@@ -68,6 +70,11 @@ namespace LogUtils
         {
             if (nodeLeaser.Count == 0) //Increase capacity when no free nodes are available to lease
                 Capacity += default_capacity;
+        }
+
+        public void Add(T item)
+        {
+            AddLast(item);
         }
 
         public LinkedListNode<T> AddFirst(T value)
@@ -109,6 +116,11 @@ namespace LogUtils
         public bool Contains(T value)
         {
             return InnerLinkedList.Contains(value);
+        }
+
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            InnerLinkedList.CopyTo(array, arrayIndex);
         }
 
         public LinkedListNode<T> Find(T value)
@@ -192,7 +204,6 @@ namespace LogUtils
 
         public ILinkedListEnumerable<T> Where(Func<T, bool> predicate)
         {
-            //UtilityLogger.DebugLog("Getting Where enumerable");
             if (AllowModificationsDuringIteration)
                 return new WhereEnumerable(GetLinkedListEnumerator(), predicate);
             return new WhereEnumerableWrapper(Enumerable.Where(this, predicate));
@@ -200,7 +211,6 @@ namespace LogUtils
 
         public IEnumerator<T> GetEnumerator()
         {
-            //UtilityLogger.DebugLog("Getting enumerator");
             if (AllowModificationsDuringIteration)
                 return new Enumerator(this);
 
@@ -239,14 +249,14 @@ namespace LogUtils
 
             public Enumerator(BufferedLinkedList<T> list)
             {
-                items = list;
+                items = list ?? throw new ArgumentNullException(nameof(list));
             }
 
             bool disposed = false;
 
             public void Dispose()
             {
-                UtilityLogger.DebugLog("Disposing enumerator");
+                //UtilityLogger.DebugLog("Disposing enumerator");
                 disposed = true;
                 Reset();
             }
@@ -258,19 +268,15 @@ namespace LogUtils
             public bool MoveNext()
             {
                 if (disposed)
-                    UtilityLogger.DebugLog("Accessing a disposed enumerator");
-
-                if (items == null)
                 {
-                    UtilityLogger.LogWarning("Enumerator items list should not be null");
-
-                    firstProcess = false; //Enumeration cannot start on an empty list
+                    UtilityLogger.LogWarning("Cannot access a disposed enumerator");
                     return false;
                 }
 
                 //Move the enumerator by assigning a new reference node
                 if (firstProcess)
                 {
+                    //checkForOverflowConditions();
                     if (refNode == null)
                     {
                         refNode = items.First;
@@ -303,6 +309,27 @@ namespace LogUtils
                 firstProcess = true;
                 refNode = null;
             }
+
+            private void checkForOverflowConditions()
+            {
+                bool itemProcessOverflowed = false;
+                int itemsAvailable = 0;
+                var node = items.First;
+                while (node != null)
+                {
+                    itemsAvailable++;
+                    node = node.Next;
+
+                    if (itemsAvailable > 10000)
+                    {
+                        itemProcessOverflowed = true;
+                        break;
+                    }
+                }
+
+                if (itemProcessOverflowed)
+                    UtilityLogger.DebugLog("Item process overflow: Circular relationship likely");
+            }
         }
 
         /// <summary>
@@ -323,11 +350,16 @@ namespace LogUtils
 
             public EnumeratorWrapper(IEnumerator<T> enumerator)
             {
-                innerEnumerator = enumerator;
+                innerEnumerator = enumerator ?? throw new ArgumentNullException(nameof(enumerator));
             }
+
+            bool disposed = false;
 
             public void Dispose()
             {
+                //UtilityLogger.DebugLog("Disposing enumerator");
+                disposed = true;
+                innerEnumerator.Dispose();
             }
 
             /// <summary>
@@ -336,12 +368,11 @@ namespace LogUtils
             /// <returns>true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the collection.</returns>
             public bool MoveNext()
             {
-                if (innerEnumerator == null)
+                if (disposed)
                 {
-                    UtilityLogger.LogWarning(nameof(innerEnumerator) + " should not be null");
+                    UtilityLogger.LogWarning("Cannot access a disposed enumerator");
                     return false;
                 }
-
                 return innerEnumerator.MoveNext();
             }
 
@@ -372,8 +403,8 @@ namespace LogUtils
 
         public class WhereEnumerable : ILinkedListEnumerable<T>
         {
-            private ILinkedListEnumerator<T> enumerator;
-            private Func<T, bool> predicate;
+            private readonly ILinkedListEnumerator<T> enumerator;
+            private readonly Func<T, bool> predicate;
 
             internal WhereEnumerable()
             {
@@ -414,12 +445,17 @@ namespace LogUtils
 
             public WhereEnumerator(ILinkedListEnumerator<T> enumerator, Func<T, bool> predicate)
             {
-                this.innerEnumerator = enumerator;
+                this.innerEnumerator = enumerator ?? throw new ArgumentNullException(nameof(enumerator));
                 this.predicate = predicate;
             }
 
+            bool disposed = false;
+
             public void Dispose()
             {
+                //UtilityLogger.DebugLog("Disposing enumerator");
+                disposed = true;
+                innerEnumerator.Dispose();
             }
 
             /// <summary>
@@ -428,9 +464,9 @@ namespace LogUtils
             /// <returns>true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the collection.</returns>
             public bool MoveNext()
             {
-                if (innerEnumerator == null)
+                if (disposed)
                 {
-                    UtilityLogger.LogWarning(nameof(innerEnumerator) + " should not be null");
+                    UtilityLogger.LogWarning("Cannot access a disposed enumerator");
                     return false;
                 }
 
