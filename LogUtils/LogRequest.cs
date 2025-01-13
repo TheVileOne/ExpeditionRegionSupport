@@ -1,5 +1,4 @@
-﻿using LogUtils.Enums;
-using LogUtils.Events;
+﻿using LogUtils.Events;
 using System.Threading;
 
 namespace LogUtils
@@ -9,7 +8,10 @@ namespace LogUtils
     /// </summary>
     public class LogRequest
     {
-        public const byte NO_RETRY_MAXIMUM = 5;
+        /// <summary>
+        /// Rejection codes up to and including this value are not recoverable. A LogRequest that is rejected in this range will not be handled again
+        /// </summary>
+        public const byte UNABLE_TO_RETRY_RANGE = 5;
 
         private int managedThreadID = -1;
 
@@ -26,7 +28,11 @@ namespace LogUtils
         /// </summary>
         public bool IsCompleteOrInvalid => Status == RequestStatus.Complete || !CanRetryRequest();
 
-        public RequestStatus Status { get; private set; }
+        public bool IsReadyToWrite => Status != RequestStatus.Rejected && !WaitingOnOtherRequests;
+
+        protected RequestState State;
+
+        public RequestStatus Status => State.Status;
 
         /// <summary>
         /// Whether this request has once been submitted through the log request system
@@ -37,35 +43,66 @@ namespace LogUtils
 
         public readonly RequestType Type;
 
-        public RejectionReason UnhandledReason { get; private set; }
+        public RejectionReason UnhandledReason => State.UnhandledReason;
+
+        public bool WaitingOnOtherRequests
+        {
+            get
+            {
+                /*
+                 * This returns a state where the current request is pending, but the rejection record tells us there is a rejection
+                 * presumably from an earlier request that was rejected with the possibility of retrying the request at a later time.
+                 * This logic is not universally a guaranteed truth, but hopefully thread locking and careful management of internal
+                 * request processing will ensure that we are never checking a stale HandleRecord
+                 */
+                return Status == RequestStatus.Pending
+                    && Data.Properties.HandleRecord.Rejected
+                    && CanRetryRequest(Data.Properties.HandleRecord.Reason);
+            }
+        }
 
         public static string StringFormat = "[Log Request][{0}] {1}";
 
         public LogRequest(RequestType type, LogMessageEventArgs data)
         {
             Data = data;
-            Status = RequestStatus.Pending;
             Type = type;
         }
 
         public bool CanRetryRequest()
         {
-            byte reasonValue = (byte)UnhandledReason;
+            return CanRetryRequest(UnhandledReason);
+        }
 
-            return reasonValue > NO_RETRY_MAXIMUM || reasonValue == 0;
+        public static bool CanRetryRequest(RejectionReason reason)
+        {
+            return reason == RejectionReason.None || (byte)reason > UNABLE_TO_RETRY_RANGE;
+        }
+
+        private RequestState _restoreState;
+
+        public void NotifyOnProcess()
+        {
+            //The state of the request may be changed during processing. Keep record of the original state in case processing needs to be
+            //cancelled and the original state restored
+            _restoreState = State;
+        }
+
+        public void NotifyOnProcessCancellation()
+        {
+            State = _restoreState;
         }
 
         public void ResetStatus()
         {
-            Status = RequestStatus.Pending;
-            UnhandledReason = RejectionReason.None;
+            State.Reset();
         }
 
         public void Complete()
         {
             if (Status == RequestStatus.Complete) return;
 
-            Status = RequestStatus.Complete;
+            State.Status = RequestStatus.Complete;
             managedThreadID = -1;
 
             if (Data.ShouldFilter)
@@ -84,7 +121,7 @@ namespace LogUtils
                     return;
                 }
 
-                Status = RequestStatus.Rejected;
+                State.Status = RequestStatus.Rejected;
             }
             finally
             {
@@ -102,7 +139,7 @@ namespace LogUtils
             {
                 //A hacky attempt to make it possible to notify of path mismatches without overwriting an already existing reason 
                 if (reason != RejectionReason.PathMismatch || UnhandledReason == RejectionReason.None)
-                    UnhandledReason = reason;
+                    State.UnhandledReason = reason;
 
                 StatusChanged?.Invoke(this);
             }
@@ -119,7 +156,7 @@ namespace LogUtils
                 if (Status == RequestStatus.Rejected) return;
             }
 
-            Status = RequestStatus.WritePending;
+            State.Status = RequestStatus.WritePending;
             Interlocked.CompareExchange(ref managedThreadID, Thread.CurrentThread.ManagedThreadId, -1);
         }
 
@@ -129,6 +166,18 @@ namespace LogUtils
         }
 
         public delegate void LogRequestEventHandler(LogRequest request);
+
+        protected struct RequestState
+        {
+            public RequestStatus Status;
+            public RejectionReason UnhandledReason;
+
+            public void Reset()
+            {
+                Status = RequestStatus.Pending;
+                UnhandledReason = RejectionReason.None;
+            }
+        }
     }
 
     public enum RequestStatus

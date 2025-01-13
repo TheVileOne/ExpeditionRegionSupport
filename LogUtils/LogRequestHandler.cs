@@ -5,6 +5,7 @@ using LogUtils.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace LogUtils
 {
@@ -144,6 +145,13 @@ namespace LogUtils
 
                 //Waiting requests must be handled before the submitted request
                 ProcessRequests(logFile);
+
+                if (request.WaitingOnOtherRequests)
+                {
+                    //TODO: This will cause bugs if request cannot be handled, but is not rejected
+                    PendingRequest = request;
+                    return request;
+                }
 
                 if (logFile.Properties.HandleRecord.Rejected)
                 {
@@ -361,6 +369,48 @@ namespace LogUtils
             return requestType == RequestType.Local ? localLogger : remoteLogger;
         }
 
+        protected bool PrepareRequest(LogRequest request, long processTimestamp = -1)
+        {
+            if (request == null)
+            {
+                UtilityLogger.LogWarning("Processed a null log request... aborting operation");
+                return false;
+            }
+
+            request.NotifyOnProcess();
+            request.ResetStatus();
+
+            //The HandleRecord needs to conditionally be reset here for WaitingOnOtherRequests to produce an accurate result
+            if (processTimestamp < 0 || request.Data.Properties.HandleRecord.LastUpdated < processTimestamp)
+                request.Data.Properties.HandleRecord.Reset();
+
+            if (request.WaitingOnOtherRequests)
+            {
+                request.NotifyOnProcessCancellation();
+                return false;
+            }
+            return true;
+        }
+
+        protected bool PrepareRequestNoReset(LogRequest request)
+        {
+            if (request == null)
+            {
+                UtilityLogger.LogWarning("Processed a null log request... aborting operation");
+                return false;
+            }
+
+            request.NotifyOnProcess();
+            request.ResetStatus();
+
+            if (request.WaitingOnOtherRequests)
+            {
+                request.NotifyOnProcessCancellation();
+                return false;
+            }
+            return true;
+        }
+
         /// <summary>
         /// Attempts to handle all unhandled log requests belonging to a single LogID in the order they were submitted
         /// </summary>
@@ -368,8 +418,11 @@ namespace LogUtils
         {
             lock (RequestProcessLock)
             {
+                //Ensure that we do not handle a stale record
+                logFile.Properties.HandleRecord.Reset();
 
                 //Ensures path is resolved avoiding the need to resolve the path in the loop
+                //TODO: This isn't path specific
                 ILinkedListEnumerable<LogRequest> requests = GetRequests(logFile);
 
                 if (!requests.Any()) return;
@@ -379,6 +432,10 @@ namespace LogUtils
                 //Evaluate all requests waiting to be handled for this log file
                 foreach (LogRequest request in requests)
                 {
+                    bool shouldHandle = PrepareRequestNoReset(request);
+
+                    if (!shouldHandle) continue;
+
                     if (selectedLogger == null || !selectedLogger.CanHandle(request))
                     {
                         //Select a logger to handle the request
@@ -401,11 +458,18 @@ namespace LogUtils
             {
                 foreach (LogID logFile in logger.GetTargetsForHandler())
                 {
+                    //Ensure that we do not handle a stale record
+                    logFile.Properties.HandleRecord.Reset();
+
+                    //TODO: This isn't path specific
                     ILinkedListEnumerable<LogRequest> requests = GetRequests(logFile);
 
                     LogID loggerID = null;
                     foreach (LogRequest request in requests)
+                    {
+                        PrepareRequestNoReset(request);
                         logger.HandleRequest(request, ref loggerID);
+                    }
                     DiscardHandledRequests(requests);
                 }
             }
@@ -413,6 +477,10 @@ namespace LogUtils
 
         internal void ProcessRequest(LogRequest request)
         {
+            bool shouldHandle = PrepareRequest(request);
+
+            if (!shouldHandle) return;
+
             LogID logFile = request.Data.ID;
 
             //Beyond this point, we can assume that there are no preexisting unhandled requests for this log file
@@ -439,10 +507,12 @@ namespace LogUtils
             Logger selectedLogger = null;
             bool verifyRemoteAccess = false;
 
-            int requestNumber = 1;
+            int requestsProcessed = 0;
 
             lock (RequestProcessLock)
             {
+                long processStartTime = Stopwatch.GetTimestamp();
+
                 var requestEnumerator = UnhandledRequests.GetLinkedListEnumerator();
 
                 //Check every unhandled request, removing recently handled or invalid entries, and handling entries that are capable of being handled
@@ -450,23 +520,19 @@ namespace LogUtils
                 {
                     LogRequest target = requestEnumerator.Current;
 
-                    if (target == null)
-                    {
-                        UtilityLogger.LogWarning("Processed a null log request... aborting operation");
-                        break;
-                    }
+                    bool shouldHandle = PrepareRequest(target, processStartTime);
 
-                    UtilityLogger.DebugLog($"Request # [{requestNumber}] {target}");
-
-                    requestNumber++;
+                    if (!shouldHandle) continue;
 
                     lastTargetID = targetID;
                     targetID = target.Data.ID;
                     targetNode = requestEnumerator.CurrentNode;
 
-                    CurrentRequest = target;
+                    requestsProcessed++;
+                    UtilityLogger.DebugLog($"Request # [{requestsProcessed}] {target}");
 
                     bool requestCanBeHandled = true;
+                    CurrentRequest = target;
 
                     if (requestCanBeHandled = !target.IsCompleteOrInvalid)
                     {
