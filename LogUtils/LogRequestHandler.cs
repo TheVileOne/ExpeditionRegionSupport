@@ -371,7 +371,7 @@ namespace LogUtils
         public void TryResolveRecord(LogID logFile)
         {
             //TODO: Check the handle record, and attempt to resolve the last known rejection reason
-            logFile.Properties.HandleRecord.Reason = RejectionReason.None;
+            logFile.Properties.HandleRecord.Reset();
             return;
 
             LogRequestRecord handleRecord = logFile.Properties.HandleRecord;
@@ -394,7 +394,7 @@ namespace LogUtils
             }
 
             if (resolved)
-                logFile.Properties.HandleRecord.Reason = RejectionReason.None;
+                logFile.Properties.HandleRecord.Reset();
         }
 
         /// <summary>

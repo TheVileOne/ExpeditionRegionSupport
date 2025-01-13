@@ -96,7 +96,7 @@ namespace LogUtils
             if (reason != RejectionReason.None
              && reason != RejectionReason.ExceptionAlreadyReported
              && reason != RejectionReason.FilterMatch) //Temporary conditions should not be recorded
-                Data.Properties.HandleRecord.Reason = reason;
+                Data.Properties.HandleRecord.SetReason(reason);
 
             if (UnhandledReason != reason)
             {
