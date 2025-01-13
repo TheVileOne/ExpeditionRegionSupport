@@ -368,35 +368,6 @@ namespace LogUtils
             return requestType == RequestType.Local ? localLogger : remoteLogger;
         }
 
-        public void TryResolveRecord(LogID logFile)
-        {
-            //TODO: Check the handle record, and attempt to resolve the last known rejection reason
-            logFile.Properties.HandleRecord.Reset();
-            return;
-
-            LogRequestRecord handleRecord = logFile.Properties.HandleRecord;
-
-            bool resolved = false;
-            switch (handleRecord.Reason)
-            {
-                case RejectionReason.LogUnavailable:
-                case RejectionReason.AccessDenied:
-                    //BetaLogger selectedLogger = findCompatibleLogger(logFile, doPathCheck: true);
-
-                    //resolved = selectedLogger != null && selectedLogger.AllowLogging && selectedLogger.LogTargets.Find(log => log == logFile).Access != LogAccess.Private;
-                    break;
-
-                case RejectionReason.ExceptionAlreadyReported:
-                //FailedToWrite is not guaranteed to apply to every request with a specified LogID. It can be resolved immediately
-                case RejectionReason.FailedToWrite:
-                    resolved = true;
-                    break;
-            }
-
-            if (resolved)
-                logFile.Properties.HandleRecord.Reset();
-        }
-
         /// <summary>
         /// Attempts to handle all unhandled log requests belonging to a single LogID in the order they were submitted
         /// </summary>
@@ -404,18 +375,6 @@ namespace LogUtils
         {
             lock (RequestProcessLock)
             {
-                if (logFile.Properties.HandleRecord.Rejected)
-                {
-                    UtilityLogger.DebugLog("Rejection record detected for this request");
-
-                    TryResolveRecord(logFile);
-
-                    if (logFile.Properties.HandleRecord.Rejected)
-                    {
-                        RejectRequests(logFile, logFile.Properties.HandleRecord.Reason);
-                        return;
-                    }
-                }
 
                 //Ensures path is resolved avoiding the need to resolve the path in the loop
                 ILinkedListEnumerable<LogRequest> requests = GetRequests(logFile);
@@ -423,7 +382,6 @@ namespace LogUtils
                 if (!requests.Any()) return;
 
                 ILoggerBase selectedLogger = null;
-                //LogRequest lastRequest = null;
 
                 //Evaluate all requests waiting to be handled for this log file
                 foreach (LogRequest request in requests)
@@ -447,22 +405,6 @@ namespace LogUtils
         internal void ProcessRequest(LogRequest request)
         {
             LogID logFile = request.Data.ID;
-
-            //This shouldn't be necessary, as rejections should be resolved before ProcessRequest is resolved
-            if (logFile.Properties.HandleRecord.Rejected)
-            {
-                TryResolveRecord(logFile);
-
-                if (logFile.Properties.HandleRecord.Rejected)
-                {
-                    RejectRequests(logFile, logFile.Properties.HandleRecord.Reason);
-                    return;
-                }
-
-                //Waiting requests need to be checked and request will be included in the process operation 
-                ProcessRequests(logFile);
-                return;
-            }
 
             //Beyond this point, we can assume that there are no preexisting unhandled requests for this log file
             ILoggerBase selectedLogger = !logFile.IsGameControlled
