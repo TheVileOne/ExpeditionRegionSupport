@@ -500,97 +500,76 @@ namespace LogUtils
         /// </summary>
         public void ProcessRequests()
         {
-            LogID targetID, lastTargetID;
-            LinkedListNode<LogRequest> targetNode = null;
-
-            targetID = lastTargetID = null;
-            Logger selectedLogger = null;
+            LogID requestID = null,
+                  lastRequestID;
+            ILoggerBase selectedLogger = null;
             bool verifyRemoteAccess = false;
 
             int requestsProcessed = 0;
+            long processStartTime = Stopwatch.GetTimestamp();
 
             lock (RequestProcessLock)
             {
-                long processStartTime = Stopwatch.GetTimestamp();
+                LogRequestQueue requestQueue = UnhandledRequests.ToQueue();
 
-                var requestEnumerator = UnhandledRequests.GetLinkedListEnumerator();
+                var requests = requestQueue.GetRequests().ToArray();
 
-                //Check every unhandled request, removing recently handled or invalid entries, and handling entries that are capable of being handled
-                while (requestEnumerator.MoveNext())
+                if (requests.Length == 0) return;
+
+                UtilityLogger.DebugLog($"Processing {requests.Length} request" + (requests.Length > 1 ? "s" : ""));
+
+                foreach (LogRequest request in requests)
                 {
-                    LogRequest target = requestEnumerator.Current;
+                    bool shouldHandle = PrepareRequest(request, processStartTime);
 
-                    bool shouldHandle = PrepareRequest(target, processStartTime);
+                    if (!shouldHandle)
+                    {
+                        UtilityLogger.DebugLog("Request skipped");
+                        continue;
+                    }
 
-                    if (!shouldHandle) continue;
-
-                    lastTargetID = targetID;
-                    targetID = target.Data.ID;
-                    targetNode = requestEnumerator.CurrentNode;
+                    lastRequestID = requestID;
+                    requestID = request.Data.ID;
 
                     requestsProcessed++;
-                    UtilityLogger.DebugLog($"Request # [{requestsProcessed}] {target}");
+                    UtilityLogger.DebugLog($"Request # [{requestsProcessed}] {request}");
 
-                    bool requestCanBeHandled = true;
-                    CurrentRequest = target;
+                    CurrentRequest = request;
 
-                    if (requestCanBeHandled = !target.IsCompleteOrInvalid)
+                    if (request.IsCompleteOrInvalid) continue;
+
+                    //Find a logger that can be used for this LogID
+                    if (requestID.IsGameControlled)
+                        selectedLogger = GameLogger;
+                    else
                     {
-                        if (!targetID.IsGameControlled)
+                        if (selectedLogger == null || requestID != lastRequestID || (verifyRemoteAccess && request.Type == RequestType.Remote && !((Logger)selectedLogger).AllowRemoteLogging))
                         {
-                            //Find a logger that can be used for this LogID
-                            if (selectedLogger == null || targetID != lastTargetID || (verifyRemoteAccess && target.Type == RequestType.Remote && !selectedLogger.AllowRemoteLogging))
-                            {
-                                verifyRemoteAccess = target.Type == RequestType.Local; //Make the system aware that the logger expects local requests
-                                selectedLogger = findCompatibleLogger(targetID, target.Type, doPathCheck: false);
-                            }
-
-                            if (selectedLogger != null)
-                            {
-                                //Try to handle the log request, and recheck the status
-                                RejectionReason result = selectedLogger.HandleRequest(target, skipAccessValidation: true);
-
-                                if (requestCanBeHandled = !target.IsCompleteOrInvalid)
-                                {
-                                    if (result == RejectionReason.PathMismatch)
-                                    {
-                                        //Attempt to find a logger that accepts the target LogID with this exact path
-                                        selectedLogger = findCompatibleLogger(targetID, target.Type, doPathCheck: true);
-
-                                        if (selectedLogger != null)
-                                        {
-                                            requestCanBeHandled = !target.IsCompleteOrInvalid;
-                                        }
-                                            selectedLogger.HandleRequest(target, skipAccessValidation: true);
-                                    }
-                                }
-
-                                if (selectedLogger == null)
-                                    target.Reject(RejectionReason.LogUnavailable);
-                            }
+                            verifyRemoteAccess = request.Type == RequestType.Local; //Make the system aware that the logger expects local requests
+                            selectedLogger = findCompatibleLogger(requestID, request.Type, doPathCheck: false);
                         }
-                        else
+
+                        if (selectedLogger != null)
                         {
-                            UtilityLogger.DebugLog("Handling game request");
-                            GameLogger.HandleRequest(target);
-                            requestCanBeHandled = !target.IsCompleteOrInvalid;
+                            //Try to handle the log request, and recheck the status
+                            RejectionReason result = selectedLogger.HandleRequest(request, skipAccessValidation: true);
+
+                            if (request.IsCompleteOrInvalid) continue;
+
+                            if (result == RejectionReason.PathMismatch)
+                            {
+                                //Attempt to find a logger that accepts the target LogID with this exact path
+                                selectedLogger = findCompatibleLogger(requestID, request.Type, doPathCheck: true);
+                            }
                         }
                     }
 
-                    if (target.Submitted && !requestCanBeHandled)
-                    {
-                        if (targetNode == null)
-                        {
-                            UtilityLogger.DebugLog("Status: " + target.Status);
-                            UtilityLogger.DebugLog("Rejection Reason: " + target.UnhandledReason);
-                            UtilityLogger.DebugLog("Attempted to remove a null node");
-                            continue;
-                        }
-
-                        target.Submitted = false;
-                        UnhandledRequests.Remove(targetNode);
-                    }
+                    if (selectedLogger != null)
+                        selectedLogger.HandleRequest(request, skipAccessValidation: true);
+                    else
+                        request.Reject(RejectionReason.LogUnavailable);
                 }
+                DiscardHandledRequests();
             }
         }
 
