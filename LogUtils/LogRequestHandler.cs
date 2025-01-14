@@ -31,7 +31,7 @@ namespace LogUtils
         /// <summary>
         /// Contains LogRequest objects that are submitted and waiting to be handled
         /// </summary>
-        public BufferedLinkedList<LogRequest> UnhandledRequests;
+        public LinkedLogRequestCollection UnhandledRequests;
 
         /// <summary>
         /// Contains LogRequest objects that need to be submitted on the next available frame
@@ -110,7 +110,7 @@ namespace LogUtils
         public LogRequestHandler()
         {
             enabled = true;
-            UnhandledRequests = new BufferedLinkedList<LogRequest>(20);
+            UnhandledRequests = new LinkedLogRequestCollection(20);
         }
 
         public ILinkedListEnumerable<LogRequest> GetRequests(LogID logFile)
