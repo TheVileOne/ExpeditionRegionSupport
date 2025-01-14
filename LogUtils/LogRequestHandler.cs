@@ -146,18 +146,10 @@ namespace LogUtils
                 //Waiting requests must be handled before the submitted request
                 ProcessRequests(logFile);
 
+                //There are requests that could not be handled before the pending request - we cannot handle the pending request right away
                 if (request.WaitingOnOtherRequests)
                 {
-                    //TODO: This will cause bugs if request cannot be handled, but is not rejected
-                    PendingRequest = request;
-                    return request;
-                }
-
-                if (logFile.Properties.HandleRecord.Rejected)
-                {
-                    UtilityLogger.DebugLog("Aborting early due to rejection");
-                    request.Reject(logFile.Properties.HandleRecord.Reason);
-
+                    request.Reject(RejectionReason.WaitingOnOtherRequests);
                     handleRejection(request);
                     return request;
                 }
@@ -377,6 +369,7 @@ namespace LogUtils
                 return false;
             }
 
+            //Before a request can be handled properly, we need to treat it as if it is an unprocessed request
             request.ResetStatus();
 
             //The HandleRecord needs to conditionally be reset here for WaitingOnOtherRequests to produce an accurate result
@@ -385,6 +378,7 @@ namespace LogUtils
 
             if (request.WaitingOnOtherRequests)
             {
+                request.Reject(RejectionReason.WaitingOnOtherRequests);
                 return false;
             }
             return true;
@@ -398,10 +392,12 @@ namespace LogUtils
                 return false;
             }
 
+            //Before a request can be handled properly, we need to treat it as if it is an unprocessed request
             request.ResetStatus();
 
             if (request.WaitingOnOtherRequests)
             {
+                request.Reject(RejectionReason.WaitingOnOtherRequests);
                 return false;
             }
             return true;

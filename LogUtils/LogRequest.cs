@@ -55,9 +55,9 @@ namespace LogUtils
                  * This logic is not universally a guaranteed truth, but hopefully thread locking and careful management of internal
                  * request processing will ensure that we are never checking a stale HandleRecord
                  */
-                return Status == RequestStatus.Pending
-                    && Data.Properties.HandleRecord.Rejected
-                    && CanRetryRequest(Data.Properties.HandleRecord.Reason);
+                return UnhandledReason == RejectionReason.WaitingOnOtherRequests
+                    || (Status == RequestStatus.Pending
+                    && Data.Properties.HandleRecord.Rejected && CanRetryRequest(Data.Properties.HandleRecord.Reason));
             }
         }
 
@@ -213,12 +213,16 @@ namespace LogUtils
         /// </summary>
         NotAllowedToHandle = 7,
         /// <summary>
+        /// Attempt to handle log request was prevented, because an earlier request could not be handled
+        /// </summary>
+        WaitingOnOtherRequests = 8,
+        /// <summary>
         /// No logger is available that accepts the LogID, or the logger accepts the LogID, but enforces a build period on the log file that is not yet satisfied
         /// </summary>
-        LogUnavailable = 8,
+        LogUnavailable = 9,
         /// <summary>
         /// Attempt to log to a ShowLogs aware log before ShowLogs is initialized
         /// </summary>
-        ShowLogsNotInitialized = 9
+        ShowLogsNotInitialized = 10
     }
 }
