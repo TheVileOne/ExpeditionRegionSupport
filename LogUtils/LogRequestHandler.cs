@@ -442,12 +442,9 @@ namespace LogUtils
                         selectedLogger = findCompatibleLoggerBase(logFile, request.Type);
                     }
 
-                    //Handle the request if a logger is available to handle it
-                    if (selectedLogger != null)
-                        selectedLogger.HandleRequest(request, skipAccessValidation: true);
-                    else
-                        request.Reject(RejectionReason.LogUnavailable);
+                    HandleRequest(request, selectedLogger);
                 }
+
                 DiscardHandledRequests(requests);
             }
         }
@@ -470,29 +467,10 @@ namespace LogUtils
                         PrepareRequestNoReset(request);
                         logger.HandleRequest(request, ref loggerID);
                     }
+
                     DiscardHandledRequests(requests);
                 }
             }
-        }
-
-        internal void ProcessRequest(LogRequest request)
-        {
-            bool shouldHandle = PrepareRequest(request);
-
-            if (!shouldHandle) return;
-
-            LogID logFile = request.Data.ID;
-
-            //Beyond this point, we can assume that there are no preexisting unhandled requests for this log file
-            ILoggerBase selectedLogger = !logFile.IsGameControlled
-                ? findCompatibleLogger(logFile, request.Type, doPathCheck: true) : GameLogger;
-
-            if (selectedLogger != null)
-                selectedLogger.HandleRequest(request, skipAccessValidation: true);
-            else
-                request.Reject(RejectionReason.LogUnavailable);
-
-            RequestMayBeCompleteOrInvalid(request);
         }
 
         /// <summary>
@@ -564,13 +542,38 @@ namespace LogUtils
                         }
                     }
 
-                    if (selectedLogger != null)
-                        selectedLogger.HandleRequest(request, skipAccessValidation: true);
-                    else
-                        request.Reject(RejectionReason.LogUnavailable);
+                    HandleRequest(request, selectedLogger);
                 }
+
                 DiscardHandledRequests();
             }
+        }
+
+        internal void ProcessRequest(LogRequest request)
+        {
+            bool shouldHandle = PrepareRequest(request);
+
+            if (!shouldHandle) return;
+
+            LogID logFile = request.Data.ID;
+
+            //Beyond this point, we can assume that there are no preexisting unhandled requests for this log file
+            ILoggerBase selectedLogger = !logFile.IsGameControlled
+                ? findCompatibleLogger(logFile, request.Type, doPathCheck: true) : GameLogger;
+
+            HandleRequest(request, selectedLogger);
+            RequestMayBeCompleteOrInvalid(request);
+        }
+
+        internal void HandleRequest(LogRequest request, ILoggerBase logger)
+        {
+            if (logger == null)
+            {
+                request.Reject(RejectionReason.LogUnavailable);
+                return;
+            }
+
+            logger.HandleRequest(request, skipAccessValidation: true);
         }
 
         public void RejectRequests(LogID logFile, RejectionReason reason)
