@@ -79,20 +79,6 @@ namespace LogUtils
             return reason == RejectionReason.None || (byte)reason > UNABLE_TO_RETRY_RANGE;
         }
 
-        private RequestState _restoreState;
-
-        public void NotifyOnProcess()
-        {
-            //The state of the request may be changed during processing. Keep record of the original state in case processing needs to be
-            //cancelled and the original state restored
-            _restoreState = State;
-        }
-
-        public void NotifyOnProcessCancellation()
-        {
-            State = _restoreState;
-        }
-
         public void ResetStatus()
         {
             State.Reset();

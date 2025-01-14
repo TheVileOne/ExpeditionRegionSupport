@@ -377,7 +377,6 @@ namespace LogUtils
                 return false;
             }
 
-            request.NotifyOnProcess();
             request.ResetStatus();
 
             //The HandleRecord needs to conditionally be reset here for WaitingOnOtherRequests to produce an accurate result
@@ -386,7 +385,6 @@ namespace LogUtils
 
             if (request.WaitingOnOtherRequests)
             {
-                request.NotifyOnProcessCancellation();
                 return false;
             }
             return true;
@@ -400,12 +398,10 @@ namespace LogUtils
                 return false;
             }
 
-            request.NotifyOnProcess();
             request.ResetStatus();
 
             if (request.WaitingOnOtherRequests)
             {
-                request.NotifyOnProcessCancellation();
                 return false;
             }
             return true;
