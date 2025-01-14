@@ -488,9 +488,7 @@ namespace LogUtils
 
             lock (RequestProcessLock)
             {
-                LogRequestQueue requestQueue = UnhandledRequests.ToQueue();
-
-                var requests = requestQueue.GetRequests().ToArray();
+                var requests = UnhandledRequests.GetRequestsSorted();
 
                 if (requests.Length == 0) return;
 
