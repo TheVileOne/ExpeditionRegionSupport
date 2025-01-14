@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace LogUtils.Enums
 {
-    public class LogID : SharedExtEnum<LogID>
+    public class LogID : SharedExtEnum<LogID>, IEquatable<LogID>
     {
         /// <summary>
         /// Contains path information, and other settings that affect logging behavior 
@@ -142,6 +142,23 @@ namespace LogUtils.Enums
                 else
                     Properties = new LogProperties(value, logPath);
             }
+        }
+
+        /// <summary>
+        /// Determines whether the specified LogID is equal to the current LogID
+        /// </summary>
+        /// <param name="idOther">The LogID to compare with the current LogID</param>
+        /// <param name="doPathCheck">Whether the folder path should also be considered in the equality check</param>
+        public bool Equals(LogID idOther, bool doPathCheck)
+        {
+            if (!Equals(idOther))
+                return false;
+
+            //Let the null case here be considered a wildcard path match
+            if (Properties == null || idOther.Properties == null)
+                return true;
+
+            return !doPathCheck || Properties.HasFolderPath(idOther.Properties.FolderPath);
         }
 
         public static LogID CreateTemporaryID(string filename, string relativePathNoFile)

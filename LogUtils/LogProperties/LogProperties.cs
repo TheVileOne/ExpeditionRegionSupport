@@ -907,11 +907,6 @@ namespace LogUtils.Properties
                 || PathUtils.PathsAreEqual(relativePathNoFile, CurrentFolderPath);
         }
 
-        public bool HasID(LogID logID)
-        {
-            return ID == logID;
-        }
-
         public static string GetContainingPath(string relativePath)
         {
             if (relativePath == null)

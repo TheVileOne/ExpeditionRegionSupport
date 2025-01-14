@@ -199,7 +199,7 @@ namespace LogUtils
 
         protected PersistentLogFileWriter FindWriter(LogID logFile)
         {
-            return LogWriters.Find(writer => writer.Handle.FileID.Properties.HasID(logFile));
+            return LogWriters.Find(writer => writer.Handle.FileID.Equals(logFile));
         }
 
         protected void ReleaseHandle(PersistentLogFileHandle handle, bool disposing)

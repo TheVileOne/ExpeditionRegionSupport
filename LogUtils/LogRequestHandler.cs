@@ -115,7 +115,7 @@ namespace LogUtils
 
         public ILinkedListEnumerable<LogRequest> GetRequests(LogID logFile)
         {
-            return UnhandledRequests.Where(req => req.Data.Properties.HasID(logFile));
+            return UnhandledRequests.Where(req => req.Data.ID.Equals(logFile, doPathCheck: true));
         }
 
         /// <summary>
@@ -413,8 +413,6 @@ namespace LogUtils
                 //Ensure that we do not handle a stale record
                 logFile.Properties.HandleRecord.Reset();
 
-                //Ensures path is resolved avoiding the need to resolve the path in the loop
-                //TODO: This isn't path specific
                 ILinkedListEnumerable<LogRequest> requests = GetRequests(logFile);
 
                 if (!requests.Any()) return;
@@ -568,7 +566,6 @@ namespace LogUtils
 
         public void RejectRequests(LogID logFile, RejectionReason reason)
         {
-            //TODO: This doesn't account for requests targeting different log paths
             RejectRequests(GetRequests(logFile), reason);
         }
 
