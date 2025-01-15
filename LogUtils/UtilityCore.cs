@@ -171,7 +171,6 @@ namespace LogUtils
                         }
                     case UtilitySetup.InitializationStep.APPLY_HOOKS:
                         {
-                            AppDomain.CurrentDomain.UnhandledException += RainWorld_UnhandledException;
                             GameHooks.Initialize();
                             break;
                         }
@@ -249,39 +248,6 @@ namespace LogUtils
                     //In every other situation the period changes, we process requests that may have gone unhandled since the last setup period
                     RequestHandler.ProcessRequests();
                 }
-            }
-        }
-
-        private static void RainWorld_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-        {
-            if (!e.IsTerminating) //Probably an exception thrown by a background thread
-            {
-                Debug.LogError(e.ExceptionObject);
-                return;
-            }
-
-            object ex;
-            try
-            {
-                ex = new ExceptionInfo((Exception)e.ExceptionObject);
-            }
-            catch
-            {
-                ex = e.ExceptionObject; //We don't know what this is, but it certainly isn't inheriting from Exception
-            }
-
-            try
-            {
-                LogID logDump = LogID.CreateTemporaryID("UnhandledExceptionDump", UtilityConsts.PathKeywords.ROOT);
-
-                logDump.Properties.ShowIntroTimestamp = true;
-                logDump.Properties.IntroMessage = "Unhandled Exception:\n" + ex.ToString();
-                logDump.Properties.PreferredFileExt = FileExt.LOG;
-
-                RequestHandler.DumpRequestsToFile(logDump);
-            }
-            catch //No recovering from this
-            {
             }
         }
     }

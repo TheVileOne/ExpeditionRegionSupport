@@ -1,5 +1,4 @@
-﻿using BepInEx.Logging;
-using LogUtils.Enums;
+﻿using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers.FileHandling;
 using System;
@@ -107,14 +106,6 @@ namespace LogUtils
         {
             lock (UtilityCore.RequestHandler.RequestProcessLock)
             {
-                /*
-                DebugLog(message);
-
-                if (!string.IsNullOrEmpty(stackTrace))
-                    DebugLog(stackTrace);
-                */
-
-                //TODO: Is this check necessary?
                 //This submission wont be able to be logged until Rain World can initialize
                 if (UtilityCore.RequestHandler.CurrentRequest == null)
                 {
@@ -127,12 +118,10 @@ namespace LogUtils
                         if (!RWInfo.CheckExceptionMatch(LogID.Exception, exceptionInfo))
                         {
                             RWInfo.ReportException(LogID.Exception, exceptionInfo);
-
                             UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.Exception, exceptionInfo, category)), false);
                         }
                         return;
                     }
-
                     UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.Unity, message, category)), false);
                 }
             }
