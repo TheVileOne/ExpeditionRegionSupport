@@ -252,12 +252,8 @@ namespace LogUtils
                 items = list ?? throw new ArgumentNullException(nameof(list));
             }
 
-            bool disposed = false;
-
             public void Dispose()
             {
-                //UtilityLogger.DebugLog("Disposing enumerator");
-                disposed = true;
                 Reset();
             }
 
@@ -267,12 +263,6 @@ namespace LogUtils
             /// <returns>true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the collection.</returns>
             public bool MoveNext()
             {
-                if (disposed)
-                {
-                    UtilityLogger.LogWarning("Cannot access a disposed enumerator");
-                    return false;
-                }
-
                 //Move the enumerator by assigning a new reference node
                 if (firstProcess)
                 {
@@ -353,13 +343,9 @@ namespace LogUtils
                 innerEnumerator = enumerator ?? throw new ArgumentNullException(nameof(enumerator));
             }
 
-            bool disposed = false;
-
             public void Dispose()
             {
-                //UtilityLogger.DebugLog("Disposing enumerator");
-                disposed = true;
-                innerEnumerator.Dispose();
+                Reset();
             }
 
             /// <summary>
@@ -368,11 +354,6 @@ namespace LogUtils
             /// <returns>true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the collection.</returns>
             public bool MoveNext()
             {
-                if (disposed)
-                {
-                    UtilityLogger.LogWarning("Cannot access a disposed enumerator");
-                    return false;
-                }
                 return innerEnumerator.MoveNext();
             }
 
@@ -449,13 +430,9 @@ namespace LogUtils
                 this.predicate = predicate;
             }
 
-            bool disposed = false;
-
             public void Dispose()
             {
-                //UtilityLogger.DebugLog("Disposing enumerator");
-                disposed = true;
-                innerEnumerator.Dispose();
+                Reset();
             }
 
             /// <summary>
@@ -464,17 +441,11 @@ namespace LogUtils
             /// <returns>true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the collection.</returns>
             public bool MoveNext()
             {
-                if (disposed)
-                {
-                    UtilityLogger.LogWarning("Cannot access a disposed enumerator");
-                    return false;
-                }
-
                 bool predicateMatch = false;
                 while (!predicateMatch && innerEnumerator.MoveNext())
                 {
                     predicateMatch = predicate(innerEnumerator.Current);
-                };
+                }
                 return predicateMatch;
             }
 
