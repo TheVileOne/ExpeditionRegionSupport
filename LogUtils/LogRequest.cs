@@ -28,8 +28,6 @@ namespace LogUtils
         /// </summary>
         public bool IsCompleteOrInvalid => Status == RequestStatus.Complete || !CanRetryRequest();
 
-        public bool IsReadyToWrite => Status != RequestStatus.Rejected && !WaitingOnOtherRequests;
-
         protected RequestState State;
 
         public RequestStatus Status => State.Status;
