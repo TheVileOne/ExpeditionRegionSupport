@@ -88,7 +88,19 @@ namespace LogUtils.Diagnostics
             if (!condition.ShouldProcess)
                 return condition;
 
-            bool conditionPassed = Equals(condition.Value, compareObject);
+            bool conditionPassed;
+
+            bool hasValue = condition.Value != null;
+            bool hasValueOther = compareObject != null;
+
+            if (!hasValue || !hasValueOther) //One or both of these values are null
+            {
+                conditionPassed = hasValue == hasValueOther;
+            }
+            else //Avoid boxing, by handling potential value types here
+            {
+                conditionPassed = condition.Value.Equals(compareObject);
+            }
 
             if (conditionPassed)
                 condition.Pass();
@@ -113,7 +125,7 @@ namespace LogUtils.Diagnostics
             if (!condition.ShouldProcess)
                 return condition;
 
-            bool conditionPassed = compareObject != null && Equals(condition.Value, compareObject.Value);
+            bool conditionPassed = compareObject != null && condition.Value.Equals(compareObject.Value);
 
             if (conditionPassed)
                 condition.Pass();
@@ -132,12 +144,22 @@ namespace LogUtils.Diagnostics
                 return condition;
 
             bool conditionPassed;
-            if (condition.Value == null || compareObject == null)
-                conditionPassed = condition.Value.HasValue == compareObject.HasValue;
-            else
+
+            bool hasValue = condition.Value.HasValue;
+            bool hasValueOther = compareObject.HasValue;
+
+            if (hasValue != hasValueOther) //One of these values are null, but not both
+            {
+                conditionPassed = false;
+            }
+            else if (hasValue) //Both values must not be null
             {
                 T value = condition.Value.Value;
-                conditionPassed = Equals(value, compareObject.Value);
+                conditionPassed = value.Equals(compareObject.Value);
+            }
+            else //Both values must be null
+            {
+                conditionPassed = true;
             }
 
             if (conditionPassed)
@@ -156,7 +178,7 @@ namespace LogUtils.Diagnostics
             if (!condition.ShouldProcess)
                 return condition;
 
-            bool conditionPassed = !Equals(condition.Value, compareObject);
+            bool conditionPassed = !condition.Value.Equals(compareObject);
 
             if (conditionPassed)
                 condition.Pass();
@@ -181,7 +203,7 @@ namespace LogUtils.Diagnostics
             if (!condition.ShouldProcess)
                 return condition;
 
-            bool conditionPassed = compareObject == null || !Equals(condition.Value, compareObject.Value);
+            bool conditionPassed = compareObject == null || !condition.Value.Equals(compareObject.Value);
 
             if (conditionPassed)
                 condition.Pass();
@@ -200,14 +222,22 @@ namespace LogUtils.Diagnostics
                 return condition;
 
             bool conditionPassed;
-            if (condition.Value == null || compareObject == null)
+
+            bool hasValue = condition.Value.HasValue;
+            bool hasValueOther = compareObject.HasValue;
+
+            if (hasValue != hasValueOther) //One of these values are null, but not both
             {
-                conditionPassed = !condition.Value.HasValue != compareObject.HasValue;
+                conditionPassed = true;
             }
-            else
+            else if (hasValue) //Both values must not be null
             {
                 T value = condition.Value.Value;
-                conditionPassed = !Equals(value, compareObject.Value);
+                conditionPassed = !value.Equals(compareObject.Value);
+            }
+            else //Both values must be null
+            {
+                conditionPassed = false;
             }
 
             if (conditionPassed)
