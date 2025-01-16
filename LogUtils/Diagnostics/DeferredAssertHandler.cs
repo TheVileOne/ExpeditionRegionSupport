@@ -36,10 +36,11 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Handles all results
         /// </summary>
-        public void HandleAll()
+        public DeferredAssertHandler HandleAll()
         {
             while (HasResults)
                 base.Handle(Results.Dequeue());
+            return this;
         }
 
         /// <summary>
@@ -47,7 +48,7 @@ namespace LogUtils.Diagnostics
         /// <br></br>
         /// <br>When delegate returns true, result is handled normally, when false result is discarded</br>
         /// </summary>
-        public void HandleAll(HandleCondition handleWhenTrue)
+        public DeferredAssertHandler HandleAll(HandleCondition handleWhenTrue)
         {
             var shouldHandle = handleWhenTrue;
 
@@ -58,18 +59,20 @@ namespace LogUtils.Diagnostics
                 if (shouldHandle(result))
                     base.Handle(result);
             }
+            return this;
         }
 
         /// <summary>
         /// Handles the currently enumerated result
         /// </summary>
-        public void HandleCurrent()
+        public DeferredAssertHandler HandleCurrent()
         {
             if (HasResults)
                 base.Handle(Results.Dequeue());
+            return this;
         }
 
-        public void HandleCurrent(Condition.State expectation)
+        public DeferredAssertHandler HandleCurrent(Condition.State expectation)
         {
             if (HasResults)
             {
@@ -81,6 +84,7 @@ namespace LogUtils.Diagnostics
                 Results.Dequeue();
                 expectedResult = Condition.State.None;
             }
+            return this;
         }
 
         /// <summary>
@@ -88,7 +92,7 @@ namespace LogUtils.Diagnostics
         /// <br></br>
         /// <br>When delegate returns true, result is handled normally, when false result is discarded</br>
         /// </summary>
-        public void HandleCurrent(HandleCondition handleWhenTrue)
+        public DeferredAssertHandler HandleCurrent(HandleCondition handleWhenTrue)
         {
             var shouldHandle = handleWhenTrue;
 
@@ -99,6 +103,7 @@ namespace LogUtils.Diagnostics
                 if (shouldHandle(result))
                     base.Handle(result);
             }
+            return this;
         }
 
         protected override void PostProcessResponseString(ref string response)
