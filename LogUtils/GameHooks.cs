@@ -311,14 +311,16 @@ namespace LogUtils
                 }
                 finally
                 {
-                    if (!processFinished)
+                    LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+
+                    if (request != null)
                     {
-                        UtilityLogger.LogWarning("Logging operation has ended unexpectedly");
+                        RequestStatus status = request.Status;
 
-                        LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
-
-                        if (request != null)
+                        if (!processFinished || (status != RequestStatus.Complete && status != RequestStatus.Rejected))
                         {
+                            UtilityLogger.LogWarning("Logging operation has ended unexpectedly");
+
                             if (request.Status != RequestStatus.Rejected) //Unknown issue - don't retry request
                                 request.Reject(RejectionReason.FailedToWrite);
 
@@ -376,12 +378,22 @@ namespace LogUtils
 
         private static void handleLog_ConsoleLog(ILCursor cursor)
         {
-            //Get the label to the instructions that send messages to the DevTools console display
             ILLabel consoleLabel = null;
-            cursor.GotoNext(MoveType.Before, x => x.MatchCallOrCallvirt(typeof(ModManager), "get_ModdingEnabled"));
-            cursor.GotoNext(MoveType.Before, x => x.MatchBrfalse(out consoleLabel));
 
-            gotoWriteInstruction(cursor, "consoleLog.txt"); //Position cursor before log operation occurs
+            //Bypass the ModdingEnabled check. It is false early in the game's start process
+            cursor.GotoNext(MoveType.After, x => x.MatchCallOrCallvirt(typeof(ModManager), "get_ModdingEnabled"));
+            cursor.EmitDelegate((bool oldFlag) => true);
+
+            //Get the label to the instructions that send messages to the DevTools console display
+            cursor.GotoNext(MoveType.After, x => x.MatchBrfalse(out consoleLabel));
+
+            //Someone must have tampered with the filename for this to fail
+            if (!cursor.TryGotoNext(MoveType.Before, x => x.MatchLdstr("consoleLog.txt")))
+            {
+                //Fallback IL
+                cursor.GotoNext(x => x.MatchCall(typeof(File), nameof(File.AppendAllText)));
+                cursor.GotoPrev(MoveType.Before, x => x.MatchLdstr(out _));
+            }
 
             //Handle log request
             cursor.Emit(OpCodes.Ldarg_1);
@@ -410,17 +422,6 @@ namespace LogUtils
             cursor.Emit(OpCodes.Br, returnLabel);
             cursor.GotoNext(x => x.MatchLeaveS(out _));
             cursor.MarkLabel(returnLabel);
-        }
-
-        private static void gotoWriteInstruction(ILCursor cursor, string filename)
-        {
-            //Someone must have tampered with the filename for this to fail
-            if (!cursor.TryGotoNext(MoveType.Before, x => x.MatchLdstr(filename)))
-            {
-                //Fallback IL
-                cursor.GotoNext(x => x.MatchCall(typeof(File), nameof(File.AppendAllText)));
-                cursor.GotoPrev(MoveType.Before, x => x.MatchLdstr(out _));
-            }
         }
 
         private static void ExpLog_LogChallengeTypes(ILContext il)
