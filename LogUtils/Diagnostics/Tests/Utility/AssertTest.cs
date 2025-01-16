@@ -42,14 +42,12 @@ namespace LogUtils.Diagnostics.Tests.Utility
             CustomCollection customCollection = new CustomCollection();
 
             handler.Logger.Log("Test 1");
-            Assert.That(strings, handler).IsNullOrEmpty();
+            Assert.That(strings, handler).IsNullOrEmpty().ExpectFail();
             handler.Logger.Log("Test 2");
             Assert.That(strings2, handler).HasItems();
             handler.Logger.Log("Test 3");
             Assert.That(customCollection.AsEnumerable(), handler).IsNullOrEmpty();
 
-            //The first is expected to fail, but the next few are not
-            handler.HandleCurrent(expectation: Condition.State.Fail);
             handler.HandleAll();
         }
 
@@ -61,23 +59,16 @@ namespace LogUtils.Diagnostics.Tests.Utility
             UnityEngine.Vector2? testValue2 = null;
             UnityEngine.Vector2 testValue3 = UnityEngine.Vector2.zero;
 
-            Assert.That(testValue1, handler).IsEqualTo(testValue3);    //Expect fail
-            Assert.That(testValue1, handler).IsEqualTo(testValue2);    //Expect fail
+            Assert.That(testValue1, handler).IsEqualTo(testValue3).ExpectFail();
+            Assert.That(testValue1, handler).IsEqualTo(testValue2).ExpectFail();
             Assert.That(testValue2, handler).IsEqualTo(testValue2);
-            Assert.That(testValue1, handler).IsEqualTo(testValue3);    //Expect fail
+            Assert.That(testValue1, handler).IsEqualTo(testValue3).ExpectFail();
             Assert.That(testValue1, handler).DoesNotEqual(testValue3);
             Assert.That(testValue1, handler).DoesNotEqual(testValue2);
-            Assert.That(testValue2, handler).DoesNotEqual(testValue2); //Expect fail
+            Assert.That(testValue2, handler).DoesNotEqual(testValue2).ExpectFail();
             Assert.That(testValue2, handler).DoesNotEqual(testValue3);
 
-            handler.HandleCurrent(expectation: Condition.State.Fail)
-                   .HandleCurrent(expectation: Condition.State.Fail)
-                   .HandleCurrent()
-                   .HandleCurrent(expectation: Condition.State.Fail)
-                   .HandleCurrent()
-                   .HandleCurrent()
-                   .HandleCurrent(expectation: Condition.State.Fail)
-                   .HandleCurrent();
+            handler.HandleAll();
         }
 
         private void testComparisonOfNullableCombinations()
@@ -106,18 +97,15 @@ namespace LogUtils.Diagnostics.Tests.Utility
              * Description: Nullable/Nullable
              * Expectation: Fail, when comparing two nullable structs, values can only be equal, or not equal
              */
-            Assert.That(testNullable2, handler).IsLessThan(testNullable1); //Is 6 less than null?
+            Assert.That(testNullable2, handler).IsLessThan(testNullable1).ExpectFail(); //Is 6 less than null?
 
             /*
              * Description: Nullable/Non-nullable
              * Expectation: Fail, when comparing two nullable structs, values can only be equal, or not equal
              */
-            Assert.That(testNullable1, handler).IsLessThan(testValue2); //Is null less than 8?
+            Assert.That(testNullable1, handler).IsLessThan(testValue2).ExpectFail(); //Is null less than 8?
 
-            handler.HandleCurrent()
-                   .HandleCurrent()
-                   .HandleCurrent(expectation: Condition.State.Fail)
-                   .HandleCurrent(expectation: Condition.State.Fail);
+            handler.HandleAll();
         }
 
         /// <summary>

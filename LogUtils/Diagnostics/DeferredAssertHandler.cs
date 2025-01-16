@@ -16,11 +16,6 @@ namespace LogUtils.Diagnostics
 
         public bool HasResults => Results.Any();
 
-        /// <summary>
-        /// An optional field for analyzing expected outcomes in result data
-        /// </summary>
-        private Condition.State expectedResult = Condition.State.None;
-
         public DeferredAssertHandler(Logger logger) : base(logger)
         {
         }
@@ -39,7 +34,7 @@ namespace LogUtils.Diagnostics
         public DeferredAssertHandler HandleAll()
         {
             while (HasResults)
-                base.Handle(Results.Dequeue());
+                InternalHandle();
             return this;
         }
 
@@ -50,15 +45,8 @@ namespace LogUtils.Diagnostics
         /// </summary>
         public DeferredAssertHandler HandleAll(HandleCondition handleWhenTrue)
         {
-            var shouldHandle = handleWhenTrue;
-
             while (HasResults)
-            {
-                Condition.Result result = Results.Dequeue();
-
-                if (shouldHandle(result))
-                    base.Handle(result);
-            }
+                InternalHandle(handleWhenTrue);
             return this;
         }
 
@@ -68,7 +56,7 @@ namespace LogUtils.Diagnostics
         public DeferredAssertHandler HandleCurrent()
         {
             if (HasResults)
-                base.Handle(Results.Dequeue());
+                InternalHandle();
             return this;
         }
 
@@ -76,13 +64,8 @@ namespace LogUtils.Diagnostics
         {
             if (HasResults)
             {
-                expectedResult = expectation;
-
-                //Peeks at the current result instead of dequeues, because we need to reference the result in another method before we can remove it
-                base.Handle(Current);
-
-                Results.Dequeue();
-                expectedResult = Condition.State.None;
+                Current.SetExpectation(expectation);
+                InternalHandle();
             }
             return this;
         }
@@ -94,21 +77,36 @@ namespace LogUtils.Diagnostics
         /// </summary>
         public DeferredAssertHandler HandleCurrent(HandleCondition handleWhenTrue)
         {
+            if (HasResults)
+                InternalHandle(handleWhenTrue);
+            return this;
+        }
+
+        protected void InternalHandle()
+        {
+            base.Handle(Current);
+
+            //Peeks at the current result instead of dequeues, because we need to reference the result in another method before we can remove it
+            Results.Dequeue();
+        }
+
+        protected void InternalHandle(HandleCondition handleWhenTrue)
+        {
             var shouldHandle = handleWhenTrue;
 
-            if (HasResults)
+            if (shouldHandle(Current))
             {
-                Condition.Result result = Results.Dequeue();
-
-                if (shouldHandle(result))
-                    base.Handle(result);
+                InternalHandle();
+                return;
             }
-            return this;
+            Results.Dequeue();
         }
 
         protected override void PostProcessResponseString(ref string response)
         {
             base.PostProcessResponseString(ref response);
+
+            Condition.State expectedResult = Current.Expectation?.Value ?? Condition.State.None;
 
             switch (expectedResult)
             {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace LogUtils.Diagnostics
 {
@@ -33,9 +34,32 @@ namespace LogUtils.Diagnostics
             Result.Passed = true;
         }
 
+        /// <summary>
+        /// Indicates that the result should expicitly indicate the expected, or unexpected state, assuming passing as the expected state
+        /// <br>Note: Does nothing except when used with a DeferredAssertHandler</br>
+        /// </summary>
+        public Condition<T> ExpectPass()
+        {
+            Result.SetExpectation(Condition.State.Pass);
+            return this;
+        }
+
+        /// <summary>
+        /// Indicates that the result should expicitly indicate the expected, or unexpected state, assuming failing as the expected state
+        /// <br>Note: Does nothing except when used with a DeferredAssertHandler</br>
+        /// </summary>
+        public Condition<T> ExpectFail()
+        {
+            Result.SetExpectation(Condition.State.Fail);
+            return this;
+        }
+
         public void Pass()
         {
             Result.Passed = true;
+
+            if (Result.Expectation == null)
+                Result.Expectation = new StrongBox<Condition.State>();
             onResult();
         }
 
@@ -43,6 +67,9 @@ namespace LogUtils.Diagnostics
         {
             Result.Passed = false;
             Result.Message = reportMessage;
+
+            if (Result.Expectation == null)
+                Result.Expectation = new StrongBox<Condition.State>();
             onResult();
         }
 
@@ -187,6 +214,17 @@ namespace LogUtils.Diagnostics
         {
             public bool Passed;
             public Message Message;
+            public StrongBox<State> Expectation;
+
+            public void SetExpectation(State expectation)
+            {
+                if (Expectation == null)
+                {
+                    Expectation = new StrongBox<State>(expectation);
+                    return;
+                }
+                Expectation.Value = expectation;
+            }
 
             public override string ToString()
             {
