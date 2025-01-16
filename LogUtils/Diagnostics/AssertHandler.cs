@@ -97,6 +97,29 @@ namespace LogUtils.Diagnostics
             clone.Behavior = behavior;
             return clone;
         }
+
+        public static AssertHandler GetTemplateWithBehavior(AssertBehavior behavior, IConditionHandler preferredHandler = null)
+        {
+            //In order to apply the AssertBehavior, we must be using an instance type that can handle it
+            AssertHandler handler = getCompatibleTemplate(preferredHandler);
+
+            bool isNewBehavior = behavior != handler.Behavior;
+
+            //On new behaviors, we must clone the existing handler to ensure that this behavior only applies to a single assert chain
+            if (isNewBehavior)
+                handler = handler.Clone(behavior);
+            return handler;
+        }
+
+        private static AssertHandler getCompatibleTemplate(IConditionHandler handler)
+        {
+            AssertHandler template = handler as AssertHandler;
+
+            if (template == null)
+                template = CurrentTemplate as AssertHandler;
+
+            return template ?? DefaultHandler;
+        }
     }
 
     [Flags]

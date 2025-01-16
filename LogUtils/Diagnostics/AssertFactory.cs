@@ -18,19 +18,7 @@
         /// <param name="behavior">Represents options for handling assert behavior</param>
         public static Condition<T> That<T>(T value, AssertBehavior behavior)
         {
-            AssertHandler handler = AssertHandler.CurrentTemplate as AssertHandler;
-
-            //In order to apply the AssertBehavior, we must be using an instance type that can handle it
-            if (handler == null)
-                handler = AssertHandler.DefaultHandler;
-
-            bool isNewBehavior = behavior != handler.Behavior;
-
-            //On new behaviors, we must clone the existing handler to ensure that this behavior only applies to a single assert chain
-            if (isNewBehavior)
-                handler = handler.Clone(behavior);
-
-            return new Condition<T>(value, handler);
+            return new Condition<T>(value, AssertHandler.GetTemplateWithBehavior(behavior));
         }
 
         /// <summary>
@@ -59,19 +47,7 @@
         /// <param name="behavior">Represents options for handling assert behavior</param>
         public static Condition<T?> That<T>(T? value, AssertBehavior behavior) where T : struct
         {
-            AssertHandler handler = AssertHandler.CurrentTemplate as AssertHandler;
-
-            //In order to apply the AssertBehavior, we must be using an instance type that can handle it
-            if (handler == null)
-                handler = AssertHandler.DefaultHandler;
-
-            bool isNewBehavior = behavior != handler.Behavior;
-
-            //On new behaviors, we must clone the existing handler to ensure that this behavior only applies to a single assert chain
-            if (isNewBehavior)
-                handler = handler.Clone(behavior);
-
-            return new Condition<T?>(value, handler);
+            return new Condition<T?>(value, AssertHandler.GetTemplateWithBehavior(behavior));
         }
 
         /// <summary>
