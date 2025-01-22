@@ -1,5 +1,5 @@
-﻿using LogUtils.Properties;
-using System;
+﻿using LogUtils.Diagnostics;
+using LogUtils.Properties;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -31,6 +31,11 @@ namespace LogUtils.Helpers
         public static void AppendPropertyString(this StringBuilder sb, string name, string value = "")
         {
             sb.AppendLine(LogProperties.ToPropertyString(name, value));
+        }
+
+        public static ResultAnalyzer GetAnalyzer(this IEnumerable<Condition.Result> results)
+        {
+            return new ResultAnalyzer(results);
         }
     }
 }

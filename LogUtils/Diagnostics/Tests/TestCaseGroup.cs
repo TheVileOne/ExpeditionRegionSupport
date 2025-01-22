@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogUtils.Helpers;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,16 +9,64 @@ namespace LogUtils.Diagnostics.Tests
 {
     public class TestCaseGroup : TestCase, ICollection<TestCase>, ISelectable
     {
-        public List<TestCase> Cases = new List<TestCase>();
-
-        public override bool HasFailed
+        /// <summary>
+        /// Gets the test results for the test case and any children cases starting with the test group
+        /// </summary>
+        public IEnumerable<Condition.Result> AllResults
         {
             get
             {
-                //Check if children have failed outcomes, as well as its own asserts
-                return Cases.Exists(c => c.HasFailed) || base.HasFailed;
+                //Yield back test results for the current group
+                foreach (var result in Results)
+                    yield return result;
+
+                //Select results from all child test cases, including any of their children
+                var childResults = Cases.SelectMany(testCase =>
+                {
+                    TestCaseGroup testGroup = testCase as TestCaseGroup;
+
+                    if (testGroup != null)
+                        return testGroup.AllResults;
+                    return testCase.Results;
+                });
+
+                //Yield back test results for its children
+                foreach (var result in childResults)
+                    yield return result;
+                yield break;
             }
         }
+
+        public IEnumerable<TestCase> AllCases
+        {
+            get
+            {
+                //Yield back test cases for the current group
+                foreach (var testCase in Cases)
+                    yield return testCase;
+
+                //Select results from all child test cases, including any of their children
+                var childCases = Cases.SelectMany(testCase =>
+                {
+                    TestCaseGroup testGroup = testCase as TestCaseGroup;
+
+                    if (testGroup != null)
+                        return testGroup.AllCases;
+                    return new[] { testCase };
+                });
+
+                //Yield back test cases for its children
+                foreach (var testCase in childCases)
+                    yield return testCase;
+                yield break;
+            }
+        }
+
+        public List<TestCase> Cases = new List<TestCase>();
+
+        public int Count => Cases.Count;
+
+        public bool IsReadOnly => false;
 
         public TestCase SelectedCase;
 
@@ -30,10 +79,6 @@ namespace LogUtils.Diagnostics.Tests
         public TestCaseGroup(TestCaseGroup group, string name) : base(group, name, null)
         {
         }
-
-        public int Count => Cases.Count;
-
-        public bool IsReadOnly => false;
 
         public void Add(TestCase test)
         {
@@ -103,6 +148,14 @@ namespace LogUtils.Diagnostics.Tests
             return Cases.GetEnumerator();
         }
 
+        /// <summary>
+        /// Checks that any test cases under the group have failed outcomes, as well as its own asserts
+        /// </summary>
+        public override bool HasFailed()
+        {
+            return Cases.Exists(c => c.HasFailed()) || base.HasFailed();
+        }
+
         public void PreviousCase()
         {
             SelectPrev();
@@ -137,58 +190,125 @@ namespace LogUtils.Diagnostics.Tests
             SelectedCase = Cases.ElementAtOrDefault(SelectedIndex);
         }
 
-        public virtual string CreateReport()
+        public override void CreateReport(StringBuilder report)
         {
-            int totalCases = Cases.Count;
-            int totalPassedCases = Cases.Count(c => !c.HasFailed);
+            int totalCases = Count, //Count includes only cases immediately managed by this instance
+                totalPassedCases = 0,
+                totalAsserts = 0, //Count includes all asserts from test cases belonging to this instance, and managed by children
+                totalPassedAsserts = 0;
 
-            bool allTestsPassed = totalPassedCases == Cases.Count;
-
-            if (Results.Count > 0) //Include the group case as part of this count
+            //Check for results that do not belong to a child test case
+            if (Results.Count > 0)
             {
-                allTestsPassed = !base.HasFailed;
+                bool testCaseFailed = base.HasFailed();
 
-                if (allTestsPassed)
+                if (!testCaseFailed)
                     totalPassedCases++;
                 totalCases++;
             }
 
-            StringBuilder reportBuilder = new StringBuilder();
-
-            reportBuilder.AppendLine("Test Results")
-                         .AppendLine(Name)
-                         .AppendLine(allTestsPassed ? "All tests passed" : $"{totalPassedCases} out of {totalCases} tests passed");
-
-            if (!allTestsPassed)
+            //Check for results that belong to child test cases
+            foreach (var testCase in Cases)
             {
-                reportBuilder.AppendLine("Failed tests");
-                foreach (var testCase in Cases.Where(c => c.HasFailed))
-                {
-                    if (testCase is TestCaseGroup group)
-                    {
-                        reportBuilder.AppendLine()
-                                     .AppendLine(group.CreateReport());
-                    }
-                    else
-                    {
-                        reportBuilder.AppendLine(testCase.Name);
-                        foreach (var failedAssert in testCase.Results.Where(r => !r.PassedWithExpectations()))
-                        {
-                            reportBuilder.AppendLine(failedAssert.ToString());
-                        }
-                    }
-                }
+                bool testCaseFailed = testCase.HasFailed();
 
-                if (base.HasFailed)
+                if (!testCaseFailed)
+                    totalPassedCases++;
+
+                TestCaseGroup testGroup = testCase as TestCaseGroup;
+
+                IEnumerable<Condition.Result> testResults = testGroup != null ? testGroup.AllResults : testCase.Results;
+
+                //Count the total amount of asserts for this test case, and how many were passed asserts
+                if (testCaseFailed)
                 {
-                    foreach (var failedAssert in Results.Where(r => !r.PassedWithExpectations()))
-                    {
-                        reportBuilder.AppendLine(failedAssert.ToString());
-                    }
+                    var analyzer = testResults.GetAnalyzer();
+
+                    analyzer.CountResults();
+
+                    totalAsserts += analyzer.TotalResults;
+                    totalPassedAsserts += analyzer.TotalPassedResults;
+                }
+                else
+                {
+                    int totalResults = testResults.Count();
+
+                    //All tests passed for this case - include every result in the count
+                    totalAsserts += totalResults;
+                    totalPassedAsserts += totalResults;
                 }
             }
 
-            return reportBuilder.ToString();
+            //This header only needs to be displayed once
+            if (report.Length == 0)
+            {
+                report.AppendLine()
+                      .AppendLine("Test Results");
+            }
+            else
+            {
+                report.AppendLine()
+                      .AppendLine("Checking subgroup")
+                      .AppendLine();
+            }
+
+            report.AppendLine("REPORT: " + Name);
+
+
+            if (Results.Count > 0)
+            {
+                bool allTestsPassed = totalPassedCases == totalCases;
+
+                if (!allTestsPassed)
+                {
+                    report.AppendLine()
+                          .AppendLine("Status: Failed");
+                }
+
+                if (Debug.TestCasePolicy.AlwaysReportResultTotal)
+                    report.AppendLine($"Checking the results of {Results.Count} asserts");
+
+                if (allTestsPassed)
+                {
+                    report.AppendLine("All tests passed")
+                          .AppendLine();
+                    return;
+                }
+
+            }
+            else if (Count == 0)
+            {
+                report.AppendLine("No results to show");
+                return;
+            }
+
+            //Basic statistics on test failures
+            report.AppendLine($"{totalPassedCases} out of {totalCases} tests passed");
+
+            //We don't need to report on assert count if it 1:1 aligns with the case results
+            if (totalAsserts != totalCases && totalPassedAsserts != totalPassedCases)
+            {
+                report.AppendLine($"{totalPassedAsserts} out of {totalAsserts} asserts passed");
+            }
+
+            //Case results
+            //report.AppendLine()
+            //      .AppendLine("Failed tests");
+
+            if (base.HasFailed())
+            {
+                var analyzer = Results.GetAnalyzer();
+
+                foreach (var result in analyzer.GetFailedResults())
+                {
+                    report.AppendLine(result.ToString());
+                }
+            }
+
+            foreach (var testCase in Cases)//.Where(c => c.HasReportDetails()))
+            {
+                testCase.CreateReport(report);
+            }
         }
     }
 }

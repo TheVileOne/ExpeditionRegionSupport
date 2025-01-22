@@ -1,5 +1,7 @@
-﻿using System;
+﻿using LogUtils.Helpers;
+using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace LogUtils.Diagnostics.Tests
 {
@@ -16,8 +18,6 @@ namespace LogUtils.Diagnostics.Tests
         /// The result processor specific to this test case or its children. Null by default
         /// </summary>
         public IConditionHandler Handler;
-
-        public virtual bool HasFailed => Results.Exists(r => !r.PassedWithExpectations());
 
         public virtual bool IsEnabled => Debug.AssertsEnabled;
 
@@ -65,6 +65,60 @@ namespace LogUtils.Diagnostics.Tests
             return Assert.That(value, Handler);
         }
 
+        public string CreateReport()
+        {
+            StringBuilder reportBuilder = new StringBuilder();
+            
+            CreateReport(reportBuilder);
+            return reportBuilder.ToString();
+        }
+
+        public virtual void CreateReport(StringBuilder report)
+        {
+            //This header only needs to be displayed once
+            if (report.Length == 0)
+                report.AppendLine("Test Results");
+
+            report.AppendLine("REPORT: " + Name);
+
+            if (Results.Count == 0)
+            {
+                report.AppendLine("No results to show");
+                return;
+            }
+
+            if (Debug.TestCasePolicy.AlwaysReportResultTotal)
+                report.AppendLine($"Checking the results of {Results.Count} asserts");
+
+            bool testCaseFailed = HasFailed();
+
+            if (testCaseFailed)
+            {
+                var analyzer = Results.GetAnalyzer();
+
+                analyzer.CountResults();
+
+                int totalResults = analyzer.TotalResults,
+                    totalPassedResults = analyzer.TotalPassedResults;
+
+                report.AppendLine("Status: Failed")
+                      .AppendLine()
+                      .AppendLine($"{totalPassedResults} out of {totalResults} asserts passed")
+                      .AppendLine();
+                //.AppendLine("Failed asserts");
+
+                foreach (var result in analyzer.GetFailedResults())
+                {
+                    report.AppendLine(result.ToString());
+                }
+            }
+            else
+            {
+                report.AppendLine("All results passed")
+                      .AppendLine();
+            }
+        }
+
         public void Dispose()
         {
             //Alert the case group that this case is finished handling cases, and the next test can take over
@@ -87,6 +141,23 @@ namespace LogUtils.Diagnostics.Tests
         public virtual void Handle(in Condition.Result result)
         {
             Results.Add(result);
+        }
+
+        /// <summary>
+        /// Checks that the test case has a failed outcome
+        /// </summary>
+        public virtual bool HasFailed()
+        {
+            bool includeExpectedOutcomes = Debug.TestCasePolicy.PreferExpectationsAsFailures;
+
+            if (includeExpectedOutcomes)
+                return Results.Exists(r => !r.PassedWithExpectations());
+            return Results.Exists(r => !r.Passed);
+        }
+
+        public virtual bool HasReportDetails()
+        {
+            return Debug.TestCasePolicy.AlwaysReportResultTotal || HasFailed();
         }
 
         internal void SetGroupFromParent(TestCaseGroup group)

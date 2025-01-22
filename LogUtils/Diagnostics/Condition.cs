@@ -216,6 +216,21 @@ namespace LogUtils.Diagnostics
             public Message Message;
             public StrongBox<State> Expectation;
 
+            public bool HasExpectation()
+            {
+                return Expectation != null && Expectation.Value != State.None;
+            }
+
+            /// <summary>
+            /// Whether or not the state is failed, or passed, this considers a pass state with the context of the expected outcome
+            /// </summary>
+            public bool PassedWithExpectations()
+            {
+                if (!HasExpectation())
+                    return Passed;
+                return (Passed && Expectation.Value == State.Pass) || (!Passed && Expectation.Value == State.Fail);
+            }
+
             public void SetExpectation(State expectation)
             {
                 if (Expectation == null)
