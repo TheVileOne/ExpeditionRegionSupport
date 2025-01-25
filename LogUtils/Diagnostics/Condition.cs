@@ -39,20 +39,18 @@ namespace LogUtils.Diagnostics
         /// Indicates that the result should expicitly indicate the expected, or unexpected state, assuming passing as the expected state
         /// <br>Currently is only effective when you use a handler that defers result processing such as using a DeferredAssertHandler</br>
         /// </summary>
-        public Condition<T> ExpectPass()
+        public void ExpectPass()
         {
             Result.Expectation = Condition.State.Pass;
-            return this;
         }
 
         /// <summary>
         /// Indicates that the result should expicitly indicate the expected, or unexpected state, assuming failing as the expected state
         /// <br>Currently is only effective when you use a handler that defers result processing such as using a DeferredAssertHandler</br>
         /// </summary>
-        public Condition<T> ExpectFail()
+        public void ExpectFail()
         {
             Result.Expectation = Condition.State.Fail;
-            return this;
         }
 
         public void Pass()
