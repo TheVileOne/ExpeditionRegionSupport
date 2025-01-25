@@ -13,7 +13,7 @@ namespace LogUtils.Diagnostics
         {
             UtilityTests = new TestSuite();
 
-            AssertTest assertTest = new AssertTest();
+            AssertTests assertTest = new AssertTests();
             UtilityTests.Add(assertTest);
         }
 
