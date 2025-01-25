@@ -298,11 +298,7 @@ namespace LogUtils.Diagnostics.Tests
             if (base.HasFailed())
             {
                 var analyzer = Results.GetAnalyzer();
-
-                foreach (var result in analyzer.GetFailedResults())
-                {
-                    report.AppendLine(result.ToString());
-                }
+                ReportResultEntries(report, analyzer.GetFailedResults());
             }
 
             foreach (var testCase in Cases)//.Where(c => c.HasReportDetails()))

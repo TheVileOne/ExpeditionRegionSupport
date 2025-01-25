@@ -212,6 +212,8 @@ namespace LogUtils.Diagnostics
             public bool Passed;
             public Message Message;
 
+            public bool HasEmptyMessage => string.IsNullOrEmpty(ToString());
+
             /// <summary>
             /// Checks that there is an expected outcome and the result is consistent with that outcome
             /// </summary>

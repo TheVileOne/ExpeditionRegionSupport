@@ -2,11 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using MessageFormatter = LogUtils.Diagnostics.AssertHandler.MessageFormatter;
 
 namespace LogUtils.Diagnostics.Tests
 {
     public class TestCase : IConditionHandler, IDisposable
     {
+        public MessageFormatter Formatter;
+
         private TestCaseGroup _group;
 
         /// <summary>
@@ -42,6 +45,7 @@ namespace LogUtils.Diagnostics.Tests
             if (group != null)
                 group.Add(this);
 
+            Formatter = new MessageFormatter();
             Handler = handler ?? this;
             Name = name;
             Results = new List<Condition.Result>();
@@ -107,15 +111,36 @@ namespace LogUtils.Diagnostics.Tests
                       .AppendLine();
                 //.AppendLine("Failed asserts");
 
-                foreach (var result in analyzer.GetFailedResults())
-                {
-                    report.AppendLine(result.ToString());
-                }
+                ReportResultEntries(report, analyzer.GetFailedResults());
             }
             else
             {
                 report.AppendLine("All results passed")
                       .AppendLine();
+            }
+        }
+
+        protected void ReportResultEntries(StringBuilder report, IEnumerable<Condition.Result> results)
+        {
+            string response;
+            foreach (var result in results)
+            {
+                response = Formatter.Format(result);
+
+                if (result.HasEmptyMessage)
+                {
+                    report.Append(result.Passed ? "Pass" : "Fail");
+
+                    string reportTag = "No details";
+                    int tagInsertIndex = response.LastIndexOf('(');
+
+                    if (tagInsertIndex == -1)
+                        response += $" ({reportTag})";
+                    else
+                        response = response.Insert(tagInsertIndex + 1, reportTag + ", ");
+                }
+
+                report.AppendLine(response);
             }
         }
 
