@@ -28,11 +28,15 @@ namespace LogUtils.Diagnostics
 
         public readonly bool ShouldProcess => Passed;
 
-        public Condition(T value, IConditionHandler handler)
+        public Condition()
+        {
+            Result.Initialize();
+        }
+
+        public Condition(T value, IConditionHandler handler) : this()
         {
             Value = value;
             Handler = handler;
-            Result.Passed = true;
         }
 
         /// <summary>
@@ -237,9 +241,8 @@ namespace LogUtils.Diagnostics
             {
                 get
                 {
-                    if (_expectation != null)
-                        return _expectation.Value;
-                    return State.None;
+                    //Set on initialization - null check is unnecessary
+                    return _expectation.Value;
                 }
                 set
                 {
@@ -281,6 +284,12 @@ namespace LogUtils.Diagnostics
             public bool HasExpectation()
             {
                 return Expectation != State.None;
+            }
+
+            public void Initialize()
+            {
+                Passed = true;
+                Expectation = State.None;
             }
 
             /// <summary>
