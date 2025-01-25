@@ -126,7 +126,9 @@ namespace LogUtils.Diagnostics
                 }
 
                 //Find content we need to append to the end of the message
-                List<string> messageTags = result.CompileMessageTags();
+                result.CompileMessageTags();
+
+                HashSet<string> messageTags = result.Message.Tags;
 
                 if (messageTags.Count > 0)
                     messageBase += $" ({string.Join(", ", messageTags)})";

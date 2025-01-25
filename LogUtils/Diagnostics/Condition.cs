@@ -157,6 +157,11 @@ namespace LogUtils.Diagnostics
             public string Raw;
 
             /// <summary>
+            /// A set of strings to be appended to the end of the message for result reports
+            /// </summary>
+            public HashSet<string> Tags = new HashSet<string>();
+
+            /// <summary>
             /// Constructs a response message
             /// </summary>
             /// <param name="message">The raw unformatted message string</param>
@@ -258,17 +263,14 @@ namespace LogUtils.Diagnostics
             }
 
             /// <summary>
-            /// Compiles a list of supported tags for the purpose of appending to a condition response message
+            /// Compiles a set of supported tags for the purpose of appending to a condition response message
             /// </summary>
-            public List<string> CompileMessageTags()
+            public void CompileMessageTags()
             {
-                List<string> tags = new List<string>();
-
                 string expectationTag = getExpectationTag();
 
                 if (expectationTag != null)
-                    tags.Add(expectationTag);
-                return tags;
+                    Message.Tags.Add(expectationTag);
             }
 
             /// <summary>
@@ -292,6 +294,7 @@ namespace LogUtils.Diagnostics
             {
                 Passed = true;
                 Expectation = State.None;
+                Message = Message.Empty;
             }
 
             /// <summary>
@@ -307,13 +310,10 @@ namespace LogUtils.Diagnostics
 
             public override string ToString()
             {
-                if (Message != null)
-                {
-                    string actualMessage = Message.ToString();
+                string resultMessage = Message.ToString();
 
-                    if (actualMessage != null)
-                        return actualMessage;
-                }
+                if (resultMessage != null)
+                    return resultMessage;
                 return string.Empty;
             }
         }
