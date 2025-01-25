@@ -1,6 +1,7 @@
 ﻿using LogUtils.Diagnostics.Tests;
 using LogUtils.Enums;
 using System;
+using System.Collections.Generic;
 using UnityEngine.Assertions;
 
 namespace LogUtils.Diagnostics
@@ -18,10 +19,8 @@ namespace LogUtils.Diagnostics
             set => _behavior = value;
         }
 
+        public MessageFormatter Formatter = new MessageFormatter();
         public Logger Logger;
-
-        public string FailResponse = UtilityConsts.AssertResponse.FAIL;
-        public string PassResponse = UtilityConsts.AssertResponse.PASS;
 
         public virtual bool IsEnabled => Debug.AssertsEnabled;
 
@@ -42,47 +41,34 @@ namespace LogUtils.Diagnostics
             //Set flags that will determine if we will log, throw an exception, or both
             bool shouldLog = false,
                  shouldThrow = false;
-            string responseString = null;
-            if (result.Passed)
+
+            bool shouldLogOnPass = (Behavior & AssertBehavior.LogOnPass) != 0,
+                 shouldLogOnFail = (Behavior & AssertBehavior.LogOnFail) != 0;
+
+            if (result.PassedWithExpectations())
             {
-                if ((Behavior & AssertBehavior.LogOnPass) != 0)
-                {
-                    shouldLog = true;
-                    responseString = PassResponse;
-                }
-                shouldThrow = false;
+                shouldLog = result.Passed ? shouldLogOnPass : shouldLogOnFail;
             }
             else
             {
-                if ((Behavior & AssertBehavior.LogOnFail) != 0)
-                {
-                    shouldLog = true;
-                    responseString = FailResponse;
-                }
+                //Unexpected results, and failed results are handled similarly
+                shouldLog = shouldLogOnFail;
                 shouldThrow = (Behavior & AssertBehavior.Throw) != 0;
             }
 
             //Check the behavior flags, and apply the appropriate behaviors
             if (shouldLog)
             {
-                if (string.IsNullOrEmpty(responseString))
-                    responseString = result.ToString();
-                else
-                    responseString += ": " + result.ToString();
-
-                PostProcessResponseString(ref responseString);
+                string responseHeader = result.Passed ? Formatter.PassResponse : Formatter.FailResponse;
+                string responseString = Formatter.Format(result, responseHeader);
                 Logger.Log(LogCategory.Assert, responseString);
             }
 
             if (shouldThrow)
-                throw new AssertionException(UtilityConsts.AssertResponse.FAIL, result.ToString());
-        }
-
-        /// <summary>
-        /// Allows changes to the response string prior to logging the response
-        /// </summary>
-        protected virtual void PostProcessResponseString(ref string response)
-        {
+            {
+                string responseString = Formatter.Format(result);
+                throw new AssertionException(UtilityConsts.AssertResponse.FAIL, responseString);
+            }
         }
 
         public object Clone()
@@ -119,6 +105,33 @@ namespace LogUtils.Diagnostics
                 template = CurrentTemplate as AssertHandler;
 
             return template ?? DefaultHandler;
+        }
+
+        public class MessageFormatter
+        {
+            public string FailResponse = UtilityConsts.AssertResponse.FAIL;
+            public string PassResponse = UtilityConsts.AssertResponse.PASS;
+
+            public string Format(in Condition.Result result, string messageHeader = null)
+            {
+                string messageBase = result.ToString();
+
+                if (messageHeader != null)
+                {
+                    //We don't want separator formatting when there isn't a message to show
+                    if (string.IsNullOrEmpty(messageBase))
+                        messageBase = messageHeader;
+                    else
+                        messageBase = messageHeader + ": " + messageBase;
+                }
+
+                //Find content we need to append to the end of the message
+                List<string> messageTags = result.CompileMessageTags();
+
+                if (messageTags.Count > 0)
+                    messageBase += $" ({string.Join(", ", messageTags)})";
+                return messageBase;
+            }
         }
     }
 

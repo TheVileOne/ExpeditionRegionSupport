@@ -64,7 +64,9 @@ namespace LogUtils.Diagnostics
         {
             if (HasResults)
             {
-                Current.SetExpectation(expectation);
+                var result = Current;
+
+                result.Expectation = expectation;
                 InternalHandle();
             }
             return this;
@@ -84,10 +86,8 @@ namespace LogUtils.Diagnostics
 
         protected void InternalHandle()
         {
-            base.Handle(Current);
-
-            //Peeks at the current result instead of dequeues, because we need to reference the result in another method before we can remove it
-            Results.Dequeue();
+            base.Handle(Results.Dequeue());
+            
         }
 
         protected void InternalHandle(HandleCondition handleWhenTrue)
@@ -100,25 +100,6 @@ namespace LogUtils.Diagnostics
                 return;
             }
             Results.Dequeue();
-        }
-
-        protected override void PostProcessResponseString(ref string response)
-        {
-            base.PostProcessResponseString(ref response);
-
-            Condition.State expectedResult = Current.Expectation?.Value ?? Condition.State.None;
-
-            switch (expectedResult)
-            {
-                case Condition.State.None:
-                    break;
-                case Condition.State.Pass:
-                    response += Current.Passed ? " (Expected)" : " (Unexpected)";
-                    break;
-                case Condition.State.Fail:
-                    response += !Current.Passed ? " (Expected)" : " (Unexpected)";
-                    break;
-            }
         }
 
         public delegate bool HandleCondition(Condition.Result result);

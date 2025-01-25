@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace LogUtils.Diagnostics
@@ -36,30 +37,27 @@ namespace LogUtils.Diagnostics
 
         /// <summary>
         /// Indicates that the result should expicitly indicate the expected, or unexpected state, assuming passing as the expected state
-        /// <br>Note: Does nothing except when used with a DeferredAssertHandler</br>
+        /// <br>Currently is only effective when you use a handler that defers result processing such as using a DeferredAssertHandler</br>
         /// </summary>
         public Condition<T> ExpectPass()
         {
-            Result.SetExpectation(Condition.State.Pass);
+            Result.Expectation = Condition.State.Pass;
             return this;
         }
 
         /// <summary>
         /// Indicates that the result should expicitly indicate the expected, or unexpected state, assuming failing as the expected state
-        /// <br>Note: Does nothing except when used with a DeferredAssertHandler</br>
+        /// <br>Currently is only effective when you use a handler that defers result processing such as using a DeferredAssertHandler</br>
         /// </summary>
         public Condition<T> ExpectFail()
         {
-            Result.SetExpectation(Condition.State.Fail);
+            Result.Expectation = Condition.State.Fail;
             return this;
         }
 
         public void Pass()
         {
             Result.Passed = true;
-
-            if (Result.Expectation == null)
-                Result.Expectation = new StrongBox<Condition.State>();
             onResult();
         }
 
@@ -67,9 +65,6 @@ namespace LogUtils.Diagnostics
         {
             Result.Passed = false;
             Result.Message = reportMessage;
-
-            if (Result.Expectation == null)
-                Result.Expectation = new StrongBox<Condition.State>();
             onResult();
         }
 
@@ -214,36 +209,103 @@ namespace LogUtils.Diagnostics
         {
             public bool Passed;
             public Message Message;
-            public StrongBox<State> Expectation;
 
-            public bool HasExpectation()
+            /// <summary>
+            /// Checks that there is an expected outcome and the result is consistent with that outcome
+            /// </summary>
+            public bool IsUnexpected
             {
-                return Expectation != null && Expectation.Value != State.None;
+                get
+                {
+                    //This property only cares about compating against an expected outcome
+                    if (!HasExpectation())
+                        return false;
+
+                    State expectedResult = _expectation.Value;
+
+                    if (Passed)
+                        return expectedResult != State.Pass;
+                    else
+                        return expectedResult != State.Fail;
+                }
+            }
+
+            private StrongBox<State> _expectation;
+
+            /// <summary>
+            /// Optional property that can be used to change how a result outcome is interpreted by comparing it to an expected outcome (e.g. fail may not always be treated as a fail)
+            /// </summary>
+            public State Expectation
+            {
+                get
+                {
+                    if (_expectation != null)
+                        return _expectation.Value;
+                    return State.None;
+                }
+                set
+                {
+                    if (_expectation == null)
+                    {
+                        _expectation = new StrongBox<State>(value);
+                        return;
+                    }
+                    _expectation.Value = value;
+                }
             }
 
             /// <summary>
-            /// Whether or not the state is failed, or passed, this considers a pass state with the context of the expected outcome
+            /// Compiles a list of supported tags for the purpose of appending to a condition response message
+            /// </summary>
+            public List<string> CompileMessageTags()
+            {
+                List<string> tags = new List<string>();
+
+                string expectationTag = getExpectationTag();
+
+                if (expectationTag != null)
+                    tags.Add(expectationTag);
+                return tags;
+            }
+
+            /// <summary>
+            /// Returns the message tag for this result representing whether the current pass state is expected, or unexpected
+            /// when an expectation state is set, null otherwise
+            /// </summary>
+            private string getExpectationTag()
+            {
+                if (!HasExpectation())
+                    return null;
+
+                return IsUnexpected ? "Unexpected" : "Expected";
+            }
+
+            public bool HasExpectation()
+            {
+                return Expectation != State.None;
+            }
+
+            /// <summary>
+            /// Checks that a result is consistent with a set expectation, or if it has passed when none is set
             /// </summary>
             public bool PassedWithExpectations()
             {
                 if (!HasExpectation())
                     return Passed;
-                return (Passed && Expectation.Value == State.Pass) || (!Passed && Expectation.Value == State.Fail);
-            }
 
-            public void SetExpectation(State expectation)
-            {
-                if (Expectation == null)
-                {
-                    Expectation = new StrongBox<State>(expectation);
-                    return;
-                }
-                Expectation.Value = expectation;
+                return !IsUnexpected;
             }
 
             public override string ToString()
             {
-                return Message?.ToString() ?? string.Empty;
+                if (Message != null)
+                {
+                    string actualMessage = Message.ToString();
+
+                    if (actualMessage != null)
+                        return actualMessage;
+                }
+                return string.Empty;
             }
         }
 
