@@ -128,17 +128,7 @@ namespace LogUtils.Diagnostics.Tests
                 response = Formatter.Format(result);
 
                 if (result.HasEmptyMessage)
-                {
                     report.Append(result.Passed ? "Pass" : "Fail");
-
-                    string reportTag = "No details";
-                    int tagInsertIndex = response.LastIndexOf('(');
-
-                    if (tagInsertIndex == -1)
-                        response += $" ({reportTag})";
-                    else
-                        response = response.Insert(tagInsertIndex + 1, reportTag + ", ");
-                }
 
                 report.AppendLine(response);
             }

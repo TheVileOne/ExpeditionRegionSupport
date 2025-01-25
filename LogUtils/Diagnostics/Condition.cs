@@ -271,6 +271,9 @@ namespace LogUtils.Diagnostics
 
                 if (expectationTag != null)
                     Message.Tags.Add(expectationTag);
+
+                if (HasEmptyMessage)
+                    Message.Tags.Add("No details");
             }
 
             /// <summary>
