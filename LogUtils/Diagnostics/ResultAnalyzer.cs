@@ -48,6 +48,11 @@ namespace LogUtils.Diagnostics
             }
         }
 
+        public bool HasFailedResults()
+        {
+            return GetFailedResults().Any();
+        }
+
         public IEnumerable<Condition.Result> GetFailedResults()
         {
             return resultData.Where(result =>

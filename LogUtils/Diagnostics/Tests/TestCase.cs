@@ -163,11 +163,8 @@ namespace LogUtils.Diagnostics.Tests
         /// </summary>
         public virtual bool HasFailed()
         {
-            bool includeExpectedOutcomes = Debug.TestCasePolicy.PreferExpectationsAsFailures;
-
-            if (includeExpectedOutcomes)
-                return Results.Exists(r => !r.PassedWithExpectations());
-            return Results.Exists(r => !r.Passed);
+            var analyzer = Results.GetAnalyzer();
+            return analyzer.HasFailedResults();
         }
 
         public virtual bool HasReportDetails()
