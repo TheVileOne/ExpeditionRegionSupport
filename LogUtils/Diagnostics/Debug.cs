@@ -32,10 +32,10 @@ namespace LogUtils.Diagnostics
             public static bool FailuresAreAlwaysReported = false;
 
             /// <summary>
-            /// A flag that affects whether the total number of test conditions is always explictly included in the result report
-            /// Default: false
+            /// This field affects the level of detail revealed in the test case report
+            /// Default: Standard
             /// </summary>
-            public static bool AlwaysReportResultTotal = false;
+            public static TestCase.ReportVerbosity ReportVerbosity = TestCase.ReportVerbosity.Standard;
         }
     }
 }

@@ -10,7 +10,7 @@ namespace LogUtils.Diagnostics.Tests
 
         public virtual bool HasReportDetails()
         {
-            return Debug.TestCasePolicy.AlwaysReportResultTotal || HasFailed();
+            return HasFailed();
         }
 
         public string CreateReport()
@@ -52,7 +52,7 @@ namespace LogUtils.Diagnostics.Tests
 
                 ReportResultEntries(report, analyzer.GetFailedResults());
             }
-            else if (Debug.TestCasePolicy.AlwaysReportResultTotal)
+            else if (Debug.TestCasePolicy.ReportVerbosity == ReportVerbosity.Verbose)
             {
                 int totalResults = Results.Count;
                 report.AppendLine($"- {totalResults} out of {totalResults} asserts passed");
@@ -89,6 +89,13 @@ namespace LogUtils.Diagnostics.Tests
 
                 report.AppendLine(response);
             }
+        }
+
+        public enum ReportVerbosity
+        {
+            Compact,
+            Standard,
+            Verbose
         }
     }
 }

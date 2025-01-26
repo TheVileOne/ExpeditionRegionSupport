@@ -246,30 +246,19 @@ namespace LogUtils.Diagnostics.Tests
             report.AppendLine($"REPORT - {Name}")
                   .AppendLine("INFO");
 
-            if (Results.Count > 0)
-            {
-                bool allTestsPassed = totalPassedCases == totalCases;
-
-                if (allTestsPassed)
-                {
-                    if (Debug.TestCasePolicy.AlwaysReportResultTotal)
-                        report.AppendLine($"- {totalPassedCases} out of {totalCases} tests passed");
-                    else
-                        report.AppendLine("- All tests passed");
-                    return;
-                }
-            }
-            else if (Count == 0)
+            if (Results.Count == 0 && Count == 0)
             {
                 report.AppendLine("- No results to show");
                 return;
             }
 
+            bool allTestsPassed = totalPassedCases == totalCases;
+
             //Basic statistics on test failures
             report.AppendLine($"- {totalPassedCases} out of {totalCases} tests passed");
 
             //Hacky solution to ensure that all subgroups with reportable results display this header
-            if (Group != null)
+            if (Group != null && Debug.TestCasePolicy.ReportVerbosity != ReportVerbosity.Compact)
                 ReportSectionHeader(report, $"Showing test cases of {Name}");
 
             //We don't need to report on assert count if it 1:1 aligns with the case results
@@ -278,26 +267,35 @@ namespace LogUtils.Diagnostics.Tests
                 report.AppendLine($"- {totalPassedAsserts} out of {totalAsserts} asserts passed");
             }
 
-            if (base.HasFailed())
+            if (!allTestsPassed || Debug.TestCasePolicy.ReportVerbosity != ReportVerbosity.Compact)
             {
-                var analyzer = Results.GetAnalyzer();
-                ReportResultEntries(report, analyzer.GetFailedResults());
+                if (base.HasFailed())
+                {
+                    var analyzer = Results.GetAnalyzer();
+                    ReportResultEntries(report, analyzer.GetFailedResults());
+                }
+
+                var casesToReport = Debug.TestCasePolicy.ReportVerbosity != ReportVerbosity.Compact ? Cases : Cases.Where(c => c.HasReportDetails());
+
+                TestCase lastTestProcessed = null;
+                foreach (var testCase in casesToReport)
+                {
+                    if (testCase is TestCaseGroup)
+                    {
+                        ReportSectionHeader(report, $"Showing subgroup of {Name}");
+                    }
+                    else if (lastTestProcessed != null) //This shouldn't apply to the first test case
+                    {
+                        report.AppendLine();
+                    }
+
+                    testCase.BuildReport(report);
+                    lastTestProcessed = testCase;
+                }
             }
-
-            TestCase lastTestProcessed = null;
-            foreach (var testCase in Cases)
+            else
             {
-                if (testCase is TestCaseGroup)
-                {
-                    ReportSectionHeader(report, $"Showing subgroup of {Name}");
-                }
-                else if (lastTestProcessed != null) //This shouldn't apply to the first test case
-                {
-                    report.AppendLine();
-                }
-
-                testCase.BuildReport(report);
-                lastTestProcessed = testCase;
+                report.AppendLine("- All tests passed");
             }
 
             ReportSectionHeader(report, Group == null ? "End of results" : $"Finished showing test group {Name}");
