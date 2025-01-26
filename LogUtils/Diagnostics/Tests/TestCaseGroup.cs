@@ -190,7 +190,7 @@ namespace LogUtils.Diagnostics.Tests
             SelectedCase = Cases.ElementAtOrDefault(SelectedIndex);
         }
 
-        public override void BuildReport(StringBuilder report)
+        protected override void BuildReport(StringBuilder report)
         {
             int totalCases = Count, //Count includes only cases immediately managed by this instance
                 totalPassedCases = 0,
@@ -285,7 +285,7 @@ namespace LogUtils.Diagnostics.Tests
                         report.AppendLine();
                     }
 
-                    testCase.BuildReport(report);
+                    testCase.AppendReport(report);
                     lastTestProcessed = testCase;
                 }
             }

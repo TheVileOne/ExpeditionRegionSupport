@@ -23,7 +23,12 @@ namespace LogUtils.Diagnostics.Tests
             return report.ToString();
         }
 
-        public virtual void BuildReport(StringBuilder report)
+        internal void AppendReport(StringBuilder report)
+        {
+            BuildReport(report);
+        }
+
+        protected virtual void BuildReport(StringBuilder report)
         {
             bool testCaseFailed = HasFailed();
 
