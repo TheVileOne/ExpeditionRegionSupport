@@ -1,12 +1,11 @@
 ﻿using LogUtils.Helpers;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using MessageFormatter = LogUtils.Diagnostics.AssertHandler.MessageFormatter;
 
 namespace LogUtils.Diagnostics.Tests
 {
-    public class TestCase : IConditionHandler, IDisposable
+    public partial class TestCase : IConditionHandler, IDisposable
     {
         public MessageFormatter Formatter;
 
@@ -69,86 +68,6 @@ namespace LogUtils.Diagnostics.Tests
             return Assert.That(value, Handler);
         }
 
-        protected const string RESULT_DIVIDER = "--------------------------------------------";
-
-        public string CreateReport()
-        {
-            StringBuilder report = new StringBuilder();
-
-            BuildReport(report);
-            return report.ToString();
-        }
-
-        public virtual void BuildReport(StringBuilder report)
-        {
-            //This header only needs to be displayed once
-            if (report.Length == 0)
-                BeginReport(report);
-
-            bool testCaseFailed = HasFailed();
-
-            report.AppendLine($"{(testCaseFailed ? "FAILED" : "PASSED")} - {Name}")
-                  .AppendLine("INFO");
-
-            if (Results.Count == 0)
-            {
-                report.AppendLine("- No results to show");
-                return;
-            }
-
-            if (testCaseFailed)
-            {
-                var analyzer = Results.GetAnalyzer();
-
-                analyzer.CountResults();
-
-                int totalResults = analyzer.TotalResults,
-                    totalPassedResults = analyzer.TotalPassedResults;
-
-                report.AppendLine($"- {totalPassedResults} out of {totalResults} asserts passed")
-                      .AppendLine();
-
-                ReportResultEntries(report, analyzer.GetFailedResults());
-            }
-            else if (Debug.TestCasePolicy.AlwaysReportResultTotal)
-            {
-                int totalResults = Results.Count;
-                report.AppendLine($"- {totalResults} out of {totalResults} asserts passed");
-            }
-            else
-            {
-                report.AppendLine("- All results passed");
-            }
-        }
-
-        protected void BeginReport(StringBuilder report)
-        {
-            report.AppendLine()
-                  .AppendLine("Test Results");
-            ReportSectionHeader(report, "Showing test results");
-        }
-
-        protected void ReportSectionHeader(StringBuilder report, string sectionHeader)
-        {
-            report.AppendLine(RESULT_DIVIDER)
-                  .AppendLine(sectionHeader)
-                  .AppendLine(RESULT_DIVIDER);
-        }
-
-        protected void ReportResultEntries(StringBuilder report, IEnumerable<Condition.Result> results)
-        {
-            string response;
-            foreach (var result in results)
-            {
-                response = Formatter.Format(result);
-
-                if (result.HasEmptyMessage)
-                    report.Append(result.Passed ? "Pass" : "Fail");
-
-                report.AppendLine(response);
-            }
-        }
-
         public void Dispose()
         {
             //Alert the case group that this case is finished handling cases, and the next test can take over
@@ -180,11 +99,6 @@ namespace LogUtils.Diagnostics.Tests
         {
             var analyzer = Results.GetAnalyzer();
             return analyzer.HasFailedResults();
-        }
-
-        public virtual bool HasReportDetails()
-        {
-            return Debug.TestCasePolicy.AlwaysReportResultTotal || HasFailed();
         }
 
         internal void SetGroupFromParent(TestCaseGroup group)
