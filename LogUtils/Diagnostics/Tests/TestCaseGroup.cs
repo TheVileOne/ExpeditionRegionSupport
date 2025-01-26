@@ -190,7 +190,7 @@ namespace LogUtils.Diagnostics.Tests
             SelectedCase = Cases.ElementAtOrDefault(SelectedIndex);
         }
 
-        public override void CreateReport(StringBuilder report)
+        public override void BuildReport(StringBuilder report)
         {
             int totalCases = Count, //Count includes only cases immediately managed by this instance
                 totalPassedCases = 0,
@@ -241,59 +241,42 @@ namespace LogUtils.Diagnostics.Tests
 
             //This header only needs to be displayed once
             if (report.Length == 0)
-            {
-                report.AppendLine()
-                      .AppendLine("Test Results");
-            }
-            else
-            {
-                report.AppendLine()
-                      .AppendLine("Checking subgroup")
-                      .AppendLine();
-            }
+                BeginReport(report);
 
-            report.AppendLine("REPORT: " + Name);
-
+            report.AppendLine($"REPORT - {Name}")
+                  .AppendLine("INFO");
 
             if (Results.Count > 0)
             {
                 bool allTestsPassed = totalPassedCases == totalCases;
 
-                if (!allTestsPassed)
-                {
-                    report.AppendLine()
-                          .AppendLine("Status: Failed");
-                }
-
-                if (Debug.TestCasePolicy.AlwaysReportResultTotal)
-                    report.AppendLine($"Checking the results of {Results.Count} asserts");
-
                 if (allTestsPassed)
                 {
-                    report.AppendLine("All tests passed")
-                          .AppendLine();
+                    if (Debug.TestCasePolicy.AlwaysReportResultTotal)
+                        report.AppendLine($"- {totalPassedCases} out of {totalCases} tests passed");
+                    else
+                        report.AppendLine("- All tests passed");
                     return;
                 }
-
             }
             else if (Count == 0)
             {
-                report.AppendLine("No results to show");
+                report.AppendLine("- No results to show");
                 return;
             }
 
             //Basic statistics on test failures
-            report.AppendLine($"{totalPassedCases} out of {totalCases} tests passed");
+            report.AppendLine($"- {totalPassedCases} out of {totalCases} tests passed");
+
+            //Hacky solution to ensure that all subgroups with reportable results display this header
+            if (Group != null)
+                ReportSectionHeader(report, $"Showing test cases of {Name}");
 
             //We don't need to report on assert count if it 1:1 aligns with the case results
             if (totalAsserts != totalCases && totalPassedAsserts != totalPassedCases)
             {
-                report.AppendLine($"{totalPassedAsserts} out of {totalAsserts} asserts passed");
+                report.AppendLine($"- {totalPassedAsserts} out of {totalAsserts} asserts passed");
             }
-
-            //Case results
-            //report.AppendLine()
-            //      .AppendLine("Failed tests");
 
             if (base.HasFailed())
             {
@@ -301,10 +284,23 @@ namespace LogUtils.Diagnostics.Tests
                 ReportResultEntries(report, analyzer.GetFailedResults());
             }
 
-            foreach (var testCase in Cases.Where(c => c.HasReportDetails()))
+            TestCase lastTestProcessed = null;
+            foreach (var testCase in Cases)
             {
-                testCase.CreateReport(report);
+                if (testCase is TestCaseGroup)
+                {
+                    ReportSectionHeader(report, $"Showing subgroup of {Name}");
+                }
+                else if (lastTestProcessed != null) //This shouldn't apply to the first test case
+                {
+                    report.AppendLine();
+                }
+
+                testCase.BuildReport(report);
+                lastTestProcessed = testCase;
             }
+
+            ReportSectionHeader(report, Group == null ? "End of results" : $"Finished showing test group {Name}");
         }
     }
 }

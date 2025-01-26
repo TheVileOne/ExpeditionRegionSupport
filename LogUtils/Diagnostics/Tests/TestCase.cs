@@ -69,32 +69,32 @@ namespace LogUtils.Diagnostics.Tests
             return Assert.That(value, Handler);
         }
 
+        protected const string RESULT_DIVIDER = "--------------------------------------------";
+
         public string CreateReport()
         {
-            StringBuilder reportBuilder = new StringBuilder();
-            
-            CreateReport(reportBuilder);
-            return reportBuilder.ToString();
+            StringBuilder report = new StringBuilder();
+
+            BuildReport(report);
+            return report.ToString();
         }
 
-        public virtual void CreateReport(StringBuilder report)
+        public virtual void BuildReport(StringBuilder report)
         {
             //This header only needs to be displayed once
             if (report.Length == 0)
-                report.AppendLine("Test Results");
+                BeginReport(report);
 
-            report.AppendLine("REPORT: " + Name);
+            bool testCaseFailed = HasFailed();
+
+            report.AppendLine($"{(testCaseFailed ? "FAILED" : "PASSED")} - {Name}")
+                  .AppendLine("INFO");
 
             if (Results.Count == 0)
             {
-                report.AppendLine("No results to show");
+                report.AppendLine("- No results to show");
                 return;
             }
-
-            if (Debug.TestCasePolicy.AlwaysReportResultTotal)
-                report.AppendLine($"Checking the results of {Results.Count} asserts");
-
-            bool testCaseFailed = HasFailed();
 
             if (testCaseFailed)
             {
@@ -105,19 +105,34 @@ namespace LogUtils.Diagnostics.Tests
                 int totalResults = analyzer.TotalResults,
                     totalPassedResults = analyzer.TotalPassedResults;
 
-                report.AppendLine("Status: Failed")
-                      .AppendLine()
-                      .AppendLine($"{totalPassedResults} out of {totalResults} asserts passed")
+                report.AppendLine($"- {totalPassedResults} out of {totalResults} asserts passed")
                       .AppendLine();
-                //.AppendLine("Failed asserts");
 
                 ReportResultEntries(report, analyzer.GetFailedResults());
             }
+            else if (Debug.TestCasePolicy.AlwaysReportResultTotal)
+            {
+                int totalResults = Results.Count;
+                report.AppendLine($"- {totalResults} out of {totalResults} asserts passed");
+            }
             else
             {
-                report.AppendLine("All results passed")
-                      .AppendLine();
+                report.AppendLine("- All results passed");
             }
+        }
+
+        protected void BeginReport(StringBuilder report)
+        {
+            report.AppendLine()
+                  .AppendLine("Test Results");
+            ReportSectionHeader(report, "Showing test results");
+        }
+
+        protected void ReportSectionHeader(StringBuilder report, string sectionHeader)
+        {
+            report.AppendLine(RESULT_DIVIDER)
+                  .AppendLine(sectionHeader)
+                  .AppendLine(RESULT_DIVIDER);
         }
 
         protected void ReportResultEntries(StringBuilder report, IEnumerable<Condition.Result> results)
