@@ -17,16 +17,14 @@ namespace LogUtils.Diagnostics.Tests
         {
             StringBuilder report = new StringBuilder();
 
+            BeginReport(report);
             BuildReport(report);
+            EndReport(report);
             return report.ToString();
         }
 
         public virtual void BuildReport(StringBuilder report)
         {
-            //This header only needs to be displayed once
-            if (report.Length == 0)
-                BeginReport(report);
-
             bool testCaseFailed = HasFailed();
 
             report.AppendLine($"{(testCaseFailed ? "FAILED" : "PASSED")} - {Name}")
@@ -63,11 +61,16 @@ namespace LogUtils.Diagnostics.Tests
             }
         }
 
-        protected void BeginReport(StringBuilder report)
+        protected virtual void BeginReport(StringBuilder report)
         {
             report.AppendLine()
                   .AppendLine("Test Results");
             ReportSectionHeader(report, "Showing test results");
+        }
+
+        protected virtual void EndReport(StringBuilder report)
+        {
+            ReportSectionHeader(report, "End of results");
         }
 
         protected void ReportSectionHeader(StringBuilder report, string sectionHeader)

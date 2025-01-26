@@ -239,10 +239,6 @@ namespace LogUtils.Diagnostics.Tests
                 }
             }
 
-            //This header only needs to be displayed once
-            if (report.Length == 0)
-                BeginReport(report);
-
             report.AppendLine($"REPORT - {Name}")
                   .AppendLine("INFO");
 
@@ -298,7 +294,8 @@ namespace LogUtils.Diagnostics.Tests
                 report.AppendLine("- All tests passed");
             }
 
-            ReportSectionHeader(report, Group == null ? "End of results" : $"Finished showing test group {Name}");
+            if (Group != null)
+                ReportSectionHeader(report, $"Finished showing test group {Name}");
         }
     }
 }
