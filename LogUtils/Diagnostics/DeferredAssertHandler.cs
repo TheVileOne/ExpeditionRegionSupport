@@ -23,7 +23,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Enqueues the result in a result queue for future handling
         /// </summary>
-        public override void Handle(in Condition.Result result)
+        public override void Handle(Condition.Result result)
         {
             Results.Enqueue(result);
         }

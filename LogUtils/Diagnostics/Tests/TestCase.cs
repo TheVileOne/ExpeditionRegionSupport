@@ -68,7 +68,7 @@ namespace LogUtils.Diagnostics.Tests
         {
             var condition = Assert.That(value, this);
 
-            condition.Handlers.AddRange(ApplicableHandlers);
+            condition.AddHandlers(ApplicableHandlers);
             return condition;
         }
 
@@ -80,7 +80,7 @@ namespace LogUtils.Diagnostics.Tests
         {
             var condition = Assert.That(value, this);
 
-            condition.Handlers.AddRange(ApplicableHandlers);
+            condition.AddHandlers(ApplicableHandlers);
             return condition;
         }
 
@@ -91,7 +91,7 @@ namespace LogUtils.Diagnostics.Tests
                 Group.NextCase();
         }
 
-        public virtual void Handle(in Condition.Result result)
+        public virtual void Handle(Condition.Result result)
         {
             Results.Add(result);
         }

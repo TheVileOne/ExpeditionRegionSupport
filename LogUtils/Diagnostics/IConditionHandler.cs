@@ -10,6 +10,6 @@
         /// <summary>
         /// Apply post-processing logic to a condition result
         /// </summary>
-        public void Handle(in Condition.Result result);
+        public void Handle(Condition.Result result);
     }
 }

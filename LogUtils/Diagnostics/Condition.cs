@@ -15,11 +15,6 @@ namespace LogUtils.Diagnostics
         public readonly T Value;
 
         /// <summary>
-        /// The handlers responsible for handling the assertion result
-        /// </summary>
-        public List<IConditionHandler> Handlers;
-
-        /// <summary>
         /// The pass/fail state of the condition
         /// </summary>
         internal Condition.Result Result;
@@ -30,8 +25,7 @@ namespace LogUtils.Diagnostics
 
         public Condition()
         {
-            Handlers = new List<IConditionHandler>();
-            Result.Initialize();
+            Result = new Condition.Result();
         }
 
         public Condition(T value, IConditionHandler handler) : this()
@@ -39,7 +33,17 @@ namespace LogUtils.Diagnostics
             Value = value;
 
             if (handler != null)
-                Handlers.Add(handler);
+                AddHandler(handler);
+        }
+
+        public void AddHandler(IConditionHandler handler)
+        {
+            Result.Handlers.Add(handler);
+        }
+
+        public void AddHandlers(IEnumerable<IConditionHandler> handlers)
+        {
+            Result.Handlers.AddRange(handlers);
         }
 
         /// <summary>
@@ -63,22 +67,14 @@ namespace LogUtils.Diagnostics
         public void Pass()
         {
             Result.Passed = true;
-            onResult();
+            Result.Handle();
         }
 
         public void Fail(Condition.Message reportMessage)
         {
             Result.Passed = false;
             Result.Message = reportMessage;
-            onResult();
-        }
-
-        private void onResult()
-        {
-            foreach (var handler in Handlers)
-            {
-                handler.Handle(Result);
-            }
+            Result.Handle();
         }
     }
 
@@ -218,7 +214,7 @@ namespace LogUtils.Diagnostics
             }
         }
 
-        public struct Result
+        public class Result
         {
             public bool Passed;
             public Message Message;
@@ -269,6 +265,19 @@ namespace LogUtils.Diagnostics
             }
 
             /// <summary>
+            /// The handlers responsible for handling the assertion result
+            /// </summary>
+            public List<IConditionHandler> Handlers;
+
+            public Result()
+            {
+                Passed = true;
+                Expectation = State.None;
+                Handlers = new List<IConditionHandler>();
+                Message = Message.Empty;
+            }
+
+            /// <summary>
             /// Compiles a set of supported tags for the purpose of appending to a condition response message
             /// </summary>
             public void CompileMessageTags()
@@ -294,16 +303,15 @@ namespace LogUtils.Diagnostics
                 return IsUnexpected ? "Unexpected" : "Expected";
             }
 
+            public void Handle()
+            {
+                foreach (var handler in Handlers)
+                    handler.Handle(this);
+            }
+
             public bool HasExpectation()
             {
                 return Expectation != State.None;
-            }
-
-            public void Initialize()
-            {
-                Passed = true;
-                Expectation = State.None;
-                Message = Message.Empty;
             }
 
             /// <summary>

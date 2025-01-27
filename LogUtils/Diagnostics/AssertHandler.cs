@@ -34,7 +34,7 @@ namespace LogUtils.Diagnostics
         /// </summary>
         /// <param name="result">The result to evaluate</param>
         /// <exception cref="AssertionException">Throws when AssertBehavior.Throw is set, and assert fails</exception>
-        public virtual void Handle(in Condition.Result result)
+        public virtual void Handle(Condition.Result result)
         {
             if (Behavior == AssertBehavior.DoNothing) return;
 
