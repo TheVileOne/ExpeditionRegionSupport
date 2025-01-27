@@ -80,7 +80,7 @@ namespace LogUtils.Diagnostics.Tests
 
         internal void Add(TestCase test)
         {
-            if (test == null || test.Group == this)
+            if (test == null || test == this)
             {
                 UtilityLogger.LogWarning("Test case argument invalid");
                 return;
