@@ -15,9 +15,9 @@ namespace LogUtils.Diagnostics
         public readonly T Value;
 
         /// <summary>
-        /// The handler responsible for handling the assertion result
+        /// The handlers responsible for handling the assertion result
         /// </summary>
-        public IConditionHandler Handler;
+        public List<IConditionHandler> Handlers;
 
         /// <summary>
         /// The pass/fail state of the condition
@@ -30,13 +30,16 @@ namespace LogUtils.Diagnostics
 
         public Condition()
         {
+            Handlers = new List<IConditionHandler>();
             Result.Initialize();
         }
 
         public Condition(T value, IConditionHandler handler) : this()
         {
             Value = value;
-            Handler = handler;
+
+            if (handler != null)
+                Handlers.Add(handler);
         }
 
         /// <summary>
@@ -72,7 +75,10 @@ namespace LogUtils.Diagnostics
 
         private void onResult()
         {
-            Handler?.Handle(Result);
+            foreach (var handler in Handlers)
+            {
+                handler.Handle(Result);
+            }
         }
     }
 

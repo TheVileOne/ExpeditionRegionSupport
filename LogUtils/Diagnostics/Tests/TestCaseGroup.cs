@@ -72,11 +72,11 @@ namespace LogUtils.Diagnostics.Tests
 
         protected int SelectedIndex;
 
-        public TestCaseGroup(string name) : this(null, name)
+        public TestCaseGroup(string name) : base(name)
         {
         }
 
-        public TestCaseGroup(TestCaseGroup group, string name) : base(group, name, null)
+        public TestCaseGroup(TestCaseGroup group, string name) : base(group, name)
         {
         }
 

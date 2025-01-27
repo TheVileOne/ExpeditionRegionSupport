@@ -17,9 +17,26 @@ namespace LogUtils.Diagnostics.Tests
         public TestCaseGroup Group => _group;
 
         /// <summary>
+        /// A shared state that applies to the top level test case and all of its children
+        /// </summary>
+        public readonly SharedState GroupState;
+
+        /// <summary>
         /// The result processor specific to this test case or its children. Null by default
         /// </summary>
         public IConditionHandler Handler;
+
+        public IReadOnlyList<IConditionHandler> ApplicableHandlers
+        {
+            get
+            {
+                var handlers = GroupState.GetApplicableHandlers(this);
+
+                if (Handler != null)
+                    handlers.Add(Handler);
+                return handlers;
+            }
+        }
 
         public virtual bool IsEnabled => Debug.AssertsEnabled;
 
@@ -27,26 +44,20 @@ namespace LogUtils.Diagnostics.Tests
 
         public List<Condition.Result> Results;
 
-        public TestCase(string name) : this(null, name, null)
+        public TestCase(string name) : this(name, new SharedState())
         {
         }
 
-        public TestCase(string name, IConditionHandler handler) : this(null, name, handler)
+        public TestCase(TestCaseGroup group, string name) : this(name, group.GroupState)
         {
+            group.Add(this);
         }
 
-        public TestCase(TestCaseGroup group, string name) : this(group, name, null)
+        protected TestCase(string name, SharedState state)
         {
-        }
-
-        public TestCase(TestCaseGroup group, string name, IConditionHandler handler)
-        {
-            if (group != null)
-                group.Add(this);
-
-            Formatter = new MessageFormatter();
-            Handler = handler ?? this;
             Name = name;
+            GroupState = state;
+            Formatter = new MessageFormatter();
             Results = new List<Condition.Result>();
         }
 
@@ -56,7 +67,10 @@ namespace LogUtils.Diagnostics.Tests
         /// <param name="value">Value to be used as an assert target</param>
         public Condition<T> AssertThat<T>(T value)
         {
-            return Assert.That(value, Handler);
+            var condition = Assert.That(value, this);
+
+            condition.Handlers.AddRange(ApplicableHandlers);
+            return condition;
         }
 
         /// <summary>
@@ -65,7 +79,10 @@ namespace LogUtils.Diagnostics.Tests
         /// <param name="value">Value to be used as an assert target</param>
         public Condition<T?> AssertThat<T>(T? value) where T : struct
         {
-            return Assert.That(value, Handler);
+            var condition = Assert.That(value, this);
+
+            condition.Handlers.AddRange(ApplicableHandlers);
+            return condition;
         }
 
         public void Dispose()
@@ -73,18 +90,6 @@ namespace LogUtils.Diagnostics.Tests
             //Alert the case group that this case is finished handling cases, and the next test can take over
             if (Group != null)
                 Group.NextCase();
-        }
-
-        protected virtual List<IConditionHandler> GetInheritedHandlers()
-        {
-            List<IConditionHandler> handlers = new List<IConditionHandler>();
-            if (Group != null)
-            {
-                if (Group.Handler != null)
-                    handlers.Add(Group.Handler);
-                handlers.AddRange(Group.GetInheritedHandlers());
-            }
-            return handlers;
         }
 
         public virtual void Handle(in Condition.Result result)
@@ -104,6 +109,46 @@ namespace LogUtils.Diagnostics.Tests
         internal void SetGroupFromParent(TestCaseGroup group)
         {
             _group = group;
+        }
+
+        /// <summary>
+        /// State that is capable of being shared between two or more test case instances
+        /// </summary>
+        public class SharedState
+        {
+            /// <summary>
+            /// Should the state of the TestSuit affect the state of this instance
+            /// </summary>
+            public bool InheritFromTestSuite = true;
+
+            /// <summary>
+            /// Should children be exposed to this state, or only the most top level instance
+            /// </summary>
+            public bool PropagateToChildren = true;
+
+            public IConditionHandler SharedHandler;
+
+            public List<IConditionHandler> GetApplicableHandlers(TestCase instance)
+            {
+                var handlers = new List<IConditionHandler>();
+
+                bool isChildInstance = instance.Group != null;
+
+                if (!isChildInstance || PropagateToChildren)
+                {
+                    if (SharedHandler != null)
+                        handlers.Add(SharedHandler);
+
+                    if (InheritFromTestSuite)
+                    {
+                        var suiteHandler = TestSuite.ActiveSuite?.Handler;
+
+                        if (suiteHandler != null)
+                            handlers.Add(suiteHandler);
+                    }
+                }
+                return handlers;
+            }
         }
     }
 }
