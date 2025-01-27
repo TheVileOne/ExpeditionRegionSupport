@@ -9,12 +9,10 @@ namespace LogUtils.Diagnostics.Tests
     {
         public MessageFormatter Formatter;
 
-        private TestCaseGroup _group;
-
         /// <summary>
         /// The group that this test case belongs to
         /// </summary>
-        public TestCaseGroup Group => _group;
+        public readonly TestCaseGroup Group;
 
         /// <summary>
         /// A shared state that applies to the top level test case and all of its children
@@ -50,7 +48,8 @@ namespace LogUtils.Diagnostics.Tests
 
         public TestCase(TestCaseGroup group, string name) : this(name, group.GroupState)
         {
-            group.Add(this);
+            Group = group;
+            Group.Add(this);
         }
 
         protected TestCase(string name, SharedState state)
@@ -104,11 +103,6 @@ namespace LogUtils.Diagnostics.Tests
         {
             var analyzer = Results.GetAnalyzer();
             return analyzer.HasFailedResults();
-        }
-
-        internal void SetGroupFromParent(TestCaseGroup group)
-        {
-            _group = group;
         }
 
         /// <summary>

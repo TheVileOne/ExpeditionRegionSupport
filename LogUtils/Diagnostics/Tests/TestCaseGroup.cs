@@ -7,7 +7,7 @@ using System.Text;
 
 namespace LogUtils.Diagnostics.Tests
 {
-    public class TestCaseGroup : TestCase, ICollection<TestCase>, ISelectable
+    public class TestCaseGroup : TestCase, IReadOnlyCollection<TestCase>, ISelectable
     {
         /// <summary>
         /// Gets the test results for the test case and any children cases starting with the test group
@@ -62,11 +62,9 @@ namespace LogUtils.Diagnostics.Tests
             }
         }
 
-        public List<TestCase> Cases = new List<TestCase>();
+        protected List<TestCase> Cases = new List<TestCase>();
 
         public int Count => Cases.Count;
-
-        public bool IsReadOnly => false;
 
         public TestCase SelectedCase;
 
@@ -80,62 +78,19 @@ namespace LogUtils.Diagnostics.Tests
         {
         }
 
-        public void Add(TestCase test)
+        internal void Add(TestCase test)
         {
-            if (test.Group == this) return;
-
-            if (test.Group != null)
-                test.Group.Remove(test);
-            test.SetGroupFromParent(this); //Use a method here to avoid potential for inf loops
-            Cases.Add(test);
-        }
-
-        public bool Remove(TestCase test)
-        {
-            bool caseRemoved = Cases.Remove(test);
-
-            if (caseRemoved)
+            if (test == null || test.Group == this)
             {
-                test.SetGroupFromParent(null); //Use a method here to avoid potential for inf loops
-
-                //Was the selected case removed?
-                if (SelectedCase == test)
-                {
-                    if (SelectedIndex < Cases.Count) //The next case at that index now becomes the new selected case
-                    {
-                        SelectedCase = Cases[SelectedIndex];
-                    }
-                    else if (Cases.Count > 0) //The selected case was at the end of the list
-                    {
-                        SelectPrev();
-                    }
-                }
-                else
-                {
-                    //We don't know if this affected the index of the selected case - reassign the index
-                    SelectedIndex = Cases.IndexOf(test);
-                }
+                UtilityLogger.LogWarning("Test case argument invalid");
+                return;
             }
-            return caseRemoved;
-        }
-
-        public void Clear()
-        {
-            SelectedIndex = 0;
-            SelectedCase = null;
-
-            Cases.ForEach(c => c.SetGroupFromParent(null));
-            Cases.Clear();
+            Cases.Add(test);
         }
 
         public bool Contains(TestCase test)
         {
             return Cases.Contains(test);
-        }
-
-        public void CopyTo(TestCase[] array, int arrayIndex)
-        {
-            Cases.CopyTo(array, arrayIndex);
         }
 
         public IEnumerator<TestCase> GetEnumerator()
@@ -174,7 +129,7 @@ namespace LogUtils.Diagnostics.Tests
 
         public void SelectLast()
         {
-            SelectedIndex = Math.Max(0, Cases.Count - 1);
+            SelectedIndex = Math.Max(0, Count - 1);
             SelectedCase = Cases.LastOrDefault();
         }
 
@@ -186,7 +141,7 @@ namespace LogUtils.Diagnostics.Tests
 
         public void SelectNext()
         {
-            SelectedIndex = Math.Min(Cases.Count - 1, SelectedIndex + 1);
+            SelectedIndex = Math.Min(Count - 1, SelectedIndex + 1);
             SelectedCase = Cases.ElementAtOrDefault(SelectedIndex);
         }
 
