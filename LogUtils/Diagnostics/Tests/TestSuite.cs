@@ -17,12 +17,7 @@ namespace LogUtils.Diagnostics.Tests
         protected const int DEFAULT_CAPACITY = 4;
 
         /// <summary>
-        /// The handler to be used for all tests run through this test suite
-        /// <br></br>
-        /// <remarks>
-        /// <br>Defaults to the instance defined at AssertHandler.DefaultHandler when not set.</br>
-        /// <br>Field does not affect asserts that use a custom handler overload.</br>
-        /// </remarks>
+        /// The handler to be used for all tests run through this test suite (null by default)
         /// </summary>
         public IConditionHandler Handler;
 
