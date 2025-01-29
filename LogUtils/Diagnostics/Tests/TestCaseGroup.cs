@@ -216,9 +216,8 @@ namespace LogUtils.Diagnostics.Tests
             //Basic statistics on test failures
             report.AppendLine($"- {totalPassedCases} out of {totalCases} tests passed");
 
-            //Hacky solution to ensure that all subgroups with reportable results display this header
             if (Group != null && Debug.TestCasePolicy.ReportVerbosity != ReportVerbosity.Compact)
-                ReportSectionHeader(report, $"Showing test cases of {Name}");
+                FormatUtils.CreateHeader(report, $"Showing test cases of {Name}");
 
             //We don't need to report on assert count if it 1:1 aligns with the case results
             if (totalAsserts != totalCases && totalPassedAsserts != totalPassedCases)
@@ -241,7 +240,7 @@ namespace LogUtils.Diagnostics.Tests
                 {
                     if (testCase is TestCaseGroup)
                     {
-                        ReportSectionHeader(report, $"Showing subgroup of {Name}");
+                        FormatUtils.CreateHeader(report, $"Showing subgroup of {Name}");
                     }
                     else if (lastTestProcessed != null) //This shouldn't apply to the first test case
                     {
@@ -258,7 +257,7 @@ namespace LogUtils.Diagnostics.Tests
             }
 
             if (Group != null)
-                ReportSectionHeader(report, $"Finished showing test group {Name}");
+                FormatUtils.CreateHeader(report, $"Finished showing test group {Name}");
         }
     }
 }

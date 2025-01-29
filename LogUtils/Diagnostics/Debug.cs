@@ -1,5 +1,10 @@
 ﻿using LogUtils.Diagnostics.Tests;
 using LogUtils.Diagnostics.Tests.Utility;
+using LogUtils.Enums;
+using LogUtils.Helpers;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace LogUtils.Diagnostics
 {
@@ -15,6 +20,35 @@ namespace LogUtils.Diagnostics
 
             AssertTests assertTest = new AssertTests();
             UtilityTests.Add(assertTest);
+        }
+
+        /// <summary>
+        /// Logs requests to file in a report style format
+        /// </summary>
+        /// <param name="reportFile">The log file to write the report to</param>
+        /// <param name="requests">The objects to log</param>
+        public static void LogRequestInfo(LogID reportFile, IEnumerable<LogRequest> requests)
+        {
+            StringBuilder report = new StringBuilder();
+
+            report.AppendLine();
+
+            FormatUtils.CreateHeader(report, "Log Request report");
+            if (requests.Any())
+            {
+                foreach (LogRequest request in requests)
+                    report.AppendLine(request.ToString());
+            }
+            else
+            {
+                report.AppendLine("No requests to show");
+            }
+            FormatUtils.CreateHeader(report, "End of report");
+
+            DiscreteLogger logger = new DiscreteLogger(reportFile);
+
+            logger.LogDebug(report.ToString());
+            logger.Dispose();
         }
 
         public static class TestCasePolicy

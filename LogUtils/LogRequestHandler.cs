@@ -1,7 +1,5 @@
 ﻿using LogUtils.Enums;
-using LogUtils.Events;
 using LogUtils.Helpers.Comparers;
-using LogUtils.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -232,6 +230,7 @@ namespace LogUtils
             availableLoggers.Remove(logger);
         }
 
+        #region Find methods
         /// <summary>
         /// Finds a list of all logger instances that accepts log requests for a specified LogID
         /// </summary>
@@ -311,8 +310,6 @@ namespace LogUtils
         /// <param name="doPathCheck">Should the log file's containing folder bear significance when finding a logger match</param>
         private Logger findCompatibleLogger(LogID logFile, RequestType requestType, bool doPathCheck)
         {
-            UtilityLogger.DebugLog("Finding logger");
-
             if (requestType == RequestType.Game)
                 return null;
 
@@ -360,6 +357,7 @@ namespace LogUtils
             findCompatibleLoggers(logFile, out Logger localLogger, out Logger remoteLogger);
             return requestType == RequestType.Local ? localLogger : remoteLogger;
         }
+        #endregion
 
         protected bool PrepareRequest(LogRequest request, long processTimestamp = -1)
         {
@@ -414,9 +412,6 @@ namespace LogUtils
                 logFile.Properties.HandleRecord.Reset();
 
                 ILinkedListEnumerable<LogRequest> requests = GetRequests(logFile);
-
-                if (!requests.Any()) return;
-
                 ILoggerBase selectedLogger = null;
 
                 //Evaluate all requests waiting to be handled for this log file
@@ -448,7 +443,6 @@ namespace LogUtils
                     //Ensure that we do not handle a stale record
                     logFile.Properties.HandleRecord.Reset();
 
-                    //TODO: This isn't path specific
                     ILinkedListEnumerable<LogRequest> requests = GetRequests(logFile);
 
                     LogID loggerID = null;
@@ -652,42 +646,6 @@ namespace LogUtils
             //There is a separate process for handling log requests earlier in the setup process
             if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.PostMods)
                 ProcessRequests();
-        }
-
-        /// <summary>
-        /// Dumps all unhandled log requests to a dump file
-        /// </summary>
-        public void DumpRequestsToFile(LogID writeFileID)
-        {
-            LogRule rule = new LogDumpHeaderRule(true);
-
-            writeFileID.Properties.Rules.Add(rule);
-
-            var pendingRequests = new List<LogRequest>();
-            lock (RequestProcessLock)
-            {
-                var currentRequests = UnhandledRequests.Where(r => r.Status != RequestStatus.Complete && r.Status != RequestStatus.WritePending).GetLinkedListEnumerator();
-
-                while (currentRequests.MoveNext())
-                {
-                    LogRequest request = currentRequests.Current;
-
-                    LogMessageEventArgs copy = request.Data.Clone(writeFileID) as LogMessageEventArgs;
-
-                    copy.ExtraArgs.Add(request.Data);
-
-                    //Change requests to target new LogID
-                    pendingRequests.Add(new LogRequest(RequestType.Local, copy));
-                }
-            }
-
-            Logger logger = new DiscreteLogger(writeFileID);
-
-            //TODO: Replace me
-            //logger.HandleRequests(pendingRequests, skipAccessValidation: true);
-            logger.Dispose();
-
-            writeFileID.Properties.Rules.Remove(rule);
         }
     }
 }
