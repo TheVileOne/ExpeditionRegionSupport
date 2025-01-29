@@ -8,30 +8,30 @@ namespace LogUtils.Diagnostics.Tests.Utility
     {
         internal const string TEST_NAME = "Test - Assert System";
 
-        private DeferredAssertHandler handler;
-
         public AssertTests() : base(TEST_NAME)
         {
-            handler = new DeferredAssertHandler(TestLogger)
-            {
-                Behavior = AssertBehavior.LogOnFail | AssertBehavior.LogOnPass,
-            };
+            //Code for testing AssertHandler formatting
+            //DeferredAssertHandler handler = new DeferredAssertHandler(TestLogger)
+            //{
+            //    Behavior = AssertBehavior.LogOnFail
+            //};
 
-            handler.Formatter.FailResponse = "Fail";
-            handler.Formatter.PassResponse = "Pass";
-            GroupState.SharedHandler = handler;
+            //handler.Formatter.FailResponse = "Fail";
+            //handler.Formatter.PassResponse = "Pass";
+            //GroupState.SharedHandler = handler;
         }
 
         public void Test()
         {
-            //Handler = handler; //We want this handler to be applied to children test cases
-
             testCollectionDetection();
             testComparisonOfNullableCombinations();
             testEqualityOfNullableCombinations();
 
-            template.Logger.LogDebug(CreateReport());
-            handler.HandleAll();
+            TestLogger.LogDebug(CreateReport());
+
+            //Code for testing AssertHandler formatting
+            //var handler = (DeferredAssertHandler)GroupState.SharedHandler;
+            //handler.HandleAll();
         }
 
         /// <summary>
