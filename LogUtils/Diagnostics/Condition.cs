@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
 namespace LogUtils.Diagnostics
 {
@@ -221,6 +220,8 @@ namespace LogUtils.Diagnostics
 
             public bool HasEmptyMessage => string.IsNullOrEmpty(ToString());
 
+            public bool HasExpectation => Expectation != State.None;
+
             /// <summary>
             /// Checks that there is an expected outcome and the result is consistent with that outcome
             /// </summary>
@@ -229,10 +230,10 @@ namespace LogUtils.Diagnostics
                 get
                 {
                     //This property only cares about compating against an expected outcome
-                    if (!HasExpectation())
+                    if (!HasExpectation)
                         return false;
 
-                    State expectedResult = _expectation.Value;
+                    State expectedResult = Expectation;
 
                     if (Passed)
                         return expectedResult != State.Pass;
@@ -241,28 +242,10 @@ namespace LogUtils.Diagnostics
                 }
             }
 
-            private StrongBox<State> _expectation;
-
             /// <summary>
-            /// Optional property that can be used to change how a result outcome is interpreted by comparing it to an expected outcome (e.g. fail may not always be treated as a fail)
+            /// Optional field that can be used to change how a result outcome is interpreted by comparing it to an expected outcome (e.g. fail may not always be treated as a fail)
             /// </summary>
-            public State Expectation
-            {
-                get
-                {
-                    //Set on initialization - null check is unnecessary
-                    return _expectation.Value;
-                }
-                set
-                {
-                    if (_expectation == null)
-                    {
-                        _expectation = new StrongBox<State>(value);
-                        return;
-                    }
-                    _expectation.Value = value;
-                }
-            }
+            public State Expectation;
 
             /// <summary>
             /// The handlers responsible for handling the assertion result
@@ -282,25 +265,14 @@ namespace LogUtils.Diagnostics
             /// </summary>
             public void CompileMessageTags()
             {
-                string expectationTag = getExpectationTag();
-
-                if (expectationTag != null)
+                if (HasExpectation)
+                {
+                    string expectationTag = IsUnexpected ? UtilityConsts.MessageTag.UNEXPECTED : UtilityConsts.MessageTag.EXPECTED;
                     Message.Tags.Add(expectationTag);
+                }
 
                 if (HasEmptyMessage)
-                    Message.Tags.Add("No details");
-            }
-
-            /// <summary>
-            /// Returns the message tag for this result representing whether the current pass state is expected, or unexpected
-            /// when an expectation state is set, null otherwise
-            /// </summary>
-            private string getExpectationTag()
-            {
-                if (!HasExpectation())
-                    return null;
-
-                return IsUnexpected ? "Unexpected" : "Expected";
+                    Message.Tags.Add(UtilityConsts.MessageTag.EMPTY);
             }
 
             public void Handle()
@@ -309,17 +281,12 @@ namespace LogUtils.Diagnostics
                     handler.Handle(this);
             }
 
-            public bool HasExpectation()
-            {
-                return Expectation != State.None;
-            }
-
             /// <summary>
             /// Checks that a result is consistent with a set expectation, or if it has passed when none is set
             /// </summary>
             public bool PassedWithExpectations()
             {
-                if (!HasExpectation())
+                if (!HasExpectation)
                     return Passed;
 
                 return !IsUnexpected;

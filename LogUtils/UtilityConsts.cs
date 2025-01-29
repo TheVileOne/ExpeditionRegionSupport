@@ -194,5 +194,12 @@ namespace LogUtils
 
             public const string NO_COMPARISON = "{0} could not be compared";
         }
+
+        public static class MessageTag
+        {
+            public const string EXPECTED = "Expected";
+            public const string UNEXPECTED = "Unexpected";
+            public const string EMPTY = "No details";
+        }
     }
 }
