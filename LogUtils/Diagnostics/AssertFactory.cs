@@ -8,7 +8,7 @@
         /// <param name="value">Value to be used as an assert target</param>
         public static Condition<T> That<T>(T value)
         {
-            return new Condition<T>(value, AssertHandler.CurrentTemplate);
+            return new Condition<T>(value, AssertHandler.DefaultHandler);
         }
 
         /// <summary>
@@ -37,7 +37,7 @@
         /// <param name="value">Value to be used as an assert target</param>
         public static Condition<T?> That<T>(T? value) where T : struct
         {
-            return new Condition<T?>(value, AssertHandler.CurrentTemplate);
+            return new Condition<T?>(value, AssertHandler.DefaultHandler);
         }
 
         /// <summary>

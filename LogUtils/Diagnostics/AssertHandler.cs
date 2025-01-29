@@ -8,8 +8,6 @@ namespace LogUtils.Diagnostics
 {
     public class AssertHandler : IConditionHandler, ICloneable
     {
-        public static IConditionHandler CurrentTemplate => TestSuite.ActiveSuite?.Handler ?? DefaultHandler;
-
         public static readonly AssertHandler DefaultHandler = new AssertHandler(new Logger(LogID.Unity));
 
         private AssertBehavior _behavior = AssertBehavior.LogOnFail;
@@ -87,7 +85,7 @@ namespace LogUtils.Diagnostics
         public static AssertHandler GetTemplateWithBehavior(AssertBehavior behavior, IConditionHandler preferredHandler = null)
         {
             //In order to apply the AssertBehavior, we must be using an instance type that can handle it
-            AssertHandler handler = getCompatibleTemplate(preferredHandler);
+            AssertHandler handler = GetCompatibleTemplate(preferredHandler);
 
             bool isNewBehavior = behavior != handler.Behavior;
 
@@ -97,14 +95,14 @@ namespace LogUtils.Diagnostics
             return handler;
         }
 
-        private static AssertHandler getCompatibleTemplate(IConditionHandler handler)
+        internal static AssertHandler GetCompatibleTemplate(IConditionHandler handler)
         {
             AssertHandler template = handler as AssertHandler;
 
             if (template == null)
-                template = CurrentTemplate as AssertHandler;
+                template = DefaultHandler;
 
-            return template ?? DefaultHandler;
+            return template;
         }
 
         public class MessageFormatter

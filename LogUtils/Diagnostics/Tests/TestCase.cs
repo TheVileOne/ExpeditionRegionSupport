@@ -7,6 +7,15 @@ namespace LogUtils.Diagnostics.Tests
 {
     public partial class TestCase : IConditionHandler, IDisposable
     {
+        public static Logger TestLogger
+        {
+            get
+            {
+                var handler = AssertHandler.GetCompatibleTemplate(TestSuite.ActiveSuite?.Handler);
+                return handler.Logger;
+            }
+        }
+
         public MessageFormatter Formatter;
 
         /// <summary>

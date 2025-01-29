@@ -8,26 +8,22 @@ namespace LogUtils.Diagnostics.Tests.Utility
     {
         internal const string TEST_NAME = "Test - Assert System";
 
+        private DeferredAssertHandler handler;
+
         public AssertTests() : base(TEST_NAME)
         {
-        }
-
-        public void Test()
-        {
-            //Borrow the Logger instance from the current template
-            AssertHandler template = AssertHandler.CurrentTemplate as AssertHandler;
-
-            if (template == null)
-                template = AssertHandler.DefaultHandler;
-
-            var handler = new DeferredAssertHandler(template.Logger)
+            handler = new DeferredAssertHandler(TestLogger)
             {
                 Behavior = AssertBehavior.LogOnFail | AssertBehavior.LogOnPass,
             };
 
             handler.Formatter.FailResponse = "Fail";
             handler.Formatter.PassResponse = "Pass";
+            GroupState.SharedHandler = handler;
+        }
 
+        public void Test()
+        {
             //Handler = handler; //We want this handler to be applied to children test cases
 
             testCollectionDetection();
