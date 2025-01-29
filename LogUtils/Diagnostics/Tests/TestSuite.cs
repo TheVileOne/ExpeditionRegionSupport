@@ -9,7 +9,10 @@ namespace LogUtils.Diagnostics.Tests
     /// </summary>
     public class TestSuite : ICollection<ITestable>
     {
-        protected internal static TestSuite ActiveSuite;
+        /// <summary>
+        /// This is set during the process when tests are being run through a TestSuite instance
+        /// </summary>
+        public static TestSuite ActiveSuite;
 
         protected const int DEFAULT_CAPACITY = 4;
 
