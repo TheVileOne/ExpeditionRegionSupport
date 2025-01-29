@@ -28,22 +28,7 @@ namespace LogUtils.Diagnostics.Tests
         /// </summary>
         public readonly SharedState GroupState;
 
-        /// <summary>
-        /// The result processor specific to this test case or its children. Null by default
-        /// </summary>
-        public IConditionHandler Handler;
-
-        public IReadOnlyList<IConditionHandler> ApplicableHandlers
-        {
-            get
-            {
-                var handlers = GroupState.GetApplicableHandlers(this);
-
-                if (Handler != null)
-                    handlers.Add(Handler);
-                return handlers;
-            }
-        }
+        public IReadOnlyList<IConditionHandler> ApplicableHandlers => GroupState.GetApplicableHandlers(this);
 
         public virtual bool IsEnabled => Debug.AssertsEnabled;
 
