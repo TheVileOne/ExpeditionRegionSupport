@@ -103,6 +103,14 @@ namespace LogUtils.Diagnostics.Tests
             return Cases.GetEnumerator();
         }
 
+        public override void Handle(Condition.Result result)
+        {
+            var firstHandler = result.Handlers[0];
+
+            if (firstHandler.Equals(this))
+                base.Handle(result);
+        }
+
         /// <summary>
         /// Checks that any test cases under the group have failed outcomes, as well as its own asserts
         /// </summary>
