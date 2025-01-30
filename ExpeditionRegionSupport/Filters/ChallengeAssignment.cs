@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Expedition;
+﻿using Expedition;
 using ExpeditionRegionSupport.Diagnostics;
 using ExpeditionRegionSupport.Filters.Utils;
 using ExpeditionRegionSupport.Regions;
 using LogUtils.Enums;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace ExpeditionRegionSupport.Filters
 {

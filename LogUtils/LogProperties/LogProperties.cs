@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using BepInEx.Logging;
+﻿using BepInEx.Logging;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
@@ -11,6 +6,11 @@ using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties.Custom;
 using LogUtils.Threading;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using DataFields = LogUtils.UtilityConsts.DataFields;
 
 namespace LogUtils.Properties

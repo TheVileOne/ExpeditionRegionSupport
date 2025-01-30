@@ -87,7 +87,7 @@ namespace LogUtils.Diagnostics
         protected void InternalHandle()
         {
             base.Handle(Results.Dequeue());
-            
+
         }
 
         protected void InternalHandle(HandleCondition handleWhenTrue)

@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using LogUtils.Enums;
+﻿using LogUtils.Enums;
 using LogUtils.Helpers;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties.Custom;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace LogUtils.Properties
 {

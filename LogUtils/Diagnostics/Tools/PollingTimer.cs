@@ -26,7 +26,7 @@ namespace LogUtils.Diagnostics.Tools
         public event Action<ElapsedEventArgs> OnTimeout;
 
         /// <summary>
-        /// Activates the timer mechanism
+        /// Constructs a PollingTimer
         /// </summary>
         /// <param name="checkInterval">The time window in which a polling flag must be set</param>
         public PollingTimer(double checkInterval) : base(checkInterval)
@@ -47,11 +47,10 @@ namespace LogUtils.Diagnostics.Tools
         }
 
         /// <summary>
-        ///     Starts raising the System.Timers.Timer.Elapsed event by setting System.Timers.Timer.Enabled
-        ///     to true
+        /// Starts raising the System.Timers.Timer.Elapsed event by setting System.Timers.Timer.Enabled to true
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException">The System.Timers.Timer is created with an interval equal to or greater than
-        ///     System.Int32.MaxValue + 1, or set to an interval less than zero.</exception>
+        /// System.Int32.MaxValue + 1, or set to an interval less than zero.</exception>
         public new void Start()
         {
             lastPollTime = -1;

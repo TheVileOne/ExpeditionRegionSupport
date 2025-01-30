@@ -3,15 +3,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace ExpeditionRegionSupport.Filters.Settings
 {
     public static class RegionFilterSettings
     {
-        public static readonly string SETTINGS_PATH; 
+        public static readonly string SETTINGS_PATH;
 
         public static readonly SimpleToggle RememberSettings;
 

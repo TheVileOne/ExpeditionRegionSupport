@@ -13,7 +13,7 @@ namespace LogUtils.Properties
         protected List<LogRule> InnerList = new List<LogRule>();
         protected IOrderedEnumerable<LogRule> InnerEnumerable => InnerList.OrderBy(r => r.Priority);
 
-        private static readonly StringComparer nameComparer = ComparerUtils.StringComparerIgnoreCase; 
+        private static readonly StringComparer nameComparer = ComparerUtils.StringComparerIgnoreCase;
 
         /// <summary>
         /// Tracks LogRule state changes

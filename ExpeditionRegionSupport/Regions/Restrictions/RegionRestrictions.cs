@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ExpeditionRegionSupport.Regions.Restrictions
 {
@@ -23,7 +21,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
 
         public bool HasEntries => !NoRestrictedFields || HasRoomEntries;
 
-        public bool NoRestrictedFields => 
+        public bool NoRestrictedFields =>
                     WorldState == WorldState.Any &&
                     ProgressionRestriction == ProgressionRequirements.None &&
                     Slugcats.IsEmpty;
@@ -135,7 +133,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                 }
                 else
                     Plugin.Logger.LogDebug("NONE");
-            }        
+            }
         }
 
         public override string ToString()
@@ -149,7 +147,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
               .Append(Slugcats.ToString())
               .Append("Progression Restrictions: ")
               .Append(ProgressionRestriction);
-            
+
             return sb.ToString();
         }
     }

@@ -37,7 +37,7 @@ namespace LogUtils
         /// </summary>
         public bool Submitted;
 
-        public bool ThreadCanWrite => Status == RequestStatus.WritePending && Thread.CurrentThread.ManagedThreadId == managedThreadID; 
+        public bool ThreadCanWrite => Status == RequestStatus.WritePending && Thread.CurrentThread.ManagedThreadId == managedThreadID;
 
         public readonly RequestType Type;
 

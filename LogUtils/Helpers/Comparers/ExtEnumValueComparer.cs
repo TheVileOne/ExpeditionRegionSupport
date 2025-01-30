@@ -1,6 +1,6 @@
-﻿using System;
+﻿using LogUtils.Enums;
+using System;
 using System.Collections.Generic;
-using LogUtils.Enums;
 
 namespace LogUtils.Helpers.Comparers
 {

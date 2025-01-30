@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace LogUtils
 {
@@ -48,7 +47,7 @@ namespace LogUtils
         {
             if (predicate == null)
                 throw new ArgumentNullException(nameof(predicate));
-            
+
             return this.Where(predicate).ToList();
         }
 

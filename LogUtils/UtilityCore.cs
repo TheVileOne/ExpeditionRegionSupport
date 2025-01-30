@@ -1,15 +1,14 @@
 ﻿using LogUtils.CompatibilityServices;
+using LogUtils.Diagnostics.Tools;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
-using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties;
 using LogUtils.Threading;
 using Menu;
 using System;
 using System.Linq;
 using System.Reflection;
-using UnityEngine;
 
 namespace LogUtils
 {

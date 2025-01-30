@@ -1,17 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using Expedition;
-using ExpeditionRegionSupport.Data;
+﻿using Expedition;
 using ExpeditionRegionSupport.Diagnostics;
 using ExpeditionRegionSupport.Filters.Settings;
 using ExpeditionRegionSupport.Filters.Utils;
 using ExpeditionRegionSupport.Regions.Data;
 using ExpeditionRegionSupport.Regions.Restrictions;
 using RWCustom;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace ExpeditionRegionSupport.Regions
 {
@@ -360,7 +359,7 @@ namespace ExpeditionRegionSupport.Regions
 
             RegionDataMiner regionMiner = new RegionDataMiner();
             EnumeratedWorldData worldData = regionMiner.GetLines(regionCode, RegionDataMiner.SECTION_CONDITIONAL_LINKS, RegionDataMiner.SECTION_ROOMS);
-            
+
             List<GateInfo> gates = worldData.Gates;
             if (Plugin.DebugMode)
             {

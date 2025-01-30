@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Expedition;
+﻿using Expedition;
 using ExpeditionRegionSupport.Filters.Settings;
 using ExpeditionRegionSupport.Filters.Utils;
+using System.Collections.Generic;
 
 namespace ExpeditionRegionSupport.Filters
 {

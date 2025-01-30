@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ExpeditionRegionSupport.Filters.Utils
 {
@@ -14,7 +11,7 @@ namespace ExpeditionRegionSupport.Filters.Utils
         /// The FilterApplicator at the bottom of the stack
         /// </summary>
         public CachedFilterApplicator<T> BaseFilter { get; private set; }
-        
+
         /// <summary>
         /// The FilterApplicator at the top of the stack
         /// </summary>
@@ -46,7 +43,7 @@ namespace ExpeditionRegionSupport.Filters.Utils
             return filter;
         }
 
-        public void Assign(CachedFilterApplicator<T> newFilter )
+        public void Assign(CachedFilterApplicator<T> newFilter)
         {
             Push(newFilter);
         }

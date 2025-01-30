@@ -1,10 +1,4 @@
 ﻿using BepInEx;
-using DependencyFlags = BepInEx.BepInDependency.DependencyFlags;
-using Mono.Cecil.Cil;
-using MonoMod.Cil;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Expedition;
 using ExpeditionRegionSupport.Data;
 using ExpeditionRegionSupport.Filters;
@@ -18,9 +12,15 @@ using Extensions;
 using LogUtils;
 using Menu;
 using Menu.Remix.MixedUI;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
 using MoreSlugcats;
 using RWCustom;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using DependencyFlags = BepInEx.BepInDependency.DependencyFlags;
 
 namespace ExpeditionRegionSupport
 {

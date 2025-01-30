@@ -1,12 +1,4 @@
-﻿using BepInEx.Logging;
-using JollyCoop;
-using LogUtils.Enums;
-using LogUtils.Properties;
-using System;
-using System.IO;
-using UnityEngine;
-
-namespace LogUtils.Events
+﻿namespace LogUtils.Events
 {
     public static class UtilityEvents
     {

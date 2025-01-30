@@ -7,9 +7,6 @@ using MonoMod.Cil;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ExpeditionRegionSupport
 {
@@ -57,7 +54,7 @@ namespace ExpeditionRegionSupport
                         {
                             if (DebugMode)
                                 Logger.LogDebug("SELECTED ABORTED SLOT");
-                            
+
                             int challengeCount = ChallengeSlot.SlotChallenges.Count; //Challenge count may change during assignment
                             int slotsToUnlock = slotIndex - challengeCount;
 

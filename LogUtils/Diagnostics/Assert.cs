@@ -1,7 +1,7 @@
 ﻿using LogUtils.Diagnostics.Extensions;
 using System;
 using System.Collections.Generic;
-using AssertResponse = LogUtils.UtilityConsts.AssertResponse; 
+using AssertResponse = LogUtils.UtilityConsts.AssertResponse;
 
 namespace LogUtils.Diagnostics
 {

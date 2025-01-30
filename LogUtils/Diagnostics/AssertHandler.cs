@@ -1,5 +1,4 @@
-﻿using LogUtils.Diagnostics.Tests;
-using LogUtils.Enums;
+﻿using LogUtils.Enums;
 using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;

@@ -5,8 +5,6 @@ using Menu;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using UnityEngine;
 using Vector2 = UnityEngine.Vector2;
 
 namespace ExpeditionRegionSupport.Interface
@@ -82,7 +80,7 @@ namespace ExpeditionRegionSupport.Interface
             }
 
             List<SimpleButton> buttons = factory.ObjectsCreated;
-            
+
             buttons.ForEach(MainPage.AddSubObject);
 
             MenuUtils.UpdateButtonSize(buttons, cancelButton);

@@ -1,6 +1,6 @@
-﻿using System;
+﻿using LogUtils.Helpers.Comparers;
+using System;
 using System.IO;
-using LogUtils.Helpers.Comparers;
 
 namespace LogUtils.Helpers.FileHandling
 {

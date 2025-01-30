@@ -1,5 +1,4 @@
-﻿using LogUtils.Helpers;
-using LogUtils.Threading;
+﻿using LogUtils.Threading;
 using System;
 
 namespace LogUtils
