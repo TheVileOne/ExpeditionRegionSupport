@@ -93,10 +93,10 @@ namespace LogUtils
                             Directory.Delete(alternativeLogPath, true);
                         }
                     }
-                    catch (Exception ex)
+                    catch
                     {
                         errorMsg = "Unable to delete log directory";
-                        throw ex;
+                        throw;
                     }
                 }
             }
