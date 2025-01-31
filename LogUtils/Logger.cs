@@ -600,8 +600,16 @@ namespace LogUtils
                 {
                     UtilityCore.RequestHandler.Submit(request, false);
 
+                    var writer = Writer;
+
+                    if (writer == null) //This is possible when the Logger gets disposed - Ideally the logger should not be referenced after disposal
+                    {
+                        request.Reject(RejectionReason.FailedToWrite);
+                        return;
+                    }
+
                     request.Host = this;
-                    Writer.WriteFrom(request);
+                    writer.WriteFrom(request);
                 }
             }
         }
@@ -710,8 +718,16 @@ namespace LogUtils
                 return request.UnhandledReason;
             }
 
+            var writer = Writer;
+
+            if (writer == null) //This is possible when the Logger gets disposed - Ideally the logger should not be referenced after disposal
+            {
+                request.Reject(RejectionReason.FailedToWrite);
+                return request.UnhandledReason;
+            }
+
             request.Host = this;
-            Writer.WriteFrom(request);
+            writer.WriteFrom(request);
 
             if (request.Status == RequestStatus.Complete)
                 return RejectionReason.None;
@@ -739,8 +755,9 @@ namespace LogUtils
                     disposable.Dispose();
             }
 
-            Writer = null;
             UtilityCore.RequestHandler.Unregister(this);
+
+            Writer = null;
             IsDisposed = true;
         }
 
