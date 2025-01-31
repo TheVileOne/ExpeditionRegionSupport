@@ -17,7 +17,7 @@ public class PathComparer : ComparerBase<string>
     {
         //Make sure we are comparing path data, not keywords
         path = PathUtils.GetPathFromKeyword(path);
-        pathOther = PathUtils.GetPathFromKeyword(path);
+        pathOther = PathUtils.GetPathFromKeyword(pathOther);
 
         return InternalCompare(path, pathOther);
     }
@@ -26,7 +26,7 @@ public class PathComparer : ComparerBase<string>
     {
         //Make sure we are comparing path data, not keywords
         path = PathUtils.GetPathFromKeyword(path);
-        pathOther = PathUtils.GetPathFromKeyword(path);
+        pathOther = PathUtils.GetPathFromKeyword(pathOther);
 
         return InternalEquals(path, pathOther);
     }
