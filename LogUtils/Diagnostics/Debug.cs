@@ -5,6 +5,7 @@ using LogUtils.Helpers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ReportVerbosity = LogUtils.Enums.FormatEnums.FormatVerbosity;
 
 namespace LogUtils.Diagnostics
 {
@@ -37,7 +38,7 @@ namespace LogUtils.Diagnostics
             if (requests.Any())
             {
                 foreach (LogRequest request in requests)
-                    report.AppendLine(request.ToString());
+                    report.AppendLine(request.ToString(FormatEnums.FormatVerbosity.Verbose));
             }
             else
             {
@@ -69,7 +70,7 @@ namespace LogUtils.Diagnostics
             /// This field affects the level of detail revealed in the test case report
             /// Default: Standard
             /// </summary>
-            public static TestCase.ReportVerbosity ReportVerbosity = TestCase.ReportVerbosity.Standard;
+            public static ReportVerbosity ReportVerbosity = ReportVerbosity.Standard;
         }
     }
 }

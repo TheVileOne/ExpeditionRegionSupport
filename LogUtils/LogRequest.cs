@@ -1,4 +1,6 @@
-﻿using LogUtils.Events;
+﻿using LogUtils.Enums;
+using LogUtils.Events;
+using System;
 using System.Threading;
 
 namespace LogUtils
@@ -59,7 +61,7 @@ namespace LogUtils
             }
         }
 
-        public static string StringFormat = "[Log Request][{0}] {1}";
+        public static LogRequestStringFormatter Formatter = new LogRequestStringFormatter();
 
         public LogRequest(RequestType type, LogMessageEventArgs data)
         {
@@ -146,7 +148,32 @@ namespace LogUtils
 
         public override string ToString()
         {
-            return string.Format(StringFormat, Data.ID, Data.Message);
+            return ToString(FormatEnums.FormatVerbosity.Standard);
+        }
+
+        public string ToString(FormatEnums.FormatVerbosity verbosity)
+        {
+            return ToString(Formatter, verbosity);
+        }
+
+        public string ToString(LogRequestStringFormatter formatter, FormatEnums.FormatVerbosity verbosity)
+        {
+            FormattableString stringFormatter;
+            switch (verbosity)
+            {
+                case FormatEnums.FormatVerbosity.Compact:
+                    stringFormatter = Formatter.GetFormat(Data.Message);
+                    break;
+                case FormatEnums.FormatVerbosity.Standard:
+                    stringFormatter = Formatter.GetFormat(Data.ID, Data.Message);
+                    break;
+                case FormatEnums.FormatVerbosity.Verbose:
+                    stringFormatter = Formatter.GetFormat(Data.ID, Status, UnhandledReason, Data.Message);
+                    break;
+                default:
+                    goto case FormatEnums.FormatVerbosity.Standard;
+            }
+            return stringFormatter.ToString();
         }
 
         public delegate void LogRequestEventHandler(LogRequest request);

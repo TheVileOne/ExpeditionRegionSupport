@@ -1,6 +1,7 @@
 ﻿using LogUtils.Helpers;
 using System.Collections.Generic;
 using System.Text;
+using ReportVerbosity = LogUtils.Enums.FormatEnums.FormatVerbosity;
 
 namespace LogUtils.Diagnostics.Tests
 {
@@ -88,13 +89,6 @@ namespace LogUtils.Diagnostics.Tests
 
                 report.AppendLine(response);
             }
-        }
-
-        public enum ReportVerbosity
-        {
-            Compact,
-            Standard,
-            Verbose
         }
     }
 }
