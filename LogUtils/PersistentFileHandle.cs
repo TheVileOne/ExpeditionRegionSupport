@@ -26,7 +26,12 @@ namespace LogUtils
         /// </summary>
         public FileStream Stream;
 
-        public bool WaitingToResume { get; protected set; }
+        /// <summary>
+        /// Contains a reference to the handle responsible for reopening the FileStream after interruption
+        /// </summary>
+        private StreamResumer resumeHandle;
+
+        public bool WaitingToResume => resumeHandle != null;
 
         public PersistentFileHandle()
         {
@@ -38,9 +43,32 @@ namespace LogUtils
         /// </summary>
         public virtual StreamResumer InterruptStream()
         {
-            WaitingToResume = true;
+            if (WaitingToResume)
+            {
+                UtilityLogger.LogWarning("Filestream already interrupted.. returning existing resume state");
+                return resumeHandle;
+            }
+
+            NotifyOnInterrupt();
             Stream?.Close();
-            return new StreamResumer(CreateFileStream);
+            return new StreamResumer(PersistentFileHandle_OnResume);
+        }
+
+        private void PersistentFileHandle_OnResume()
+        {
+            resumeHandle = null; //Must be set to null before CreateFileStream is invoked
+            NotifyOnResume();
+            CreateFileStream();
+        }
+
+        protected virtual void NotifyOnInterrupt()
+        {
+            UtilityLogger.Log("Interrupting filestream");
+        }
+
+        protected virtual void NotifyOnResume()
+        {
+            UtilityLogger.Log("Resuming filestream");
         }
 
         protected abstract void CreateFileStream();
@@ -92,7 +120,9 @@ namespace LogUtils
 
     public class StreamResumer
     {
-        private Action resumeCallback;
+        private readonly Action resumeCallback;
+
+        public bool Handled { get; protected set; }
 
         public StreamResumer(Action callback)
         {
@@ -101,7 +131,20 @@ namespace LogUtils
 
         public void Resume()
         {
-            resumeCallback.Invoke();
+            if (Handled)
+            {
+                UtilityLogger.LogWarning("Filestream cannot be resumed more than once per interrupt");
+                return;
+            }
+
+            try
+            {
+                resumeCallback.Invoke();
+            }
+            finally
+            {
+                Handled = true;
+            }
         }
     }
 }

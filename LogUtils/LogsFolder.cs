@@ -263,7 +263,7 @@ namespace LogUtils
 
             worker.DoWork(() =>
             {
-                List<StreamResumer> streamsToResume = new List<StreamResumer>();
+                var streamsToResume = new List<StreamResumer>();
                 try
                 {
                     lock (UtilityCore.RequestHandler.RequestProcessLock)
@@ -274,8 +274,7 @@ namespace LogUtils
                             logFile.Properties.NotifyPendingMove(path);
 
                             //The move operation requires that all persistent file activity be closed until move is complete
-                            foreach (PersistentFileHandle streamHandle in logFile.Properties.PersistentStreamHandles)
-                                streamsToResume.Add(streamHandle.InterruptStream());
+                            streamsToResume.AddRange(logFile.Properties.PersistentStreamHandles.InterruptAll());
                         }
                     }
                     Directory.Move(basePath, path);
@@ -287,7 +286,8 @@ namespace LogUtils
                 finally
                 {
                     //Reopen the streams
-                    streamsToResume.ForEach(stream => stream.Resume());
+                    UtilityLogger.DebugLog("Resume method C");
+                    streamsToResume.ResumeAll();
                 }
             });
         }

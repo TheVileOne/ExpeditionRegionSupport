@@ -1,6 +1,8 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Helpers;
 using System;
+using System.IO;
+using UnityEngine;
 
 namespace LogUtils
 {
@@ -26,15 +28,51 @@ namespace LogUtils
 
             lock (fileLock)
             {
-                fileLock.SetActivity(FileID, FileAction.StreamDisposal);
+                if (!WaitingToResume)
+                    fileLock.SetActivity(FileID, FileAction.StreamDisposal);
                 return base.InterruptStream();
             }
         }
 
+        protected override void NotifyOnInterrupt()
+        {
+            string reportMessage = $"Interrupting filestream {FileID}";
+
+            //Avoid notifying this event for this particular log file while handling a critical section involving its filestream
+            if (FileID != LogID.BepInEx)
+                UtilityLogger.Log(reportMessage);
+
+            //Also report this to the debug log
+            UtilityLogger.DebugLog(reportMessage);
+        }
+
+        protected override void NotifyOnResume()
+        {
+            string reportMessage = $"Resuming filestream {FileID}";
+
+            //Avoid notifying this event for this particular log file while handling a critical section involving its filestream
+            if (FileID != LogID.BepInEx)
+                UtilityLogger.Log(reportMessage);
+
+            //Also report this to the debug log
+            UtilityLogger.DebugLog(reportMessage);
+        }
+
         protected override void CreateFileStream()
         {
-            WaitingToResume = false;
-            Stream = LogFile.Open(FileID);
+            try
+            {
+                //It is possible to redirect here by referencing resumeHandle. Unsure if that would be good behavior or not.
+                if (WaitingToResume)
+                    throw new IOException("Attempt to create an interrupted filestream is not allowed");
+
+                Stream = LogFile.Open(FileID);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError(ex);
+                UtilityLogger.DebugLog(ex);
+            }
         }
 
         protected override void Dispose(bool disposing)

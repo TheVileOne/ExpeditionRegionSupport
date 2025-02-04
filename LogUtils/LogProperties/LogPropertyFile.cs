@@ -43,7 +43,10 @@ namespace LogUtils.Properties
 
         protected override void CreateFileStream()
         {
-            WaitingToResume = false;
+            //It is possible to redirect here by referencing resumeHandle. Unsure if that would be good behavior or not.
+            if (WaitingToResume)
+                throw new IOException("Attempt to create an interrupted filestream is not allowed");
+
             Stream = new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read, 4096, FileOptions.SequentialScan);
         }
     }

@@ -56,7 +56,7 @@ namespace LogUtils
         {
             logFile.Properties.EndLogSession();
 
-            List<StreamResumer> streamsToResume = new List<StreamResumer>();
+            var streamsToResume = logFile.Properties.PersistentStreamHandles.InterruptAll();
             try
             {
                 var fileLock = logFile.Properties.FileLock;
@@ -79,7 +79,7 @@ namespace LogUtils
             finally
             {
                 PrepareLogFile(logFile);
-                streamsToResume.ForEach(stream => stream.Resume());
+                streamsToResume.ResumeAll();
             }
         }
 

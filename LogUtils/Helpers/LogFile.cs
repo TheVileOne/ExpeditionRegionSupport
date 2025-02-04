@@ -48,10 +48,16 @@ namespace LogUtils.Helpers
             lock (fileLock)
             {
                 fileLock.SetActivity(logFile, FileAction.Move);
+
+                //The move operation requires that all persistent file activity be closed until move is complete
+                var streamsToResume = logFile.Properties.PersistentStreamHandles.InterruptAll();
+
                 moveResult = Move(logFile.Properties.CurrentFilePath, newLogPath);
 
                 if (moveResult == FileStatus.MoveComplete)
                     logFile.Properties.ChangePath(newLogPath);
+
+                streamsToResume.ResumeAll();
             }
             return moveResult;
         }
