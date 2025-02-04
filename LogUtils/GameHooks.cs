@@ -519,7 +519,7 @@ namespace LogUtils
             cursor.GotoNext(MoveType.After, x => x.MatchBrfalse(out _)); //Move just after the ShowLogs check
             cursor.EmitDelegate(() =>
             {
-                LogWriter.Writer.ResetFile(LogID.Expedition);
+                LogFile.StartNewSession(LogID.Expedition);
             });
             branchToReturn(cursor);
         }
@@ -610,7 +610,7 @@ namespace LogUtils
             cursor.GotoNext(MoveType.After, x => x.MatchBrfalse(out _)); //Move just after the ShowLogs check
             cursor.EmitDelegate(() =>
             {
-                LogWriter.Writer.ResetFile(LogID.JollyCoop);
+                LogFile.StartNewSession(LogID.JollyCoop);
             });
 
             //Branch over file create instructions

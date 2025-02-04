@@ -3,7 +3,6 @@ using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Properties;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -48,40 +47,6 @@ namespace LogUtils
         /// A flag that prevents StreamWriter from being closed
         /// </summary>
         protected bool ShouldCloseWriterAfterUse = true;
-
-        /// <summary>
-        /// Ends the current log session, and prepares a new one
-        /// </summary>
-        public void ResetFile(LogID logFile)
-        {
-            logFile.Properties.EndLogSession();
-
-            var streamsToResume = logFile.Properties.PersistentStreamHandles.InterruptAll();
-            try
-            {
-                var fileLock = logFile.Properties.FileLock;
-
-                lock (fileLock)
-                {
-                    fileLock.SetActivity(logFile, FileAction.Delete);
-
-                    if (logFile.Properties.FileExists)
-                    {
-                        File.Delete(logFile.Properties.CurrentFilePath);
-                        logFile.Properties.FileExists = false;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                UtilityLogger.LogError("Unable to delete log file", ex);
-            }
-            finally
-            {
-                PrepareLogFile(logFile);
-                streamsToResume.ResumeAll();
-            }
-        }
 
         public virtual void WriteFrom(LogRequest request)
         {
@@ -232,7 +197,6 @@ namespace LogUtils
     public interface ILogWriter
     {
         public string ApplyRules(LogMessageEventArgs logEventData);
-        public void ResetFile(LogID logFile);
         internal void WriteFrom(LogRequest request);
         internal void WriteToFile(LogID logFile, string message);
     }

@@ -1,5 +1,6 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Helpers.FileHandling;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -154,6 +155,42 @@ namespace LogUtils.Helpers
                 logFile.Properties.BeginLogSession();
 
             return logFile.Properties.FileExists;
+        }
+
+        /// <summary>
+        /// Ends the current logging session, and starts a new one if allowed to do so 
+        /// </summary>
+        public static void StartNewSession(LogID logFile)
+        {
+            logFile.Properties.EndLogSession();
+
+            var streamsToResume = logFile.Properties.PersistentStreamHandles.InterruptAll();
+
+            var fileLock = logFile.Properties.FileLock;
+
+            lock (fileLock)
+            {
+                try
+                {
+
+                    fileLock.SetActivity(logFile, FileAction.Delete);
+
+                    if (logFile.Properties.FileExists)
+                    {
+                        File.Delete(logFile.Properties.CurrentFilePath);
+                        logFile.Properties.FileExists = false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    UtilityLogger.LogError("Unable to delete log file", ex);
+                }
+                finally
+                {
+                    logFile.Properties.BeginLogSession();
+                    streamsToResume.ResumeAll();
+                }
+            }
         }
 
         public static string FindPathWithoutFileExtension(string searchPath, string filename)
