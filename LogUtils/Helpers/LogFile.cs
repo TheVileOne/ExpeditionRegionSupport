@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEngine;
 
 namespace LogUtils.Helpers
 {
@@ -188,7 +189,32 @@ namespace LogUtils.Helpers
                 finally
                 {
                     logFile.Properties.BeginLogSession();
-                    streamsToResume.ResumeAll();
+
+                    if (logFile.Properties.FileExists)
+                        streamsToResume.ResumeAll();
+                    else
+                    {
+                        string reportMessage = $"Unable to start {logFile} log";
+
+                        //Cannot log to a file that doesn't exist
+                        if (logFile != LogID.BepInEx)
+                            UtilityLogger.LogWarning(reportMessage);
+                        Debug.LogWarning(reportMessage);
+
+                        reportMessage = "Disposing handle";
+
+                        //There does not seem to be a point to keep an invalid handle around, dispose any handles for this log file
+                        var handlesToDispose = logFile.Properties.PersistentStreamHandles.ToArray();
+
+                        foreach (var handle in handlesToDispose)
+                        {
+                            //Cannot log to a file that doesn't exist
+                            if (logFile != LogID.BepInEx)
+                                UtilityLogger.LogWarning(reportMessage);
+                            Debug.LogWarning(reportMessage);
+                            handle.Dispose();
+                        }
+                    }
                 }
             }
         }
