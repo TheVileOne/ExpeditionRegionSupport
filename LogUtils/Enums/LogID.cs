@@ -256,11 +256,15 @@ namespace LogUtils.Enums
 
         internal static void InitializeLogIDs()
         {
+            //Game-defined LogIDs
             BepInEx = new LogID(null, UtilityConsts.LogNames.BepInEx, Paths.BepInExRootPath, true);
             Exception = new LogID(null, UtilityConsts.LogNames.Exception, UtilityConsts.PathKeywords.ROOT, true);
             Expedition = new LogID(null, UtilityConsts.LogNames.Expedition, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
             JollyCoop = new LogID(null, UtilityConsts.LogNames.JollyCoop, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
             Unity = new LogID(null, UtilityConsts.LogNames.Unity, UtilityConsts.PathKeywords.ROOT, true);
+
+            //File activity monitoring LogID
+            FileActivity = new LogID("LogActivity", UtilityConsts.PathKeywords.ROOT, LogAccess.Private, false);
 
             //Fallback LogID
             Unknown = new ComparisonLogID(UtilityConsts.LogNames.Unknown);
@@ -312,6 +316,7 @@ namespace LogUtils.Enums
         public static LogID BepInEx;
         public static LogID Exception;
         public static LogID Expedition;
+        internal static LogID FileActivity;
         public static LogID JollyCoop;
         public static LogID Unity;
         internal static LogID Unknown;

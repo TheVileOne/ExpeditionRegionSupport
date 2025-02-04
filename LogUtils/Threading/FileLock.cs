@@ -4,8 +4,7 @@ namespace LogUtils.Threading
 {
     public sealed class FileLock
     {
-        private static readonly LogID activityLog = new LogID("LogActivity", UtilityConsts.PathKeywords.ROOT, LogAccess.FullAccess, false);
-        private static readonly Logger activityLogger = new Logger(activityLog);
+        private static readonly Logger activityLogger = new Logger(LogID.FileActivity);
 
         /// <summary>
         /// The last known file change/access activity that resulted in acquiring the file lock  
@@ -17,7 +16,7 @@ namespace LogUtils.Threading
             if (activity == LastActivity) return;
 
             //The activity log should be immune from activity reporting
-            if (logID != activityLog)
+            if (logID != LogID.FileActivity)
                 activityLogger.Log(string.Format(getResourceString(activity), logID.Properties.CurrentFilename));
             LastActivity = activity;
         }
