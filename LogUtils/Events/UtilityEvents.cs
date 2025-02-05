@@ -2,32 +2,15 @@
 {
     public static class UtilityEvents
     {
-        private static SharedField<LogMessageEventHandler> onMessageReceived;
-        private static SharedField<LogEventHandler> onPathChanged;
+        //Logging events
+        public static LogMessageEventHandler OnMessageReceived;
 
-        public static LogMessageEventHandler OnMessageReceived
-        {
-            get
-            {
-                if (onMessageReceived == null)
-                    onMessageReceived = UtilityCore.DataHandler.GetField<LogMessageEventHandler>(nameof(OnMessageReceived));
-                return onMessageReceived.Value;
-            }
-        }
-
+        //File operation events
         public static LogMovePendingEventHandler OnMovePending;
         public static LogEventHandler OnMoveAborted;
+        public static LogEventHandler OnPathChanged;
 
-        public static LogEventHandler OnPathChanged
-        {
-            get
-            {
-                if (onPathChanged == null)
-                    onPathChanged = UtilityCore.DataHandler.GetField<LogEventHandler>(nameof(OnPathChanged));
-                return onPathChanged.Value;
-            }
-        }
-
+        //Setup events
         public static SetupPeriodEventHandler OnSetupPeriodReached;
     }
 
