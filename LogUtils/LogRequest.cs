@@ -16,6 +16,7 @@ namespace LogUtils
         public const byte UNABLE_TO_RETRY_RANGE = 5;
 
         private int managedThreadID = -1;
+        private RequestState _state;
 
         public LogMessageEventArgs Data;
 
@@ -29,9 +30,7 @@ namespace LogUtils
         /// </summary>
         public bool IsCompleteOrInvalid => Status == RequestStatus.Complete || !CanRetryRequest();
 
-        protected RequestState State;
-
-        public RequestStatus Status => State.Status;
+        public RequestStatus Status => _state.Status;
 
         /// <summary>
         /// Whether this request has once been submitted through the log request system
@@ -42,7 +41,7 @@ namespace LogUtils
 
         public readonly RequestType Type;
 
-        public RejectionReason UnhandledReason => State.UnhandledReason;
+        public RejectionReason UnhandledReason => _state.UnhandledReason;
 
         public bool WaitingOnOtherRequests
         {
@@ -89,14 +88,14 @@ namespace LogUtils
 
         public void ResetStatus()
         {
-            State.Reset();
+            _state.Reset();
         }
 
         public void Complete()
         {
             if (Status == RequestStatus.Complete) return;
 
-            State.Status = RequestStatus.Complete;
+            _state.Status = RequestStatus.Complete;
             managedThreadID = -1;
 
             if (Data.ShouldFilter)
@@ -115,7 +114,7 @@ namespace LogUtils
                     return;
                 }
 
-                State.Status = RequestStatus.Rejected;
+                _state.Status = RequestStatus.Rejected;
             }
             finally
             {
@@ -133,7 +132,7 @@ namespace LogUtils
             {
                 //A hacky attempt to make it possible to notify of path mismatches without overwriting an already existing reason 
                 if (reason != RejectionReason.PathMismatch || UnhandledReason == RejectionReason.None)
-                    State.UnhandledReason = reason;
+                    _state.UnhandledReason = reason;
                 NotifyOnChange();
             }
         }
@@ -149,7 +148,7 @@ namespace LogUtils
                 if (Status == RequestStatus.Rejected) return;
             }
 
-            State.Status = RequestStatus.WritePending;
+            _state.Status = RequestStatus.WritePending;
             Interlocked.CompareExchange(ref managedThreadID, Thread.CurrentThread.ManagedThreadId, -1);
 
             NotifyOnChange();
@@ -192,18 +191,17 @@ namespace LogUtils
             }
             return stringFormatter.ToString();
         }
+    }
 
+    internal struct RequestState
+    {
+        public RequestStatus Status;
+        public RejectionReason UnhandledReason;
 
-        protected struct RequestState
+        public void Reset()
         {
-            public RequestStatus Status;
-            public RejectionReason UnhandledReason;
-
-            public void Reset()
-            {
-                Status = RequestStatus.Pending;
-                UnhandledReason = RejectionReason.None;
-            }
+            Status = RequestStatus.Pending;
+            UnhandledReason = RejectionReason.None;
         }
     }
 
