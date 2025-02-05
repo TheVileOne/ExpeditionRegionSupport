@@ -94,7 +94,7 @@ namespace LogUtils
             if (Data.ShouldFilter)
                 LogFilter.AddFilterEntry(Data.ID, new FilteredStringEntry(Data.Message, Data.FilterDuration));
 
-            StatusChanged?.Invoke(this);
+            NotifyOnChange();
         }
 
         public void Reject(RejectionReason reason)
@@ -126,8 +126,7 @@ namespace LogUtils
                 //A hacky attempt to make it possible to notify of path mismatches without overwriting an already existing reason 
                 if (reason != RejectionReason.PathMismatch || UnhandledReason == RejectionReason.None)
                     State.UnhandledReason = reason;
-
-                StatusChanged?.Invoke(this);
+                NotifyOnChange();
             }
         }
 
@@ -144,6 +143,16 @@ namespace LogUtils
 
             State.Status = RequestStatus.WritePending;
             Interlocked.CompareExchange(ref managedThreadID, Thread.CurrentThread.ManagedThreadId, -1);
+
+            NotifyOnChange();
+        }
+
+        /// <summary>
+        /// Raises an event when the LogRequest status, or the rejection reason changes. Currently does not raise when ResetStatus is invoked
+        /// </summary>
+        protected void NotifyOnChange()
+        {
+            StatusChanged?.Invoke(this);
         }
 
         public override string ToString()
