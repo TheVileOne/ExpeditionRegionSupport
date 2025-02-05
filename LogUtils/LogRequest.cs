@@ -17,7 +17,6 @@ namespace LogUtils
 
         private int managedThreadID = -1;
 
-        public event LogRequestEventHandler StatusChanged;
         public LogMessageEventArgs Data;
 
         /// <summary>
@@ -77,6 +76,15 @@ namespace LogUtils
         public static bool CanRetryRequest(RejectionReason reason)
         {
             return reason == RejectionReason.None || (byte)reason > UNABLE_TO_RETRY_RANGE;
+        }
+
+        internal void OnSubmit()
+        {
+            //Ensures consistent handling of the request
+            ResetStatus();
+
+            Submitted = true;
+            LogRequestEvents.OnSubmit?.Invoke(this);
         }
 
         public void ResetStatus()
@@ -152,7 +160,7 @@ namespace LogUtils
         /// </summary>
         protected void NotifyOnChange()
         {
-            StatusChanged?.Invoke(this);
+            LogRequestEvents.OnStatusChange?.Invoke(this);
         }
 
         public override string ToString()
@@ -185,7 +193,6 @@ namespace LogUtils
             return stringFormatter.ToString();
         }
 
-        public delegate void LogRequestEventHandler(LogRequest request);
 
         protected struct RequestState
         {

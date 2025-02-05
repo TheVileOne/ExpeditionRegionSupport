@@ -135,9 +135,7 @@ namespace LogUtils
                     return request;
                 }
 
-                //Ensures consistent handling of the request
-                request.ResetStatus();
-                request.Submitted = true;
+                request.OnSubmit();
 
                 LogID logFile = request.Data.ID;
 
