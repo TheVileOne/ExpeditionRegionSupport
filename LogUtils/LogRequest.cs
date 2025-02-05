@@ -162,13 +162,13 @@ namespace LogUtils
             switch (verbosity)
             {
                 case FormatEnums.FormatVerbosity.Compact:
-                    stringFormatter = Formatter.GetFormat(Data.Message);
+                    stringFormatter = formatter.GetFormat(Data.Message);
                     break;
                 case FormatEnums.FormatVerbosity.Standard:
-                    stringFormatter = Formatter.GetFormat(Data.ID, Data.Message);
+                    stringFormatter = formatter.GetFormat(Data.ID, Data.Message);
                     break;
                 case FormatEnums.FormatVerbosity.Verbose:
-                    stringFormatter = Formatter.GetFormat(Data.ID, Status, UnhandledReason, Data.Message);
+                    stringFormatter = formatter.GetFormat(Data.ID, Status, UnhandledReason, Data.Message);
                     break;
                 default:
                     goto case FormatEnums.FormatVerbosity.Standard;
