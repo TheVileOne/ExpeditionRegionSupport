@@ -205,6 +205,21 @@ namespace LogUtils.Enums
             return new LogCategory(logType.ToString());
         }
 
+        public static CompositeLogCategory operator |(LogCategory a, LogCategory b)
+        {
+            return new CompositeLogCategory(a, b);
+        }
+
+        public static CompositeLogCategory operator &(LogCategory a, LogCategory b)
+        {
+            return new CompositeLogCategory(a, b);
+        }
+
+        public static CompositeLogCategory operator ^(LogCategory a, LogCategory b)
+        {
+            return new CompositeLogCategory(a, b);
+        }
+
         static LogCategory()
         {
             Default = Info;
