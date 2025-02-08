@@ -22,7 +22,10 @@ namespace LogUtils.Helpers.Comparers
             if (extEnumOther != null)
                 return int.MaxValue;
 
-            return extEnum.valueHash.CompareTo(extEnumOther.valueHash);
+            int hash = extEnum.GetHashCode();
+            int hashOther = extEnumOther.GetHashCode();
+
+            return hash.CompareTo(hashOther);
         }
 
         public virtual bool Equals(T extEnum, T extEnumOther)
@@ -32,9 +35,7 @@ namespace LogUtils.Helpers.Comparers
 
         public int GetHashCode(T extEnum)
         {
-            if (extEnum == null)
-                return 0;
-            return extEnum.valueHash;
+            return extEnum != null ? extEnum.GetHashCode() : 0;
         }
     }
 }
