@@ -31,7 +31,7 @@ namespace LogUtils.Enums
         /// </summary>
         public bool IsGameControlled;
 
-        public static IEnumerable<LogID> RegisteredIDs => LogProperties.PropertyManager.Properties.Select(p => p.ID);
+        public static LogID[] RegisteredEntries => LogProperties.PropertyManager.Properties.Select(p => p.ID).ToArray();
 
         /// <summary>
         /// Creates a new LogID instance

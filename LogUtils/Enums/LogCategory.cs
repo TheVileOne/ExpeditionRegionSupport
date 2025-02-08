@@ -1,5 +1,7 @@
 ﻿using BepInEx.Logging;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace LogUtils.Enums
@@ -54,6 +56,8 @@ namespace LogUtils.Enums
                 return _unityConversion;
             }
         }
+
+        public static LogCategory[] RegisteredEntries => values.entries.Select(entry => new LogCategory(entry)).ToArray();
 
         /// <summary>
         /// Constructs a registered LogCategory instance
