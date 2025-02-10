@@ -167,10 +167,8 @@ namespace LogUtils.Enums
         /// </summary>
         private List<LogCategory> extractElements(LogCategory category)
         {
-            CompositeLogCategory composite = category as CompositeLogCategory;
-
-            //Populate a list of values to exclude from the composite set
-            List<LogCategory> elements = new List<LogCategory>();
+            var elements = new List<LogCategory>();
+            var composite = category as CompositeLogCategory;
 
             if (composite != null)
                 elements.AddRange(composite.Set);
