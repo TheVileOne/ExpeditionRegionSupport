@@ -1,6 +1,7 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Helpers.Comparers;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace LogUtils.Diagnostics.Tests.Utility
@@ -18,6 +19,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             testSubmission();
             testComposition();
+            testErrorCategoryDoesNotIncludeCategoryAll();
         }
 
         private void testSubmission()
@@ -292,7 +294,16 @@ namespace LogUtils.Diagnostics.Tests.Utility
         }
 
         #endregion
-
+        #region Miscellaneous Tests
+        private void testErrorCategoryDoesNotIncludeCategoryAll()
+        {
+            var composite = new CompositeLogCategory(new HashSet<LogCategory>()
+            {
+                LogCategory.All
+            });
+            AssertThat(LogCategory.IsErrorCategory(composite)).IsFalse();
+        }
+        #endregion
         /// <summary>
         /// TransferMode is primarily useful for checking that registration status propagates correctly to all instances
         /// </summary>

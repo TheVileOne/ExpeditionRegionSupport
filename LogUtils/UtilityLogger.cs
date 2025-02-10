@@ -109,7 +109,7 @@ namespace LogUtils
                 //This submission wont be able to be logged until Rain World can initialize
                 if (UtilityCore.RequestHandler.CurrentRequest == null)
                 {
-                    if (LogCategory.IsUnityErrorCategory(category))
+                    if (LogCategory.IsErrorCategory(category))
                     {
                         //Handle Unity error logging similarly to how the game would handle it
                         ExceptionInfo exceptionInfo = new ExceptionInfo(message, stackTrace);

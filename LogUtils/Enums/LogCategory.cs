@@ -142,17 +142,29 @@ namespace LogUtils.Enums
 
         public static LogID GetUnityLogID(LogType logType)
         {
-            return !IsUnityErrorCategory(logType) ? LogID.Unity : LogID.Exception;
+            return !IsErrorCategory(logType) ? LogID.Unity : LogID.Exception;
         }
 
         public static bool IsErrorCategory(LogCategory category)
         {
+            var composite = category as CompositeLogCategory;
+
+            if (composite != null)
+            {
+                //Exclude the All flag here - not relevant to error handling
+                return !composite.Contains(All) && composite.HasAny(Error | Fatal);
+            }
             return category == Error || category == Fatal;
         }
 
-        public static bool IsUnityErrorCategory(LogType logType)
+        public static bool IsErrorCategory(LogType category)
         {
-            return logType == LogType.Error || logType == LogType.Exception;
+            return category == LogType.Error || category == LogType.Exception;
+        }
+
+        public static bool IsErrorCategory(LogLevel category)
+        {
+            return (category & (LogLevel.Error | LogLevel.Fatal)) != 0;
         }
 
         public static LogCategory ToCategory(string value)
@@ -161,8 +173,7 @@ namespace LogUtils.Enums
         }
 
         public static LogCategory ToCategory(LogLevel logLevel)
-        {
-            
+        {          
             int enumValue = (int)logLevel;
 
             //A high enum value indicates that we are handling a custom LogCategory converted to an enum type
