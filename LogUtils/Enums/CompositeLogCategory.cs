@@ -68,6 +68,15 @@ namespace LogUtils.Enums
         }
 
         #region Object inherited methods
+        public override int GetHashCode()
+        {
+            //ExtEnum value field for composites is the same as the joined string of its elements, but without any elements for LogCategory.None,
+            //this override is necessary to ensure equality checks are consistent
+            if (IsEmpty)
+                return None.GetHashCode();
+            return base.GetHashCode();
+        }
+
         public override string ToString()
         {
             return ToStringInternal(Set);

@@ -19,6 +19,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             testSubmission();
             testComposition();
+            testEquality();
             testErrorCategoryDoesNotIncludeCategoryAll();
         }
 
@@ -130,11 +131,10 @@ namespace LogUtils.Diagnostics.Tests.Utility
             testEntry.Register();
             testEntry.Register();
 
-            //TODO: Use a LogCategoryComparer
-            bool predicate(LogCategory entry) => ComparerUtils.StringComparerIgnoreCase.Equals(entry.value, testEntry.value);
+            var comparer = new ExtEnumValueComparer<LogCategory>();
 
             //There should only be one entry per LogCategory, and this should be enforced by ExtEnum class itself
-            int entryCount = LogCategory.RegisteredEntries.Count(predicate);
+            int entryCount = LogCategory.RegisteredEntries.Count(entry => comparer.Equals(entry, testEntry));
 
             AssertThat(entryCount).IsEqualTo(1);
             testEntry.Unregister();
@@ -293,6 +293,42 @@ namespace LogUtils.Diagnostics.Tests.Utility
             b.Unregister();
         }
 
+        #endregion
+        #region Equality Tests
+
+        private void testEquality()
+        {
+            var emptyComposite = new CompositeLogCategory(new HashSet<LogCategory>()
+            {
+                LogCategory.None
+            });
+
+            var valuedComposite = new CompositeLogCategory(new HashSet<LogCategory>()
+            {
+                LogCategory.Info
+            });
+
+            //Test that an empty composite is valued the same as LogCategory.None
+            testEquality(emptyComposite, LogCategory.None);
+
+            //Test that a valued composite is values the same as its component elements
+            testEquality(valuedComposite, LogCategory.Info);
+        }
+
+        void testEquality(LogCategory category, LogCategory categoryOther)
+        {
+            //Test that compare value is correct
+            AssertThat(category.CompareTo(categoryOther)).IsZero();
+
+            //Test that equality check is correct
+            AssertThat(category).IsEqualTo(categoryOther);
+
+            //Test that hashcodes match
+            int hash = category.GetHashCode(),
+                hashOther = categoryOther.GetHashCode();
+
+            AssertThat(hash).IsEqualTo(hashOther);
+        }
         #endregion
         #region Miscellaneous Tests
         private void testErrorCategoryDoesNotIncludeCategoryAll()
