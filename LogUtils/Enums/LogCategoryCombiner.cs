@@ -97,7 +97,6 @@ namespace LogUtils.Enums
                 LogCategory category = a == LogCategory.All ? b : a;
                 var excludeList = extractElements(category);
 
-                //Select each entry string, create an unregistered instance, and then filter out the values in the exclude list
                 set.UnionWith(LogCategory.RegisteredEntries.Except(excludeList));
             }
             else
@@ -146,7 +145,6 @@ namespace LogUtils.Enums
 
             var excludeList = extractElements(target);
 
-            //Select each entry string, create an unregistered instance, and then filter out the values in the exclude list
             set = new HashSet<LogCategory>(LogCategory.RegisteredEntries.Except(excludeList));
             return new CompositeLogCategory(set);
         }
