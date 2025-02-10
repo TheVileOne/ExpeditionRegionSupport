@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace LogUtils.Enums
 {
@@ -9,25 +8,9 @@ namespace LogUtils.Enums
 
         public bool IsEmpty => Set.Count == 0;
 
-        internal CompositeLogCategory(LogCategory a, LogCategory b) : base("composite", false)
+        internal CompositeLogCategory(HashSet<LogCategory> elements) : base(ToStringInternal(elements), false)
         {
-            Set = new HashSet<LogCategory>();
-
-            addToSet(a);
-            addToSet(b);
-        }
-
-        private void addToSet(LogCategory category)
-        {
-            if (category == null) return;
-
-            var composite = category as CompositeLogCategory;
-
-            //The Set should not be allowed to contain other composites, only include what is contained with the set of the composite 
-            if (composite != null)
-                Set.UnionWith(composite.Set);
-            else
-                Set.Add(category);
+            Set = elements;
         }
 
         /// <summary>
@@ -85,15 +68,17 @@ namespace LogUtils.Enums
         }
 
         #region Object inherited methods
-        public override int GetHashCode()
-        {
-            //TODO: This might be a bad idea, and can produce duplicate hashes
-            return Set.Sum(element => element.GetHashCode());
-        }
-
         public override string ToString()
         {
-            return string.Join(" | ", Set);
+            return ToStringInternal(Set);
+        }
+
+        internal static string ToStringInternal(HashSet<LogCategory> set)
+        {
+            if (set.Count == 0)
+                return None.ToString();
+
+            return string.Join(" | ", set);
         }
         #endregion
     }

@@ -173,6 +173,9 @@ namespace LogUtils
             public const string NOT_ENOUGH_ENTRIES = "{0} does not have enough entries";
             public const string TOO_MANY_ENTRIES = "{0} has too many entries";
 
+            public const string MUST_CONTAIN = "{0} must contain {1}";
+            public const string MUST_NOT_CONTAIN = "{0} must not contain {1}";
+            public const string MUST_ONLY_CONTAIN = "{0} must only contain {1}";
             public const string MUST_BE_EMPTY = "{0} must be empty";
             public const string MUST_HAVE_ITEMS = "{0} must not be null or empty";
 

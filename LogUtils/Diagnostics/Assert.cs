@@ -1,4 +1,5 @@
 ﻿using LogUtils.Diagnostics.Extensions;
+using LogUtils.Enums;
 using System;
 using System.Collections.Generic;
 using AssertResponse = LogUtils.UtilityConsts.AssertResponse;
@@ -3850,6 +3851,75 @@ namespace LogUtils.Diagnostics
             return condition;
         }
         #endregion
+        #endregion
+        #region Other
+        /// <summary>
+        /// Asserts that the target value's IsEmpty property is set to true
+        /// </summary>
+        public static Condition<CompositeLogCategory> IsEmpty(this Condition<CompositeLogCategory> condition)
+        {
+            if (!condition.ShouldProcess)
+                return condition;
+
+            bool conditionPassed = condition.Value.IsEmpty;
+
+            if (conditionPassed)
+                condition.Pass();
+            else
+                condition.Fail(new Condition.Message(AssertResponse.MUST_BE_EMPTY, "Composite ExtEnum"));
+            return condition;
+        }
+
+        /// <summary>
+        /// Asserts that the target value contains a given value
+        /// </summary>
+        public static Condition<CompositeLogCategory> Contains(this Condition<CompositeLogCategory> condition, LogCategory flag)
+        {
+            if (!condition.ShouldProcess)
+                return condition;
+
+            bool conditionPassed = condition.Value.Contains(flag);
+
+            if (conditionPassed)
+                condition.Pass();
+            else
+                condition.Fail(new Condition.Message(AssertResponse.MUST_CONTAIN, "Composite ExtEnum", flag.ToString()));
+            return condition;
+        }
+
+        /// <summary>
+        /// Asserts that the target value only contains a given value
+        /// </summary>
+        public static Condition<CompositeLogCategory> ContainsOnly(this Condition<CompositeLogCategory> condition, LogCategory flag)
+        {
+            if (!condition.ShouldProcess)
+                return condition;
+
+            bool conditionPassed = condition.Value.Set.Count == 1 && condition.Value.Contains(flag);
+
+            if (conditionPassed)
+                condition.Pass();
+            else
+                condition.Fail(new Condition.Message(AssertResponse.MUST_ONLY_CONTAIN, "Composite ExtEnum", $"the value {flag}"));
+            return condition;
+        }
+
+        /// <summary>
+        /// Asserts that the target value contains a given value
+        /// </summary>
+        public static Condition<CompositeLogCategory> DoesNotContain(this Condition<CompositeLogCategory> condition, LogCategory flag)
+        {
+            if (!condition.ShouldProcess)
+                return condition;
+
+            bool conditionPassed = !condition.Value.Contains(flag);
+
+            if (conditionPassed)
+                condition.Pass();
+            else
+                condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_CONTAIN, "Composite ExtEnum", flag.ToString()));
+            return condition;
+        }
         #endregion
 
         /// <summary>

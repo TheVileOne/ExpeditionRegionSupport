@@ -59,6 +59,8 @@ namespace LogUtils.Enums
 
         public static LogCategory[] RegisteredEntries => values.entries.Select(entry => new LogCategory(entry)).ToArray();
 
+        public static LogCategoryCombiner Combiner = new LogCategoryCombiner();
+
         /// <summary>
         /// Constructs a registered LogCategory instance
         /// </summary>
@@ -160,6 +162,7 @@ namespace LogUtils.Enums
 
         public static LogCategory ToCategory(LogLevel logLevel)
         {
+            
             int enumValue = (int)logLevel;
 
             //A high enum value indicates that we are handling a custom LogCategory converted to an enum type
@@ -211,17 +214,22 @@ namespace LogUtils.Enums
 
         public static CompositeLogCategory operator |(LogCategory a, LogCategory b)
         {
-            return new CompositeLogCategory(a, b);
+            return Combiner.Combine(a, b);
         }
 
         public static CompositeLogCategory operator &(LogCategory a, LogCategory b)
         {
-            return new CompositeLogCategory(a, b);
+            return Combiner.Intersect(a, b);
         }
 
         public static CompositeLogCategory operator ^(LogCategory a, LogCategory b)
         {
-            return new CompositeLogCategory(a, b);
+            return Combiner.Distinct(a, b);
+        }
+
+        public static LogCategory operator ~(LogCategory target)
+        {
+            return Combiner.GetComplement(target);
         }
 
         static LogCategory()
