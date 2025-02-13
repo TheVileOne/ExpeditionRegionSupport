@@ -9,8 +9,6 @@ namespace LogUtils.CompatibilityServices
     /// </summary>
     public class UnityLogger : ILogger
     {
-        internal const string FILTER_CHECK_TAG = $"<{UtilityConsts.UTILITY_NAME}>";
-
         public void Log(object data)
         {
             Debug.Log(data);
@@ -69,31 +67,6 @@ namespace LogUtils.CompatibilityServices
         public void LogFatal(object data)
         {
             Log(LogCategory.Fatal, data);
-        }
-
-        public void LogOnce(object data)
-        {
-            Debug.unityLogger.Log(FILTER_CHECK_TAG, data);
-        }
-
-        public void LogOnce(LogType category, object data)
-        {
-            LogOnce(LogCategory.ToCategory(category), data);
-        }
-
-        public void LogOnce(LogLevel category, object data)
-        {
-            LogOnce(LogCategory.ToCategory(category), data);
-        }
-
-        public void LogOnce(string category, object data)
-        {
-            LogOnce(LogCategory.ToCategory(category), data);
-        }
-
-        public void LogOnce(LogCategory category, object data)
-        {
-            Debug.unityLogger.Log(category.UnityCategory, FILTER_CHECK_TAG, data);
         }
     }
 }

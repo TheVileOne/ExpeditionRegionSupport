@@ -7,7 +7,6 @@ namespace LogUtils
     public interface ILogger
     {
         public void Log(object data);
-        public void LogOnce(object data);
         public void LogDebug(object data);
         public void LogInfo(object data);
         public void LogImportant(object data);
@@ -20,10 +19,6 @@ namespace LogUtils
         public void Log(LogLevel category, object data);
         public void Log(string category, object data);
         public void Log(LogCategory category, object data);
-        public void LogOnce(LogType category, object data);
-        public void LogOnce(LogLevel category, object data);
-        public void LogOnce(string category, object data);
-        public void LogOnce(LogCategory category, object data);
     }
 
     public interface ILoggerBase
