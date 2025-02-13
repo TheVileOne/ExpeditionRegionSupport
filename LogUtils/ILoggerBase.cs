@@ -1,5 +1,6 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
+using UnityEngine;
 
 namespace LogUtils
 {
@@ -15,9 +16,11 @@ namespace LogUtils
         public void LogError(object data);
         public void LogFatal(object data);
 
+        public void Log(LogType category, object data);
         public void Log(LogLevel category, object data);
         public void Log(string category, object data);
         public void Log(LogCategory category, object data);
+        public void LogOnce(LogType category, object data);
         public void LogOnce(LogLevel category, object data);
         public void LogOnce(string category, object data);
         public void LogOnce(LogCategory category, object data);

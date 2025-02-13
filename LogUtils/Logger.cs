@@ -248,6 +248,11 @@ namespace LogUtils
         #endregion
         #endregion
 
+        public void Log(LogType category, object data)
+        {
+            Log(LogCategory.ToCategory(category), data);
+        }
+
         public void Log(LogLevel category, object data)
         {
             Log(LogCategory.ToCategory(category), data);
@@ -261,6 +266,11 @@ namespace LogUtils
         public void Log(LogCategory category, object data)
         {
             LogData(LogTargets, category, data, false);
+        }
+
+        public void LogOnce(LogType category, object data)
+        {
+            LogOnce(LogCategory.ToCategory(category), data);
         }
 
         public void LogOnce(LogLevel category, object data)

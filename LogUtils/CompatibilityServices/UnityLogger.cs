@@ -16,6 +16,11 @@ namespace LogUtils.CompatibilityServices
             Debug.Log(data);
         }
 
+        public void Log(LogType category, object data)
+        {
+            Log(LogCategory.ToCategory(category), data);
+        }
+
         public void Log(LogLevel category, object data)
         {
             Log(LogCategory.ToCategory(category), data);
@@ -69,6 +74,11 @@ namespace LogUtils.CompatibilityServices
         public void LogOnce(object data)
         {
             Debug.unityLogger.Log(FILTER_CHECK_TAG, data);
+        }
+
+        public void LogOnce(LogType category, object data)
+        {
+            LogOnce(LogCategory.ToCategory(category), data);
         }
 
         public void LogOnce(LogLevel category, object data)
