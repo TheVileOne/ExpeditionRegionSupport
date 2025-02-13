@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace LogUtils
 {
-    public class Logger : ILoggerBase, IDisposable
+    public class Logger : ILogger, ILoggerBase, IDisposable
     {
         public ILogWriter Writer = LogWriter.Writer;
 
