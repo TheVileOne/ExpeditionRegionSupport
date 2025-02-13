@@ -1,4 +1,5 @@
-﻿using LogUtils.Enums;
+﻿using LogUtils.CompatibilityServices;
+using LogUtils.Enums;
 using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
@@ -7,7 +8,7 @@ namespace LogUtils.Diagnostics
 {
     public class AssertHandler : IConditionHandler, ICloneable
     {
-        public static readonly AssertHandler DefaultHandler = new AssertHandler(new Logger(LogID.Unity));
+        public static readonly AssertHandler DefaultHandler = new AssertHandler(new UnityLogger());
 
         private AssertBehavior _behavior = AssertBehavior.LogOnFail;
         public AssertBehavior Behavior
@@ -17,11 +18,11 @@ namespace LogUtils.Diagnostics
         }
 
         public MessageFormatter Formatter = new MessageFormatter();
-        public Logger Logger;
+        public ILogger Logger;
 
         public virtual bool IsEnabled => Debug.AssertsEnabled;
 
-        public AssertHandler(Logger logger)
+        public AssertHandler(ILogger logger)
         {
             Logger = logger;
         }
