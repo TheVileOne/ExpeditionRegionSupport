@@ -6,6 +6,9 @@ namespace LogUtils.Diagnostics.Tools
 {
     public class PollingTimer : Timer
     {
+        private bool _started;
+        public bool Started => Enabled && _started;
+
         /// <summary>
         /// Should the timer record the time of poll signals
         /// </summary>
@@ -53,9 +56,18 @@ namespace LogUtils.Diagnostics.Tools
         /// System.Int32.MaxValue + 1, or set to an interval less than zero.</exception>
         public new void Start()
         {
+            _started = true;
             lastPollTime = -1;
+
+            Enabled = true;
             PollFlagged = false;
             base.Start();
+        }
+
+        public new void Stop()
+        {
+            _started = false;
+            base.Stop();
         }
 
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
