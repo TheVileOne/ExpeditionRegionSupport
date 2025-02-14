@@ -8,7 +8,36 @@ namespace LogUtils.Diagnostics
 {
     public class AssertHandler : IConditionHandler, ICloneable
     {
-        public static readonly AssertHandler DefaultHandler = new AssertHandler(new UnityLogger());
+        private static AssertHandler _default = new AssertHandler(new UnityLogger()); 
+        private static AssertHandler _customDefault;
+
+        public static AssertHandler Default
+        {
+            get
+            {
+                //Custom handlers always get priority
+                if (_customDefault != null)
+                    return _customDefault;
+
+                if (LogID.Unity == null)
+                {
+                    if (_default.Logger != UtilityLogger.Logger)
+                    {
+                        //Handle asserts using the UtilityLogger instance during this very early initialization period
+                        UtilityLogger.Log("Assert system accessed before LogIDs have initialized");
+                        UtilityLogger.Log("Deploying fallback logger");
+                        _default.Logger = UtilityLogger.Logger;
+                    }
+                }
+                else if (_default.Logger == UtilityLogger.Logger)
+                {
+                    UtilityLogger.Log("Fallback logger no longer necessary");
+                    _default.Logger = new UnityLogger();
+                }
+                return _default;
+            }
+            set => _customDefault = value;
+        }
 
         private AssertBehavior _behavior = AssertBehavior.LogOnFail;
         public AssertBehavior Behavior
@@ -100,7 +129,7 @@ namespace LogUtils.Diagnostics
             AssertHandler template = handler as AssertHandler;
 
             if (template == null)
-                template = DefaultHandler;
+                template = Default;
 
             return template;
         }
