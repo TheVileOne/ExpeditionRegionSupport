@@ -63,14 +63,14 @@ namespace LogUtils
 
             initializingInProgress = true;
 
-            UtilitySetup.InitializationStep currentStep = UtilitySetup.InitializationStep.NOT_STARTED;
+            UtilitySetup.CurrentStep = UtilitySetup.InitializationStep.NOT_STARTED;
             try
             {
-                currentStep = UtilitySetup.InitializationStep.INITALIZE_CORE_LOGGER;
-                while (currentStep != UtilitySetup.InitializationStep.COMPLETE)
+                UtilitySetup.CurrentStep = UtilitySetup.InitializationStep.INITALIZE_CORE_LOGGER;
+                while (UtilitySetup.CurrentStep != UtilitySetup.InitializationStep.COMPLETE)
                 {
-                    UtilityLogger.DebugLog("Applying " + currentStep);
-                    currentStep = ApplyStep(currentStep);
+                    UtilityLogger.DebugLog("Applying " + UtilitySetup.CurrentStep);
+                    UtilitySetup.CurrentStep = ApplyStep(UtilitySetup.CurrentStep);
                 }
             }
             catch (Exception ex)
@@ -79,7 +79,7 @@ namespace LogUtils
 
                 //TODO: An exception during utility initialization is most likely unrecoverable. Utility must try to restore original logging functionality here
                 UtilityLogger.LogFatal("A fatal error has occurred during setup process. Utility will no longer function as expected");
-                UtilityLogger.LogFatal($"FAILED STEP: {currentStep}");
+                UtilityLogger.LogFatal($"FAILED STEP: {UtilitySetup.CurrentStep}");
                 UtilityLogger.LogFatal(ex);
             }
 
@@ -91,6 +91,7 @@ namespace LogUtils
         internal static UtilitySetup.InitializationStep ApplyStep(UtilitySetup.InitializationStep currentStep)
         {
             UtilitySetup.InitializationStep nextStep = currentStep;
+
             switch (currentStep)
             {
                 case UtilitySetup.InitializationStep.INITALIZE_CORE_LOGGER:

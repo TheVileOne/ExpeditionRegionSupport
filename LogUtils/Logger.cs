@@ -86,6 +86,9 @@ namespace LogUtils
         /// <param name="presets">Include any LogIDs that this logger targets, or handles on request</param>
         public Logger(LoggingMode mode, bool allowLogging, params LogID[] presets)
         {
+            if (UtilitySetup.CurrentStep < UtilitySetup.InitializationStep.INITIALIZE_LOGIDS)
+                throw new EarlyInitializationException("Logger created too early");
+
             AllowLogging = allowLogging;
 
             LogTargets.AddRange(presets);
@@ -788,6 +791,10 @@ namespace LogUtils
         internal static bool CanLogBeHandledLocally(LogID logID)
         {
             return !logID.IsGameControlled && (logID.Access == LogAccess.FullAccess || logID.Access == LogAccess.Private);
+        }
+
+        public class EarlyInitializationException(string message) : InvalidOperationException(message)
+        {
         }
     }
 

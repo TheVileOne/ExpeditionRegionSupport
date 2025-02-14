@@ -19,7 +19,7 @@ namespace LogUtils.Diagnostics
                 if (_customDefault != null)
                     return _customDefault;
 
-                if (LogID.Unity == null)
+                if (UtilitySetup.CurrentStep < UtilitySetup.InitializationStep.INITIALIZE_LOGIDS)
                 {
                     if (_default.Logger != UtilityLogger.Logger)
                     {

@@ -2,19 +2,21 @@
 {
     internal static class UtilitySetup
     {
+        public static InitializationStep CurrentStep;
+
         public enum InitializationStep
         {
-            NOT_STARTED,
-            INITALIZE_CORE_LOGGER,
-            START_SCHEDULER,
-            ESTABLISH_SETUP_PERIOD,
-            INITIALIZE_COMPONENTS,
-            INITIALIZE_LOGIDS,
-            PARSE_FILTER_RULES,
-            ADAPT_LOGGING_SYSTEM,
-            POST_LOGID_PROCESSING,
-            APPLY_HOOKS,
-            COMPLETE
+            NOT_STARTED = 0,
+            INITALIZE_CORE_LOGGER = 1,
+            START_SCHEDULER = 2,
+            ESTABLISH_SETUP_PERIOD = 3,
+            INITIALIZE_COMPONENTS = 4,
+            INITIALIZE_LOGIDS = 5,
+            PARSE_FILTER_RULES = 6,
+            ADAPT_LOGGING_SYSTEM = 7,
+            POST_LOGID_PROCESSING = 8,
+            APPLY_HOOKS = 9,
+            COMPLETE = 10
         }
     }
 }
