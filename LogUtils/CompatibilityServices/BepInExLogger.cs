@@ -26,26 +26,6 @@ namespace LogUtils.CompatibilityServices
             Source.LogInfo(data);
         }
 
-        public void Log(LogLevel category, object data)
-        {
-            Source.Log(category, data);
-        }
-
-        public void Log(LogType category, object data)
-        {
-            Log(LogCategory.ToCategory(category), data);
-        }
-
-        public void Log(string category, object data)
-        {
-            Log(LogCategory.ToCategory(category), data);
-        }
-
-        public void Log(LogCategory category, object data)
-        {
-            Source.Log(category.BepInExCategory, data);
-        }
-
         public void LogDebug(object data)
         {
             Source.LogDebug(data);
@@ -79,6 +59,26 @@ namespace LogUtils.CompatibilityServices
         public void LogFatal(object data)
         {
             Source.LogFatal(data);
+        }
+
+        public void Log(LogLevel category, object data)
+        {
+            Source.Log(category, data);
+        }
+
+        public void Log(LogType category, object data)
+        {
+            Log(LogCategory.ToCategory(category), data);
+        }
+
+        public void Log(string category, object data)
+        {
+            Log(LogCategory.ToCategory(category), data);
+        }
+
+        public void Log(LogCategory category, object data)
+        {
+            Source.Log(category.BepInExCategory, data);
         }
     }
 }

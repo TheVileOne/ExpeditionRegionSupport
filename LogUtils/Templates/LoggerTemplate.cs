@@ -1,72 +1,75 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
+using System;
 using UnityEngine;
 
-namespace LogUtils.CompatibilityServices
+namespace LogUtils.Templates
 {
     /// <summary>
-    /// A logger that exclusively writes directly through Unity's logging API
+    /// Illustrates the standradized method order implementation of the ILogger interface
     /// </summary>
-    public class UnityLogger : ILogger
+    internal sealed class LoggerTemplate : ILogger
     {
+        #region Implementation
         public void Log(object data)
         {
-            Debug.Log(data);
+            throw new NotImplementedException();
         }
 
         public void LogDebug(object data)
         {
-            Debug.Log(data);
+            throw new NotImplementedException();
         }
 
         public void LogInfo(object data)
         {
-            Log(LogCategory.Info, data);
+            throw new NotImplementedException();
         }
 
         public void LogImportant(object data)
         {
-            Log(LogCategory.Important, data);
+            throw new NotImplementedException();
         }
 
         public void LogMessage(object data)
         {
-            Log(LogCategory.Message, data);
+            throw new NotImplementedException();
         }
 
         public void LogWarning(object data)
         {
-            Debug.LogWarning(data);
+            throw new NotImplementedException();
         }
 
         public void LogError(object data)
         {
-            Debug.LogError(data);
+            throw new NotImplementedException();
         }
 
         public void LogFatal(object data)
         {
-            Log(LogCategory.Fatal, data);
+            throw new NotImplementedException();
         }
 
         public void Log(LogType category, object data)
         {
-            Debug.unityLogger.Log(category, data);
+            throw new NotImplementedException();
         }
 
         public void Log(LogLevel category, object data)
         {
-            Log(LogCategory.ToCategory(category), data);
+            throw new NotImplementedException();
         }
 
         public void Log(string category, object data)
         {
-            Log(LogCategory.ToCategory(category), data);
+            throw new NotImplementedException();
         }
 
         public void Log(LogCategory category, object data)
         {
-            Debug.unityLogger.Log(category.UnityCategory, data);
+            throw new NotImplementedException();
         }
+        #endregion
     }
 }
