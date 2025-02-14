@@ -16,7 +16,7 @@ namespace LogUtils.CompatibilityServices
 
         public void Log(LogType category, object data)
         {
-            Log(LogCategory.ToCategory(category), data);
+            Debug.unityLogger.Log(category, data);
         }
 
         public void Log(LogLevel category, object data)
