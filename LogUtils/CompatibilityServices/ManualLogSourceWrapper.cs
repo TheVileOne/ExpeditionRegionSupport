@@ -73,30 +73,5 @@ namespace LogUtils.CompatibilityServices
 
             return new ManualLogSourceWrapper(source);
         }
-
-        /// <summary>
-        /// Attempts to convert a log source instance into a form that LogUtils can recognize
-        /// </summary>
-        /// <param name="source">A log source</param>
-        /// <param name="conversion">Result parameter (set to null if conversion fails)</param>
-        /// <returns>true if conversion was successful; otherwise false</returns>
-        public static bool TryCreate(in ILogSource source, out IExtendedLogSource conversion)
-        {
-            if (source is ManualLogSource manualSource)
-            {
-                conversion = new ManualLogSourceWrapper(manualSource);
-                return true;
-            }
-
-            //No one has a good reason to adapt a logging source that is already compatible with LogUtils, but handle it anyways
-            if (source is IExtendedLogSource extendedSource)
-            {
-                conversion = extendedSource;
-                return true;
-            }
-
-            conversion = null;
-            return false;
-        }
     }
 }
