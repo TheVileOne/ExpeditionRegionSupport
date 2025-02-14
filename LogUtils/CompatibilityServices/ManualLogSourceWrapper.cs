@@ -1,5 +1,7 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Enums;
 using System;
+using UnityEngine;
 
 namespace LogUtils.CompatibilityServices
 {
@@ -24,32 +26,7 @@ namespace LogUtils.CompatibilityServices
         }
 
         #region Implementation
-        public void Log(LogLevel level, object data)
-        {
-            Source.Log(level, data);
-        }
-
-        public void LogFatal(object data)
-        {
-            Source.LogFatal(data);
-        }
-
-        public void LogError(object data)
-        {
-            Source.LogError(data);
-        }
-
-        public void LogWarning(object data)
-        {
-            Source.LogWarning(data);
-        }
-
-        public void LogMessage(object data)
-        {
-            Source.LogMessage(data);
-        }
-
-        public void LogInfo(object data)
+        public void Log(object data)
         {
             Source.LogInfo(data);
         }
@@ -59,12 +36,62 @@ namespace LogUtils.CompatibilityServices
             Source.LogDebug(data);
         }
 
+        public void LogInfo(object data)
+        {
+            Source.LogInfo(data);
+        }
+
+        public void LogImportant(object data)
+        {
+            Source.Log(LogCategory.Important.BepInExCategory, data);
+        }
+
+        public void LogMessage(object data)
+        {
+            Source.LogMessage(data);
+        }
+
+        public void LogWarning(object data)
+        {
+            Source.LogWarning(data);
+        }
+
+        public void LogError(object data)
+        {
+            Source.LogError(data);
+        }
+
+        public void LogFatal(object data)
+        {
+            Source.LogFatal(data);
+        }
+
+        public void Log(LogType category, object data)
+        {
+            Source.Log(LogCategory.ToCategory(category).BepInExCategory, data);
+        }
+
+        public void Log(LogLevel category, object data)
+        {
+            Source.Log(category, data);
+        }
+
+        public void Log(string category, object data)
+        {
+            Source.Log(LogCategory.ToCategory(category).BepInExCategory, data);
+        }
+
+        public void Log(LogCategory category, object data)
+        {
+            Source.Log(category.BepInExCategory, data);
+        }
+        #endregion
+
         void IDisposable.Dispose()
         {
             //It is unclear whether cleaning up the underlying log source should be the responsibility of this adapter.
             //For this reason, it does nothing on dispose
         }
-        #endregion
 
         internal static ManualLogSourceWrapper FromSource(ManualLogSource source)
         {

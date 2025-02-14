@@ -1,7 +1,9 @@
 ﻿using BepInEx.Logging;
 using LogUtils.CompatibilityServices;
+using LogUtils.Enums;
 using System;
 using System.Threading;
+using UnityEngine;
 
 namespace LogUtils
 {
@@ -9,7 +11,7 @@ namespace LogUtils
     {
         private bool recursiveAccessFlag;
 
-        private object sourceLock = new object();
+        private readonly object sourceLock = new object();
 
         public string SourceName => UtilityConsts.UTILITY_NAME;
 
@@ -20,7 +22,53 @@ namespace LogUtils
             return recursiveAccessFlag;
         }
 
-        public void Log(LogLevel level, object data)
+        #region Implementation
+        public void Log(object data)
+        {
+            Log(LogLevel.Info, data);
+        }
+
+        public void LogDebug(object data)
+        {
+            Log(LogLevel.Debug, data);
+        }
+
+        public void LogInfo(object data)
+        {
+            Log(LogLevel.Info, data);
+        }
+
+        public void LogImportant(object data)
+        {
+            Log(LogCategory.Important.BepInExCategory, data);
+        }
+
+        public void LogMessage(object data)
+        {
+            Log(LogLevel.Message, data);
+        }
+
+        public void LogWarning(object data)
+        {
+            Log(LogLevel.Warning, data);
+        }
+
+        public void LogError(object data)
+        {
+            Log(LogLevel.Error, data);
+        }
+
+        public void LogFatal(object data)
+        {
+            Log(LogLevel.Fatal, data);
+        }
+
+        public void Log(LogType category, object data)
+        {
+            Log(LogCategory.ToCategory(category).BepInExCategory, data);
+        }
+
+        public void Log(LogLevel category, object data)
         {
             Monitor.Enter(sourceLock);
 
@@ -33,7 +81,7 @@ namespace LogUtils
             recursiveAccessFlag = true;
             try
             {
-                LogEvent?.Invoke(this, new LogEventArgs(data, level, this));
+                LogEvent?.Invoke(this, new LogEventArgs(data, category, this));
             }
             finally
             {
@@ -42,35 +90,16 @@ namespace LogUtils
             }
         }
 
-        public void LogFatal(object data)
+        public void Log(string category, object data)
         {
-            Log(LogLevel.Fatal, data);
+            Log(LogCategory.ToCategory(category).BepInExCategory, data);
         }
 
-        public void LogError(object data)
+        public void Log(LogCategory category, object data)
         {
-            Log(LogLevel.Error, data);
+            Log(category.BepInExCategory, data);
         }
-
-        public void LogWarning(object data)
-        {
-            Log(LogLevel.Warning, data);
-        }
-
-        public void LogMessage(object data)
-        {
-            Log(LogLevel.Message, data);
-        }
-
-        public void LogInfo(object data)
-        {
-            Log(LogLevel.Info, data);
-        }
-
-        public void LogDebug(object data)
-        {
-            Log(LogLevel.Debug, data);
-        }
+        #endregion
 
         public void Dispose()
         {
