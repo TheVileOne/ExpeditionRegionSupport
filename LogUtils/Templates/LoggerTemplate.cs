@@ -6,7 +6,7 @@ using UnityEngine;
 namespace LogUtils.Templates
 {
     /// <summary>
-    /// Illustrates the standradized method order implementation of the ILogger interface
+    /// Illustrates the standardized method order implementation of the ILogger interface
     /// </summary>
     internal sealed class LoggerTemplate : ILogger
     {
