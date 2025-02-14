@@ -6,7 +6,7 @@ namespace LogUtils.CompatibilityServices
     /// <summary>
     /// A class dedicated to translating a ManualLogSource to an IExtendedLogSource
     /// </summary>
-    internal sealed class LogSourceAdapter : IExtendedLogSource
+    internal sealed class ManualLogSourceWrapper : IExtendedLogSource
     {
         public readonly ManualLogSource Source;
 
@@ -18,7 +18,7 @@ namespace LogUtils.CompatibilityServices
             remove => Source.LogEvent -= value;
         }
 
-        private LogSourceAdapter(ManualLogSource source)
+        private ManualLogSourceWrapper(ManualLogSource source)
         {
             Source = source;
         }
@@ -66,12 +66,12 @@ namespace LogUtils.CompatibilityServices
         }
         #endregion
 
-        internal static IExtendedLogSource FromManualSource(ManualLogSource source)
+        internal static ManualLogSourceWrapper FromSource(ManualLogSource source)
         {
             if (source == null)
                 throw new ArgumentNullException("source");
 
-            return new LogSourceAdapter(source);
+            return new ManualLogSourceWrapper(source);
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace LogUtils.CompatibilityServices
         {
             if (source is ManualLogSource manualSource)
             {
-                conversion = new LogSourceAdapter(manualSource);
+                conversion = new ManualLogSourceWrapper(manualSource);
                 return true;
             }
 

@@ -11,7 +11,7 @@ namespace LogUtils.CompatibilityServices
         /// <exception cref="ArgumentNullException">Provided source is null</exception>
         public static IExtendedLogSource Convert(ManualLogSource source)
         {
-            return LogSourceAdapter.FromManualSource(source);
+            return ManualLogSourceWrapper.FromSource(source);
         }
     }
 }
