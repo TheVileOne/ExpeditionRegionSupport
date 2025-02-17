@@ -12,6 +12,11 @@ namespace LogUtils
     {
         public static UtilityLogSource Logger;
 
+        /// <summary>
+        /// Activity logger is responsible for reporting file behavior associated with log related files
+        /// </summary>
+        private static Logger activityLogger;
+
         private static bool _receiveUnityLogEvents;
 
         internal static void Initialize()
@@ -71,6 +76,22 @@ namespace LogUtils
         public static void Log(LogCategory category, object data)
         {
             Logger.Log(category.BepInExCategory, data);
+        }
+
+        public static void LogActivity(FormattableString message)
+        {
+            if (activityLogger == null)
+            {
+                //Until LogIDs are first initialized, accessed LogIDs will be null
+                if (LogID.FileActivity == null)
+                {
+                    //TODO: Use Activity log category for activity logging
+                    Logger.LogInfo(message);
+                    return;
+                }
+                activityLogger = new Logger(LogID.FileActivity);
+            }
+            activityLogger.Log(message);
         }
 
         public static void LogError(object data)
