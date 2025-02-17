@@ -6,7 +6,7 @@ using System.Text;
 
 namespace LogUtils.Helpers
 {
-    internal static class Extensions
+    public static class Extensions
     {
         /// <summary>
         /// Evaluates whether a string is equal to any of the provided values
@@ -20,7 +20,7 @@ namespace LogUtils.Helpers
             return values.Contains(str, comparer);
         }
 
-        public static void AppendComments(this StringBuilder sb, string commentOwner, List<CommentEntry> comments)
+        internal static void AppendComments(this StringBuilder sb, string commentOwner, List<CommentEntry> comments)
         {
             var applicableComments = comments.Where(entry => entry.Owner == commentOwner);
 
@@ -28,7 +28,7 @@ namespace LogUtils.Helpers
                 sb.AppendLine(comment);
         }
 
-        public static void AppendPropertyString(this StringBuilder sb, string name, string value = "")
+        internal static void AppendPropertyString(this StringBuilder sb, string name, string value = "")
         {
             sb.AppendLine(LogProperties.ToPropertyString(name, value));
         }
