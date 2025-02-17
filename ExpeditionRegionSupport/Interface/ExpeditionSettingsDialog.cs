@@ -40,8 +40,7 @@ namespace ExpeditionRegionSupport.Interface
 
         public event Action<ExpeditionSettingsDialog> OnDialogClosed;
 
-        //TODO Show custom regions available in Expedition?
-
+        //TODO: Show custom regions available in Expedition?
         public ExpeditionSettingsDialog(ProcessManager manager, ChallengeSelectPage owner) : base(manager, owner)
         {
             //Each time ExpeditionSettingsDialog is open, we need to clear the change list 
@@ -53,12 +52,13 @@ namespace ExpeditionRegionSupport.Interface
             InitializeButtons();
         }
 
+        /*
+        //TODO: Customized merging of select Expedition files
         public void ReloadFiles()
         {
             ModMerger modMerger = new ModMerger();
-
-            //TODO
         }
+        */
 
         public void InitializeButtons()
         {
@@ -128,7 +128,7 @@ namespace ExpeditionRegionSupport.Interface
                     }
                 case ExpeditionConsts.Signals.RELOAD_MOD_FILES:
                     {
-                        ReloadFiles();
+                        //ReloadFiles();
                         return;
                     }
                 case ExpeditionConsts.Signals.OPEN_SPAWN_DIALOG:
