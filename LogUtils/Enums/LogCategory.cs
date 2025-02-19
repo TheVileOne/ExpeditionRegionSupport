@@ -57,6 +57,29 @@ namespace LogUtils.Enums
         /// </summary>
         public virtual int FlagValue => indexToConversionValue();
 
+        private Color _consoleColor;
+
+        /// <summary>
+        /// The color that will be used in the console, or other write implementation that supports text coloration  
+        /// </summary>
+        public virtual Color ConsoleColor
+        {
+            get
+            {
+                //TODO: Override for composites
+                if (!ReferenceEquals(ManagedReference, this))
+                    return ManagedReference.ConsoleColor;
+                return _consoleColor;
+            }
+            set
+            {
+                //TODO: Override for composites
+                if (!ReferenceEquals(ManagedReference, this))
+                    ManagedReference.ConsoleColor = value;
+                _consoleColor = value;
+            }
+        }
+
         public static LogCategory[] RegisteredEntries => values.entries.Select(entry => new LogCategory(entry)).ToArray();
 
         public static LogCategoryCombiner Combiner = new LogCategoryCombiner();
