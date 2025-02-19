@@ -1,7 +1,6 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -43,21 +42,7 @@ namespace LogUtils.Helpers.Extensions
             if (!logLevel.IsComposite())
                 return [logLevel];
 
-            List<LogLevel> composition = new List<LogLevel>();
-
-            var enumerator = powersOfTwo().GetEnumerator();
-
-            //Cycle through powers of 2, recording all set flags
-            while (enumerator.MoveNext())
-            {
-                LogLevel flag = (LogLevel)enumerator.Current;
-
-                bool hasFlag = (logLevel & flag) != 0;
-
-                if (hasFlag)
-                    composition.Add(flag);
-            }
-            return composition.ToArray();
+            return FlagUtils.ToFlagEnumerable(logLevel).ToArray();
         }
 
         /// <summary>
@@ -73,35 +58,18 @@ namespace LogUtils.Helpers.Extensions
             if (!logType.IsComposite())
                 return [logType];
 
-            List<LogType> composition = new List<LogType>();
+            var flagsEnumerable = FlagUtils.ToFlagEnumerable(logType);
 
-            //Check for values in the non-flag part of the array
+            //Check for values in the non-flag part of the array, hopefully this never happens
             byte firstByte = BitConverter.GetBytes((int)logType)[0];
 
             if (firstByte != 0)
             {
                 UtilityLogger.Log("Composite log enum exists with non-composite values");
-                composition.Add((LogType)firstByte);
+
+                flagsEnumerable = [(LogType)firstByte, .. flagsEnumerable];
             }
-
-            //Composition cannot includes values < 256, because Unity does not support bit flags for this enum type
-            //Any composite values will exclusively be set via the custom conversion offset
-            var enumerator = powersOfTwo()
-                             .Skip(LogCategory.CONVERSION_OFFSET_POWER - 1)
-                             .GetEnumerator();
-
-            //Cycle through powers of 2, recording all set flags
-            while (enumerator.MoveNext())
-            {
-                LogType flag = (LogType)enumerator.Current;
-
-                bool hasFlag = (logType & flag) != 0;
-
-                //TODO: Check for non-composite equivalents here?
-                if (hasFlag)
-                    composition.Add(flag);
-            }
-            return composition.ToArray();
+            return flagsEnumerable.ToArray();
         }
 
         /// <summary>
@@ -120,18 +88,6 @@ namespace LogUtils.Helpers.Extensions
             value = (value >> skipOverBits) << skipOverBits;
 
             return value > 0 ? (LogType)value : null;
-        }
-
-        private static IEnumerable<uint> powersOfTwo()
-        {
-            uint value = 1; //2^0
-            do
-            {
-                yield return value;
-                value *= 2;
-            }
-            while (value < int.MaxValue);
-            yield break;
         }
     }
 }
