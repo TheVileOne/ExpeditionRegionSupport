@@ -1,5 +1,5 @@
-﻿using LogUtils.Helpers;
-using LogUtils.Helpers.Comparers;
+﻿using LogUtils.Helpers.Comparers;
+using LogUtils.Helpers.Extensions;
 
 namespace LogUtils
 {

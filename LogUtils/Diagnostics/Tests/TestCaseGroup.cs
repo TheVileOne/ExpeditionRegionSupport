@@ -1,4 +1,5 @@
 ﻿using LogUtils.Helpers;
+using LogUtils.Helpers.Extensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;

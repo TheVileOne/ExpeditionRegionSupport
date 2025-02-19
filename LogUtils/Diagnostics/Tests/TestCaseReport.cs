@@ -1,4 +1,5 @@
 ﻿using LogUtils.Helpers;
+using LogUtils.Helpers.Extensions;
 using System.Collections.Generic;
 using System.Text;
 using ReportVerbosity = LogUtils.Enums.FormatEnums.FormatVerbosity;
