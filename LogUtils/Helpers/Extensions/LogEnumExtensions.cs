@@ -10,10 +10,7 @@ namespace LogUtils.Helpers.Extensions
     {
         public static bool IsComposite(this LogLevel logLevel)
         {
-            int value = (int)logLevel;
-
-            //Two's complement encoding allows us to detect multiple flags using this bit operation
-            return value > 0 && (value & -value) != value;
+            return FlagUtils.HasMultipleFlags((int)logLevel);
         }
 
         /// <summary>
@@ -21,11 +18,7 @@ namespace LogUtils.Helpers.Extensions
         /// </summary>
         public static bool IsComposite(this LogType logType)
         {
-            LogType? flags = logType.GetFlags();
-            int value = (int)flags;
-
-            //Two's complement encoding allows us to detect multiple flags using this bit operation
-            return value > 0 && (value & -value) != value;
+            return FlagUtils.HasMultipleFlags((int)logType.GetFlags());
         }
 
         /// <summary>
