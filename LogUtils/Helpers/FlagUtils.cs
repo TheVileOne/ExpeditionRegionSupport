@@ -1,6 +1,7 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace LogUtils.Helpers
@@ -21,47 +22,28 @@ namespace LogUtils.Helpers
 
         public static IEnumerable<LogLevel> ToFlagEnumerable(LogLevel logLevel)
         {
-            var enumerator = powersOfTwo(FLAG_OFFSET_BEPINEX).GetEnumerator();
-
-            //Cycle through powers of 2, recording all set flags
-            while (enumerator.MoveNext())
-            {
-                var flag = (LogLevel)enumerator.Current;
-
-                bool hasFlag = (logLevel & flag) != 0;
-
-                if (hasFlag)
-                    yield return flag;
-            }
-            yield break;
+            return valueToFlags((int)logLevel, FLAG_OFFSET_BEPINEX).Cast<LogLevel>();
         }
 
         public static IEnumerable<LogType> ToFlagEnumerable(LogType logType)
         {
-            var enumerator = powersOfTwo(FLAG_OFFSET_UNITY).GetEnumerator();
-
-            //Cycle through powers of 2, recording all set flags
-            while (enumerator.MoveNext())
-            {
-                var flag = (LogType)enumerator.Current;
-
-                bool hasFlag = (logType & flag) != 0;
-
-                if (hasFlag)
-                    yield return flag;
-            }
-            yield break;
+            return valueToFlags((int)logType, FLAG_OFFSET_UNITY).Cast<LogType>();
         }
 
-        private static IEnumerable<uint> powersOfTwo(uint startAt)
+        private static IEnumerable<int> valueToFlags(int fullValue, int firstPowerOfTwo)
         {
-            uint value = startAt;
-            do
+            if (fullValue < firstPowerOfTwo)
+                yield break;
+
+            int bitValue = firstPowerOfTwo;
+
+            //Keep checking until we have checked all possible bit values inside fullValue
+            while (bitValue < fullValue)
             {
-                yield return value;
-                value *= 2;
+                if ((fullValue & bitValue) != 0)
+                    yield return bitValue;
+                bitValue *= 2;
             }
-            while (value < int.MaxValue);
             yield break;
         }
     }
