@@ -226,16 +226,17 @@ namespace LogUtils.Enums
 
         internal static void InitializeEnums()
         {
-            All = new LogCategory("All", LogLevel.All, null);
+            //Registration order reflects the importance of the message category (errors being most important, and debug messages being least important)
             None = new LogCategory("None", LogLevel.None, LogType.Log);
-            Assert = new LogCategory("Assert", null, LogType.Assert);
-            Debug = new LogCategory("Debug", LogLevel.Debug, null);
-            Info = new LogCategory("Info", LogLevel.Info, LogType.Log);
-            Message = new LogCategory("Message", LogLevel.Message, LogType.Log);
-            Important = new LogCategory("Important", null, null);
-            Warning = new LogCategory("Warning", LogLevel.Warning, LogType.Warning);
-            Error = new LogCategory("Error", LogLevel.Error, LogType.Error);
             Fatal = new LogCategory("Fatal", LogLevel.Fatal, LogType.Error);
+            Error = new LogCategory("Error", LogLevel.Error, LogType.Error);
+            Warning = new LogCategory("Warning", LogLevel.Warning, LogType.Warning);
+            Assert = new LogCategory("Assert", null, LogType.Assert);
+            Important = new LogCategory("Important", null, null);
+            Message = new LogCategory("Message", LogLevel.Message, LogType.Log);
+            Info = new LogCategory("Info", LogLevel.Info, LogType.Log);
+            Debug = new LogCategory("Debug", LogLevel.Debug, null);
+            All = new LogCategory("All", LogLevel.All, null);
 
             Default = Info;
         }
