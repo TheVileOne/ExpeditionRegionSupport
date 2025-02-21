@@ -86,7 +86,7 @@ namespace LogUtils
         /// <param name="presets">Include any LogIDs that this logger targets, or handles on request</param>
         public Logger(LoggingMode mode, bool allowLogging, params LogID[] presets)
         {
-            if (UtilitySetup.CurrentStep < UtilitySetup.InitializationStep.INITIALIZE_LOGIDS)
+            if (UtilitySetup.CurrentStep < UtilitySetup.InitializationStep.INITIALIZE_ENUMS)
                 throw new EarlyInitializationException("Logger created too early");
 
             AllowLogging = allowLogging;

@@ -254,7 +254,7 @@ namespace LogUtils.Enums
             return Find(filename, relativePathNoFile) != null;
         }
 
-        internal static void InitializeLogIDs()
+        internal static void InitializeEnums()
         {
             //Game-defined LogIDs
             BepInEx = new LogID(null, UtilityConsts.LogNames.BepInEx, Paths.BepInExRootPath, true);

@@ -11,7 +11,7 @@
             START_SCHEDULER = 2,
             ESTABLISH_SETUP_PERIOD = 3,
             INITIALIZE_COMPONENTS = 4,
-            INITIALIZE_LOGIDS = 5,
+            INITIALIZE_ENUMS = 5,
             PARSE_FILTER_RULES = 6,
             ADAPT_LOGGING_SYSTEM = 7,
             POST_LOGID_PROCESSING = 8,

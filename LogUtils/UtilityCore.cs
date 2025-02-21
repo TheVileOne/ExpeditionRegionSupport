@@ -120,12 +120,14 @@ namespace LogUtils
                     {
                         LoadComponents();
 
-                        nextStep = UtilitySetup.InitializationStep.INITIALIZE_LOGIDS;
+                        nextStep = UtilitySetup.InitializationStep.INITIALIZE_ENUMS;
                         break;
                     }
-                case UtilitySetup.InitializationStep.INITIALIZE_LOGIDS:
+                case UtilitySetup.InitializationStep.INITIALIZE_ENUMS:
                     {
-                        LogID.InitializeLogIDs(); //This should be called for every assembly that initializes
+                        //These are initialized after components, because they internally depend on SharedDataHandler
+                        LogID.InitializeEnums();
+                        LogCategory.InitializeEnums();
 
                         nextStep = UtilitySetup.InitializationStep.PARSE_FILTER_RULES;
                         break;

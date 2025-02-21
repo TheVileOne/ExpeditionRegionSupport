@@ -221,20 +221,38 @@ namespace LogUtils.Enums
 
         static LogCategory()
         {
+            //Initialize the utility when this class is accessed
+            if (!UtilityCore.IsInitialized)
+                UtilityCore.Initialize();
+        }
+
+        internal static void InitializeEnums()
+        {
+            All = new LogCategory("All", LogLevel.All, null);
+            None = new LogCategory("None", LogLevel.None, LogType.Log);
+            Assert = new LogCategory("Assert", null, LogType.Assert);
+            Debug = new LogCategory("Debug", LogLevel.Debug, null);
+            Info = new LogCategory("Info", LogLevel.Info, LogType.Log);
+            Message = new LogCategory("Message", LogLevel.Message, LogType.Log);
+            Important = new LogCategory("Important", null, null);
+            Warning = new LogCategory("Warning", LogLevel.Warning, LogType.Warning);
+            Error = new LogCategory("Error", LogLevel.Error, LogType.Error);
+            Fatal = new LogCategory("Fatal", LogLevel.Fatal, LogType.Error);
+
             Default = Info;
         }
 
-        public static readonly LogCategory All = new LogCategory("All", LogLevel.All, null);
-        public static readonly LogCategory None = new LogCategory("None", LogLevel.None, LogType.Log);
-        public static readonly LogCategory Assert = new LogCategory("Assert", null, LogType.Assert);
-        public static readonly LogCategory Debug = new LogCategory("Debug", LogLevel.Debug, null);
-        public static readonly LogCategory Info = new LogCategory("Info", LogLevel.Info, LogType.Log);
-        public static readonly LogCategory Message = new LogCategory("Message", LogLevel.Message, LogType.Log);
-        public static readonly LogCategory Important = new LogCategory("Important", null, null);
-        public static readonly LogCategory Warning = new LogCategory("Warning", LogLevel.Warning, LogType.Warning);
-        public static readonly LogCategory Error = new LogCategory("Error", LogLevel.Error, LogType.Error);
-        public static readonly LogCategory Fatal = new LogCategory("Fatal", LogLevel.Fatal, LogType.Error);
+        public static LogCategory All;
+        public static LogCategory None;
+        public static LogCategory Assert;
+        public static LogCategory Debug;
+        public static LogCategory Info;
+        public static LogCategory Message;
+        public static LogCategory Important;
+        public static LogCategory Warning;
+        public static LogCategory Error;
+        public static LogCategory Fatal;
 
-        public static readonly LogCategory Default;
+        public static LogCategory Default;
     }
 }
