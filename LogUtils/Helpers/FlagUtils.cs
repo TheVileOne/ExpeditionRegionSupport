@@ -12,6 +12,14 @@ namespace LogUtils.Helpers
         private const int FLAG_OFFSET_UNITY = LogCategory.CONVERSION_OFFSET;
 
         /// <summary>
+        /// Check that the value is within what is considered the conversion value range
+        /// </summary>
+        public static bool HasConvertedFlags(int value)
+        {
+            return value >= LogCategory.CONVERSION_OFFSET;
+        }
+
+        /// <summary>
         /// Check that value satisfies a bitflag value requirement - only evaluates positive integers
         /// </summary>
         public static bool HasMultipleFlags(int value)

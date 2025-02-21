@@ -8,6 +8,16 @@ namespace LogUtils.Helpers.Extensions
 {
     public static class LogEnumExtensions
     {
+        public static bool HasConvertedFlags(this LogLevel logLevel)
+        {
+            return FlagUtils.HasConvertedFlags((int)logLevel);
+        }
+
+        public static bool HasConvertedFlags(this LogType logType)
+        {
+            return FlagUtils.HasConvertedFlags((int)logType);
+        }
+
         public static bool IsComposite(this LogLevel logLevel)
         {
             return FlagUtils.HasMultipleFlags((int)logLevel);
@@ -72,7 +82,7 @@ namespace LogUtils.Helpers.Extensions
         {
             int value = (int)logType;
 
-            if (value < LogCategory.CONVERSION_OFFSET)
+            if (!FlagUtils.HasConvertedFlags(value))
                 return null;
 
             int skipOverBits = LogCategory.CONVERSION_OFFSET_POWER;

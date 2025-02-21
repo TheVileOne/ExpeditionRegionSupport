@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Helpers;
 using LogUtils.Helpers.Extensions;
 using System;
 using UnityEngine;
@@ -104,8 +105,7 @@ namespace LogUtils.Enums
         {
             int enumValue = (int)logLevel;
 
-            //A high enum value indicates that we are handling a custom LogCategory converted to an enum type
-            if (enumValue >= CONVERSION_OFFSET)
+            if (FlagUtils.HasConvertedFlags(enumValue))
                 return valueToCategory(enumValue);
 
             //More typical enum type values can be translated directly to string
@@ -119,8 +119,7 @@ namespace LogUtils.Enums
         {
             int enumValue = (int)logType;
 
-            //A high enum value indicates that we are handling a custom LogCategory converted to an enum type
-            if (enumValue >= CONVERSION_OFFSET)
+            if (FlagUtils.HasConvertedFlags(enumValue))
                 return valueToCategory(enumValue);
 
             //More typical enum type values can be translated directly to string
