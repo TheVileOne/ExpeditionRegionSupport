@@ -150,9 +150,7 @@ namespace LogUtils
 
         static UtilityLogger()
         {
-            //Initialize the utility when this class is accessed
-            if (!UtilityCore.IsInitialized)
-                UtilityCore.Initialize();
+            UtilityCore.EnsureInitializedState();
         }
     }
 }

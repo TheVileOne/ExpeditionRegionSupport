@@ -57,6 +57,15 @@ namespace LogUtils
 
         public static int ThreadID;
 
+        /// <summary>
+        /// Ensures that core functionality is in a proper and useable state by ensuring the initialization procedure has run
+        /// </summary>
+        public static void EnsureInitializedState()
+        {
+            //This approach does not guarantee an initialized state when called during the initialization process itself
+            Initialize();
+        }
+
         internal static void Initialize()
         {
             if (IsInitialized || initializingInProgress) return; //Initialize may be called several times during the init process

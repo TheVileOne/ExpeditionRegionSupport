@@ -39,9 +39,7 @@ namespace LogUtils
 
         static RWInfo()
         {
-            //Initialize the utility when this class is accessed
-            if (!UtilityCore.IsInitialized)
-                UtilityCore.Initialize();
+            UtilityCore.EnsureInitializedState();
         }
 
         /// <summary>

@@ -221,9 +221,7 @@ namespace LogUtils.Enums
 
         static LogCategory()
         {
-            //Initialize the utility when this class is accessed
-            if (!UtilityCore.IsInitialized)
-                UtilityCore.Initialize();
+            UtilityCore.EnsureInitializedState();
         }
 
         internal static void InitializeEnums()
