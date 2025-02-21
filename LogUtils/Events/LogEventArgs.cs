@@ -14,11 +14,6 @@ namespace LogUtils.Events
         public LogID ID { get; protected set; }
         public LogProperties Properties => ID.Properties;
 
-        /// <summary>
-        /// A tag used to easily distinguish log event data
-        /// </summary>
-        public EventTag Tag = EventTag.Utility;
-
         public LogEventArgs(LogID logID) : this(logID.Properties)
         {
         }
@@ -59,7 +54,7 @@ namespace LogUtils.Events
         private LogType? _categoryUnity;
 
         /// <summary>
-        /// The log category associated with the message (equivalent to LogType (Unity), and LogLevel (BepInEx)
+        /// The log category associated with the message (equivalent to LogType (Unity), and LogLevel (BepInEx))
         /// </summary>
         public LogCategory Category
         {
