@@ -21,6 +21,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
             testComposition();
             testEquality();
             testErrorCategoryDoesNotIncludeCategoryAll();
+
+            TestLogger.LogDebug(CreateReport());
         }
 
         private void testSubmission()
