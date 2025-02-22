@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Helpers.Extensions;
 using System;
 using System.Linq;
 using UnityEngine;
@@ -28,7 +29,7 @@ namespace LogUtils.Enums
         /// <summary>
         /// The category value translated to the category enum used for BepInEx logging
         /// </summary>
-        public LogLevel BepInExCategory
+        public virtual LogLevel BepInExCategory
         {
             get
             {
@@ -41,7 +42,7 @@ namespace LogUtils.Enums
         /// <summary>
         /// The category value translated to the category enum used for Unity logging
         /// </summary>
-        public LogType UnityCategory
+        public virtual LogType UnityCategory
         {
             get
             {
@@ -53,7 +54,6 @@ namespace LogUtils.Enums
 
         /// <summary>
         /// The bitflag translation representing this LogCategory
-        /// TODO: Implement for composites
         /// </summary>
         public virtual int FlagValue => indexToConversionValue();
 
@@ -177,6 +177,26 @@ namespace LogUtils.Enums
             return !IsErrorCategory(logType) ? LogID.Unity : LogID.Exception;
         }
 
+        public static bool IsAllCategory(LogCategory category)
+        {
+            if (category == All)
+                return true;
+
+            var composite = category as CompositeLogCategory;
+
+            return composite != null && composite.Contains(All);
+        }
+
+        public static bool IsAllCategory(LogType category)
+        {
+            return category.HasConvertedFlags() && (category & All.UnityCategory) != 0;
+        }
+
+        public static bool IsAllCategory(LogLevel category)
+        {
+            return category == LogLevel.All;
+        }
+
         public static bool IsErrorCategory(LogCategory category)
         {
             var composite = category as CompositeLogCategory;
@@ -184,19 +204,24 @@ namespace LogUtils.Enums
             if (composite != null)
             {
                 //Exclude the All flag here - not relevant to error handling
-                return !composite.Contains(All) && composite.HasAny(Error | Fatal);
+                return !composite.Contains(All) && composite.HasAny(ErrorFlags);
             }
-            return category == Error || category == Fatal;
+            return ErrorFlags.Contains(category);
         }
 
         public static bool IsErrorCategory(LogType category)
         {
-            return category == LogType.Error || category == LogType.Exception;
+            return category == LogType.Error || category == LogType.Exception || (category.HasConvertedFlags() && (category & ErrorFlags.UnityCategory) != 0);
         }
 
         public static bool IsErrorCategory(LogLevel category)
         {
-            return (category & (LogLevel.Error | LogLevel.Fatal)) != 0;
+            if (category == LogLevel.All) //This flag value will pass the error flag check
+                return false;
+
+            LogLevel errorFlags = category.HasConvertedFlags() ? ErrorFlags.BepInExCategory : (LogLevel.Error | LogLevel.Fatal);
+
+            return (category & errorFlags) != 0;
         }
 
         public static CompositeLogCategory operator |(LogCategory a, LogCategory b)
@@ -227,7 +252,7 @@ namespace LogUtils.Enums
         internal static void InitializeEnums()
         {
             //Registration order reflects the importance of the message category (errors being most important, and debug messages being least important)
-            None = new LogCategory("None", LogLevel.None, LogType.Log);
+            None = new LogCategory("None", LogLevel.None, null);
             Fatal = new LogCategory("Fatal", LogLevel.Fatal, LogType.Error);
             Error = new LogCategory("Error", LogLevel.Error, LogType.Error);
             Warning = new LogCategory("Warning", LogLevel.Warning, LogType.Warning);
@@ -238,6 +263,7 @@ namespace LogUtils.Enums
             Debug = new LogCategory("Debug", LogLevel.Debug, null);
             All = new LogCategory("All", LogLevel.All, null);
 
+            ErrorFlags = Error | Fatal; //TODO: Include Exception
             Default = Info;
         }
 
@@ -252,6 +278,7 @@ namespace LogUtils.Enums
         public static LogCategory Error;
         public static LogCategory Fatal;
 
+        public static CompositeLogCategory ErrorFlags;
         public static LogCategory Default;
     }
 }

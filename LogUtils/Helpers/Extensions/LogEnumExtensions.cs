@@ -36,11 +36,8 @@ namespace LogUtils.Helpers.Extensions
         /// </summary>
         public static LogLevel[] Deconstruct(this LogLevel logLevel)
         {
-            var allFlag = LogCategory.All.BepInExCategory;
-
-            //There are two values reserved for this flag. Check both
-            if ((logLevel & (allFlag | (LogLevel)LogCategory.All.FlagValue)) != 0)
-                return [allFlag];
+            if (LogCategory.IsAllCategory(logLevel))
+                return [LogLevel.All];
 
             if (!logLevel.IsComposite())
                 return [logLevel];
@@ -53,10 +50,8 @@ namespace LogUtils.Helpers.Extensions
         /// </summary>
         public static LogType[] Deconstruct(this LogType logType)
         {
-            var allFlag = LogCategory.All.UnityCategory;
-
-            if ((logType & allFlag) != 0)
-                return [allFlag];
+            if (LogCategory.IsAllCategory(logType))
+                return [LogCategory.All.UnityCategory];
 
             if (!logType.IsComposite())
                 return [logType];
