@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Helpers.Console;
 using LogUtils.Helpers.Extensions;
 using System;
 using System.Linq;
@@ -57,26 +58,34 @@ namespace LogUtils.Enums
         /// </summary>
         public virtual int FlagValue => indexToConversionValue();
 
-        private Color _consoleColor;
+        private Color? _consoleColorDefault, _consoleColorCustom;
 
         /// <summary>
         /// The color that will be used in the console, or other write implementation that supports text coloration  
         /// </summary>
         public virtual Color ConsoleColor
         {
+            //TODO: Override for composites
             get
             {
-                //TODO: Override for composites
                 if (!ReferenceEquals(ManagedReference, this))
                     return ManagedReference.ConsoleColor;
-                return _consoleColor;
+
+                //Give custom color override priority
+                if (_consoleColorCustom.HasValue)
+                    return _consoleColorCustom.Value;
+
+                if (_consoleColorDefault.HasValue)
+                    return _consoleColorDefault.Value;
+
+                _consoleColorDefault = ConsoleColorUnity.GetColor(BepInExCategory.GetConsoleColor());
+                return _consoleColorDefault.Value;
             }
             set
             {
-                //TODO: Override for composites
                 if (!ReferenceEquals(ManagedReference, this))
                     ManagedReference.ConsoleColor = value;
-                _consoleColor = value;
+                _consoleColorCustom = value;
             }
         }
 
