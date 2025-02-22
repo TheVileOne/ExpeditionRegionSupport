@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net48</TargetFramework>
+        <LangVersion>12</LangVersion>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<Title>Rain World Log Utility</Title>
+    </PropertyGroup>
+
+	<ItemGroup>
+		<Reference Include="LogUtils">
+		  <HintPath>..\mod\plugins\LogUtils.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="Microsoft.CSharp" Version="4.7.0">
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="Mono.Cecil">
+		  <HintPath>..\lib\Mono.Cecil.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="MonoMod.RuntimeDetour">
+		  <HintPath>..\lib\MonoMod.RuntimeDetour.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="Assembly-CSharp">
+		  <HintPath>..\lib\PUBLIC-Assembly-CSharp.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine">
+		  <HintPath>..\lib\UnityEngine.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="UnityEngine.CoreModule">
+		  <HintPath>..\lib\UnityEngine.CoreModule.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+	</ItemGroup>
+
+	<Target Name="GenerateMod" AfterTargets="PostBuildEvent">
+		<ItemGroup>
+			<RemovePlugins Include="../mod/patchers/LogUtils.Patcher.dll" />
+			<RemovePDBs Include="$(OutDir)*.pdb" />
+		</ItemGroup>
+		<ItemGroup>
+			<CopyPlugins Include="$(TargetPath)" />
+			<CopyPDBs Include="$(OutDir)*.pdb" />
+		</ItemGroup>
+		<Delete Files="@(RemovePlugins)" />
+		<Copy SourceFiles="@(CopyPlugins);@(CopyPDBs)" DestinationFolder="../mod/patchers" />
+	</Target>
+</Project>

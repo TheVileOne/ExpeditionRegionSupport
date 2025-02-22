@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExpeditionRegionSupport", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogUtils", "LogUtils\LogUtils.csproj", "{DCCF69C7-9139-4A9B-9F14-C137451B38F4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogUtils.Patcher", "LogUtils.Patcher\LogUtils.Patcher.csproj", "{387A9B7D-8C8D-49FE-98B9-AB4110787042}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{DCCF69C7-9139-4A9B-9F14-C137451B38F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DCCF69C7-9139-4A9B-9F14-C137451B38F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DCCF69C7-9139-4A9B-9F14-C137451B38F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{387A9B7D-8C8D-49FE-98B9-AB4110787042}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{387A9B7D-8C8D-49FE-98B9-AB4110787042}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{387A9B7D-8C8D-49FE-98B9-AB4110787042}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{387A9B7D-8C8D-49FE-98B9-AB4110787042}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
