@@ -23,7 +23,6 @@ namespace LogUtils.Helpers
             Version activeVersion = null;
             try
             {
-                //TODO: Make sure this is getting an existing object, and not creating one
                 managedComponent = ManagerObject.GetComponent<T>();
 
                 if (managedComponent == null)
@@ -45,11 +44,9 @@ namespace LogUtils.Helpers
                 if (managedComponent == null) //Loading the component failed for some reason
                     UtilityLogger.LogWarning("Utility component failed to load");
 
-                if (activeVersion < UtilityCore.AssemblyVersion)
-                {
+                //TODO: Replace UtilityComponent with most up to data version
+                if (activeVersion != null && activeVersion < UtilityCore.AssemblyVersion)
                     UtilityLogger.LogWarning("Utility component version out of date");
-                    //TODO: Replace UtilityComponent with most up to data version
-                }
             }
             return null;
         }
