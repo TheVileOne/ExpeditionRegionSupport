@@ -1,5 +1,6 @@
 ﻿using LogUtils.Threading;
 using System;
+using System.Diagnostics;
 
 namespace LogUtils
 {
@@ -51,14 +52,14 @@ namespace LogUtils
             else if (duration != TimeRemaining)
             {
                 if (TimeRemaining == LifetimeDuration.Infinite)
-                    lastCheckedTime = TimeSpan.FromTicks(DateTime.UtcNow.Ticks);
+                    lastCheckedTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp());
                 TimeRemaining = Math.Max(0, duration);
             }
         }
 
         private void calculateTimeRemaining()
         {
-            TimeSpan currentTime = TimeSpan.FromTicks(DateTime.UtcNow.Ticks);
+            TimeSpan currentTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp());
 
             int timePassed = (int)(currentTime - lastCheckedTime).TotalMilliseconds;
 

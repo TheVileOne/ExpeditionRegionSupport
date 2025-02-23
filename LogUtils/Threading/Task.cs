@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace LogUtils.Threading
 {
@@ -125,7 +126,7 @@ namespace LogUtils.Threading
 
         public void SetInitialTime()
         {
-            InitialTime = new TimeSpan(DateTime.UtcNow.Ticks);
+            InitialTime = new TimeSpan(Stopwatch.GetTimestamp());
         }
 
         public void SetState(TaskState state)
@@ -135,7 +136,7 @@ namespace LogUtils.Threading
 
         public TimeSpan TimeUntilNextActivation()
         {
-            return NextActivationTime - new TimeSpan(DateTime.UtcNow.Ticks);
+            return NextActivationTime - new TimeSpan(Stopwatch.GetTimestamp());
         }
     }
 

@@ -46,7 +46,8 @@ namespace LogUtils.Threading
                 if (_submissionBuffer.Count > 0)
                 {
                     OnThreadUpdate += new SyncCallback(invokeBatch);
-                    void invokeBatch()
+
+                    static void invokeBatch()
                     {
                         SyncCallback self = invokeBatch;
                         var submissions = _submissionBuffer;
@@ -246,7 +247,7 @@ namespace LogUtils.Threading
 
             while (true)
             {
-                TimeSpan currentTime = TimeSpan.FromTicks(DateTime.UtcNow.Ticks);
+                TimeSpan currentTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp());
 
                 _timer.Restart();
                 _ticksWaitedThisFrame = 0;
