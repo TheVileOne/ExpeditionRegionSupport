@@ -12,7 +12,7 @@ namespace LogUtils
     /// This writer class imitates logging functionality exhibited by JollyCoop logger mainly in that all log messages are
     /// placed in a queue and logged at the end of a Rain World frame
     /// </summary>
-    public class QueueLogWriter : LogWriter
+    public class QueueLogWriter : LogWriter, IFlushable
     {
         internal Queue<LogMessageEventArgs> LogCache = new Queue<LogMessageEventArgs>();
 

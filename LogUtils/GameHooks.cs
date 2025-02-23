@@ -8,6 +8,7 @@ using MonoMod.RuntimeDetour;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using UnityEngine;
 
@@ -221,8 +222,6 @@ namespace LogUtils
             LogFilter.DeactivateKeyword(UtilityConsts.FilterKeywords.ACTIVATION_PERIOD_STARTUP);
         }
 
-        private static bool listenerCheckComplete;
-
         /// <summary>
         /// This is required for the signaling system. All remote loggers should use this hook to ensure that the logger is aware of the Logs directory being moved
         /// </summary>
@@ -230,14 +229,12 @@ namespace LogUtils
         {
             orig(self);
 
-            //Functionally similar to how JollyCoop handles its logging
-            foreach (Logger logger in UtilityCore.RequestHandler.AvailableLoggers)
-            {
-                //TODO: Maybe an interface is better here
-                QueueLogWriter queueWriter = logger.Writer as QueueLogWriter;
+            var loggers = UtilityCore.RequestHandler.AvailableLoggers;
 
-                if (queueWriter != null)
-                    queueWriter.Flush();
+            //Functionally similar to how JollyCoop handles its logging
+            foreach (IFlushable writeBuffer in loggers.Select(logger => logger.Writer).OfType<IFlushable>())
+            {
+                writeBuffer.Flush();
             }
         }
 
