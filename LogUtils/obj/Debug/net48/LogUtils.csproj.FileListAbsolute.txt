@@ -1,0 +1,10 @@
+C:\Users\Michael\source\repos\RandomStartsFix\LogUtils\bin\Debug\net48\LogUtils.dll
+C:\Users\Michael\source\repos\RandomStartsFix\LogUtils\bin\Debug\net48\LogUtils.pdb
+C:\Users\Michael\source\repos\RandomStartsFix\LogUtils\obj\Debug\net48\LogUtils.csproj.AssemblyReference.cache
+C:\Users\Michael\source\repos\RandomStartsFix\LogUtils\obj\Debug\net48\LogUtils.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Michael\source\repos\RandomStartsFix\LogUtils\obj\Debug\net48\LogUtils.AssemblyInfoInputs.cache
+C:\Users\Michael\source\repos\RandomStartsFix\LogUtils\obj\Debug\net48\LogUtils.AssemblyInfo.cs
+C:\Users\Michael\source\repos\RandomStartsFix\LogUtils\obj\Debug\net48\LogUtils.csproj.CoreCompileInputs.cache
+C:\Users\Michael\source\repos\RandomStartsFix\LogUtils\obj\Debug\net48\LogUtils.sourcelink.json
+C:\Users\Michael\source\repos\RandomStartsFix\LogUtils\obj\Debug\net48\LogUtils.dll
+C:\Users\Michael\source\repos\RandomStartsFix\LogUtils\obj\Debug\net48\LogUtils.pdb

@@ -7,6 +7,15 @@
     </PropertyGroup>
 
 	<ItemGroup>
+		<Reference Include="0Harmony">
+		  <HintPath>..\..\StarvationMod\StarvationMod\bin\Debug\net48\0Harmony.dll</HintPath>
+		</Reference>
+		<Reference Include="BepInEx">
+		  <HintPath>..\..\StarvationMod\StarvationMod\bin\Debug\net48\BepInEx.dll</HintPath>
+		</Reference>
+		<Reference Include="BepInEx.Harmony">
+		  <HintPath>..\..\StarvationMod\StarvationMod\bin\Debug\net48\BepInEx.Harmony.dll</HintPath>
+		</Reference>
 		<Reference Include="LogUtils">
 		  <HintPath>..\mod\plugins\LogUtils.dll</HintPath>
 			<Private>false</Private>
@@ -24,6 +33,9 @@
 		</Reference>
 		<Reference Include="Assembly-CSharp">
 		  <HintPath>..\lib\PUBLIC-Assembly-CSharp.dll</HintPath>
+		</Reference>
+		<Reference Include="MonoMod.Utils">
+		  <HintPath>..\..\StarvationMod\StarvationMod\bin\Debug\net48\MonoMod.Utils.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine">
 		  <HintPath>..\lib\UnityEngine.dll</HintPath>

@@ -252,6 +252,7 @@ namespace ExpeditionRegionSupport
 
             ChallengeFilterHooks.ApplyHooks(); //This needs to be handled in PostModsInIt or Expedition.ChallengeTools breaks
             SlugBaseEnabled = ModManager.ActiveMods.Exists(m => m.id == "slime-cubed.slugbase");
+        }
 
         private void RainWorld_OnDestroy(On.RainWorld.orig_OnDestroy orig, RainWorld self)
         {
