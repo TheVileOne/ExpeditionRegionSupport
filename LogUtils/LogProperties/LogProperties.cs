@@ -26,6 +26,20 @@ namespace LogUtils.Properties
         /// </summary>
         public event LogStreamEventHandler OnLogSessionStart, OnLogSessionFinish;
 
+        //TODO: This still might not be necessary
+        protected event LogMessageEventHandler OnLogReceived; //TODO: Implement
+
+        public void Subscribe(string filename, LogMessageEventHandler logCallback)
+        {
+            //TODO: Convert filename to either non-temp LogID if it exists, or temp LogID if it doesn't exist
+        }
+
+        public void Subscribe(LogID logFile, LogMessageEventHandler logCallback)
+        {
+        }
+
+        Dictionary<LogID, LogMessageEventHandler> Subscribers;
+
         public bool FileExists
         {
             get => _fileExists;
