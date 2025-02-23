@@ -269,7 +269,7 @@ namespace LogUtils.Enums
             //Fallback LogID
             Unknown = new ComparisonLogID(UtilityConsts.LogNames.Unknown);
 
-            BepInEx.Properties.AccessPeriod = SetupPeriod.Pregame;
+            BepInEx.Properties.AccessPeriod = UtilityConsts.DefaultAccessPeriod.BepInEx;
             BepInEx.Properties.AddTag(nameof(BepInEx));
             BepInEx.Properties.LogSourceName = nameof(BepInEx);
             BepInEx.Properties.AltFilename = UtilityConsts.LogNames.BepInExAlt;
@@ -279,27 +279,27 @@ namespace LogUtils.Enums
 
             BepInEx.Properties.Rules.Replace(new BepInExHeaderRule(BepInEx.Properties.ShowCategories.IsEnabled));
 
-            Exception.Properties.AccessPeriod = SetupPeriod.RWAwake;
+            Exception.Properties.AccessPeriod = UtilityConsts.DefaultAccessPeriod.Exception;
             Exception.Properties.AddTag(nameof(Exception));
             Exception.Properties.LogSourceName = nameof(Exception);
             Exception.Properties.AltFilename = UtilityConsts.LogNames.ExceptionAlt;
             Exception.Properties.PreferredFileExt = FileExt.TEXT;
 
-            Expedition.Properties.AccessPeriod = SetupPeriod.ModsInit;
+            Expedition.Properties.AccessPeriod = UtilityConsts.DefaultAccessPeriod.Expedition;
             Expedition.Properties.AddTag(nameof(Expedition));
             Expedition.Properties.LogSourceName = nameof(Expedition);
             Expedition.Properties.AltFilename = UtilityConsts.LogNames.ExpeditionAlt;
             Expedition.Properties.PreferredFileExt = FileExt.TEXT;
             Expedition.Properties.ShowLogsAware = true;
 
-            JollyCoop.Properties.AccessPeriod = SetupPeriod.ModsInit;
+            JollyCoop.Properties.AccessPeriod = UtilityConsts.DefaultAccessPeriod.JollyCoop;
             JollyCoop.Properties.AddTag(nameof(JollyCoop));
             JollyCoop.Properties.LogSourceName = nameof(JollyCoop);
             JollyCoop.Properties.AltFilename = UtilityConsts.LogNames.JollyCoopAlt;
             JollyCoop.Properties.PreferredFileExt = FileExt.TEXT;
             JollyCoop.Properties.ShowLogsAware = true;
 
-            Unity.Properties.AccessPeriod = SetupPeriod.RWAwake;
+            Unity.Properties.AccessPeriod = UtilityConsts.DefaultAccessPeriod.Unity;
             Unity.Properties.AddTag(nameof(Unity));
             Unity.Properties.LogSourceName = nameof(Unity);
             Unity.Properties.AltFilename = UtilityConsts.LogNames.UnityAlt;

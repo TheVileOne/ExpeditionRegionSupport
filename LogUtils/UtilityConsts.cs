@@ -152,6 +152,18 @@ namespace LogUtils
             public const string STREAMING_ASSETS = "customroot";
         }
 
+        /// <summary>
+        /// Initialization periods that roughly represent when vanilla loggers begin the logging process 
+        /// </summary>
+        public static class DefaultAccessPeriod
+        {
+            public const SetupPeriod BepInEx = SetupPeriod.Pregame;
+            public const SetupPeriod Exception = SetupPeriod.RWAwake;
+            public const SetupPeriod Unity = SetupPeriod.RWAwake;
+            public const SetupPeriod Expedition = SetupPeriod.ModsInit;
+            public const SetupPeriod JollyCoop = SetupPeriod.ModsInit;
+        }
+
         public static class AssertResponse
         {
             public const string FAIL = "Assertion failed";
