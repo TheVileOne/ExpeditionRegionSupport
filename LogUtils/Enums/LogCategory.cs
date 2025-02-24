@@ -58,6 +58,8 @@ namespace LogUtils.Enums
         /// </summary>
         public virtual int FlagValue => indexToConversionValue();
 
+        public LogGroup Group = LogGroupMap.DefaultGroup;
+
         private Color? _consoleColorDefault, _consoleColorCustom;
 
         /// <summary>
@@ -92,6 +94,8 @@ namespace LogUtils.Enums
         public static LogCategory[] RegisteredEntries => values.entries.Select(entry => new LogCategory(entry)).ToArray();
 
         public static LogCategoryCombiner Combiner = new LogCategoryCombiner();
+
+        public static IFilter<LogCategory> GlobalFilter;
 
         /// <summary>
         /// Constructs a registered LogCategory instance

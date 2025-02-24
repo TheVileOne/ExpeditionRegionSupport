@@ -29,49 +29,49 @@ namespace LogUtils.Enums
 
         public static LogCategory ToCategory(LogLevel logLevel)
         {
-            var composition = logLevel.Deconstruct();
-            int flagCount = composition.Length;
+            var flags = logLevel.Deconstruct();
+            int flagCount = flags.Length;
 
             if (flagCount == 0)
                 return None;
 
             if (flagCount == 1)
             {
-                LogLevel flag = composition[0];
+                LogLevel flag = flags[0];
 
                 if (flag == All.BepInExCategory)
                     return All;
 
-                return Convert(logLevel);
+                return GetEquivalent(logLevel);
             }
 
             //Create a composite LogCategory from the available enum flags
             CompositeLogCategory composite = null;
-            for (int i = 1; i < composition.Length; i++)
+            for (int i = 1; i < flags.Length; i++)
             {
                 if (composite == null)
                 {
-                    composite = Convert(composition[i - 1]) | Convert(composition[i]);
+                    composite = GetEquivalent(flags[i - 1]) | GetEquivalent(flags[i]);
                     continue;
                 }
 
                 //Value at i - 1 will already be part of the composition
-                composite |= Convert(composition[i]);
+                composite |= GetEquivalent(flags[i]);
             }
             return composite;
         }
 
         public static LogCategory ToCategory(LogType logType)
         {
-            var composition = logType.Deconstruct();
-            int flagCount = composition.Length;
+            var flags = logType.Deconstruct();
+            int flagCount = flags.Length;
 
             if (flagCount == 0)
                 return None;
 
             if (flagCount == 1)
             {
-                LogType flag = composition[0];
+                LogType flag = flags[0];
 
                 if (flag == LogType.Log)
                     return Default;
@@ -79,29 +79,34 @@ namespace LogUtils.Enums
                 if (flag == All.UnityCategory)
                     return All;
 
-                return Convert(logType);
+                return GetEquivalent(logType);
             }
 
             //Create a composite LogCategory from the available enum flags
             CompositeLogCategory composite = null;
-            for (int i = 1; i < composition.Length; i++)
+            for (int i = 1; i < flags.Length; i++)
             {
                 if (composite == null)
                 {
-                    composite = Convert(composition[i - 1]) | Convert(composition[i]);
+                    composite = GetEquivalent(flags[i - 1]) | GetEquivalent(flags[i]);
                     continue;
                 }
 
                 //Value at i - 1 will already be part of the composition
-                composite |= Convert(composition[i]);
+                composite |= GetEquivalent(flags[i]);
             }
             return composite;
+        }
+
+        public static LogGroup ToLogGroup(LogLevel logLevel)
+        {
+            return LogGroupMap.GetEquivalentSlow(logLevel);
         }
 
         /// <summary>
         /// An internal helper that assumes that composite checks have already been handled, and input is not a composite
         /// </summary>
-        internal static LogCategory Convert(LogLevel logLevel)
+        internal static LogCategory GetEquivalent(LogLevel logLevel)
         {
             int enumValue = (int)logLevel;
 
@@ -115,7 +120,7 @@ namespace LogUtils.Enums
         /// <summary>
         /// An internal helper that assumes that composite checks have already been handled, and input is not a composite
         /// </summary>
-        internal static LogCategory Convert(LogType logType)
+        internal static LogCategory GetEquivalent(LogType logType)
         {
             int enumValue = (int)logType;
 
