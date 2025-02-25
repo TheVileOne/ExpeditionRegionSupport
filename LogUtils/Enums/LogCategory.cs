@@ -19,13 +19,16 @@ namespace LogUtils.Enums
         /// </summary>
         public const LogType LOG_TYPE_DEFAULT = LogType.Log;
 
-        private LogLevel _bepInExConversion = LOG_LEVEL_DEFAULT;
-        private LogType _unityConversion = LOG_TYPE_DEFAULT;
+        private LogLevel  _bepInExConversion = LOG_LEVEL_DEFAULT;
+        private LogType   _unityConversion = LOG_TYPE_DEFAULT;
+        private LogGroup  _defaultGroup = LogGroupMap.DefaultGroup;
+        private Color     _defaultConsoleColor = ConsoleColorUnity.DefaultColor;
+        private LogGroup? _userDefinedGroup;
+        private Color?    _userDefinedConsoleColor;
 
-        /// <summary>
-        /// A flag that indicates that conversion fields need to be updated
-        /// </summary>
         private bool conversionFieldsNeedUpdating;
+        private bool defaultsNeedUpdating;
+
 
         /// <summary>
         /// The category value translated to the category enum used for BepInEx logging
@@ -58,9 +61,25 @@ namespace LogUtils.Enums
         /// </summary>
         public virtual int FlagValue => indexToConversionValue();
 
-        public LogGroup Group = LogGroupMap.DefaultGroup;
+        /// <summary>
+        /// The overall logging group defined for this category - used for tasks such as filtering by one or more categories
+        /// </summary>
+        public virtual LogGroup Group
+        {
+            get
+            {
+                if (!ReferenceEquals(ManagedReference, this))
+                    return ManagedReference.Group;
 
-        private Color? _consoleColorDefault, _consoleColorCustom;
+                return _userDefinedGroup.HasValue ? _userDefinedGroup.Value : _defaultGroup;
+            }
+            set
+            {
+                if (!ReferenceEquals(ManagedReference, this))
+                    ManagedReference.Group = value;
+                _userDefinedGroup = value;
+            }
+        }
 
         /// <summary>
         /// The color that will be used in the console, or other write implementation that supports text coloration  
@@ -73,21 +92,13 @@ namespace LogUtils.Enums
                 if (!ReferenceEquals(ManagedReference, this))
                     return ManagedReference.ConsoleColor;
 
-                //Give custom color override priority
-                if (_consoleColorCustom.HasValue)
-                    return _consoleColorCustom.Value;
-
-                if (_consoleColorDefault.HasValue)
-                    return _consoleColorDefault.Value;
-
-                _consoleColorDefault = ConsoleColorUnity.GetColor(BepInExCategory.GetConsoleColor());
-                return _consoleColorDefault.Value;
+                return _userDefinedConsoleColor.HasValue ? _userDefinedConsoleColor.Value : _defaultConsoleColor;
             }
             set
             {
                 if (!ReferenceEquals(ManagedReference, this))
                     ManagedReference.ConsoleColor = value;
-                _consoleColorCustom = value;
+                _userDefinedConsoleColor = value;
             }
         }
 
@@ -118,6 +129,7 @@ namespace LogUtils.Enums
                 {
                     int customValue = indexToConversionValue();
                     ManagedReference.updateConversionFields(bepInExEquivalent ?? (LogLevel)customValue, unityEquivalent ?? (LogType)customValue);
+                    ManagedReference.updateDefaults();
                 }
 
                 //Make sure that backing fields always have the same values as the managed reference
@@ -128,6 +140,7 @@ namespace LogUtils.Enums
                 int customValue = indexToConversionValue();
                 updateConversionFields(bepInExEquivalent ?? (LogLevel)customValue, unityEquivalent ?? (LogType)customValue);
             }
+            updateDefaults();
         }
 
         /// <summary>
@@ -146,6 +159,7 @@ namespace LogUtils.Enums
                     {
                         int customValue = indexToConversionValue();
                         ManagedReference.updateConversionFields((LogLevel)customValue, (LogType)customValue);
+                        ManagedReference.updateDefaults();
                     }
 
                     //Make sure that backing fields always have the same values as the managed reference
@@ -156,6 +170,7 @@ namespace LogUtils.Enums
                     int customValue = indexToConversionValue();
                     updateConversionFields((LogLevel)customValue, (LogType)customValue);
                 }
+                updateDefaults();
             }
         }
 
@@ -179,10 +194,23 @@ namespace LogUtils.Enums
 
         private void updateConversionFields(LogLevel logLevel, LogType logType)
         {
+            defaultsNeedUpdating = _bepInExConversion != logLevel;
+
             _bepInExConversion = logLevel;
             _unityConversion = logType;
 
             conversionFieldsNeedUpdating = false;
+        }
+
+        private void updateDefaults()
+        {
+            if (defaultsNeedUpdating)
+            {
+                LogLevel category = BepInExCategory;
+                _defaultGroup = LogGroupMap.GetEquivalent(category, true);
+                _defaultConsoleColor = ConsoleColorUnity.GetColor(category.GetConsoleColor());
+            }
+            defaultsNeedUpdating = false;
         }
 
         public static LogID GetUnityLogID(LogType logType)

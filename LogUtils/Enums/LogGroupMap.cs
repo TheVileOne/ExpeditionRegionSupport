@@ -11,7 +11,7 @@ namespace LogUtils.Enums
         /// <summary>
         /// Implementation doesn't account for composites
         /// </summary>
-        internal static LogGroup GetEquivalent(in LogLevel logLevel)
+        internal static LogGroup GetEquivalent(in LogLevel logLevel, bool callingFromConstructor)
         {
             return logLevel switch
             {
@@ -23,7 +23,7 @@ namespace LogUtils.Enums
                 LogLevel.Info => LogGroup.Info,
                 LogLevel.Debug => LogGroup.Debug,
                 LogLevel.All => LogGroup.All,
-                _ => LogCategory.ToCategory(logLevel).Group
+                _ => callingFromConstructor ? DefaultGroup : LogCategory.ToCategory(logLevel).Group
             };
         }
 
@@ -39,10 +39,10 @@ namespace LogUtils.Enums
                 //Take all of the flags from the first enum and stitch them back together into the enum we need
                 LogGroup composite = LogGroup.None;
                 for (int i = 0; i < flags.Length; i++)
-                    composite |= GetEquivalent(flags[i]);
+                    composite |= GetEquivalent(flags[i], false);
                 return composite;
             }
-            return GetEquivalent(logLevel);
+            return GetEquivalent(logLevel, false);
         }
     }
 

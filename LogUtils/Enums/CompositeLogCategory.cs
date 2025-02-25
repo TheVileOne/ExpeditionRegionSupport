@@ -115,6 +115,20 @@ namespace LogUtils.Enums
             }
         }
 
+        public override LogGroup Group
+        {
+            get
+            {
+                //TODO: Make sure that it isn't possible to desync this output since this code doesn't reference ManagedReference
+                LogGroup flags = LogGroup.None;
+                foreach (LogCategory category in Set)
+                {
+                    flags |= category.Group;
+                }
+                return flags;
+            }
+        }
+
         internal CompositeLogCategory(HashSet<LogCategory> elements) : base(ToStringInternal(elements), false)
         {
             Set = elements;
