@@ -149,6 +149,16 @@ namespace LogUtils.Enums
             isInitialized = true;
         }
 
+        public override void Register()
+        {
+            if (isInitialized)
+            {
+                UtilityLogger.LogWarning("Registration of composite ExtEnum entries is not supported");
+                return;
+            }
+            base.Register(); //This is a special case - the composite represents a single value entry
+        }
+
         /// <summary>
         /// Breaks the composite ExtEnum back into its component elements
         /// </summary>
