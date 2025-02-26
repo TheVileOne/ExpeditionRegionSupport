@@ -11,10 +11,15 @@ namespace LogUtils.Enums
 
         public bool IsEmpty => Set.Count == 0;
 
+        private readonly bool isInitialized;
+
         public override LogLevel BepInExCategory
         {
             get
             {
+                if (!isInitialized)
+                    return base.BepInExCategory;
+
                 if (IsEmpty)
                     return LogLevel.None;
 
@@ -53,6 +58,9 @@ namespace LogUtils.Enums
         {
             get
             {
+                if (!isInitialized)
+                    return base.UnityCategory;
+
                 if (IsEmpty)
                     return None.UnityCategory;
 
@@ -91,6 +99,9 @@ namespace LogUtils.Enums
         {
             get
             {
+                if (!isInitialized)
+                    return base.FlagValue;
+
                 if (IsEmpty)
                     return None.FlagValue;
 
@@ -119,6 +130,9 @@ namespace LogUtils.Enums
         {
             get
             {
+                if (!isInitialized)
+                    return base.Group;
+
                 //TODO: Make sure that it isn't possible to desync this output since this code doesn't reference ManagedReference
                 LogGroup flags = LogGroup.None;
                 foreach (LogCategory category in Set)
@@ -131,7 +145,8 @@ namespace LogUtils.Enums
 
         internal CompositeLogCategory(HashSet<LogCategory> elements) : base(ToStringInternal(elements), false)
         {
-            Set = elements;
+            Set = elements ?? new HashSet<LogCategory>();
+            isInitialized = true;
         }
 
         /// <summary>
@@ -193,14 +208,14 @@ namespace LogUtils.Enums
         {
             //ExtEnum value field for composites is the same as the joined string of its elements, but without any elements for LogCategory.None,
             //this override is necessary to ensure equality checks are consistent
-            if (IsEmpty)
+            if (isInitialized && IsEmpty)
                 return None.GetHashCode();
             return base.GetHashCode();
         }
 
         public override string ToString()
         {
-            return ToStringInternal(Set);
+            return isInitialized ? ToStringInternal(Set) : base.ToString();
         }
 
         internal static string ToStringInternal(HashSet<LogCategory> set)
