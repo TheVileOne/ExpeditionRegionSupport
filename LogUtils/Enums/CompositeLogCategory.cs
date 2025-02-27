@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Helpers.Extensions;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -9,12 +10,12 @@ namespace LogUtils.Enums
     {
         public static CompositeLogCategory Empty => new CompositeLogCategory();
 
-        private static readonly HashSet<LogCategory> emptySet  = new HashSet<LogCategory>();
+        internal static readonly HashSet<LogCategory> EmptySet  = new HashSet<LogCategory>();
 
         /// <summary>
         /// Contains the flags that represent the composite instance
         /// </summary>
-        internal readonly HashSet<LogCategory> Set = emptySet;
+        internal readonly HashSet<LogCategory> Set = EmptySet;
 
         public int FlagCount => Set.Count;
 
@@ -157,9 +158,12 @@ namespace LogUtils.Enums
             isInitialized = true;
         }
 
-        internal CompositeLogCategory(HashSet<LogCategory> elements) : base(ToStringInternal(elements), false)
+        internal CompositeLogCategory(HashSet<LogCategory> elements) : base(ToStringInternal(elements.Normalize()), false)
         {
-            Set = elements ?? emptySet;
+            //"All", and "None" are special flags. These flags may not be grouped with other flags. LogUtils enforces this by restricting constructor access
+            //"None" flag is removed when elements are normalized. For all intents and purposes, the "None" flag is treated as equivalent to a composite
+            //with no flags.
+            Set = elements ?? EmptySet;
             isInitialized = true;
         }
 
@@ -213,10 +217,9 @@ namespace LogUtils.Enums
         {
             if (flags == null || flags.IsEmpty) return false;
 
-            //TODO: The code should be hardcoded to not allow the None flag to be stored inside a composite - verify that this is true
-            //"All" flag represents all flags except "None", but cannot be compared like other flags
+            //It shouldn't matter which flag is present - "All" represents every flag, except "None", which cannot exist in this set
             if (Set.Contains(All))
-                return !flags.HasFlag(None);
+                return true;
 
             return Set.IsSupersetOf(flags.Set);
         }
@@ -230,13 +233,12 @@ namespace LogUtils.Enums
         {
             if (flags == null || flags.IsEmpty) return false;
 
-            //TODO: The code should be hardcoded to not allow the None flag to be stored inside a composite - verify that this is true
-            //"All" flag represents all flags except "None", but cannot be compared like other flags
+            //It shouldn't matter which flag is present - "All" represents every flag, except "None", which cannot exist in this set
             if (Set.Contains(All))
-                return !flags.HasFlag(None);
+                return true;
 
             if (flags.HasFlag(All))
-                return !IsEmpty && !Set.Contains(None);
+                return !IsEmpty;
 
             return Set.Overlaps(flags.Set);
         }
@@ -252,7 +254,7 @@ namespace LogUtils.Enums
             if (IsEmpty) return false;
 
             //It is highly unlikely we are comparing against another composite
-            if (Set.Contains(flag) || (searchOptions == FlagSearchOptions.MatchAny && flag == All && !Set.Contains(None)))
+            if (Set.Contains(flag) || (searchOptions == FlagSearchOptions.MatchAny && flag == All))
                 return true;
 
             CompositeLogCategory flags = flag as CompositeLogCategory;
