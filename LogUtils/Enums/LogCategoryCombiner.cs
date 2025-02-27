@@ -29,11 +29,11 @@ namespace LogUtils.Enums
 
         public CompositeLogCategory Intersect(LogCategory a, LogCategory b)
         {
-            set = new HashSet<LogCategory>();
-
             //There cannot be elements in common if one of the options is null
             if (a == null || b == null || a == LogCategory.None || b == LogCategory.None)
-                return new CompositeLogCategory(set);
+                return CompositeLogCategory.Empty;
+
+            set = new HashSet<LogCategory>();
 
             if (a == b)
             {
@@ -78,10 +78,10 @@ namespace LogUtils.Enums
 
         public CompositeLogCategory Distinct(LogCategory a, LogCategory b)
         {
-            set = new HashSet<LogCategory>();
-
             if (a == b)
-                return new CompositeLogCategory(set);
+                return CompositeLogCategory.Empty;
+
+            set = new HashSet<LogCategory>();
 
             //When one option contains no elements, the other option can be directly added to the set
             if (a == null || a == LogCategory.None)

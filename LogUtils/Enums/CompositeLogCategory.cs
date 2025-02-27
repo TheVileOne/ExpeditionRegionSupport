@@ -1,5 +1,4 @@
 ﻿using BepInEx.Logging;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -8,7 +7,14 @@ namespace LogUtils.Enums
 {
     public sealed class CompositeLogCategory : LogCategory
     {
-        internal readonly HashSet<LogCategory> Set;
+        public static CompositeLogCategory Empty => new CompositeLogCategory();
+
+        private static readonly HashSet<LogCategory> emptySet  = new HashSet<LogCategory>();
+
+        /// <summary>
+        /// Contains the flags that represent the composite instance
+        /// </summary>
+        internal readonly HashSet<LogCategory> Set = emptySet;
 
         public int FlagCount => Set.Count;
 
@@ -146,9 +152,14 @@ namespace LogUtils.Enums
             }
         }
 
+        internal CompositeLogCategory() : base(None.ToString(), false)
+        {
+            isInitialized = true;
+        }
+
         internal CompositeLogCategory(HashSet<LogCategory> elements) : base(ToStringInternal(elements), false)
         {
-            Set = elements ?? new HashSet<LogCategory>();
+            Set = elements ?? emptySet;
             isInitialized = true;
         }
 
