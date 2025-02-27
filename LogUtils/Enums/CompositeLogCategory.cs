@@ -187,6 +187,7 @@ namespace LogUtils.Enums
             return elements;
         }
 
+        #region Search methods
         /// <summary>
         /// Checks whether this instance contains the specified flag element
         /// </summary>
@@ -276,7 +277,7 @@ namespace LogUtils.Enums
             MatchAll,
             MatchAny
         }
-
+        #endregion
         #region Object inherited methods
         public override int GetHashCode()
         {
