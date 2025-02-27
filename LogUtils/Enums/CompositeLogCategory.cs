@@ -177,6 +177,7 @@ namespace LogUtils.Enums
         /// <returns>true, if the flag element is contained by this instance; otherwise, false</returns>
         public bool Contains(LogCategory flag)
         {
+            //This is intentionally not using HasFlag implementation - does not involve any edge checks
             return Set.Contains(flag);
         }
 
