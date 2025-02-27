@@ -297,7 +297,7 @@ namespace LogUtils.Enums
             if (set.Count == 0)
                 return None.ToString();
 
-            return string.Join(" | ", set);
+            return string.Join(", ", set);
         }
         #endregion
     }
