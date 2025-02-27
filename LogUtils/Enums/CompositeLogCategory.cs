@@ -187,6 +187,70 @@ namespace LogUtils.Enums
             return elements;
         }
 
+        /// <summary>
+        /// Combines any number of enum values into a composite LogCategory
+        /// </summary>
+        internal static CompositeLogCategory FromFlags(params LogLevel[] flags)
+        {
+            if (flags.Length == 0)
+                return Empty;
+
+            if (flags.Length == 1)
+            {
+                return new CompositeLogCategory(new HashSet<LogCategory>()
+                {
+                    GetEquivalent(flags[0])
+                });
+            }
+
+            //Create a composite LogCategory from the available enum flags
+            CompositeLogCategory composite = null;
+            for (int i = 1; i < flags.Length; i++)
+            {
+                if (composite == null)
+                {
+                    composite = GetEquivalent(flags[i - 1]) | GetEquivalent(flags[i]);
+                    continue;
+                }
+
+                //Value at i - 1 will already be part of the composition
+                composite |= GetEquivalent(flags[i]);
+            }
+            return composite;
+        }
+
+        /// <summary>
+        /// Combines any number of enum values into a composite LogCategory
+        /// </summary>
+        internal static CompositeLogCategory FromFlags(params LogType[] flags)
+        {
+            if (flags.Length == 0)
+                return Empty;
+
+            if (flags.Length == 1)
+            {
+                return new CompositeLogCategory(new HashSet<LogCategory>()
+                {
+                    GetEquivalent(flags[0])
+                });
+            }
+
+            //Create a composite LogCategory from the available enum flags
+            CompositeLogCategory composite = null;
+            for (int i = 1; i < flags.Length; i++)
+            {
+                if (composite == null)
+                {
+                    composite = GetEquivalent(flags[i - 1]) | GetEquivalent(flags[i]);
+                    continue;
+                }
+
+                //Value at i - 1 will already be part of the composition
+                composite |= GetEquivalent(flags[i]);
+            }
+            return composite;
+        }
+
         #region Search methods
         /// <summary>
         /// Checks whether this instance contains the specified flag element
