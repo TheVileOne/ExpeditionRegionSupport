@@ -5,43 +5,36 @@ namespace LogUtils.Enums
 {
     public static class LogCategoryFilter
     {
-        public class ByCategoryAllowed : IFilter<LogCategory>
+        /*
+         * ByCategory
+         * Supports matching against specific LogCategory entries, and can function as a whitelist, or blacklist
+         * This is the best option when you want to limit to a single LogCategory entry
+         * ByGroup
+         * Supports matching against, and up to a specific LogGroup value, the means to which logging categories are organized based on their importance
+         * or "severity" of the message. For instance, setting the filter to LogGroup.Warning will filter LogGroup.Info messages. but not LogGroup.Error
+         * messages. 
+         * Supports matching against a specific LogGroup which contains all LogCategory instances belonging to that group.
+         */
+        public class ByCategory : IFilter<LogCategory>
         {
-            public CompositeLogCategory CategoryFlags;
+            public CompositeLogCategory Flags;
 
-            public ByCategoryAllowed(LogCategory category)
+            private readonly bool allowEntryOnMatch;
+
+            public ByCategory(LogCategory category, bool useAsWhitelist)
             {
-                CategoryFlags |= category;
+                Flags |= category;
+                allowEntryOnMatch = useAsWhitelist;
             }
 
             public bool IsAllowed(LogCategory entry)
             {
-                return CategoryFlags.Contains(entry);
+                return allowEntryOnMatch == Flags.HasFlag(entry, CompositeLogCategory.FlagSearchOptions.MatchAny);
             }
 
             public int CompareTo(LogCategory entry)
             {
-                return CategoryFlags.Contains(entry) ? 1 : 0;
-            }
-        }
-
-        public class ByCategoryUnallowed : IFilter<LogCategory>
-        {
-            public CompositeLogCategory CategoryFlags;
-
-            public ByCategoryUnallowed(LogCategory category)
-            {
-                CategoryFlags |= category;
-            }
-
-            public bool IsAllowed(LogCategory entry)
-            {
-                return !CategoryFlags.Contains(entry);
-            }
-
-            public int CompareTo(LogCategory entry)
-            {
-                return CategoryFlags.Contains(entry) ? 0 : 1;
+                return IsAllowed(entry) ? 1 : 0;
             }
         }
 
@@ -61,7 +54,7 @@ namespace LogUtils.Enums
 
             public bool IsAllowed(LogCategory entry)
             {
-                //Check that AllowedGroups contains a flag also container in the entry group
+                //Check that AllowedGroups contains a flag also contained in the entry group
                 return (AllowedGroups & entry.Group) != 0;
             }
 
@@ -82,7 +75,7 @@ namespace LogUtils.Enums
 
             public bool IsAllowed(LogCategory entry)
             {
-                //Check that AllowedGroups contains a flag also container in the entry group
+                //Check that AllowedGroups contains a flag also contained in the entry group
                 return (AllowedGroups & entry.Group) != 0;
             }
 
