@@ -234,7 +234,6 @@ namespace LogUtils.Enums
         /// <param name="flag">Contains a flag, or set of flags to look for</param>
         /// <param name="searchOptions">Specifies the search behavior when the flag represents multiple elements, has no effect when there is only one element</param>
         /// <returns>true, when an element has been matched based on the provided search criteria</returns>
-        /// <exception cref="NotImplementedException">Search options is set to a value outside of the expected range of supported values</exception>
         public bool HasFlag(LogCategory flag, FlagSearchOptions searchOptions = FlagSearchOptions.MatchAll)
         {
             if (IsEmpty) return false;
@@ -253,7 +252,7 @@ namespace LogUtils.Enums
             {
                 FlagSearchOptions.MatchAll => HasAll(flags),
                 FlagSearchOptions.MatchAny => HasAny(flags),
-                _ => throw new NotImplementedException(),
+                _ => false
             };
         }
 
