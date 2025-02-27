@@ -325,7 +325,7 @@ namespace LogUtils
         /// <summary>
         /// A simple wrapper for handling an IEnumerable similarly to an ILinkedListEnumerable despite not having the same functionality as one
         /// </summary>
-        public struct EnumeratorWrapper : ILinkedListEnumerator<T>
+        public readonly struct EnumeratorWrapper : ILinkedListEnumerator<T>
         {
             private readonly IEnumerator<T> innerEnumerator;
 
@@ -413,7 +413,7 @@ namespace LogUtils
             }
         }
 
-        public struct WhereEnumerator : ILinkedListEnumerator<T>
+        public readonly struct WhereEnumerator : ILinkedListEnumerator<T>
         {
             private readonly ILinkedListEnumerator<T> innerEnumerator;
             private readonly Func<T, bool> predicate;

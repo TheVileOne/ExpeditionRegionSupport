@@ -1,5 +1,6 @@
 ﻿using Expedition;
 using ExpeditionRegionSupport.Diagnostics;
+using ExpeditionRegionSupport.Filters.Settings;
 using ExpeditionRegionSupport.Filters.Utils;
 using ExpeditionRegionSupport.Regions;
 using LogUtils.Enums;

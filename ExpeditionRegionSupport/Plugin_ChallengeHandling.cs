@@ -32,8 +32,7 @@ namespace ExpeditionRegionSupport
                         return;
                     }
 
-                    int slotIndex; //Not zero-based
-                    int.TryParse(signalText.Remove(0, 3), NumberStyles.Any, CultureInfo.InvariantCulture, out slotIndex);
+                    int.TryParse(signalText.Remove(0, 3), NumberStyles.Any, CultureInfo.InvariantCulture, out int slotIndex); //Not zero-based
 
                     Logger.LogInfo($"Slot {slotIndex} targeted");
 

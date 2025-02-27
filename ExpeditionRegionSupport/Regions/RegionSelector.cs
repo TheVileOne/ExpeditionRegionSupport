@@ -501,8 +501,7 @@ namespace ExpeditionRegionSupport.Regions
                 return;
             }
 
-            RegionKey regionKey;
-            if (RegionsAvailable.TryFind(regionCode, out regionKey)) //Retrieve region associated with room
+            if (RegionsAvailable.TryFind(regionCode, out RegionKey regionKey)) //Retrieve region associated with room
             {
                 regionKey.AvailableRooms.Add(roomCode);
             }

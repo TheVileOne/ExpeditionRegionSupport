@@ -38,7 +38,7 @@ namespace LogUtils.Diagnostics
             if (requests.Any())
             {
                 foreach (LogRequest request in requests)
-                    report.AppendLine(request.ToString(FormatEnums.FormatVerbosity.Verbose));
+                    report.AppendLine(request.ToString(ReportVerbosity.Verbose));
             }
             else
             {

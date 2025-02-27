@@ -703,8 +703,7 @@ namespace LogUtils.Properties
         /// <param name="movePath">The pending log path for this instance (include filename with extension if filename has changed)</param>
         public void NotifyPendingMove(string movePath)
         {
-            string filename;
-            movePath = PathUtils.PathWithoutFilename(movePath, out filename);
+            movePath = PathUtils.PathWithoutFilename(movePath, out string filename);
             UtilityEvents.OnMovePending?.Invoke(new LogMovePendingEventArgs(this, movePath, filename));
         }
 
@@ -774,8 +773,7 @@ namespace LogUtils.Properties
             fields.Add(ShowLineCount.PropertyString);
             fields.Add(ShowCategories.PropertyString);
 
-            LogPropertyStringDictionary unrecognizedFields;
-            PropertyManager.UnrecognizedFields.TryGetValue(this, out unrecognizedFields);
+            PropertyManager.UnrecognizedFields.TryGetValue(this, out LogPropertyStringDictionary unrecognizedFields);
 
             bool hasCustomFields = CustomProperties.Any() || unrecognizedFields != null;
 

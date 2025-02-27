@@ -9,12 +9,12 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
 {
     public static class RestrictionProcessor
     {
-        public const string HEADER_WORLDSTATE = @"WORLDSTATE";
-        public const string HEADER_SLUGCATS = @"SLUGCATS";
-        public const string HEADER_ALLOW = @"ALLOW";
-        public const string HEADER_NOTALLOW = @"NOTALLOW";
-        public const string HEADER_ROOMS = @"ROOMS";
-        public const string HEADER_PROGRESSION = @"ProgressionRestriction";
+        public const string HEADER_WORLDSTATE = "WORLDSTATE";
+        public const string HEADER_SLUGCATS = "SLUGCATS";
+        public const string HEADER_ALLOW = "ALLOW";
+        public const string HEADER_NOTALLOW = "NOTALLOW";
+        public const string HEADER_ROOMS = "ROOMS";
+        public const string HEADER_PROGRESSION = "ProgressionRestriction";
 
         private static RegionList regionsRestricted;
 
@@ -145,7 +145,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                             Plugin.Logger.LogTargets.Add(testCaseID);
 
                             Plugin.Logger.LogInfo("Case Results: " + testCaseName);
-                            LogRestrictions();
+                            logRestrictions();
                             Plugin.Logger.LogInfo("Case Results: END");
                         }
                         catch (Exception ex)
@@ -796,7 +796,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                 slugcatHandler.Invoke(data);
         }
 
-        private static void LogRestrictions()
+        private static void logRestrictions()
         {
             foreach (RegionKey region in regionsRestricted)
             {

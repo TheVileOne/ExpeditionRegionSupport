@@ -442,7 +442,7 @@ namespace ExpeditionRegionSupport.Regions.Data
             if (nodeDepth == 0 || !nodesAtThisDepth.Any()) return; //At depth 0, EquivalentRegions will always be empty
 
             int nodeCount = nodesAtThisDepth.Count();
-            foreach (RegionProfile node in nodesAtThisDepth)
+            foreach (RegionProfile node in nodesAtThisDepth.OfType<RegionProfile>())
             {
                 string conditionsHeader = nodeCount == 1 ? "Slugcat Conditions" : $"Slugcat Conditions ({node.RegionCode})";
 

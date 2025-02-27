@@ -63,7 +63,8 @@ namespace LogUtils.Enums
         /// <summary>
         /// Creates a new LogID instance using a filename, and assuming a default/preexisting registered path
         /// </summary>
-        internal LogID(string filename, bool register) : this(filename, null, LogAccess.RemoteAccessOnly) //Exists to satisfy Activator parameters for SharedExtEnum
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Exists to satisfy Activator parameters for SharedExtEnum")]
+        internal LogID(string filename, bool register) : this(filename, null, LogAccess.RemoteAccessOnly)
         {
         }
 

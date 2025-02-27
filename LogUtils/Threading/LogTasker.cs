@@ -46,7 +46,7 @@ namespace LogUtils.Threading
                 if (_submissionBuffer.Count > 0)
                 {
                     OnThreadUpdate += new SyncCallback(invokeBatch);
-                    void invokeBatch()
+                    static void invokeBatch()
                     {
                         SyncCallback self = invokeBatch;
                         var submissions = _submissionBuffer;

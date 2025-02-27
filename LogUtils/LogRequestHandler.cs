@@ -17,7 +17,7 @@ namespace LogUtils
 
         public override string Tag => UtilityConsts.ComponentTags.REQUEST_DATA;
 
-        private WeakReferenceCollection<Logger> availableLoggers = new WeakReferenceCollection<Logger>();
+        private readonly WeakReferenceCollection<Logger> availableLoggers = new WeakReferenceCollection<Logger>();
 
         /// <summary>
         /// A list of loggers available to handle remote log requests

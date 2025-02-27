@@ -33,6 +33,7 @@ namespace LogUtils.Enums
         /// <summary>
         /// An identifying string assigned to each ExtEnum
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Naming convention of a dependency")]
         public new string value
         {
             get => base.value;

@@ -6,7 +6,7 @@ namespace LogUtils.Properties
 {
     internal class LogPropertyReader : IEnumerable<LogPropertyData>
     {
-        private LogPropertyFile propertyFile;
+        private readonly LogPropertyFile propertyFile;
 
         public LogPropertyReader(LogPropertyFile file)
         {

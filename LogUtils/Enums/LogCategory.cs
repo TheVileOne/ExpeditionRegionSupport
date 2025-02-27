@@ -29,7 +29,6 @@ namespace LogUtils.Enums
         private bool conversionFieldsNeedUpdating;
         private bool defaultsNeedUpdating;
 
-
         /// <summary>
         /// The category value translated to the category enum used for BepInEx logging
         /// </summary>

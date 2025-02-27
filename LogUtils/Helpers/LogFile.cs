@@ -232,10 +232,9 @@ namespace LogUtils.Helpers
         {
             var enumerator = UtilityCore.PersistenceManager.References.GetEnumerator();
 
-            PersistentFileHandle handle;
             while (enumerator.MoveNext())
             {
-                if (enumerator.Current.TryGetTarget(out handle))
+                if (enumerator.Current.TryGetTarget(out PersistentFileHandle handle))
                 {
                     var logFileHandle = handle as PersistentLogFileHandle;
                     if (logFileHandle != null)

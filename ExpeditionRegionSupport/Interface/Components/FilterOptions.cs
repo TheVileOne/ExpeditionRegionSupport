@@ -130,7 +130,7 @@ namespace ExpeditionRegionSupport.Interface.Components
         public void SetChecked(CheckBox box, bool checkState)
         {
             //Basic CheckBox validation is handled before this logic is run
-            if (!(box is FilterCheckBox))
+            if (box is not FilterCheckBox)
                 throw new ArgumentException("FilterOptions only uses FilterCheckBox");
 
             FilterCheckBox filterBox = (FilterCheckBox)box;
