@@ -10,7 +10,9 @@ namespace LogUtils.Enums
     {
         internal readonly HashSet<LogCategory> Set;
 
-        public bool IsEmpty => Set.Count == 0;
+        public int FlagCount => Set.Count;
+
+        public bool IsEmpty => FlagCount == 0;
 
         private readonly bool isInitialized;
 
@@ -25,7 +27,7 @@ namespace LogUtils.Enums
                     return LogLevel.None;
 
                 //When there is only one value, favor the unconverted value
-                if (Set.Count == 1)
+                if (FlagCount == 1)
                 {
                     LogCategory firstEntry = Set.First();
                     return firstEntry.BepInExCategory;
@@ -66,7 +68,7 @@ namespace LogUtils.Enums
                     return None.UnityCategory;
 
                 //When there is only one value, favor the unconverted value
-                if (Set.Count == 1)
+                if (FlagCount == 1)
                 {
                     LogCategory firstEntry = Set.First();
                     return firstEntry.UnityCategory;
@@ -106,7 +108,7 @@ namespace LogUtils.Enums
                 if (IsEmpty)
                     return None.FlagValue;
 
-                if (Set.Count == 1)
+                if (FlagCount == 1)
                 {
                     LogCategory firstEntry = Set.First();
                     return firstEntry.FlagValue;
