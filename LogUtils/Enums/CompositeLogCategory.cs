@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -198,6 +199,11 @@ namespace LogUtils.Enums
         {
             if (flags == null || flags.IsEmpty) return false;
 
+            //TODO: The code should be hardcoded to not allow the None flag to be stored inside a composite - verify that this is true
+            //"All" flag represents all flags except "None", but cannot be compared like other flags
+            if (Set.Contains(All))
+                return !flags.HasFlag(None);
+
             return Set.IsSupersetOf(flags.Set);
         }
 
@@ -210,7 +216,50 @@ namespace LogUtils.Enums
         {
             if (flags == null || flags.IsEmpty) return false;
 
+            //TODO: The code should be hardcoded to not allow the None flag to be stored inside a composite - verify that this is true
+            //"All" flag represents all flags except "None", but cannot be compared like other flags
+            if (Set.Contains(All))
+                return !flags.HasFlag(None);
+
+            if (flags.HasFlag(All))
+                return !IsEmpty && !Set.Contains(None);
+
             return Set.Overlaps(flags.Set);
+        }
+
+        /// <summary>
+        /// Checks whether this instance contains a flag as a whole value, or elements of the flag based on a specified search behavior 
+        /// </summary>
+        /// <param name="flag">Contains a flag, or set of flags to look for</param>
+        /// <param name="searchOptions">Specifies the search behavior when the flag represents multiple elements, has no effect when there is only one element</param>
+        /// <returns>true, when an element has been matched based on the provided search criteria</returns>
+        /// <exception cref="NotImplementedException">Search options is set to a value outside of the expected range of supported values</exception>
+        public bool HasFlag(LogCategory flag, FlagSearchOptions searchOptions = FlagSearchOptions.MatchAll)
+        {
+            if (IsEmpty) return false;
+
+            //It is highly unlikely we are comparing against another composite
+            if (Set.Contains(flag) || (searchOptions == FlagSearchOptions.MatchAny && flag == All && !Set.Contains(None)))
+                return true;
+
+            CompositeLogCategory flags = flag as CompositeLogCategory;
+
+            if (flags == null)
+                return false;
+
+            //Check whether we want to match a single flag, or every flag
+            return searchOptions switch
+            {
+                FlagSearchOptions.MatchAll => HasAll(flags),
+                FlagSearchOptions.MatchAny => HasAny(flags),
+                _ => throw new NotImplementedException(),
+            };
+        }
+
+        public enum FlagSearchOptions
+        {
+            MatchAll,
+            MatchAny
         }
 
         #region Object inherited methods
