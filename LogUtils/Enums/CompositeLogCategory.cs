@@ -8,7 +8,23 @@ namespace LogUtils.Enums
 {
     public sealed class CompositeLogCategory : LogCategory
     {
-        public static CompositeLogCategory Empty => new CompositeLogCategory();
+        private static CompositeLogCategory _empty;
+        public static CompositeLogCategory Empty
+        {
+            get
+            {
+                if (_empty == null)
+                {
+                    if (UtilitySetup.CurrentStep < UtilitySetup.InitializationStep.INITIALIZE_ENUMS)
+                    {
+                        UtilityLogger.Log("Too early to create a log category");
+                        return null;
+                    }
+                    _empty = new CompositeLogCategory();
+                }
+                return _empty;
+            }
+        }
 
         internal static readonly HashSet<LogCategory> EmptySet  = new HashSet<LogCategory>();
 
@@ -204,7 +220,7 @@ namespace LogUtils.Enums
             }
 
             //Create a composite LogCategory from the available enum flags
-            CompositeLogCategory composite = null;
+            CompositeLogCategory composite = Empty;
             for (int i = 1; i < flags.Length; i++)
             {
                 if (composite == null)
@@ -236,7 +252,7 @@ namespace LogUtils.Enums
             }
 
             //Create a composite LogCategory from the available enum flags
-            CompositeLogCategory composite = null;
+            CompositeLogCategory composite = Empty;
             for (int i = 1; i < flags.Length; i++)
             {
                 if (composite == null)
