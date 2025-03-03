@@ -30,6 +30,8 @@ namespace LogUtils
         /// </summary>
         public bool IsCompleteOrInvalid => Status == RequestStatus.Complete || !CanRetryRequest();
 
+        public bool IsCompleteOrRejected => Status == RequestStatus.Complete || Status == RequestStatus.Rejected; 
+
         public RequestStatus Status => _state.Status;
 
         /// <summary>

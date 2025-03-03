@@ -25,7 +25,7 @@ namespace LogUtils
             return request.Data.ID.IsGameControlled;
         }
 
-        public RejectionReason HandleRequest(LogRequest request, bool skipAccessValidation = false)
+        public void HandleRequest(LogRequest request, bool skipAccessValidation = false)
         {
             request.ResetStatus(); //Ensure that processing request is handled in a consistent way
 
@@ -36,7 +36,7 @@ namespace LogUtils
             if (!skipAccessValidation && !CanHandle(request))
             {
                 UtilityLogger.LogWarning("Request sent to a logger that cannot handle it");
-                return RejectionReason.NotAllowedToHandle;
+                request.Reject(RejectionReason.NotAllowedToHandle);
             }
 
             LogID logFile = request.Data.ID;
@@ -48,14 +48,14 @@ namespace LogUtils
                     request.Reject(RejectionReason.ShowLogsNotInitialized);
                 else
                     request.Reject(RejectionReason.LogDisabled);
-                return request.UnhandledReason;
+                return;
             }
 
             if (!logFile.Properties.CanBeAccessed)
                 request.Reject(RejectionReason.LogUnavailable);
 
             if (request.Status == RequestStatus.Rejected)
-                return request.UnhandledReason;
+                return;
 
             string message = request.Data.Message;
 
@@ -79,7 +79,6 @@ namespace LogUtils
             {
                 LogExp(request.Data.Category, message);
             }
-            return request.UnhandledReason;
         }
 
         public void LogBepEx(object data)

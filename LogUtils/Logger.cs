@@ -670,21 +670,21 @@ namespace LogUtils
             return LogTargets.Where(log => !log.IsGameControlled && log.Access != LogAccess.RemoteAccessOnly);
         }
 
-        public RejectionReason HandleRequest(LogRequest request, bool skipAccessValidation = false)
+        public void HandleRequest(LogRequest request, bool skipAccessValidation = false)
         {
             if (!skipAccessValidation && !CanHandle(request, doPathCheck: true))
             {
-                //TODO: CanHandle should be replaced with a function that returns an AccessViolation enum that tells us which specific reason
-                //to reject the request
+                //TODO: CanHandle should be replaced with a function that returns an AccessViolation enum that tells us which specific reason to reject the request
                 UtilityLogger.LogWarning("Request sent to a logger that cannot handle it");
-                return RejectionReason.NotAllowedToHandle;
+                request.Reject(RejectionReason.NotAllowedToHandle);
+                return;
             }
 
             LogID loggerID = null;
-            return HandleRequest(request, ref loggerID);
+            HandleRequest(request, ref loggerID);
         }
 
-        internal RejectionReason HandleRequest(LogRequest request, ref LogID loggerID)
+        internal void HandleRequest(LogRequest request, ref LogID loggerID)
         {
             if (request.Submitted)
                 UtilityCore.RequestHandler.CurrentRequest = request;
@@ -700,10 +700,8 @@ namespace LogUtils
             if (loggerID.Properties.CurrentFolderPath != requestID.Properties.CurrentFolderPath) //Same LogID, different log paths - do not handle
             {
                 UtilityLogger.Log("Request not handled, log paths do not match");
-
-                //This particular rejection reason has problematic support, and is not guaranteed to be recorded by the request
                 request.Reject(RejectionReason.PathMismatch);
-                return RejectionReason.PathMismatch;
+                return;
             }
 
             request.ResetStatus(); //Ensure that processing request is handled in a consistent way
@@ -711,7 +709,7 @@ namespace LogUtils
             if (!AllowLogging || !loggerID.IsEnabled)
             {
                 request.Reject(RejectionReason.LogDisabled);
-                return request.UnhandledReason;
+                return;
             }
 
             if (loggerID.Properties.ShowLogsAware && !RainWorld.ShowLogs)
@@ -720,13 +718,13 @@ namespace LogUtils
                     request.Reject(RejectionReason.ShowLogsNotInitialized);
                 else
                     request.Reject(RejectionReason.LogDisabled);
-                return request.UnhandledReason;
+                return;
             }
 
             if (request.Type == RequestType.Remote && (loggerID.Access == LogAccess.Private || !AllowRemoteLogging))
             {
                 request.Reject(RejectionReason.AccessDenied);
-                return request.UnhandledReason;
+                return;
             }
 
             var writer = Writer;
@@ -734,16 +732,11 @@ namespace LogUtils
             if (writer == null) //This is possible when the Logger gets disposed - Ideally the logger should not be referenced after disposal
             {
                 request.Reject(RejectionReason.FailedToWrite);
-                return request.UnhandledReason;
+                return;
             }
 
             request.Host = this;
             writer.WriteFrom(request);
-
-            if (request.Status == RequestStatus.Complete)
-                return RejectionReason.None;
-
-            return request.UnhandledReason;
         }
 
         #endregion

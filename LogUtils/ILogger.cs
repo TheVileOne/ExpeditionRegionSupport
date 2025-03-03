@@ -29,8 +29,8 @@ namespace LogUtils
         public bool CanHandle(LogRequest request, bool doPathCheck = false);
 
         /// <summary>
-        /// Accepts and processes a LogRequest instance, and returns the reason for rejecting the request, or returns None if it wasn't rejected
+        /// Accepts and processes a LogRequest instance
         /// </summary>
-        public RejectionReason HandleRequest(LogRequest request, bool skipAccessValidation = false);
+        public void HandleRequest(LogRequest request, bool skipAccessValidation = false);
     }
 }

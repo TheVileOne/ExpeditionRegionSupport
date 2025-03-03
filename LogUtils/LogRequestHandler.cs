@@ -515,15 +515,17 @@ namespace LogUtils
                         if (selectedLogger != null)
                         {
                             //Try to handle the log request, and recheck the status
-                            RejectionReason result = selectedLogger.HandleRequest(request, skipAccessValidation: true);
+                            selectedLogger.HandleRequest(request, skipAccessValidation: true);
 
-                            if (request.IsCompleteOrInvalid) continue;
-
-                            if (result == RejectionReason.PathMismatch)
+                            //TODO: Try to find another compatible logger if the rejection reason is NotAllowedToHandle
+                            if (request.IsCompleteOrRejected && request.UnhandledReason != RejectionReason.PathMismatch)
                             {
-                                //Attempt to find a logger that accepts the target LogID with this exact path
-                                selectedLogger = findCompatibleLogger(requestID, request.Type, doPathCheck: true);
+                                //Request was handled
+                                continue;
                             }
+
+                            //Attempt to find a logger that accepts the target LogID with this exact path
+                            selectedLogger = findCompatibleLogger(requestID, request.Type, doPathCheck: true);
                         }
                     }
 
