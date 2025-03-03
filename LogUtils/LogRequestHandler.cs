@@ -486,6 +486,13 @@ namespace LogUtils
                         continue;
                     }
 
+                    if (request.IsCompleteOrInvalid)
+                    {
+                        //Probably an indication some mischief has happened
+                        UtilityLogger.DebugLog("Request skipped - Already complete or rejected");
+                        continue;
+                    }
+
                     lastRequestID = requestID;
                     requestID = request.Data.ID;
 
@@ -493,8 +500,6 @@ namespace LogUtils
                     UtilityLogger.DebugLog($"Request # [{requestsProcessed}] {request}");
 
                     CurrentRequest = request;
-
-                    if (request.IsCompleteOrInvalid) continue;
 
                     //Find a logger that can be used for this LogID
                     if (requestID.IsGameControlled)
