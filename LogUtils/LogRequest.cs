@@ -106,33 +106,39 @@ namespace LogUtils
 
         public void Reject(RejectionReason reason)
         {
-            try
+            if (Status == RequestStatus.Complete)
             {
-                if (Status == RequestStatus.Complete)
-                {
-                    UtilityLogger.LogWarning("Completed requests cannot be rejected");
-                    return;
-                }
-
-                _state.Status = RequestStatus.Rejected;
-            }
-            finally
-            {
-                managedThreadID = -1;
+                UtilityLogger.LogWarning("Completed requests cannot be rejected");
+                return;
             }
 
-            UtilityLogger.Log("Log request was rejected REASON: " + reason);
+            if (reason == RejectionReason.None)
+            {
+                UtilityLogger.LogWarning("Request cannot be rejected without specifying a reason");
+                return;
+            }
 
-            if (reason != RejectionReason.None
-             && reason != RejectionReason.ExceptionAlreadyReported
-             && reason != RejectionReason.FilterMatch) //Temporary conditions should not be recorded
+            _state.Status = RequestStatus.Rejected;
+            managedThreadID = -1;
+
+            if (UnhandledReason != RejectionReason.None)
+                UtilityLogger.Log("Unhandled reason already exists");
+
+            //This reason can get spammy - ignore it
+            if (reason != RejectionReason.WaitingOnOtherRequests)
+            {
+                UtilityLogger.Log("Log request was rejected REASON: " + reason);
+
+                //UtilityLogger.DebugLog("Log request was rejected REASON: " + reason);
+                //UtilityLogger.DebugLog(ToString());
+            }
+
+            if (reason != RejectionReason.ExceptionAlreadyReported && reason != RejectionReason.FilterMatch) //Temporary conditions should not be recorded
                 Data.Properties.HandleRecord.SetReason(reason);
 
             if (UnhandledReason != reason)
             {
-                //A hacky attempt to make it possible to notify of path mismatches without overwriting an already existing reason 
-                if (reason != RejectionReason.PathMismatch || UnhandledReason == RejectionReason.None)
-                    _state.UnhandledReason = reason;
+                _state.UnhandledReason = reason;
                 NotifyOnChange();
             }
         }
