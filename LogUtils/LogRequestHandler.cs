@@ -111,9 +111,9 @@ namespace LogUtils
             UnhandledRequests = new LinkedLogRequestCollection(20);
         }
 
-        public ILinkedListEnumerable<LogRequest> GetRequests(LogID logFile)
+        public LogRequest[] GetRequests(LogID logFile)
         {
-            return UnhandledRequests.Where(req => req.Data.ID.Equals(logFile, doPathCheck: true));
+            return UnhandledRequests.Where(req => req.Data.ID.Equals(logFile, doPathCheck: true)).ToArray();
         }
 
         /// <summary>
@@ -409,7 +409,7 @@ namespace LogUtils
                 //Ensure that we do not handle a stale record
                 logFile.Properties.HandleRecord.Reset();
 
-                ILinkedListEnumerable<LogRequest> requests = GetRequests(logFile);
+                LogRequest[] requests = GetRequests(logFile);
                 ILoggerBase selectedLogger = null;
 
                 //Evaluate all requests waiting to be handled for this log file
@@ -441,7 +441,7 @@ namespace LogUtils
                     //Ensure that we do not handle a stale record
                     logFile.Properties.HandleRecord.Reset();
 
-                    ILinkedListEnumerable<LogRequest> requests = GetRequests(logFile);
+                    LogRequest[] requests = GetRequests(logFile);
 
                     LogID loggerID = null;
                     foreach (LogRequest request in requests)
@@ -470,7 +470,7 @@ namespace LogUtils
 
             lock (RequestProcessLock)
             {
-                var requests = UnhandledRequests.GetRequestsSorted();
+                LogRequest[] requests = UnhandledRequests.GetRequestsSorted();
 
                 if (requests.Length == 0) return;
 
@@ -566,7 +566,7 @@ namespace LogUtils
             RejectRequests(GetRequests(logFile), reason);
         }
 
-        public void RejectRequests(IEnumerable<LogRequest> requests, RejectionReason reason)
+        public void RejectRequests(LogRequest[] requests, RejectionReason reason)
         {
             UtilityLogger.Log(LogCategory.Debug, "Rejecting requests in bulk for reason: " + reason);
 
