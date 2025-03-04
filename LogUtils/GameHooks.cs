@@ -1,4 +1,5 @@
-﻿using LogUtils.Enums;
+﻿using LogUtils.CompatibilityServices;
+using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Properties;
@@ -164,7 +165,7 @@ namespace LogUtils
                 if (RWInfo.LatestSetupPeriodReached == SetupPeriod.RWAwake)
                 {
                     UtilityCore.RequestHandler.ProcessRequests();
-                    UtilityLogger.ReceiveUnityLogEvents = false;
+                    UnityLogger.ReceiveUnityLogEvents = false;
                 }
             });
         }

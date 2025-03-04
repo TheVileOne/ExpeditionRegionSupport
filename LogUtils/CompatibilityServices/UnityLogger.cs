@@ -1,5 +1,7 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
+using LogUtils.Events;
+using LogUtils.Requests;
 using UnityEngine;
 
 namespace LogUtils.CompatibilityServices
@@ -9,6 +11,36 @@ namespace LogUtils.CompatibilityServices
     /// </summary>
     public class UnityLogger : ILogger
     {
+        private static bool _receiveUnityLogEvents;
+
+        internal static bool ReceiveUnityLogEvents
+        {
+            get => _receiveUnityLogEvents;
+            set
+            {
+                if (_receiveUnityLogEvents == value) return;
+
+                if (value)
+                    Application.logMessageReceivedThreaded += logEvent;
+                else
+                    Application.logMessageReceivedThreaded -= logEvent;
+
+                _receiveUnityLogEvents = value;
+            }
+        }
+
+        /// <summary>
+        /// Ensures that the maximum LogType value able to be processed by the Unity logger is at least the specified capacity value </br>
+        /// </summary>
+        /// <param name="capacity">The desired maximum FilterType value as an integer</param>
+        internal static void EnsureLogTypeCapacity(int capacity)
+        {
+            LogType capacityWanted = (LogType)capacity;
+
+            if (Debug.unityLogger.filterLogType < capacityWanted)
+                Debug.unityLogger.filterLogType = capacityWanted;
+        }
+
         public void Log(object data)
         {
             Debug.Log(data);
@@ -67,6 +99,36 @@ namespace LogUtils.CompatibilityServices
         public void Log(LogCategory category, object data)
         {
             Debug.unityLogger.Log(category.UnityCategory, data);
+        }
+
+        private static void logEvent(string message, string stackTrace, LogType category)
+        {
+            lock (UtilityCore.RequestHandler.RequestProcessLock)
+            {
+                //This submission wont be able to be logged until Rain World can initialize
+                if (UtilityCore.RequestHandler.CurrentRequest == null)
+                {
+                    if (LogCategory.IsErrorCategory(category))
+                    {
+                        //Handle Unity error logging similarly to how the game would handle it
+                        ExceptionInfo exceptionInfo = new ExceptionInfo(message, stackTrace);
+
+                        //Check that the last exception reported matches information stored
+                        if (!RWInfo.CheckExceptionMatch(LogID.Exception, exceptionInfo))
+                        {
+                            RWInfo.ReportException(LogID.Exception, exceptionInfo);
+                            UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.Exception, exceptionInfo, category)), false);
+                        }
+                        return;
+                    }
+                    UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.Unity, message, category)), false);
+                }
+            }
+        }
+
+        static UnityLogger()
+        {
+            UtilityCore.EnsureInitializedState();
         }
     }
 }

@@ -112,7 +112,7 @@ namespace LogUtils
             {
                 case UtilitySetup.InitializationStep.INITALIZE_CORE_LOGGER:
                     {
-                        UtilityLogger.EnsureLogTypeCapacity(UtilityConsts.CUSTOM_LOGTYPE_LIMIT);
+                        UnityLogger.EnsureLogTypeCapacity(UtilityConsts.CUSTOM_LOGTYPE_LIMIT);
                         UtilityLogger.Initialize();
 
                         UtilityLogger.Logger.LogMessage($"{UtilityConsts.UTILITY_NAME} {AssemblyVersion} started");
@@ -183,7 +183,7 @@ namespace LogUtils
 
                             //Listen for Unity log requests while the log file is unavailable
                             if (!LogID.Unity.Properties.CanBeAccessed)
-                                UtilityLogger.ReceiveUnityLogEvents = true;
+                                UnityLogger.ReceiveUnityLogEvents = true;
 
                             nextStep = UtilitySetup.InitializationStep.APPLY_HOOKS;
                             break;

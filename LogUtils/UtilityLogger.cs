@@ -1,11 +1,8 @@
 ﻿using LogUtils.Enums;
-using LogUtils.Events;
 using LogUtils.Helpers.FileHandling;
-using LogUtils.Requests;
 using System;
 using System.IO;
 using System.Linq;
-using UnityEngine;
 
 namespace LogUtils
 {
@@ -17,8 +14,6 @@ namespace LogUtils
         /// Activity logger is responsible for reporting file behavior associated with log related files
         /// </summary>
         private static Logger activityLogger;
-
-        private static bool _receiveUnityLogEvents;
 
         internal static void Initialize()
         {
@@ -34,34 +29,6 @@ namespace LogUtils
 
             //TODO: Deprecate use of test.txt when utility is close to release
             File.Delete("test.txt");
-        }
-
-        internal static bool ReceiveUnityLogEvents
-        {
-            get => _receiveUnityLogEvents;
-            set
-            {
-                if (_receiveUnityLogEvents == value) return;
-
-                if (value)
-                    Application.logMessageReceivedThreaded += handleUnityLog;
-                else
-                    Application.logMessageReceivedThreaded -= handleUnityLog;
-
-                _receiveUnityLogEvents = value;
-            }
-        }
-
-        /// <summary>
-        /// Ensures that the maximum LogType value able to be processed by the Unity logger is at least the specified capacity value </br>
-        /// </summary>
-        /// <param name="capacity">The desired maximum FilterType value as an integer</param>
-        internal static void EnsureLogTypeCapacity(int capacity)
-        {
-            LogType capacityWanted = (LogType)capacity;
-
-            if (Debug.unityLogger.filterLogType < capacityWanted)
-                Debug.unityLogger.filterLogType = capacityWanted;
         }
 
         public static void DebugLog(object data)
@@ -122,31 +89,6 @@ namespace LogUtils
         public static void LogWarning(object data)
         {
             Logger.LogWarning(data);
-        }
-
-        private static void handleUnityLog(string message, string stackTrace, LogType category)
-        {
-            lock (UtilityCore.RequestHandler.RequestProcessLock)
-            {
-                //This submission wont be able to be logged until Rain World can initialize
-                if (UtilityCore.RequestHandler.CurrentRequest == null)
-                {
-                    if (LogCategory.IsErrorCategory(category))
-                    {
-                        //Handle Unity error logging similarly to how the game would handle it
-                        ExceptionInfo exceptionInfo = new ExceptionInfo(message, stackTrace);
-
-                        //Check that the last exception reported matches information stored
-                        if (!RWInfo.CheckExceptionMatch(LogID.Exception, exceptionInfo))
-                        {
-                            RWInfo.ReportException(LogID.Exception, exceptionInfo);
-                            UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.Exception, exceptionInfo, category)), false);
-                        }
-                        return;
-                    }
-                    UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.Unity, message, category)), false);
-                }
-            }
         }
 
         static UtilityLogger()
