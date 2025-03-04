@@ -6,6 +6,7 @@ using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.Extensions;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties.Custom;
+using LogUtils.Requests;
 using LogUtils.Threading;
 using System;
 using System.Collections;

@@ -2,6 +2,7 @@
 using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Properties;
+using LogUtils.Requests;
 using System;
 using System.IO;
 using System.Linq;

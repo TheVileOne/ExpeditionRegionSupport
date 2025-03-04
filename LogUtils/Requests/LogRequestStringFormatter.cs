@@ -1,7 +1,7 @@
 ﻿using LogUtils.Enums;
 using System;
 
-namespace LogUtils
+namespace LogUtils.Requests
 {
     /// <summary>
     /// Provides format options for handling internally supported LogRequest fields as arguments

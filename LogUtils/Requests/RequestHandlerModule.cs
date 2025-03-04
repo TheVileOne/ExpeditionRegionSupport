@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LogUtils
+namespace LogUtils.Requests
 {
     public abstract class RequestHandlerModule
     {

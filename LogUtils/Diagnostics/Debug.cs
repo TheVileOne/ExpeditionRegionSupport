@@ -2,6 +2,7 @@
 using LogUtils.Diagnostics.Tests.Utility;
 using LogUtils.Enums;
 using LogUtils.Helpers;
+using LogUtils.Requests;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

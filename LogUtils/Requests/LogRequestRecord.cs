@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace LogUtils
+namespace LogUtils.Requests
 {
     public struct LogRequestRecord
     {

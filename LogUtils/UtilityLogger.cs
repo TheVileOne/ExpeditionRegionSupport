@@ -1,6 +1,7 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers.FileHandling;
+using LogUtils.Requests;
 using System;
 using System.IO;
 using System.Linq;

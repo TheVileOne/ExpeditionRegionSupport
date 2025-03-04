@@ -1,4 +1,5 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Requests;
 using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
