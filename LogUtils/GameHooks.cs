@@ -310,19 +310,14 @@ namespace LogUtils
                 {
                     LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
-                    if (request != null)
+                    if (request != null && (!processFinished || !request.IsCompleteOrRejected))
                     {
-                        RequestStatus status = request.Status;
+                        UtilityLogger.LogWarning("Logging operation has ended unexpectedly");
 
-                        if (!processFinished || (status != RequestStatus.Complete && status != RequestStatus.Rejected))
-                        {
-                            UtilityLogger.LogWarning("Logging operation has ended unexpectedly");
+                        if (request.Status != RequestStatus.Rejected) //Unknown issue - don't retry request
+                            request.Reject(RejectionReason.FailedToWrite);
 
-                            if (request.Status != RequestStatus.Rejected) //Unknown issue - don't retry request
-                                request.Reject(RejectionReason.FailedToWrite);
-
-                            UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
-                        }
+                        UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
                     }
                     gameHookRequestCounter--;
                 }
