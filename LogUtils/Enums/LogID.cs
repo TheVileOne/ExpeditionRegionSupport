@@ -277,6 +277,7 @@ namespace LogUtils.Enums
             BepInEx.Properties.IsWriteRestricted = true;
             BepInEx.Properties.LogSessionActive = true; //BepInEx log is active before the utility can initialize
             BepInEx.Properties.PreferredFileExt = FileExt.LOG;
+            BepInEx.Properties.ShowCategories.IsEnabled = true;
 
             BepInEx.Properties.Rules.Replace(new BepInExHeaderRule(BepInEx.Properties.ShowCategories.IsEnabled));
 
