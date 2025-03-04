@@ -434,24 +434,19 @@ namespace LogUtils
 
         public void ProcessRequests(Logger logger)
         {
+            var logHandler = logger.GetHandler();
+
             lock (RequestProcessLock)
             {
+                logHandler.PrepareRequest += PrepareRequestNoReset;
                 foreach (LogID logFile in logger.GetTargetsForHandler())
                 {
                     //Ensure that we do not handle a stale record
                     logFile.Properties.HandleRecord.Reset();
 
-                    LogRequest[] requests = GetRequests(logFile);
-
-                    LogID loggerID = null;
-                    foreach (LogRequest request in requests)
-                    {
-                        PrepareRequestNoReset(request);
-                        logger.HandleRequest(request, ref loggerID);
-                    }
-
-                    DiscardHandledRequests(requests);
+                    logHandler.Handle(GetRequests(logFile));
                 }
+                logHandler.PrepareRequest -= PrepareRequestNoReset;
             }
         }
 
@@ -515,7 +510,9 @@ namespace LogUtils
                         if (selectedLogger != null)
                         {
                             //Try to handle the log request, and recheck the status
-                            selectedLogger.HandleRequest(request, skipAccessValidation: true);
+                            var logHandler = selectedLogger.GetHandler();
+                            
+                            logHandler.Handle(request, skipAccessValidation: true);
 
                             //TODO: Try to find another compatible logger if the rejection reason is NotAllowedToHandle
                             if (request.IsCompleteOrRejected && request.UnhandledReason != RejectionReason.PathMismatch)
@@ -560,7 +557,9 @@ namespace LogUtils
                 return;
             }
 
-            logger.HandleRequest(request, skipAccessValidation: true);
+            var logHandler = logger.GetHandler();
+
+            logHandler.Handle(request, skipAccessValidation: true);
         }
 
         public void RejectRequests(LogID logFile, RejectionReason reason)

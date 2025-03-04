@@ -20,65 +20,18 @@ namespace LogUtils
         public LogID LogFileInProcess;
         public int GameLoggerRequestCounter;
 
+        protected RequestHandlerModule Handler;
+
+        public GameLogger()
+        {
+            Handler = new RequestHandler(this);
+        }
+
+        public RequestHandlerModule GetHandler() => Handler;
+
         public bool CanHandle(LogRequest request, bool doPathCheck = false)
         {
             return request.Data.ID.IsGameControlled;
-        }
-
-        public void HandleRequest(LogRequest request, bool skipAccessValidation = false)
-        {
-            request.ResetStatus(); //Ensure that processing request is handled in a consistent way
-
-            if (request.Submitted)
-                UtilityCore.RequestHandler.CurrentRequest = request;
-
-            //Normal utility code paths should not allow for this guard to be triggered
-            if (!skipAccessValidation && !CanHandle(request))
-            {
-                UtilityLogger.LogWarning("Request sent to a logger that cannot handle it");
-                request.Reject(RejectionReason.NotAllowedToHandle);
-            }
-
-            LogID logFile = request.Data.ID;
-
-            //Check RainWorld.ShowLogs for logs that are restricted by it
-            if (logFile.Properties.ShowLogsAware && !RainWorld.ShowLogs)
-            {
-                if (RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD)
-                    request.Reject(RejectionReason.ShowLogsNotInitialized);
-                else
-                    request.Reject(RejectionReason.LogDisabled);
-                return;
-            }
-
-            if (!logFile.Properties.CanBeAccessed)
-                request.Reject(RejectionReason.LogUnavailable);
-
-            if (request.Status == RequestStatus.Rejected)
-                return;
-
-            string message = request.Data.Message;
-
-            if (logFile == LogID.BepInEx)
-            {
-                LogBepEx(request.Data.LogSource, request.Data.BepInExCategory, message);
-            }
-            else if (logFile == LogID.Unity) //Unity, and Exception log requests are not guaranteed to have a defined LogCategory instance
-            {
-                LogUnity(request.Data.UnityCategory, message);
-            }
-            else if (logFile == LogID.Exception)
-            {
-                LogUnity(LogType.Error, message);
-            }
-            else if (logFile == LogID.JollyCoop)
-            {
-                LogJolly(request.Data.Category, message);
-            }
-            else if (logFile == LogID.Expedition)
-            {
-                LogExp(request.Data.Category, message);
-            }
         }
 
         public void LogBepEx(object data)
@@ -237,6 +190,67 @@ namespace LogUtils
 
                 LogFileInProcess = lastProcessState;
                 GameLoggerRequestCounter--;
+            }
+        }
+
+        public sealed class RequestHandler : RequestHandlerModule
+        {
+            private GameLogger logger;
+
+            public RequestHandler(GameLogger owner)
+            {
+                logger = owner;
+            }
+
+            protected override void HandleRequest()
+            {
+                //Normal utility code paths should not allow for this guard to be triggered
+                if (RequiresAccessValidation && !logger.CanHandle(Request))
+                {
+                    UtilityLogger.LogWarning("Request sent to a logger that cannot handle it");
+                    Request.Reject(RejectionReason.NotAllowedToHandle);
+                }
+
+                LogID logFile = Request.Data.ID;
+
+                //Check RainWorld.ShowLogs for logs that are restricted by it
+                if (logFile.Properties.ShowLogsAware && !RainWorld.ShowLogs)
+                {
+                    if (RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD)
+                        Request.Reject(RejectionReason.ShowLogsNotInitialized);
+                    else
+                        Request.Reject(RejectionReason.LogDisabled);
+                    return;
+                }
+
+                if (!logFile.Properties.CanBeAccessed)
+                    Request.Reject(RejectionReason.LogUnavailable);
+
+                if (Request.Status == RequestStatus.Rejected)
+                    return;
+
+                string message = Request.Data.Message;
+
+                if (logFile == LogID.BepInEx)
+                {
+                    logger.LogBepEx(Request.Data.LogSource, Request.Data.BepInExCategory, message);
+                }
+                else if (logFile == LogID.Unity) //Unity, and Exception log requests are not guaranteed to have a defined LogCategory instance
+                {
+                    logger.LogUnity(Request.Data.UnityCategory, message);
+                }
+                else if (logFile == LogID.Exception)
+                {
+                    logger.LogUnity(LogType.Error, message);
+                }
+                else if (logFile == LogID.JollyCoop)
+                {
+                    logger.LogJolly(Request.Data.Category, message);
+                }
+                else if (logFile == LogID.Expedition)
+                {
+                    logger.LogExp(Request.Data.Category, message);
+                }
             }
         }
 
