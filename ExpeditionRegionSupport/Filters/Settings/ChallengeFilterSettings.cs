@@ -1,9 +1,8 @@
 ﻿using Expedition;
-using ExpeditionRegionSupport.Filters.Settings;
 using ExpeditionRegionSupport.Filters.Utils;
 using System.Collections.Generic;
 
-namespace ExpeditionRegionSupport.Filters
+namespace ExpeditionRegionSupport.Filters.Settings
 {
     public static partial class ChallengeFilterSettings
     {
@@ -37,17 +36,24 @@ namespace ExpeditionRegionSupport.Filters
         {
             FilterOption filterType = FilterOption.VisitedRegionsOnly; //The only type managed by default
 
+            ChallengeFilter filter;
             switch (name)
             {
                 case ExpeditionConsts.ChallengeNames.ECHO:
                 case ExpeditionConsts.ChallengeNames.PEARL_HOARD:
-                    return new ChallengeFilter(filterType);
+                    filter = new ChallengeFilter(filterType);
+                    break;
                 case ExpeditionConsts.ChallengeNames.PEARL_DELIVERY:
-                    return new PearlDeliveryChallengeFilter(filterType);
+                    filter = new PearlDeliveryChallengeFilter(filterType);
+                    break;
                 case ExpeditionConsts.ChallengeNames.NEURON_DELIVERY:
-                    return new NeuronDeliveryChallengeFilter(filterType);
+                    filter = new NeuronDeliveryChallengeFilter(filterType);
+                    break;
+                default:
+                    filter = null;
+                    break;
             }
-            return null;
+            return filter;
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
-﻿namespace System.Runtime.CompilerServices
+﻿#pragma warning disable IDE0130 // Namespace does not match folder structure
+namespace System.Runtime.CompilerServices
 {
 #if !NET6_0_OR_GREATER
 
@@ -15,3 +16,4 @@
 
 #endif
 }
+#pragma warning restore IDE0130 // Namespace does not match folder structure

@@ -1,5 +1,6 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
+using LogUtils.Requests;
 using UnityEngine;
 
 namespace LogUtils
@@ -24,13 +25,18 @@ namespace LogUtils
     public interface ILoggerBase
     {
         /// <summary>
-        /// Can this logger instance accept, and process a specific LogRequest instance
+        /// Log file targets accepted by the logger
         /// </summary>
-        public bool CanHandle(LogRequest request, bool doPathCheck = false);
+        LogID[] AvailableTargets { get; }
 
         /// <summary>
-        /// Accepts and processes a LogRequest instance, and returns the reason for rejecting the request, or returns None if it wasn't rejected
+        /// Can this logger instance accept, and process a specific LogRequest instance
         /// </summary>
-        public RejectionReason HandleRequest(LogRequest request, bool skipAccessValidation = false);
+        bool CanHandle(LogRequest request, bool doPathCheck = false);
+
+        /// <summary>
+        /// Retrieves the Logger-specific implementation details for handling a LogRequest
+        /// </summary>
+        RequestHandlerModule GetHandler();
     }
 }

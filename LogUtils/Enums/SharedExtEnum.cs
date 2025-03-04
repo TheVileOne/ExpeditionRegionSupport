@@ -33,6 +33,7 @@ namespace LogUtils.Enums
         /// <summary>
         /// An identifying string assigned to each ExtEnum
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Naming convention of a dependency")]
         public new string value
         {
             get => base.value;
@@ -137,6 +138,13 @@ namespace LogUtils.Enums
                 values.AddEntry(value);
                 index = values.Count - 1;
             }
+        }
+
+        //TODO: LogIDs don't have proper support for registering, and unregistering
+        public new virtual void Unregister()
+        {
+            UtilityLogger.LogWarning($"Unregistering of {typeof(T)} is currently not supported, and may not work correctly");
+            base.Unregister();
         }
 
         public virtual bool CheckTag(string tag)

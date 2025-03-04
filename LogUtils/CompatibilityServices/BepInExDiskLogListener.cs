@@ -2,6 +2,7 @@
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
+using LogUtils.Requests;
 using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
@@ -18,7 +19,7 @@ namespace LogUtils.CompatibilityServices
         /// <summary>
         /// Stores LogUtils requests until they are able to be handled
         /// </summary>
-        private List<LogRequest> utilityRequestsInProcess = new List<LogRequest>();
+        private readonly List<LogRequest> utilityRequestsInProcess = new List<LogRequest>();
 
         public BepInExDiskLogListener(LogWriter writer)
         {
@@ -86,6 +87,7 @@ namespace LogUtils.CompatibilityServices
                 }, retry_request_time);
 
                 utilityRequestTask.Name = UtilityConsts.UTILITY_NAME;
+
                 LogTasker.Schedule(utilityRequestTask);
                 return;
             }

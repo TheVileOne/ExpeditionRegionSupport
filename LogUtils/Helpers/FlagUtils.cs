@@ -11,6 +11,41 @@ namespace LogUtils.Helpers
         private const int FLAG_OFFSET_BEPINEX = 1;
         private const int FLAG_OFFSET_UNITY = LogCategory.CONVERSION_OFFSET;
 
+        public static int GetHighestBit(int value)
+        {
+            if (value <= 0) return 0;
+
+            //We know value is somewhere between nearestBitValue, and zero
+            int nearestBitValue = Mathf.ClosestPowerOfTwo(value);
+            bool matchFound;
+            do
+            {
+                matchFound = (value & nearestBitValue) != 0;
+
+                if (!matchFound)
+                    nearestBitValue /= 2;
+            }
+            while (!matchFound);
+            return nearestBitValue;
+        }
+
+        public static int GetLowestBit(int value)
+        {
+            if (value <= 0) return 0;
+
+            int currentBitValue = 1;
+            bool matchFound;
+            do
+            {
+                matchFound = (value & currentBitValue) != 0;
+
+                if (!matchFound)
+                    currentBitValue *= 2;
+            }
+            while (!matchFound);
+            return currentBitValue;
+        }
+
         /// <summary>
         /// Check that the value is within what is considered the conversion value range
         /// </summary>

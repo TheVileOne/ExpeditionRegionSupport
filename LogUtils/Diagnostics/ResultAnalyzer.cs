@@ -5,7 +5,7 @@ namespace LogUtils.Diagnostics
 {
     public class ResultAnalyzer
     {
-        private IEnumerable<Condition.Result> resultData;
+        private readonly IEnumerable<Condition.Result> resultData;
 
         public int TotalResults;
         public int TotalPassedResults;

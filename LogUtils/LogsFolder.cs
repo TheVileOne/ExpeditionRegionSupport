@@ -332,7 +332,7 @@ namespace LogUtils
         /// </summary>
         public static void Restore()
         {
-            //TODO: Immplement
+            //TODO: Implement
             throw new NotImplementedException();
         }
 
@@ -423,7 +423,7 @@ namespace LogUtils
                     OnPathChanged(new PathChangedEventArgs(path, currentPath));
 
                 CustomPath = path;
-                Path = CustomPath == null ? InitialPath : CustomPath;
+                Path = CustomPath ?? InitialPath;
             }
         }
 

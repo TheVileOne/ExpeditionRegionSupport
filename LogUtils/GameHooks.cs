@@ -2,12 +2,14 @@
 using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Properties;
+using LogUtils.Requests;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using UnityEngine;
 
@@ -221,8 +223,6 @@ namespace LogUtils
             LogFilter.DeactivateKeyword(UtilityConsts.FilterKeywords.ACTIVATION_PERIOD_STARTUP);
         }
 
-        private static bool listenerCheckComplete;
-
         /// <summary>
         /// This is required for the signaling system. All remote loggers should use this hook to ensure that the logger is aware of the Logs directory being moved
         /// </summary>
@@ -230,14 +230,12 @@ namespace LogUtils
         {
             orig(self);
 
-            //Functionally similar to how JollyCoop handles its logging
-            foreach (Logger logger in UtilityCore.RequestHandler.AvailableLoggers)
-            {
-                //TODO: Maybe an interface is better here
-                QueueLogWriter queueWriter = logger.Writer as QueueLogWriter;
+            var loggers = UtilityCore.RequestHandler.AvailableLoggers;
 
-                if (queueWriter != null)
-                    queueWriter.Flush();
+            //Functionally similar to how JollyCoop handles its logging
+            foreach (IFlushable writeBuffer in loggers.Select(logger => logger.Writer).OfType<IFlushable>())
+            {
+                writeBuffer.Flush();
             }
         }
 
@@ -313,19 +311,14 @@ namespace LogUtils
                 {
                     LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
-                    if (request != null)
+                    if (request != null && (!processFinished || !request.IsCompleteOrRejected))
                     {
-                        RequestStatus status = request.Status;
+                        UtilityLogger.LogWarning("Logging operation has ended unexpectedly");
 
-                        if (!processFinished || (status != RequestStatus.Complete && status != RequestStatus.Rejected))
-                        {
-                            UtilityLogger.LogWarning("Logging operation has ended unexpectedly");
+                        if (request.Status != RequestStatus.Rejected) //Unknown issue - don't retry request
+                            request.Reject(RejectionReason.FailedToWrite);
 
-                            if (request.Status != RequestStatus.Rejected) //Unknown issue - don't retry request
-                                request.Reject(RejectionReason.FailedToWrite);
-
-                            UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
-                        }
+                        UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
                     }
                     gameHookRequestCounter--;
                 }

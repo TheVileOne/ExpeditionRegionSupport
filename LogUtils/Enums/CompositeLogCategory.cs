@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Helpers.Extensions;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -7,19 +8,49 @@ namespace LogUtils.Enums
 {
     public sealed class CompositeLogCategory : LogCategory
     {
-        internal readonly HashSet<LogCategory> Set;
+        private static CompositeLogCategory _empty;
+        public static CompositeLogCategory Empty
+        {
+            get
+            {
+                if (_empty == null)
+                {
+                    if (UtilitySetup.CurrentStep < UtilitySetup.InitializationStep.INITIALIZE_ENUMS)
+                    {
+                        UtilityLogger.Log("Too early to create a log category");
+                        return null;
+                    }
+                    _empty = new CompositeLogCategory();
+                }
+                return _empty;
+            }
+        }
 
-        public bool IsEmpty => Set.Count == 0;
+        internal static readonly HashSet<LogCategory> EmptySet  = new HashSet<LogCategory>();
+
+        /// <summary>
+        /// Contains the flags that represent the composite instance
+        /// </summary>
+        internal readonly HashSet<LogCategory> Set = EmptySet;
+
+        public int FlagCount => Set.Count;
+
+        public bool IsEmpty => FlagCount == 0;
+
+        private readonly bool isInitialized;
 
         public override LogLevel BepInExCategory
         {
             get
             {
+                if (!isInitialized)
+                    return base.BepInExCategory;
+
                 if (IsEmpty)
                     return LogLevel.None;
 
                 //When there is only one value, favor the unconverted value
-                if (Set.Count == 1)
+                if (FlagCount == 1)
                 {
                     LogCategory firstEntry = Set.First();
                     return firstEntry.BepInExCategory;
@@ -53,11 +84,14 @@ namespace LogUtils.Enums
         {
             get
             {
+                if (!isInitialized)
+                    return base.UnityCategory;
+
                 if (IsEmpty)
                     return None.UnityCategory;
 
                 //When there is only one value, favor the unconverted value
-                if (Set.Count == 1)
+                if (FlagCount == 1)
                 {
                     LogCategory firstEntry = Set.First();
                     return firstEntry.UnityCategory;
@@ -91,10 +125,13 @@ namespace LogUtils.Enums
         {
             get
             {
+                if (!isInitialized)
+                    return base.FlagValue;
+
                 if (IsEmpty)
                     return None.FlagValue;
 
-                if (Set.Count == 1)
+                if (FlagCount == 1)
                 {
                     LogCategory firstEntry = Set.First();
                     return firstEntry.FlagValue;
@@ -115,9 +152,45 @@ namespace LogUtils.Enums
             }
         }
 
-        internal CompositeLogCategory(HashSet<LogCategory> elements) : base(ToStringInternal(elements), false)
+        public override LogGroup Group
         {
-            Set = elements;
+            get
+            {
+                if (!isInitialized)
+                    return base.Group;
+
+                //TODO: Make sure that it isn't possible to desync this output since this code doesn't reference ManagedReference
+                LogGroup flags = LogGroup.None;
+                foreach (LogCategory category in Set)
+                {
+                    flags |= category.Group;
+                }
+                return flags;
+            }
+        }
+
+        internal CompositeLogCategory() : base(None.ToString(), false)
+        {
+            isInitialized = true;
+        }
+
+        internal CompositeLogCategory(HashSet<LogCategory> elements) : base(ToStringInternal(elements.Normalize()), false)
+        {
+            //"All", and "None" are special flags. These flags may not be grouped with other flags. LogUtils enforces this by restricting constructor access
+            //"None" flag is removed when elements are normalized. For all intents and purposes, the "None" flag is treated as equivalent to a composite
+            //with no flags.
+            Set = elements ?? EmptySet;
+            isInitialized = true;
+        }
+
+        public override void Register()
+        {
+            if (isInitialized)
+            {
+                UtilityLogger.LogWarning("Registration of composite ExtEnum entries is not supported");
+                return;
+            }
+            base.Register(); //This is a special case - the composite represents a single value entry
         }
 
         /// <summary>
@@ -131,12 +204,78 @@ namespace LogUtils.Enums
         }
 
         /// <summary>
+        /// Combines any number of enum values into a composite LogCategory
+        /// </summary>
+        internal static CompositeLogCategory FromFlags(params LogLevel[] flags)
+        {
+            if (flags.Length == 0)
+                return Empty;
+
+            if (flags.Length == 1)
+            {
+                return new CompositeLogCategory(new HashSet<LogCategory>()
+                {
+                    GetEquivalent(flags[0])
+                });
+            }
+
+            //Create a composite LogCategory from the available enum flags
+            CompositeLogCategory composite = Empty;
+            for (int i = 1; i < flags.Length; i++)
+            {
+                if (composite == null)
+                {
+                    composite = GetEquivalent(flags[i - 1]) | GetEquivalent(flags[i]);
+                    continue;
+                }
+
+                //Value at i - 1 will already be part of the composition
+                composite |= GetEquivalent(flags[i]);
+            }
+            return composite;
+        }
+
+        /// <summary>
+        /// Combines any number of enum values into a composite LogCategory
+        /// </summary>
+        internal static CompositeLogCategory FromFlags(params LogType[] flags)
+        {
+            if (flags.Length == 0)
+                return Empty;
+
+            if (flags.Length == 1)
+            {
+                return new CompositeLogCategory(new HashSet<LogCategory>()
+                {
+                    GetEquivalent(flags[0])
+                });
+            }
+
+            //Create a composite LogCategory from the available enum flags
+            CompositeLogCategory composite = Empty;
+            for (int i = 1; i < flags.Length; i++)
+            {
+                if (composite == null)
+                {
+                    composite = GetEquivalent(flags[i - 1]) | GetEquivalent(flags[i]);
+                    continue;
+                }
+
+                //Value at i - 1 will already be part of the composition
+                composite |= GetEquivalent(flags[i]);
+            }
+            return composite;
+        }
+
+        #region Search methods
+        /// <summary>
         /// Checks whether this instance contains the specified flag element
         /// </summary>
         /// <param name="flag">The element to look for</param>
         /// <returns>true, if the flag element is contained by this instance; otherwise, false</returns>
         public bool Contains(LogCategory flag)
         {
+            //This is intentionally not using HasFlag implementation - does not involve any edge checks
             return Set.Contains(flag);
         }
 
@@ -159,6 +298,10 @@ namespace LogUtils.Enums
         {
             if (flags == null || flags.IsEmpty) return false;
 
+            //It shouldn't matter which flag is present - "All" represents every flag, except "None", which cannot exist in this set
+            if (Set.Contains(All))
+                return true;
+
             return Set.IsSupersetOf(flags.Set);
         }
 
@@ -171,22 +314,63 @@ namespace LogUtils.Enums
         {
             if (flags == null || flags.IsEmpty) return false;
 
+            //It shouldn't matter which flag is present - "All" represents every flag, except "None", which cannot exist in this set
+            if (Set.Contains(All))
+                return true;
+
+            if (flags.HasFlag(All))
+                return !IsEmpty;
+
             return Set.Overlaps(flags.Set);
         }
 
+        /// <summary>
+        /// Checks whether this instance contains a flag as a whole value, or elements of the flag based on a specified search behavior 
+        /// </summary>
+        /// <param name="flag">Contains a flag, or set of flags to look for</param>
+        /// <param name="searchOptions">Specifies the search behavior when the flag represents multiple elements, has no effect when there is only one element</param>
+        /// <returns>true, when an element has been matched based on the provided search criteria</returns>
+        public bool HasFlag(LogCategory flag, FlagSearchOptions searchOptions = FlagSearchOptions.MatchAll)
+        {
+            if (IsEmpty) return false;
+
+            //It is highly unlikely we are comparing against another composite
+            if (Set.Contains(flag) || (searchOptions == FlagSearchOptions.MatchAny && flag == All))
+                return true;
+
+            CompositeLogCategory flags = flag as CompositeLogCategory;
+
+            if (flags == null)
+                return false;
+
+            //Check whether we want to match a single flag, or every flag
+            return searchOptions switch
+            {
+                FlagSearchOptions.MatchAll => HasAll(flags),
+                FlagSearchOptions.MatchAny => HasAny(flags),
+                _ => false
+            };
+        }
+
+        public enum FlagSearchOptions
+        {
+            MatchAll,
+            MatchAny
+        }
+        #endregion
         #region Object inherited methods
         public override int GetHashCode()
         {
             //ExtEnum value field for composites is the same as the joined string of its elements, but without any elements for LogCategory.None,
             //this override is necessary to ensure equality checks are consistent
-            if (IsEmpty)
+            if (isInitialized && IsEmpty)
                 return None.GetHashCode();
             return base.GetHashCode();
         }
 
         public override string ToString()
         {
-            return ToStringInternal(Set);
+            return isInitialized ? ToStringInternal(Set) : base.ToString();
         }
 
         internal static string ToStringInternal(HashSet<LogCategory> set)
@@ -194,7 +378,7 @@ namespace LogUtils.Enums
             if (set.Count == 0)
                 return None.ToString();
 
-            return string.Join(" | ", set);
+            return string.Join(", ", set);
         }
         #endregion
     }

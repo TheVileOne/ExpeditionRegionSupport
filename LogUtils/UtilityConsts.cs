@@ -50,6 +50,7 @@ namespace LogUtils
             /// <summary>
             /// Case sensitive comparison of a string against known utility DataFields
             /// </summary>
+            [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0066:Convert switch statement to expression", Justification = "Switch expression is worse")]
             public static bool IsRecognizedField(string match)
             {
                 //CUSTOM intentionally left out of this check - it is an optional line
@@ -81,7 +82,7 @@ namespace LogUtils
 
             static DataFields()
             {
-                OrderedFields = new[]
+                OrderedFields = new string[]
                 {
                     LOGID,
                     FILENAME,

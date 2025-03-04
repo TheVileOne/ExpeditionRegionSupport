@@ -1,5 +1,6 @@
 ﻿using Expedition;
 using ExpeditionRegionSupport.ExceptionHandling;
+using ExpeditionRegionSupport.Filters.Settings;
 using ExpeditionRegionSupport.Filters.Utils;
 using ExpeditionRegionSupport.HookUtils;
 using ExpeditionRegionSupport.Regions;

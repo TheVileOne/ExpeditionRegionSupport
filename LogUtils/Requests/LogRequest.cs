@@ -3,7 +3,7 @@ using LogUtils.Events;
 using System;
 using System.Threading;
 
-namespace LogUtils
+namespace LogUtils.Requests
 {
     /// <summary>
     /// A class for storing log details until a logger is available to process the request
@@ -29,6 +29,8 @@ namespace LogUtils
         /// Request has been handled, and no more attempts to process the request should be made
         /// </summary>
         public bool IsCompleteOrInvalid => Status == RequestStatus.Complete || !CanRetryRequest();
+
+        public bool IsCompleteOrRejected => Status == RequestStatus.Complete || Status == RequestStatus.Rejected; 
 
         public RequestStatus Status => _state.Status;
 
@@ -106,35 +108,48 @@ namespace LogUtils
 
         public void Reject(RejectionReason reason)
         {
-            try
+            if (Status == RequestStatus.Complete)
             {
-                if (Status == RequestStatus.Complete)
-                {
-                    UtilityLogger.LogWarning("Completed requests cannot be rejected");
-                    return;
-                }
-
-                _state.Status = RequestStatus.Rejected;
-            }
-            finally
-            {
-                managedThreadID = -1;
+                UtilityLogger.LogWarning("Completed requests cannot be rejected");
+                return;
             }
 
-            UtilityLogger.Log("Log request was rejected REASON: " + reason);
+            if (reason == RejectionReason.None)
+            {
+                UtilityLogger.LogWarning("Request cannot be rejected without specifying a reason");
+                return;
+            }
 
-            if (reason != RejectionReason.None
-             && reason != RejectionReason.ExceptionAlreadyReported
-             && reason != RejectionReason.FilterMatch) //Temporary conditions should not be recorded
+            _state.Status = RequestStatus.Rejected;
+            managedThreadID = -1;
+
+            if (UnhandledReason != RejectionReason.None)
+                UtilityLogger.Log("Unhandled reason already exists");
+
+            //This reason can get spammy - ignore it
+            if (reason != RejectionReason.WaitingOnOtherRequests)
+            {
+                UtilityLogger.Log("Log request was rejected REASON: " + reason);
+
+                //UtilityLogger.DebugLog("Log request was rejected REASON: " + reason);
+                //UtilityLogger.DebugLog(ToString());
+            }
+
+            if (reason != RejectionReason.ExceptionAlreadyReported && reason != RejectionReason.FilterMatch) //Temporary conditions should not be recorded
                 Data.Properties.HandleRecord.SetReason(reason);
 
             if (UnhandledReason != reason)
             {
-                //A hacky attempt to make it possible to notify of path mismatches without overwriting an already existing reason 
-                if (reason != RejectionReason.PathMismatch || UnhandledReason == RejectionReason.None)
-                    _state.UnhandledReason = reason;
+                _state.UnhandledReason = reason;
                 NotifyOnChange();
             }
+        }
+
+        public void Processed()
+        {
+            //After a process, the only valid states the request can be is Complete, or Rejected
+            if (!IsCompleteOrRejected)
+                Reject(RejectionReason.UnknownProcessDelay);
         }
 
         public void WriteInProcess()
@@ -256,12 +271,16 @@ namespace LogUtils
         /// </summary>
         WaitingOnOtherRequests = 8,
         /// <summary>
+        /// Attempt to handle log was not immediately completed for some reason
+        /// </summary>
+        UnknownProcessDelay = 9,
+        /// <summary>
         /// No logger is available that accepts the LogID, or the logger accepts the LogID, but enforces a build period on the log file that is not yet satisfied
         /// </summary>
-        LogUnavailable = 9,
+        LogUnavailable = 10,
         /// <summary>
         /// Attempt to log to a ShowLogs aware log before ShowLogs is initialized
         /// </summary>
-        ShowLogsNotInitialized = 10
+        ShowLogsNotInitialized = 11
     }
 }

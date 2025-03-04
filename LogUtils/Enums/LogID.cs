@@ -63,7 +63,8 @@ namespace LogUtils.Enums
         /// <summary>
         /// Creates a new LogID instance using a filename, and assuming a default/preexisting registered path
         /// </summary>
-        internal LogID(string filename, bool register) : this(filename, null, LogAccess.RemoteAccessOnly) //Exists to satisfy Activator parameters for SharedExtEnum
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Exists to satisfy Activator parameters for SharedExtEnum")]
+        internal LogID(string filename, bool register) : this(filename, null, LogAccess.RemoteAccessOnly)
         {
         }
 
@@ -276,6 +277,7 @@ namespace LogUtils.Enums
             BepInEx.Properties.IsWriteRestricted = true;
             BepInEx.Properties.LogSessionActive = true; //BepInEx log is active before the utility can initialize
             BepInEx.Properties.PreferredFileExt = FileExt.LOG;
+            BepInEx.Properties.ShowCategories.IsEnabled = true;
 
             BepInEx.Properties.Rules.Replace(new BepInExHeaderRule(BepInEx.Properties.ShowCategories.IsEnabled));
 

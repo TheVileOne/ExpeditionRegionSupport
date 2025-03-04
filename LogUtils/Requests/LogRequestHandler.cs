@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
-namespace LogUtils
+namespace LogUtils.Requests
 {
     public class LogRequestHandler : UtilityComponent
     {
@@ -17,7 +17,7 @@ namespace LogUtils
 
         public override string Tag => UtilityConsts.ComponentTags.REQUEST_DATA;
 
-        private WeakReferenceCollection<Logger> availableLoggers = new WeakReferenceCollection<Logger>();
+        private readonly WeakReferenceCollection<Logger> availableLoggers = new WeakReferenceCollection<Logger>();
 
         /// <summary>
         /// A list of loggers available to handle remote log requests
@@ -111,9 +111,9 @@ namespace LogUtils
             UnhandledRequests = new LinkedLogRequestCollection(20);
         }
 
-        public ILinkedListEnumerable<LogRequest> GetRequests(LogID logFile)
+        public LogRequest[] GetRequests(LogID logFile)
         {
-            return UnhandledRequests.Where(req => req.Data.ID.Equals(logFile, doPathCheck: true));
+            return UnhandledRequests.Where(req => req.Data.ID.Equals(logFile, doPathCheck: true)).ToArray();
         }
 
         /// <summary>
@@ -409,7 +409,7 @@ namespace LogUtils
                 //Ensure that we do not handle a stale record
                 logFile.Properties.HandleRecord.Reset();
 
-                ILinkedListEnumerable<LogRequest> requests = GetRequests(logFile);
+                LogRequest[] requests = GetRequests(logFile);
                 ILoggerBase selectedLogger = null;
 
                 //Evaluate all requests waiting to be handled for this log file
@@ -417,7 +417,11 @@ namespace LogUtils
                 {
                     bool shouldHandle = PrepareRequestNoReset(request);
 
-                    if (!shouldHandle) continue;
+                    if (!shouldHandle)
+                    {
+                        RequestMayBeCompleteOrInvalid(request);
+                        continue;
+                    }
 
                     if (selectedLogger == null || !selectedLogger.CanHandle(request))
                     {
@@ -427,31 +431,24 @@ namespace LogUtils
 
                     HandleRequest(request, selectedLogger);
                 }
-
-                DiscardHandledRequests(requests);
             }
         }
 
         public void ProcessRequests(Logger logger)
         {
+            var logHandler = logger.GetHandler();
+
             lock (RequestProcessLock)
             {
+                logHandler.PrepareRequest += PrepareRequestNoReset;
                 foreach (LogID logFile in logger.GetTargetsForHandler())
                 {
                     //Ensure that we do not handle a stale record
                     logFile.Properties.HandleRecord.Reset();
 
-                    ILinkedListEnumerable<LogRequest> requests = GetRequests(logFile);
-
-                    LogID loggerID = null;
-                    foreach (LogRequest request in requests)
-                    {
-                        PrepareRequestNoReset(request);
-                        logger.HandleRequest(request, ref loggerID);
-                    }
-
-                    DiscardHandledRequests(requests);
+                    logHandler.Handle(GetRequests(logFile));
                 }
+                logHandler.PrepareRequest -= PrepareRequestNoReset;
             }
         }
 
@@ -470,7 +467,7 @@ namespace LogUtils
 
             lock (RequestProcessLock)
             {
-                var requests = UnhandledRequests.GetRequestsSorted();
+                LogRequest[] requests = UnhandledRequests.GetRequestsSorted();
 
                 if (requests.Length == 0) return;
 
@@ -483,6 +480,7 @@ namespace LogUtils
                     if (!shouldHandle)
                     {
                         UtilityLogger.DebugLog("Request skipped");
+                        RequestMayBeCompleteOrInvalid(request);
                         continue;
                     }
 
@@ -493,8 +491,6 @@ namespace LogUtils
                     UtilityLogger.DebugLog($"Request # [{requestsProcessed}] {request}");
 
                     CurrentRequest = request;
-
-                    if (request.IsCompleteOrInvalid) continue;
 
                     //Find a logger that can be used for this LogID
                     if (requestID.IsGameControlled)
@@ -510,22 +506,24 @@ namespace LogUtils
                         if (selectedLogger != null)
                         {
                             //Try to handle the log request, and recheck the status
-                            RejectionReason result = selectedLogger.HandleRequest(request, skipAccessValidation: true);
+                            var logHandler = selectedLogger.GetHandler();
+                            
+                            logHandler.Handle(request, skipAccessValidation: true);
 
-                            if (request.IsCompleteOrInvalid) continue;
-
-                            if (result == RejectionReason.PathMismatch)
+                            //TODO: Try to find another compatible logger if the rejection reason is NotAllowedToHandle
+                            if (request.IsCompleteOrRejected && request.UnhandledReason != RejectionReason.PathMismatch)
                             {
-                                //Attempt to find a logger that accepts the target LogID with this exact path
-                                selectedLogger = findCompatibleLogger(requestID, request.Type, doPathCheck: true);
+                                //Request was handled
+                                continue;
                             }
+
+                            //Attempt to find a logger that accepts the target LogID with this exact path
+                            selectedLogger = findCompatibleLogger(requestID, request.Type, doPathCheck: true);
                         }
                     }
 
                     HandleRequest(request, selectedLogger);
                 }
-
-                DiscardHandledRequests();
             }
         }
 
@@ -542,7 +540,6 @@ namespace LogUtils
                 ? findCompatibleLogger(logFile, request.Type, doPathCheck: true) : GameLogger;
 
             HandleRequest(request, selectedLogger);
-            RequestMayBeCompleteOrInvalid(request);
         }
 
         internal void HandleRequest(LogRequest request, ILoggerBase logger)
@@ -550,10 +547,13 @@ namespace LogUtils
             if (logger == null)
             {
                 request.Reject(RejectionReason.LogUnavailable);
+                RequestMayBeCompleteOrInvalid(request);
                 return;
             }
 
-            logger.HandleRequest(request, skipAccessValidation: true);
+            var logHandler = logger.GetHandler();
+
+            logHandler.Handle(request, skipAccessValidation: true);
         }
 
         public void RejectRequests(LogID logFile, RejectionReason reason)
@@ -561,14 +561,15 @@ namespace LogUtils
             RejectRequests(GetRequests(logFile), reason);
         }
 
-        public void RejectRequests(IEnumerable<LogRequest> requests, RejectionReason reason)
+        public void RejectRequests(LogRequest[] requests, RejectionReason reason)
         {
-            UtilityLogger.Log(LogCategory.Debug, "Rejecting requests in bulk for reason: " + reason);
+            UtilityLogger.Log("Rejecting requests in bulk for reason: " + reason);
 
             foreach (LogRequest request in requests)
+            {
                 request.Reject(reason);
-
-            DiscardHandledRequests(requests);
+                RequestMayBeCompleteOrInvalid(request);
+            }
         }
 
         /// <summary>
@@ -576,24 +577,45 @@ namespace LogUtils
         /// </summary>
         public void RequestMayBeCompleteOrInvalid(LogRequest request)
         {
-            if (request.IsCompleteOrInvalid)
-            {
-                if (UnhandledRequests.Remove(request))
-                    request.Submitted = false;
+            DiscardStatus status = shouldDiscard();
 
-                if (CurrentRequest == request) //Removing the request may not clear this field
+            if (status != DiscardStatus.Keep)
+            {
+                if (status == DiscardStatus.Hard)
+                {
+                    if (UnhandledRequests.Remove(request))
+                        request.Submitted = false;
+                }
+
+                if (CurrentRequest == request)
                     CurrentRequest = null;
+            }
+
+            DiscardStatus shouldDiscard()
+            {
+                if (request.IsCompleteOrInvalid)
+                    return DiscardStatus.Hard;
+
+                if (request.Status == RequestStatus.Rejected)
+                    return DiscardStatus.Soft;
+                return DiscardStatus.Keep;
             }
         }
 
-        /// <summary>
-        /// Checks that requests in enumerable have been completed, or are no longer valid, removing any that have from UnhandledRequests 
-        /// </summary>
-        internal void DiscardHandledRequests(IEnumerable<LogRequest> requests)
+        private enum DiscardStatus
         {
-            //Check the status of all processed requests to remove the handled ones
-            foreach (LogRequest request in requests)
-                RequestMayBeCompleteOrInvalid(request);
+            /// <summary>
+            /// Don't discard
+            /// </summary>
+            Keep,
+            /// <summary>
+            /// Remove from CurrentRequest
+            /// </summary>
+            Soft,
+            /// <summary>
+            /// Remove from UnhandledRequests and CurrentRequest
+            /// </summary>
+            Hard
         }
 
         /// <summary>
@@ -601,7 +623,10 @@ namespace LogUtils
         /// </summary>
         public void DiscardHandledRequests()
         {
-            DiscardHandledRequests(UnhandledRequests); //All requests are checked over
+            //Check the status of all processed requests to remove the handled ones
+            foreach (LogRequest request in UnhandledRequests)
+                RequestMayBeCompleteOrInvalid(request);
+
             CheckForHandledRequests = false;
         }
 

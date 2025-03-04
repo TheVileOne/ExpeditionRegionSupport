@@ -4,6 +4,7 @@ using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Properties;
+using LogUtils.Requests;
 using LogUtils.Threading;
 using Menu;
 using System;
@@ -14,9 +15,9 @@ namespace LogUtils
 {
     public static class UtilityCore
     {
-        public static Assembly ExecutingAssembly = Assembly.GetExecutingAssembly();
+        public static Assembly Assembly { get; }
 
-        public static Version AssemblyVersion = new Version(0, 8, 5);
+        public static Version AssemblyVersion { get; }
 
         /// <summary>
         /// The assembly responsible for loading core resources for the utility
@@ -66,6 +67,12 @@ namespace LogUtils
             Initialize();
         }
 
+        static UtilityCore()
+        {
+            Assembly = Assembly.GetExecutingAssembly();
+            AssemblyVersion = Assembly.GetName().Version;
+        }
+
         internal static void Initialize()
         {
             if (IsInitialized || initializingInProgress) return; //Initialize may be called several times during the init process
@@ -108,6 +115,7 @@ namespace LogUtils
                         UtilityLogger.EnsureLogTypeCapacity(UtilityConsts.CUSTOM_LOGTYPE_LIMIT);
                         UtilityLogger.Initialize();
 
+                        UtilityLogger.Logger.LogMessage($"{UtilityConsts.UTILITY_NAME} {AssemblyVersion} started");
                         nextStep = UtilitySetup.InitializationStep.START_SCHEDULER;
                         break;
                     }

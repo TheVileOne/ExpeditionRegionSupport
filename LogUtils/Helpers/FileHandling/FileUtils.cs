@@ -233,7 +233,7 @@ namespace LogUtils.Helpers.FileHandling
             }
         }
 
-        private static object writeLock = new object();
+        private static readonly object writeLock = new object();
 
         public static void WriteLine(string path, string message)
         {

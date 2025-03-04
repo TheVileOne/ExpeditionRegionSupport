@@ -544,9 +544,7 @@ namespace ExpeditionRegionSupport
                 self.abstractRoom.AddEntity(abstractCell);
                 abstractCell.Realize();
 
-                EnergyCell realizedCell;
-
-                realizedCell = abstractCell.realizedObject as EnergyCell;
+                EnergyCell realizedCell = abstractCell.realizedObject as EnergyCell;
 
                 if (realizedCell != null)
                 {
@@ -713,7 +711,7 @@ namespace ExpeditionRegionSupport
                         Logger.LogWarning($"Room {spawnLocation} does not exist");
 
                     attemptsToFindDenSpawn++; //Tracks all attempts, not just reattempts
-                    if (spawnLocation == string.Empty || attemptsToFindDenSpawn >= max_attempts_allowed) //These is no hope for finding a new room
+                    if (spawnLocation == string.Empty || attemptsToFindDenSpawn >= max_attempts_allowed) //There is no hope for finding a new room
                     {
                         Logger.LogInfo("Using fallback player spawn");
                         return SaveState.GetStoryDenPosition(activeMenuSlugcat, out _);

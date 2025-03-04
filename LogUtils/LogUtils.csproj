@@ -4,6 +4,7 @@
 		<LangVersion>12</LangVersion>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<Title>Rain World Log Utility</Title>
+		<AssemblyVersion>0.8.5.0</AssemblyVersion>
 	</PropertyGroup>
 
 	<ItemGroup>

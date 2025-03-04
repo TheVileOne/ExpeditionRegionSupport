@@ -7,7 +7,7 @@ namespace LogUtils.Properties
 {
     internal class LogPropertyWriter
     {
-        private LogPropertyFile propertyFile;
+        private readonly LogPropertyFile propertyFile;
 
         public LogPropertyWriter(LogPropertyFile file)
         {

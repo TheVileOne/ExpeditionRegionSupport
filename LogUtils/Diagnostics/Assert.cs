@@ -3895,7 +3895,7 @@ namespace LogUtils.Diagnostics
             if (!condition.ShouldProcess)
                 return condition;
 
-            bool conditionPassed = condition.Value.Set.Count == 1 && condition.Value.Contains(flag);
+            bool conditionPassed = condition.Value.FlagCount == 1 && condition.Value.Contains(flag);
 
             if (conditionPassed)
                 condition.Pass();

@@ -73,19 +73,23 @@ namespace LogUtils.Helpers.Extensions
         /// <summary>
         /// Extracts any bitflag compatible values, masking all others
         /// </summary>
-        public static LogType? GetFlags(this LogType logType)
+        /// <param name="logType">The LogType to evaluate</param>
+        /// <returns>A LogType only containing bits within the conversion value range if any are present; otherwise defaults to -1</returns>
+        public static LogType GetFlags(this LogType logType)
         {
             int value = (int)logType;
 
             if (!FlagUtils.HasConvertedFlags(value))
-                return null;
+            {
+                value = -1;
+                return (LogType)value;
+            }
 
             int skipOverBits = LogCategory.CONVERSION_OFFSET_POWER;
 
             //Remove the bits we know are not flags
             value = (value >> skipOverBits) << skipOverBits;
-
-            return value > 0 ? (LogType)value : null;
+            return (LogType)value;
         }
     }
 }

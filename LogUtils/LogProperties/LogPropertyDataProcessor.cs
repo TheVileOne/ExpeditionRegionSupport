@@ -7,7 +7,7 @@ namespace LogUtils.Properties
 {
     public class LogPropertyDataProcessor
     {
-        private LogPropertyData data;
+        private readonly LogPropertyData data;
 
         /// <summary>
         /// The result of processing LogPropertyData
@@ -57,6 +57,7 @@ namespace LogUtils.Properties
 
             LogProperties properties = new LogProperties(id, filename, path);
 
+            #pragma warning disable IDE0055 //Fix formatting
             //Property setters are inaccesible. Define delegate wrappers for each one, and store in a dictionary
             OrderedDictionary fieldAssignments = new OrderedDictionary
             {
@@ -76,6 +77,7 @@ namespace LogUtils.Properties
                 [DataFields.Rules.SHOW_CATEGORIES] = new Action(() => properties.ShowCategories.IsEnabled = bool.Parse(dataFields[DataFields.Rules.SHOW_CATEGORIES])),
                 [DataFields.Rules.SHOW_LINE_COUNT] = new Action(() => properties.ShowLineCount.IsEnabled = bool.Parse(dataFields[DataFields.Rules.SHOW_LINE_COUNT]))
             };
+            #pragma warning restore IDE0055 //Fix formatting
 
             IDictionaryEnumerator enumerator = fieldAssignments.GetEnumerator();
 

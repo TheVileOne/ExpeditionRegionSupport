@@ -2,6 +2,7 @@
 using LogUtils.Diagnostics.Tests.Utility;
 using LogUtils.Enums;
 using LogUtils.Helpers;
+using LogUtils.Requests;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -38,7 +39,7 @@ namespace LogUtils.Diagnostics
             if (requests.Any())
             {
                 foreach (LogRequest request in requests)
-                    report.AppendLine(request.ToString(FormatEnums.FormatVerbosity.Verbose));
+                    report.AppendLine(request.ToString(ReportVerbosity.Verbose));
             }
             else
             {

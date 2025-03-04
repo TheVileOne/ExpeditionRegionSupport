@@ -7,7 +7,7 @@ namespace LogUtils
 {
     public class LogFileMover
     {
-        private string sourcePath, destPath;
+        private readonly string sourcePath, destPath;
 
         /// <summary>
         /// Creates an object capable of moving, or copying log files to a new destination

@@ -38,38 +38,25 @@
                 else if (signalText.StartsWith(CHALLENGE_HIDDEN))
                     return nameof(CHALLENGE_HIDDEN);
 
-                switch (signalText)
+                #pragma warning disable IDE0055 // Fix formatting
+                return signalText switch
                 {
-                    case CHALLENGE_RANDOM:
-                        return nameof(CHALLENGE_RANDOM);
-                    case DESELECT_MISSION:
-                        return nameof(DESELECT_MISSION);
-                    case ADD_SLOT:
-                        return nameof(ADD_SLOT);
-                    case REMOVE_SLOT:
-                        return nameof(REMOVE_SLOT);
-                    case POINTS:
-                        return nameof(POINTS);
-                    case LEFT:
-                        return nameof(LEFT);
-                    case RIGHT:
-                        return nameof(RIGHT);
-                    case OPEN_FILTER_DIALOG:
-                        return nameof(OPEN_FILTER_DIALOG);
-                    case START_GAME:
-                        return nameof(START_GAME);
-                    case OPEN_SETTINGS_DIALOG:
-                        return nameof(OPEN_SETTINGS_DIALOG);
-                    case OPEN_SPAWN_DIALOG:
-                        return nameof(OPEN_SPAWN_DIALOG);
-                    case RELOAD_MOD_FILES:
-                        return nameof(RELOAD_MOD_FILES);
-                    case RESTORE_DEFAULTS:
-                        return nameof(RESTORE_DEFAULTS);
-                }
-
-                //Unrecognized signal
-                return signalText;
+                    CHALLENGE_RANDOM     => nameof(CHALLENGE_RANDOM),
+                    DESELECT_MISSION     => nameof(DESELECT_MISSION),
+                    ADD_SLOT             => nameof(ADD_SLOT),
+                    REMOVE_SLOT          => nameof(REMOVE_SLOT),
+                    POINTS               => nameof(POINTS),
+                    LEFT                 => nameof(LEFT),
+                    RIGHT                => nameof(RIGHT),
+                    OPEN_FILTER_DIALOG   => nameof(OPEN_FILTER_DIALOG),
+                    START_GAME           => nameof(START_GAME),
+                    OPEN_SETTINGS_DIALOG => nameof(OPEN_SETTINGS_DIALOG),
+                    OPEN_SPAWN_DIALOG    => nameof(OPEN_SPAWN_DIALOG),
+                    RELOAD_MOD_FILES     => nameof(RELOAD_MOD_FILES),
+                    RESTORE_DEFAULTS     => nameof(RESTORE_DEFAULTS),
+                    _ => signalText //Unrecognized signal
+                };
+                #pragma warning restore IDE0055 // Fix formatting
             }
         }
 
