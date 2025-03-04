@@ -40,7 +40,7 @@ namespace LogUtils.Helpers
         /// Credit for this code goes to WilliamCruisoring
         public static Assembly GetCallingAssembly()
         {
-            Assembly thisAssembly = UtilityCore.ExecutingAssembly;
+            Assembly thisAssembly = UtilityCore.Assembly;
 
             StackTrace stackTrace = new StackTrace();
             StackFrame[] frames = stackTrace.GetFrames();
