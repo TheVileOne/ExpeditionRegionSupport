@@ -7,10 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExpeditionRegionSupport", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogUtils", "LogUtils\LogUtils.csproj", "{DCCF69C7-9139-4A9B-9F14-C137451B38F4}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
-	ProjectSection(SolutionItems) = preProject
-		.editorconfig = .editorconfig
-	EndProjectSection
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogUtils.Patcher", "LogUtils.Patcher\LogUtils.Patcher.csproj", "{ED874BC5-D3CD-4294-B08D-F77099249A3B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,6 +23,10 @@ Global
 		{DCCF69C7-9139-4A9B-9F14-C137451B38F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DCCF69C7-9139-4A9B-9F14-C137451B38F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DCCF69C7-9139-4A9B-9F14-C137451B38F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED874BC5-D3CD-4294-B08D-F77099249A3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED874BC5-D3CD-4294-B08D-F77099249A3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED874BC5-D3CD-4294-B08D-F77099249A3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED874BC5-D3CD-4294-B08D-F77099249A3B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -2,6 +2,7 @@
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
+using LogUtils.Requests;
 using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
