@@ -14,6 +14,21 @@ namespace LogUtils
     /// </summary>
     public class GameLogger : ILoggerBase
     {
+        LogID[] ILoggerBase.AvailableTargets
+        {
+            get
+            {
+                return new LogID[]
+                {
+                    LogID.BepInEx,
+                    LogID.Unity,
+                    LogID.Exception,
+                    LogID.JollyCoop,
+                    LogID.Expedition
+                };
+            }
+        }
+
         /// <summary>
         /// Set to the LogID of a request while it is being handled through an external logging API accessed by a GameLogger instance
         /// </summary>

@@ -16,6 +16,8 @@ namespace LogUtils
 
         public ManualLogSource ManagedLogSource;
 
+        LogID[] ILoggerBase.AvailableTargets => LogTargets.ToArray();
+
         /// <summary>
         /// Contains a list of LogIDs (both local and remote) that will be handled in the case of an untargeted log request
         /// </summary>

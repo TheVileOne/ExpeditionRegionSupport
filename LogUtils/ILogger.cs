@@ -24,6 +24,11 @@ namespace LogUtils
     public interface ILoggerBase
     {
         /// <summary>
+        /// Log file targets accepted by the logger
+        /// </summary>
+        LogID[] AvailableTargets { get; }
+
+        /// <summary>
         /// Can this logger instance accept, and process a specific LogRequest instance
         /// </summary>
         bool CanHandle(LogRequest request, bool doPathCheck = false);
