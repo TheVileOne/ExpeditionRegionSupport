@@ -133,3 +133,5 @@
 /LogUtils/obj/Release/net48/LogUtils.sourcelink.json
 /ExpeditionRegionSupport/obj/Release/net48/ExpeditionRegionSupport.csproj.FileListAbsolute.txt
 /ExpeditionRegionSupport/obj/Release/net48/ExpeditionRegionSupport.sourcelink.json
+/LogUtils.Patcher/obj
+/LogUtils/obj
