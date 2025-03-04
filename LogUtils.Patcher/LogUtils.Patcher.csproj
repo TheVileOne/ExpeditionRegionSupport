@@ -7,10 +7,6 @@
     </PropertyGroup>
 
 	<ItemGroup>
-		<Reference Include="LogUtils">
-		  <HintPath>..\mod\plugins\LogUtils.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
 		<Reference Include="Microsoft.CSharp" Version="4.7.0">
 			<Private>false</Private>
 		</Reference>
@@ -20,17 +16,6 @@
 		</Reference>
 		<Reference Include="MonoMod.RuntimeDetour">
 		  <HintPath>..\lib\MonoMod.RuntimeDetour.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="Assembly-CSharp">
-		  <HintPath>..\lib\PUBLIC-Assembly-CSharp.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine">
-		  <HintPath>..\lib\UnityEngine.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="UnityEngine.CoreModule">
-		  <HintPath>..\lib\UnityEngine.CoreModule.dll</HintPath>
 			<Private>false</Private>
 		</Reference>
 	</ItemGroup>

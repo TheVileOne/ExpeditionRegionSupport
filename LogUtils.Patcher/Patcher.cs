@@ -1,93 +1,145 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.IO;
 using System.Linq;
-using Mono.Cecil;
-using Mono.Cecil.Cil;
 using System.Reflection;
+using Mono.Cecil;
+using System.Collections.Generic;
+using System;
 
 namespace LogUtils.Patcher
 {
     public static class Patcher
     {
-        private delegate void LogMethodDelegate(object data);
+        private static readonly string logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "patcher.log");
 
-        private static readonly LogMethodDelegate LogInfoDelegate;
+        private static readonly string pluginRootPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins");
 
-        static Patcher()
+        public static IEnumerable<string> TargetDLLs => GetDLLs();
+
+        public static IEnumerable<string> GetDLLs()
         {
-            Type loggerType = null;
-            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+            File.Delete("patcher.log");
+
+            foreach (var dll in GetLogUtilsDLLsFromPlugins(pluginRootPath))
             {
-                loggerType = asm.GetType("BepInEx.Logging.Logger");
-                if (loggerType != null)
-                    break;
+                yield return dll;
             }
 
-            if (loggerType == null)
-                throw new Exception("BepInEx.Logging.Logger type not found.");
-
-            var methodInfo = loggerType.GetMethod("LogInfo", BindingFlags.Static | BindingFlags.NonPublic);
-            if (methodInfo == null)
-                throw new Exception("LogInfo method not found in BepInEx.Logging.Logger.");
-
-            LogInfoDelegate = (LogMethodDelegate)Delegate.CreateDelegate(typeof(LogMethodDelegate), methodInfo);
+            yield return "Assembly-CSharp.dll";
         }
 
-        public static IEnumerable<string> TargetDLLs { get; } = ["BepInEx.dll"];
-
-        public static void Patch(AssemblyDefinition assembly)
+        public static IEnumerable<string> GetLogUtilsDLLsFromPlugins(string rootDirectory)
         {
-            LogInfo("Initializing Patcher");
-
-            var chainloaderType = assembly.MainModule.Types.FirstOrDefault(t => t.FullName == "BepInEx.Bootstrap.Chainloader");
-            if (chainloaderType == null)
-                return;
-
-            var initMethod = chainloaderType.Methods.FirstOrDefault(m => m.Name == "Initialize" && m.HasBody);
-            if (initMethod == null)
-                return;
-
-            var processor = initMethod.Body.GetILProcessor();
-            bool patched = false;
-
-            foreach (var instr in initMethod.Body.Instructions)
+            if (!Directory.Exists(rootDirectory))
             {
-                if (instr.OpCode == OpCodes.Ldstr &&
-                    instr.Operand is string s &&
-                    s.Contains("Chainloader ready"))
+                Log("Plugin root directory not found: " + rootDirectory);
+                yield break;
+            }
+
+            var dllFiles = Directory.EnumerateFiles(rootDirectory, "LogUtils*.dll", SearchOption.AllDirectories);
+            if (!dllFiles.Any())
+            {
+                Log("No LogUtils DLLs found in plugin folders under " + rootDirectory);
+            }
+
+            string latestDll = null;
+            Version latestVersion = new Version(0, 0, 0, 0);
+
+            foreach (var file in dllFiles)
+            {
+                try
                 {
-                    var ensureInitMethod = typeof(UtilityCore).GetMethod("EnsureInitializedState", BindingFlags.Public | BindingFlags.Static);
-                    if (ensureInitMethod == null)
-                        break;
-
-                    var importedMethod = assembly.MainModule.ImportReference(ensureInitMethod);
-
-                    var callInstr = processor.Create(OpCodes.Call, importedMethod);
-
-                    processor.InsertAfter(instr, callInstr);
-                    patched = true;
-                    break;
+                    Version version = GetDllVersion(file);
+                    if (version > latestVersion)
+                    {
+                        latestVersion = version;
+                        latestDll = file;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log($"Error reading {file}: {ex}");
                 }
             }
 
-            if (!patched)
+            if (!string.IsNullOrEmpty(latestDll))
             {
-                LogInfo("Patcher Failed");
-                return;
+                Log("Latest LogUtils DLL determined: " + latestDll);
+                yield return latestDll;
             }
         }
 
-        public static void Finish()
+        public static void Patch(AssemblyDefinition assembly)
         {
-            LogInfo("Patcher finished");
+            Log("Starting patch process for assembly: " + assembly.Name.Name);
+
+            try
+            {
+                Log("Patching completed successfully.");
+            }
+            catch (Exception ex)
+            {
+                Log("Error during patching: " + ex);
+                throw;
+            }
         }
 
-        /// <summary>
-        /// Logs an info-level message using the reflection call.
-        /// </summary>
-        public static void LogInfo(object data)
+        public static string GetLatestFrameworkDll(string directoryPath)
         {
-            LogInfoDelegate?.Invoke(data);
+            if (!Directory.Exists(directoryPath))
+            {
+                Log("Directory not found: " + directoryPath);
+                return null;
+            }
+
+            var files = Directory.GetFiles(directoryPath, "LogUtils*.dll");
+            if (files.Length == 0)
+            {
+                Log("No framework DLLs found in " + directoryPath);
+                return null;
+            }
+
+            string latestDll = null;
+            Version latestVersion = new Version(0, 0, 0, 0);
+
+            foreach (var file in files)
+            {
+                try
+                {
+                    Version version = GetDllVersion(file);
+                    if (version > latestVersion)
+                    {
+                        latestVersion = version;
+                        latestDll = file;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log($"Error reading {file}: {ex}");
+                    throw new Exception($"Error reading {file}: {ex}");
+                }
+            }
+
+            Log("Latest framework DLL determined: " + latestDll);
+            return latestDll;
+        }
+
+        private static Version GetDllVersion(string dllPath)
+        {
+            var assemblyName = AssemblyName.GetAssemblyName(dllPath);
+            return assemblyName.Version;
+        }
+
+        private static void Log(string message)
+        {
+            try
+            {
+                string logMessage = $"{System.DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}{System.Environment.NewLine}";
+                File.AppendAllText(logFilePath, logMessage);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error writing to log file. " + ex);
+            }
         }
     }
 }
