@@ -1,6 +1,7 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
 using LogUtils.Events;
+using LogUtils.Requests;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace LogUtils
+namespace LogUtils.Requests
 {
     public class LinkedLogRequestCollection : BufferedLinkedList<LogRequest>
     {

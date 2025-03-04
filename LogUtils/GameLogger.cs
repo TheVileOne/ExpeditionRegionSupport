@@ -4,6 +4,7 @@ using JollyCoop;
 using LogUtils.CompatibilityServices;
 using LogUtils.Enums;
 using LogUtils.Events;
+using LogUtils.Requests;
 using System;
 using UnityEngine;
 

@@ -2,6 +2,7 @@
 using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Properties;
+using LogUtils.Requests;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;

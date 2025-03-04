@@ -1,4 +1,6 @@
-﻿namespace LogUtils.Events
+﻿using LogUtils.Requests;
+
+namespace LogUtils.Events
 {
     public static class LogRequestEvents
     {

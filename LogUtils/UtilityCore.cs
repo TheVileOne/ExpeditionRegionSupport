@@ -4,6 +4,7 @@ using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Properties;
+using LogUtils.Requests;
 using LogUtils.Threading;
 using Menu;
 using System;

@@ -3,7 +3,7 @@ using LogUtils.Events;
 using System;
 using System.Threading;
 
-namespace LogUtils
+namespace LogUtils.Requests
 {
     /// <summary>
     /// A class for storing log details until a logger is available to process the request
