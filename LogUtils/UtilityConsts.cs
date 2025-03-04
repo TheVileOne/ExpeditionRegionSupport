@@ -5,7 +5,7 @@ namespace LogUtils
 {
     public static class UtilityConsts
     {
-        public const int CUSTOM_LOGTYPE_LIMIT = 1000;
+        public const int CUSTOM_LOGTYPE_LIMIT = int.MaxValue;
         public const string UTILITY_NAME = "LogUtils";
 
         public static class DataFields
