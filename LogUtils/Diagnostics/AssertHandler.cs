@@ -29,7 +29,7 @@ namespace LogUtils.Diagnostics
                         _default.Logger = UtilityLogger.Logger;
                     }
                 }
-                else if (_default.Logger == UtilityLogger.Logger)
+                else if (_default.Logger == UtilityLogger.Logger && (UtilityLogger.ReceiveUnityLogEvents || (LogID.Unity != null && LogID.Unity.Properties.CanBeAccessed)))
                 {
                     UtilityLogger.Log("Fallback logger no longer necessary");
                     _default.Logger = new UnityLogger();
@@ -139,7 +139,7 @@ namespace LogUtils.Diagnostics
             public string FailResponse = UtilityConsts.AssertResponse.FAIL;
             public string PassResponse = UtilityConsts.AssertResponse.PASS;
 
-            public string Format(in Condition.Result result, string messageHeader = null)
+            public string Format(Condition.Result result, string messageHeader = null)
             {
                 string messageBase = result.ToString();
 
@@ -149,7 +149,7 @@ namespace LogUtils.Diagnostics
                     if (string.IsNullOrEmpty(messageBase))
                         messageBase = messageHeader;
                     else
-                        messageBase = messageHeader + ": " + messageBase;
+                        messageBase = $"{messageHeader}: {messageBase}";
                 }
 
                 //Find content we need to append to the end of the message
@@ -171,6 +171,6 @@ namespace LogUtils.Diagnostics
         LogOnFail = 1,
         LogOnPass = 2,
         Throw = 4,
-        LogAndThrow = LogOnFail & Throw,
+        LogAndThrow = LogOnFail | Throw
     }
 }
