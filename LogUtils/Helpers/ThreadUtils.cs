@@ -1,5 +1,4 @@
-﻿using LogUtils.Enums;
-using System.Threading;
+﻿using System.Threading;
 
 namespace LogUtils.Helpers
 {
@@ -14,8 +13,8 @@ namespace LogUtils.Helpers
         {
             if (!IsRunningOnMainThread())
             {
-                UtilityLogger.Log(LogCategory.Debug, "Assert failed: currently not on main thread");
-                UtilityLogger.Log(LogCategory.Debug, $"ThreadInfo: Id [{Thread.CurrentThread.ManagedThreadId}] Source [{context}]");
+                UtilityLogger.Logger.LogDebug("Assert failed: currently not on main thread");
+                UtilityLogger.Logger.LogDebug($"ThreadInfo: Id [{Thread.CurrentThread.ManagedThreadId}] Source [{context}]");
                 return false;
             }
             return true;

@@ -29,7 +29,7 @@ namespace LogUtils.Diagnostics
                         _default.Logger = UtilityLogger.Logger;
                     }
                 }
-                else if (_default.Logger == UtilityLogger.Logger && (UtilityLogger.ReceiveUnityLogEvents || (LogID.Unity != null && LogID.Unity.Properties.CanBeAccessed)))
+                else if (_default.Logger == UtilityLogger.Logger && (UnityLogger.ReceiveUnityLogEvents || (LogID.Unity != null && LogID.Unity.Properties.CanBeAccessed)))
                 {
                     UtilityLogger.Log("Fallback logger no longer necessary");
                     _default.Logger = new UnityLogger();

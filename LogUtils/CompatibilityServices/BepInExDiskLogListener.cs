@@ -14,20 +14,24 @@ namespace LogUtils.CompatibilityServices
         /// <summary>
         /// This writer handles all BepInEx log traffic for Rain World
         /// </summary>
-        public LogWriter Writer;
+        public ILogWriter Writer;
 
         /// <summary>
         /// Stores LogUtils requests until they are able to be handled
         /// </summary>
         private readonly List<LogRequest> utilityRequestsInProcess = new List<LogRequest>();
 
-        public BepInExDiskLogListener(LogWriter writer)
+        private bool isDisposed;
+
+        public BepInExDiskLogListener(ILogWriter writer)
         {
             Writer = writer;
         }
 
         public void Dispose()
         {
+            isDisposed = true;
+
             IDisposable disposable = Writer as IDisposable;
 
             if (disposable != null)
@@ -39,27 +43,27 @@ namespace LogUtils.CompatibilityServices
         {
             if (eventArgs.Source is UnityLogSource) return;
 
-            LogRequest request;
-            lock (UtilityCore.RequestHandler.RequestProcessLock)
+            if (isDisposed)
             {
-                request = UtilityCore.RequestHandler.CurrentRequest;
-
-                if (request == null || request.Data.ID != LogID.BepInEx)
-                {
-                    if (eventArgs.Source.SourceName == UtilityConsts.UTILITY_NAME)
-                    {
-                        request = new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.BepInEx, eventArgs));
-                        logUtilityEvent(request);
-                        return;
-                    }
-                }
+                if (Writer != null)
+                    Writer = LogWriter.Writer;
+                UtilityLogger.DebugLog("LogListener has been disposed");
             }
 
-            if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake)
-                ThreadUtils.AssertRunningOnMainThread(LogID.BepInEx);
-
             lock (UtilityCore.RequestHandler.RequestProcessLock)
             {
+                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+
+                if ((request == null || request.Data.ID != LogID.BepInEx) && eventArgs.Source.SourceName == UtilityConsts.UTILITY_NAME)
+                {
+                    request = new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.BepInEx, eventArgs));
+                    logUtilityEvent(request);
+                    return;
+                }
+
+                if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake)
+                    ThreadUtils.AssertRunningOnMainThread(LogID.BepInEx);
+
                 request = UtilityCore.RequestHandler.CurrentRequest;
 
                 if (request == null)
