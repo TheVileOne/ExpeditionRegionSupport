@@ -32,10 +32,14 @@ namespace LogUtils.CompatibilityServices
         {
             isDisposed = true;
 
-            IDisposable disposable = Writer as IDisposable;
+            //Avoid disposing the default writer
+            if (Writer != LogWriter.Writer)
+            {
+                IDisposable disposable = Writer as IDisposable;
 
-            if (disposable != null)
-                disposable.Dispose();
+                if (disposable != null)
+                    disposable.Dispose();
+            }
             Writer = null;
         }
 
@@ -45,7 +49,7 @@ namespace LogUtils.CompatibilityServices
 
             if (isDisposed)
             {
-                if (Writer != null)
+                if (Writer == null)
                     Writer = LogWriter.Writer;
                 UtilityLogger.DebugLog("LogListener has been disposed");
             }
