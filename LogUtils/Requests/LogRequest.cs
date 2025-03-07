@@ -145,13 +145,6 @@ namespace LogUtils.Requests
             }
         }
 
-        public void Processed()
-        {
-            //After a process, the only valid states the request can be is Complete, or Rejected
-            if (!IsCompleteOrRejected)
-                Reject(RejectionReason.UnknownProcessDelay);
-        }
-
         public void WriteInProcess()
         {
             if (Status != RequestStatus.Pending) return;
@@ -271,16 +264,12 @@ namespace LogUtils.Requests
         /// </summary>
         WaitingOnOtherRequests = 8,
         /// <summary>
-        /// Attempt to handle log was not immediately completed for some reason
-        /// </summary>
-        UnknownProcessDelay = 9,
-        /// <summary>
         /// No logger is available that accepts the LogID, or the logger accepts the LogID, but enforces a build period on the log file that is not yet satisfied
         /// </summary>
-        LogUnavailable = 10,
+        LogUnavailable = 9,
         /// <summary>
         /// Attempt to log to a ShowLogs aware log before ShowLogs is initialized
         /// </summary>
-        ShowLogsNotInitialized = 11
+        ShowLogsNotInitialized = 10
     }
 }

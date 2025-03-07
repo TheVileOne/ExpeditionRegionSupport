@@ -32,11 +32,11 @@ namespace LogUtils
         /// <summary>
         /// Can this logger instance accept, and process a specific LogRequest instance
         /// </summary>
-        bool CanHandle(LogRequest request, bool doPathCheck = false);
+        public bool CanHandle(LogRequest request, bool doPathCheck = false);
 
         /// <summary>
-        /// Retrieves the Logger-specific implementation details for handling a LogRequest
+        /// Accepts and processes a LogRequest instance
         /// </summary>
-        RequestHandlerModule GetHandler();
+        public void HandleRequest(LogRequest request, bool skipAccessValidation = false);
     }
 }

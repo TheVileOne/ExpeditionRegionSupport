@@ -11,8 +11,6 @@ namespace LogUtils
 {
     public class Logger : ILogger, ILoggerBase, IDisposable
     {
-        protected RequestHandlerModule Handler;
-
         public ILogWriter Writer = LogWriter.Writer;
 
         public ManualLogSource ManagedLogSource;
@@ -93,7 +91,6 @@ namespace LogUtils
                 throw new EarlyInitializationException("Logger created too early");
 
             AllowLogging = allowLogging;
-            Handler = new RequestHandler(this);
 
             LogTargets.AddRange(presets);
 
@@ -129,8 +126,6 @@ namespace LogUtils
                     break;
             }
         }
-
-        public RequestHandlerModule GetHandler() => Handler;
 
         #endregion
         #region Restore Points
@@ -677,6 +672,76 @@ namespace LogUtils
         {
             return LogTargets.Where(log => !log.IsGameControlled && log.Access != LogAccess.RemoteAccessOnly);
         }
+
+        public void HandleRequest(LogRequest request, bool skipAccessValidation = false)
+        {
+            if (!skipAccessValidation && !CanHandle(request, doPathCheck: true))
+            {
+                //TODO: CanHandle should be replaced with a function that returns an AccessViolation enum that tells us which specific reason to reject the request
+                UtilityLogger.LogWarning("Request sent to a logger that cannot handle it");
+                request.Reject(RejectionReason.NotAllowedToHandle);
+                return;
+            }
+
+            LogID loggerID = null;
+            HandleRequest(request, ref loggerID);
+        }
+
+        internal void HandleRequest(LogRequest request, ref LogID loggerID)
+        {
+            if (request.Submitted)
+                UtilityCore.RequestHandler.CurrentRequest = request;
+
+            LogID requestID = request.Data.ID;
+            if (loggerID == null || loggerID != requestID) //ExtEnums are not compared by reference
+            {
+                //The local LogID stored in LogTargets will be a different instance to the one stored in a remote log request
+                //It is important to check the local id instead of the remote id in certain situations
+                loggerID = LogTargets.Find(id => id == requestID);
+            }
+
+            if (loggerID.Properties.CurrentFolderPath != requestID.Properties.CurrentFolderPath) //Same LogID, different log paths - do not handle
+            {
+                UtilityLogger.Log("Request not handled, log paths do not match");
+                request.Reject(RejectionReason.PathMismatch);
+                return;
+            }
+
+            request.ResetStatus(); //Ensure that processing request is handled in a consistent way
+
+            if (!AllowLogging || !loggerID.IsEnabled)
+            {
+                request.Reject(RejectionReason.LogDisabled);
+                return;
+            }
+
+            if (loggerID.Properties.ShowLogsAware && !RainWorld.ShowLogs)
+            {
+                if (RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD)
+                    request.Reject(RejectionReason.ShowLogsNotInitialized);
+                else
+                    request.Reject(RejectionReason.LogDisabled);
+                return;
+            }
+
+            if (request.Type == RequestType.Remote && (loggerID.Access == LogAccess.Private || !AllowRemoteLogging))
+            {
+                request.Reject(RejectionReason.AccessDenied);
+                return;
+            }
+
+            var writer = Writer;
+
+            if (writer == null) //This is possible when the Logger gets disposed - Ideally the logger should not be referenced after disposal
+            {
+                request.Reject(RejectionReason.FailedToWrite);
+                return;
+            }
+
+            request.Host = this;
+            writer.WriteFrom(request);
+        }
+
         #endregion
 
         #region Dispose pattern
@@ -720,79 +785,6 @@ namespace LogUtils
         internal static bool CanLogBeHandledLocally(LogID logID)
         {
             return !logID.IsGameControlled && (logID.Access == LogAccess.FullAccess || logID.Access == LogAccess.Private);
-        }
-
-        public sealed class RequestHandler : RequestHandlerModule
-        {
-            private readonly Logger logger;
-            private LogID loggerID; //Possible for this to become a stale reference under a rare circumstance
-
-            public RequestHandler(Logger owner)
-            {
-                logger = owner;
-            }
-
-            protected override void HandleRequest()
-            {
-                if (RequiresAccessValidation)
-                {
-                    bool allowedToHandle = logger.CanHandle(Request, doPathCheck: true);
-
-                    if (!allowedToHandle)
-                    {
-                        UtilityLogger.LogWarning("Request sent to a logger that cannot handle it");
-                        Request.Reject(RejectionReason.NotAllowedToHandle);
-                        return;
-                    }
-                }
-
-                LogID requestID = Request.Data.ID;
-                if (loggerID == null || loggerID != requestID) //ExtEnums are not compared by reference
-                {
-                    //The local LogID stored in LogTargets will be a different instance to the one stored in a remote log request
-                    //It is important to check the local id instead of the remote id in certain situations
-                    loggerID = logger.LogTargets.Find(id => id == requestID);
-                }
-
-                if (loggerID.Properties.CurrentFolderPath != requestID.Properties.CurrentFolderPath) //Same LogID, different log paths - do not handle
-                {
-                    UtilityLogger.Log("Request not handled, log paths do not match");
-                    Request.Reject(RejectionReason.PathMismatch);
-                    return;
-                }
-
-                if (!logger.AllowLogging || !loggerID.IsEnabled)
-                {
-                    Request.Reject(RejectionReason.LogDisabled);
-                    return;
-                }
-
-                if (loggerID.Properties.ShowLogsAware && !RainWorld.ShowLogs)
-                {
-                    if (RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD)
-                        Request.Reject(RejectionReason.ShowLogsNotInitialized);
-                    else
-                        Request.Reject(RejectionReason.LogDisabled);
-                    return;
-                }
-
-                if (Request.Type == RequestType.Remote && (loggerID.Access == LogAccess.Private || !logger.AllowRemoteLogging))
-                {
-                    Request.Reject(RejectionReason.AccessDenied);
-                    return;
-                }
-
-                var writer = logger.Writer;
-
-                if (writer == null) //This is possible when the Logger gets disposed - Ideally the logger should not be referenced after disposal
-                {
-                    Request.Reject(RejectionReason.FailedToWrite);
-                    return;
-                }
-
-                Request.Host = logger;
-                writer.WriteFrom(Request);
-            }
         }
 
         public class EarlyInitializationException(string message) : InvalidOperationException(message)
