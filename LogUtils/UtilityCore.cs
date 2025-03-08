@@ -56,8 +56,6 @@ namespace LogUtils
 
         public static FrameTimer Scheduler;
 
-        public static int ThreadID;
-
         /// <summary>
         /// Ensures that core functionality is in a proper and useable state by ensuring the initialization procedure has run
         /// </summary>

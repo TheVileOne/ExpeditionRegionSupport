@@ -11,7 +11,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using UnityEngine;
 
 namespace LogUtils
@@ -128,7 +127,7 @@ namespace LogUtils
 
         private static void RainWorld_Awake(On.RainWorld.orig_Awake orig, RainWorld self)
         {
-            UtilityCore.ThreadID = Thread.CurrentThread.ManagedThreadId; //Used for debug purposes
+            ThreadUtils.MainThreadID = Environment.CurrentManagedThreadId; //Used for debug purposes
             RainWorld._loggingLock = UtilityCore.RequestHandler.RequestProcessLock;
 
             //Utility bypasses attempts to define this from the game code. Avoid any potential null references 
