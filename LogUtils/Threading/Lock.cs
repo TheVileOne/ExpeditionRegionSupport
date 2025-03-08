@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogUtils.Events;
+using System;
 using System.Threading;
 
 namespace LogUtils.Threading
@@ -20,12 +21,12 @@ namespace LogUtils.Threading
 
         private readonly Scope _scope;
 
-        public static event Event OnEvent;
+        public static ThreadSafeEvent<Lock, EventID> OnEvent = new ThreadSafeEvent<Lock, EventID>();
 
         public Lock()
         {
             _scope = new Scope(this);
-            OnEvent?.Invoke(this, EventID.LockCreated);
+            OnEvent.Raise(this, EventID.LockCreated);
         }
 
         public Scope Acquire()
@@ -33,13 +34,13 @@ namespace LogUtils.Threading
             //Blockless attempt to enter scope
             bool lockEntered = Monitor.TryEnter(_scope, 1);
 
-            OnEvent?.Invoke(this, lockEntered ? EventID.LockAcquired : EventID.WaitingToAcquire);
+            OnEvent.Raise(this, lockEntered ? EventID.LockAcquired : EventID.WaitingToAcquire);
 
             if (!lockEntered)
             {
                 //Block until scope is entered
                 Monitor.Enter(_scope);
-                OnEvent?.Invoke(this, EventID.LockAcquired);
+                OnEvent.Raise(this, EventID.LockAcquired);
             }
 
             ActiveCount++;
@@ -58,7 +59,7 @@ namespace LogUtils.Threading
 
             ActiveCount--;
             Monitor.Exit(_scope);
-            OnEvent?.Invoke(this, EventID.LockReleased);
+            OnEvent.Raise(this, EventID.LockReleased);
         }
 
         public sealed class Scope : IDisposable
@@ -75,8 +76,6 @@ namespace LogUtils.Threading
                 _lock.Release();
             }
         }
-
-        public delegate void Event(Lock sender, EventID eventID);
 
         public enum EventID
         {
