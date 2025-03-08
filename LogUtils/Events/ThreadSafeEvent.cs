@@ -2,26 +2,35 @@
 {
     public class ThreadSafeEvent<TSource, TData>
     {
-        private EventHandler handler;
+        private EventHandler<TSource, TData> _handler;
 
-        public void Add(EventHandler handler)
+        public event EventHandler<TSource, TData> Handler
         {
-            lock (this)
-                this.handler += handler;
+            add
+            {
+                lock (this)
+                    _handler += value;
+            }
+            remove
+            {
+                lock (this)
+                    _handler -= value;
+            }
         }
 
-        public void Remove(EventHandler handler)
+        public ThreadSafeEvent()
         {
-            lock (this)
-                this.handler -= handler;
+        }
+
+        public ThreadSafeEvent(EventHandler<TSource, TData> handler)
+        {
+            _handler = handler;
         }
 
         public void Raise(TSource source, TData data)
         {
             lock (this)
-                handler?.Invoke(source, data);
+                _handler?.Invoke(source, data);
         }
-
-        public delegate void EventHandler(TSource sender, TData data);
     }
 }

@@ -19,32 +19,38 @@ namespace LogUtils.Threading
         /// </summary>
         public bool SuppressNextRelease;
 
-        private readonly Scope _scope;
+        private readonly Scope lockScope;
 
-        public static ThreadSafeEvent<Lock, EventID> OnEvent = new ThreadSafeEvent<Lock, EventID>();
+        private static readonly ThreadSafeEvent<Lock, EventID> lockEvent = new ThreadSafeEvent<Lock, EventID>();
+
+        public static event EventHandler<Lock, EventID> OnEvent
+        {
+            add => lockEvent.Handler += value;
+            remove => lockEvent.Handler -= value;
+        }
 
         public Lock()
         {
-            _scope = new Scope(this);
-            OnEvent.Raise(this, EventID.LockCreated);
+            lockScope = new Scope(this);
+            lockEvent.Raise(this, EventID.LockCreated);
         }
 
         public Scope Acquire()
         {
             //Blockless attempt to enter scope
-            bool lockEntered = Monitor.TryEnter(_scope, 1);
+            bool lockEntered = Monitor.TryEnter(lockScope, 1);
 
-            OnEvent.Raise(this, lockEntered ? EventID.LockAcquired : EventID.WaitingToAcquire);
+            lockEvent.Raise(this, lockEntered ? EventID.LockAcquired : EventID.WaitingToAcquire);
 
             if (!lockEntered)
             {
                 //Block until scope is entered
-                Monitor.Enter(_scope);
-                OnEvent.Raise(this, EventID.LockAcquired);
+                Monitor.Enter(lockScope);
+                lockEvent.Raise(this, EventID.LockAcquired);
             }
 
             ActiveCount++;
-            return _scope;
+            return lockScope;
         }
 
         public void Release()
@@ -58,8 +64,8 @@ namespace LogUtils.Threading
             if (ActiveCount == 0) return;
 
             ActiveCount--;
-            Monitor.Exit(_scope);
-            OnEvent.Raise(this, EventID.LockReleased);
+            Monitor.Exit(lockScope);
+            lockEvent.Raise(this, EventID.LockReleased);
         }
 
         public sealed class Scope : IDisposable
