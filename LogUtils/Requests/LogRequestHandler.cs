@@ -1,5 +1,6 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Helpers.Comparers;
+using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace LogUtils.Requests
         /// This lock object marshals control over submission of LogRequests, and processing requests stored in UnhandledRequests. When there is a need to
         /// process LogRequests directly from UnhandledRequests, it is recommended to use this lock object to achieve thread safety
         /// </summary>
-        public object RequestProcessLock = new object();
+        public Lock RequestProcessLock = new Lock();
 
         public override string Tag => UtilityConsts.ComponentTags.REQUEST_DATA;
 
