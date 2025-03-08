@@ -1,5 +1,4 @@
-﻿using LogUtils.CompatibilityServices;
-using LogUtils.Diagnostics.Tools;
+﻿using LogUtils.Compatibility;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;

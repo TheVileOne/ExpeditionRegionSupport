@@ -4,7 +4,7 @@ using LogUtils.Events;
 using LogUtils.Requests;
 using UnityEngine;
 
-namespace LogUtils.CompatibilityServices
+namespace LogUtils.Compatibility
 {
     /// <summary>
     /// A logger that exclusively writes directly through Unity's logging API

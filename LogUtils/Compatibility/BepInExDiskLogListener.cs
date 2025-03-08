@@ -7,7 +7,7 @@ using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
 
-namespace LogUtils.CompatibilityServices
+namespace LogUtils.Compatibility
 {
     public sealed class BepInExDiskLogListener : ILogListener
     {

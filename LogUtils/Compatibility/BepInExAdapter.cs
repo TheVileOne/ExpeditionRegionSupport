@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LogUtils.CompatibilityServices
+namespace LogUtils.Compatibility
 {
     /// <summary>
     /// Adapter service for converting the BepInEx logging system to the system that LogUtils operates

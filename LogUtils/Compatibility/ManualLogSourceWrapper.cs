@@ -3,7 +3,7 @@ using LogUtils.Enums;
 using System;
 using UnityEngine;
 
-namespace LogUtils.CompatibilityServices
+namespace LogUtils.Compatibility
 {
     /// <summary>
     /// A class dedicated to translating a ManualLogSource to an IExtendedLogSource

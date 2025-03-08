@@ -1,5 +1,5 @@
 ﻿using BepInEx.Logging;
-using LogUtils.CompatibilityServices;
+using LogUtils.Compatibility;
 using LogUtils.Enums;
 using System;
 using System.Threading;

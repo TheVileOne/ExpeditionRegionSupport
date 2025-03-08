@@ -1,7 +1,7 @@
 ﻿using BepInEx.Logging;
 using System;
 
-namespace LogUtils.CompatibilityServices
+namespace LogUtils.Compatibility
 {
     public static class AdapterServices
     {

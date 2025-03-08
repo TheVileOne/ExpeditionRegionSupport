@@ -1,6 +1,6 @@
 ﻿using BepInEx.Logging;
 
-namespace LogUtils.CompatibilityServices
+namespace LogUtils.Compatibility
 {
     public interface IExtendedLogSource : ILogger, ILogSource
     {
