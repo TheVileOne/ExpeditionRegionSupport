@@ -54,7 +54,7 @@ namespace LogUtils.CompatibilityServices
                 UtilityLogger.DebugLog("LogListener has been disposed");
             }
 
-            lock (UtilityCore.RequestHandler.RequestProcessLock)
+            using (UtilityCore.RequestHandler.BeginCriticalSection())
             {
                 LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 

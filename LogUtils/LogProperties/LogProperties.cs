@@ -523,10 +523,10 @@ namespace LogUtils.Properties
         {
             newPath = PathUtils.PathWithoutFilename(newPath, out string newFilename);
 
-            bool changesPresent = false;
-
-            lock (FileLock)
+            using (FileLock.Acquire())
             {
+                bool changesPresent = false;
+
                 //Compare the current filename to the new filename
                 if (newFilename != null && !ComparerUtils.FilenameComparer.Equals(CurrentFilename, newFilename, true))
                 {
@@ -563,7 +563,7 @@ namespace LogUtils.Properties
 
             ReplacementFilePath = Path.ChangeExtension(LastKnownFilePath, FileExt.TEMP);
 
-            lock (FileLock)
+            using (FileLock.Acquire())
             {
                 if (copyOnly)
                 {
@@ -603,7 +603,7 @@ namespace LogUtils.Properties
 
             try
             {
-                lock (FileLock)
+                using (FileLock.Acquire())
                 {
                     FileLock.SetActivity(logID, FileAction.SessionStart);
 
@@ -662,7 +662,7 @@ namespace LogUtils.Properties
 
             try
             {
-                lock (FileLock)
+                using (FileLock.Acquire())
                 {
                     FileLock.SetActivity(logID, FileAction.SessionEnd);
 

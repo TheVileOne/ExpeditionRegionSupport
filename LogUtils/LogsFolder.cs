@@ -181,7 +181,7 @@ namespace LogUtils
         {
             if (Path == null) return;
 
-            lock (properties.FileLock)
+            using (properties.FileLock.Acquire())
             {
                 if (IsCurrentPath(properties.CurrentFolderPath)) return;
 
@@ -206,7 +206,7 @@ namespace LogUtils
         /// </summary>
         internal static void RevokeDesignation(LogProperties properties)
         {
-            lock (properties.FileLock)
+            using (properties.FileLock.Acquire())
             {
                 if (!IsLogsFolderPath(properties.CurrentFolderPath)) //Check that the log file is currently designated
                     return;
@@ -267,7 +267,7 @@ namespace LogUtils
                 var streamsToResume = new List<StreamResumer>();
                 try
                 {
-                    lock (UtilityCore.RequestHandler.RequestProcessLock)
+                    using (UtilityCore.RequestHandler.BeginCriticalSection())
                     {
                         foreach (LogID logFile in logFilesInFolder)
                         {
@@ -287,7 +287,6 @@ namespace LogUtils
                 finally
                 {
                     //Reopen the streams
-                    UtilityLogger.DebugLog("Resume method C");
                     streamsToResume.ResumeAll();
                 }
             });

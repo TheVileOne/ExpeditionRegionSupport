@@ -38,6 +38,14 @@ namespace LogUtils.Threading
                 //Activate all locks before doing any work
                 foreach (object objLock in locksEnumerable)
                 {
+                    Lock lockCast = objLock as Lock;
+
+                    if (lockCast != null)
+                    {
+                        lockCast.Acquire();
+                        continue;
+                    }
+
                     Monitor.Enter(objLock);
                     locksEntered++;
                 }
@@ -57,6 +65,15 @@ namespace LogUtils.Threading
                 {
                     locksEntered--;
                     locksEnumerator.MoveNext();
+
+                    Lock lockCast = locksEnumerator.Current as Lock;
+
+                    if (lockCast != null)
+                    {
+                        lockCast.Release();
+                        continue;
+                    }
+
                     Monitor.Exit(locksEnumerator.Current);
                 }
             }

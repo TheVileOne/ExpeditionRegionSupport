@@ -53,7 +53,7 @@ namespace LogUtils.Requests
                     return;
                 }
 
-                lock (RequestProcessLock)
+                using (BeginCriticalSection())
                 {
                     if (CurrentRequest != value)
                         _currentRequest = value;
@@ -81,7 +81,7 @@ namespace LogUtils.Requests
 
             private set
             {
-                lock (RequestProcessLock)
+                using (BeginCriticalSection())
                 {
                     LogRequest lastUnhandledRequest = PendingRequest;
 
@@ -112,6 +112,23 @@ namespace LogUtils.Requests
             UnhandledRequests = new LinkedLogRequestCollection(20);
         }
 
+        /// <summary>
+        /// Acquires the lock necessary for entering a critical state pertaining to LogRequest handling
+        /// </summary>
+        /// <returns>A disposable scope object purposed for leaving a critical state</returns>
+        public Lock.Scope BeginCriticalSection()
+        {
+            return RequestProcessLock.Acquire();
+        }
+
+        /// <summary>
+        /// Releases the lock used to enter a critical state
+        /// </summary>
+        public void EndCriticalSection()
+        {
+            RequestProcessLock.Release();
+        }
+
         public LogRequest[] GetRequests(LogID logFile)
         {
             return UnhandledRequests.Where(req => req.Data.ID.Equals(logFile, doPathCheck: true)).ToArray();
@@ -128,7 +145,7 @@ namespace LogUtils.Requests
         /// <returns>This method returns the same request given to it under any condition. The return value is more reliable than checking CurrentRequest, which may be null</returns>
         public LogRequest Submit(LogRequest request, bool handleSubmission)
         {
-            lock (RequestProcessLock)
+            using (BeginCriticalSection())
             {
                 if (request.Submitted)
                 {
@@ -405,7 +422,7 @@ namespace LogUtils.Requests
         /// </summary>
         public void ProcessRequests(LogID logFile)
         {
-            lock (RequestProcessLock)
+            using (BeginCriticalSection())
             {
                 //Ensure that we do not handle a stale record
                 logFile.Properties.HandleRecord.Reset();
@@ -437,7 +454,7 @@ namespace LogUtils.Requests
 
         public void ProcessRequests(Logger logger)
         {
-            lock (RequestProcessLock)
+            using (BeginCriticalSection())
             {
                 foreach (LogID logFile in logger.GetTargetsForHandler())
                 {
@@ -471,7 +488,7 @@ namespace LogUtils.Requests
             int requestsProcessed = 0;
             long processStartTime = Stopwatch.GetTimestamp();
 
-            lock (RequestProcessLock)
+            using (BeginCriticalSection())
             {
                 LogRequest[] requests = UnhandledRequests.GetRequestsSorted();
 
@@ -636,7 +653,7 @@ namespace LogUtils.Requests
         {
             if (HandleOnNextAvailableFrame.Any())
             {
-                lock (RequestProcessLock)
+                using (BeginCriticalSection())
                 {
                     UtilityLogger.DebugLog("Handling scheduled requests");
                     while (HandleOnNextAvailableFrame.Any())

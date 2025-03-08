@@ -116,7 +116,7 @@ namespace LogUtils
                 {
                     var fileLock = logEntry.Properties.FileLock;
 
-                    lock (fileLock)
+                    using (fileLock.Acquire())
                     {
                         fileLock.SetActivity(logEntry.ID, FileAction.Write);
 

@@ -130,7 +130,7 @@ namespace LogUtils
             {
                 var fileLock = logFile.Properties.FileLock;
 
-                lock (fileLock)
+                using (fileLock.Acquire())
                 {
                     fileLock.SetActivity(logFile, FileAction.Write);
                     ProcessResult streamResult = AssignWriter(logFile, out writer);

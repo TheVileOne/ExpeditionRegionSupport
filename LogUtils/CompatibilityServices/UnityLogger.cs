@@ -103,7 +103,7 @@ namespace LogUtils.CompatibilityServices
 
         private static void logEvent(string message, string stackTrace, LogType category)
         {
-            lock (UtilityCore.RequestHandler.RequestProcessLock)
+            using (UtilityCore.RequestHandler.BeginCriticalSection())
             {
                 //This submission wont be able to be logged until Rain World can initialize
                 if (UtilityCore.RequestHandler.CurrentRequest == null)

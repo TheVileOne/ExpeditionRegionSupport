@@ -603,7 +603,7 @@ namespace LogUtils
                 request.Data.FilterDuration = FilterDuration.OnClose;
             }
 
-            lock (UtilityCore.RequestHandler.RequestProcessLock)
+            using (UtilityCore.RequestHandler.BeginCriticalSection())
             {
                 //Local requests are processed immediately by the logger, while other types of requests are handled through RequestHandler
                 if (request.Type != RequestType.Local)

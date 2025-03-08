@@ -252,7 +252,7 @@ namespace LogUtils
 
         private static void RainWorld_HandleLog(On.RainWorld.orig_HandleLog orig, RainWorld self, string logString, string stackTrace, LogType logLevel)
         {
-            lock (UtilityCore.RequestHandler.RequestProcessLock)
+            using (UtilityCore.RequestHandler.BeginCriticalSection())
             {
                 gameHookRequestCounter++;
 
@@ -465,7 +465,7 @@ namespace LogUtils
             cursor.Emit(OpCodes.Ldarg_0); //Static method, this is the log string
             cursor.EmitDelegate((string logString) =>
             {
-                lock (UtilityCore.RequestHandler.RequestProcessLock)
+                using (UtilityCore.RequestHandler.BeginCriticalSection())
                 {
                     LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
@@ -559,7 +559,7 @@ namespace LogUtils
             cursor.Emit(OpCodes.Ldarg_1);
             cursor.EmitDelegate((string logString, bool isErrorMessage) =>
             {
-                lock (UtilityCore.RequestHandler.RequestProcessLock)
+                using (UtilityCore.RequestHandler.BeginCriticalSection())
                 {
                     LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 

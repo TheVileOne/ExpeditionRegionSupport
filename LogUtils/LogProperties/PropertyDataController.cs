@@ -97,7 +97,7 @@ namespace LogUtils.Properties
                         properties.SkipStartupRoutine = true;
                     }
 
-                    lock (properties.FileLock)
+                    using (properties.FileLock.Acquire())
                     {
                         properties.FileLock.SetActivity(properties.ID, FileAction.Move);
 

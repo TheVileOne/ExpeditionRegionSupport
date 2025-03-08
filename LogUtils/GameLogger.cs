@@ -241,7 +241,7 @@ namespace LogUtils
 
         protected void Process(LogID logFile, Action processLog)
         {
-            lock (UtilityCore.RequestHandler.RequestProcessLock)
+            using (UtilityCore.RequestHandler.BeginCriticalSection())
             {
                 //Check values to ensure that the same request going into an API is the same request coming out of it
                 GameLoggerRequestCounter++;

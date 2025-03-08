@@ -45,24 +45,23 @@ namespace LogUtils.Helpers
 
         internal static FileStatus InternalMove(LogID logFile, string newLogPath)
         {
-            FileStatus moveResult;
-
             var fileLock = logFile.Properties.FileLock;
-            lock (fileLock)
+
+            using (fileLock.Acquire())
             {
                 fileLock.SetActivity(logFile, FileAction.Move);
 
                 //The move operation requires that all persistent file activity be closed until move is complete
                 var streamsToResume = logFile.Properties.PersistentStreamHandles.InterruptAll();
 
-                moveResult = Move(logFile.Properties.CurrentFilePath, newLogPath);
+                FileStatus moveResult = Move(logFile.Properties.CurrentFilePath, newLogPath);
 
                 if (moveResult == FileStatus.MoveComplete)
                     logFile.Properties.ChangePath(newLogPath);
 
                 streamsToResume.ResumeAll();
+                return moveResult;
             }
-            return moveResult;
         }
 
         /// <summary>
@@ -88,7 +87,7 @@ namespace LogUtils.Helpers
         {
             var fileLock = logFile.Properties.FileLock;
 
-            lock (fileLock)
+            using (fileLock.Acquire())
             {
                 fileLock.SetActivity(logFile, FileAction.Open);
 
@@ -167,10 +166,9 @@ namespace LogUtils.Helpers
             logFile.Properties.EndLogSession();
 
             var streamsToResume = logFile.Properties.PersistentStreamHandles.InterruptAll();
-
             var fileLock = logFile.Properties.FileLock;
 
-            lock (fileLock)
+            using (fileLock.Acquire())
             {
                 try
                 {
