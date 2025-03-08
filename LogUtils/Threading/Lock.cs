@@ -71,7 +71,11 @@ namespace LogUtils.Threading
                 _lock = owner;
             }
 
-            void IDisposable.Dispose()
+            /// <summary>
+            /// Releases a lock acquired by the calling thread
+            /// </summary>
+            /// <exception cref="SynchronizationLockException">The calling thread does not have any active locks to release</exception>
+            public void Dispose()
             {
                 _lock.Release();
             }
