@@ -1,5 +1,6 @@
 ﻿using LogUtils.Compatibility;
 using LogUtils.Diagnostics.Tests.Utility;
+using LogUtils.Diagnostics.Tools;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
@@ -306,6 +307,7 @@ namespace LogUtils
                 UtilityLogger.Initialize();
                 AnnounceBuild();
             }
+            DeadlockTester.Run();
         }
     }
 }
