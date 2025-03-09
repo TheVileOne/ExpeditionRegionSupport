@@ -1,9 +1,10 @@
-﻿using System;
+﻿using LogUtils.Enums;
+using System;
 using UnityEngine;
 
 namespace LogUtils.Helpers.Console
 {
-    public static class ConsoleColorUnity
+    public static class ConsoleColorMap
     {
         //TODO: Check that this default can apply to both BepInEx console and RainWorld console
         private readonly static ConsoleColor _defaultColor = ConsoleColor.Gray;
@@ -47,6 +48,36 @@ namespace LogUtils.Helpers.Console
             }
 
             return ColorMap[colorIndex].UnityColor;
+        }
+
+        /// <summary>
+        /// Gets the Unity color mapped to a specified LogGroup
+        /// <br>Aligned with the colors assigned for BepInEx.LogLevel</br>
+        /// </summary>
+        public static Color GetColor(LogGroup group)
+        {
+            ConsoleColor consoleColor = GetConsoleColor(group);
+            return GetColor(consoleColor);
+        }
+
+        /// <summary>
+        /// Gets the ConsoleColor mapped to a specified LogGroup
+        /// <br>Aligned with the colors assigned for BepInEx.LogLevel</br>
+        /// </summary>
+        internal static ConsoleColor GetConsoleColor(LogGroup group)
+        {
+            return group switch
+            {
+                LogGroup.Fatal     => ConsoleColor.Red,
+                LogGroup.Error     => ConsoleColor.DarkRed,
+                LogGroup.Warning   => ConsoleColor.Yellow,
+                LogGroup.Assert    => ConsoleColor.Yellow,
+                LogGroup.Message   => ConsoleColor.White,
+                LogGroup.Important => ConsoleColor.White,
+                LogGroup.Debug     => ConsoleColor.DarkGray,
+                LogGroup.All       => ConsoleColor.Cyan,
+                _                  => _defaultColor
+            };
         }
     }
 }

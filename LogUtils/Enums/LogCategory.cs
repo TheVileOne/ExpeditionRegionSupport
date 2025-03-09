@@ -22,8 +22,9 @@ namespace LogUtils.Enums
         private LogLevel  _bepInExConversion = LOG_LEVEL_DEFAULT;
         private LogType   _unityConversion = LOG_TYPE_DEFAULT;
         private LogGroup  _defaultGroup = LogGroupMap.DefaultGroup;
-        private Color     _defaultConsoleColor = ConsoleColorUnity.DefaultColor;
+        private Color     _defaultConsoleColor = ConsoleColorMap.DefaultColor;
         private LogGroup? _userDefinedGroup;
+        private LogGroup? _userDefinedColorGroup;
         private Color?    _userDefinedConsoleColor;
 
         private bool conversionFieldsNeedUpdating;
@@ -207,7 +208,7 @@ namespace LogUtils.Enums
             {
                 LogLevel category = BepInExCategory;
                 _defaultGroup = LogGroupMap.GetEquivalent(category, true);
-                _defaultConsoleColor = ConsoleColorUnity.GetColor(category.GetConsoleColor());
+                _defaultConsoleColor = ConsoleColorMap.GetColor(_defaultGroup);
             }
             defaultsNeedUpdating = false;
         }
