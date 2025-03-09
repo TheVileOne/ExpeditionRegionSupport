@@ -19,6 +19,11 @@ namespace LogUtils
         public static Version AssemblyVersion { get; }
 
         /// <summary>
+        /// The active build environment for the assembly
+        /// </summary>
+        internal static UtilitySetup.Build Build { get; private set; }
+
+        /// <summary>
         /// The assembly responsible for loading core resources for the utility
         /// </summary>
         public static bool IsControllingAssembly { get; private set; }
@@ -38,6 +43,11 @@ namespace LogUtils
         /// The initialization process is in progress for the current assembly
         /// </summary>
         private static bool initializingInProgress;
+
+        /// <summary>
+        /// Indicates whether the utility initialization declaration message has been reported - this should only happen once 
+        /// </summary>
+        private static bool hasAnnouncedBuild;
 
         public static PersistenceManager PersistenceManager;
 
@@ -77,6 +87,10 @@ namespace LogUtils
             initializingInProgress = true;
 
             UtilitySetup.CurrentStep = UtilitySetup.InitializationStep.NOT_STARTED;
+
+            //Used for debugging purposes only - not meant for production builds
+            SetupDebugEnvironment();
+
             try
             {
                 UtilitySetup.CurrentStep = UtilitySetup.InitializationStep.INITALIZE_CORE_LOGGER;
@@ -112,7 +126,9 @@ namespace LogUtils
                         UnityLogger.EnsureLogTypeCapacity(UtilityConsts.CUSTOM_LOGTYPE_LIMIT);
                         UtilityLogger.Initialize();
 
-                        UtilityLogger.Logger.LogMessage($"{UtilityConsts.UTILITY_NAME} {AssemblyVersion} started");
+                        if (!hasAnnouncedBuild)
+                            AnnounceBuild();
+
                         nextStep = UtilitySetup.InitializationStep.START_SCHEDULER;
                         break;
                     }
@@ -264,6 +280,24 @@ namespace LogUtils
                     //In every other situation the period changes, we process requests that may have gone unhandled since the last setup period
                     RequestHandler.ProcessRequests();
                 }
+            }
+        }
+
+        internal static void AnnounceBuild()
+        {
+            UtilityLogger.Logger.LogMessage($"{UtilityConsts.UTILITY_NAME} {AssemblyVersion} {Build} BUILD started");
+            hasAnnouncedBuild = true;
+        }
+
+        internal static void SetupDebugEnvironment()
+        {
+            Build = UtilitySetup.Build.DEVELOPMENT;
+
+            //Ensure that Logger is always initialized before the debug environment is setup
+            if (UtilityLogger.Logger == null)
+            {
+                UtilityLogger.Initialize();
+                AnnounceBuild();
             }
         }
     }

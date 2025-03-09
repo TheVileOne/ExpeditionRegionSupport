@@ -18,5 +18,11 @@
             APPLY_HOOKS = 9,
             COMPLETE = 10
         }
+
+        public enum Build
+        {
+            RELEASE = 0,
+            DEVELOPMENT = 1,
+        }
     }
 }

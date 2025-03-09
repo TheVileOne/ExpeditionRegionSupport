@@ -17,6 +17,8 @@ namespace LogUtils
 
         internal static void Initialize()
         {
+            if (Logger != null) return;
+
             var sources = BepInEx.Logging.Logger.Sources;
 
             Logger = sources.FirstOrDefault(l => l.SourceName == UtilityConsts.UTILITY_NAME) as UtilityLogSource;
