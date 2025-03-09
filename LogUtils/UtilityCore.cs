@@ -1,4 +1,5 @@
 ﻿using LogUtils.Compatibility;
+using LogUtils.Diagnostics.Tests.Utility;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
@@ -9,6 +10,7 @@ using Menu;
 using System;
 using System.Linq;
 using System.Reflection;
+using Debug = LogUtils.Diagnostics.Debug;
 
 namespace LogUtils
 {
@@ -110,7 +112,12 @@ namespace LogUtils
                 UtilityLogger.LogFatal(ex);
             }
 
-            Diagnostics.Debug.InitializeTestSuite();
+            if (Build == UtilitySetup.Build.DEVELOPMENT)
+            {
+                Debug.InitializeTestSuite();
+                Debug.UtilityTests.RunAllTests();
+            }
+
             initializingInProgress = false;
             IsInitialized = true;
         }
