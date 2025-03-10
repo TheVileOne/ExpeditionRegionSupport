@@ -56,7 +56,9 @@ namespace LogUtils.Helpers.Console
         /// </summary>
         public static Color GetColor(LogGroup group)
         {
-            ConsoleColor consoleColor = GetConsoleColor(group);
+            LogGroup mostRelevantGroup = group != LogGroup.All ? (LogGroup)FlagUtils.GetHighestBit((int)group) : group;
+
+            ConsoleColor consoleColor = GetConsoleColor(mostRelevantGroup);
             return GetColor(consoleColor);
         }
 
