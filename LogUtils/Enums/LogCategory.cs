@@ -86,7 +86,6 @@ namespace LogUtils.Enums
         /// </summary>
         public virtual Color ConsoleColor
         {
-            //TODO: Override for composites
             get
             {
                 if (!ReferenceEquals(ManagedReference, this))
@@ -101,6 +100,8 @@ namespace LogUtils.Enums
                 _userDefinedConsoleColor = value;
             }
         }
+
+        internal bool HasColorOverride => ConsoleColor != _defaultConsoleColor;
 
         public static LogCategory[] RegisteredEntries => values.entries.Select(entry => new LogCategory(entry)).ToArray();
 
