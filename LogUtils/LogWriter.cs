@@ -49,27 +49,24 @@ namespace LogUtils
         /// </summary>
         protected bool ShouldCloseWriterAfterUse = true;
 
-        public virtual void WriteFrom(LogRequest request)
+        /// <summary>
+        /// Primary process delegate for handling a write request
+        /// </summary>
+        protected Action<LogRequest> WriteHandler;
+
+        public LogWriter()
+        {
+            WriteHandler = WriteToFile;
+        }
+
+        /// <summary>
+        /// Processes a write request
+        /// </summary>
+        public void WriteFrom(LogRequest request)
         {
             if (request == null)
                 throw new ArgumentNullException(nameof(request));
 
-            request.WriteInProcess();
-
-            if (request.ThreadCanWrite)
-                WriteToFile(request);
-        }
-
-        protected virtual void WriteToBuffer(LogRequest request)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Attempts to write the most recently requested message to file
-        /// </summary>
-        protected virtual void WriteToFile(LogRequest request)
-        {
             request.WriteInProcess();
 
             if (request.ThreadCanWrite)
@@ -83,26 +80,38 @@ namespace LogUtils
                         return;
                     }
 
-                    if (!PrepareLogFile(request.Data.ID))
-                    {
-                        request.Reject(RejectionReason.LogUnavailable);
-                        return;
-                    }
-
-                    if (!InternalWriteToFile(request.Data))
-                    {
-                        request.Reject(RejectionReason.FailedToWrite);
-                        return;
-                    }
-
-                    //All checks passed is a complete request
-                    request.Complete();
+                    WriteHandler.Invoke(request);
                 }
                 finally
                 {
                     UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
                 }
             }
+        }
+
+        protected virtual void WriteToBuffer(LogRequest request)
+        {
+        }
+
+        /// <summary>
+        /// Attempts to write the most recently requested message to file
+        /// </summary>
+        protected virtual void WriteToFile(LogRequest request)
+        {
+            if (!PrepareLogFile(request.Data.ID))
+            {
+                request.Reject(RejectionReason.LogUnavailable);
+                return;
+            }
+
+            if (!InternalWriteToFile(request.Data))
+            {
+                request.Reject(RejectionReason.FailedToWrite);
+                return;
+            }
+
+            //All checks passed is a complete request
+            request.Complete();
         }
 
         public void WriteToFile(LogID logFile, string message)

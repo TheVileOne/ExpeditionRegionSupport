@@ -17,6 +17,11 @@ namespace LogUtils
     {
         internal Queue<LogMessageEventArgs> LogCache = new Queue<LogMessageEventArgs>();
 
+        public QueueLogWriter()
+        {
+            WriteHandler = WriteToBuffer;
+        }
+
         public override string ApplyRules(LogMessageEventArgs logEventData)
         {
             LogID logFile = logEventData.ID;
@@ -41,46 +46,22 @@ namespace LogUtils
             }
         }
 
-        public override void WriteFrom(LogRequest request)
-        {
-            if (request == null)
-                throw new ArgumentNullException(nameof(request));
-
-            request.WriteInProcess();
-
-            if (request.ThreadCanWrite)
-                WriteToBuffer(request);
-        }
-
         protected override void WriteToBuffer(LogRequest request)
         {
-            try
+            if (!PrepareLogFile(request.Data.ID))
             {
-                if (LogFilter.CheckFilterMatch(request.Data.ID, request.Data.Message))
-                {
-                    request.Reject(RejectionReason.FilterMatch);
-                    return;
-                }
-
-                if (!PrepareLogFile(request.Data.ID))
-                {
-                    request.Reject(RejectionReason.LogUnavailable);
-                    return;
-                }
-
-                if (!InternalWriteToBuffer(request.Data))
-                {
-                    request.Reject(RejectionReason.FailedToWrite);
-                    return;
-                }
-
-                //All checks passed is a complete request
-                request.Complete();
+                request.Reject(RejectionReason.LogUnavailable);
+                return;
             }
-            finally
+
+            if (!InternalWriteToBuffer(request.Data))
             {
-                UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+                request.Reject(RejectionReason.FailedToWrite);
+                return;
             }
+
+            //All checks passed is a complete request
+            request.Complete();
         }
 
         internal bool InternalWriteToBuffer(LogMessageEventArgs logEventData)

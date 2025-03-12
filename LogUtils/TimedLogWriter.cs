@@ -73,74 +73,55 @@ namespace LogUtils
 
         protected override void WriteToFile(LogRequest request)
         {
-            request.WriteInProcess();
+            LogID logFile = request.Data.ID;
+            string message = request.Data.Message;
 
-            if (request.ThreadCanWrite)
+            //Get locally controlled LogIDs from the logger, and compare against the persistent file handles managed by the LogWriter
+            if (request.Host != null)
             {
-                //Assume that thread is allowed to write if we get past this point
-                try
-                {
-                    LogID logFile = request.Data.ID;
-                    string message = request.Data.Message;
+                IEnumerable<PersistentLogFileHandle> handlesToRelease = request.Host.GetUnusedHandles(LogWriters.Select(writer => writer.Handle));
 
-                    if (LogFilter.CheckFilterMatch(logFile, message))
+                foreach (PersistentLogFileHandle handle in handlesToRelease)
+                    ReleaseHandle(handle, false);
+            }
+
+            ProcessResult streamResult = AssignWriter(logFile, out PersistentLogFileWriter writer);
+
+            switch (streamResult)
+            {
+                case ProcessResult.Success:
+                    OnLogMessageReceived(request.Data);
+
+                    try
                     {
-                        request.Reject(RejectionReason.FilterMatch);
+                        var fileLock = logFile.Properties.FileLock;
+
+                        using (fileLock.Acquire())
+                        {
+                            fileLock.SetActivity(logFile, FileAction.Write);
+
+                            message = ApplyRules(request.Data);
+                            writer.WriteLine(message);
+                            logFile.Properties.MessagesLoggedThisSession++;
+                        }
+                    }
+                    catch (IOException writeException)
+                    {
+                        request.Reject(RejectionReason.FailedToWrite);
+                        UtilityLogger.LogError("Log write error", writeException);
                         return;
                     }
-
-                    //Get locally controlled LogIDs from the logger, and compare against the persistent file handles managed by the LogWriter
-                    if (request.Host != null)
-                    {
-                        IEnumerable<PersistentLogFileHandle> handlesToRelease = request.Host.GetUnusedHandles(LogWriters.Select(writer => writer.Handle));
-
-                        foreach (PersistentLogFileHandle handle in handlesToRelease)
-                            ReleaseHandle(handle, false);
-                    }
-
-                    ProcessResult streamResult = AssignWriter(logFile, out PersistentLogFileWriter writer);
-
-                    switch (streamResult)
-                    {
-                        case ProcessResult.Success:
-                            OnLogMessageReceived(request.Data);
-
-                            try
-                            {
-                                var fileLock = logFile.Properties.FileLock;
-
-                                using (fileLock.Acquire())
-                                {
-                                    fileLock.SetActivity(logFile, FileAction.Write);
-
-                                    message = ApplyRules(request.Data);
-                                    writer.WriteLine(message);
-                                    logFile.Properties.MessagesLoggedThisSession++;
-                                }
-                            }
-                            catch (IOException writeException)
-                            {
-                                request.Reject(RejectionReason.FailedToWrite);
-                                UtilityLogger.LogError("Log write error", writeException);
-                                return;
-                            }
-                            break;
-                        case ProcessResult.WaitingToResume:
-                            request.Reject(RejectionReason.LogUnavailable);
-                            break;
-                        case ProcessResult.FailedToCreate:
-                            request.Reject(RejectionReason.FailedToWrite);
-                            break;
-                    }
-
-                    //All checks passed is a complete request
-                    request.Complete();
-                }
-                finally
-                {
-                    UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
-                }
+                    break;
+                case ProcessResult.WaitingToResume:
+                    request.Reject(RejectionReason.LogUnavailable);
+                    break;
+                case ProcessResult.FailedToCreate:
+                    request.Reject(RejectionReason.FailedToWrite);
+                    break;
             }
+
+            //All checks passed is a complete request
+            request.Complete();
         }
 
         protected ProcessResult AssignWriter(LogID logFile, out PersistentLogFileWriter writer)
