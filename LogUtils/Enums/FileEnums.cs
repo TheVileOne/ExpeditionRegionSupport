@@ -16,6 +16,7 @@
         None,
         Create,
         Delete,
+        Buffering,
         Write,
         Move,
         Copy,

@@ -96,7 +96,7 @@ namespace LogUtils.Properties
                             ReadOnly = true;
                         }, disable_frames_allowed);
                     }
-                    UtilityLogger.Log(LogCategory.Debug, reportMessage);
+                    UtilityLogger.Logger.LogDebug(reportMessage);
                 }
                 else
                 {
@@ -339,6 +339,11 @@ namespace LogUtils.Properties
         /// An array of value identifiers for a specific log
         /// </summary>
         public string[] Tags;
+
+        /// <summary>
+        /// Contains messages that have passed all validation checks, and are waiting to be written to file
+        /// </summary>
+        public MessageBuffer WriteBuffer = new MessageBuffer();
 
         /// <summary>
         /// A message that will be logged at the start of a log session

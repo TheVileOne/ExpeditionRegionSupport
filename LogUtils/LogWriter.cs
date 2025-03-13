@@ -80,6 +80,14 @@ namespace LogUtils
                         return;
                     }
 
+                    MessageBuffer buffer = request.Data.Properties.WriteBuffer;
+
+                    if (buffer.IsBuffering)
+                    {
+                        WriteToBuffer(request);
+                        return;
+                    }
+
                     WriteHandler.Invoke(request);
                 }
                 finally
@@ -91,6 +99,27 @@ namespace LogUtils
 
         protected virtual void WriteToBuffer(LogRequest request)
         {
+            OnLogMessageReceived(request.Data);
+
+            LogID logFile = request.Data.ID;
+            MessageBuffer buffer = request.Data.Properties.WriteBuffer;
+
+            var fileLock = logFile.Properties.FileLock;
+
+            //Lock is used to ensure that no messages end up added in the wrong order, but this isn't the best place to lock.
+            //File lock should be applied to the entire batch in the case multiple requests need to be added to the buffer at the same time
+            using (fileLock.Acquire())
+            {
+                fileLock.SetActivity(logFile, FileAction.Buffering);
+
+                string message = ApplyRules(request.Data);
+                buffer.AppendMessage(message);
+
+                logFile.Properties.MessagesLoggedThisSession++;
+
+                //Message has been delivered to the write buffer, and will eventually be written to file - consider the request complete here
+                request.Complete();
+            }
         }
 
         /// <summary>
