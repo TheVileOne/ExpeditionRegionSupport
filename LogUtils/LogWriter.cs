@@ -74,7 +74,7 @@ namespace LogUtils
                 //Assume that thread is allowed to write if we get past this point
                 try
                 {
-                    if (LogFilter.CheckFilterMatch(request.Data.ID, request.Data.Message))
+                    if (!LogFilter.IsAllowed(request.Data))
                     {
                         request.Reject(RejectionReason.FilterMatch);
                         return;
