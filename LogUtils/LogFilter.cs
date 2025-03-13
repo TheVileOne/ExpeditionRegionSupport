@@ -37,9 +37,10 @@ namespace LogUtils
 
         public static bool IsAllowed(LogID logID, string logString)
         {
+            bool isFiltered = false;
             if (FilteredStrings.TryGetValue(logID, out List<FilteredStringEntry> filter))
-                return filter.Exists(entry => entry.CheckValidation() && entry.CheckMatch(logString));
-            return false;
+                isFiltered = filter.Exists(entry => entry.CheckValidation() && entry.CheckMatch(logString));
+            return !isFiltered;
         }
 
         /// <summary>
