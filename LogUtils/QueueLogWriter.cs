@@ -83,65 +83,66 @@ namespace LogUtils
             while (LogCache.Count > 0)
             {
                 var logEntry = LogCache.Dequeue();
+
+                bool lastWriteCompleted = false;
                 var fileLock = logEntry.Properties.FileLock;
 
-                using (fileLock.Acquire())
+                StreamWriter writer = null;
+                try
                 {
+                    fileLock.Acquire();
                     fileLock.SetActivity(logEntry.ID, FileAction.Write);
 
-                    string message = null;
-                    StreamWriter writer = null;
-                    try
+                    ProcessResult streamResult = AssignWriter(logEntry.ID, out writer);
+
+                    if (streamResult != ProcessResult.Success)
+                        throw new IOException("Unable to create stream");
+
+                    bool fileChanged;
+                    do
                     {
-                        ProcessResult streamResult = AssignWriter(logEntry.ID, out writer);
+                        lastWriteCompleted = false;
 
-                        if (streamResult != ProcessResult.Success)
-                            throw new IOException("Unable to create stream");
+                        string message = ApplyRules(logEntry);
+                        writer.WriteLine(message);
+                        logEntry.ID.Properties.MessagesHandledThisSession++;
 
-                        bool fileChanged;
-                        do
-                        {
-                            message = ApplyRules(logEntry);
-                            writer.WriteLine(message);
-                            logEntry.ID.Properties.MessagesHandledThisSession++;
+                        lastWriteCompleted = true;
 
-                            //Keep StreamWriter open while LogID remains unchanged
-                            fileChanged = !LogCache.Any() || LogCache.Peek().ID != logEntry.ID;
+                        //Keep StreamWriter open while LogID remains unchanged
+                        fileChanged = !LogCache.Any() || LogCache.Peek().ID != logEntry.ID;
 
-                            if (!fileChanged)
-                                logEntry = LogCache.Dequeue();
-                        }
-                        while (!fileChanged);
+                        if (!fileChanged)
+                            logEntry = LogCache.Dequeue();
                     }
-                    catch (IOException writeException)
+                    while (!fileChanged);
+                }
+                catch (IOException writeException)
+                {
+                    ExceptionInfo exceptionInfo = new ExceptionInfo(writeException);
+
+                    if (!RWInfo.CheckExceptionMatch(logEntry.ID, exceptionInfo)) //Only log unreported exceptions
                     {
-                        //Error happened before rules could be applied to the first entry
-                        if (message == null)
-                            message = ApplyRules(logEntry);
+                        var errorEntry = new LogMessageEventArgs(logEntry.ID, writeException, LogCategory.Error);
 
-                        fileLock.SetActivity(logEntry.ID, FileAction.Buffering);
+                        RWInfo.ReportException(errorEntry.ID, exceptionInfo);
+                        EnqueueMessage(errorEntry);
+                    }
 
-                        //Since we cannot add it back to the queue in the same place it started, use the buffer system from the other writers to prioritize
-                        //it on the next write frame
+                    //Break out of process loop when an exception occurs
+                    break;
+                }
+                finally
+                {
+                    if (ShouldCloseWriterAfterUse && writer != null)
+                        writer.Close();
+
+                    if (!lastWriteCompleted)
+                    {
+                        OnFailedToWrite(logEntry);
                         logEntry.Properties.MessagesHandledThisSession++;
-                        logEntry.Properties.WriteBuffer.AppendMessage(message);
-
-                        ExceptionInfo exceptionInfo = new ExceptionInfo(writeException);
-
-                        if (!RWInfo.CheckExceptionMatch(logEntry.ID, exceptionInfo)) //Only log unreported exceptions
-                        {
-                            var errorEntry = new LogMessageEventArgs(logEntry.ID, writeException, LogCategory.Error);
-
-                            RWInfo.ReportException(errorEntry.ID, exceptionInfo);
-                            EnqueueMessage(errorEntry);
-                        }
-                        break;
                     }
-                    finally
-                    {
-                        if (ShouldCloseWriterAfterUse && writer != null)
-                            writer.Close();
-                    }
+                    fileLock.Release();
                 }
             }
         }

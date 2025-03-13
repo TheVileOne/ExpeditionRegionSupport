@@ -143,10 +143,10 @@ namespace LogUtils
 
             OnLogMessageReceived(request.Data);
 
-            bool writeCompleted = false;
             LogID logFile = request.Data.ID;
             string message = ApplyRules(request.Data);
 
+            bool writeCompleted = false;
             var fileLock = logFile.Properties.FileLock;
 
             StreamWriter writer = null;
@@ -161,6 +161,9 @@ namespace LogUtils
                     throw new IOException("Unable to create stream");
 
                 writer.WriteLine(message);
+
+                request.Complete();
+                logFile.Properties.MessagesHandledThisSession++;
                 writeCompleted = true;
             }
             catch (IOException writeException)
@@ -176,15 +179,9 @@ namespace LogUtils
                 {
                     request.Reject(RejectionReason.FailedToWrite);
 
-                    fileLock.SetActivity(logFile, FileAction.Buffering);
-                    logFile.Properties.WriteBuffer.AppendMessage(message);
+                    OnFailedToWrite(request.Data);
+                    logFile.Properties.MessagesHandledThisSession++;
                 }
-                else
-                {
-                    request.Complete();
-                }
-
-                logFile.Properties.MessagesHandledThisSession++;
                 fileLock.Release();
             }
         }
@@ -220,9 +217,19 @@ namespace LogUtils
             return message;
         }
 
-        protected virtual void OnLogMessageReceived(LogMessageEventArgs e)
+        protected void OnFailedToWrite(LogMessageEventArgs messageData)
         {
-            UtilityEvents.OnMessageReceived?.Invoke(e);
+            LogID logFile = messageData.ID;
+
+            logFile.Properties.FileLock.SetActivity(logFile, FileAction.Buffering);
+
+            string message = ApplyRules(messageData);
+            logFile.Properties.WriteBuffer.AppendMessage(message);
+        }
+
+        protected virtual void OnLogMessageReceived(LogMessageEventArgs messageData)
+        {
+            UtilityEvents.OnMessageReceived?.Invoke(messageData);
         }
 
         protected enum ProcessResult

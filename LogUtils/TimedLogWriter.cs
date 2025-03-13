@@ -85,56 +85,60 @@ namespace LogUtils
                     ReleaseHandle(handle, false);
             }
 
-            ProcessResult streamResult = AssignWriter(logFile, out PersistentLogFileWriter writer);
-
-
+            bool writeCompleted = false;
             var fileLock = logFile.Properties.FileLock;
 
-            using (fileLock.Acquire())
+            try
             {
-                try
+                fileLock.Acquire();
+
+                ProcessResult streamResult = AssignWriter(logFile, out PersistentLogFileWriter writer);
+
+                switch (streamResult)
                 {
-                    switch (streamResult)
-                    {
-                        case ProcessResult.Success:
-                            OnLogMessageReceived(request.Data);
+                    case ProcessResult.Success:
+                        OnLogMessageReceived(request.Data);
 
-                            fileLock.SetActivity(logFile, FileAction.Write);
-                            writer.WriteLine(message);
-                            break;
-                        case ProcessResult.WaitingToResume:
-                            request.Reject(RejectionReason.LogUnavailable);
-                            break;
-                        case ProcessResult.FailedToCreate:
-                            request.Reject(RejectionReason.FailedToWrite);
-                            break;
-                    }
+                        fileLock.SetActivity(logFile, FileAction.Write);
+                        writer.WriteLine(message);
 
-                    if (request.Status == RequestStatus.Rejected)
-                        return;
+                        request.Complete();
+                        logFile.Properties.MessagesHandledThisSession++;
+                        writeCompleted = true;
+                        break;
+                    case ProcessResult.FailedToCreate:
+                        OnLogMessageReceived(request.Data);
 
-                    logFile.Properties.MessagesHandledThisSession++;
-
-                    //All checks passed is a complete request
-                    request.Complete();
+                        request.Reject(RejectionReason.FailedToWrite);
+                        break;
+                    case ProcessResult.WaitingToResume:
+                        request.Reject(RejectionReason.LogUnavailable);
+                        break;
+                    default:
+                        UtilityLogger.LogWarning("Unknown process result - request potentially unhandled");
+                        break;
                 }
-                catch (IOException writeException)
+            }
+            catch (IOException writeException)
+            {
+                request.Reject(RejectionReason.FailedToWrite);
+                UtilityLogger.LogError("Log write error", writeException);
+            }
+            finally
+            {
+                //This should account for uncaught exceptions, but still allow temporary stream interrupted requests to be retried
+                if (!writeCompleted)
                 {
-                    request.Reject(RejectionReason.FailedToWrite);
-                    UtilityLogger.LogError("Log write error", writeException);
-                }
-                finally
-                {
-                    //TODO: Apply CanRetryRequest check here?
-                    //Add failed message to the buffer to try again later
+                    if (request.Status != RequestStatus.Rejected)
+                        request.Reject(RejectionReason.FailedToWrite);
+
                     if (request.UnhandledReason == RejectionReason.FailedToWrite)
                     {
-                        fileLock.SetActivity(logFile, FileAction.Buffering);
-
+                        OnFailedToWrite(request.Data);
                         logFile.Properties.MessagesHandledThisSession++;
-                        logFile.Properties.WriteBuffer.AppendMessage(message);
                     }
                 }
+                fileLock.Release();
             }
         }
 
