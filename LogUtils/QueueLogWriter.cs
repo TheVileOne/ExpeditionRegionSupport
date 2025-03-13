@@ -54,10 +54,14 @@ namespace LogUtils
                 return;
             }
 
-            OnLogMessageReceived(request.Data);
-
-            LogCache.Enqueue(request.Data);
+            EnqueueMessage(request.Data);
             request.Complete();
+        }
+
+        protected void EnqueueMessage(LogMessageEventArgs messageData)
+        {
+            OnLogMessageReceived(messageData);
+            LogCache.Enqueue(messageData);
         }
 
         protected override void WriteToFile(LogRequest request)
@@ -126,12 +130,10 @@ namespace LogUtils
 
                         if (!RWInfo.CheckExceptionMatch(logEntry.ID, exceptionInfo)) //Only log unreported exceptions
                         {
-                            logEntry = new LogMessageEventArgs(logEntry.ID, writeException, LogCategory.Error);
+                            var errorEntry = new LogMessageEventArgs(logEntry.ID, writeException, LogCategory.Error);
 
-                            RWInfo.ReportException(logEntry.ID, exceptionInfo);
-
-                            OnLogMessageReceived(logEntry);
-                            LogCache.Enqueue(logEntry);
+                            RWInfo.ReportException(errorEntry.ID, exceptionInfo);
+                            EnqueueMessage(errorEntry);
                         }
                         break;
                     }
