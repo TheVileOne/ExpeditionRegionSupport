@@ -54,22 +54,10 @@ namespace LogUtils
                 return;
             }
 
-            if (!InternalWriteToBuffer(request.Data))
-            {
-                request.Reject(RejectionReason.FailedToWrite);
-                return;
-            }
+            OnLogMessageReceived(request.Data);
 
-            //All checks passed is a complete request
+            LogCache.Enqueue(request.Data);
             request.Complete();
-        }
-
-        internal bool InternalWriteToBuffer(LogMessageEventArgs logEventData)
-        {
-            OnLogMessageReceived(logEventData);
-
-            LogCache.Enqueue(logEventData);
-            return true;
         }
 
         protected override void WriteToFile(LogRequest request)

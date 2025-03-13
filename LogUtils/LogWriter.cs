@@ -122,6 +122,14 @@ namespace LogUtils
             }
         }
 
+        public void WriteToFile(LogID logFile, string message)
+        {
+            RequestType requestType = logFile.IsGameControlled ? RequestType.Game : RequestType.Local;
+            LogMessageEventArgs logEventData = new LogMessageEventArgs(logFile, message);
+
+            WriteFrom(new LogRequest(requestType, logEventData));
+        }
+
         /// <summary>
         /// Attempts to write the most recently requested message to file
         /// </summary>
@@ -133,74 +141,57 @@ namespace LogUtils
                 return;
             }
 
-            if (!InternalWriteToFile(request.Data))
+            OnLogMessageReceived(request.Data);
+
+            bool writeCompleted = false;
+            LogID logFile = request.Data.ID;
+            string message = ApplyRules(request.Data);
+
+            var fileLock = logFile.Properties.FileLock;
+
+            StreamWriter writer = null;
+            try
             {
-                request.Reject(RejectionReason.FailedToWrite);
-                return;
+                fileLock.Acquire();
+                fileLock.SetActivity(logFile, FileAction.Write);
+
+                ProcessResult streamResult = AssignWriter(logFile, out writer);
+
+                if (streamResult != ProcessResult.Success)
+                    throw new IOException("Unable to create stream");
+
+                writer.WriteLine(message);
+                writeCompleted = true;
             }
+            catch (IOException writeException)
+            {
+                UtilityLogger.LogError("Log write error", writeException);
+            }
+            finally
+            {
+                if (ShouldCloseWriterAfterUse && writer != null)
+                    writer.Close();
 
-            //All checks passed is a complete request
-            request.Complete();
-        }
+                if (!writeCompleted)
+                {
+                    request.Reject(RejectionReason.FailedToWrite);
 
-        public void WriteToFile(LogID logFile, string message)
-        {
-            RequestType requestType = logFile.IsGameControlled ? RequestType.Game : RequestType.Local;
-            LogMessageEventArgs logEventData = new LogMessageEventArgs(logFile, message);
+                    fileLock.SetActivity(logFile, FileAction.Buffering);
+                    logFile.Properties.WriteBuffer.AppendMessage(message);
+                }
+                else
+                {
+                    request.Complete();
+                }
 
-            WriteFrom(new LogRequest(requestType, logEventData));
+                logFile.Properties.MessagesHandledThisSession++;
+                fileLock.Release();
+            }
         }
 
         protected virtual bool PrepareLogFile(LogID logFile)
         {
             return LogFile.TryCreate(logFile);
-        }
-
-        internal bool InternalWriteToFile(LogMessageEventArgs logEventData)
-        {
-            OnLogMessageReceived(logEventData);
-
-            bool writeCompleted = false;
-            LogID logFile = logEventData.ID;
-            string message = ApplyRules(logEventData);
-
-            var fileLock = logFile.Properties.FileLock;
-
-            using (fileLock.Acquire())
-            {
-                fileLock.SetActivity(logFile, FileAction.Write);
-
-                StreamWriter writer = null;
-                try
-                {
-                    ProcessResult streamResult = AssignWriter(logFile, out writer);
-
-                    if (streamResult != ProcessResult.Success)
-                        throw new IOException("Unable to create stream");
-
-                    writer.WriteLine(message);
-                    writeCompleted = true;
-                }
-                catch (IOException writeException)
-                {
-                    UtilityLogger.LogError("Log write error", writeException);
-                }
-                finally
-                {
-                    logFile.Properties.MessagesHandledThisSession++;
-
-                    //Add failed message to the buffer to try again later
-                    if (!writeCompleted)
-                    {
-                        fileLock.SetActivity(logFile, FileAction.Buffering);
-                        logFile.Properties.WriteBuffer.AppendMessage(message);
-                    }
-
-                    if (ShouldCloseWriterAfterUse && writer != null)
-                        writer.Close();
-                }
-            }
-            return writeCompleted;
         }
 
         /// <summary>
