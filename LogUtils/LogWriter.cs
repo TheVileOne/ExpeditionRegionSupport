@@ -79,8 +79,6 @@ namespace LogUtils
             OnLogMessageReceived(request.Data);
 
             LogID logFile = request.Data.ID;
-            MessageBuffer buffer = request.Data.Properties.WriteBuffer;
-
             var fileLock = logFile.Properties.FileLock;
 
             //Lock is used to ensure that no messages end up added in the wrong order, but this isn't the best place to lock.
@@ -90,8 +88,7 @@ namespace LogUtils
                 fileLock.SetActivity(logFile, FileAction.Buffering);
 
                 string message = ApplyRules(request.Data);
-                buffer.AppendMessage(message);
-
+                logFile.Properties.WriteBuffer.AppendMessage(message);
                 logFile.Properties.MessagesHandledThisSession++;
 
                 //Message has been delivered to the write buffer, and will eventually be written to file - consider the request complete here
@@ -118,8 +115,6 @@ namespace LogUtils
                 return;
             }
 
-            OnLogMessageReceived(request.Data);
-
             LogID logFile = request.Data.ID;
             string message = ApplyRules(request.Data);
 
@@ -134,14 +129,43 @@ namespace LogUtils
 
                 ProcessResult streamResult = AssignWriter(logFile, out writer);
 
-                if (streamResult != ProcessResult.Success)
-                    throw new IOException("Unable to create stream");
+                //Handle request rejection, and message receive events
+                bool canReceiveMessage = false;
+                switch (streamResult)
+                {
+                    case ProcessResult.Success:
+                        {
+                            canReceiveMessage = true;
+                            break;
+                        }
+                    case ProcessResult.FailedToCreate:
+                        {
+                            canReceiveMessage = true;
+                            request.Reject(RejectionReason.FailedToWrite);
+                            break;
+                        }
+                    case ProcessResult.WaitingToResume:
+                        {
+                            request.Reject(RejectionReason.LogUnavailable);
+                            break;
+                        }
+                }
 
-                writer.WriteLine(message);
+                if (canReceiveMessage)
+                {
+                    OnLogMessageReceived(request.Data);
 
-                request.Complete();
-                logFile.Properties.MessagesHandledThisSession++;
-                writeCompleted = true;
+                    if (streamResult != ProcessResult.Success)
+                        throw new IOException("Unable to create stream");
+
+                    //Stream is ready to write the message
+                    writer.WriteLine(message);
+
+                    request.Complete();
+                    logFile.Properties.MessagesHandledThisSession++;
+
+                    writeCompleted = true;
+                }
             }
             catch (IOException writeException)
             {
@@ -152,12 +176,17 @@ namespace LogUtils
                 if (ShouldCloseWriterAfterUse && writer != null)
                     writer.Close();
 
+                //This should account for uncaught exceptions, but still allow temporary stream interrupted requests to be retried
                 if (!writeCompleted)
                 {
-                    request.Reject(RejectionReason.FailedToWrite);
+                    if (request.Status != RequestStatus.Rejected)
+                        request.Reject(RejectionReason.FailedToWrite);
 
-                    OnFailedToWrite(request.Data);
-                    logFile.Properties.MessagesHandledThisSession++;
+                    if (request.UnhandledReason == RejectionReason.FailedToWrite)
+                    {
+                        OnFailedToWrite(request.Data);
+                        logFile.Properties.MessagesHandledThisSession++;
+                    }
                 }
                 fileLock.Release();
             }

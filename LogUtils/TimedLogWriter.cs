@@ -94,34 +94,46 @@ namespace LogUtils
 
                 ProcessResult streamResult = AssignWriter(logFile, out PersistentLogFileWriter writer);
 
+                //Handle request rejection, and message receive events
+                bool canReceiveMessage = false;
                 switch (streamResult)
                 {
                     case ProcessResult.Success:
-                        OnLogMessageReceived(request.Data);
-
-                        fileLock.SetActivity(logFile, FileAction.Write);
-                        writer.WriteLine(message);
-
-                        request.Complete();
-                        logFile.Properties.MessagesHandledThisSession++;
-                        writeCompleted = true;
-                        break;
+                        {
+                            canReceiveMessage = true;
+                            break;
+                        }
                     case ProcessResult.FailedToCreate:
-                        OnLogMessageReceived(request.Data);
-
-                        request.Reject(RejectionReason.FailedToWrite);
-                        break;
+                        {
+                            canReceiveMessage = true;
+                            request.Reject(RejectionReason.FailedToWrite);
+                            break;
+                        }
                     case ProcessResult.WaitingToResume:
-                        request.Reject(RejectionReason.LogUnavailable);
-                        break;
-                    default:
-                        UtilityLogger.LogWarning("Unknown process result - request potentially unhandled");
-                        break;
+                        {
+                            request.Reject(RejectionReason.LogUnavailable);
+                            break;
+                        }
+                }
+
+                if (canReceiveMessage)
+                {
+                    OnLogMessageReceived(request.Data);
+
+                    if (streamResult != ProcessResult.Success)
+                        throw new IOException("Unable to create stream");
+
+                    //Stream is ready to write the message
+                    writer.WriteLine(message);
+
+                    request.Complete();
+                    logFile.Properties.MessagesHandledThisSession++;
+
+                    writeCompleted = true;
                 }
             }
             catch (IOException writeException)
             {
-                request.Reject(RejectionReason.FailedToWrite);
                 UtilityLogger.LogError("Log write error", writeException);
             }
             finally
