@@ -418,7 +418,10 @@ namespace LogUtils.Properties
         /// </summary>
         public LogRuleCollection Rules = new LogRuleCollection();
 
-        public int MessagesLoggedThisSession;
+        /// <summary>
+        /// The amount of messages logged to file, or stored in the WriteBuffer since the last logging session was started
+        /// </summary>
+        public int MessagesHandledThisSession;
 
         public LogProperties(string propertyID, string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS)
         {
@@ -657,7 +660,7 @@ namespace LogUtils.Properties
             if (LogFilter.FilteredStrings.TryGetValue(logID, out List<FilteredStringEntry> filter))
                 filter.RemoveAll(entry => entry.Duration == FilterDuration.OnClose);
 
-            MessagesLoggedThisSession = 0;
+            MessagesHandledThisSession = 0;
 
             if (!FileExists)
             {

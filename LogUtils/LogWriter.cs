@@ -115,7 +115,7 @@ namespace LogUtils
                 string message = ApplyRules(request.Data);
                 buffer.AppendMessage(message);
 
-                logFile.Properties.MessagesLoggedThisSession++;
+                logFile.Properties.MessagesHandledThisSession++;
 
                 //Message has been delivered to the write buffer, and will eventually be written to file - consider the request complete here
                 request.Complete();
@@ -160,38 +160,47 @@ namespace LogUtils
         {
             OnLogMessageReceived(logEventData);
 
+            bool writeCompleted = false;
             LogID logFile = logEventData.ID;
-            string message = logEventData.Message;
+            string message = ApplyRules(logEventData);
 
-            StreamWriter writer = null;
-            try
+            var fileLock = logFile.Properties.FileLock;
+
+            using (fileLock.Acquire())
             {
-                var fileLock = logFile.Properties.FileLock;
+                fileLock.SetActivity(logFile, FileAction.Write);
 
-                using (fileLock.Acquire())
+                StreamWriter writer = null;
+                try
                 {
-                    fileLock.SetActivity(logFile, FileAction.Write);
                     ProcessResult streamResult = AssignWriter(logFile, out writer);
 
                     if (streamResult != ProcessResult.Success)
                         throw new IOException("Unable to create stream");
 
-                    message = ApplyRules(logEventData);
                     writer.WriteLine(message);
-                    logFile.Properties.MessagesLoggedThisSession++;
+                    writeCompleted = true;
                 }
-                return true;
+                catch (IOException writeException)
+                {
+                    UtilityLogger.LogError("Log write error", writeException);
+                }
+                finally
+                {
+                    logFile.Properties.MessagesHandledThisSession++;
+
+                    //Add failed message to the buffer to try again later
+                    if (!writeCompleted)
+                    {
+                        fileLock.SetActivity(logFile, FileAction.Buffering);
+                        logFile.Properties.WriteBuffer.AppendMessage(message);
+                    }
+
+                    if (ShouldCloseWriterAfterUse && writer != null)
+                        writer.Close();
+                }
             }
-            catch (IOException writeException)
-            {
-                UtilityLogger.LogError("Log write error", writeException);
-                return false;
-            }
-            finally
-            {
-                if (ShouldCloseWriterAfterUse && writer != null)
-                    writer.Close();
-            }
+            return writeCompleted;
         }
 
         /// <summary>

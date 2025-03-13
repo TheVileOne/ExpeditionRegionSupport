@@ -235,7 +235,7 @@ namespace LogUtils.Properties
 
         protected override string ApplyRule(string message, LogMessageEventArgs logEventData)
         {
-            return string.Format("[{0}] {1}", logEventData.Properties.MessagesLoggedThisSession, message);
+            return string.Format("[{0}] {1}", logEventData.Properties.MessagesHandledThisSession, message);
         }
 
         protected override float GetPriority()

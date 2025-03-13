@@ -91,28 +91,27 @@ namespace LogUtils
             while (LogCache.Count > 0)
             {
                 var logEntry = LogCache.Dequeue();
+                var fileLock = logEntry.Properties.FileLock;
 
-                StreamWriter writer = null;
-                try
+                using (fileLock.Acquire())
                 {
-                    var fileLock = logEntry.Properties.FileLock;
+                    fileLock.SetActivity(logEntry.ID, FileAction.Write);
 
-                    using (fileLock.Acquire())
+                    string message = null;
+                    StreamWriter writer = null;
+                    try
                     {
-                        fileLock.SetActivity(logEntry.ID, FileAction.Write);
-
                         ProcessResult streamResult = AssignWriter(logEntry.ID, out writer);
 
                         if (streamResult != ProcessResult.Success)
                             throw new IOException("Unable to create stream");
 
-                        string message;
                         bool fileChanged;
                         do
                         {
                             message = ApplyRules(logEntry);
                             writer.WriteLine(message);
-                            logEntry.ID.Properties.MessagesLoggedThisSession++;
+                            logEntry.ID.Properties.MessagesHandledThisSession++;
 
                             //Keep StreamWriter open while LogID remains unchanged
                             fileChanged = !LogCache.Any() || LogCache.Peek().ID != logEntry.ID;
@@ -122,26 +121,37 @@ namespace LogUtils
                         }
                         while (!fileChanged);
                     }
-                }
-                catch (IOException writeException)
-                {
-                    ExceptionInfo exceptionInfo = new ExceptionInfo(writeException);
-
-                    if (!RWInfo.CheckExceptionMatch(logEntry.ID, exceptionInfo)) //Only log unreported exceptions
+                    catch (IOException writeException)
                     {
-                        logEntry = new LogMessageEventArgs(logEntry.ID, writeException, LogCategory.Error);
+                        //Error happened before rules could be applied to the first entry
+                        if (message == null)
+                            message = ApplyRules(logEntry);
 
-                        RWInfo.ReportException(logEntry.ID, exceptionInfo);
+                        fileLock.SetActivity(logEntry.ID, FileAction.Buffering);
 
-                        OnLogMessageReceived(logEntry);
-                        LogCache.Enqueue(logEntry);
+                        //Since we cannot add it back to the queue in the same place it started, use the buffer system from the other writers to prioritize
+                        //it on the next write frame
+                        logEntry.Properties.MessagesHandledThisSession++;
+                        logEntry.Properties.WriteBuffer.AppendMessage(message);
+
+                        ExceptionInfo exceptionInfo = new ExceptionInfo(writeException);
+
+                        if (!RWInfo.CheckExceptionMatch(logEntry.ID, exceptionInfo)) //Only log unreported exceptions
+                        {
+                            logEntry = new LogMessageEventArgs(logEntry.ID, writeException, LogCategory.Error);
+
+                            RWInfo.ReportException(logEntry.ID, exceptionInfo);
+
+                            OnLogMessageReceived(logEntry);
+                            LogCache.Enqueue(logEntry);
+                        }
+                        break;
                     }
-                    break;
-                }
-                finally
-                {
-                    if (ShouldCloseWriterAfterUse && writer != null)
-                        writer.Close();
+                    finally
+                    {
+                        if (ShouldCloseWriterAfterUse && writer != null)
+                            writer.Close();
+                    }
                 }
             }
         }
