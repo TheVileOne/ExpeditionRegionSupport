@@ -11,38 +11,15 @@ namespace LogUtils
 {
     public class LogWriter : ILogWriter
     {
-        private static SharedField<ILogWriter> _writer;
-        private static SharedField<QueueLogWriter> _jollyWriter;
+        /// <summary>
+        /// Writer used by default for most Logger implementations
+        /// </summary>
+        public static ILogWriter Writer = new LogWriter();
 
-        public static ILogWriter Writer
-        {
-            get
-            {
-                if (_writer == null)
-                {
-                    _writer = UtilityCore.DataHandler.GetField<ILogWriter>("logwriter");
-
-                    if (_writer.Value == null)
-                        _writer.Value = new LogWriter();
-                }
-                return _writer.Value;
-            }
-        }
-
-        public static QueueLogWriter JollyWriter
-        {
-            get
-            {
-                if (_jollyWriter == null)
-                {
-                    _jollyWriter = UtilityCore.DataHandler.GetField<QueueLogWriter>("logwriter_jolly");
-
-                    if (_jollyWriter.Value == null)
-                        _jollyWriter.Value = new QueueLogWriter();
-                }
-                return _jollyWriter.Value;
-            }
-        }
+        /// <summary>
+        /// Writer used by default for JollyCoop
+        /// </summary>
+        public static QueueLogWriter JollyWriter = new QueueLogWriter();
 
         /// <summary>
         /// A flag that prevents StreamWriter from being closed
