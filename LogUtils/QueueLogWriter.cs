@@ -22,13 +22,13 @@ namespace LogUtils
             WriteHandler = WriteToBuffer;
         }
 
-        public override string ApplyRules(LogMessageEventArgs logEventData)
+        public override string ApplyRules(LogMessageEventArgs messageData)
         {
-            LogID logFile = logEventData.ID;
+            LogID logFile = messageData.ID;
             LogRule headerRule = logFile.Properties.ShowCategories;
 
             //All requests that are handled by this type of LogWriter shall display an error header even if the LogID doesn't have all headers enabled
-            if (!headerRule.IsEnabled && LogCategory.IsErrorCategory(logEventData.Category))
+            if (!headerRule.IsEnabled && LogCategory.IsErrorCategory(messageData.Category))
             {
                 headerRule = new ErrorsOnlyHeaderRule(true);
                 logFile.Properties.Rules.SetTemporaryRule(headerRule);
@@ -36,7 +36,7 @@ namespace LogUtils
 
             try
             {
-                return base.ApplyRules(logEventData);
+                return base.ApplyRules(messageData);
             }
             finally
             {

@@ -1,11 +1,9 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
-using LogUtils.Properties;
 using LogUtils.Requests;
 using System;
 using System.IO;
-using System.Linq;
 
 namespace LogUtils
 {
@@ -20,6 +18,14 @@ namespace LogUtils
         /// Writer used by default for JollyCoop
         /// </summary>
         public static QueueLogWriter JollyWriter = new QueueLogWriter();
+
+        private LogMessageFormatter _formatter;
+
+        public LogMessageFormatter Formatter
+        {
+            get => _formatter ?? LogMessageFormatter.Default;
+            set => _formatter = value;
+        }
 
         /// <summary>
         /// A flag that prevents StreamWriter from being closed
@@ -213,14 +219,9 @@ namespace LogUtils
             return ProcessResult.Success;
         }
 
-        public virtual string ApplyRules(LogMessageEventArgs logEventData)
+        public virtual string ApplyRules(LogMessageEventArgs messageData)
         {
-            string message = logEventData.Message;
-            var activeRules = logEventData.Properties.Rules.Where(r => r.IsEnabled);
-
-            foreach (LogRule rule in activeRules)
-                rule.Apply(ref message, logEventData);
-            return message;
+            return Formatter.Format(messageData);
         }
 
         protected void OnFailedToWrite(LogMessageEventArgs messageData)
@@ -248,7 +249,7 @@ namespace LogUtils
 
     public interface ILogWriter
     {
-        public string ApplyRules(LogMessageEventArgs logEventData);
+        public string ApplyRules(LogMessageEventArgs messageData);
         internal void WriteFrom(LogRequest request);
         internal void WriteToFile(LogID logFile, string message);
     }
