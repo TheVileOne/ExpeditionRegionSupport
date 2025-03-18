@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace LogUtils
 {
@@ -42,7 +43,7 @@ namespace LogUtils
 
             TimeSpan taskInterval = TimeSpan.FromMilliseconds(writeInterval);
 
-            WriteTask = LogTasker.Schedule(new Task(Flush, taskInterval)
+            WriteTask = LogTasker.Schedule(new Task(ScheduleFlush, taskInterval)
             {
                 Name = "LogWriter",
                 IsContinuous = true
@@ -62,13 +63,32 @@ namespace LogUtils
                 if (IsDisposed)
                     throw new ObjectDisposedException("Cannot access a disposed object");
 
-                foreach (var writer in LogWriters)
-                    writer.Flush();
+                var activeWriters = LogWriters.Where(w => w.CanWrite);
+
+                foreach (var writer in activeWriters)
+                {
+                    LogID handleID = writer.Handle.FileID;
+                    var fileLock = handleID.Properties.FileLock;
+
+                    using (fileLock.Acquire())
+                    {
+                        writer.Flush();
+                    }
+                }
             }
-            catch (ObjectDisposedException ex)
+            catch (Exception ex)
             {
                 UtilityLogger.LogError(ex);
             }
+        }
+
+        public void ScheduleFlush()
+        {
+            ThreadPool.QueueUserWorkItem((object writerObj) =>
+            {
+                TimedLogWriter writer = (TimedLogWriter)writerObj;
+                writer.Flush();
+            }, this);
         }
 
         protected override void WriteToFile(LogRequest request)
