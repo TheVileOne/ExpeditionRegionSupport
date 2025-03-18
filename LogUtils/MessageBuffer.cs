@@ -6,7 +6,7 @@ namespace LogUtils
     {
         protected StringBuilder Content;
 
-        public bool HasContent => Content.Length == 0;
+        public bool HasContent => Content.Length > 0;
 
         /// <summary>
         /// When true, the buffer will be added to instead of writing to file on handling a write request
@@ -26,6 +26,11 @@ namespace LogUtils
         public void Clear()
         {
             Content.Clear();
+        }
+
+        public override string ToString()
+        {
+            return Content.ToString();
         }
     }
 }

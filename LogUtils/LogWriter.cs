@@ -164,6 +164,12 @@ namespace LogUtils
                     if (streamResult != ProcessResult.Success)
                         throw new IOException("Unable to create stream");
 
+                    MessageBuffer writeBuffer = request.Data.Properties.WriteBuffer;
+
+                    //The buffer always gets written to file before the request message
+                    if (writeBuffer.HasContent)
+                        writer.WriteLine(writeBuffer);
+
                     //Stream is ready to write the message
                     writer.WriteLine(message);
 
