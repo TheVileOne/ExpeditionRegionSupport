@@ -170,10 +170,7 @@ namespace LogUtils
                         request.Reject(RejectionReason.FailedToWrite);
 
                     if (request.UnhandledReason == RejectionReason.FailedToWrite)
-                    {
-                        OnFailedToWrite(request.Data);
-                        logFile.Properties.MessagesHandledThisSession++;
-                    }
+                        SendToBuffer(request.Data);
                 }
                 fileLock.Release();
             }

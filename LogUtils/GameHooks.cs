@@ -316,7 +316,10 @@ namespace LogUtils
                         UtilityLogger.LogWarning("Logging operation has ended unexpectedly");
 
                         if (request.Status != RequestStatus.Rejected) //Unknown issue - don't retry request
+                        {
                             request.Reject(RejectionReason.FailedToWrite);
+                            LogWriter.Writer.SendToBuffer(request.Data);
+                        }
 
                         UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
                     }

@@ -144,10 +144,8 @@ namespace LogUtils
                         writer.Close();
 
                     if (!lastWriteCompleted)
-                    {
-                        OnFailedToWrite(logEntry);
-                        logEntry.Properties.MessagesHandledThisSession++;
-                    }
+                        SendToBuffer(logEntry);
+
                     fileLock.Release();
                 }
             }

@@ -84,30 +84,8 @@ namespace LogUtils
         {
             OnLogMessageReceived(request.Data);
 
-            LogID logFile = request.Data.ID;
-            var fileLock = logFile.Properties.FileLock;
-
-            //Lock is used to ensure that no messages end up added in the wrong order, but this isn't the best place to lock.
-            //File lock should be applied to the entire batch in the case multiple requests need to be added to the buffer at the same time
-            using (fileLock.Acquire())
-            {
-                fileLock.SetActivity(logFile, FileAction.Buffering);
-
-                string message = ApplyRules(request.Data);
-                logFile.Properties.WriteBuffer.AppendMessage(message);
-                logFile.Properties.MessagesHandledThisSession++;
-
-                //Message has been delivered to the write buffer, and will eventually be written to file - consider the request complete here
-                request.Complete();
-            }
-        }
-
-        public void WriteToFile(LogID logFile, string message)
-        {
-            RequestType requestType = logFile.IsGameControlled ? RequestType.Game : RequestType.Local;
-            LogMessageEventArgs logEventData = new LogMessageEventArgs(logFile, message);
-
-            WriteFrom(new LogRequest(requestType, logEventData));
+            SendToBuffer(request.Data);
+            request.Complete(); //LogRequest no longer needs to be processed once its message has been added to the write buffer
         }
 
         /// <summary>
@@ -195,10 +173,7 @@ namespace LogUtils
                         request.Reject(RejectionReason.FailedToWrite);
 
                     if (request.UnhandledReason == RejectionReason.FailedToWrite)
-                    {
-                        OnFailedToWrite(request.Data);
-                        logFile.Properties.MessagesHandledThisSession++;
-                    }
+                        SendToBuffer(request.Data);
                 }
                 fileLock.Release();
             }
@@ -230,19 +205,27 @@ namespace LogUtils
             return Formatter.Format(messageData);
         }
 
-        protected void OnFailedToWrite(LogMessageEventArgs messageData)
-        {
-            LogID logFile = messageData.ID;
-
-            logFile.Properties.FileLock.SetActivity(logFile, FileAction.Buffering);
-
-            string message = ApplyRules(messageData);
-            logFile.Properties.WriteBuffer.AppendMessage(message);
-        }
-
         protected virtual void OnLogMessageReceived(LogMessageEventArgs messageData)
         {
             UtilityEvents.OnMessageReceived?.Invoke(messageData);
+        }
+
+        public void SendToBuffer(LogMessageEventArgs messageData)
+        {
+            LogID logFile = messageData.ID;
+
+            var fileLock = logFile.Properties.FileLock;
+
+            using (fileLock.Acquire())
+            {
+                fileLock.SetActivity(logFile, FileAction.Buffering);
+
+                //Keep this inside a lock, we want to ensure that it remains in sync with the MessagesHandled count, which is used for this process
+                string message = ApplyRules(messageData);
+
+                logFile.Properties.WriteBuffer.AppendMessage(message);
+                logFile.Properties.MessagesHandledThisSession++;
+            }
         }
 
         protected enum ProcessResult
@@ -255,8 +238,22 @@ namespace LogUtils
 
     public interface ILogWriter
     {
-        public string ApplyRules(LogMessageEventArgs messageData);
-        internal void WriteFrom(LogRequest request);
-        internal void WriteToFile(LogID logFile, string message);
+        /// <summary>
+        /// Applies rule-defined formatting to a message
+        /// </summary>
+        string ApplyRules(LogMessageEventArgs messageData);
+
+        /// <summary>
+        /// Provides a procedure for adding a message to the WriteBuffer
+        /// <br><remarks>
+        /// Bypasses the LogRequest system - intended to be used as a fallback message handling process
+        /// </remarks></br>
+        /// </summary>
+        void SendToBuffer(LogMessageEventArgs messageData);
+
+        /// <summary>
+        /// Provides a procedure for writing a message to file
+        /// </summary>
+        void WriteFrom(LogRequest request);
     }
 }
