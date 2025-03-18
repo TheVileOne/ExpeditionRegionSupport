@@ -613,17 +613,7 @@ namespace LogUtils
                 else
                 {
                     UtilityCore.RequestHandler.Submit(request, false);
-
-                    var writer = Writer;
-
-                    if (writer == null) //This is possible when the Logger gets disposed - Ideally the logger should not be referenced after disposal
-                    {
-                        request.Reject(RejectionReason.FailedToWrite);
-                        return;
-                    }
-
-                    request.Host = this;
-                    writer.WriteFrom(request);
+                    SendToWriter(request);
                 }
             }
         }
@@ -729,13 +719,17 @@ namespace LogUtils
                 request.Reject(RejectionReason.AccessDenied);
                 return;
             }
+            SendToWriter(request);
+        }
 
+        internal void SendToWriter(LogRequest request)
+        {
             var writer = Writer;
 
             if (writer == null) //This is possible when the Logger gets disposed - Ideally the logger should not be referenced after disposal
             {
-                request.Reject(RejectionReason.FailedToWrite);
-                return;
+                UtilityLogger.LogWarning("Log writer unavailable to handle this request - deploying fallback writer");
+                writer = LogWriter.Writer;
             }
 
             request.Host = this;
