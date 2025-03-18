@@ -11,7 +11,6 @@ namespace LogUtils.Threading
         private static List<Task> tasksInProcess = new List<Task>();
 
         private static Thread _thread;
-        //private static Timer _timer; //TODO: Is it worth it?
 
         internal static CrawlMark CurrentCrawlMark = CrawlMark.None;
 
@@ -233,23 +232,52 @@ namespace LogUtils.Threading
             tasksInProcess.Remove(task);
         }
 
-        private static Stopwatch _timer = new Stopwatch();
 
-        /// <summary>
-        /// A debug field for detecting thread hangs
-        /// </summary>
-        private static int _ticksWaitedThisFrame;
 
         private static void threadUpdate()
         {
             Thread.CurrentThread.Name = UtilityConsts.UTILITY_NAME;
 
+            if (UtilityCore.Build == UtilitySetup.Build.DEVELOPMENT)
+            {
+                Stopwatch updateTimer = Stopwatch.StartNew();
+
+                long framesSinceLastSlowFrame = 0,
+                     elapsedTicksOnLastCheck = 0;
+
+                //Check time at the start, and end of the update to allow capture the time in between updates
+                OnThreadUpdate += checkUpdateTime;
+                OnThreadUpdateComplete += checkUpdateTime;
+
+                void checkUpdateTime()
+                {
+                    const int MAX_REPORTABLE_FRAME_COUNT = 10000000;
+
+                    long elapsedTicks = updateTimer.ElapsedTicks;
+                    long elapsedMillisecondsThisFrame = (elapsedTicks - elapsedTicksOnLastCheck) / TimeSpan.TicksPerMillisecond;
+
+                    bool isSlowFrame = elapsedMillisecondsThisFrame > Diagnostics.Debug.LogFrameReportThreshold;
+
+                    if (isSlowFrame)
+                    {
+                        bool maxFrameCountReached = framesSinceLastSlowFrame >= MAX_REPORTABLE_FRAME_COUNT;
+
+                        string frameCountReport = !maxFrameCountReached ? framesSinceLastSlowFrame.ToString() : $"Over {MAX_REPORTABLE_FRAME_COUNT} frames";
+
+                        UtilityLogger.Logger.LogDebug($"Frames since last report: {frameCountReport}");
+                        UtilityLogger.Logger.LogDebug($"Frame took longer than {Diagnostics.Debug.LogFrameReportThreshold} milliseconds [{elapsedMillisecondsThisFrame} ms]");
+                        framesSinceLastSlowFrame = 0;
+                    }
+                    else if (CurrentCrawlMark == CrawlMark.BeginUpdate && framesSinceLastSlowFrame < MAX_REPORTABLE_FRAME_COUNT)
+                        framesSinceLastSlowFrame++;
+
+                    elapsedTicksOnLastCheck = elapsedTicks;
+                }
+            }
+
             while (true)
             {
                 TimeSpan currentTime = TimeSpan.FromTicks(DateTime.UtcNow.Ticks);
-
-                _timer.Restart();
-                _ticksWaitedThisFrame = 0;
 
                 crawlMarkReached(CrawlMark.BeginUpdate);
                 int tasksProcessedCount = 0;
@@ -274,14 +302,6 @@ namespace LogUtils.Threading
                     tasksProcessedCount++;
                 }
                 crawlMarkReached(CrawlMark.EndUpdate);
-
-                if (_timer.ElapsedMilliseconds > 5)
-                    UtilityLogger.LogWarning($"Frame took longer than 5 milliseconds [{_timer.ElapsedMilliseconds} ms]");
-
-                double waitTimeInMilliseconds = (int)(_ticksWaitedThisFrame / Stopwatch.Frequency) * 1000;
-
-                if (waitTimeInMilliseconds > 1.0d)
-                    UtilityLogger.LogWarning("Wait time took longer than 1 milliseconds");
             }
         }
 
@@ -320,13 +340,11 @@ namespace LogUtils.Threading
 
             if (WaitOnCrawlMark == CurrentCrawlMark)
             {
-                long ticksBeforeWait = _timer.ElapsedTicks;
                 while (WaitOnCrawlMark == CurrentCrawlMark)
                 {
                     WaitingOnSignal = true;
                     continue;
                 }
-                _ticksWaitedThisFrame += (int)(_timer.ElapsedTicks - ticksBeforeWait);
                 WaitingOnSignal = false;
             }
 
