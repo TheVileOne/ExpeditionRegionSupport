@@ -64,7 +64,7 @@ namespace LogUtils.Threading
                             }
                         }
                         OnThreadUpdate -= self;
-                    };
+                    }
                 }
             }
         }
@@ -219,20 +219,31 @@ namespace LogUtils.Threading
             _submissionBuffer.Enqueue(taskDeliveryProcess);
         }
 
+        /// <summary>
+        /// Sets the task state to Aborted, or Complete
+        /// </summary>
         public static void EndTask(Task task, bool rejected)
         {
-            if (task.State == TaskState.NotSubmitted) return;
+            if (task.State == TaskState.NotSubmitted || !task.PossibleToRun) return;
 
             UtilityLogger.DebugLog("Task ended after " + TimeConversion.DateTimeInMilliseconds(DateTime.UtcNow - task.InitialTime) + " milliseconds");
             UtilityLogger.DebugLog("Wait interval " + task.WaitTimeInterval.TotalMilliseconds + " milliseconds");
 
             task.ResetToDefaults();
             task.SetState(rejected ? TaskState.Aborted : TaskState.Complete);
-
-            tasksInProcess.Remove(task);
         }
 
+        private static void removeAfterUpdate(Task task)
+        {
+            OnThreadUpdateComplete += removeAfterUpdate;
 
+            void removeAfterUpdate()
+            {
+                SyncCallback self = removeAfterUpdate;
+                tasksInProcess.Remove(task);
+                OnThreadUpdateComplete -= self;
+            }
+        }
 
         private static void threadUpdate()
         {
@@ -275,21 +286,42 @@ namespace LogUtils.Threading
                 }
             }
 
+            HashSet<int> handledTaskIDs = new HashSet<int>();
+
             while (true)
             {
                 TimeSpan currentTime = TimeSpan.FromTicks(DateTime.UtcNow.Ticks);
 
                 crawlMarkReached(CrawlMark.BeginUpdate);
+
                 int tasksProcessedCount = 0;
-                foreach (Task task in safeGetTasks())
+                for (int i = 0; i < tasksInProcess.Count; i++)
                 {
+                    Task task = tasksInProcess[i];
+
+                    if (!handledTaskIDs.Contains(task.ID))
+                    {
+                        UtilityLogger.DebugLog("Processing task: NAME " + task.Name + " ID " + task.ID);
+                        UtilityLogger.DebugLog("Is Continuous " + task.IsContinuous);
+                        handledTaskIDs.Add(task.ID);
+                    }
+
+                    if (!task.PossibleToRun)
+                    {
+                        removeAfterUpdate(task);
+                        continue;
+                    }
+
                     //Time since last activation, or task subscription time
                     TimeSpan timeElapsedSinceLastActivation = currentTime - (task.HasRunOnce ? task.LastActivationTime : task.InitialTime);
 
                     if (timeElapsedSinceLastActivation >= task.WaitTimeInterval)
                     {
                         bool taskRanWithErrors = false;
-                        if (!TryRun(task))
+                        bool success = TryRun(task);
+
+                        //Only consider a failure as error related if task wasn't ended by another thread
+                        if (!success && task.PossibleToRun)
                         {
                             task.IsContinuous = false; //Don't allow task to try again
                             taskRanWithErrors = true;
@@ -297,7 +329,10 @@ namespace LogUtils.Threading
 
                         task.LastActivationTime = currentTime;
                         if (!task.IsContinuous)
+                        {
                             EndTask(task, taskRanWithErrors);
+                            removeAfterUpdate(task);
+                        }
                     }
                     tasksProcessedCount++;
                 }
@@ -307,6 +342,9 @@ namespace LogUtils.Threading
 
         internal static bool TryRun(Task task)
         {
+            if (!task.PossibleToRun)
+                return false;
+
             try
             {
                 task.Run();
@@ -367,31 +405,6 @@ namespace LogUtils.Threading
             {
                 UtilityLogger.LogError(ex);
             }
-        }
-
-        private static HashSet<int> handledTaskIDs = new HashSet<int>();
-
-        private static IEnumerable<Task> safeGetTasks()
-        {
-            if (tasksInProcess.Count > 0)
-            {
-                for (int i = 0; i < tasksInProcess.Count; i++)
-                {
-                    Task task = tasksInProcess[i];
-
-                    if (task != null)
-                    {
-                        if (!handledTaskIDs.Contains(task.ID))
-                        {
-                            UtilityLogger.DebugLog("Processing task: NAME " + task.Name + " ID " + task.ID);
-                            UtilityLogger.DebugLog("Is Continuous " + task.IsContinuous);
-                            handledTaskIDs.Add(task.ID);
-                        }
-                        yield return task;
-                    }
-                }
-            }
-            yield break;
         }
     }
 
