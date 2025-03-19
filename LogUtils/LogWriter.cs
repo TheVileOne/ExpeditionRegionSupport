@@ -100,7 +100,6 @@ namespace LogUtils
             }
 
             LogID logFile = request.Data.ID;
-            string message = ApplyRules(request.Data);
 
             bool writeCompleted = false;
             var fileLock = logFile.Properties.FileLock;
@@ -142,17 +141,8 @@ namespace LogUtils
                     if (streamResult != ProcessResult.Success)
                         throw new IOException("Unable to create stream");
 
-                    MessageBuffer writeBuffer = request.Data.Properties.WriteBuffer;
-
-                    //The buffer always gets written to file before the request message
-                    if (writeBuffer.HasContent)
-                        writer.WriteLine(writeBuffer);
-
-                    //Stream is ready to write the message
-                    writer.WriteLine(message);
-
+                    SendToWriter(writer, request.Data);
                     request.Complete();
-                    logFile.Properties.MessagesHandledThisSession++;
 
                     writeCompleted = true;
                 }
@@ -226,6 +216,24 @@ namespace LogUtils
                 logFile.Properties.WriteBuffer.AppendMessage(message);
                 logFile.Properties.MessagesHandledThisSession++;
             }
+        }
+
+        protected void SendToWriter(StreamWriter writer, LogMessageEventArgs messageData)
+        {
+            MessageBuffer writeBuffer = messageData.Properties.WriteBuffer;
+
+            //The buffer always gets written to file before the request message
+            if (writeBuffer.HasContent)
+            {
+                writer.WriteLine(writeBuffer);
+                writeBuffer.Clear();
+            }
+
+            string message = ApplyRules(messageData);
+
+            //Stream is ready to write the message
+            writer.WriteLine(message);
+            messageData.Properties.MessagesHandledThisSession++;
         }
 
         protected enum ProcessResult

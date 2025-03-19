@@ -93,7 +93,6 @@ namespace LogUtils
         protected override void WriteToFile(LogRequest request)
         {
             LogID logFile = request.Data.ID;
-            string message = ApplyRules(request.Data);
 
             //Get locally controlled LogIDs from the logger, and compare against the persistent file handles managed by the LogWriter
             if (request.Host != null)
@@ -142,17 +141,8 @@ namespace LogUtils
                     if (streamResult != ProcessResult.Success)
                         throw new IOException("Unable to create stream");
 
-                    MessageBuffer writeBuffer = request.Data.Properties.WriteBuffer;
-
-                    //The buffer always gets written to file before the request message
-                    if (writeBuffer.HasContent)
-                        writer.WriteLine(writeBuffer);
-
-                    //Stream is ready to write the message
-                    writer.WriteLine(message);
-
+                    SendToWriter(writer, request.Data);
                     request.Complete();
-                    logFile.Properties.MessagesHandledThisSession++;
 
                     writeCompleted = true;
                 }

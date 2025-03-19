@@ -98,25 +98,15 @@ namespace LogUtils
                     if (streamResult != ProcessResult.Success)
                         throw new IOException("Unable to create stream");
 
-                    MessageBuffer writeBuffer = logEntry.Properties.WriteBuffer;
-
-                    //The buffer always gets written to file before the request message
-                    if (writeBuffer.HasContent)
-                        writer.Write(writeBuffer);
-
                     bool fileChanged;
                     do
                     {
                         lastWriteCompleted = false;
-
-                        string message = ApplyRules(logEntry);
-                        writer.WriteLine(message);
-                        logEntry.ID.Properties.MessagesHandledThisSession++;
-
+                        SendToWriter(writer, logEntry);
                         lastWriteCompleted = true;
 
                         //Keep StreamWriter open while LogID remains unchanged
-                        fileChanged = !LogCache.Any() || LogCache.Peek().ID != logEntry.ID;
+                        fileChanged = LogCache.Count == 0 || LogCache.Peek().ID != logEntry.ID;
 
                         if (!fileChanged)
                             logEntry = LogCache.Dequeue();
