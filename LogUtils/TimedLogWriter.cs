@@ -103,7 +103,7 @@ namespace LogUtils
                     ReleaseHandle(handle, false);
             }
 
-            bool writeCompleted = false;
+            bool errorHandled = false;
             var fileLock = logFile.Properties.FileLock;
 
             try
@@ -143,25 +143,21 @@ namespace LogUtils
 
                     SendToWriter(writer, request.Data);
                     request.Complete();
-
-                    writeCompleted = true;
                 }
             }
-            catch (IOException writeException)
+            catch (Exception ex)
             {
-                UtilityLogger.LogError("Log write error", writeException);
+                errorHandled = true;
+                OnWriteException(ex, request.Data);
             }
             finally
             {
-                //This should account for uncaught exceptions, but still allow temporary stream interrupted requests to be retried
-                if (!writeCompleted)
-                {
-                    if (request.Status != RequestStatus.Rejected)
-                        request.Reject(RejectionReason.FailedToWrite);
+                if (errorHandled)
+                    request.Reject(RejectionReason.FailedToWrite);
 
-                    if (request.UnhandledReason == RejectionReason.FailedToWrite)
-                        SendToBuffer(request.Data);
-                }
+                if (request.UnhandledReason == RejectionReason.FailedToWrite)
+                    SendToBuffer(request.Data);
+
                 fileLock.Release();
             }
         }

@@ -101,7 +101,7 @@ namespace LogUtils
 
             LogID logFile = request.Data.ID;
 
-            bool writeCompleted = false;
+            bool errorHandled = false;
             var fileLock = logFile.Properties.FileLock;
 
             StreamWriter writer = null;
@@ -143,28 +143,24 @@ namespace LogUtils
 
                     SendToWriter(writer, request.Data);
                     request.Complete();
-
-                    writeCompleted = true;
                 }
             }
-            catch (IOException writeException)
+            catch (Exception ex)
             {
-                UtilityLogger.LogError("Log write error", writeException);
+                errorHandled = true;
+                OnWriteException(ex, request.Data);
             }
             finally
             {
                 if (ShouldCloseWriterAfterUse && writer != null)
                     writer.Close();
 
-                //This should account for uncaught exceptions, but still allow temporary stream interrupted requests to be retried
-                if (!writeCompleted)
-                {
-                    if (request.Status != RequestStatus.Rejected)
-                        request.Reject(RejectionReason.FailedToWrite);
+                if (errorHandled)
+                    request.Reject(RejectionReason.FailedToWrite);
 
-                    if (request.UnhandledReason == RejectionReason.FailedToWrite)
-                        SendToBuffer(request.Data);
-                }
+                if (request.UnhandledReason == RejectionReason.FailedToWrite)
+                    SendToBuffer(request.Data);
+
                 fileLock.Release();
             }
         }
@@ -193,6 +189,23 @@ namespace LogUtils
         public virtual string ApplyRules(LogMessageEventArgs messageData)
         {
             return Formatter.Format(messageData);
+        }
+
+        protected virtual void OnWriteException(Exception exception, LogMessageEventArgs messageData)
+        {
+            LogID logFile = messageData.ID;
+
+            //Do not attempt to log an error to BepInEx when the exception came from attempting to write to BepInEx
+            if (logFile != LogID.BepInEx)
+                UtilityLogger.LogError("Log write error", exception);
+
+            //Use Unity's API to log the exception, unless that option has already failed
+            if (logFile != LogID.Exception)
+                UnityEngine.Debug.LogException(exception);
+            else
+            {
+                //TODO: Add fallback process to ensure exceptions are logged
+            }
         }
 
         protected virtual void OnLogMessageReceived(LogMessageEventArgs messageData)
@@ -231,7 +244,6 @@ namespace LogUtils
 
             string message = ApplyRules(messageData);
 
-            //Stream is ready to write the message
             writer.WriteLine(message);
             messageData.Properties.MessagesHandledThisSession++;
         }

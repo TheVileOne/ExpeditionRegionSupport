@@ -84,7 +84,7 @@ namespace LogUtils
             {
                 var logEntry = LogCache.Dequeue();
 
-                bool lastWriteCompleted = false;
+                bool errorHandled = false;
                 var fileLock = logEntry.Properties.FileLock;
 
                 StreamWriter writer = null;
@@ -101,9 +101,7 @@ namespace LogUtils
                     bool fileChanged;
                     do
                     {
-                        lastWriteCompleted = false;
                         SendToWriter(writer, logEntry);
-                        lastWriteCompleted = true;
 
                         //Keep StreamWriter open while LogID remains unchanged
                         fileChanged = LogCache.Count == 0 || LogCache.Peek().ID != logEntry.ID;
@@ -113,32 +111,38 @@ namespace LogUtils
                     }
                     while (!fileChanged);
                 }
-                catch (IOException writeException)
+                catch (Exception ex)
                 {
-                    ExceptionInfo exceptionInfo = new ExceptionInfo(writeException);
-
-                    if (!RWInfo.CheckExceptionMatch(logEntry.ID, exceptionInfo)) //Only log unreported exceptions
-                    {
-                        var errorEntry = new LogMessageEventArgs(logEntry.ID, writeException, LogCategory.Error);
-
-                        RWInfo.ReportException(errorEntry.ID, exceptionInfo);
-                        EnqueueMessage(errorEntry);
-                    }
-
-                    //Break out of process loop when an exception occurs
-                    break;
+                    errorHandled = true;
+                    OnWriteException(ex, logEntry);
+                    break; //Break out of process loop when an exception occurs
                 }
                 finally
                 {
                     if (ShouldCloseWriterAfterUse && writer != null)
                         writer.Close();
 
-                    if (!lastWriteCompleted)
+                    if (errorHandled)
                         SendToBuffer(logEntry);
 
                     fileLock.Release();
                 }
             }
+        }
+
+        protected override void OnWriteException(Exception exception, LogMessageEventArgs messageData)
+        {
+            ExceptionInfo exceptionInfo = new ExceptionInfo(exception);
+
+            if (!RWInfo.CheckExceptionMatch(messageData.ID, exceptionInfo)) //Only log unreported exceptions
+            {
+                var errorEntry = new LogMessageEventArgs(messageData.ID, exception, LogCategory.Error);
+
+                RWInfo.ReportException(errorEntry.ID, exceptionInfo);
+                EnqueueMessage(errorEntry);
+            }
+
+            base.OnWriteException(exception, messageData);
         }
     }
 }
