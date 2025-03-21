@@ -255,6 +255,13 @@ namespace LogUtils.Enums
             return Find(filename, relativePathNoFile) != null;
         }
 
+        public override int GetHashCode()
+        {
+            if (Properties != null)
+                return Properties.GetHashCode();
+            return base.GetHashCode();
+        }
+
         internal static void InitializeEnums()
         {
             //Game-defined LogIDs

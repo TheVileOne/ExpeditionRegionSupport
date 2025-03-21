@@ -436,6 +436,11 @@ namespace LogUtils.Properties
             CurrentFolderPath = OriginalFolderPath = FolderPath;
             LastKnownFilePath = CurrentFilePath;
 
+            //TODO: This code needs to be refactored when mod path support is added
+            string hashString = Path.Combine(OriginalFolderPath, _idValue);
+
+            IDHash = hashString.GetHashCode();
+
             const int framesUntilCutoff = 10; //Number of frames before instance is no longer considered a 'new' instance
 
             IsNewInstance = true;
@@ -722,8 +727,18 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
+        /// The hashcode representing the log filepath at the time of instantiation
+        /// <br><remarks>
+        /// This value is intended to be a unique identifier for this LogProperties instance, and will not change even if the file metadata changes
+        /// </remarks></br>
+        /// </summary>
+        internal readonly int IDHash = 0;
+
+        /// <summary>
         /// The hashcode produced by the write string cached when properties are read from file
-        /// Note: If the value remains at zero, it means that the properties instance hasn't been updated
+        /// <br><remarks>
+        /// If the value remains at zero, it means that the properties instance hasn't been updated
+        /// </remarks></br>
         /// </summary>
         internal int WriteHash = 0;
 
@@ -749,6 +764,11 @@ namespace LogUtils.Properties
         {
             string writeString = GetWriteString();
             WriteHash = writeString.GetHashCode();
+        }
+
+        public override int GetHashCode()
+        {
+            return IDHash;
         }
 
         public LogPropertyData ToData(List<CommentEntry> comments = null)
