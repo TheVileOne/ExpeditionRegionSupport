@@ -15,7 +15,7 @@ namespace LogUtils
 
         public ManualLogSource ManagedLogSource;
 
-        LogID[] ILoggerBase.AvailableTargets => LogTargets.ToArray();
+        LogID[] ILogger.AvailableTargets => LogTargets.ToArray();
 
         /// <summary>
         /// Contains a list of LogIDs (both local and remote) that will be handled in the case of an untargeted log request
@@ -673,14 +673,6 @@ namespace LogUtils
             return false;
         }
 
-        internal IEnumerable<PersistentLogFileHandle> GetUnusedHandles(IEnumerable<PersistentLogFileHandle> handlePool)
-        {
-            //No game-controlled, or remote targets
-            var localTargets = LogTargets.FindAll(CanLogBeHandledLocally);
-
-            return handlePool.Where(handle => !localTargets.Contains(handle.FileID));
-        }
-
         /// <summary>
         /// Retrieves all log files this logger instance can handle directly
         /// </summary>
@@ -801,11 +793,6 @@ namespace LogUtils
         }
 
         #endregion
-
-        internal static bool CanLogBeHandledLocally(LogID logID)
-        {
-            return !logID.IsGameControlled && (logID.Access == LogAccess.FullAccess || logID.Access == LogAccess.Private);
-        }
 
         public class EarlyInitializationException(string message) : InvalidOperationException(message)
         {

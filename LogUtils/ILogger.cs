@@ -7,6 +7,11 @@ namespace LogUtils
 {
     public interface ILogger
     {
+        /// <summary>
+        /// Log file selected by the logger when no log target is provided
+        /// </summary>
+        public LogID[] AvailableTargets { get; }
+
         public void Log(object data);
         public void LogDebug(object data);
         public void LogInfo(object data);
@@ -25,18 +30,13 @@ namespace LogUtils
     public interface ILoggerBase
     {
         /// <summary>
-        /// Log file targets accepted by the logger
-        /// </summary>
-        LogID[] AvailableTargets { get; }
-
-        /// <summary>
         /// Can this logger instance accept, and process a specific LogRequest instance
         /// </summary>
-        public bool CanHandle(LogRequest request, bool doPathCheck = false);
+        bool CanHandle(LogRequest request, bool doPathCheck = false);
 
         /// <summary>
         /// Accepts and processes a LogRequest instance
         /// </summary>
-        public void HandleRequest(LogRequest request, bool skipAccessValidation = false);
+        void HandleRequest(LogRequest request, bool skipAccessValidation = false);
     }
 }

@@ -6,6 +6,8 @@ namespace LogUtils.Compatibility
 {
     public class BepInExLogger : ILogger
     {
+        LogID[] ILogger.AvailableTargets => [LogID.BepInEx];
+
         /// <summary>
         /// BepInEx derived logging interface
         /// </summary>

@@ -17,6 +17,8 @@ namespace LogUtils
 
         public event EventHandler<LogEventArgs> LogEvent;
 
+        LogID[] ILogger.AvailableTargets => [LogID.BepInEx];
+
         internal bool IsAccessRecursive()
         {
             return recursiveAccessFlag;

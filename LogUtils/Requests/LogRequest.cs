@@ -23,7 +23,7 @@ namespace LogUtils.Requests
         /// <summary>
         /// The logger instance that has taken responsibility for handling the write process for this request
         /// </summary>
-        public Logger Host;
+        public ILogger Host;
 
         /// <summary>
         /// Request has been handled, and no more attempts to process the request should be made
