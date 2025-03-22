@@ -56,6 +56,32 @@ namespace LogUtils
         /// <summary>
         /// Constructs a logger instance
         /// </summary>
+        /// <param name="preset">The LogID to target, or handle by request by this logger</param>
+        public Logger(LogID preset) : this(LoggingMode.Inherit, true, preset)
+        {
+        }
+
+        /// <summary>
+        /// Constructs a logger instance
+        /// </summary>
+        /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
+        /// <param name="preset">The LogID to target, or handle by request by this logger</param>
+        public Logger(bool allowLogging, LogID preset) : this(LoggingMode.Inherit, allowLogging, preset)
+        {
+        }
+
+        /// <summary>
+        /// Constructs a logger instance
+        /// </summary>
+        /// <param name="mode">Changes the technique used to write messages to file</param>
+        /// <param name="preset">The LogID to target, or handle by request by this logger</param>
+        public Logger(LoggingMode mode, LogID preset) : this(mode, true, preset)
+        {
+        }
+
+        /// <summary>
+        /// Constructs a logger instance
+        /// </summary>
         /// <param name="presets">Include any LogIDs that this logger targets, or handles on request</param>
         public Logger(params LogID[] presets) : this(LoggingMode.Inherit, true, presets)
         {
