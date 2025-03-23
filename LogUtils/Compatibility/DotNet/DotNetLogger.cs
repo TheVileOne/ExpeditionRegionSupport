@@ -1,7 +1,6 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Requests;
-using LogUtils.Threading;
 using Microsoft.Extensions.Logging;
 using System;
 
@@ -13,8 +12,6 @@ namespace LogUtils.Compatibility.DotNet
         /// A pending EventID waiting for its request to be handled. The reason it is stored at the class level is because it cannot be passed into the base class
         /// </summary>
         protected EventId PendingEventID;
-
-        protected readonly Lock dataLock = new Lock();
 
         /// <summary>
         /// Creates a new DotNetLogger instance
@@ -43,7 +40,7 @@ namespace LogUtils.Compatibility.DotNet
             LogCategory messageCategory = LoggerUtils.GetEquivalentCategory(logLevel);
             object messageData = formatter != null ? formatter.Invoke(state, exception) : state;
 
-            using (dataLock.Acquire())
+            using (DataLock.Acquire())
             {
                 //Send data that we able to pass into the base Logger implementation
                 Log(messageCategory, messageData);

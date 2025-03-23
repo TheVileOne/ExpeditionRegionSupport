@@ -2,6 +2,7 @@
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Requests;
+using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +23,11 @@ namespace LogUtils
         public bool AllowRemoteLogging;
 
         LogID[] ILogger.AvailableTargets => LogTargets.ToArray();
+
+        /// <summary>
+        /// Lock object - designed to be ensure event data is not tampered with by other threads before it is attached to a LogRequest
+        /// </summary>
+        protected readonly Lock DataLock = new Lock();
 
         /// <summary>
         /// Contains a list of LogIDs (both local and remote) that will be handled in the case of an untargeted log request
