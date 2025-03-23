@@ -47,14 +47,18 @@ namespace LogUtils.Compatibility.DotNet
             }
         }
 
+        protected override void ClearEventData()
+        {
+            PendingEventID = default;
+            base.ClearEventData();
+        }
+
         private void onNewRequest(LogRequest request)
         {
             if (request.Sender != this) return;
 
             LogMessageEventArgs messageData = request.Data;
-
             messageData.ExtraArgs.Add(new DotNetLoggerEventArgs(messageData.ID, PendingEventID));
-            PendingEventID = default;
         }
     }
 }

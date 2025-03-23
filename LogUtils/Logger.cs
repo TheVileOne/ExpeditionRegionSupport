@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Compatibility;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Requests;
@@ -10,7 +11,7 @@ using UnityEngine;
 
 namespace LogUtils
 {
-    public class Logger : ILogger, ILoggerBase, IDisposable
+    public partial class Logger : ILogger, ILoggerBase, IDisposable
     {
         /// <summary>
         /// A flag that allows/disallows handling of log requests (local and remote) through this logger 
@@ -28,6 +29,11 @@ namespace LogUtils
         /// Lock object - designed to be ensure event data is not tampered with by other threads before it is attached to a LogRequest
         /// </summary>
         protected readonly Lock DataLock = new Lock();
+
+        /// <summary>
+        /// Indicates when it is ready to set temporary event data fields back to default values
+        /// </summary>
+        protected bool ShouldClearEventData = true;
 
         /// <summary>
         /// Contains a list of LogIDs (both local and remote) that will be handled in the case of an untargeted log request
@@ -60,6 +66,7 @@ namespace LogUtils
         public Logger(ManualLogSource logSource) : this(LoggingMode.Inherit, true, LogID.BepInEx)
         {
             ManagedLogSource = logSource;
+            LogRequestEvents.OnSubmit += onNewRequest; 
         }
 
         /// <summary>
@@ -597,61 +604,79 @@ namespace LogUtils
 
         protected virtual void LogData(IEnumerable<LogID> targets, LogCategory category, object data, bool shouldFilter)
         {
-            if (!targets.Any())
+            try
             {
-                UtilityLogger.LogWarning("Attempted to log message with no available log targets");
-                return;
-            }
+                if (!targets.Any())
+                {
+                    UtilityLogger.LogWarning("Attempted to log message with no available log targets");
+                    return;
+                }
 
-            //Log data for each targetted LogID
-            foreach (LogID target in targets)
-                LogData(target, category, data, shouldFilter);
+                ShouldClearEventData = false; //Ensure that event data is not cleared upon individual request processing
+
+                //Log data for each targetted LogID
+                foreach (LogID target in targets)
+                    LogData(target, category, data, shouldFilter);
+            }
+            finally
+            {
+                ShouldClearEventData = true;
+                ClearEventData();
+            }
         }
 
         protected virtual void LogData(LogID target, LogCategory category, object data, bool shouldFilter)
         {
-            if (!AllowLogging || !target.IsEnabled) return;
+            try
+            {
+                if (!AllowLogging || !target.IsEnabled) return;
 
-            RequestType requestType;
+                RequestType requestType;
 
-            if (target.IsGameControlled)
-            {
-                requestType = RequestType.Game;
-            }
-            else if (target.Access == LogAccess.FullAccess || target.Access == LogAccess.Private)
-            {
-                requestType = RequestType.Local;
-            }
-            else
-            {
-                requestType = RequestType.Remote;
-            }
-
-            LogRequest request = new LogRequest(requestType, new LogMessageEventArgs(target, data, category)
-            {
-                LogSource = ManagedLogSource
-            });
-
-            if (shouldFilter)
-            {
-                request.Data.ShouldFilter = true;
-                request.Data.FilterDuration = FilterDuration.OnClose;
-            }
-
-            request.Sender = this;
-
-            //Local requests are processed immediately by the logger, while other types of requests are handled through RequestHandler
-            if (request.Type != RequestType.Local)
-            {
-                UtilityCore.RequestHandler.Submit(request, true);
-            }
-            else
-            {
-                using (UtilityCore.RequestHandler.BeginCriticalSection())
+                if (target.IsGameControlled)
                 {
-                    UtilityCore.RequestHandler.Submit(request, false);
-                    SendToWriter(request);
+                    requestType = RequestType.Game;
                 }
+                else if (target.Access == LogAccess.FullAccess || target.Access == LogAccess.Private)
+                {
+                    requestType = RequestType.Local;
+                }
+                else
+                {
+                    requestType = RequestType.Remote;
+                }
+
+                LogRequest request = new LogRequest(requestType, new LogMessageEventArgs(target, data, category)
+                {
+                    LogSource = ManagedLogSource
+                });
+
+                if (shouldFilter)
+                {
+                    request.Data.ShouldFilter = true;
+                    request.Data.FilterDuration = FilterDuration.OnClose;
+                }
+
+                request.Sender = this;
+
+                //Local requests are processed immediately by the logger, while other types of requests are handled through RequestHandler
+                if (request.Type != RequestType.Local)
+                {
+                    UtilityCore.RequestHandler.Submit(request, true);
+                }
+                else
+                {
+                    using (UtilityCore.RequestHandler.BeginCriticalSection())
+                    {
+                        UtilityCore.RequestHandler.Submit(request, false);
+                        SendToWriter(request);
+                    }
+                }
+            }
+            finally
+            {
+                if (ShouldClearEventData)
+                    ClearEventData();
             }
         }
 
@@ -682,6 +707,12 @@ namespace LogUtils
                 return requestType == RequestType.Local || loggerID.Access != LogAccess.Private;
             }
             return false;
+        }
+
+        protected virtual void ClearEventData()
+        {
+            Context = null;
+            DataTag = null;
         }
 
         /// <summary>
@@ -765,6 +796,13 @@ namespace LogUtils
             writer.WriteFrom(request);
         }
 
+        private void onNewRequest(LogRequest request)
+        {
+            if (request.Sender != this || Context == null && DataTag == null) return;
+
+            LogMessageEventArgs messageData = request.Data;
+            messageData.ExtraArgs.Add(new UnityLogEventArgs(messageData.ID, Context, DataTag));
+        }
         #endregion
 
         #region Dispose pattern
