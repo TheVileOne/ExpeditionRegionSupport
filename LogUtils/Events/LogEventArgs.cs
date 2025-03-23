@@ -5,6 +5,7 @@ using LogUtils.Properties;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 namespace LogUtils.Events
@@ -134,6 +135,14 @@ namespace LogUtils.Events
         private string processMessage(object data)
         {
             return data?.ToString() ?? string.Empty;
+        }
+
+        /// <summary>
+        /// Finds the first match of a given type, or returns null
+        /// </summary>
+        public TData FindData<TData>() where TData : LogEventArgs
+        {
+            return this as TData ?? ExtraArgs.OfType<TData>().FirstOrDefault();
         }
 
         /// <summary>
