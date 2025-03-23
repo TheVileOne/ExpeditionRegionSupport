@@ -12,6 +12,7 @@ namespace LogUtils
 
         public PersistentLogFileWriter(PersistentLogFileHandle handle) : base(handle.Stream, Utility.UTF8NoBom)
         {
+            //AutoFlush = true;
             Handle = handle;
         }
 
