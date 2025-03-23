@@ -11,17 +11,6 @@ namespace LogUtils
 {
     public class Logger : ILogger, ILoggerBase, IDisposable
     {
-        public ILogWriter Writer = LogWriter.Writer;
-
-        public ManualLogSource ManagedLogSource;
-
-        LogID[] ILogger.AvailableTargets => LogTargets.ToArray();
-
-        /// <summary>
-        /// Contains a list of LogIDs (both local and remote) that will be handled in the case of an untargeted log request
-        /// </summary>
-        public List<LogID> LogTargets = new List<LogID>();
-
         /// <summary>
         /// A flag that allows/disallows handling of log requests (local and remote) through this logger 
         /// </summary>
@@ -32,10 +21,24 @@ namespace LogUtils
         /// </summary>
         public bool AllowRemoteLogging;
 
+        LogID[] ILogger.AvailableTargets => LogTargets.ToArray();
+
+        /// <summary>
+        /// Contains a list of LogIDs (both local and remote) that will be handled in the case of an untargeted log request
+        /// </summary>
+        public List<LogID> LogTargets = new List<LogID>();
+
+        /// <summary>
+        /// BepInEx logging source object
+        /// </summary>
+        public ManualLogSource ManagedLogSource;
+
         /// <summary>
         /// Contains a record of logger field values that can be restored on demand
         /// </summary>
         public LoggerRestorePoint RestorePoint;
+
+        public ILogWriter Writer = LogWriter.Writer;
 
         #region Initialization
 
