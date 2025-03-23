@@ -33,7 +33,7 @@ namespace LogUtils.Compatibility.DotNet
             return true;
         }
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public void Log<TState>(LogLevel logLevel, EventId eventID, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
             if (!AllowLogging || !IsEnabled(logLevel)) return; //Remote logging is not applicable here
 
@@ -42,7 +42,7 @@ namespace LogUtils.Compatibility.DotNet
 
             using (DataLock.Acquire())
             {
-                //Send data that we able to pass into the base Logger implementation
+                PendingEventID = eventID;
                 Log(messageCategory, messageData);
             }
         }
