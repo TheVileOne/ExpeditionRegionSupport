@@ -629,14 +629,16 @@ namespace LogUtils
                 request.Data.FilterDuration = FilterDuration.OnClose;
             }
 
-            using (UtilityCore.RequestHandler.BeginCriticalSection())
+            request.Sender = this;
+
+            //Local requests are processed immediately by the logger, while other types of requests are handled through RequestHandler
+            if (request.Type != RequestType.Local)
             {
-                //Local requests are processed immediately by the logger, while other types of requests are handled through RequestHandler
-                if (request.Type != RequestType.Local)
-                {
-                    UtilityCore.RequestHandler.Submit(request, true);
-                }
-                else
+                UtilityCore.RequestHandler.Submit(request, true);
+            }
+            else
+            {
+                using (UtilityCore.RequestHandler.BeginCriticalSection())
                 {
                     UtilityCore.RequestHandler.Submit(request, false);
                     SendToWriter(request);

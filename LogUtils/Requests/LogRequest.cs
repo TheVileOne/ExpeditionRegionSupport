@@ -30,7 +30,12 @@ namespace LogUtils.Requests
         /// </summary>
         public bool IsCompleteOrInvalid => Status == RequestStatus.Complete || !CanRetryRequest();
 
-        public bool IsCompleteOrRejected => Status == RequestStatus.Complete || Status == RequestStatus.Rejected; 
+        public bool IsCompleteOrRejected => Status == RequestStatus.Complete || Status == RequestStatus.Rejected;
+
+        /// <summary>
+        /// The logger instance (if any) that was responsible for submitting the request
+        /// </summary>
+        public ILogger Sender;
 
         public RequestStatus Status => _state.Status;
 
