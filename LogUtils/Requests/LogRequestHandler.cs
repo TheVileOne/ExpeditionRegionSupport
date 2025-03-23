@@ -365,7 +365,7 @@ namespace LogUtils.Requests
             return bestCandidate;
         }
 
-        private ILoggerBase findCompatibleLoggerBase(LogID logFile, RequestType requestType)
+        private ILogHandler findCompatibleLoggerBase(LogID logFile, RequestType requestType)
         {
             if (logFile.IsGameControlled)
                 return GameLogger;
@@ -428,7 +428,7 @@ namespace LogUtils.Requests
                 logFile.Properties.HandleRecord.Reset();
 
                 LogRequest[] requests = GetRequests(logFile);
-                ILoggerBase selectedLogger = null;
+                ILogHandler selectedLogger = null;
 
                 //Evaluate all requests waiting to be handled for this log file
                 foreach (LogRequest request in requests)
@@ -482,7 +482,7 @@ namespace LogUtils.Requests
         {
             LogID requestID = null,
                   lastRequestID;
-            ILoggerBase selectedLogger = null;
+            ILogHandler selectedLogger = null;
             bool verifyRemoteAccess = false;
 
             int requestsProcessed = 0;
@@ -557,13 +557,13 @@ namespace LogUtils.Requests
             LogID logFile = request.Data.ID;
 
             //Beyond this point, we can assume that there are no preexisting unhandled requests for this log file
-            ILoggerBase selectedLogger = !logFile.IsGameControlled
+            ILogHandler selectedLogger = !logFile.IsGameControlled
                 ? findCompatibleLogger(logFile, request.Type, doPathCheck: true) : GameLogger;
 
             HandleRequest(request, selectedLogger);
         }
 
-        internal void HandleRequest(LogRequest request, ILoggerBase logger)
+        internal void HandleRequest(LogRequest request, ILogHandler logger)
         {
             if (logger == null)
             {

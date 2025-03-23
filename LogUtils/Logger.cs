@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace LogUtils
 {
-    public partial class Logger : ILogger, ILoggerBase, IDisposable
+    public partial class Logger : ILogger, ILogHandler, IDisposable
     {
         /// <summary>
         /// A flag that allows/disallows handling of log requests (local and remote) through this logger 

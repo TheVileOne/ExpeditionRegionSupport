@@ -27,10 +27,10 @@ namespace LogUtils
         public void Log(LogCategory category, object data);
     }
 
-    public interface ILoggerBase
+    public interface ILogHandler
     {
         /// <summary>
-        /// Can this logger instance accept, and process a specific LogRequest instance
+        /// Does this handler accept, and process a specific LogRequest instance
         /// </summary>
         bool CanHandle(LogRequest request, bool doPathCheck = false);
 

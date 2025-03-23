@@ -13,7 +13,7 @@ namespace LogUtils
     /// <summary>
     /// A class for handling game-controlled log content
     /// </summary>
-    public class GameLogger : ILoggerBase
+    public class GameLogger : ILogHandler
     {
         /// <summary>
         /// Set to the LogID of a request while it is being handled through an external logging API accessed by a GameLogger instance
