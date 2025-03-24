@@ -23,7 +23,17 @@ namespace LogUtils
         /// <summary>
         /// The active build environment for the assembly
         /// </summary>
-        internal static UtilitySetup.Build Build { get; private set; }
+        internal static UtilitySetup.Build Build
+        {
+            get
+            {
+#if DEBUG
+                return UtilitySetup.Build.DEVELOPMENT;
+#else
+                return UtilitySetup.Build.RELEASE;
+#endif
+            }
+        }
 
         /// <summary>
         /// The assembly responsible for loading core resources for the utility
@@ -90,9 +100,7 @@ namespace LogUtils
 
             UtilitySetup.CurrentStep = UtilitySetup.InitializationStep.NOT_STARTED;
 
-#if !DEBUG
-            Build = UtilitySetup.Build.RELEASE;
-#else
+#if DEBUG
             //Used for debugging purposes only - not meant for production builds
             SetupDebugEnvironment();
 #endif
@@ -302,8 +310,6 @@ namespace LogUtils
 
         internal static void SetupDebugEnvironment()
         {
-            Build = UtilitySetup.Build.DEVELOPMENT;
-
             //Ensure that Logger is always initialized before the debug environment is setup
             if (UtilityLogger.Logger == null)
             {
