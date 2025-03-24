@@ -28,6 +28,7 @@ namespace LogUtils.Diagnostics
 
             UtilityTests.Add(new AssertTests());
             UtilityTests.Add(new LogCategoryTests());
+            UtilityTests.Add(new ExceptionComparerTests());
         }
 
         /// <summary>
