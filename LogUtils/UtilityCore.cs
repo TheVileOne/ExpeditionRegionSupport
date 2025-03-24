@@ -1,5 +1,4 @@
 ﻿using LogUtils.Compatibility;
-using LogUtils.Diagnostics.Tests.Utility;
 using LogUtils.Diagnostics.Tools;
 using LogUtils.Enums;
 using LogUtils.Events;
@@ -91,8 +90,12 @@ namespace LogUtils
 
             UtilitySetup.CurrentStep = UtilitySetup.InitializationStep.NOT_STARTED;
 
+#if !DEBUG
+            Build = UtilitySetup.Build.RELEASE;
+#else
             //Used for debugging purposes only - not meant for production builds
             SetupDebugEnvironment();
+#endif
 
             try
             {

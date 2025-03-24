@@ -271,9 +271,10 @@ namespace LogUtils.Enums
             JollyCoop = new LogID(null, UtilityConsts.LogNames.JollyCoop, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
             Unity = new LogID(null, UtilityConsts.LogNames.Unity, UtilityConsts.PathKeywords.ROOT, true);
 
+#if DEBUG
             //File activity monitoring LogID
             FileActivity = new LogID("LogActivity", UtilityConsts.PathKeywords.ROOT, LogAccess.Private, false);
-
+#endif
             //Fallback LogID
             Unknown = new ComparisonLogID(UtilityConsts.LogNames.Unknown);
 
@@ -323,7 +324,9 @@ namespace LogUtils.Enums
         public static LogID BepInEx;
         public static LogID Exception;
         public static LogID Expedition;
+#if DEBUG
         internal static LogID FileActivity;
+#endif
         public static LogID JollyCoop;
         public static LogID Unity;
         internal static LogID Unknown;

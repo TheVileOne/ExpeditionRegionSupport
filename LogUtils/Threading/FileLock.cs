@@ -13,10 +13,11 @@ namespace LogUtils.Threading
         {
             if (activity == LastActivity) return;
 
+#if DEBUG
             //The activity log should be immune from activity reporting
             if (logID != LogID.FileActivity)
                 UtilityLogger.LogActivity(FileActivityStringFormatter.Default.GetFormat(logID, activity));
-
+#endif
             LastActivity = activity;
         }
     }

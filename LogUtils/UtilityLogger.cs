@@ -10,11 +10,12 @@ namespace LogUtils
     {
         public static UtilityLogSource Logger;
 
+#if DEBUG
         /// <summary>
         /// Activity logger is responsible for reporting file behavior associated with log related files
         /// </summary>
         private static Logger activityLogger;
-
+#endif
         internal static void Initialize()
         {
             if (Logger != null) return;
@@ -29,7 +30,10 @@ namespace LogUtils
                 sources.Add(Logger);
             }
 
-            //TODO: Deprecate use of test.txt when utility is close to release
+#if !DEBUG
+            File.Delete("LogActivity.log");
+#endif
+            //TODO: Restrict Debug log to the Development build
             File.Delete("test.txt");
         }
 
@@ -48,6 +52,7 @@ namespace LogUtils
             Logger.Log(category.BepInExCategory, data);
         }
 
+#if DEBUG
         public static void LogActivity(FormattableString message)
         {
             if (activityLogger == null)
@@ -63,6 +68,7 @@ namespace LogUtils
             }
             activityLogger.Log(message);
         }
+#endif
 
         public static void LogError(object data)
         {
