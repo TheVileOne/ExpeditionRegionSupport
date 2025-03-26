@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LogUtils
+namespace LogUtils.Timers
 {
     public class FrameTimer : UtilityComponent
     {

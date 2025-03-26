@@ -6,6 +6,7 @@ using LogUtils.Helpers;
 using LogUtils.Properties;
 using LogUtils.Requests;
 using LogUtils.Threading;
+using LogUtils.Timers;
 using Menu;
 using System;
 using System.Linq;

@@ -8,6 +8,7 @@ using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties.Custom;
 using LogUtils.Requests;
 using LogUtils.Threading;
+using LogUtils.Timers;
 using System;
 using System.Collections;
 using System.Collections.Generic;

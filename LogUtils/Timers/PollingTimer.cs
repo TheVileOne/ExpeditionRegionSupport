@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Timers;
 
-namespace LogUtils.Diagnostics.Tools
+namespace LogUtils.Timers
 {
     public class PollingTimer : Timer
     {
