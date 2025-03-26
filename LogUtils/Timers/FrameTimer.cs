@@ -1,70 +1,61 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace LogUtils.Timers
 {
-    public class FrameTimer : UtilityComponent
+    public class FrameTimer
     {
-        /// <summary>
-        /// Events waiting to be scheduled
-        /// </summary>
-        private Queue<ScheduledEvent> pendingEvents = new Queue<ScheduledEvent>();
-
-        private List<ScheduledEvent> scheduledEvents = new List<ScheduledEvent>();
-
-        public override string Tag => UtilityConsts.ComponentTags.SCHEDULER;
-
-        public FrameTimer()
+        private int _frequency = 1;
+        public virtual int Frequency
         {
-            enabled = true;
-        }
-
-        public ScheduledEvent Schedule(Action action, int frameInterval)
-        {
-            if (frameInterval < 0)
-                throw new ArgumentOutOfRangeException(nameof(frameInterval) + " must be greater than zero");
-
-            ScheduledEvent pendingEvent = new ScheduledEvent(action, frameInterval);
-            lock (this)
+            get => _frequency;
+            set
             {
-                pendingEvents.Enqueue(pendingEvent);
+                if (value <= 0)
+                    throw new ArgumentOutOfRangeException(nameof(Frequency));
+                _frequency = value;
             }
-            return pendingEvent;
         }
 
-        public void Update()
+        public int Ticks;
+
+        public event Action OnInterval;
+
+        private bool canUpdate;
+
+        public FrameTimer(int interval)
         {
-            //Add pending events in a threadsafe way
-            while (pendingEvents.Count > 0)
-                scheduledEvents.Add(pendingEvents.Dequeue());
+            if (interval <= 0)
+                throw new ArgumentOutOfRangeException();
 
-            bool eventCleanupRequired = false;
-
-            foreach (ScheduledEvent e in scheduledEvents)
-            {
-                if (e.Cancelled)
-                    eventCleanupRequired = true;
-            }
-
-            if (eventCleanupRequired)
-                scheduledEvents.RemoveAll(e => e.Cancelled);
-        }
-    }
-
-    public class ScheduledEvent
-    {
-        public event Action Event;
-
-        public bool Cancelled;
-
-        public ScheduledEvent(Action action, int frameInterval)
-        {
-            Event = action;
+            Frequency = interval;
         }
 
-        public void Cancel()
+        public virtual void Start()
         {
-            Cancelled = true;
+            canUpdate = true;
+        }
+
+        public virtual void Stop()
+        {
+            canUpdate = false;
+        }
+
+        public virtual void Restart()
+        {
+            Ticks = 0;
+            Start();
+        }
+
+        public virtual void Update()
+        {
+            if (!canUpdate) return;
+
+            Ticks = Ticks < Frequency ? Ticks + 1 : 0;
+
+            bool intervalReached = Ticks == Frequency || Frequency == 1;
+
+            if (intervalReached)
+                OnInterval?.Invoke();
         }
     }
 }

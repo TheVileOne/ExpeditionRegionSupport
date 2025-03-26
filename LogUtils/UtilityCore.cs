@@ -76,7 +76,7 @@ namespace LogUtils
         /// </summary>
         public static LogRequestHandler RequestHandler;
 
-        public static FrameTimer Scheduler;
+        public static EventScheduler Scheduler;
 
         /// <summary>
         /// Ensures that core functionality is in a proper and useable state by ensuring the initialization procedure has run
@@ -269,7 +269,7 @@ namespace LogUtils
         /// </summary>
         internal static void LoadComponents()
         {
-            Scheduler = ComponentUtils.GetOrCreate<FrameTimer>(UtilityConsts.ComponentTags.SCHEDULER, out _);
+            Scheduler = ComponentUtils.GetOrCreate<EventScheduler>(UtilityConsts.ComponentTags.SCHEDULER, out _);
             PersistenceManager = ComponentUtils.GetOrCreate<PersistenceManager>(UtilityConsts.ComponentTags.PERSISTENCE_MANAGER, out _);
             DataHandler = ComponentUtils.GetOrCreate<SharedDataHandler>(UtilityConsts.ComponentTags.SHARED_DATA, out _);
             RequestHandler = ComponentUtils.GetOrCreate<LogRequestHandler>(UtilityConsts.ComponentTags.REQUEST_DATA, out _);
