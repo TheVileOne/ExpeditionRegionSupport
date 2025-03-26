@@ -228,18 +228,7 @@ namespace LogUtils.Helpers
         /// </summary>
         public static IEnumerable<PersistentLogFileHandle> GetPersistentLogFiles()
         {
-            var enumerator = UtilityCore.PersistenceManager.References.GetEnumerator();
-
-            while (enumerator.MoveNext())
-            {
-                if (enumerator.Current.TryGetTarget(out PersistentFileHandle handle))
-                {
-                    var logFileHandle = handle as PersistentLogFileHandle;
-                    if (logFileHandle != null)
-                        yield return logFileHandle;
-                }
-            }
-            yield break;
+            return UtilityCore.PersistenceManager.References.OfType<PersistentLogFileHandle>();
         }
     }
 }

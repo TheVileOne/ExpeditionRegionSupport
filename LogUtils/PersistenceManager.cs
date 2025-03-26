@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Linq;
 
 namespace LogUtils
 {
     public class PersistenceManager : UtilityComponent
     {
-        internal List<WeakReference<PersistentFileHandle>> References = new List<WeakReference<PersistentFileHandle>>();
+        internal WeakReferenceCollection<PersistentFileHandle> References = new WeakReferenceCollection<PersistentFileHandle>();
 
         public override string Tag => UtilityConsts.ComponentTags.PERSISTENCE_MANAGER;
 
@@ -22,22 +22,19 @@ namespace LogUtils
         public void Update()
         {
             bool hasDisposedReferences = false;
-            foreach (var reference in References)
+            foreach (PersistentFileHandle handle in References.Where(handleIsInvalid))
             {
-                if (reference.TryGetTarget(out PersistentFileHandle handle))
-                {
-                    if (!handle.IsAlive)
-                    {
-                        handle.Dispose();
-                        hasDisposedReferences = true;
-                    }
-                }
-                else
-                    hasDisposedReferences = true;
+                handle.Dispose();
+                hasDisposedReferences = true;
             }
 
             if (hasDisposedReferences)
-                References.RemoveAll(r => !r.TryGetTarget(out PersistentFileHandle handle) || !handle.IsAlive);
+                References.RemoveAll(handleIsInvalid);
+
+            static bool handleIsInvalid(PersistentFileHandle handle)
+            {
+                return !handle.IsAlive;
+            }
         }
 
         internal void NotifyOnDispose(PersistentFileHandle handle)

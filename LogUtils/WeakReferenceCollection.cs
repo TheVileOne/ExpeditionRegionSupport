@@ -66,6 +66,19 @@ namespace LogUtils
             return false;
         }
 
+        public void RemoveAll(Func<T, bool> predicate)
+        {
+            for (int i = 0; i < InnerList.Count; i++)
+            {
+                var reference = InnerList[i];
+
+                if (reference.TryGetTarget(out T _item) && predicate(_item))
+                {
+                    InnerList.RemoveAt(i);
+                }
+            }
+        }
+
         /// <summary>
         /// Remove entries that have been collected by the Garbage Collector
         /// </summary>
