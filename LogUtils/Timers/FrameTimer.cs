@@ -5,8 +5,6 @@ namespace LogUtils.Timers
 {
     public class FrameTimer : UtilityComponent
     {
-        public long FrameCount = 0;
-
         /// <summary>
         /// Events waiting to be scheduled
         /// </summary>
@@ -21,12 +19,12 @@ namespace LogUtils.Timers
             enabled = true;
         }
 
-        public ScheduledEvent Schedule(Action action, long frameDelay)
+        public ScheduledEvent Schedule(Action action, int frameInterval)
         {
-            if (frameDelay < 0)
-                throw new ArgumentException(nameof(frameDelay) + " must be positive");
+            if (frameInterval < 0)
+                throw new ArgumentOutOfRangeException(nameof(frameInterval) + " must be greater than zero");
 
-            ScheduledEvent pendingEvent = new ScheduledEvent(action, FrameCount, frameDelay);
+            ScheduledEvent pendingEvent = new ScheduledEvent(action, frameInterval);
             lock (this)
             {
                 pendingEvents.Enqueue(pendingEvent);
@@ -44,15 +42,12 @@ namespace LogUtils.Timers
 
             foreach (ScheduledEvent e in scheduledEvents)
             {
-                e.OnFrameReached(FrameCount);
-
-                if (e.Triggered || e.Cancelled)
+                if (e.Cancelled)
                     eventCleanupRequired = true;
             }
 
             if (eventCleanupRequired)
-                scheduledEvents.RemoveAll(e => e.Triggered || e.Cancelled);
-            FrameCount++;
+                scheduledEvents.RemoveAll(e => e.Cancelled);
         }
     }
 
@@ -60,37 +55,16 @@ namespace LogUtils.Timers
     {
         public event Action Event;
 
-        public long StartFrame;
-
-        public long EndFrame => StartFrame + Duration;
-
-        public long Duration;
-
         public bool Cancelled;
 
-        public bool Triggered;
-
-        public ScheduledEvent(Action action, long startFrame, long duration)
+        public ScheduledEvent(Action action, int frameInterval)
         {
             Event = action;
-            StartFrame = startFrame;
-            Duration = duration;
         }
 
         public void Cancel()
         {
             Cancelled = true;
-        }
-
-        public void OnFrameReached(long frame)
-        {
-            if (Cancelled) return;
-
-            if (EndFrame >= frame)
-            {
-                Event.Invoke();
-                Triggered = true;
-            }
         }
     }
 }
