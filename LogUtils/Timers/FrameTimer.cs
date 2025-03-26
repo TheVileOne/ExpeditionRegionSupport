@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace LogUtils.Timers
 {
@@ -8,7 +7,12 @@ namespace LogUtils.Timers
     {
         public long FrameCount = 0;
 
-        public List<ScheduledEvent> Events = new List<ScheduledEvent>();
+        /// <summary>
+        /// Events waiting to be scheduled
+        /// </summary>
+        private Queue<ScheduledEvent> pendingEvents = new Queue<ScheduledEvent>();
+
+        private List<ScheduledEvent> scheduledEvents = new List<ScheduledEvent>();
 
         public override string Tag => UtilityConsts.ComponentTags.SCHEDULER;
 
@@ -22,15 +26,23 @@ namespace LogUtils.Timers
             if (frameDelay < 0)
                 throw new ArgumentException(nameof(frameDelay) + " must be positive");
 
-            Events.Add(new ScheduledEvent(action, FrameCount, frameDelay));
-            return Events.Last();
+            ScheduledEvent pendingEvent = new ScheduledEvent(action, FrameCount, frameDelay);
+            lock (this)
+            {
+                pendingEvents.Enqueue(pendingEvent);
+            }
+            return pendingEvent;
         }
 
         public void Update()
         {
+            //Add pending events in a threadsafe way
+            while (pendingEvents.Count > 0)
+                scheduledEvents.Add(pendingEvents.Dequeue());
+
             bool eventCleanupRequired = false;
 
-            foreach (ScheduledEvent e in Events)
+            foreach (ScheduledEvent e in scheduledEvents)
             {
                 e.OnFrameReached(FrameCount);
 
@@ -39,8 +51,7 @@ namespace LogUtils.Timers
             }
 
             if (eventCleanupRequired)
-                Events = Events.Where(e => !e.Triggered && !e.Cancelled).ToList();
-
+                scheduledEvents.RemoveAll(e => e.Triggered || e.Cancelled);
             FrameCount++;
         }
     }
