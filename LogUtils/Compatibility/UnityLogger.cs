@@ -107,8 +107,18 @@ namespace LogUtils.Compatibility
         {
             using (UtilityCore.RequestHandler.BeginCriticalSection())
             {
+                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+
+                //TODO: Investigate the buggy behavior that requires us to compare by message here
+                bool submitRequest = request == null; 
+                if (request != null && request.Data.Message != message)
+                {
+                    UtilityLogger.Logger.LogDebug("Request in system does not match incoming Unity request");
+                    submitRequest = true;
+                }
+
                 //This submission wont be able to be logged until Rain World can initialize
-                if (UtilityCore.RequestHandler.CurrentRequest == null)
+                if (submitRequest)
                 {
                     if (LogCategory.IsErrorCategory(category))
                     {
