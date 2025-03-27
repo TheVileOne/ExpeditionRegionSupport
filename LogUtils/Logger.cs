@@ -815,7 +815,7 @@ namespace LogUtils
 
             ILogWriter localWriter = Writer;
 
-            if (localWriter != LogWriter.Writer) //Avoid disposing a shared resource
+            if (!LogWriter.IsCachedWriter(localWriter)) //Avoid disposing a shared resource
             {
                 IDisposable disposable = localWriter as IDisposable;
 

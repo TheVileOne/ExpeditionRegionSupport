@@ -19,6 +19,14 @@ namespace LogUtils
         /// </summary>
         public static QueueLogWriter JollyWriter = new QueueLogWriter();
 
+        /// <summary>
+        /// Is this writer recognized by the assembly to be available for any Logger implementation to use
+        /// </summary>
+        public static bool IsCachedWriter(ILogWriter writer)
+        {
+            return writer == Writer || writer == JollyWriter;
+        }
+
         private LogMessageFormatter _formatter;
 
         public LogMessageFormatter Formatter
