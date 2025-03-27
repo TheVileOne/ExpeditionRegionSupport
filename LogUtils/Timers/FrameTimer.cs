@@ -4,6 +4,11 @@ namespace LogUtils.Timers
 {
     public class FrameTimer
     {
+        /// <summary>
+        /// Contains a reference to a ScheduledEvent for timers created by an EventScheduler
+        /// </summary>
+        internal ScheduledEvent Event;
+
         private int _frequency = 1;
         public virtual int Frequency
         {
@@ -28,6 +33,7 @@ namespace LogUtils.Timers
                 throw new ArgumentOutOfRangeException();
 
             Frequency = interval;
+            UtilityCore.Scheduler.Timers.Add(this);
         }
 
         public virtual void Start()
@@ -50,7 +56,10 @@ namespace LogUtils.Timers
         {
             if (!canUpdate) return;
 
-            Ticks = Ticks < Frequency ? Ticks + 1 : 0;
+            Ticks++;
+
+            if (Ticks > Frequency)
+                Ticks = 0;
 
             bool intervalReached = Ticks == Frequency || Frequency == 1;
 

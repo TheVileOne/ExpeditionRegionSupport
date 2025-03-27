@@ -92,10 +92,12 @@ namespace LogUtils.Properties
                     {
                         reportMessage = $"Read Only mode for {ID} disabled for {disable_frames_allowed} frames";
 
-                        readOnlyRestoreEvent = UtilityCore.Scheduler.Schedule(() =>
+                        Action setReadonly = new Action(() =>
                         {
                             ReadOnly = true;
-                        }, disable_frames_allowed);
+                        });
+
+                        readOnlyRestoreEvent = UtilityCore.Scheduler.Schedule(setReadonly, frameInterval: disable_frames_allowed, invokeLimit: 1);
                     }
                     UtilityLogger.Logger.LogDebug(reportMessage);
                 }
@@ -446,11 +448,13 @@ namespace LogUtils.Properties
 
             IsNewInstance = true;
 
-            recentlyCreatedCutoffEvent = UtilityCore.Scheduler.Schedule(() =>
+            Action onCreationCutoffReached = new Action(() =>
             {
                 IsNewInstance = false;
                 recentlyCreatedCutoffEvent = null;
-            }, framesUntilCutoff);
+            });
+
+            recentlyCreatedCutoffEvent = UtilityCore.Scheduler.Schedule(onCreationCutoffReached, frameInterval: framesUntilCutoff, invokeLimit: 1);
 
             //Utility packaged rules get added to every log file disabled by default 
             Rules.Add(new ShowCategoryRule(false));

@@ -12,6 +12,8 @@ namespace LogUtils.Timers
 
         private List<ScheduledEvent> scheduledEvents = new List<ScheduledEvent>();
 
+        internal WeakReferenceCollection<FrameTimer> Timers = new WeakReferenceCollection<FrameTimer>();
+
         public override string Tag => UtilityConsts.ComponentTags.SCHEDULER;
 
         public EventScheduler()
@@ -19,12 +21,20 @@ namespace LogUtils.Timers
             enabled = true;
         }
 
-        public ScheduledEvent Schedule(Action action, int frameInterval)
+        /// <summary>
+        /// Schedules an event delegate to be invoked periodically after a specified number of frames 
+        /// </summary>
+        /// <param name="action">The delegate to invoke</param>
+        /// <param name="frameInterval">The number of frames in between event invocations</param>
+        /// <param name="invokeLimit">The maximum number of invocations to attempt</param>
+        /// <returns>An object containing the event state</returns>
+        /// <exception cref="ArgumentOutOfRangeException">The frame interval is an invalid value</exception>
+        public ScheduledEvent Schedule(Action action, int frameInterval, int invokeLimit = -1)
         {
             if (frameInterval < 0)
                 throw new ArgumentOutOfRangeException(nameof(frameInterval) + " must be greater than zero");
 
-            ScheduledEvent pendingEvent = new ScheduledEvent(action, frameInterval);
+            ScheduledEvent pendingEvent = new ScheduledEvent(action, frameInterval, invokeLimit);
             lock (this)
             {
                 pendingEvents.Enqueue(pendingEvent);
@@ -38,33 +48,94 @@ namespace LogUtils.Timers
             while (pendingEvents.Count > 0)
                 scheduledEvents.Add(pendingEvents.Dequeue());
 
-            bool eventCleanupRequired = false;
-
-            foreach (ScheduledEvent e in scheduledEvents)
+            foreach (FrameTimer timer in Timers)
             {
-                if (e.Cancelled)
-                    eventCleanupRequired = true;
-            }
+                ScheduledEvent timedEvent = timer.Event;
 
-            if (eventCleanupRequired)
-                scheduledEvents.RemoveAll(e => e.Cancelled);
+                if (timedEvent != null && timedEvent.Cancelled)
+                {
+                    //Release event resources
+                    scheduledEvents.Remove(timedEvent);
+                    continue;
+                }
+                timer.Update();
+            }
         }
     }
 
     public class ScheduledEvent
     {
+        public bool Cancelled { get; private set; }
+
         public event Action Event;
 
-        public bool Cancelled;
+        internal FrameTimer EventTimer;
 
-        public ScheduledEvent(Action action, int frameInterval)
+        /// <summary>
+        /// The number of times this event has been fired
+        /// </summary>
+        public int InvokeCount { get; private set; }
+
+        /// <summary>
+        /// The amount of times event may be invoked
+        /// </summary>
+        public int InvokeLimit = -1;
+
+        public string Name;
+
+        private bool eventHandledEarly;
+
+        public ScheduledEvent(Action frameEvent, int frameInterval, int invokeLimit = -1)
         {
-            Event = action;
+            Event = frameEvent;
+            InvokeLimit = invokeLimit;
+
+            EventTimer = new FrameTimer(frameInterval);
+            EventTimer.OnInterval += onEvent;
+            EventTimer.Start();
+        }
+
+        public void InvokeEarly()
+        {
+            if (Cancelled) return;
+
+            onEvent();
+            eventHandledEarly = true;
+        }
+
+        private void onEvent()
+        {
+            //UtilityLogger.DebugLog("--------------------- EVENT FIRED ---------------------------");
+            //UtilityLogger.DebugLog("TIMERS " + UtilityCore.Scheduler.Timers.UnsafeCount());
+            //UtilityLogger.DebugLog("----------------------- TESTING -----------------------------");
+
+            //We do not want to handle an event at its scheduled frame if it was handled on an earlier frame
+            if (eventHandledEarly)
+            {
+                eventHandledEarly = false;
+                return;
+            }
+
+            try
+            {
+                Event?.Invoke();
+            }
+            finally
+            {
+                InvokeCount++;
+
+                bool invocationLimitReached = InvokeLimit >= 0 && InvokeCount >= InvokeLimit;
+
+                if (invocationLimitReached)
+                    Cancel();
+            }
         }
 
         public void Cancel()
         {
             Cancelled = true;
+            EventTimer.OnInterval -= Event;
+            EventTimer.Stop();
         }
     }
 }

@@ -27,7 +27,10 @@ namespace LogUtils
             }
 
             if (shouldCleanList)
+            {
+                UtilityLogger.DebugLog("Cleaning entries");
                 RemoveCollectedEntries();
+            }
             yield break;
         }
 
@@ -85,6 +88,14 @@ namespace LogUtils
         public void RemoveCollectedEntries()
         {
             InnerList.RemoveAll(reference => !reference.TryGetTarget(out _));
+        }
+
+        /// <summary>
+        /// Returns the count of all entries in the collection, reference collected, or otherwise
+        /// </summary>
+        public int UnsafeCount()
+        {
+            return InnerList.Count;
         }
     }
 }
