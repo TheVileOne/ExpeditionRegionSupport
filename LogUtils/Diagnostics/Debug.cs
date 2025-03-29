@@ -30,6 +30,8 @@ namespace LogUtils.Diagnostics
             UtilityTests.Add(new LogCategoryTests());
             UtilityTests.Add(new ExceptionComparerTests());
             UtilityTests.Add(new FrameTimerTests());
+            UtilityTests.Add(new ExtEnumTests());
+            UtilityTests.Add(new LogIDTests.ComparisonTests());
         }
 
         /// <summary>

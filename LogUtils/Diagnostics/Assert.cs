@@ -254,7 +254,7 @@ namespace LogUtils.Diagnostics
         /// <param name="compareObject">The object to compare to</param>
         public static Condition<T> IsSameInstance<T>(this Condition<T> condition, T compareObject) where T : class
         {
-            bool conditionPassed = ReferenceEquals(condition, compareObject);
+            bool conditionPassed = ReferenceEquals(condition.Value, compareObject);
 
             if (conditionPassed)
                 condition.Pass();
@@ -269,7 +269,7 @@ namespace LogUtils.Diagnostics
         /// <param name="compareObject">The object to compare to</param>
         public static Condition<T> IsNotThisInstance<T>(this Condition<T> condition, T compareObject) where T : class
         {
-            bool conditionPassed = ReferenceEquals(condition, compareObject);
+            bool conditionPassed = ReferenceEquals(condition.Value, compareObject);
 
             if (conditionPassed)
                 condition.Pass();

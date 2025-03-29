@@ -1,5 +1,4 @@
-﻿using LogUtils.Diagnostics;
-using System;
+﻿using System;
 
 namespace LogUtils.Enums
 {
@@ -52,8 +51,6 @@ namespace LogUtils.Enums
         public SharedExtEnum(string value, bool register = false) : base(value, false)
         {
             ManagedReference = (T)UtilityCore.DataHandler.GetOrAssign(this);
-
-            Assert.That(ManagedReference).IsNotNull();
 
             if (register)
             {
