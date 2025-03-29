@@ -2,7 +2,7 @@
 
 namespace LogUtils.Enums
 {
-    public class SharedExtEnum<T> : ExtEnum<T>, IComparable, IComparable<T>, IShareable where T : SharedExtEnum<T>, IShareable
+    public class SharedExtEnum<T> : ExtEnum<T>, IComparable, IComparable<T>, IEquatable<T>, IShareable where T : SharedExtEnum<T>, IShareable
     {
         /// <summary>
         /// Index position in values.entries list for this ExtEnum entry
@@ -175,6 +175,66 @@ namespace LogUtils.Enums
                 throw new ArgumentException(string.Format("Object must be the same type as the extEnum. The type passed in was {0}; the extEnum type was {1}.", value.GetType(), enumType));
 
             return CompareTo((T)value);
+        }
+
+        /// <summary>
+        /// Indicates whether the current object is equal to another object of the same time (utilizes the base value hashcode comparison to determine equality)
+        /// </summary>
+        public bool BaseEquals(T other)
+        {
+            return base.Equals(other);
+        }
+
+        /// <summary>
+        /// Indicates whether the current object is equal to another object of the same time (utilizes a customized value hashcode comparison to determine equality)
+        /// </summary>
+        public new bool Equals(T other)
+        {
+            return CompareByHash(this, other) == 0;
+        }
+
+        //These operator overloads will affect the equality checks used in base ExtEnum comparisons. The hashing being different for LogIDs with multiple paths
+        //is probably harmless, but more testing is needed to confirm this.
+        /*
+        public static bool operator ==(SharedExtEnum<T> value, T valueOther)
+        {
+            UtilityLogger.DebugLog("Fetching equality from custom operator");
+            return CompareByHash(value, valueOther) == 0;
+        }
+
+        public static bool operator !=(SharedExtEnum<T> value, T valueOther)
+        {
+            UtilityLogger.DebugLog("Fetching equality from custom operator");
+            return CompareByHash(value, valueOther) != 0;
+        }
+        */
+
+        public static bool operator <(SharedExtEnum<T> left, T right)
+        {
+            return left?.CompareTo(right) < 0;
+        }
+
+        public static bool operator <=(SharedExtEnum<T> left, T right)
+        {
+            return left?.CompareTo(right) <= 0;
+        }
+
+        public static bool operator >(SharedExtEnum<T> left, T right)
+        {
+            return left?.CompareTo(right) > 0;
+        }
+
+        public static bool operator >=(SharedExtEnum<T> left, T right)
+        {
+            return left?.CompareTo(right) >= 0;
+        }
+
+        protected static int CompareByHash(SharedExtEnum<T> left, T right)
+        {
+            int hash = left?.GetHashCode() ?? 0;
+            int hashOther = right?.GetHashCode() ?? 0;
+
+            return hash.CompareTo(hashOther);
         }
     }
 
