@@ -214,6 +214,8 @@ namespace LogUtils.Properties
         /// </summary>
         public void SetPropertiesFromFile()
         {
+            var propertyComparer = Comparer<LogProperties>.Create(compareByIDHash);
+
             foreach (LogPropertyData data in PropertyFile.Reader.ReadData())
             {
                 if (data.FieldOrderMismatch)
@@ -222,7 +224,7 @@ namespace LogUtils.Properties
                 data.ProcessFields();
                 LogProperties properties = data.Processor.Results;
 
-                if (properties != null)
+                if (properties != null && !Properties.Exists(p => propertyComparer.Compare(p, properties) == 0))
                 {
                     if (data.UnrecognizedFields.Count > 0)
                         UnrecognizedFields[properties] = data.UnrecognizedFields;
@@ -232,6 +234,11 @@ namespace LogUtils.Properties
 
                     Properties.Add(properties);
                 }
+            }
+
+            static int compareByIDHash(LogProperties properties, LogProperties propertiesOther)
+            {
+                return properties.IDHash.CompareTo(propertiesOther.IDHash);
             }
         }
 
