@@ -178,7 +178,7 @@ namespace LogUtils.Enums
         public override void Register()
         {
             //When a registration is applied, set a flag that allows conversion fields to be overwritten
-            if (!ManagedReference.Registered || index < 0)
+            if (!ManagedReference.Registered || BaseIndex < 0) //Base index is checked here, because ManagedReference index would be used if we didn't
                 conversionFieldsNeedUpdating = true;
 
             base.Register();
@@ -186,11 +186,11 @@ namespace LogUtils.Enums
 
         private int indexToConversionValue()
         {
-            if (index < 0) return -1;
+            if (BaseIndex < 0) return -1; //Base index is checked here, because ManagedReference index would be used if we didn't
 
             //Map the registration index to an unmapped region of values designated for custom enum values
             //Assigned value will be a valid bit flag position
-            return (int)Math.Min(CONVERSION_OFFSET * Math.Pow(index, 2), int.MaxValue);
+            return (int)Math.Min(CONVERSION_OFFSET * Math.Pow(BaseIndex, 2), int.MaxValue);
         }
 
         private void updateConversionFields(LogLevel logLevel, LogType logType)

@@ -5,15 +5,24 @@ namespace LogUtils.Enums
 {
     public class SharedExtEnum<T> : ExtEnum<T>, IComparable, IComparable<T>, IShareable where T : SharedExtEnum<T>, IShareable
     {
+        /// <summary>
+        /// Index position in values.entries list for this ExtEnum entry
+        /// </summary>
         public override int Index
         {
             get
             {
+                //TODO: Can we prove that managed index can never go out of sync, and write a test for that?
                 if (!ReferenceEquals(ManagedReference, this))
                     return ManagedReference.Index;
-                return index;
+                return base.Index;
             }
         }
+
+        /// <summary>
+        /// Accessing underlying Index position without checking ManagedReference index (useful during the resitration process and values are being synced)
+        /// </summary>
+        public int BaseIndex => base.Index;
 
         /// <summary>
         /// A null-safe reference to the SharedExtEnum that any mod can access
