@@ -90,7 +90,10 @@ namespace LogUtils.Timers
             Event = frameEvent;
             InvokeLimit = invokeLimit;
 
-            EventTimer = new FrameTimer(frameInterval);
+            EventTimer = new FrameTimer(frameInterval)
+            {
+                Event = this
+            };
             EventTimer.OnInterval += onEvent;
             EventTimer.Start();
         }
