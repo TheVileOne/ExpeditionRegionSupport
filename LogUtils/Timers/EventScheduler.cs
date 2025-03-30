@@ -1,15 +1,19 @@
-﻿using System;
+﻿using LogUtils.Threading;
+using System;
 using System.Collections.Generic;
 
 namespace LogUtils.Timers
 {
     public class EventScheduler : UtilityComponent
     {
-        /// <summary>
-        /// Events waiting to be scheduled
-        /// </summary>
-        private Queue<ScheduledEvent> pendingEvents = new Queue<ScheduledEvent>();
+        public Lock EventLock = new Lock();
 
+        private Queue<ScheduledEvent> pendingEvents = new Queue<ScheduledEvent>();
+        private Queue<FrameTimer> pendingTimers = new Queue<FrameTimer>();
+
+        /// <summary>
+        /// Maintain a strong list of ScheduledEvents to prevent their associated FrameTimers from disposing
+        /// </summary>
         private List<ScheduledEvent> scheduledEvents = new List<ScheduledEvent>();
 
         internal WeakReferenceCollection<FrameTimer> Timers = new WeakReferenceCollection<FrameTimer>();
@@ -19,6 +23,24 @@ namespace LogUtils.Timers
         public EventScheduler()
         {
             enabled = true;
+        }
+
+        /// <summary>
+        /// Adds a ScheduledEvent to be managed by the current instance
+        /// </summary>
+        internal void AddEvent(ScheduledEvent pendingEvent)
+        {
+            using (EventLock.Acquire())
+                pendingEvents.Enqueue(pendingEvent);
+        }
+
+        /// <summary>
+        /// Adds a timer to be managed by the current instance
+        /// </summary>
+        internal void AddTimer(FrameTimer timer)
+        {
+            using (EventLock.Acquire())
+                pendingTimers.Enqueue(timer);
         }
 
         /// <summary>
@@ -35,18 +57,26 @@ namespace LogUtils.Timers
                 throw new ArgumentOutOfRangeException(nameof(frameInterval) + " must be greater than zero");
 
             ScheduledEvent pendingEvent = new ScheduledEvent(action, frameInterval, invokeLimit);
-            lock (this)
-            {
-                pendingEvents.Enqueue(pendingEvent);
-            }
+
+            AddEvent(pendingEvent);
             return pendingEvent;
         }
 
         public void Update()
         {
-            //Add pending events in a threadsafe way
-            while (pendingEvents.Count > 0)
-                scheduledEvents.Add(pendingEvents.Dequeue());
+            bool hasPendingObjects = pendingTimers.Count > 0 || pendingEvents.Count > 0;
+
+            if (hasPendingObjects)
+            {
+                using (EventLock.Acquire())
+                {
+                    while (pendingEvents.Count > 0)
+                        scheduledEvents.Add(pendingEvents.Dequeue());
+
+                    while (pendingTimers.Count > 0)
+                        Timers.Add(pendingTimers.Dequeue());
+                }
+            }
 
             foreach (FrameTimer timer in Timers)
             {
@@ -58,7 +88,10 @@ namespace LogUtils.Timers
                     scheduledEvents.Remove(timedEvent);
                     continue;
                 }
-                timer.Update();
+
+                //Check that EventScheduler should update this timer, that responsibility may be handled by another delegate
+                if (!timer.IsSynchronous)
+                    timer.Update();
             }
         }
     }

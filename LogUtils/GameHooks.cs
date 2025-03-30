@@ -49,8 +49,9 @@ namespace LogUtils
             On.RainWorld.PreModsInit += RainWorld_PreModsInit;
             On.ModManager.WrapModInitHooks += ModManager_WrapModInitHooks;
 
-            //Signal system
+            //Event system
             On.RainWorld.Update += RainWorld_Update;
+            On.MainLoopProcess.Update += MainLoopProcess_Update;
 
             //Log property handling
             On.RainWorld.HandleLog += RainWorld_HandleLog;
@@ -101,8 +102,9 @@ namespace LogUtils
             On.RainWorld.PreModsInit -= RainWorld_PreModsInit;
             On.ModManager.WrapModInitHooks -= ModManager_WrapModInitHooks;
 
-            //Signal system
+            //Event system
             On.RainWorld.Update -= RainWorld_Update;
+            On.MainLoopProcess.Update -= MainLoopProcess_Update;
 
             On.RainWorld.HandleLog -= RainWorld_HandleLog;
             IL.RainWorld.HandleLog -= RainWorld_HandleLog;
@@ -215,17 +217,13 @@ namespace LogUtils
             RWInfo.NotifyOnPeriodReached(SetupPeriod.PostMods);
             orig(self);
 
-            //TODO: It could be guaranteed that this runs after all hooks by setting a flag here, that is checked in ModManager.CheckInitIssues,
-            //or we could possibly use the scheduler
+            //TODO: It could be guaranteed that this runs after all hooks by setting a flag here, that is checked in ModManager.CheckInitIssues, or we could possibly use the scheduler
             LogProperties.PropertyManager.Properties.ForEach(prop => prop.ReadOnly = true);
             LogProperties.PropertyManager.IsEditGracePeriod = false;
 
             LogFilter.DeactivateKeyword(UtilityConsts.FilterKeywords.ACTIVATION_PERIOD_STARTUP);
         }
 
-        /// <summary>
-        /// This is required for the signaling system. All remote loggers should use this hook to ensure that the logger is aware of the Logs directory being moved
-        /// </summary>
         private static void RainWorld_Update(On.RainWorld.orig_Update orig, RainWorld self)
         {
             orig(self);
@@ -237,6 +235,13 @@ namespace LogUtils
             {
                 writeBuffer.Flush();
             }
+        }
+
+        private static void MainLoopProcess_Update(On.MainLoopProcess.orig_Update orig, MainLoopProcess self)
+        {
+            if (self.manager?.currentMainLoop == self)
+                UtilityEvents.OnNewUpdateSynced?.Invoke(self, EventArgs.Empty);
+            orig(self);
         }
 
         /// <summary>

@@ -21,6 +21,11 @@ namespace LogUtils.Timers
             }
         }
 
+        /// <summary>
+        /// Should this timer be synced with the current RainWorld process or attempt to update on every available frame
+        /// </summary>
+        public readonly bool IsSynchronous;
+
         public int Ticks;
 
         public event Action OnInterval;
@@ -33,7 +38,7 @@ namespace LogUtils.Timers
                 throw new ArgumentOutOfRangeException();
 
             Frequency = interval;
-            UtilityCore.Scheduler.Timers.Add(this);
+            UtilityCore.Scheduler.AddTimer(this);
         }
 
         public virtual void Start()

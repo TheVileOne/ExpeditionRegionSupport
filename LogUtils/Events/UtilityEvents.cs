@@ -1,4 +1,6 @@
-﻿namespace LogUtils.Events
+﻿using System;
+
+namespace LogUtils.Events
 {
     public static class UtilityEvents
     {
@@ -12,6 +14,14 @@
 
         //Setup events
         public static SetupPeriodEventHandler OnSetupPeriodReached;
+
+        //RainWorld Events
+
+        /// <summary>
+        /// Gets invoked every frame from the base Update method of the abstract MainLoopProcess class. This EventHandler will be synced to the framesPerSecond defined by 
+        /// that process
+        /// </summary>
+        public static EventHandler<MainLoopProcess, EventArgs> OnNewUpdateSynced;
     }
 
     public delegate void EventHandler<TSource, TData>(TSource source, TData data);
