@@ -28,6 +28,8 @@ namespace LogUtils.Properties
 
             StreamWriter writer = new StreamWriter(propertyFile.Stream);
 
+            propertyFile.Stream.SetLength(0);
+
             writer.WriteLine(writeString);
             writer.Flush();
             LogProperties.PropertyManager.NotifyWriteCompleted();
