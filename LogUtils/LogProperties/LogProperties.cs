@@ -18,7 +18,7 @@ using DataFields = LogUtils.UtilityConsts.DataFields;
 
 namespace LogUtils.Properties
 {
-    public class LogProperties
+    public class LogProperties : IEquatable<LogProperties>
     {
         public static PropertyDataController PropertyManager => UtilityCore.PropertyManager;
         public CustomLogPropertyCollection CustomProperties = new CustomLogPropertyCollection();
@@ -72,7 +72,7 @@ namespace LogUtils.Properties
         internal bool SkipStartupRoutine;
 
         private ScheduledEvent readOnlyRestoreEvent;
-        public ScheduledEvent recentlyCreatedCutoffEvent;
+        private ScheduledEvent recentlyCreatedCutoffEvent;
 
         public bool ReadOnly
         {
@@ -439,10 +439,7 @@ namespace LogUtils.Properties
             CurrentFolderPath = OriginalFolderPath = FolderPath;
             LastKnownFilePath = CurrentFilePath;
 
-            //TODO: This code needs to be refactored when mod path support is added
-            string hashString = Path.Combine(OriginalFolderPath, _idValue);
-
-            IDHash = hashString.GetHashCode();
+            IDHash = CreateIDHash(_idValue, OriginalFolderPath);
 
             const int framesUntilCutoff = 10; //Number of frames before instance is no longer considered a 'new' instance
 
@@ -771,6 +768,11 @@ namespace LogUtils.Properties
             WriteHash = writeString.GetHashCode();
         }
 
+        public bool Equals(LogProperties other)
+        {
+            return other != null && IDHash.Equals(other.IDHash);
+        }
+
         public override int GetHashCode()
         {
             return IDHash;
@@ -937,6 +939,19 @@ namespace LogUtils.Properties
         {
             return PathUtils.PathsAreEqual(relativePathNoFile, OriginalFolderPath)
                 || PathUtils.PathsAreEqual(relativePathNoFile, CurrentFolderPath);
+        }
+
+        /// <summary>
+        /// Creates an identifiable hashcode representation of a filename, and path
+        /// </summary>
+        public static int CreateIDHash(string filename, string path)
+        {
+            filename ??= string.Empty;
+            path ??= string.Empty;
+
+            //TODO: This code needs to be refactored when mod path support is added
+            string hashString = Path.Combine(path, filename);
+            return hashString.GetHashCode();
         }
 
         public static string GetContainingPath(string relativePath)

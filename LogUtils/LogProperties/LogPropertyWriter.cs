@@ -1,6 +1,7 @@
 ﻿using LogUtils.Enums;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace LogUtils.Properties
@@ -29,10 +30,17 @@ namespace LogUtils.Properties
 
             writer.WriteLine(writeString);
             writer.Flush();
+            LogProperties.PropertyManager.NotifyWriteCompleted();
         }
 
         private string compileWriteString(List<LogProperties> updateList)
         {
+            bool hasDuplicateEntries = LogProperties.PropertyManager.HasDuplicateFileEntries;
+
+            if (hasDuplicateEntries)
+                UtilityLogger.DebugLog("File contains duplicate entries - Removing unnecessary entries from write string");
+
+            HashSet<int> processedHashes = new HashSet<int>();
             StringBuilder sb = new StringBuilder();
 
             //Read all data from file
@@ -42,7 +50,21 @@ namespace LogUtils.Properties
 
                 if (dataID != null) //Invalid entry when dataID is null - do not include it in write string 
                 {
-                    LogProperties properties = updateList.Find(p => p.ID.Equals(new ComparisonLogID(dataID)));
+                    //Find all matching comparisons
+                    IEnumerable<LogProperties> availableProperties = LogProperties.PropertyManager.GetProperties(new ComparisonLogID(dataID));
+
+                    //Find a comparison match that is contained within updateList
+                    LogProperties properties = updateList.Intersect(availableProperties).FirstOrDefault();
+
+                    int idHash = properties != null ? properties.IDHash : data.GetHashCode();
+
+                    //UtilityLogger.DebugLog(idHash);
+
+                    //We found a duplicate entry - don't handle it
+                    if (processedHashes.Contains(idHash))
+                        continue;
+
+                    processedHashes.Add(idHash);
 
                     //Determine if data should be added to the write string as is, or if updates are required
                     if (properties == null)

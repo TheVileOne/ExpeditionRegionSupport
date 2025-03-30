@@ -19,6 +19,11 @@ namespace LogUtils.Properties
         public override string Tag => UtilityConsts.ComponentTags.PROPERTY_DATA;
 
         /// <summary>
+        /// A flag that indicates that there are duplicate entries in the LogProperties file
+        /// </summary>
+        public bool HasDuplicateFileEntries;
+
+        /// <summary>
         /// A flag that forces all properties instances to write to file on the next save attempt
         /// </summary>
         public bool ForceWriteAll;
@@ -174,7 +179,7 @@ namespace LogUtils.Properties
 
         public IEnumerable<LogProperties> GetProperties(LogID logID)
         {
-            return Properties.Where(p => p.ID.Equals(logID));
+            return Properties.Where(p => p.ID.BaseEquals(logID));
         }
 
         /// <summary>
@@ -224,8 +229,17 @@ namespace LogUtils.Properties
                 data.ProcessFields();
                 LogProperties properties = data.Processor.Results;
 
-                if (properties != null && !Properties.Exists(p => propertyComparer.Compare(p, properties) == 0))
+                if (properties != null)
                 {
+                    bool propertiesAlreadyExists = Properties.Exists(p => propertyComparer.Compare(p, properties) == 0);
+
+                    if (propertiesAlreadyExists)
+                    {
+                        ForceWriteAll = true;
+                        HasDuplicateFileEntries = true;
+                        continue;
+                    }
+
                     if (data.UnrecognizedFields.Count > 0)
                         UnrecognizedFields[properties] = data.UnrecognizedFields;
 
@@ -267,6 +281,13 @@ namespace LogUtils.Properties
             fields[nameof(CustomLogProperties)] = CustomLogProperties;
             fields[nameof(UnrecognizedFields)] = UnrecognizedFields;
             return fields;
+        }
+
+        internal void NotifyWriteCompleted()
+        {
+            //After a file update, associated flags need to be set back to default values
+            ForceWriteAll = false;
+            HasDuplicateFileEntries = false;
         }
 
         public static string FormatAccessString(string logName, string propertyName)

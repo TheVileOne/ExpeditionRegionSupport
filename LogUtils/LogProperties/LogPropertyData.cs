@@ -30,6 +30,11 @@ namespace LogUtils.Properties
             Processor = new LogPropertyDataProcessor(this);
         }
 
+        public override int GetHashCode()
+        {
+            return LogProperties.CreateIDHash(GetID(), LogProperties.GetContainingPath(Fields[DataFields.ORIGINAL_PATH]));
+        }
+
         public string GetID()
         {
             return Fields[DataFields.LOGID] ?? Fields[DataFields.FILENAME];
