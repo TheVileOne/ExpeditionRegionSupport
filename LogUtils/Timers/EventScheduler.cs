@@ -1,10 +1,11 @@
-﻿using LogUtils.Threading;
+﻿using LogUtils.Events;
+using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
 
 namespace LogUtils.Timers
 {
-    public class EventScheduler : UtilityComponent
+    public class EventScheduler : UtilityComponent, IDisposable
     {
         public Lock EventLock = new Lock();
 
@@ -23,6 +24,7 @@ namespace LogUtils.Timers
         public EventScheduler()
         {
             enabled = true;
+            FrameTimer.OnRelease += onTimerReleased;
         }
 
         /// <summary>
@@ -53,10 +55,24 @@ namespace LogUtils.Timers
         /// <exception cref="ArgumentOutOfRangeException">The frame interval is an invalid value</exception>
         public ScheduledEvent Schedule(Action action, int frameInterval, int invokeLimit = -1)
         {
+            return Schedule(action, frameInterval, syncToRainWorld: false, invokeLimit);
+        }
+
+        /// <summary>
+        /// Schedules an event delegate to be invoked periodically after a specified number of frames 
+        /// </summary>
+        /// <param name="action">The delegate to invoke</param>
+        /// <param name="frameInterval">The number of frames in between event invocations</param>
+        /// <param name="syncToRainWorld">When true, event will be handled in MainLoopProcess.Update instead of through EventSceduler.Update</param>
+        /// <param name="invokeLimit">The maximum number of invocations to attempt</param>
+        /// <returns>An object containing the event state</returns>
+        /// <exception cref="ArgumentOutOfRangeException">The frame interval is an invalid value</exception>
+        public ScheduledEvent Schedule(Action action, int frameInterval, bool syncToRainWorld, int invokeLimit = -1)
+        {
             if (frameInterval < 0)
                 throw new ArgumentOutOfRangeException(nameof(frameInterval) + " must be greater than zero");
 
-            ScheduledEvent pendingEvent = new ScheduledEvent(action, frameInterval, invokeLimit);
+            ScheduledEvent pendingEvent = new ScheduledEvent(action, frameInterval, syncToRainWorld, invokeLimit);
 
             AddEvent(pendingEvent);
             return pendingEvent;
@@ -74,24 +90,72 @@ namespace LogUtils.Timers
                         scheduledEvents.Add(pendingEvents.Dequeue());
 
                     while (pendingTimers.Count > 0)
-                        Timers.Add(pendingTimers.Dequeue());
+                    {
+                        FrameTimer timer = pendingTimers.Dequeue();
+
+                        if (timer.IsSynchronous)
+                        {
+                            timer.SyncHandler = (s, e) =>
+                            {
+                                timer.Update();
+                            };
+                            UtilityEvents.OnNewUpdateSynced += timer.SyncHandler;
+                        }
+                        Timers.Add(timer);
+                    }
                 }
             }
 
             foreach (FrameTimer timer in Timers)
             {
+                if (!timer.IsSynchronous) //Timer is updated through a separate delegate
+                    timer.Update();
+
                 ScheduledEvent timedEvent = timer.Event;
 
-                if (timedEvent != null && timedEvent.Cancelled)
-                {
-                    //Release event resources
-                    scheduledEvents.Remove(timedEvent);
-                    continue;
-                }
+                if (timedEvent?.Cancelled == true)
+                    timer.Release();
+            }
+        }
 
-                //Check that EventScheduler should update this timer, that responsibility may be handled by another delegate
-                if (!timer.IsSynchronous)
-                    timer.Update();
+        #region Dispose pattern
+
+        private bool isDisposed;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!isDisposed)
+            {
+                if (disposing)
+                {
+                    //Release any remaining timers
+                    foreach (FrameTimer timer in Timers)
+                        timer.Release();
+                    FrameTimer.OnRelease -= onTimerReleased;
+                }
+                isDisposed = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
+
+        private void onTimerReleased(FrameTimer timer, EventArgs e)
+        {
+            ScheduledEvent timedEvent = timer.Event;
+
+            using (EventLock.Acquire())
+            {
+                //Release event resources
+                scheduledEvents.Remove(timedEvent);
+
+                if (timer.IsSynchronous)
+                    UtilityEvents.OnNewUpdateSynced -= timer.SyncHandler;
             }
         }
     }
@@ -118,12 +182,12 @@ namespace LogUtils.Timers
 
         private bool eventHandledEarly;
 
-        public ScheduledEvent(Action frameEvent, int frameInterval, int invokeLimit = -1)
+        public ScheduledEvent(Action frameEvent, int frameInterval, bool syncToRainWorld, int invokeLimit = -1)
         {
             Event = frameEvent;
             InvokeLimit = invokeLimit;
 
-            EventTimer = new FrameTimer(frameInterval)
+            EventTimer = new FrameTimer(frameInterval, syncToRainWorld)
             {
                 Event = this
             };
@@ -169,6 +233,8 @@ namespace LogUtils.Timers
 
         public void Cancel()
         {
+            if (Cancelled) return;
+
             Cancelled = true;
             EventTimer.OnInterval -= Event;
             EventTimer.Stop();
