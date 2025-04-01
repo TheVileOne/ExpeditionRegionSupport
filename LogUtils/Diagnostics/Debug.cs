@@ -34,6 +34,12 @@ namespace LogUtils.Diagnostics
             UtilityTests.Add(new LogIDTests.ComparisonTests());
         }
 
+        internal static void RunTests()
+        {
+            UtilityTests.RunAllTests();
+            StressTests.LogEveryFrame(LogID.Unity, messageFrequency: 1, logUntilThisFrame: 100000);
+        }
+
         /// <summary>
         /// Logs requests to file in a report style format
         /// </summary>

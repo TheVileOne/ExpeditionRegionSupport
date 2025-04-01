@@ -166,7 +166,7 @@ namespace LogUtils.Timers
 
         public event Action Event;
 
-        internal FrameTimer EventTimer;
+        public FrameTimer EventTimer { get; private set; }
 
         /// <summary>
         /// The number of times this event has been fired

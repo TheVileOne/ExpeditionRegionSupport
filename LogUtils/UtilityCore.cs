@@ -128,7 +128,7 @@ namespace LogUtils
             if (Build == UtilitySetup.Build.DEVELOPMENT)
             {
                 Debug.InitializeTestSuite();
-                Debug.UtilityTests.RunAllTests();
+                Debug.RunTests();
             }
 
             initializingInProgress = false;
