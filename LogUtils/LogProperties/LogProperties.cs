@@ -21,7 +21,13 @@ namespace LogUtils.Properties
     public class LogProperties : IEquatable<LogProperties>
     {
         public static PropertyDataController PropertyManager => UtilityCore.PropertyManager;
+
         public CustomLogPropertyCollection CustomProperties = new CustomLogPropertyCollection();
+
+        /// <summary>
+        /// A prioritized order of process actions that must be applied to a message string before logging it to file 
+        /// </summary>
+        public LogRuleCollection Rules = new LogRuleCollection();
 
         /// <summary>
         /// Events triggers at the start, or the end of a log session
@@ -41,6 +47,11 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
+        /// Ensures thread safety while accessing the log file
+        /// </summary>
+        public FileLock FileLock = new FileLock();
+
+        /// <summary>
         /// This field contains the last known LogRequest handle state for this LogID, particularly the rejection status, and the reason for rejection of the request
         /// </summary>
         public LogRequestRecord HandleRecord;
@@ -51,25 +62,19 @@ namespace LogUtils.Properties
         public bool LogSessionActive { get; internal set; }
 
         /// <summary>
-        /// The earliest period that the log file may start a new log session through a log event
-        /// It is recommended to keep at the earliest possible write period, or a period that is close to when the log file is used by a mod's logger
+        /// The amount of messages logged to file, or stored in the WriteBuffer since the last logging session was started
         /// </summary>
-        public SetupPeriod AccessPeriod = SetupPeriod.Pregame;
+        public int MessagesHandledThisSession;
 
         /// <summary>
-        /// A flag that indicates whether a log session can be, or already is established
+        /// A list of persistent FileStreams known to be open for this log file
         /// </summary>
-        public bool CanBeAccessed => LogSessionActive || RWInfo.LatestSetupPeriodReached >= AccessPeriod;
+        public List<PersistentLogFileHandle> PersistentStreamHandles = new List<PersistentLogFileHandle>();
 
         /// <summary>
         /// Indicates that this instance was read from file, but one or more fields could not be processed
         /// </summary>
         public bool ProcessedWithErrors;
-
-        /// <summary>
-        /// Indicates that the startup routine for this log file should not be run
-        /// </summary>
-        internal bool SkipStartupRoutine;
 
         private ScheduledEvent readOnlyRestoreEvent;
         private ScheduledEvent recentlyCreatedCutoffEvent;
@@ -118,9 +123,26 @@ namespace LogUtils.Properties
         public bool IsNewInstance { get; private set; }
 
         /// <summary>
-        /// The ID strings of the mod(s) that control these log properties 
+        /// Indicates that the startup routine for this log file should not be run
         /// </summary>
-        public List<string> AssociatedModIDs = new List<string>();
+        internal bool SkipStartupRoutine;
+
+        /// <summary>
+        /// Contains messages that have passed all validation checks, and are waiting to be written to file
+        /// </summary>
+        public MessageBuffer WriteBuffer = new MessageBuffer();
+
+        #region Properties
+        /// <summary>
+        /// The earliest period that the log file may start a new log session through a log event
+        /// It is recommended to keep at the earliest possible write period, or a period that is close to when the log file is used by a mod's logger
+        /// </summary>
+        public SetupPeriod AccessPeriod = SetupPeriod.Pregame;
+
+        /// <summary>
+        /// A flag that indicates whether a log session can be, or already is established
+        /// </summary>
+        public bool CanBeAccessed => LogSessionActive || RWInfo.LatestSetupPeriodReached >= AccessPeriod;
 
         private LogID _id;
         private string _idValue;
@@ -293,11 +315,6 @@ namespace LogUtils.Properties
         public bool IsWriteRestricted;
 
         /// <summary>
-        /// Ensures thread safety while accessing the log file
-        /// </summary>
-        public FileLock FileLock = new FileLock();
-
-        /// <summary>
         /// When the log file properties are first initialized, the log file can have its path changed to target the Logs folder if it exists, disabled by default
         /// </summary>
         public bool LogsFolderAware
@@ -334,19 +351,9 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
-        /// A list of persistent FileStreams known to be open for this log file
-        /// </summary>
-        public List<PersistentLogFileHandle> PersistentStreamHandles = new List<PersistentLogFileHandle>();
-
-        /// <summary>
         /// An array of value identifiers for a specific log
         /// </summary>
         public string[] Tags;
-
-        /// <summary>
-        /// Contains messages that have passed all validation checks, and are waiting to be written to file
-        /// </summary>
-        public MessageBuffer WriteBuffer = new MessageBuffer();
 
         /// <summary>
         /// A message that will be logged at the start of a log session
@@ -415,16 +422,7 @@ namespace LogUtils.Properties
 
         public LogRule ShowCategories => Rules.FindByType<ShowCategoryRule>();
         public LogRule ShowLineCount => Rules.FindByType<ShowLineCountRule>();
-
-        /// <summary>
-        /// A prioritized order of process actions that must be applied to a message string before logging it to file 
-        /// </summary>
-        public LogRuleCollection Rules = new LogRuleCollection();
-
-        /// <summary>
-        /// The amount of messages logged to file, or stored in the WriteBuffer since the last logging session was started
-        /// </summary>
-        public int MessagesHandledThisSession;
+        #endregion
 
         public LogProperties(string propertyID, string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS)
         {
