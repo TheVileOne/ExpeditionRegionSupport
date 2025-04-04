@@ -12,6 +12,12 @@ namespace LogUtils.Diagnostics.Tools
         /// </summary>
         public TimeSpan AverageLogRate = TimeSpan.Zero;
 
+        public Predicate<LogProfiler> BufferConditions = defaultBufferConditions;
+
+        public bool ShouldUseBuffer => BufferConditions.Invoke(this);
+
+        public int BufferedFrameCount;
+
         public TimeSpan LastSamplingTime = TimeSpan.Zero;
 
         private int _messagesSinceLastSampling;
@@ -31,21 +37,13 @@ namespace LogUtils.Diagnostics.Tools
         /// </summary>
         public int SampleFrequency = SAMPLE_FREQUENCY;
 
-        /// <summary>
-        /// The total number of messages represented by the average
-        /// </summary>
-        public int SampleSize;
+        public bool IsReadyToAnalyze => canUpdate && MessagesSinceLastSampling >= SampleFrequency;
 
         /// <summary>
         /// The minimum rate between received messages considered to be normal, (or perhaps above normal, but not high volume). The value 2.5f represents 1/10th the length of
         /// a typical RainWorld frame at 40 FPS (25 ms / 10). Values less than this value are considered to be high volume.
         /// </summary>
         public float LogRateThreshold = 2.5f;
-
-        /// <summary>
-        /// The length of the buffer period when triggered by high volume activity
-        /// </summary>
-        public int HighVolumeBufferDuration = 250;
 
         /// <summary>
         /// The amount of consecutive sampling periods exceeding the allowable average rate (of logged messages) allowed before triggering the message buffer
@@ -55,14 +53,14 @@ namespace LogUtils.Diagnostics.Tools
         /// <summary>
         /// The current amount of consecutive sampling periods exceeding the allowable average rate (of logged messages)
         /// </summary>
-        public ushort PeriodsUnderHighVolume = 0;
+        public ushort PeriodsUnderHighVolume;
 
         /// <summary>
         /// Average is multiplied by this amount for each period there are no new messages to sample
         /// </summary>
-        protected float LogRateDecay = 0.25f;
+        public float LogRateDecay = 0.25f;
 
-        public int BufferedFrameCount;
+        public bool IsEnabled => canUpdate;
 
         private bool canUpdate;
 
@@ -88,7 +86,6 @@ namespace LogUtils.Diagnostics.Tools
             TimeSpan currentTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp());
 
             AverageLogRate = CalculateLogAverage(LastSamplingTime, currentTime, accumulatedMessageCount);
-            SampleSize = accumulatedMessageCount;
 
             MessagesSinceLastSampling = 0;
             LastSamplingTime = currentTime;
@@ -104,9 +101,9 @@ namespace LogUtils.Diagnostics.Tools
             return TimeSpan.FromTicks(timeElapsed.Ticks / messageCount);
         }
 
-        internal int GetMessageTotal(int newMessageCount)
+        private static bool defaultBufferConditions(LogProfiler profiler)
         {
-            return SampleSize + newMessageCount;
+            return profiler.canUpdate && profiler.PeriodsUnderHighVolume >= profiler.HighVolumeSustainmentThreshold;
         }
     }
 }

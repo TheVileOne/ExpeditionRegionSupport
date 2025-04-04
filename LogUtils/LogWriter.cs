@@ -80,17 +80,25 @@ namespace LogUtils
                      * In order to get back into a write qualifying range, we run a new calculation with zero new accumulated messages until the average logging rate
                      * returns back into the acceptable range
                      */
-                    if (buffer.IsBuffering || profiler.MessagesSinceLastSampling >= profiler.SampleFrequency)
+                    if (buffer.IsBuffering || profiler.IsReadyToAnalyze)
                     {
+                        //Perform logging average calculations on message data
                         profiler.UpdateCalculations();
 
                         double averageWriteTime = profiler.AverageLogRate.TotalMilliseconds;
 
-                        if (!buffer.IsBuffering)
+                        bool highVolumePeriod = averageWriteTime < profiler.LogRateThreshold; //Lower value means higher rate
+
+                        if (highVolumePeriod && !buffer.IsBuffering)
+                        {
                             Debug.TestBuffer.AppendLine($"Average logging time: {averageWriteTime} ms per message");
 
-                        //Not finished - we could be buffering for other reasons
-                        if (averageWriteTime < profiler.LogRateThreshold)
+                            //High volume periods are only counted when not buffering
+                            profiler.PeriodsUnderHighVolume++;
+                        }
+
+                        //TODO: This doesn't account for buffered state being set for some alternative reason
+                        if (highVolumePeriod && profiler.ShouldUseBuffer)
                         {
                             buffer.IsBuffering = true;
                             profiler.BufferedFrameCount++;
@@ -102,6 +110,7 @@ namespace LogUtils
 
                             buffer.IsBuffering = false;
                             profiler.BufferedFrameCount = 0;
+                            profiler.PeriodsUnderHighVolume = 0;
                         }
                     }
 
