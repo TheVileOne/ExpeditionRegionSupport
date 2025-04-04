@@ -1,17 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
-using UnityEngine;
 
 namespace LogUtils.Diagnostics.Tools
 {
     public class LogProfiler
     {
         public const int SAMPLE_FREQUENCY = 10;
-
-        /// <summary>
-        /// Should the latest average calulation be compounded with the previous average calculation, or replace it entirely
-        /// </summary>
-        public bool AccumulatedAverageMode;
 
         /// <summary>
         /// The average window of time in between write requests
@@ -66,7 +60,7 @@ namespace LogUtils.Diagnostics.Tools
         /// <summary>
         /// Average is multiplied by this amount for each period there are no new messages to sample
         /// </summary>
-        protected float AccumulatedAverageDecay = 0.25f;
+        protected float LogRateDecay = 0.25f;
 
         public int BufferedFrameCount;
 
@@ -93,75 +87,18 @@ namespace LogUtils.Diagnostics.Tools
 
             TimeSpan currentTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp());
 
-            //When no messages were reported in a specified period, we 
-            if (accumulatedMessageCount == 0)
-                currentTime -= TimeSpan.FromTicks(AverageLogRate.Ticks * SampleSize);
-
-            if (AccumulatedAverageMode)
-            {
-                AverageLogRate = CalculateAccumulatedLogAverage(LastSamplingTime, currentTime, accumulatedMessageCount);
-                SampleSize = GetMessageTotal(accumulatedMessageCount);
-            }
-            else
-            {
-                AverageLogRate = CalculateLogAverage(LastSamplingTime, currentTime, accumulatedMessageCount);
-                SampleSize = accumulatedMessageCount;
-            }
+            AverageLogRate = CalculateLogAverage(LastSamplingTime, currentTime, accumulatedMessageCount);
+            SampleSize = accumulatedMessageCount;
 
             MessagesSinceLastSampling = 0;
             LastSamplingTime = currentTime;
         }
 
-        public void UpdateCalculations(int messageCountSinceLastProfile)
-        {
-            if (!canUpdate) return;
-
-            TimeSpan currentTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp());
-
-            if (AccumulatedAverageMode)
-            {
-                AverageLogRate = CalculateAccumulatedLogAverage(LastSamplingTime, currentTime, messageCountSinceLastProfile);
-                SampleSize = GetMessageTotal(messageCountSinceLastProfile);
-            }
-            else
-            {
-                AverageLogRate = CalculateLogAverage(LastSamplingTime, currentTime, messageCountSinceLastProfile);
-                SampleSize = messageCountSinceLastProfile;
-            }
-
-            LastSamplingTime = currentTime;
-        }
-
-        internal TimeSpan CalculateAccumulatedLogAverage(TimeSpan startTime, TimeSpan endTime, int messageCountSinceLastSampling)
-        {
-            //LogAverage should not stay the same after multiple periods of zero activity
-            if (messageCountSinceLastSampling == 0)
-                return AverageLogRate + new TimeSpan((long)(AverageLogRate.Ticks * AccumulatedAverageDecay));
-
-            TimeSpan firstAverage, secondAverage;
-
-            firstAverage = AverageLogRate;
-            secondAverage = CalculateLogAverage(startTime, endTime, messageCountSinceLastSampling);
-
-            //Empty periods of no activity should not impact the average when the first message activity is reported
-            if (firstAverage == TimeSpan.Zero)
-                return secondAverage;
-
-            //Formula for combined averages
-            long tickAverage = ((firstAverage.Ticks * SampleSize) + (secondAverage.Ticks * messageCountSinceLastSampling)) / GetMessageTotal(messageCountSinceLastSampling);
-
-            return TimeSpan.FromTicks(tickAverage);
-        }
-
-        public TimeSpan CalculateLogAverage(TimeSpan startTime, TimeSpan endTime, int messageCount)
+        protected TimeSpan CalculateLogAverage(TimeSpan startTime, TimeSpan endTime, int messageCount)
         {
             //LogAverage should not stay the same after multiple periods of zero activity
             if (messageCount == 0)
-                return AverageLogRate + new TimeSpan((long)(AverageLogRate.Ticks * AccumulatedAverageDecay));
-
-            //Zero messages means the average should also be zero
-            if (messageCount == 0)
-                return TimeSpan.Zero;
+                return AverageLogRate + new TimeSpan((long)(AverageLogRate.Ticks * LogRateDecay));
 
             TimeSpan timeElapsed = endTime - startTime;
             return TimeSpan.FromTicks(timeElapsed.Ticks / messageCount);

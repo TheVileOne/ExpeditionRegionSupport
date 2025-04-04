@@ -57,10 +57,7 @@ namespace LogUtils.Properties
         /// </summary>
         public LogRequestRecord HandleRecord;
 
-        public LogProfiler Profiler = new LogProfiler()
-        {
-            AccumulatedAverageMode = true
-        };
+        public LogProfiler Profiler = new LogProfiler();
 
         /// <summary>
         /// The log file has been created, its initialization process has run successfully, and it isn't adding to stale log file data 
