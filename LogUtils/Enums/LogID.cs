@@ -287,6 +287,7 @@ namespace LogUtils.Enums
             BepInEx.Properties.PreferredFileExt = FileExt.LOG;
             BepInEx.Properties.ShowCategories.IsEnabled = true;
 
+            BepInEx.Properties.Profiler.Start();
             BepInEx.Properties.Rules.Replace(new BepInExHeaderRule(BepInEx.Properties.ShowCategories.IsEnabled));
 
             Exception.Properties.AccessPeriod = SetupPeriod.RWAwake;

@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Diagnostics.Tools;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
@@ -55,6 +56,11 @@ namespace LogUtils.Properties
         /// This field contains the last known LogRequest handle state for this LogID, particularly the rejection status, and the reason for rejection of the request
         /// </summary>
         public LogRequestRecord HandleRecord;
+
+        public LogProfiler Profiler = new LogProfiler()
+        {
+            AccumulatedAverageMode = true
+        };
 
         /// <summary>
         /// The log file has been created, its initialization process has run successfully, and it isn't adding to stale log file data 
@@ -504,6 +510,8 @@ namespace LogUtils.Properties
 
             if (ShowIntroTimestamp)
                 e.Writer.WriteLine($"[{DateTime.Now}]");
+
+            Profiler.Start();
         }
 
         private void LogProperties_OnLogSessionFinish(LogStreamEventArgs e)
@@ -515,6 +523,8 @@ namespace LogUtils.Properties
 
             if (ShowOutroTimestamp)
                 e.Writer.WriteLine($"[{DateTime.Now}]");
+
+            Profiler.Stop();
         }
 
         public void AddTag(string tag)

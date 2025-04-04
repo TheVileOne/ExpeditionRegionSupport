@@ -1,4 +1,6 @@
-﻿using LogUtils.Enums;
+﻿using LogUtils.Diagnostics;
+using LogUtils.Diagnostics.Tools;
+using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Requests;
@@ -62,6 +64,9 @@ namespace LogUtils
 
             if (request.ThreadCanWrite)
             {
+                LogProfiler profiler = request.Data.Properties.Profiler;
+                MessageBuffer buffer = request.Data.Properties.WriteBuffer;
+
                 //Assume that thread is allowed to write if we get past this point
                 try
                 {
@@ -71,7 +76,34 @@ namespace LogUtils
                         return;
                     }
 
-                    MessageBuffer buffer = request.Data.Properties.WriteBuffer;
+                    /*
+                     * In order to get back into a write qualifying range, we run a new calculation with zero new accumulated messages until the average logging rate
+                     * returns back into the acceptable range
+                     */
+                    if (buffer.IsBuffering || profiler.MessagesSinceLastSampling >= profiler.SampleFrequency)
+                    {
+                        profiler.UpdateCalculations();
+
+                        double averageWriteTime = profiler.AverageLogRate.TotalMilliseconds;
+
+                        if (!buffer.IsBuffering)
+                            Debug.TestBuffer.AppendLine($"Average logging time: {averageWriteTime} ms per message");
+
+                        //Not finished - we could be buffering for other reasons
+                        if (averageWriteTime < profiler.LogRateThreshold)
+                        {
+                            buffer.IsBuffering = true;
+                            profiler.BufferedFrameCount++;
+                        }
+                        else
+                        {
+                            if (profiler.BufferedFrameCount > 0)
+                                Debug.TestBuffer.AppendLine($"Buffered {profiler.BufferedFrameCount} messages");
+
+                            buffer.IsBuffering = false;
+                            profiler.BufferedFrameCount = 0;
+                        }
+                    }
 
                     if (buffer.IsBuffering)
                     {
@@ -83,6 +115,8 @@ namespace LogUtils
                 }
                 finally
                 {
+                    if (!buffer.IsBuffering)
+                        profiler.MessagesSinceLastSampling.Tick();
                     UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
                 }
             }
