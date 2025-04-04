@@ -100,15 +100,14 @@ namespace LogUtils
                         //TODO: This doesn't account for buffered state being set for some alternative reason
                         if (highVolumePeriod && profiler.ShouldUseBuffer)
                         {
-                            buffer.IsBuffering = true;
+                            buffer.SetState(true, BufferContext.HighVolume);
                             profiler.BufferedFrameCount++;
                         }
-                        else
+                        else if (buffer.SetState(false, BufferContext.HighVolume))
                         {
                             if (profiler.BufferedFrameCount > 0)
                                 Debug.TestBuffer.AppendLine($"Buffered {profiler.BufferedFrameCount} messages");
 
-                            buffer.IsBuffering = false;
                             profiler.BufferedFrameCount = 0;
                             profiler.PeriodsUnderHighVolume = 0;
                         }
