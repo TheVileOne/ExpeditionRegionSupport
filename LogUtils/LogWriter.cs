@@ -116,7 +116,7 @@ namespace LogUtils
                 finally
                 {
                     if (!buffer.IsBuffering)
-                        profiler.MessagesSinceLastSampling.Tick();
+                        profiler.MessagesSinceLastSampling++;
                     UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
                 }
             }

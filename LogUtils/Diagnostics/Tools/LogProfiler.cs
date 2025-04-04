@@ -20,7 +20,17 @@ namespace LogUtils.Diagnostics.Tools
 
         public TimeSpan LastSamplingTime = TimeSpan.Zero;
 
-        public Counter MessagesSinceLastSampling = new Counter();
+        private int _messagesSinceLastSampling;
+
+        public int MessagesSinceLastSampling
+        {
+            get => _messagesSinceLastSampling;
+            set
+            {
+                if (!canUpdate) return;
+                _messagesSinceLastSampling = value;
+            }
+        }
 
         /// <summary>
         /// The polling frequency represented as the number of samples required to collect a new sample 
@@ -67,21 +77,19 @@ namespace LogUtils.Diagnostics.Tools
             if (canUpdate) return;
 
             canUpdate = true;
-            MessagesSinceLastSampling.IsFrozen = false;
             LastSamplingTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp());
         }
 
         public void Stop()
         {
             canUpdate = false;
-            MessagesSinceLastSampling.IsFrozen = true;
         }
 
         public void UpdateCalculations()
         {
             if (!canUpdate) return;
 
-            int accumulatedMessageCount = MessagesSinceLastSampling.Count;
+            int accumulatedMessageCount = MessagesSinceLastSampling;
 
             TimeSpan currentTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp());
 
@@ -100,7 +108,7 @@ namespace LogUtils.Diagnostics.Tools
                 SampleSize = accumulatedMessageCount;
             }
 
-            MessagesSinceLastSampling.Reset();
+            MessagesSinceLastSampling = 0;
             LastSamplingTime = currentTime;
         }
 
@@ -162,95 +170,6 @@ namespace LogUtils.Diagnostics.Tools
         internal int GetMessageTotal(int newMessageCount)
         {
             return SampleSize + newMessageCount;
-        }
-
-        public struct Counter : IEquatable<Counter>, IEquatable<int>, IComparable<Counter>, IComparable<int>
-        {
-            public bool IsFrozen;
-
-            public int Count { get; private set; }
-
-            public void Tick()
-            {
-                if (IsFrozen) return;
-                Count++;
-            }
-
-            public void InvalidateTick()
-            {
-                if (IsFrozen) return;
-                Count--;
-            }
-
-            public void Reset()
-            {
-                if (IsFrozen) return;
-                Count = 0;
-            }
-
-            public override bool Equals(object obj)
-            {
-                return obj != null && GetHashCode() == obj.GetHashCode();
-            }
-
-            public override int GetHashCode()
-            {
-                return Count.GetHashCode();
-            }
-
-            public bool Equals(int other)
-            {
-                return this == other;
-            }
-
-            public bool Equals(Counter other)
-            {
-                return this == other.Count;
-            }
-
-            public int CompareTo(Counter other)
-            {
-                if (Count < other.Count)
-                    return -1;
-                return Count == other.Count ? 0 : 1;
-            }
-
-            public int CompareTo(int other)
-            {
-                if (Count < other)
-                    return -1;
-                return Count == other ? 0 : 1;
-            }
-
-            public static bool operator ==(Counter left, int right)
-            {
-                return left.Count == right;
-            }
-
-            public static bool operator !=(Counter left, int right)
-            {
-                return left.Count == right;
-            }
-
-            public static bool operator <(Counter left, int right)
-            {
-                return left.CompareTo(right) < 0;
-            }
-
-            public static bool operator <=(Counter left, int right)
-            {
-                return left.CompareTo(right) <= 0;
-            }
-
-            public static bool operator >(Counter left, int right)
-            {
-                return left.CompareTo(right) > 0;
-            }
-
-            public static bool operator >=(Counter left, int right)
-            {
-                return left.CompareTo(right) >= 0;
-            }
         }
     }
 }
