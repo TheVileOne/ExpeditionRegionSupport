@@ -93,7 +93,7 @@ namespace LogUtils
 
                         if (highVolumePeriod && !buffer.IsBuffering)
                         {
-                            Debug.TestBuffer.AppendLine($"Average logging time: {averageWriteTime} ms per message");
+                            //Debug.TestBuffer.AppendLine($"Average logging time: {averageWriteTime} ms per message");
 
                             //High volume periods are only counted when not buffering
                             profiler.PeriodsUnderHighVolume++;
@@ -115,10 +115,8 @@ namespace LogUtils
                                         //Ensure that buffer will disable itself after a short period of time without needing extra log requests to clear the buffer
                                         if (buffer.SetState(false, BufferContext.HighVolume))
                                         {
-                                            Debug.TestBuffer.AppendLine($"EVENT RUN");
-
-                                            if (profiler.BufferedFrameCount > 0)
-                                                Debug.TestBuffer.AppendLine($"Buffered {profiler.BufferedFrameCount} messages");
+                                            //if (profiler.BufferedFrameCount > 0)
+                                            //    Debug.TestBuffer.AppendLine($"Buffered {profiler.BufferedFrameCount} messages");
 
                                             profiler.BufferedFrameCount = 0;
                                             profiler.PeriodsUnderHighVolume = 0;
@@ -126,14 +124,14 @@ namespace LogUtils
                                     }, 50.0);
                                     listener.Tag = BufferContext.HighVolume;
                                 }
-                                Debug.TestBuffer.AppendLine($"Activity listeners {buffer.ActivityListeners.Count}");
+                                //Debug.TestBuffer.AppendLine($"Activity listeners {buffer.ActivityListeners.Count}");
                             }
                             profiler.BufferedFrameCount++;
                         }
                         else if (buffer.SetState(false, BufferContext.HighVolume))
                         {
-                            if (profiler.BufferedFrameCount > 0)
-                                Debug.TestBuffer.AppendLine($"Buffered {profiler.BufferedFrameCount} messages");
+                            //if (profiler.BufferedFrameCount > 0)
+                            //    Debug.TestBuffer.AppendLine($"Buffered {profiler.BufferedFrameCount} messages");
 
                             profiler.BufferedFrameCount = 0;
                             profiler.PeriodsUnderHighVolume = 0;
