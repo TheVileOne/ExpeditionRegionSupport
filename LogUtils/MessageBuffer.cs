@@ -1,5 +1,6 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Events;
+using LogUtils.Helpers;
 using LogUtils.Timers;
 using System.Collections.Generic;
 using System.Text;
@@ -109,7 +110,7 @@ namespace LogUtils
 
         public override string ToString()
         {
-            return Content.ToString();
+            return StringParser.TrimNewLine(Content.ToString());
         }
     }
 }

@@ -64,5 +64,21 @@ namespace LogUtils.Helpers
 
             return string.Join(separator, selectedLines);
         }
+
+        /// <summary>
+        /// Trim the last trailing new line from the given string
+        /// </summary>
+        public static string TrimNewLine(string str)
+        {
+            if (str == null)
+                return null;
+
+            if (str.EndsWith("\r\n"))
+                return str.Substring(0, str.Length - 2);
+            
+            if (str.EndsWith("\n") || str.EndsWith("\r"))
+                return str.Substring(0, str.Length - 1);
+            return str;
+        }
     }
 }
