@@ -4,8 +4,10 @@ using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Requests;
+using LogUtils.Timers;
 using System;
 using System.IO;
+using System.Linq;
 
 namespace LogUtils
 {
@@ -97,10 +99,35 @@ namespace LogUtils
                             profiler.PeriodsUnderHighVolume++;
                         }
 
-                        //TODO: This doesn't account for buffered state being set for some alternative reason
                         if (highVolumePeriod && profiler.ShouldUseBuffer)
                         {
-                            buffer.SetState(true, BufferContext.HighVolume);
+                            if (!buffer.IsEntered(BufferContext.HighVolume))
+                            {
+                                buffer.SetState(true, BufferContext.HighVolume);
+
+                                PollingTimer listener = buffer.ActivityListeners.FirstOrDefault(l => Equals(l.Tag, BufferContext.HighVolume));
+
+                                if (listener == null)
+                                {
+                                    listener = buffer.PollForActivity(null, (t, e) =>
+                                    {
+                                        //TODO: This will run on a different thread. It needs to be thread-safe
+                                        //Ensure that buffer will disable itself after a short period of time without needing extra log requests to clear the buffer
+                                        if (buffer.SetState(false, BufferContext.HighVolume))
+                                        {
+                                            Debug.TestBuffer.AppendLine($"EVENT RUN");
+
+                                            if (profiler.BufferedFrameCount > 0)
+                                                Debug.TestBuffer.AppendLine($"Buffered {profiler.BufferedFrameCount} messages");
+
+                                            profiler.BufferedFrameCount = 0;
+                                            profiler.PeriodsUnderHighVolume = 0;
+                                        }
+                                    }, 50.0);
+                                    listener.Tag = BufferContext.HighVolume;
+                                }
+                                Debug.TestBuffer.AppendLine($"Activity listeners {buffer.ActivityListeners.Count}");
+                            }
                             profiler.BufferedFrameCount++;
                         }
                         else if (buffer.SetState(false, BufferContext.HighVolume))

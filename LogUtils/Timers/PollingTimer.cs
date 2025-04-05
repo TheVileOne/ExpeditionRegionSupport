@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogUtils.Events;
+using System;
 using System.Diagnostics;
 using System.Timers;
 
@@ -8,6 +9,11 @@ namespace LogUtils.Timers
     {
         private bool _started;
         public bool Started => Enabled && _started;
+
+        /// <summary>
+        /// Used to attach identifying information
+        /// </summary>
+        public object Tag;
 
         /// <summary>
         /// Should the timer record the time of poll signals
@@ -26,7 +32,15 @@ namespace LogUtils.Timers
         /// </summary>
         public bool PollFlagged { get; private set; }
 
-        public event Action<ElapsedEventArgs> OnTimeout;
+        /// <summary>
+        /// Activated when timer is signaled
+        /// </summary>
+        public event SignalEventHandler OnSignal;
+
+        /// <summary>
+        /// Activated when an entire polling interval passes without receiving a poll signal
+        /// </summary>
+        public event EventHandler<Timer, ElapsedEventArgs> OnTimeout;
 
         /// <summary>
         /// Constructs a PollingTimer
@@ -47,6 +61,7 @@ namespace LogUtils.Timers
 
             if (TrackingPollTime)
                 lastPollTime = Stopwatch.GetTimestamp();
+            OnSignal?.Invoke(this);
         }
 
         /// <summary>
@@ -73,8 +88,10 @@ namespace LogUtils.Timers
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
             if (!PollFlagged)
-                OnTimeout?.Invoke(e);
+                OnTimeout?.Invoke(this, e);
             PollFlagged = false;
         }
     }
+
+    public delegate void SignalEventHandler(Timer timer);
 }

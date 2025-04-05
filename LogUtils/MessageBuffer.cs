@@ -1,6 +1,9 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Events;
+using LogUtils.Timers;
 using System.Collections.Generic;
 using System.Text;
+using System.Timers;
 
 namespace LogUtils
 {
@@ -14,6 +17,8 @@ namespace LogUtils
         /// When true, the buffer will be added to instead of writing to file on handling a write request
         /// </summary>
         public bool IsBuffering { get; protected set; }
+
+        public ICollection<PollingTimer> ActivityListeners = new List<PollingTimer>();
 
         protected ICollection<BufferContext> Scopes = new HashSet<BufferContext>();
 
@@ -35,16 +40,46 @@ namespace LogUtils
         public void EnterContext(BufferContext context)
         {
             Scopes.Add(context);
+            Signal();
         }
 
         public void LeaveContext(BufferContext context)
         {
             Scopes.Remove(context);
+            Signal();
         }
 
         public bool IsEntered(BufferContext context)
         {
             return Scopes.Contains(context);
+        }
+
+        public PollingTimer PollForActivity(SignalEventHandler onSignal, EventHandler<Timer, ElapsedEventArgs> onTimeout, double timeoutInMilliseconds)
+        {
+            PollingTimer listener = new PollingTimer(timeoutInMilliseconds);
+
+            if (onSignal != null)
+                listener.OnSignal += onSignal;
+
+            if (onTimeout != null)
+                listener.OnTimeout += onTimeout;
+            listener.OnTimeout += eventTimeout;
+
+            listener.Start();
+            ActivityListeners.Add(listener);
+            return listener;
+
+            void eventTimeout(Timer timer, ElapsedEventArgs e)
+            {
+                if (onSignal != null)
+                    listener.OnSignal -= onSignal;
+
+                if (onTimeout != null)
+                    listener.OnTimeout -= onTimeout;
+
+                listener.OnTimeout -= eventTimeout;
+                ActivityListeners.Remove(listener);
+            }
         }
 
         public bool SetState(bool state, BufferContext context)
@@ -61,8 +96,15 @@ namespace LogUtils
                 if (Scopes.Count > 0)
                     return false;
             }
+
             IsBuffering = state;
             return true;
+        }
+
+        protected void Signal()
+        {
+            foreach (var listener in ActivityListeners)
+                listener.Signal();
         }
 
         public override string ToString()
