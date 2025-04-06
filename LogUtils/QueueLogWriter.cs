@@ -87,14 +87,13 @@ namespace LogUtils
                 bool errorHandled = false;
                 var fileLock = logEntry.Properties.FileLock;
 
-                StreamWriter writer = null;
+                fileLock.Acquire();
+                fileLock.SetActivity(logEntry.ID, FileAction.Write);
+
+                ProcessResult streamResult = AssignWriterSafe(logEntry.ID, out StreamWriter writer);
+
                 try
                 {
-                    fileLock.Acquire();
-                    fileLock.SetActivity(logEntry.ID, FileAction.Write);
-
-                    ProcessResult streamResult = AssignWriter(logEntry.ID, out writer);
-
                     if (streamResult != ProcessResult.Success)
                         throw new IOException("Unable to create stream");
 
@@ -114,7 +113,7 @@ namespace LogUtils
                 catch (Exception ex)
                 {
                     errorHandled = true;
-                    OnWriteException(ex, logEntry);
+                    OnWriteException(logEntry.ID, ex);
                     break; //Break out of process loop when an exception occurs
                 }
                 finally
@@ -130,19 +129,20 @@ namespace LogUtils
             }
         }
 
-        protected override void OnWriteException(Exception exception, LogMessageEventArgs messageData)
+        protected override void OnWriteException(LogID logFile, Exception exception)
         {
             ExceptionInfo exceptionInfo = new ExceptionInfo(exception);
 
-            if (!RWInfo.CheckExceptionMatch(messageData.ID, exceptionInfo)) //Only log unreported exceptions
+            if (!RWInfo.CheckExceptionMatch(logFile, exceptionInfo)) //Only log unreported exceptions
             {
-                var errorEntry = new LogMessageEventArgs(messageData.ID, exception, LogCategory.Error);
+                var errorEntry = new LogMessageEventArgs(logFile, exception, LogCategory.Error);
 
-                RWInfo.ReportException(errorEntry.ID, exceptionInfo);
+                RWInfo.ReportException(logFile, exceptionInfo);
                 EnqueueMessage(errorEntry);
             }
 
-            base.OnWriteException(exception, messageData);
+            base.OnWriteException(logFile, exception);
+        }
         }
     }
 }

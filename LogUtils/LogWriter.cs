@@ -169,36 +169,35 @@ namespace LogUtils
             bool errorHandled = false;
             var fileLock = logFile.Properties.FileLock;
 
-            StreamWriter writer = null;
+            fileLock.Acquire();
+            fileLock.SetActivity(logFile, FileAction.Write);
+
+            ProcessResult streamResult = AssignWriterSafe(logFile, out StreamWriter writer);
+
+            //Handle request rejection, and message receive events
+            bool canReceiveMessage = false;
+            switch (streamResult)
+            {
+                case ProcessResult.Success:
+                    {
+                        canReceiveMessage = true;
+                        break;
+                    }
+                case ProcessResult.FailedToCreate:
+                    {
+                        canReceiveMessage = true;
+                        request.Reject(RejectionReason.FailedToWrite);
+                        break;
+                    }
+                case ProcessResult.WaitingToResume:
+                    {
+                        request.Reject(RejectionReason.LogUnavailable);
+                        break;
+                    }
+            }
+
             try
             {
-                fileLock.Acquire();
-                fileLock.SetActivity(logFile, FileAction.Write);
-
-                ProcessResult streamResult = AssignWriter(logFile, out writer);
-
-                //Handle request rejection, and message receive events
-                bool canReceiveMessage = false;
-                switch (streamResult)
-                {
-                    case ProcessResult.Success:
-                        {
-                            canReceiveMessage = true;
-                            break;
-                        }
-                    case ProcessResult.FailedToCreate:
-                        {
-                            canReceiveMessage = true;
-                            request.Reject(RejectionReason.FailedToWrite);
-                            break;
-                        }
-                    case ProcessResult.WaitingToResume:
-                        {
-                            request.Reject(RejectionReason.LogUnavailable);
-                            break;
-                        }
-                }
-
                 if (canReceiveMessage)
                 {
                     OnLogMessageReceived(request.Data);
@@ -213,7 +212,7 @@ namespace LogUtils
             catch (Exception ex)
             {
                 errorHandled = true;
-                OnWriteException(ex, request.Data);
+                OnWriteException(logFile, ex);
             }
             finally
             {
@@ -238,6 +237,22 @@ namespace LogUtils
         /// <summary>
         /// Assigns a writer instance for handling a specified log file
         /// </summary>
+        protected ProcessResult AssignWriterSafe(LogID logFile, out StreamWriter writer)
+        {
+            try
+            {
+                return AssignWriter(logFile, out writer);
+            }
+            catch //Exception should be handled, and reported by caller
+            {
+                writer = null;
+                return ProcessResult.FailedToCreate;
+            }
+        }
+
+        /// <summary>
+        /// Assigns a writer instance for handling a specified log file
+        /// </summary>
         protected virtual ProcessResult AssignWriter(LogID logFile, out StreamWriter writer)
         {
             FileStream stream = LogFile.Open(logFile);
@@ -256,10 +271,8 @@ namespace LogUtils
             return Formatter.Format(messageData);
         }
 
-        protected virtual void OnWriteException(Exception exception, LogMessageEventArgs messageData)
+        protected virtual void OnWriteException(LogID logFile, Exception exception)
         {
-            LogID logFile = messageData.ID;
-
             //Do not attempt to log an error to BepInEx when the exception came from attempting to write to BepInEx
             if (logFile != LogID.BepInEx)
                 UtilityLogger.LogError("Log write error", exception);

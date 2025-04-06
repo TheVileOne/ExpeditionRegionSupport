@@ -107,34 +107,34 @@ namespace LogUtils
             bool errorHandled = false;
             var fileLock = logFile.Properties.FileLock;
 
+            fileLock.Acquire();
+
+            ProcessResult streamResult = AssignWriterSafe(logFile, out StreamWriter writer);
+
+            //Handle request rejection, and message receive events
+            bool canReceiveMessage = false;
+            switch (streamResult)
+            {
+                case ProcessResult.Success:
+                    {
+                        canReceiveMessage = true;
+                        break;
+                    }
+                case ProcessResult.FailedToCreate:
+                    {
+                        canReceiveMessage = true;
+                        request.Reject(RejectionReason.FailedToWrite);
+                        break;
+                    }
+                case ProcessResult.WaitingToResume:
+                    {
+                        request.Reject(RejectionReason.LogUnavailable);
+                        break;
+                    }
+            }
+
             try
             {
-                fileLock.Acquire();
-
-                ProcessResult streamResult = AssignWriter(logFile, out StreamWriter writer);
-
-                //Handle request rejection, and message receive events
-                bool canReceiveMessage = false;
-                switch (streamResult)
-                {
-                    case ProcessResult.Success:
-                        {
-                            canReceiveMessage = true;
-                            break;
-                        }
-                    case ProcessResult.FailedToCreate:
-                        {
-                            canReceiveMessage = true;
-                            request.Reject(RejectionReason.FailedToWrite);
-                            break;
-                        }
-                    case ProcessResult.WaitingToResume:
-                        {
-                            request.Reject(RejectionReason.LogUnavailable);
-                            break;
-                        }
-                }
-
                 if (canReceiveMessage)
                 {
                     OnLogMessageReceived(request.Data);
@@ -149,7 +149,7 @@ namespace LogUtils
             catch (Exception ex)
             {
                 errorHandled = true;
-                OnWriteException(ex, request.Data);
+                OnWriteException(logFile, ex);
             }
             finally
             {
