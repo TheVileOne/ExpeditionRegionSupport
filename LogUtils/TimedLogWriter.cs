@@ -111,7 +111,7 @@ namespace LogUtils
             {
                 fileLock.Acquire();
 
-                ProcessResult streamResult = AssignWriter(logFile, out PersistentLogFileWriter writer);
+                ProcessResult streamResult = AssignWriter(logFile, out StreamWriter writer);
 
                 //Handle request rejection, and message receive events
                 bool canReceiveMessage = false;
@@ -163,59 +163,66 @@ namespace LogUtils
             }
         }
 
-        protected ProcessResult AssignWriter(LogID logFile, out PersistentLogFileWriter writer)
+        protected override ProcessResult AssignWriter(LogID logFile, out StreamWriter writer)
         {
-            writer = FindWriter(logFile);
+            PersistentLogFileWriter localWriter = FindWriter(logFile);
 
-            //Ensure that the writer we found will not be disposed during assignment
-            if (writer != null)
+            try
             {
-                if (!writer.CanWrite)
+                //Ensure that the writer we found will not be disposed during assignment
+                if (localWriter != null)
                 {
-                    UtilityLogger.DebugLog("Writer rejected due to impermissible write state");
-                    writer = null;
-                }
-            }
-
-        retry:
-            PersistentLogFileHandle writeHandle;
-            if (writer == null)
-            {
-                writeHandle = new PersistentLogFileHandle(logFile);
-
-                //An exception will be thrown if we try to create a StreamWriter with an invalid stream
-                if (!writeHandle.IsClosed)
-                {
-                    writer = new PersistentLogFileWriter(writeHandle)
+                    if (!localWriter.CanWrite)
                     {
-                        AutoFlush = false
-                    };
-                    LogWriters.Add(writer);
-                    return ProcessResult.Success;
+                        UtilityLogger.DebugLog("Writer rejected due to impermissible write state");
+                        localWriter = null;
+                    }
                 }
-                return ProcessResult.FailedToCreate;
+
+            retry:
+                PersistentLogFileHandle writeHandle;
+                if (localWriter == null)
+                {
+                    writeHandle = new PersistentLogFileHandle(logFile);
+
+                    //An exception will be thrown if we try to create a StreamWriter with an invalid stream
+                    if (!writeHandle.IsClosed)
+                    {
+                        localWriter = new PersistentLogFileWriter(writeHandle)
+                        {
+                            AutoFlush = false
+                        };
+                        LogWriters.Add(localWriter);
+                        return ProcessResult.Success;
+                    }
+                    return ProcessResult.FailedToCreate;
+                }
+
+                writeHandle = localWriter.Handle;
+
+                if (writeHandle.IsClosed)
+                {
+                    if (writeHandle.WaitingToResume)
+                        return ProcessResult.WaitingToResume;
+
+                    //This writer is no longer useful - time to replace it with a new instance
+                    localWriter.Dispose();
+                    LogWriters.Remove(localWriter);
+
+                    localWriter = null;
+                    goto retry;
+                }
+                else if (writeHandle.Lifetime.TimeRemaining != LifetimeDuration.Infinite)
+                {
+                    UtilityLogger.Log("Lifetime of filestream has been extended");
+                    writeHandle.Lifetime.SetDuration(LifetimeDuration.Infinite);
+                }
+                return ProcessResult.Success;
             }
-
-            writeHandle = writer.Handle;
-
-            if (writeHandle.IsClosed)
+            finally
             {
-                if (writeHandle.WaitingToResume)
-                    return ProcessResult.WaitingToResume;
-
-                //This writer is no longer useful - time to replace it with a new instance
-                writer.Dispose();
-                LogWriters.Remove(writer);
-
-                writer = null;
-                goto retry;
+                writer = localWriter;
             }
-            else if (writeHandle.Lifetime.TimeRemaining != LifetimeDuration.Infinite)
-            {
-                UtilityLogger.Log("Lifetime of filestream has been extended");
-                writeHandle.Lifetime.SetDuration(LifetimeDuration.Infinite);
-            }
-            return ProcessResult.Success;
         }
 
         protected PersistentLogFileWriter FindWriter(LogID logFile)

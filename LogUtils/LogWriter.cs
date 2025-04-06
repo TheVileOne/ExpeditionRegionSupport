@@ -248,7 +248,7 @@ namespace LogUtils
         /// <summary>
         /// Assigns a writer instance for handling a specified log file
         /// </summary>
-        protected ProcessResult AssignWriter(LogID logFile, out StreamWriter writer)
+        protected virtual ProcessResult AssignWriter(LogID logFile, out StreamWriter writer)
         {
             FileStream stream = LogFile.Open(logFile);
 
