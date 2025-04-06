@@ -2,6 +2,7 @@
 using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Timers;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Timers;
@@ -55,9 +56,9 @@ namespace LogUtils
             return Scopes.Contains(context);
         }
 
-        public PollingTimer PollForActivity(SignalEventHandler onSignal, EventHandler<Timer, ElapsedEventArgs> onTimeout, double timeoutInMilliseconds)
+        public PollingTimer PollForActivity(SignalEventHandler onSignal, EventHandler<Timer, ElapsedEventArgs> onTimeout, TimeSpan timeout)
         {
-            PollingTimer listener = new PollingTimer(timeoutInMilliseconds);
+            PollingTimer listener = new PollingTimer(timeout.TotalMilliseconds);
 
             if (onSignal != null)
                 listener.OnSignal += onSignal;

@@ -4,6 +4,7 @@ using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Requests;
+using LogUtils.Threading;
 using LogUtils.Timers;
 using System;
 using System.IO;
@@ -114,8 +115,11 @@ namespace LogUtils
                                         //TODO: This will run on a different thread. It needs to be thread-safe
                                         //Ensure that buffer will disable itself after a short period of time without needing extra log requests to clear the buffer
                                         if (buffer.SetState(false, BufferContext.HighVolume))
+                                        {
                                             profiler.Restart();
-                                    }, 50.0);
+                                            WriteBufferToFile(request.Data.ID, initialWaitInterval);
+                                        }
+                                    }, initialWaitInterval);
                                     listener.Tag = BufferContext.HighVolume;
                                 }
                                 //Debug.TestBuffer.AppendLine($"Activity listeners {buffer.ActivityListeners.Count}");
@@ -141,6 +145,95 @@ namespace LogUtils
                     if (!buffer.IsBuffering)
                         profiler.MessagesSinceLastSampling++;
                     UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+                }
+            }
+        }
+
+        private static readonly TimeSpan initialWaitInterval = TimeSpan.FromMilliseconds(25);
+        private static readonly TimeSpan maxWaitInterval = TimeSpan.FromSeconds(5);
+
+        /// <summary>
+        /// Attempts to write content from the message buffer to file
+        /// </summary>
+        /// <param name="logFile">The file that contains the message buffer</param>
+        /// <param name="respectBufferState">When true no content will be written to file if MessageBuffer.IsBuffering property is set to true</param>
+        public void WriteBufferToFile(LogID logFile, bool respectBufferState = true)
+        {
+            WriteBufferToFile(logFile, TimeSpan.Zero, respectBufferState);
+        }
+
+        /// <summary>
+        /// Attempts to write content from the message buffer to file after a specified amount of time.
+        /// Wait time will double on each failed attempt to write to file (up to a maximum of 5000 ms).
+        /// </summary>
+        /// <param name="logFile">The file that contains the message buffer</param>
+        /// <param name="waitTime">The initial time to wait before writing to file (when set to zero,  write attempt will be immediate and only happen once)</param>
+        /// <param name="respectBufferState">When true no content will be written to file if MessageBuffer.IsBuffering property is set to true</param>
+        public Task WriteBufferToFile(LogID logFile, TimeSpan waitTime, bool respectBufferState = true)
+        {
+            MessageBuffer writeBuffer = logFile.Properties.WriteBuffer;
+            FileLock fileLock = logFile.Properties.FileLock;
+
+            if (waitTime <= TimeSpan.Zero)
+            {
+                //Write implementation will ignore this field - make sure we want that to happen
+                if (!respectBufferState || !writeBuffer.IsBuffering)
+                    tryWrite();
+                return null;
+            }
+
+            Task writeTask = null;
+
+            writeTask = new Task(() =>
+            {
+                bool taskCompleted = (!respectBufferState || !writeBuffer.IsBuffering) && tryWrite();
+
+                if (taskCompleted)
+                    writeTask.IsContinuous = false;
+                else
+                {
+                    //Each failed attempt doubles the wait time for the next attempt up to a maximum of 5 seconds
+                    TimeSpan waitInterval = writeTask.WaitTimeInterval.MultiplyBy(2);
+
+                    if (waitInterval > maxWaitInterval)
+                        waitInterval = maxWaitInterval;
+                    writeTask.WaitTimeInterval = waitInterval;
+                }
+
+            }, waitTime);
+            writeTask.Name = "BufferWriteTask";
+            writeTask.IsContinuous = true;
+
+            LogTasker.Schedule(writeTask);
+            return writeTask;
+
+            bool tryWrite()
+            {
+                if (!writeBuffer.HasContent)
+                    return true;
+
+                fileLock.Acquire();
+                fileLock.SetActivity(logFile, FileAction.Write);
+
+                ProcessResult result = AssignWriterSafe(logFile, out StreamWriter writer);
+
+                if (result != ProcessResult.Success)
+                    return false;
+
+                try
+                {
+                    writer.WriteLine(writeBuffer);
+                    writeBuffer.Clear();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    OnWriteException(logFile, ex);
+                    return false;
+                }
+                finally
+                {
+                    fileLock.Release();
                 }
             }
         }
