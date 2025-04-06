@@ -40,7 +40,7 @@ namespace LogUtils.Timers
         /// <summary>
         /// Activated when an entire polling interval passes without receiving a poll signal
         /// </summary>
-        public event EventHandler<Timer, ElapsedEventArgs> OnTimeout;
+        public event EventHandler<PollingTimer, ElapsedEventArgs> OnTimeout;
 
         /// <summary>
         /// Constructs a PollingTimer
@@ -93,5 +93,5 @@ namespace LogUtils.Timers
         }
     }
 
-    public delegate void SignalEventHandler(Timer timer);
+    public delegate void SignalEventHandler(PollingTimer timer);
 }

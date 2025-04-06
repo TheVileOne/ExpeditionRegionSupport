@@ -56,7 +56,7 @@ namespace LogUtils
             return Scopes.Contains(context);
         }
 
-        public PollingTimer PollForActivity(SignalEventHandler onSignal, EventHandler<Timer, ElapsedEventArgs> onTimeout, TimeSpan timeout)
+        public PollingTimer PollForActivity(SignalEventHandler onSignal, EventHandler<PollingTimer, ElapsedEventArgs> onTimeout, TimeSpan timeout)
         {
             PollingTimer listener = new PollingTimer(timeout.TotalMilliseconds);
 
@@ -71,7 +71,7 @@ namespace LogUtils
             ActivityListeners.Add(listener);
             return listener;
 
-            void eventTimeout(Timer timer, ElapsedEventArgs e)
+            void eventTimeout(PollingTimer timer, ElapsedEventArgs e)
             {
                 if (onSignal != null)
                     listener.OnSignal -= onSignal;
