@@ -1,5 +1,4 @@
-﻿using LogUtils.Diagnostics;
-using LogUtils.Diagnostics.Tools;
+﻿using LogUtils.Diagnostics.Tools;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
@@ -94,7 +93,7 @@ namespace LogUtils
 
                         if (highVolumePeriod && !buffer.IsBuffering)
                         {
-                            //Debug.TestBuffer.AppendLine($"Average logging time: {averageWriteTime} ms per message");
+                            UtilityLogger.DebugLog($"Average logging time: {averageWriteTime} ms per message");
 
                             //High volume periods are only counted when not buffering
                             profiler.PeriodsUnderHighVolume++;
@@ -122,7 +121,7 @@ namespace LogUtils
                                     }, initialWaitInterval);
                                     listener.Tag = BufferContext.HighVolume;
                                 }
-                                //Debug.TestBuffer.AppendLine($"Activity listeners {buffer.ActivityListeners.Count}");
+                                UtilityLogger.DebugLog($"Activity listeners {buffer.ActivityListeners.Count}");
                             }
                             profiler.BufferedFrameCount++;
                         }

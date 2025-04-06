@@ -7,9 +7,9 @@ namespace LogUtils.Diagnostics.Tests.Utility
 {
     internal static class StressTests
     {
-        public static void LogEveryFrame(LogID logFile, int messageFrequency = 1, int logUntilThisFrame = -1)
+        public static void LogEveryFrame(LogID logFile, int messageFrequency = 1, int logUntilThisFrame = -1, int messagesPerFrame = 1)
         {
-            LogID.FileActivity.IsEnabled = false;
+            UtilityLogger.PerformanceMode = true;
 
             DiscreteLogger logger = new DiscreteLogger(logFile);
 
@@ -20,19 +20,23 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 if (messageCount == 0)
                     sw.Start();
 
-                int i = 0;
-                while (i < 100)
+                if (messagesPerFrame > 1)
                 {
-                    logger.LogDebug($"Frame {messageCount} subcount {i}");
-                    i++;
+                    int i = 0;
+                    while (i < messagesPerFrame)
+                    {
+                        logger.LogDebug($"Frame {messageCount} subcount {i}");
+                        i++;
+                    }
                 }
-                //logger.LogDebug($"message {messageCount}");
+                else
+                {
+                    logger.LogDebug($"message {messageCount}");
+                }
                 messageCount++;
 
                 if (messageCount % 25 == 0)
-                {
                     UtilityLogger.Logger.LogDebug("Average milliseconds per frame " + (TimeSpan.FromTicks(sw.ElapsedTicks).TotalMilliseconds / messageCount));
-                }
 
             }, messageFrequency, logUntilThisFrame);
 
@@ -46,6 +50,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 logger.Dispose();
                 logger = null;
                 FrameTimer.OnRelease -= onEventFinished;
+                UtilityLogger.PerformanceMode = false;
             }
         }
     }

@@ -34,28 +34,10 @@ namespace LogUtils.Diagnostics
             UtilityTests.Add(new LogIDTests.ComparisonTests());
         }
 
-        //public static StringBuilder TestBuffer = new StringBuilder();
-
         internal static void RunTests()
         {
             UtilityTests.RunAllTests();
-
-            /*
-            Task debugTask = new Task(() =>
-            {
-                if (TestBuffer.Length > 0)
-                {
-                    string bufferMessage = TestBuffer.ToString();
-                    UtilityLogger.DebugLog(bufferMessage);
-                    TestBuffer.Clear();
-                }
-            }, 2000);
-
-            debugTask.IsContinuous = true;
-
-            LogTasker.Schedule(debugTask);
-            StressTests.LogEveryFrame(LogID.Unity, messageFrequency: 1, logUntilThisFrame: 100000);
-            */
+            //StressTests.LogEveryFrame(LogID.Unity, messageFrequency: 1, logUntilThisFrame: 100000, messagesPerFrame: 100);
         }
 
         /// <summary>
