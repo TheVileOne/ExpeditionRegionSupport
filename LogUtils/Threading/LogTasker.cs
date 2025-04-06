@@ -226,7 +226,7 @@ namespace LogUtils.Threading
         {
             if (task.State == TaskState.NotSubmitted || !task.PossibleToRun) return;
 
-            UtilityLogger.DebugLog("Task ended after " + TimeConversion.DateTimeInMilliseconds(DateTime.UtcNow - task.InitialTime) + " milliseconds");
+            UtilityLogger.DebugLog("Task ended after " + TimeConversion.ToMilliseconds(DateTime.UtcNow - task.InitialTime) + " milliseconds");
             UtilityLogger.DebugLog("Wait interval " + task.WaitTimeInterval.TotalMilliseconds + " milliseconds");
 
             task.ResetToDefaults();
