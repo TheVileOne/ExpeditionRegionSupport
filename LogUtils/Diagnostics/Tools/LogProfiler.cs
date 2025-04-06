@@ -75,6 +75,18 @@ namespace LogUtils.Diagnostics.Tools
         public void Stop()
         {
             canUpdate = false;
+
+            if (BufferedFrameCount > 0)
+                UtilityLogger.DebugLog($"Buffered {BufferedFrameCount} messages");
+
+            BufferedFrameCount = 0;
+            PeriodsUnderHighVolume = 0;
+        }
+
+        public void Restart()
+        {
+            Stop();
+            Start();
         }
 
         public void UpdateCalculations()

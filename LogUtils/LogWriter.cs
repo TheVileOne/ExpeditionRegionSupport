@@ -114,13 +114,7 @@ namespace LogUtils
                                         //TODO: This will run on a different thread. It needs to be thread-safe
                                         //Ensure that buffer will disable itself after a short period of time without needing extra log requests to clear the buffer
                                         if (buffer.SetState(false, BufferContext.HighVolume))
-                                        {
-                                            //if (profiler.BufferedFrameCount > 0)
-                                            //    Debug.TestBuffer.AppendLine($"Buffered {profiler.BufferedFrameCount} messages");
-
-                                            profiler.BufferedFrameCount = 0;
-                                            profiler.PeriodsUnderHighVolume = 0;
-                                        }
+                                            profiler.Restart();
                                     }, 50.0);
                                     listener.Tag = BufferContext.HighVolume;
                                 }
@@ -130,11 +124,7 @@ namespace LogUtils
                         }
                         else if (buffer.SetState(false, BufferContext.HighVolume))
                         {
-                            //if (profiler.BufferedFrameCount > 0)
-                            //    Debug.TestBuffer.AppendLine($"Buffered {profiler.BufferedFrameCount} messages");
-
-                            profiler.BufferedFrameCount = 0;
-                            profiler.PeriodsUnderHighVolume = 0;
+                            profiler.Restart();
                         }
                     }
 
