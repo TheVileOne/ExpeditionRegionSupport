@@ -241,7 +241,7 @@ namespace LogUtils
         {
             OnLogMessageReceived(request.Data);
 
-            SendToBuffer(request.Data);
+            SendToBuffer(request.Data, BufferContext.StandardWrite);
             request.Complete(); //LogRequest no longer needs to be processed once its message has been added to the write buffer
         }
 
@@ -315,7 +315,7 @@ namespace LogUtils
                     request.Reject(RejectionReason.FailedToWrite);
 
                 if (request.UnhandledReason == RejectionReason.FailedToWrite)
-                    SendToBuffer(request.Data);
+                    SendToBuffer(request.Data, BufferContext.WriteFailure);
 
                 fileLock.Release();
             }
@@ -383,7 +383,7 @@ namespace LogUtils
             UtilityEvents.OnMessageReceived?.Invoke(messageData);
         }
 
-        public void SendToBuffer(LogMessageEventArgs messageData)
+        public void SendToBuffer(LogMessageEventArgs messageData, BufferContext context)
         {
             LogID logFile = messageData.ID;
 
@@ -396,8 +396,11 @@ namespace LogUtils
                 //Keep this inside a lock, we want to ensure that it remains in sync with the MessagesHandled count, which is used for this process
                 string message = ApplyRules(messageData);
 
-                logFile.Properties.WriteBuffer.AppendMessage(message);
-                logFile.Properties.MessagesHandledThisSession++;
+                using (logFile.Properties.WriteBuffer.Scope.Enter(context))
+                {
+                    logFile.Properties.WriteBuffer.AppendMessage(message);
+                    logFile.Properties.MessagesHandledThisSession++;
+                }
             }
         }
 
@@ -439,7 +442,7 @@ namespace LogUtils
         /// Bypasses the LogRequest system - intended to be used as a fallback message handling process
         /// </remarks></br>
         /// </summary>
-        void SendToBuffer(LogMessageEventArgs messageData);
+        void SendToBuffer(LogMessageEventArgs messageData, BufferContext context);
 
         /// <summary>
         /// Provides a procedure for writing a message to file

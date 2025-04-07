@@ -157,7 +157,7 @@ namespace LogUtils
                     request.Reject(RejectionReason.FailedToWrite);
 
                 if (request.UnhandledReason == RejectionReason.FailedToWrite)
-                    SendToBuffer(request.Data);
+                    SendToBuffer(request.Data, BufferContext.WriteFailure);
 
                 fileLock.Release();
             }

@@ -46,6 +46,12 @@ namespace LogUtils.Diagnostics.Tests.Utility
             {
                 if (timer.Event != myEvent) return;
 
+                UtilityLogger.Log("SCOPES");
+                foreach (var scope in LogID.Unity.Properties.WriteBuffer.Scope.AvailableScopes)
+                {
+                    UtilityLogger.Log(scope.Key + " Counts: " + scope.Value.EnterCount);
+                }
+
                 logger.LogDebug("TEST COMPLETE");
                 logger.Dispose();
                 logger = null;

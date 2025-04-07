@@ -323,7 +323,7 @@ namespace LogUtils
                         if (request.Status != RequestStatus.Rejected) //Unknown issue - don't retry request
                         {
                             request.Reject(RejectionReason.FailedToWrite);
-                            LogWriter.Writer.SendToBuffer(request.Data);
+                            LogWriter.Writer.SendToBuffer(request.Data, BufferContext.WriteFailure);
                         }
 
                         UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);

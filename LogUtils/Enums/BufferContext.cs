@@ -6,6 +6,7 @@
         {
         }
 
+        public static BufferContext StandardWrite = new BufferContext("Standard", true);
         public static BufferContext HighVolume = new BufferContext("High Volume", true);
         public static BufferContext RequestConsolidation = new BufferContext("Consolidation", true);
         public static BufferContext WriteFailure = new BufferContext("Write Failure", true);

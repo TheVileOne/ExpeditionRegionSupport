@@ -22,11 +22,21 @@ namespace LogUtils
 
         public ICollection<PollingTimer> ActivityListeners = new List<PollingTimer>();
 
-        protected ICollection<BufferContext> Scopes = new HashSet<BufferContext>();
+        /// <summary>
+        /// Provides scopes for entering and exiting different contexts that need the buffer
+        /// </summary>
+        public ScopeProvider Scope = new ScopeProvider(false);
 
         public MessageBuffer()
         {
             Content = new StringBuilder();
+            Scope.OnEnter += onScopeChanged;
+            Scope.OnExit += onScopeChanged;
+        }
+
+        private void onScopeChanged(object obj)
+        {
+            Signal();
         }
 
         public void AppendMessage(string message)
@@ -41,19 +51,19 @@ namespace LogUtils
 
         public void EnterContext(BufferContext context)
         {
-            Scopes.Add(context);
-            Signal();
+            //UtilityLogger.DebugLog("Entering context " + context);
+            Scope.Enter(context);
         }
 
         public void LeaveContext(BufferContext context)
         {
-            Scopes.Remove(context);
-            Signal();
+            //UtilityLogger.DebugLog("Leaving context " + context);
+            Scope.Exit(context);
         }
 
         public bool IsEntered(BufferContext context)
         {
-            return Scopes.Contains(context);
+            return Scope[context]?.EnterCount > 0;
         }
 
         public PollingTimer PollForActivity(SignalEventHandler onSignal, EventHandler<PollingTimer, ElapsedEventArgs> onTimeout, TimeSpan timeout)
@@ -95,7 +105,7 @@ namespace LogUtils
                 LeaveContext(context);
 
                 //Only disable the buffer when all scopes have exited
-                if (Scopes.Count > 0)
+                if (Scope.Entered)
                     return false;
             }
 
