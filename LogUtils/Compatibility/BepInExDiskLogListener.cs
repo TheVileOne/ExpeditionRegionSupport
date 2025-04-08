@@ -21,33 +21,16 @@ namespace LogUtils.Compatibility
         /// </summary>
         private readonly List<LogRequest> utilityRequestsInProcess = new List<LogRequest>();
 
-        private bool isDisposed;
-
         public BepInExDiskLogListener(ILogWriter writer)
         {
             Writer = writer;
-        }
-
-        public void Dispose()
-        {
-            isDisposed = true;
-
-            //Avoid disposing the default writer
-            if (Writer != LogWriter.Writer)
-            {
-                IDisposable disposable = Writer as IDisposable;
-
-                if (disposable != null)
-                    disposable.Dispose();
-            }
-            Writer = null;
         }
 
         public void LogEvent(object sender, BepInEx.Logging.LogEventArgs eventArgs)
         {
             if (eventArgs.Source is UnityLogSource) return;
 
-            if (isDisposed)
+            if (IsDisposed)
             {
                 if (Writer == null)
                     Writer = LogWriter.Writer;
@@ -119,5 +102,33 @@ namespace LogUtils.Compatibility
                 utilityRequestsInProcess.Remove(request);
             }
         }
+
+        #region Dispose pattern
+
+        internal bool IsDisposed;
+
+        internal void Dispose(bool disposing)
+        {
+            if (IsDisposed) return;
+
+            LogWriter.TryDispose(Writer);
+
+            Writer = null;
+            IsDisposed = true;
+        }
+
+        public void Dispose()
+        {
+            //Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~BepInExDiskLogListener()
+        {
+            Dispose(disposing: false);
+        }
+
+        #endregion
     }
 }

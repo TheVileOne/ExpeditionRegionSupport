@@ -813,16 +813,7 @@ namespace LogUtils
         {
             if (IsDisposed) return;
 
-            ILogWriter localWriter = Writer;
-
-            if (!LogWriter.IsCachedWriter(localWriter)) //Avoid disposing a shared resource
-            {
-                IDisposable disposable = localWriter as IDisposable;
-
-                if (disposable != null)
-                    disposable.Dispose();
-            }
-
+            LogWriter.TryDispose(Writer);
             UtilityCore.RequestHandler.Unregister(this);
 
             Writer = null;

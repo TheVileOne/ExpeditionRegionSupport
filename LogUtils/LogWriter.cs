@@ -418,6 +418,21 @@ namespace LogUtils
             messageData.Properties.MessagesHandledThisSession++;
         }
 
+        public static bool TryDispose(ILogWriter writer)
+        {
+            if (IsCachedWriter(writer)) //Avoid disposing a shared resource
+                return false;
+
+            IDisposable disposable = writer as IDisposable;
+
+            if (disposable != null)
+            {
+                disposable.Dispose();
+                return true;
+            }
+            return false;
+        }
+
         protected enum ProcessResult
         {
             Success,
