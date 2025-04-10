@@ -21,9 +21,9 @@ namespace LogUtils.Requests
         public LogMessageEventArgs Data;
 
         /// <summary>
-        /// The logger instance that has taken responsibility for handling the write process for this request
+        /// The log handler that has taken responsibility for handling the write process for this request
         /// </summary>
-        public ILogger Host;
+        public ILogHandler Host;
 
         /// <summary>
         /// Request has been handled, and no more attempts to process the request should be made

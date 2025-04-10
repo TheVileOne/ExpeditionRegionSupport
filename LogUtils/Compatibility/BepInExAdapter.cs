@@ -9,11 +9,11 @@ namespace LogUtils.Compatibility
     /// </summary>
     internal static class BepInExAdapter
     {
-        private static BepInExDiskLogListener _listener;
+        internal static BepInExDiskLogListener LogListener;
 
         public static void Run()
         {
-            _listener = new BepInExDiskLogListener(new TimedLogWriter());
+            LogListener = new BepInExDiskLogListener(new TimedLogWriter());
 
             AdaptLoggingSystem();
             TransferData();
@@ -36,7 +36,7 @@ namespace LogUtils.Compatibility
                 listeners.Remove(found);
             }
 
-            listeners.Add(_listener);
+            listeners.Add(LogListener);
         }
 
         /// <summary>

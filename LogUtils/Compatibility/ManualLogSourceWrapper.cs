@@ -10,8 +10,6 @@ namespace LogUtils.Compatibility
     /// </summary>
     internal sealed class ManualLogSourceWrapper : IExtendedLogSource
     {
-        LogID[] ILogger.AvailableTargets => [LogID.BepInEx];
-
         public readonly ManualLogSource Source;
 
         public string SourceName => Source.SourceName;

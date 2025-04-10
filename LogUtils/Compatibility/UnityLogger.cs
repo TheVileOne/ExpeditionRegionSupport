@@ -11,8 +11,6 @@ namespace LogUtils.Compatibility
     /// </summary>
     public class UnityLogger : ILogger
     {
-        LogID[] ILogger.AvailableTargets => [LogID.Unity];
-
         private static bool _receiveUnityLogEvents;
 
         internal static bool ReceiveUnityLogEvents

@@ -15,8 +15,6 @@ namespace LogUtils.Templates
 
         public List<LogID> LogTargets = new List<LogID>();
 
-        LogID[] ILogger.AvailableTargets => LogTargets.ToArray();
-
         public void Log(object data)
         {
             throw new NotImplementedException();

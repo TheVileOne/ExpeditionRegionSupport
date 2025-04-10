@@ -11,19 +11,19 @@ using UnityEngine;
 
 namespace LogUtils
 {
-    public partial class Logger : ILogger, ILogHandler, IDisposable
+    public partial class Logger : ILogger, ILogHandler, ILogWriterProvider, IDisposable
     {
         /// <summary>
         /// A flag that allows/disallows handling of log requests (local and remote) through this logger 
         /// </summary>
-        public bool AllowLogging;
+        public bool AllowLogging { get; set; }
 
         /// <summary>
         /// A flag that allows/disallows handling of remote log requests through this logger
         /// </summary>
-        public bool AllowRemoteLogging;
+        public bool AllowRemoteLogging { get; set; }
 
-        LogID[] ILogger.AvailableTargets => LogTargets.ToArray();
+        LogID[] ILogFileHandler.AvailableTargets => LogTargets.ToArray();
 
         /// <summary>
         /// Lock object - designed to be ensure event data is not tampered with by other threads before it is attached to a LogRequest
@@ -50,6 +50,9 @@ namespace LogUtils
         /// </summary>
         public LoggerRestorePoint RestorePoint;
 
+        /// <summary>
+        /// Writer implementation for logger instance
+        /// </summary>
         public ILogWriter Writer = LogWriter.Writer;
 
         #region Initialization
@@ -680,15 +683,20 @@ namespace LogUtils
             }
         }
 
-        public bool CanHandle(LogRequest request, bool doPathCheck = false)
+        bool ILogHandler.CanHandle(LogRequest request, bool doPathCheck)
         {
-            return CanAccess(request.Data.ID, request.Type, doPathCheck);
+            return CanHandle(request.Data.ID, request.Type, doPathCheck);
         }
 
         /// <summary>
         /// Returns whether logger instance is able to handle a specified LogID
         /// </summary>
-        public bool CanAccess(LogID logID, RequestType requestType, bool doPathCheck)
+        bool ILogHandler.CanHandle(LogID logFile, RequestType requestType, bool doPathCheck)
+        {
+            return CanHandle(logFile, requestType, doPathCheck);
+        }
+
+        internal bool CanHandle(LogID logID, RequestType requestType, bool doPathCheck)
         {
             if (logID.IsGameControlled) return false; //This check is here to prevent TryHandleRequest from potentially handling requests that should be handled by a GameLogger
 
@@ -716,16 +724,26 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Retrieves all log files this logger instance can handle directly
+        /// Retrieves all log files accessible by the logger
         /// </summary>
-        internal IEnumerable<LogID> GetTargetsForHandler()
+        IEnumerable<LogID> ILogFileHandler.GetAccessibleTargets()
         {
             return LogTargets.Where(log => !log.IsGameControlled && log.Access != LogAccess.RemoteAccessOnly);
         }
 
+        ILogWriter ILogWriterProvider.GetWriter()
+        {
+            return Writer;
+        }
+
+        ILogWriter ILogWriterProvider.GetWriter(LogID logFile)
+        {
+            return Writer;
+        }
+
         public void HandleRequest(LogRequest request, bool skipAccessValidation = false)
         {
-            if (!skipAccessValidation && !CanHandle(request, doPathCheck: true))
+            if (!skipAccessValidation && !CanHandle(request.Data.ID, request.Type, doPathCheck: true))
             {
                 //TODO: CanHandle should be replaced with a function that returns an AccessViolation enum that tells us which specific reason to reject the request
                 UtilityLogger.LogWarning("Request sent to a logger that cannot handle it");
@@ -747,7 +765,7 @@ namespace LogUtils
             {
                 //The local LogID stored in LogTargets will be a different instance to the one stored in a remote log request
                 //It is important to check the local id instead of the remote id in certain situations
-                loggerID = LogTargets.Find(id => id == requestID);
+                loggerID = LogTargets.Find(id => id.BaseEquals(requestID));
             }
 
             if (loggerID.Properties.CurrentFolderPath != requestID.Properties.CurrentFolderPath) //Same LogID, different log paths - do not handle

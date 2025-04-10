@@ -1,6 +1,7 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Helpers.Extensions;
 using LogUtils.Helpers.FileHandling;
+using LogUtils.Requests;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -221,6 +222,20 @@ namespace LogUtils.Helpers
         public static string FindPathWithoutFileExtension(string searchPath, string filename)
         {
             return FileUtils.SupportedExtensions.Select(fileExt => Path.Combine(searchPath, filename + fileExt)).FirstOrDefault(File.Exists);
+        }
+
+        public static ILogWriter FindWriter(LogID logFile)
+        {
+             var writer = UtilityCore.RequestHandler.GameLogger.GetWriter(logFile);
+
+            if (writer == null)
+            {
+                //There is no specified RequestType to base this search on, so we retrieve all compatible examples using RequestType.Local
+                IEnumerable<ILogHandler> availableHandlers = UtilityCore.RequestHandler.AvailableLoggers.CompatibleWith(logFile, RequestType.Local, false);
+
+                writer = availableHandlers.GetWriters(logFile).FirstOrDefault();
+            }
+            return writer;
         }
 
         /// <summary>

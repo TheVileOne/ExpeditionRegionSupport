@@ -2,7 +2,7 @@
 
 namespace LogUtils.Helpers.Comparers
 {
-    public class RemoteLoggerComparer : Comparer<Logger>
+    public class RemoteLoggerComparer : Comparer<ILogHandler>
     {
         public const int MAX_SCORE = 2;
 
@@ -11,7 +11,7 @@ namespace LogUtils.Helpers.Comparers
         /// <summary>
         /// Returns an integer representation of the better candidate for remote logging
         /// </summary>
-        public override int Compare(Logger logger, Logger otherLogger)
+        public override int Compare(ILogHandler logger, ILogHandler otherLogger)
         {
             // 1 means imperfect score
             // 2 means perfect score

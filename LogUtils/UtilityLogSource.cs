@@ -9,15 +9,13 @@ namespace LogUtils
 {
     internal class UtilityLogSource : IExtendedLogSource
     {
+        public event EventHandler<LogEventArgs> LogEvent;
+
         private bool recursiveAccessFlag;
 
         private readonly object sourceLock = new object();
 
         public string SourceName => UtilityConsts.UTILITY_NAME;
-
-        public event EventHandler<LogEventArgs> LogEvent;
-
-        LogID[] ILogger.AvailableTargets => [LogID.BepInEx];
 
         internal bool IsAccessRecursive()
         {

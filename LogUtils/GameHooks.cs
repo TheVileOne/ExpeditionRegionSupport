@@ -2,6 +2,7 @@
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
+using LogUtils.Helpers.Extensions;
 using LogUtils.Properties;
 using LogUtils.Requests;
 using Mono.Cecil.Cil;
@@ -228,13 +229,11 @@ namespace LogUtils
         {
             orig(self);
 
-            var loggers = UtilityCore.RequestHandler.AvailableLoggers;
-
             //Functionally similar to how JollyCoop handles its logging
-            foreach (IFlushable writeBuffer in loggers.Select(logger => logger.Writer).OfType<IFlushable>())
-            {
+            var flushableWriters = UtilityCore.RequestHandler.AvailableLoggers.GetWriters().OfType<IFlushable>();
+
+            foreach (IFlushable writeBuffer in flushableWriters)
                 writeBuffer.Flush();
-            }
         }
 
         private static void MainLoopProcess_Update(On.MainLoopProcess.orig_Update orig, MainLoopProcess self)

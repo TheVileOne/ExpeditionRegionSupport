@@ -1,5 +1,5 @@
 ﻿using LogUtils.Enums;
-using LogUtils.Helpers.Comparers;
+using LogUtils.Helpers.Extensions;
 using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
@@ -18,12 +18,12 @@ namespace LogUtils.Requests
 
         public override string Tag => UtilityConsts.ComponentTags.REQUEST_DATA;
 
-        private readonly WeakReferenceCollection<Logger> availableLoggers = new WeakReferenceCollection<Logger>();
+        private readonly WeakReferenceCollection<ILogHandler> availableLoggers = new WeakReferenceCollection<ILogHandler>();
 
         /// <summary>
-        /// A list of loggers available to handle remote log requests
+        /// A list of loggers available to handle local or remote log requests
         /// </summary>
-        public IEnumerable<Logger> AvailableLoggers => availableLoggers;
+        public IEnumerable<ILogHandler> AvailableLoggers => availableLoggers;
 
         public GameLogger GameLogger = new GameLogger();
 
@@ -227,153 +227,24 @@ namespace LogUtils.Requests
         }
 
         /// <summary>
-        /// Registers a logger for remote logging
+        /// Registers a logger (required to use LogRequest system for local and remote LogRequests)
         /// </summary>
-        public void Register(Logger logger)
+        public void Register(ILogHandler logger)
         {
             UtilityLogger.Log("Registering logger");
-            UtilityLogger.Log("Log targets: " + string.Join(" ,", logger.LogTargets));
+            UtilityLogger.Log("Log targets: " + string.Join<LogID>(" ,", logger.AvailableTargets));
 
             availableLoggers.Add(logger);
             ProcessRequests(logger);
         }
 
         /// <summary>
-        /// Unregisters a logger for remote logging
+        /// Unregisters a logger
         /// </summary>
-        public void Unregister(Logger logger)
+        public void Unregister(ILogHandler logger)
         {
             availableLoggers.Remove(logger);
         }
-
-        #region Find methods
-        /// <summary>
-        /// Finds a list of all logger instances that accepts log requests for a specified LogID
-        /// </summary>
-        /// <param name="logFile">LogID to check</param>
-        /// <param name="requestType">The request type expected</param>
-        /// <param name="doPathCheck">Should the log file's containing folder bear significance when finding a logger match</param>
-        private List<Logger> findCompatibleLoggers(LogID logFile, RequestType requestType, bool doPathCheck)
-        {
-            return availableLoggers.FindAll(logger => logger.CanAccess(logFile, requestType, doPathCheck));
-        }
-
-        private void findCompatibleLoggers(LogID logFile, out Logger localLogger, out Logger remoteLogger)
-        {
-            localLogger = remoteLogger = null;
-
-            foreach (Logger logger in findCompatibleLoggers(logFile, RequestType.Remote, doPathCheck: true))
-            {
-                //Most situations wont make it past the first assignment
-                if (localLogger == null)
-                {
-                    localLogger = remoteLogger = logger;
-                    continue;
-                }
-
-                //Choose the first logger match that allows logging
-                if (!localLogger.AllowLogging)
-                {
-                    localLogger = logger;
-
-                    //Align the remote logger reference with the local logger when remote logging is still unavailable
-                    if (!remoteLogger.AllowRemoteLogging)
-                        remoteLogger = localLogger;
-                    continue;
-                }
-
-                //The local logger is the perfect match for the remote logger
-                if (localLogger.AllowRemoteLogging)
-                {
-                    remoteLogger = localLogger;
-                    break;
-                }
-
-                int results = RemoteLoggerComparer.DefaultComparer.Compare(remoteLogger, logger);
-
-                if (results > 0)
-                {
-                    remoteLogger = logger;
-
-                    if (results == RemoteLoggerComparer.MAX_SCORE)
-                        break;
-                }
-            }
-
-            //Check specifically for a logger instance that handles local requests in the unusual case that no logger instances can handle remote requests
-            if (localLogger == null)
-            {
-                remoteLogger = null;
-
-                foreach (Logger logger in findCompatibleLoggers(logFile, RequestType.Local, doPathCheck: true))
-                {
-                    if (localLogger == null || logger.AllowLogging)
-                    {
-                        localLogger = logger;
-
-                        if (logger.AllowLogging)
-                            break;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Find a logger instance that accepts log requests for a specified LogID
-        /// </summary>
-        /// <param name="logFile">LogID to check</param>
-        /// <param name="requestType">The request type expected</param>
-        /// <param name="doPathCheck">Should the log file's containing folder bear significance when finding a logger match</param>
-        private Logger findCompatibleLogger(LogID logFile, RequestType requestType, bool doPathCheck)
-        {
-            if (requestType == RequestType.Game)
-                return null;
-
-            List<Logger> candidates = findCompatibleLoggers(logFile, requestType, doPathCheck);
-
-            if (candidates.Count == 0)
-                return null;
-
-            if (candidates.Count == 1)
-                return candidates[0];
-
-            Logger bestCandidate;
-            if (requestType == RequestType.Local)
-            {
-                bestCandidate = candidates.Find(logger => logger.AllowLogging) ?? candidates[0];
-            }
-            else
-            {
-                bestCandidate = candidates[0];
-
-                if (bestCandidate.AllowLogging && bestCandidate.AllowRemoteLogging)
-                    return bestCandidate;
-
-                foreach (Logger logger in candidates)
-                {
-                    int results = RemoteLoggerComparer.DefaultComparer.Compare(bestCandidate, logger);
-
-                    if (results > 0)
-                    {
-                        bestCandidate = logger;
-
-                        if (results == RemoteLoggerComparer.MAX_SCORE)
-                            break;
-                    }
-                }
-            }
-            return bestCandidate;
-        }
-
-        private ILogHandler findCompatibleLoggerBase(LogID logFile, RequestType requestType)
-        {
-            if (logFile.IsGameControlled)
-                return GameLogger;
-
-            findCompatibleLoggers(logFile, out Logger localLogger, out Logger remoteLogger);
-            return requestType == RequestType.Local ? localLogger : remoteLogger;
-        }
-        #endregion
 
         protected bool PrepareRequest(LogRequest request, long processTimestamp = -1)
         {
@@ -442,32 +313,37 @@ namespace LogUtils.Requests
                     }
 
                     if (selectedLogger == null || !selectedLogger.CanHandle(request))
-                    {
-                        //Select a logger to handle the request
-                        selectedLogger = findCompatibleLoggerBase(logFile, request.Type);
-                    }
+                        selectLogger(logFile, request.Type);
 
                     HandleRequest(request, selectedLogger);
+                }
+
+                void selectLogger(LogID logFile, RequestType requestType)
+                {
+                    if (logFile.IsGameControlled)
+                        selectedLogger = GameLogger;
+
+                    availableLoggers.FindCompatible(logFile, out ILogHandler localLogger, out ILogHandler remoteLogger);
+                    selectedLogger = requestType == RequestType.Local ? localLogger : remoteLogger;
                 }
             }
         }
 
-        public void ProcessRequests(Logger logger)
+        public void ProcessRequests(ILogHandler logger)
         {
             using (BeginCriticalSection())
             {
-                foreach (LogID logFile in logger.GetTargetsForHandler())
+                foreach (LogID logFile in logger.GetAccessibleTargets())
                 {
                     //Ensure that we do not handle a stale record
                     logFile.Properties.HandleRecord.Reset();
 
                     LogRequest[] requests = GetRequests(logFile);
 
-                    LogID loggerID = null;
                     foreach (LogRequest request in requests)
                     {
                         PrepareRequestNoReset(request);
-                        logger.HandleRequest(request, ref loggerID);
+                        logger.HandleRequest(request, true);
 
                         RequestMayBeCompleteOrInvalid(request);
                     }
@@ -520,10 +396,10 @@ namespace LogUtils.Requests
                         selectedLogger = GameLogger;
                     else
                     {
-                        if (selectedLogger == null || requestID != lastRequestID || (verifyRemoteAccess && request.Type == RequestType.Remote && !((Logger)selectedLogger).AllowRemoteLogging))
+                        if (selectedLogger == null || requestID != lastRequestID || (verifyRemoteAccess && request.Type == RequestType.Remote && !selectedLogger.AllowRemoteLogging))
                         {
                             verifyRemoteAccess = request.Type == RequestType.Local; //Make the system aware that the logger expects local requests
-                            selectedLogger = findCompatibleLogger(requestID, request.Type, doPathCheck: false);
+                            selectedLogger = availableLoggers.FindCompatible(requestID, request.Type, doPathCheck: false);
                         }
 
                         if (selectedLogger != null)
@@ -539,7 +415,7 @@ namespace LogUtils.Requests
                             }
 
                             //Attempt to find a logger that accepts the target LogID with this exact path
-                            selectedLogger = findCompatibleLogger(requestID, request.Type, doPathCheck: true);
+                            selectedLogger = availableLoggers.FindCompatible(requestID, request.Type, doPathCheck: true);
                         }
                     }
 
@@ -558,7 +434,7 @@ namespace LogUtils.Requests
 
             //Beyond this point, we can assume that there are no preexisting unhandled requests for this log file
             ILogHandler selectedLogger = !logFile.IsGameControlled
-                ? findCompatibleLogger(logFile, request.Type, doPathCheck: true) : GameLogger;
+                ? availableLoggers.FindCompatible(logFile, request.Type, doPathCheck: true) : GameLogger;
 
             HandleRequest(request, selectedLogger);
         }

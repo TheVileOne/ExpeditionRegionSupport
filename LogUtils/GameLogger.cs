@@ -6,6 +6,7 @@ using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Requests;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace LogUtils
@@ -19,11 +20,54 @@ namespace LogUtils
         /// Set to the LogID of a request while it is being handled through an external logging API accessed by a GameLogger instance
         /// </summary>
         public LogID LogFileInProcess;
+
         public int GameLoggerRequestCounter;
 
-        public bool CanHandle(LogRequest request, bool doPathCheck = false)
+        bool ILogHandler.AllowLogging => true;
+
+        bool ILogHandler.AllowRemoteLogging => true;
+
+        LogID[] ILogFileHandler.AvailableTargets => LogTargets;
+
+        IEnumerable<LogID> ILogFileHandler.GetAccessibleTargets() => LogTargets;
+
+        internal static LogID[] LogTargets
         {
-            return request.Data.ID.IsGameControlled;
+            get
+            {
+                return new LogID[]
+                {
+                    LogID.BepInEx,
+                    LogID.Unity,
+                    LogID.Exception,
+                    LogID.Expedition,
+                    LogID.JollyCoop
+                };
+            }
+        }
+
+        bool ILogHandler.CanHandle(LogRequest request, bool doPathCheck) => CanHandle(request.Data.ID);
+
+        bool ILogHandler.CanHandle(LogID logFile, RequestType requestType, bool doPathCheck) => CanHandle(logFile);
+
+        internal bool CanHandle(LogID logFile) => logFile.IsGameControlled;
+
+        /// <summary>
+        /// Retrieves the current LogWriter for a game-controlled log file 
+        /// </summary>
+        public ILogWriter GetWriter(LogID logFile)
+        {
+            if (!logFile.IsGameControlled)
+                return null;
+
+            if (logFile.Equals(LogID.BepInEx))
+                return BepInExAdapter.LogListener.Writer;
+
+            if (logFile.Equals(LogID.JollyCoop))
+                return LogWriter.JollyWriter;
+
+            //All others use this
+            return LogWriter.Writer;
         }
 
         public void HandleRequest(LogRequest request, bool skipAccessValidation = false)
@@ -33,14 +77,14 @@ namespace LogUtils
             if (request.Submitted)
                 UtilityCore.RequestHandler.CurrentRequest = request;
 
+            LogID logFile = request.Data.ID;
+
             //Normal utility code paths should not allow for this guard to be triggered
-            if (!skipAccessValidation && !CanHandle(request))
+            if (!skipAccessValidation && !CanHandle(logFile))
             {
                 UtilityLogger.LogWarning("Request sent to a logger that cannot handle it");
                 request.Reject(RejectionReason.NotAllowedToHandle);
             }
-
-            LogID logFile = request.Data.ID;
 
             //Check RainWorld.ShowLogs for logs that are restricted by it
             if (logFile.Properties.ShowLogsAware && !RainWorld.ShowLogs)
@@ -240,7 +284,5 @@ namespace LogUtils
                 GameLoggerRequestCounter--;
             }
         }
-
-        public delegate void LogHandler(LogCategory category, string message);
     }
 }
