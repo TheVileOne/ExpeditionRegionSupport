@@ -41,12 +41,14 @@ namespace LogUtils
 
         public void EnterContext(BufferContext context)
         {
+            //UtilityLogger.DebugLog($"Entering context: {context}");
             Scopes.Add(context);
             Signal();
         }
 
         public void LeaveContext(BufferContext context)
         {
+            //UtilityLogger.DebugLog($"Leaving context: {context}");
             Scopes.Remove(context);
             Signal();
         }

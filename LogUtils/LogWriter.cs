@@ -125,7 +125,7 @@ namespace LogUtils
                             }
                             profiler.BufferedFrameCount++;
                         }
-                        else if (buffer.SetState(false, BufferContext.HighVolume))
+                        else if (buffer.IsEntered(BufferContext.HighVolume) && buffer.SetState(false, BufferContext.HighVolume))
                         {
                             profiler.Restart();
                         }
