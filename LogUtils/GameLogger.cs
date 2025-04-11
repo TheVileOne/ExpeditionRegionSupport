@@ -14,7 +14,7 @@ namespace LogUtils
     /// <summary>
     /// A class for handling game-controlled log content
     /// </summary>
-    public class GameLogger : ILogHandler
+    public class GameLogger : ILogHandler, ILogWriterProvider
     {
         /// <summary>
         /// Set to the LogID of a request while it is being handled through an external logging API accessed by a GameLogger instance
@@ -51,6 +51,8 @@ namespace LogUtils
         bool ILogHandler.CanHandle(LogID logFile, RequestType requestType, bool doPathCheck) => CanHandle(logFile);
 
         internal bool CanHandle(LogID logFile) => logFile.IsGameControlled;
+
+        ILogWriter ILogWriterProvider.GetWriter() => null; //Not associated with a particular writer implementation
 
         /// <summary>
         /// Retrieves the current LogWriter for a game-controlled log file 

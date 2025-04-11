@@ -356,22 +356,36 @@ namespace LogUtils.Requests
         /// </summary>
         public void ProcessRequests()
         {
-            LogID requestID = null,
-                  lastRequestID;
-            ILogHandler selectedLogger = null;
-            bool verifyRemoteAccess = false;
-
-            int requestsProcessed = 0;
-            long processStartTime = Stopwatch.GetTimestamp();
-
             using (BeginCriticalSection())
             {
-                LogRequest[] requests = UnhandledRequests.GetRequestsSorted();
+                int requestCount = UnhandledRequests.Count;
 
-                if (requests.Length == 0) return;
+                if (requestCount > 0) return;
+                {
+                    UtilityLogger.DebugLog($"Processing {requestCount} request" + (requestCount > 1 ? "s" : ""));
 
-                UtilityLogger.DebugLog($"Processing {requests.Length} request" + (requests.Length > 1 ? "s" : ""));
+                    foreach (var requestBatch in UnhandledRequests.GroupRequests())
+                        processBatch(requestBatch);
+                }
+            }
+        }
 
+        private void processBatch(IGrouping<LogID, LogRequest> requests)
+        {
+            LogID requestID = requests.Key;
+            MessageBuffer writeBuffer = requestID.Properties.WriteBuffer;
+
+            writeBuffer.SetState(true, BufferContext.RequestConsolidation);
+
+            //Hold onto a valid write handler - we will need one to schedule a flush of the message buffer after batch process is complete
+            ILogWriter bufferWriter = null;
+            try
+            {
+                LoggerSelection selectedLogger = default;
+
+                long processStartTime = Stopwatch.GetTimestamp();
+
+                int requestsProcessed = 0;
                 foreach (LogRequest request in requests)
                 {
                     bool shouldHandle = PrepareRequest(request, processStartTime);
@@ -383,43 +397,51 @@ namespace LogUtils.Requests
                         continue;
                     }
 
-                    lastRequestID = requestID;
-                    requestID = request.Data.ID;
-
                     requestsProcessed++;
                     UtilityLogger.DebugLog($"Request # [{requestsProcessed}] {request}");
 
                     CurrentRequest = request;
 
-                    //Find a logger that can be used for this LogID
-                    if (requestID.IsGameControlled)
-                        selectedLogger = GameLogger;
-                    else
+                    if (!selectedLogger.AppliesTo(request.Type))
                     {
-                        if (selectedLogger == null || requestID != lastRequestID || (verifyRemoteAccess && request.Type == RequestType.Remote && !selectedLogger.AllowRemoteLogging))
-                        {
-                            verifyRemoteAccess = request.Type == RequestType.Local; //Make the system aware that the logger expects local requests
-                            selectedLogger = availableLoggers.FindCompatible(requestID, request.Type, doPathCheck: false);
-                        }
+                        //This will get overwritten during the selection process, but we still need it
+                        RequestType lastAccessTarget = selectedLogger.AccessTarget;
 
-                        if (selectedLogger != null)
-                        {
-                            //Try to handle the log request, and recheck the status
-                            selectedLogger.HandleRequest(request, skipAccessValidation: true);
+                        selectLogger(request.Type);
 
-                            //TODO: Try to find another compatible logger if the rejection reason is NotAllowedToHandle
-                            if (request.IsCompleteOrRejected && request.UnhandledReason != RejectionReason.PathMismatch)
-                            {
-                                //Request was handled
-                                continue;
-                            }
+                        //Assign writer for handling the message buffer
+                        var selectedWriter = selectedLogger.GetWriter(requestID);
 
-                            //Attempt to find a logger that accepts the target LogID with this exact path
-                            selectedLogger = availableLoggers.FindCompatible(requestID, request.Type, doPathCheck: true);
-                        }
+                        //Selection code presumes that all local, and remote log writers are qualified to handle batched messages and
+                        //avoids replacing a compatible local/remote writer with a null entry
+                        if (bufferWriter == null || selectedWriter != null || lastAccessTarget == RequestType.Game)
+                            bufferWriter = selectedWriter;
                     }
 
-                    HandleRequest(request, selectedLogger);
+                    HandleRequest(request, selectedLogger.Handler);
+                }
+
+                void selectLogger(RequestType requestType)
+                {
+                    if (requestID.IsGameControlled)
+                    {
+                        selectedLogger = new LoggerSelection(GameLogger, RequestType.Game);
+                    }
+                    else
+                    {
+                        var logger = availableLoggers.FindCompatible(requestID, requestType, doPathCheck: false);
+                        selectedLogger = new LoggerSelection(logger, requestType);
+                    }
+                }
+            }
+            finally
+            {
+                if (writeBuffer.SetState(false, BufferContext.RequestConsolidation))
+                {
+                    if (bufferWriter != null)
+                        bufferWriter.WriteFromBuffer(requestID);
+                    else
+                        UtilityLogger.LogWarning("No writer was available to process the buffer");
                 }
             }
         }
@@ -564,6 +586,34 @@ namespace LogUtils.Requests
             //There is a separate process for handling log requests earlier in the setup process
             if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.PostMods)
                 ProcessRequests();
+        }
+
+        private readonly struct LoggerSelection(ILogHandler handler, RequestType target) : ILogWriterProvider
+        {
+            public readonly ILogHandler Handler = handler;
+
+            /// <summary>
+            /// The access specification used to assign the handler
+            /// </summary>
+            public readonly RequestType AccessTarget = target;
+
+            public bool AppliesTo(RequestType compareTarget)
+            {
+                //Handler must be defined, and have an AccessTarget consistent with the compare value
+                return Handler != null && (AccessTarget == compareTarget || (AccessTarget == RequestType.Remote && compareTarget == RequestType.Local));
+            }
+
+            public ILogWriter GetWriter()
+            {
+                var provider = Handler as ILogWriterProvider;
+                return provider?.GetWriter();
+            }
+
+            public ILogWriter GetWriter(LogID logFile)
+            {
+                var provider = Handler as ILogWriterProvider;
+                return provider?.GetWriter(logFile);
+            }
         }
     }
 }
