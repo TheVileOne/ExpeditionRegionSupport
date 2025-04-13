@@ -143,6 +143,5 @@ namespace LogUtils
 
             base.OnWriteException(logFile, exception);
         }
-        }
     }
 }
