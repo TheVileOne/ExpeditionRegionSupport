@@ -357,6 +357,8 @@ namespace LogUtils
             cursor.Emit(OpCodes.Ldarg_1);
             cursor.EmitDelegate((string exceptionString) =>
             {
+                UtilityCore.RequestHandler.SanitizeCurrentRequest();
+
                 LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
                 if (request == null)
@@ -399,6 +401,8 @@ namespace LogUtils
             cursor.Emit(OpCodes.Ldarg_1);
             cursor.EmitDelegate((string logString) =>
             {
+                UtilityCore.RequestHandler.SanitizeCurrentRequest();
+
                 LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
                 if (request == null)
@@ -474,6 +478,8 @@ namespace LogUtils
             {
                 using (UtilityCore.RequestHandler.BeginCriticalSection())
                 {
+                    UtilityCore.RequestHandler.SanitizeCurrentRequest();
+
                     LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
                     //Ensure that request is always constructed before a message is logged

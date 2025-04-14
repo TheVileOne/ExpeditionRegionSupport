@@ -39,6 +39,8 @@ namespace LogUtils.Compatibility
 
             using (UtilityCore.RequestHandler.BeginCriticalSection())
             {
+                UtilityCore.RequestHandler.SanitizeCurrentRequest();
+
                 LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
                 if ((request == null || request.Data.ID != LogID.BepInEx) && eventArgs.Source.SourceName == UtilityConsts.UTILITY_NAME)

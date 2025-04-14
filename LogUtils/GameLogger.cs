@@ -217,11 +217,12 @@ namespace LogUtils
 
             void processLog()
             {
-                string message = null;
+                UtilityCore.RequestHandler.SanitizeCurrentRequest();
+
                 LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
-                //CurrentRequest has already passed preprocess validation checks if this is not null
-                if (request == null)
+                string message = null;
+                if (request == null) //CurrentRequest has already passed preprocess validation checks if this is not null
                 {
                     request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.Expedition, data, category)), false);
 
@@ -249,11 +250,12 @@ namespace LogUtils
 
             void processLog()
             {
-                string message = null;
+                UtilityCore.RequestHandler.SanitizeCurrentRequest();
+
                 LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
-                //CurrentRequest has already passed preprocess validation checks if this is not null
-                if (request == null)
+                string message = null;
+                if (request == null) //CurrentRequest has already passed preprocess validation checks if this is not null
                 {
                     request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.JollyCoop, data, category)), false);
 

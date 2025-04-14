@@ -497,6 +497,8 @@ namespace LogUtils.Requests
         /// </summary>
         public void RequestMayBeCompleteOrInvalid(LogRequest request)
         {
+            if (request == null) return;
+
             DiscardStatus status = shouldDiscard();
 
             if (status != DiscardStatus.Keep)
@@ -548,6 +550,19 @@ namespace LogUtils.Requests
                 RequestMayBeCompleteOrInvalid(request);
 
             CheckForHandledRequests = false;
+        }
+
+        /// <summary>
+        /// Ensures that CurrentRequest represents a pending unrejected request
+        /// </summary>
+        public void SanitizeCurrentRequest()
+        {
+            LogRequest requestBeforeProcessing = CurrentRequest;
+
+            RequestMayBeCompleteOrInvalid(CurrentRequest);
+
+            if (requestBeforeProcessing != CurrentRequest)
+                UtilityLogger.DebugLog("Current request sanitized");
         }
 
         public void Update()

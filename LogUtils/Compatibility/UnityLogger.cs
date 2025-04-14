@@ -105,6 +105,8 @@ namespace LogUtils.Compatibility
         {
             using (UtilityCore.RequestHandler.BeginCriticalSection())
             {
+                UtilityCore.RequestHandler.SanitizeCurrentRequest();
+
                 LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
                 //TODO: Investigate the buggy behavior that requires us to compare by message here
