@@ -743,29 +743,34 @@ namespace LogUtils
 
         public void HandleRequest(LogRequest request, bool skipAccessValidation = false)
         {
-            if (!skipAccessValidation && !CanHandle(request.Data.ID, request.Type, doPathCheck: true))
+            if (request.Submitted)
+                UtilityCore.RequestHandler.CurrentRequest = request;
+
+            request.ResetStatus(); //Ensure that processing request is handled in a consistent way
+
+            LogID requestID = request.Data.ID;
+
+            //A log request must have a compatible LogID that is consistent with the access fields of a LogID targeted by the logger.
+            //Generally skipping this check means access has already been verified. 
+            bool requestCanBeHandled = skipAccessValidation || CanHandle(requestID, request.Type, doPathCheck: true);
+
+            LogID loggerID = null;
+            if (requestCanBeHandled)
+            {
+                // The local LogID stored in LogTargets will be a different instance to the one stored in a remote log request
+                //It is important to check the local id instead of the remote id in certain situations
+                loggerID = LogTargets.Find(id => id.BaseEquals(requestID));
+
+                //Request cannot be handled unless there is a target to handle it
+                requestCanBeHandled = loggerID != null;
+            }
+
+            if (!requestCanBeHandled)
             {
                 //TODO: CanHandle should be replaced with a function that returns an AccessViolation enum that tells us which specific reason to reject the request
                 UtilityLogger.LogWarning("Request sent to a logger that cannot handle it");
                 request.Reject(RejectionReason.NotAllowedToHandle);
                 return;
-            }
-
-            LogID loggerID = null;
-            HandleRequest(request, ref loggerID);
-        }
-
-        internal void HandleRequest(LogRequest request, ref LogID loggerID)
-        {
-            if (request.Submitted)
-                UtilityCore.RequestHandler.CurrentRequest = request;
-
-            LogID requestID = request.Data.ID;
-            if (loggerID == null || loggerID != requestID) //ExtEnums are not compared by reference
-            {
-                //The local LogID stored in LogTargets will be a different instance to the one stored in a remote log request
-                //It is important to check the local id instead of the remote id in certain situations
-                loggerID = LogTargets.Find(id => id.BaseEquals(requestID));
             }
 
             if (loggerID.Properties.CurrentFolderPath != requestID.Properties.CurrentFolderPath) //Same LogID, different log paths - do not handle
@@ -774,8 +779,6 @@ namespace LogUtils
                 request.Reject(RejectionReason.PathMismatch);
                 return;
             }
-
-            request.ResetStatus(); //Ensure that processing request is handled in a consistent way
 
             if (!AllowLogging || !loggerID.IsEnabled)
             {
