@@ -231,6 +231,9 @@ namespace LogUtils
                 }
                 finally
                 {
+                    if (ShouldCloseWriterAfterUse && writer != null)
+                        writer.Close();
+
                     fileLock.Release();
                 }
             }
