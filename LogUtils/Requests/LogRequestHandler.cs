@@ -321,7 +321,10 @@ namespace LogUtils.Requests
                 void selectLogger(LogID logFile, RequestType requestType)
                 {
                     if (logFile.IsGameControlled)
+                    {
                         selectedLogger = GameLogger;
+                        return;
+                    }
 
                     availableLoggers.FindCompatible(logFile, out ILogHandler localLogger, out ILogHandler remoteLogger);
                     selectedLogger = requestType == RequestType.Local ? localLogger : remoteLogger;
@@ -360,7 +363,7 @@ namespace LogUtils.Requests
             {
                 int requestCount = UnhandledRequests.Count;
 
-                if (requestCount > 0) return;
+                if (requestCount > 0)
                 {
                     UtilityLogger.DebugLog($"Processing {requestCount} request" + (requestCount > 1 ? "s" : ""));
 

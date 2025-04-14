@@ -207,16 +207,19 @@ namespace LogUtils
                 if (!writeBuffer.HasContent)
                     return true;
 
+                if (!PrepareLogFile(logFile))
+                    return false;
+
                 fileLock.Acquire();
                 fileLock.SetActivity(logFile, FileAction.Write);
 
                 ProcessResult result = AssignWriterSafe(logFile, out StreamWriter writer);
 
-                if (result != ProcessResult.Success)
-                    return false;
-
                 try
                 {
+                    if (result != ProcessResult.Success)
+                        return false;
+
                     writer.WriteLine(writeBuffer);
                     writeBuffer.Clear();
                     return true;
