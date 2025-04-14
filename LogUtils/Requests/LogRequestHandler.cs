@@ -346,9 +346,7 @@ namespace LogUtils.Requests
                     foreach (LogRequest request in requests)
                     {
                         PrepareRequestNoReset(request);
-                        logger.HandleRequest(request, true);
-
-                        RequestMayBeCompleteOrInvalid(request);
+                        HandleRequest(request, logger);
                     }
                 }
             }
@@ -382,13 +380,12 @@ namespace LogUtils.Requests
 
             //Hold onto a valid write handler - we will need one to schedule a flush of the message buffer after batch process is complete
             ILogWriter bufferWriter = null;
+            LoggerSelection selectedLogger = default;
+            int requestsProcessed = 0;
+            long processStartTime = Stopwatch.GetTimestamp();
+
             try
             {
-                LoggerSelection selectedLogger = default;
-
-                long processStartTime = Stopwatch.GetTimestamp();
-
-                int requestsProcessed = 0;
                 foreach (LogRequest request in requests)
                 {
                     bool shouldHandle = PrepareRequest(request, processStartTime);
@@ -402,8 +399,6 @@ namespace LogUtils.Requests
 
                     requestsProcessed++;
                     UtilityLogger.DebugLog($"Request # [{requestsProcessed}] {request}");
-
-                    CurrentRequest = request;
 
                     if (!selectedLogger.AppliesTo(request.Type))
                     {
@@ -423,19 +418,6 @@ namespace LogUtils.Requests
 
                     HandleRequest(request, selectedLogger.Handler);
                 }
-
-                void selectLogger(RequestType requestType)
-                {
-                    if (requestID.IsGameControlled)
-                    {
-                        selectedLogger = new LoggerSelection(GameLogger, RequestType.Game);
-                    }
-                    else
-                    {
-                        var logger = availableLoggers.FindCompatible(requestID, requestType, doPathCheck: false);
-                        selectedLogger = new LoggerSelection(logger, requestType);
-                    }
-                }
             }
             finally
             {
@@ -445,6 +427,19 @@ namespace LogUtils.Requests
                         bufferWriter.WriteFromBuffer(requestID);
                     else
                         UtilityLogger.LogWarning("No writer was available to process the buffer");
+                }
+            }
+
+            void selectLogger(RequestType requestType)
+            {
+                if (requestID.IsGameControlled)
+                {
+                    selectedLogger = new LoggerSelection(GameLogger, RequestType.Game);
+                }
+                else
+                {
+                    var logger = availableLoggers.FindCompatible(requestID, requestType, doPathCheck: false);
+                    selectedLogger = new LoggerSelection(logger, requestType);
                 }
             }
         }
@@ -466,14 +461,22 @@ namespace LogUtils.Requests
 
         internal void HandleRequest(LogRequest request, ILogHandler logger)
         {
-            if (logger == null)
-            {
-                request.Reject(RejectionReason.LogUnavailable);
-                RequestMayBeCompleteOrInvalid(request);
-                return;
-            }
+            CurrentRequest = request;
 
-            logger.HandleRequest(request, skipAccessValidation: true);
+            try
+            {
+                if (logger == null)
+                {
+                    request.Reject(RejectionReason.LogUnavailable);
+                    return;
+                }
+
+                logger.HandleRequest(request, skipAccessValidation: true);
+            }
+            finally
+            {
+                RequestMayBeCompleteOrInvalid(request);
+            }
         }
 
         public void RejectRequests(LogID logFile, RejectionReason reason)
