@@ -15,13 +15,12 @@ namespace LogUtils.Diagnostics.Tests.Components
 
         string ILogWriter.ApplyRules(LogMessageEventArgs logEventData)
         {
-            //logEventData.MessageFormatted = logEventData.Message;
             return logEventData.Message;
         }
 
         void ILogWriter.WriteFrom(LogRequest request)
         {
-            ReceivedRequests.Add(request);
+            ReceivedRequests.Add((LogRequest)request.Clone());
         }
 
         void IBufferHandler.SendToBuffer(LogMessageEventArgs messageData)

@@ -8,7 +8,7 @@ namespace LogUtils.Requests
     /// <summary>
     /// A class for storing log details until a logger is available to process the request
     /// </summary>
-    public class LogRequest
+    public class LogRequest : ICloneable
     {
         /// <summary>
         /// Rejection codes up to and including this value are not recoverable. A LogRequest that is rejected in this range will not be handled again
@@ -203,6 +203,11 @@ namespace LogUtils.Requests
                     goto case FormatEnums.FormatVerbosity.Standard;
             }
             return stringFormatter.ToString();
+        }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
         }
     }
 
