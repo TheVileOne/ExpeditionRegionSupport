@@ -80,10 +80,11 @@ namespace LogUtils.Diagnostics.Tests
 
         protected void ReportResultEntries(StringBuilder report, IEnumerable<Condition.Result> results)
         {
-            string response;
+            const string RESPONSE_FORMAT = "({0}){1}";
+
             foreach (var result in results)
             {
-                response = Formatter.Format(result);
+                string response = string.Format(RESPONSE_FORMAT, result.ID, Formatter.Format(result));
 
                 if (result.HasEmptyMessage)
                     report.Append(result.Passed ? "Pass" : "Fail");

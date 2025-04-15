@@ -43,6 +43,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
         /// </summary>
         private void testCollectionDetection()
         {
+            Condition.Result.ResetCount();
+
             TestCaseGroup testGroup = new TestCaseGroup(this, "Test: Collection asserts");
 
             using (testGroup)
@@ -75,26 +77,10 @@ namespace LogUtils.Diagnostics.Tests.Utility
             }
         }
 
-        private void testEqualityOfNullableCombinations()
-        {
-            TestCase test = new TestCase(this, "Test: Nullable equality asserts");
-
-            Vector2 testValue1 = Vector2.One;
-            Vector2? testValue2 = null;
-            Vector2 testValue3 = Vector2.Zero;
-
-            test.AssertThat(testValue1).IsEqualTo(testValue3).ExpectFail();
-            test.AssertThat(testValue1).IsEqualTo(testValue2).ExpectFail();
-            test.AssertThat(testValue2).IsEqualTo(testValue2);
-            test.AssertThat(testValue1).IsEqualTo(testValue3).ExpectFail();
-            test.AssertThat(testValue1).DoesNotEqual(testValue3);
-            test.AssertThat(testValue1).DoesNotEqual(testValue2);
-            test.AssertThat(testValue2).DoesNotEqual(testValue2).ExpectFail();
-            test.AssertThat(testValue2).DoesNotEqual(testValue3);
-        }
-
         private void testComparisonOfNullableCombinations()
         {
+            Condition.Result.ResetCount();
+
             TestCase test = new TestCase(this, "Test: Nullable comparison asserts");
 
             int testValue1 = 5,
@@ -126,6 +112,26 @@ namespace LogUtils.Diagnostics.Tests.Utility
              * Expectation: Fail, when comparing two nullable structs, values can only be equal, or not equal
              */
             test.AssertThat(testNullable1).IsLessThan(testValue2).ExpectFail(); //Is null less than 8?
+        }
+
+        private void testEqualityOfNullableCombinations()
+        {
+            Condition.Result.ResetCount();
+
+            TestCase test = new TestCase(this, "Test: Nullable equality asserts");
+
+            Vector2 testValue1 = Vector2.One;
+            Vector2? testValue2 = null;
+            Vector2 testValue3 = Vector2.Zero;
+
+            test.AssertThat(testValue1).IsEqualTo(testValue3).ExpectFail();
+            test.AssertThat(testValue1).IsEqualTo(testValue2).ExpectFail();
+            test.AssertThat(testValue2).IsEqualTo(testValue2);
+            test.AssertThat(testValue1).IsEqualTo(testValue3).ExpectFail();
+            test.AssertThat(testValue1).DoesNotEqual(testValue3);
+            test.AssertThat(testValue1).DoesNotEqual(testValue2);
+            test.AssertThat(testValue2).DoesNotEqual(testValue2).ExpectFail();
+            test.AssertThat(testValue2).DoesNotEqual(testValue3);
         }
 
         /// <summary>

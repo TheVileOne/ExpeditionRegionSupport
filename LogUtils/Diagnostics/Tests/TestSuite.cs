@@ -176,12 +176,14 @@ namespace LogUtils.Diagnostics.Tests
 
                 while (tests.MoveNext())
                 {
+                    Condition.Result.ResetCount();
                     Run(tests.Current);
                 }
             }
             finally
             {
                 ActiveSuite = null;
+                Condition.Result.ResetCount();
             }
         }
 
@@ -198,12 +200,16 @@ namespace LogUtils.Diagnostics.Tests
                 while (tests.MoveNext())
                 {
                     if (predicate(tests.Current))
+                    {
+                        Condition.Result.ResetCount();
                         Run(tests.Current);
+                    }
                 }
             }
             finally
             {
                 ActiveSuite = null;
+                Condition.Result.ResetCount();
             }
         }
 
