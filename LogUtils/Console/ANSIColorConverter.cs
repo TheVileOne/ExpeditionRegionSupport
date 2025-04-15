@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace LogUtils.Helpers.Console
+namespace LogUtils.Console
 {
     public static class AnsiColorConverter
     {

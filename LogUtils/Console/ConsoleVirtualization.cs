@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace LogUtils.Helpers.Console
+namespace LogUtils.Console
 {
     public static class ConsoleVirtualizationHelper
     {
@@ -23,9 +23,7 @@ namespace LogUtils.Helpers.Console
             {
                 var handle = GetStdHandle(STD_OUTPUT_HANDLE);
                 if (!GetConsoleMode(handle, out uint mode))
-                {
                     return;
-                }
                 mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
                 SetConsoleMode(handle, mode);
             }

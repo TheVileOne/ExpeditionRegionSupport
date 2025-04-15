@@ -1,8 +1,9 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Helpers;
 using System;
 using UnityEngine;
 
-namespace LogUtils.Helpers.Console
+namespace LogUtils.Console
 {
     public static class ConsoleColorMap
     {

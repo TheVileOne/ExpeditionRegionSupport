@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using LogUtils.Helpers;
+using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace LogUtils.Helpers.Console
+namespace LogUtils.Console
 {
-    public static class Console
+    public static class LogConsole
     {
         public static bool IsEnabled => consoleStream != null;
 
