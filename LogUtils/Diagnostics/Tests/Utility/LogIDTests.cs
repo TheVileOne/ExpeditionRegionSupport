@@ -1,17 +1,13 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Helpers;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
 
 namespace LogUtils.Diagnostics.Tests.Utility
 {
-    public static class LogIDTests
+    internal static class LogIDTests
     {
-        public class ComparisonTests : TestCase, ITestable
+        internal sealed class ComparisonTests : TestCase, ITestable
         {
             internal const string TEST_NAME = "Test - LogID Comparison";
 
@@ -22,7 +18,11 @@ namespace LogUtils.Diagnostics.Tests.Utility
             public void Test()
             {
                 testInstanceEquality();
+            }
 
+            [PostTest]
+            public void ShowResults()
+            {
                 TestLogger.LogDebug(CreateReport());
             }
 
@@ -32,6 +32,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
                 LogID control = createTestLogID("Test", rootPath);
 
+                #pragma warning disable IDE0055 //Fix formatting
                 LogID sameInstance = control,
                       sameLogNameDifferentReference = createTestLogID("Test", rootPath),
                       sameLogNameDifferentFilePath  = createTestLogID("Test", UtilityConsts.PathKeywords.STREAMING_ASSETS),
@@ -39,6 +40,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
                       sameLogPathDifferentCase      = createTestLogID("Test", rootPath.ToUpper()),
                       sameLogPathUsesPathKeyword    = createTestLogID("Test", UtilityConsts.PathKeywords.ROOT),
                       notSameInstance               = createTestLogID("NotTest", rootPath);
+                #pragma warning restore IDE0055 //Fix formatting
 
                 //Collect entries for testing
                 List<ValuePair<LogID>> testEntries = new List<ValuePair<LogID>>()

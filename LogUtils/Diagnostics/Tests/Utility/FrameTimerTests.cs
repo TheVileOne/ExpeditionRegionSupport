@@ -4,7 +4,7 @@ using System;
 
 namespace LogUtils.Diagnostics.Tests.Utility
 {
-    public class FrameTimerTests : TestCase, ITestable
+    internal sealed class FrameTimerTests : TestCase, ITestable
     {
         internal const string TEST_NAME = "Test - Scheduler";
         internal const int EVENT_INTERVAL = 3;
@@ -17,7 +17,11 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             testEvents(syncToRainWorld: false);
             testEvents(syncToRainWorld: true);
+        }
 
+        [PostTest]
+        public void ShowResults()
+        {
             TestLogger.LogDebug(CreateReport());
         }
 

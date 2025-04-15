@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace LogUtils.Diagnostics.Tests.Utility
 {
-    internal class LogCategoryTests : TestCase, ITestable
+    internal sealed class LogCategoryTests : TestCase, ITestable
     {
         internal const string TEST_NAME = "Test - LogCategory";
         internal const string CATEGORY_TEST_NAME = "UTILITY_TEST";
@@ -21,7 +21,11 @@ namespace LogUtils.Diagnostics.Tests.Utility
             testComposition();
             testEquality();
             testErrorCategoryDoesNotIncludeCategoryAll();
+        }
 
+        [PostTest]
+        public void ShowResults()
+        {
             TestLogger.LogDebug(CreateReport());
         }
 

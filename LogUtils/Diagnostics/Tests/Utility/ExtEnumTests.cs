@@ -3,7 +3,7 @@ using System;
 
 namespace LogUtils.Diagnostics.Tests.Utility
 {
-    internal partial class ExtEnumTests : TestCase, ITestable
+    internal sealed partial class ExtEnumTests : TestCase, ITestable
     {
         internal const string TEST_NAME = "Test - ExtEnums";
 
@@ -22,7 +22,11 @@ namespace LogUtils.Diagnostics.Tests.Utility
             testManagedReferenceIsSharedBetweenInstances();
 
             testCaseInsensitivity();
+        }
 
+        [PostTest]
+        public void ShowResults()
+        {
             TestLogger.LogDebug(CreateReport());
         }
 

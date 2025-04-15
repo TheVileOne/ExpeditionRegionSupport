@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace LogUtils.Diagnostics.Tests.Utility
 {
-    internal class AssertTests : TestCaseGroup, ITestable
+    internal sealed class AssertTests : TestCaseGroup, ITestable
     {
         internal const string TEST_NAME = "Test - Assert System";
 
@@ -26,7 +26,11 @@ namespace LogUtils.Diagnostics.Tests.Utility
             testCollectionDetection();
             testComparisonOfNullableCombinations();
             testEqualityOfNullableCombinations();
+        }
 
+        [PostTest]
+        public void ShowResults()
+        {
             TestLogger.LogDebug(CreateReport());
 
             //Code for testing AssertHandler formatting

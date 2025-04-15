@@ -1,5 +1,4 @@
 ﻿using LogUtils.Helpers.Comparers;
-using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -28,7 +27,11 @@ namespace LogUtils.Diagnostics.Tests.Utility
             testStringDoesNotMatch_CharLimit();
             testStringDoesNotMatch_LineLimit();
             testStringDoesNotMatch_BothCharAndLineLimits();
+        }
 
+        [PostTest]
+        public void ShowResults()
+        {
             TestLogger.LogDebug(CreateReport());
         }
 

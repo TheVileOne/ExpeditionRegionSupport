@@ -2,7 +2,7 @@
 
 namespace LogUtils.Diagnostics.Tests.Utility
 {
-    internal partial class ExtEnumTests
+    internal sealed partial class ExtEnumTests
     {
         private void testCaseInsensitivity()
         {

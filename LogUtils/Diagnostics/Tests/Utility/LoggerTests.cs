@@ -3,7 +3,7 @@ using LogUtils.Requests;
 
 namespace LogUtils.Diagnostics.Tests.Utility
 {
-    internal sealed class LoggerTests : TestCaseGroup, ITest
+    internal sealed class LoggerTests : TestCaseGroup, ITestable
     {
         internal const string TEST_NAME = "Test - Logging System";
 
@@ -17,17 +17,14 @@ namespace LogUtils.Diagnostics.Tests.Utility
             multiLoggerTests = new TestCaseGroup(this, "Test - Multiple Loggers");
         }
 
-        public void PreTest()
-        {
-        }
-
         public void Test()
         {
             runSingleLoggerTests();
             runMultiLoggerTests();
         }
 
-        public void PostTest()
+        [PostTest]
+        public void ShowResults()
         {
             TestLogger.LogDebug(CreateReport());
             activeTestGroup = null;
@@ -42,6 +39,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         private void runMultiLoggerTests()
         {
             activeTestGroup = multiLoggerTests;
+            //TODO: Write tests
         }
 
         private void testLogRequestSubmissionFromLogger()

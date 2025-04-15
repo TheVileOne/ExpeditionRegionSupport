@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 namespace LogUtils.Diagnostics.Tests
 {
@@ -170,12 +172,11 @@ namespace LogUtils.Diagnostics.Tests
             ActiveSuite = this;
             try
             {
-                var enumerator = GetEnumerator();
+                var tests = GetEnumerator();
 
-                while (enumerator.MoveNext())
+                while (tests.MoveNext())
                 {
-                    var currentTest = enumerator.Current;
-                    currentTest.Test();
+                    Run(tests.Current);
                 }
             }
             finally
@@ -192,19 +193,58 @@ namespace LogUtils.Diagnostics.Tests
             ActiveSuite = this;
             try
             {
-                var enumerator = GetEnumerator();
+                var tests = GetEnumerator();
 
-                while (enumerator.MoveNext())
+                while (tests.MoveNext())
                 {
-                    var currentTest = enumerator.Current;
-
-                    if (predicate(currentTest))
-                        currentTest.Test();
+                    if (predicate(tests.Current))
+                        Run(tests.Current);
                 }
             }
             finally
             {
                 ActiveSuite = null;
+            }
+        }
+
+        public void Run(ITestable test)
+        {
+            Type type = test.GetType();
+
+            //Get methods that have at least one custom attribute
+            MethodInfo[] methods = type.GetMethods()
+                                       .Where(m => m.GetCustomAttributes(inherit: true).Any())
+                                       .ToArray();
+
+            IEnumerable<MethodInfo> preTestMethods = methods.Where(m => m.GetCustomAttribute(typeof(PreTestAttribute), inherit: true) != null),
+                                    postTestMethods = methods.Where(m => m.GetCustomAttribute(typeof(PostTestAttribute), inherit: true) != null);
+
+            foreach (var method in preTestMethods)
+            {
+                bool hasParams = method.GetParameters().Length > 0;
+
+                if (!hasParams)
+                {
+                    method.Invoke(test, null);
+                    continue;
+                }
+
+                UtilityLogger.LogError(new InvalidOperationException("Test condition must not have arguments"));
+            }
+
+            test.Test();
+
+            foreach (var method in postTestMethods)
+            {
+                bool hasParams = method.GetParameters().Length > 0;
+
+                if (!hasParams)
+                {
+                    method.Invoke(test, null);
+                    continue;
+                }
+
+                UtilityLogger.LogError(new InvalidOperationException("Test condition must not have arguments"));
             }
         }
         #endregion
