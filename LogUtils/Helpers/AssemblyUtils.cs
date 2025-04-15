@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Bootstrap;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -14,6 +15,14 @@ namespace LogUtils.Helpers
         public static void BuildInfoCache()
         {
             PluginInfos = Chainloader.PluginInfos.Values.OrderBy(p => p.Location).ToList();
+        }
+
+        /// <summary>
+        /// Get all types from each assembly in the current domain
+        /// </summary>
+        public static IEnumerable<Type> GetAllTypes()
+        {
+            return AppDomain.CurrentDomain.GetAssemblies().SelectMany(assembly => assembly.GetTypes());
         }
 
         public static BaseUnityPlugin GetPlugin(Assembly assembly)

@@ -11,6 +11,7 @@ using Menu;
 using System;
 using System.Linq;
 using System.Reflection;
+using Console = LogUtils.Helpers.Console.Console;
 using Debug = LogUtils.Diagnostics.Debug;
 
 namespace LogUtils
@@ -206,6 +207,9 @@ namespace LogUtils
                         {
                             //This must be run before late initialized log files are handled to allow BepInEx log file to be moved
                             BepInExAdapter.Run();
+
+                            if (!Console.IsEnabled)
+                                Console.Initialize();
 
                             nextStep = UtilitySetup.InitializationStep.POST_LOGID_PROCESSING;
                             break;
