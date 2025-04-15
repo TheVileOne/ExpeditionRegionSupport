@@ -15,4 +15,17 @@
         /// </summary>
         public abstract void Test();
     }
+
+    public interface ITest : ITestable
+    {
+        /// <summary>
+        /// Handles behavior that should run before testing 
+        /// </summary>
+        public abstract void PreTest();
+
+        /// <summary>
+        /// Handles behavior that should run after testing 
+        /// </summary>
+        public abstract void PostTest();
+    }
 }
