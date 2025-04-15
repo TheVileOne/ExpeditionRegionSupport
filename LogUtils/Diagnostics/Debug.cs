@@ -27,6 +27,7 @@ namespace LogUtils.Diagnostics
             UtilityTests = new TestSuite();
 
             UtilityTests.Add(new AssertTests());
+            UtilityTests.Add(new LoggerTests());
             UtilityTests.Add(new LogCategoryTests());
             UtilityTests.Add(new ExceptionComparerTests());
             UtilityTests.Add(new FrameTimerTests());
