@@ -161,7 +161,7 @@ namespace LogUtils
         /// <br>Wait behavior: Wait time will double on each failed attempt to write to file (up to a maximum of 5000 ms)</br>
         /// </summary>
         /// <param name="logFile">The file that contains the message buffer</param>
-        /// <param name="waitTime">The initial time to wait before writing to file (when set to zero,  write attempt will be immediate and only happen once)</param>
+        /// <param name="waitTime">The initial time to wait before writing to file (when set to zero,  write attempt will be immediate)</param>
         /// <param name="respectBufferState">Allow the buffer state to determine when to make a write attempt</param>
         /// <returns>A handle to the scheduled write task</returns>
         public Task WriteFromBuffer(LogID logFile, TimeSpan waitTime, bool respectBufferState = true)
@@ -169,12 +169,14 @@ namespace LogUtils
             MessageBuffer writeBuffer = logFile.Properties.WriteBuffer;
             FileLock fileLock = logFile.Properties.FileLock;
 
+            //TODO: Determine if this should always run through a Task
             if (waitTime <= TimeSpan.Zero)
             {
                 //Write implementation will ignore this field - make sure we want that to happen
-                if (!respectBufferState || !writeBuffer.IsBuffering)
-                    tryWrite();
-                return null;
+                if ((!respectBufferState || !writeBuffer.IsBuffering) && tryWrite())
+                    return null;
+
+                waitTime = initialWaitInterval;
             }
 
             Task writeTask = null;
