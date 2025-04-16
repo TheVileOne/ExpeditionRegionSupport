@@ -146,10 +146,8 @@ namespace LogUtils.Enums
             }
         }
 
-        //TODO: LogIDs don't have proper support for registering, and unregistering
         public new virtual void Unregister()
         {
-            UtilityLogger.LogWarning($"Unregistering of {typeof(T)} is currently not supported, and may not work correctly");
             base.Unregister();
         }
 
