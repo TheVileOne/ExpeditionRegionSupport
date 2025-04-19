@@ -3,7 +3,6 @@ using LogUtils.Events;
 using LogUtils.Requests;
 using System;
 using System.IO;
-using System.Runtime.Serialization;
 using UnityEngine;
 
 namespace LogUtils.Console
@@ -58,9 +57,20 @@ namespace LogUtils.Console
         {
             try
             {
-                string message = ApplyColorFormatting(ApplyRules(messageData), messageData.Category.ConsoleColor);
+                Color messageColor = messageData.Category.ConsoleColor;
+                if (LogConsole.ANSIColorSupport)
+                {
+                    string message = ApplyColorFormatting(ApplyRules(messageData), messageColor);
+                    Stream.WriteLine(message);
+                }
+                else
+                {
+                    string message = ApplyRules(messageData);
 
-                Stream.WriteLine(message);
+                    LogConsole.SetConsoleColor(ConsoleColorMap.ClosestConsoleColor(messageColor));
+                    Stream.WriteLine(message);
+                    LogConsole.SetConsoleColor(ConsoleColor.Gray);
+                }
             }
             catch (Exception ex)
             {

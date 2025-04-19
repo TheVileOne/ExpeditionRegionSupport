@@ -15,6 +15,7 @@ namespace LogUtils.Console
         /// </summary>
         public static Color DefaultColor => GetColor(_defaultColor);
 
+        #pragma warning disable IDE0055 //Fix formatting
         public static (ConsoleColor ConsoleColor, Color UnityColor)[] ColorMap =
         [
             (ConsoleColor.Black,       new Color(0f, 0f, 0f)),
@@ -34,6 +35,7 @@ namespace LogUtils.Console
             (ConsoleColor.Yellow,      new Color(1f, 1f, 0f)),
             (ConsoleColor.White,       new Color(1f, 1f, 1f))
         ];
+        #pragma warning restore IDE0055 //Fix formatting
 
         /// <summary>
         /// Gets the Unity color mapped to a specified ConsoleColor code
@@ -67,6 +69,7 @@ namespace LogUtils.Console
         /// Gets the ConsoleColor mapped to a specified LogGroup
         /// <br>Aligned with the colors assigned for BepInEx.LogLevel</br>
         /// </summary>
+        #pragma warning disable IDE0055 //Fix formatting
         internal static ConsoleColor GetConsoleColor(LogGroup group)
         {
             return group switch
@@ -81,6 +84,42 @@ namespace LogUtils.Console
                 LogGroup.All       => ConsoleColor.Cyan,
                 _                  => _defaultColor
             };
+        }
+        #pragma warning restore IDE0055 //Fix formatting
+
+        public static ConsoleColor ClosestConsoleColor(Color color)
+        {
+            return ClosestConsoleColor((byte)(color.r * 255), (byte)(color.g * 255), (byte)(color.b * 255));
+        }
+
+        //Code sourced from https://stackoverflow.com/a/12340136/30273286
+        public static ConsoleColor ClosestConsoleColor(byte r, byte g, byte b)
+        {
+            double delta = double.MaxValue;
+
+            ConsoleColor result = default;
+
+            foreach (ConsoleColor colorValue in Enum.GetValues(typeof(ConsoleColor)))
+            {
+                string colorName = Enum.GetName(typeof(ConsoleColor), colorValue);
+
+                var color = System.Drawing.Color.FromName(colorName == "DarkYellow" ? "Orange" : colorName); //bug fix
+
+                double t = Math.Pow(color.R - r, 2.0) + Math.Pow(color.G - g, 2.0) + Math.Pow(color.B - b, 2.0);
+
+                if (t == 0.0) //Exact match
+                {
+                    result = colorValue;
+                    break;
+                }
+
+                if (t < delta)
+                {
+                    delta = t;
+                    result = colorValue;
+                }
+            }
+            return result;
         }
     }
 }

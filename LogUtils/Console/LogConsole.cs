@@ -12,6 +12,13 @@ namespace LogUtils.Console
 {
     public static class LogConsole
     {
+        /// <summary>
+        /// Indicates whether the host machine supports ANSI color codes
+        /// </summary>
+        public static bool ANSIColorSupport;
+
+        private static MethodInfo setConsoleColor; //Taken from BepInEx through reflection
+
         public static readonly List<ConsoleLogWriter> Writers = new List<ConsoleLogWriter>();
 
         /// <summary>
@@ -32,8 +39,14 @@ namespace LogUtils.Console
 
         internal static void Initialize()
         {
-            //ANSI color code support
-            ConsoleVirtualization.EnableVirtualTerminalProcessing();
+            if (ConsoleVirtualization.TryEnableVirtualTerminal(out int errorCode))
+            {
+                ANSIColorSupport = true;
+            }
+            else
+            {
+                UtilityLogger.LogWarning($"[ERROR CODE {errorCode}] ANSI color codes are unsupported - using fallback method");
+            }
 
             //Reflection allows us to interact with the BepInEx defined console stream. We cannot access it directly in BepInEx ver. 5.4.17.0. ConsoleManager is an internal class.
             try
@@ -59,6 +72,11 @@ namespace LogUtils.Console
                     return;
                 }
 
+                setConsoleColor = consoleManagerType.GetMethod("SetConsoleColor");
+
+                if (setConsoleColor == null)
+                    UtilityLogger.LogError(new ConsoleLoadException("SetConsoleColor method not found on ConsoleManager type."));
+
                 //Retrieve the static ConsoleStream property.
                 consoleStreamProperty = consoleManagerType.GetProperty(
                     "ConsoleStream",
@@ -77,6 +95,14 @@ namespace LogUtils.Console
             {
                 UtilityLogger.LogError(ex);
             }
+        }
+
+        /// <summary>
+        /// Fallback method for adjusting text color in the console
+        /// </summary>
+        public static void SetConsoleColor(ConsoleColor color)
+        {
+            setConsoleColor.Invoke(null, [color]);
         }
 
         private static bool matchConsoleManager(Type type) => type.Namespace == "BepInEx" && type.Name == "ConsoleManager";
