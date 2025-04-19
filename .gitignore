@@ -159,3 +159,6 @@
 /ExpeditionRegionSupport/bin/Debug/net48/ExpeditionRegionSupport.pdb
 /LogUtils/obj/Debug/net48/LogUtils.GeneratedMSBuildEditorConfig.editorconfig
 /LogUtils/obj/Debug/net48/LogUtils.sourcelink.json
+/LogUtils/bin
+/LogUtils/obj
+LogUtils/LogUtils.csproj.user
