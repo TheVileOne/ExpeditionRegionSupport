@@ -43,7 +43,7 @@ namespace LogUtils.Events
         /// <summary>
         /// A field for extra arguments - Use in cases when it is inconvenient to replace existing argument data  
         /// </summary>
-        public readonly List<LogEventArgs> ExtraArgs = new List<LogEventArgs>();
+        public readonly List<EventArgs> ExtraArgs = new List<EventArgs>();
 
         /// <summary>
         /// Contains source information needed to log through the BepInEx logger
@@ -140,7 +140,7 @@ namespace LogUtils.Events
         /// <summary>
         /// Finds the first match of a given type, or returns null
         /// </summary>
-        public TData FindData<TData>() where TData : LogEventArgs
+        public TData FindData<TData>() where TData : EventArgs
         {
             return this as TData ?? ExtraArgs.OfType<TData>().FirstOrDefault();
         }
