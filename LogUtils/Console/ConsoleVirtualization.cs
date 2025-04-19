@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace LogUtils.Console
 {
-    public static class ConsoleVirtualizationHelper
+    internal static class ConsoleVirtualization
     {
         private const int STD_OUTPUT_HANDLE = -11;
         private const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
@@ -27,9 +27,9 @@ namespace LogUtils.Console
                 mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
                 SetConsoleMode(handle, mode);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                throw new Exception("Failed to enable virtual terminal processing", e);
+                UtilityLogger.LogError(new Exception("Failed to enable virtual terminal processing", ex));
             }
         }
     }

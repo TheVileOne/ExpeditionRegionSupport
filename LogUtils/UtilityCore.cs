@@ -207,9 +207,7 @@ namespace LogUtils
                         {
                             //This must be run before late initialized log files are handled to allow BepInEx log file to be moved
                             BepInExAdapter.Run();
-
-                            if (!LogConsole.IsEnabled)
-                                LogConsole.Initialize();
+                            LogConsole.Initialize();
 
                             nextStep = UtilitySetup.InitializationStep.POST_LOGID_PROCESSING;
                             break;

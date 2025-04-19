@@ -68,10 +68,19 @@ namespace LogUtils.Requests
 
         public static LogRequestStringFormatter Formatter = new LogRequestStringFormatter();
 
+        /// <summary>
+        /// Constructs a LogRequest instance
+        /// </summary>
+        /// <param name="type">The identifying request category (affects how request is handled)</param>
+        /// <param name="data">Data used to construct a log message</param>
+        /// <exception cref="ArgumentException">RequestType given is not valid for this instance</exception>
         public LogRequest(RequestType type, LogMessageEventArgs data)
         {
             Data = data;
             Type = type;
+
+            if (Type == RequestType.Console && this is not ConsoleLogRequest)
+                throw new ArgumentException("RequestType not valid for this instance");
         }
 
         public bool CanRetryRequest()
@@ -235,7 +244,8 @@ namespace LogUtils.Requests
     {
         Local,
         Remote,
-        Game
+        Game,
+        Console
     }
 
     public enum RejectionReason : byte
