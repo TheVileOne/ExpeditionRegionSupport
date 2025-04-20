@@ -1,12 +1,11 @@
 ﻿using BepInEx.Logging;
-using LogUtils.Compatibility;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Requests;
-using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using UnityEngine;
 
 namespace LogUtils
@@ -26,19 +25,14 @@ namespace LogUtils
         LogID[] ILogFileHandler.AvailableTargets => LogTargets.ToArray();
 
         /// <summary>
-        /// Lock object - designed to be ensure event data is not tampered with by other threads before it is attached to a LogRequest
-        /// </summary>
-        protected readonly Lock DataLock = new Lock();
-
-        /// <summary>
-        /// Indicates when it is ready to set temporary event data fields back to default values
-        /// </summary>
-        protected bool ShouldClearEventData = true;
-
-        /// <summary>
         /// Contains a list of LogIDs (both local and remote) that will be handled in the case of an untargeted log request
         /// </summary>
         public List<LogID> LogTargets = new List<LogID>();
+
+        /// <summary>
+        /// Contains a list of ConsoleIDs that will be handled by any log request that can be handled by this logger
+        /// </summary>
+        public List<ConsoleID> ConsoleTargets = new List<ConsoleID>();
 
         /// <summary>
         /// BepInEx logging source object
@@ -51,7 +45,7 @@ namespace LogUtils
         public LoggerRestorePoint RestorePoint;
 
         /// <summary>
-        /// Writer implementation for logger instance
+        /// Writer implementation (responsible for writing to file, or storing messages in the message buffer)
         /// </summary>
         public ILogWriter Writer = LogWriter.Writer;
 
@@ -69,7 +63,6 @@ namespace LogUtils
         public Logger(ManualLogSource logSource) : this(LoggingMode.Inherit, true, LogID.BepInEx)
         {
             ManagedLogSource = logSource;
-            LogRequestEvents.OnSubmit += onNewRequest; 
         }
 
         /// <summary>
@@ -141,6 +134,9 @@ namespace LogUtils
 
             if (mode != LoggingMode.Inherit)
                 SetWriter(mode);
+
+            UtilityEvents.OnRegister += OnRegister;
+            UtilityEvents.OnUnregister += OnUnregister;
             FinalizeConstruction();
         }
 
@@ -615,20 +611,17 @@ namespace LogUtils
                     return;
                 }
 
-                ShouldClearEventData = false; //Ensure that event data is not cleared upon individual request processing
-
                 //Log data for each targetted LogID
                 foreach (LogID target in targets)
-                    LogData(target, category, data, shouldFilter);
+                    LogData(target, category, data, shouldFilter, LoggingContext.Batching);
             }
             finally
             {
-                ShouldClearEventData = true;
                 ClearEventData();
             }
         }
 
-        protected virtual void LogData(LogID target, LogCategory category, object data, bool shouldFilter)
+        protected virtual void LogData(LogID target, LogCategory category, object data, bool shouldFilter, LoggingContext context = LoggingContext.SingleRequest)
         {
             try
             {
@@ -683,7 +676,7 @@ namespace LogUtils
             }
             finally
             {
-                if (ShouldClearEventData)
+                if (context == LoggingContext.SingleRequest)
                     ClearEventData();
             }
         }
@@ -719,12 +712,6 @@ namespace LogUtils
                 return requestType == RequestType.Local || loggerID.Access != LogAccess.Private;
             }
             return false;
-        }
-
-        protected virtual void ClearEventData()
-        {
-            Context = null;
-            DataTag = null;
         }
 
         protected LogID FindEquivalentTarget(LogID logID)
@@ -824,12 +811,67 @@ namespace LogUtils
             writer.WriteFrom(request);
         }
 
-        private void onNewRequest(LogRequest request)
-        {
-            if (request.Sender != this || Context == null && DataTag == null) return;
+        /// <summary>
+        /// Contains event data pertaining to Unity context objects (if applicable)
+        /// </summary>
+        private ThreadLocal<EventArgs> unityDataCache;
 
-            LogMessageEventArgs messageData = request.Data;
-            messageData.ExtraArgs.Add(new UnityLogEventArgs(messageData.ID, Context, DataTag));
+        /// <summary>
+        /// Contains event data exclusive to logging to a console (only once per request batch)
+        /// </summary>
+        private ThreadLocal<EventArgs> consoleDataCache;
+
+        protected virtual void ClearEventData()
+        {
+            if (consoleDataCache?.IsValueCreated == true)
+                consoleDataCache.Value = null;
+
+            if (unityDataCache?.IsValueCreated == true)
+                unityDataCache.Value = null;
+        }
+
+        protected virtual void OnRegister(ILogHandler handler)
+        {
+            if (handler != this) return;
+
+            LogRequestEvents.OnSubmit += OnNewRequest;
+        }
+
+        protected virtual void OnUnregister(ILogHandler handler)
+        {
+            if (handler != this) return;
+
+            LogRequestEvents.OnSubmit -= OnNewRequest;
+        }
+
+        protected virtual void OnNewRequest(LogRequest request)
+        {
+            if (request.Sender != this) return;
+
+            //Console data
+            if (request.Type == RequestType.Local && ConsoleTargets.Count > 0)
+            {
+                if (consoleDataCache == null)
+                    consoleDataCache = new ThreadLocal<EventArgs>();
+
+                var data = consoleDataCache.Value;
+
+                if (data == null)
+                {
+                    data = new ConsoleRequestEventArgs(ConsoleTargets);
+                    consoleDataCache.Value = data;
+                }
+                request.Data.ExtraArgs.Add(data);
+            }
+
+            //Unity exclusive data
+            if (unityDataCache != null)
+            {
+                var data = unityDataCache.Value;
+
+                if (data != null)
+                    request.Data.ExtraArgs.Add(data);
+            }
         }
         #endregion
 
@@ -865,6 +907,12 @@ namespace LogUtils
         public class EarlyInitializationException(string message) : InvalidOperationException(message)
         {
         }
+    }
+
+    public enum LoggingContext
+    {
+        SingleRequest,
+        Batching
     }
 
     public enum LoggingMode

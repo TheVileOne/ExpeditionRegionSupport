@@ -1,4 +1,5 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Events;
 using LogUtils.Helpers.Extensions;
 using LogUtils.Threading;
 using System;
@@ -231,9 +232,7 @@ namespace LogUtils.Requests
         /// </summary>
         public void Register(ILogHandler logger)
         {
-            UtilityLogger.Log("Registering logger");
-            UtilityLogger.Log("Log targets: " + string.Join<LogID>(" ,", logger.AvailableTargets));
-
+            UtilityEvents.OnRegister?.Invoke(logger);
             availableLoggers.Add(logger);
             ProcessRequests(logger);
         }
@@ -243,6 +242,7 @@ namespace LogUtils.Requests
         /// </summary>
         public void Unregister(ILogHandler logger)
         {
+            UtilityEvents.OnUnregister?.Invoke(logger);
             availableLoggers.Remove(logger);
         }
 

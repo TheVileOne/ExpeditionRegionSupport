@@ -1,14 +1,13 @@
-﻿using LogUtils.Enums;
-using LogUtils.Events;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
+using System;
 
 namespace LogUtils.Compatibility.DotNet
 {
-    public class DotNetLoggerEventArgs : LogEventArgs
+    public class DotNetLoggerEventArgs : EventArgs
     {
         public EventId EventID { get; }
 
-        public DotNetLoggerEventArgs(LogID logID, EventId eventID) : base(logID)
+        public DotNetLoggerEventArgs(EventId eventID)
         {
             EventID = eventID;
         }

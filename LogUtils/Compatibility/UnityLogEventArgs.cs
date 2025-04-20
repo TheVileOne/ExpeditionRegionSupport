@@ -1,22 +1,20 @@
-﻿using LogUtils.Enums;
-using LogUtils.Events;
-using UnityEngine;
+﻿using System;
 
 namespace LogUtils.Compatibility
 {
-    public class UnityLogEventArgs : LogEventArgs
+    public class UnityLogEventArgs : EventArgs
     {
         /// <summary>
         /// Unity object - typically given to provide context to the log message
         /// </summary>
-        public Object Context { get; }
+        public UnityEngine.Object Context { get; }
 
         /// <summary>
         /// Unity tag - typically given to provide context to the log message
         /// </summary>
         public string Tag { get; }
 
-        public UnityLogEventArgs(LogID logID, Object context, string tag) : base(logID)
+        public UnityLogEventArgs(UnityEngine.Object context, string tag)
         {
             Context = context;
             Tag = tag;

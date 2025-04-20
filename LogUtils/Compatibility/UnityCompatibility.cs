@@ -1,22 +1,14 @@
-﻿using LogUtils.Enums;
+﻿using LogUtils.Compatibility;
+using LogUtils.Enums;
 using System;
 using System.Linq;
+using System.Threading;
 using UnityEngine;
 
 namespace LogUtils
 {
     public partial class Logger : UnityEngine.ILogger
     {
-        /// <summary>
-        /// Unity object - typically given to provide context to the log message
-        /// </summary>
-        protected UnityEngine.Object Context;
-
-        /// <summary>
-        /// Message context tag - provided as part of the UnityEngine.ILogger API
-        /// </summary>
-        protected string DataTag;
-
         private LogCategoryFilter.ByCategory categoryFilter = new LogCategoryFilter.ByCategory(null, false);
 
         LogType UnityEngine.ILogger.filterLogType
@@ -115,12 +107,14 @@ namespace LogUtils
                 return;
             }
 
-            using (DataLock.Acquire())
+            if (context != null || tag != null)
             {
-                Context = context;
-                DataTag = tag;
-                Log(logType, message);
+                if (unityDataCache == null)
+                    unityDataCache = new ThreadLocal<EventArgs>();
+
+                unityDataCache.Value = new UnityLogEventArgs(context, tag);
             }
+            Log(logType, message);
         }
     }
 }
