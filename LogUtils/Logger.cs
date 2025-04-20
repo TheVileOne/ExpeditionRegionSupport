@@ -640,13 +640,18 @@ namespace LogUtils
                 {
                     requestType = RequestType.Game;
                 }
-                else if (target.Access == LogAccess.FullAccess || target.Access == LogAccess.Private)
-                {
-                    requestType = RequestType.Local;
-                }
                 else
                 {
-                    requestType = RequestType.Remote;
+                    LogID loggerID = FindEquivalentTarget(target);
+
+                    if (loggerID != null)
+                    {
+                        requestType = RequestType.Local;
+                    }
+                    else
+                    {
+                        requestType = RequestType.Remote;
+                    }
                 }
 
                 LogRequest request = new LogRequest(requestType, new LogMessageEventArgs(target, data, category)
@@ -700,8 +705,7 @@ namespace LogUtils
         {
             if (logID.IsGameControlled) return false; //This check is here to prevent TryHandleRequest from potentially handling requests that should be handled by a GameLogger
 
-            //Find the LogID equivalent accepted by the Logger instance - only one LogID with this value can be stored
-            LogID loggerID = LogTargets.Find(log => log.Equals(logID));
+            LogID loggerID = FindEquivalentTarget(logID);
 
             //Enabled status is currently not evaluated here - It is unclear whether it should be part of the access check
             if (loggerID != null)
@@ -721,6 +725,11 @@ namespace LogUtils
         {
             Context = null;
             DataTag = null;
+        }
+
+        protected LogID FindEquivalentTarget(LogID logID)
+        {
+            return LogTargets.Find(log => log.Equals(logID));
         }
 
         /// <summary>
@@ -754,29 +763,27 @@ namespace LogUtils
             //Generally skipping this check means access has already been verified. 
             bool requestCanBeHandled = skipAccessValidation || CanHandle(requestID, request.Type, doPathCheck: true);
 
+            //Check that there is a target with the same filename and path as the request ID
             LogID loggerID = null;
             if (requestCanBeHandled)
             {
-                // The local LogID stored in LogTargets will be a different instance to the one stored in a remote log request
-                //It is important to check the local id instead of the remote id in certain situations
-                loggerID = LogTargets.Find(id => id.BaseEquals(requestID));
-
-                //Request cannot be handled unless there is a target to handle it
-                requestCanBeHandled = loggerID != null;
+                loggerID = LogTargets.Find(log => log.BaseEquals(requestID));
+                requestCanBeHandled = loggerID?.Equals(requestID) == true;
             }
 
             if (!requestCanBeHandled)
             {
-                //TODO: CanHandle should be replaced with a function that returns an AccessViolation enum that tells us which specific reason to reject the request
-                UtilityLogger.LogWarning("Request sent to a logger that cannot handle it");
-                request.Reject(RejectionReason.NotAllowedToHandle);
-                return;
-            }
-
-            if (loggerID.Properties.CurrentFolderPath != requestID.Properties.CurrentFolderPath) //Same LogID, different log paths - do not handle
-            {
-                UtilityLogger.Log("Request not handled, log paths do not match");
-                request.Reject(RejectionReason.PathMismatch);
+                if (loggerID != null)
+                {
+                    UtilityLogger.Log("Request not handled, log paths do not match");
+                    request.Reject(RejectionReason.PathMismatch);
+                }
+                else
+                {
+                    //TODO: CanHandle should be replaced with a function that returns an AccessViolation enum that tells us which specific reason to reject the request
+                    UtilityLogger.LogWarning("Request sent to a logger that cannot handle it");
+                    request.Reject(RejectionReason.NotAllowedToHandle);
+                }
                 return;
             }
 
