@@ -140,8 +140,8 @@ namespace LogUtils.Requests
             if (UnhandledReason != RejectionReason.None)
                 UtilityLogger.Log("Unhandled reason already exists");
 
-            //This reason can get spammy - ignore it
-            if (reason != RejectionReason.WaitingOnOtherRequests)
+
+            if ((RainWorld.ShowLogs || RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD) && !shouldIgnore(reason))
             {
                 UtilityLogger.Log("Log request was rejected REASON: " + reason);
 
@@ -156,6 +156,12 @@ namespace LogUtils.Requests
             {
                 _state.UnhandledReason = reason;
                 NotifyOnChange();
+            }
+
+            static bool shouldIgnore(RejectionReason reason)
+            {
+                //This reason can get spammy - ignore it
+                return reason == RejectionReason.WaitingOnOtherRequests;
             }
         }
 
