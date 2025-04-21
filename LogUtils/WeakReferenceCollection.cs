@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogUtils.Helpers.Extensions;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,11 +8,30 @@ namespace LogUtils
 {
     public class WeakReferenceCollection<T> : IEnumerable<T> where T : class
     {
-        protected List<WeakReference<T>> InnerList = new List<WeakReference<T>>();
+        protected ICollection<WeakReference<T>> InnerEnumerable;
+
+        public WeakReferenceCollection() : this(new List<WeakReference<T>>())
+        {
+        }
+
+        public WeakReferenceCollection(ICollection<WeakReference<T>> collectionBase)
+        {
+            InnerEnumerable = collectionBase;
+        }
+
+        public WeakReferenceCollection(IEnumerable<T> collection)
+        {
+            InnerEnumerable = collection.Select(item => new WeakReference<T>(item)).ToList();
+        }
+
+        public WeakReferenceCollection(IEnumerable<T> collection, ICollection<WeakReference<T>> collectionBase) : this(collectionBase)
+        {
+            collectionBase.AddRange(collection);
+        }
 
         public IEnumerator<T> GetEnumerator()
         {
-            var enumerator = InnerList.GetEnumerator();
+            var enumerator = InnerEnumerable.GetEnumerator();
 
             bool shouldCleanList = false;
             while (enumerator.MoveNext())
@@ -41,9 +61,7 @@ namespace LogUtils
 
         public WeakReference<T> Add(T item)
         {
-            WeakReference<T> reference = new WeakReference<T>(item);
-            InnerList.Add(reference);
-            return reference;
+            return InnerEnumerable.Add(item);
         }
 
         public List<T> FindAll(Func<T, bool> predicate)
@@ -56,30 +74,12 @@ namespace LogUtils
 
         public bool Remove(T item)
         {
-            for (int i = 0; i < InnerList.Count; i++)
-            {
-                var reference = InnerList[i];
-
-                if (reference.TryGetTarget(out T _item) && _item == item)
-                {
-                    InnerList.RemoveAt(i);
-                    return true;
-                }
-            }
-            return false;
+            return InnerEnumerable.Remove(item);
         }
 
-        public void RemoveAll(Func<T, bool> predicate)
+        public void RemoveAll(Predicate<T> predicate)
         {
-            for (int i = 0; i < InnerList.Count; i++)
-            {
-                var reference = InnerList[i];
-
-                if (reference.TryGetTarget(out T _item) && predicate(_item))
-                {
-                    InnerList.RemoveAt(i);
-                }
-            }
+            InnerEnumerable.RemoveWhere(predicate);
         }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace LogUtils
         /// </summary>
         public void RemoveCollectedEntries()
         {
-            InnerList.RemoveAll(reference => !reference.TryGetTarget(out _));
+            InnerEnumerable.RemoveCollectedEntries();
         }
 
         /// <summary>
@@ -95,7 +95,7 @@ namespace LogUtils
         /// </summary>
         public int UnsafeCount()
         {
-            return InnerList.Count;
+            return InnerEnumerable.Count;
         }
     }
 }
