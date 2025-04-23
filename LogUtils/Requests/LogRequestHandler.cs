@@ -232,7 +232,7 @@ namespace LogUtils.Requests
         /// </summary>
         public void Register(ILogHandler logger)
         {
-            UtilityEvents.OnRegister?.Invoke(logger);
+            UtilityEvents.OnRegistrationChanged?.Invoke(logger, new RegistrationChangedEventArgs(status: true));
             availableLoggers.Add(logger);
             ProcessRequests(logger);
         }
@@ -242,7 +242,7 @@ namespace LogUtils.Requests
         /// </summary>
         public void Unregister(ILogHandler logger)
         {
-            UtilityEvents.OnUnregister?.Invoke(logger);
+            UtilityEvents.OnRegistrationChanged?.Invoke(logger, new RegistrationChangedEventArgs(status: false));
             availableLoggers.Remove(logger);
         }
 

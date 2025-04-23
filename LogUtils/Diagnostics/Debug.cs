@@ -38,6 +38,7 @@ namespace LogUtils.Diagnostics
         internal static void RunTests()
         {
             UtilityTests.RunAllTests();
+            //StressTests.TestLoggerDisposal();
             //StressTests.LogEveryFrame(LogID.Unity, messageFrequency: 1, logUntilThisFrame: 100000, messagesPerFrame: 100);
         }
 

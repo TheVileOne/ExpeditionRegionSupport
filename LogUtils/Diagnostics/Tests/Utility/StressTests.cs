@@ -53,5 +53,18 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 UtilityLogger.PerformanceMode = false;
             }
         }
+
+        public static void TestLoggerDisposal()
+        {
+            //Register a high amount of logger instances, and deference them to observe dispose behavior
+            Logger[] loggers = new Logger[1000];
+
+            for (int i = 0; i < loggers.Length; i++)
+            {
+                loggers[i] = new Logger();
+                //UtilityCore.RequestHandler.Unregister(loggers[i]);
+            }
+            loggers = null;
+        }
     }
 }

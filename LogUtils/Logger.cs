@@ -5,7 +5,6 @@ using LogUtils.Requests;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using UnityEngine;
 
 namespace LogUtils
@@ -135,8 +134,7 @@ namespace LogUtils
             if (mode != LoggingMode.Inherit)
                 SetWriter(mode);
 
-            UtilityEvents.OnRegister += OnRegister;
-            UtilityEvents.OnUnregister += OnUnregister;
+            SetEvents();
             FinalizeConstruction();
         }
 
@@ -810,69 +808,6 @@ namespace LogUtils
             request.Host = this;
             writer.WriteFrom(request);
         }
-
-        /// <summary>
-        /// Contains event data pertaining to Unity context objects (if applicable)
-        /// </summary>
-        private ThreadLocal<EventArgs> unityDataCache;
-
-        /// <summary>
-        /// Contains event data exclusive to logging to a console (only once per request batch)
-        /// </summary>
-        private ThreadLocal<EventArgs> consoleDataCache;
-
-        protected virtual void ClearEventData()
-        {
-            if (consoleDataCache?.IsValueCreated == true)
-                consoleDataCache.Value = null;
-
-            if (unityDataCache?.IsValueCreated == true)
-                unityDataCache.Value = null;
-        }
-
-        protected virtual void OnRegister(ILogHandler handler)
-        {
-            if (handler != this) return;
-
-            LogRequestEvents.OnSubmit += OnNewRequest;
-        }
-
-        protected virtual void OnUnregister(ILogHandler handler)
-        {
-            if (handler != this) return;
-
-            LogRequestEvents.OnSubmit -= OnNewRequest;
-        }
-
-        protected virtual void OnNewRequest(LogRequest request)
-        {
-            if (request.Sender != this) return;
-
-            //Console data
-            if (request.Type == RequestType.Local && ConsoleTargets.Count > 0)
-            {
-                if (consoleDataCache == null)
-                    consoleDataCache = new ThreadLocal<EventArgs>();
-
-                var data = consoleDataCache.Value;
-
-                if (data == null)
-                {
-                    data = new ConsoleRequestEventArgs(ConsoleTargets);
-                    consoleDataCache.Value = data;
-                }
-                request.Data.ExtraArgs.Add(data);
-            }
-
-            //Unity exclusive data
-            if (unityDataCache != null)
-            {
-                var data = unityDataCache.Value;
-
-                if (data != null)
-                    request.Data.ExtraArgs.Add(data);
-            }
-        }
         #endregion
 
         #region Dispose pattern
@@ -885,6 +820,9 @@ namespace LogUtils
 
             LogWriter.TryDispose(Writer);
             UtilityCore.RequestHandler.Unregister(this);
+
+            //The other Logger event is unsubscribed when Unregister was invoked 
+            UtilityEvents.OnRegistrationChanged -= registrationChangedHandler;
 
             Writer = null;
             IsDisposed = true;
