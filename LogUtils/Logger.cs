@@ -19,7 +19,7 @@ namespace LogUtils
         /// <summary>
         /// A flag that allows/disallows handling of remote log requests through this logger
         /// </summary>
-        public bool AllowRemoteLogging { get; set; }
+        public virtual bool AllowRemoteLogging { get; set; } = true;
 
         public virtual bool AllowRegistration => !IsDisposed;
 
@@ -137,11 +137,6 @@ namespace LogUtils
                 SetWriter(mode);
 
             SetEvents();
-            FinalizeConstruction();
-        }
-
-        protected virtual void FinalizeConstruction()
-        {
             SetRestorePoint();
 
             if (AllowRegistration)

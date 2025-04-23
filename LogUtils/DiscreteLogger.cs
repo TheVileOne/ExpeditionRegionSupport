@@ -7,10 +7,7 @@ namespace LogUtils
     /// </summary>
     public sealed class DiscreteLogger : Logger
     {
-        /// <summary>
-        /// A flag that prevents constructor finalizer until constructor data is fully set
-        /// </summary>
-        private bool readyToFinalizeConstruction;
+        public override bool AllowRemoteLogging => false;
 
         /// <summary>
         /// Constructs a logger instance
@@ -46,16 +43,6 @@ namespace LogUtils
         /// <param name="presets">Include any LogIDs that this logger targets, or handles on request</param>
         public DiscreteLogger(LoggingMode mode, bool allowLogging, params LogID[] presets) : base(mode, allowLogging, presets)
         {
-            AllowRemoteLogging = true;
-
-            readyToFinalizeConstruction = true;
-            FinalizeConstruction();
-        }
-
-        protected override void FinalizeConstruction()
-        {
-            if (readyToFinalizeConstruction)
-                base.FinalizeConstruction();
         }
     }
 }
