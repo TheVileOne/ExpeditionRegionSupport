@@ -36,6 +36,11 @@ namespace LogUtils
         bool AllowRemoteLogging { get; }
 
         /// <summary>
+        /// Does this handler register with the LogRequest system
+        /// </summary>
+        bool AllowRegistration{ get; }
+
+        /// <summary>
         /// Does this handler accept, and process a specific LogRequest instance
         /// </summary>
         bool CanHandle(LogRequest request, bool doPathCheck = false);

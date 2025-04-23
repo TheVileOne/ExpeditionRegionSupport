@@ -27,6 +27,8 @@ namespace LogUtils
 
         bool ILogHandler.AllowRemoteLogging => true;
 
+        bool ILogHandler.AllowRegistration => false;
+
         LogID[] ILogFileHandler.AvailableTargets => LogTargets;
 
         IEnumerable<LogID> ILogFileHandler.GetAccessibleTargets() => LogTargets;

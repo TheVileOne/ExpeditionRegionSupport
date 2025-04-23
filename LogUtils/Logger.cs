@@ -21,6 +21,8 @@ namespace LogUtils
         /// </summary>
         public bool AllowRemoteLogging { get; set; }
 
+        public virtual bool AllowRegistration => !IsDisposed;
+
         LogID[] ILogFileHandler.AvailableTargets => LogTargets.ToArray();
 
         /// <summary>
@@ -141,7 +143,9 @@ namespace LogUtils
         protected virtual void FinalizeConstruction()
         {
             SetRestorePoint();
-            UtilityCore.RequestHandler.Register(this);
+
+            if (AllowRegistration)
+                UtilityCore.RequestHandler.Register(this);
         }
 
         public void SetWriter(LoggingMode writeMode)
@@ -819,10 +823,12 @@ namespace LogUtils
             if (IsDisposed) return;
 
             LogWriter.TryDispose(Writer);
-            UtilityCore.RequestHandler.Unregister(this);
 
-            //The other Logger event is unsubscribed when Unregister was invoked 
-            UtilityEvents.OnRegistrationChanged -= registrationChangedHandler;
+            if (AllowRegistration)
+            {
+                UtilityCore.RequestHandler.Unregister(this);
+                UtilityEvents.OnRegistrationChanged -= registrationChangedHandler;
+            }
 
             Writer = null;
             IsDisposed = true;

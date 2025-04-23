@@ -232,6 +232,9 @@ namespace LogUtils.Requests
         /// </summary>
         public void Register(ILogHandler logger)
         {
+            if (!logger.AllowRegistration)
+                throw new InvalidOperationException("Log handler does not allow registration");
+
             UtilityEvents.OnRegistrationChanged?.Invoke(logger, new RegistrationChangedEventArgs(status: true));
             availableLoggers.Add(logger);
             ProcessRequests(logger);
@@ -242,6 +245,9 @@ namespace LogUtils.Requests
         /// </summary>
         public void Unregister(ILogHandler logger)
         {
+            if (!logger.AllowRegistration)
+                throw new InvalidOperationException("Log handler does not allow registration");
+
             UtilityEvents.OnRegistrationChanged?.Invoke(logger, new RegistrationChangedEventArgs(status: false));
             availableLoggers.Remove(logger);
         }
