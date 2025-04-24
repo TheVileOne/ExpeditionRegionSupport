@@ -95,6 +95,7 @@ namespace LogUtils.Threading
             void addTask()
             {
                 SyncCallback self = addTask;
+                task.SetState(TaskState.Submitted);
                 tasksInProcess.Add(task);
 
                 //Batched process will unsubscribe from event instead
