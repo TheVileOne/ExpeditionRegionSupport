@@ -75,7 +75,7 @@ namespace LogUtils
 
             //Once a lifetime has ended, stop running updates
             if (!IsAlive)
-                UpdateTask.End();
+                UpdateTask.Complete();
         }
     }
 

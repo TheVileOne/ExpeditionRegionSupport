@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
+using DotNetTask = System.Threading.Tasks.Task;
 
 namespace LogUtils
 {
@@ -82,13 +82,13 @@ namespace LogUtils
             }
         }
 
-        public void ScheduleFlush()
+        public DotNetTask ScheduleFlush()
         {
-            ThreadPool.QueueUserWorkItem((object writerObj) =>
+            return DotNetTask.Run(() =>
             {
-                TimedLogWriter writer = (TimedLogWriter)writerObj;
-                writer.Flush();
-            }, this);
+                if (!IsDisposed)
+                    Flush();
+            });
         }
 
         protected override void WriteToFile(LogRequest request)

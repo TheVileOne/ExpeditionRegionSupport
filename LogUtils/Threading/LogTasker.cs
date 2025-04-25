@@ -223,15 +223,11 @@ namespace LogUtils.Threading
         /// <summary>
         /// Sets the task state to Aborted, or Complete
         /// </summary>
-        public static void EndTask(Task task, bool rejected)
+        public static void EndTask(Task task, bool cancel)
         {
-            if (task.State == TaskState.NotSubmitted || !task.PossibleToRun) return;
-
-            UtilityLogger.DebugLog("Task ended after " + TimeConversion.ToMilliseconds(DateTime.UtcNow - task.InitialTime) + " milliseconds");
-            UtilityLogger.DebugLog("Wait interval " + task.WaitTimeInterval.TotalMilliseconds + " milliseconds");
-
-            task.ResetToDefaults();
-            task.SetState(rejected ? TaskState.Aborted : TaskState.Complete);
+            if (cancel)
+                task.Cancel();
+            task.Complete();
         }
 
         private static void removeAfterUpdate(Task task)
@@ -319,7 +315,7 @@ namespace LogUtils.Threading
                     if (timeElapsedSinceLastActivation >= task.WaitTimeInterval)
                     {
                         bool taskRanWithErrors = false;
-                        bool success = TryRun(task);
+                        bool success = task.TryRun();
 
                         //Only consider a failure as error related if task wasn't ended by another thread
                         if (!success && task.PossibleToRun)
@@ -338,23 +334,6 @@ namespace LogUtils.Threading
                     tasksProcessedCount++;
                 }
                 crawlMarkReached(CrawlMark.EndUpdate);
-            }
-        }
-
-        internal static bool TryRun(Task task)
-        {
-            if (!task.PossibleToRun)
-                return false;
-
-            try
-            {
-                task.Run();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                UtilityLogger.LogError("Task failed to execute", ex);
-                return false;
             }
         }
 

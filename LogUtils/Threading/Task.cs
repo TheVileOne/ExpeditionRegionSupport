@@ -1,4 +1,6 @@
-﻿using System;
+﻿using LogUtils.Helpers;
+using System;
+using DotNetTask = System.Threading.Tasks.Task;
 
 namespace LogUtils.Threading
 {
@@ -8,7 +10,28 @@ namespace LogUtils.Threading
 
         public int ID;
 
-        public readonly Action Run;
+        public bool IsSynchronous => RunAsync == null;
+
+        /// <summary>
+        /// Useful for awaiting on this task asynchronously
+        /// </summary>
+        internal TaskHandle Handle;
+
+        protected readonly Action Run;
+
+        private AsyncTaskDelegate _runTaskAsync;
+        protected AsyncTaskDelegate RunAsync
+        {
+            get
+            {
+                updateAsyncState();
+                return _runTaskAsync;
+            }
+            private set
+            {
+                _runTaskAsync = value;
+            }
+        }
 
         public TimeSpan InitialTime = TimeSpan.Zero;
 
@@ -31,7 +54,7 @@ namespace LogUtils.Threading
         /// </summary>
         public bool IsContinuous;
 
-        public bool PossibleToRun => State != TaskState.Complete && State != TaskState.Aborted;
+        public bool PossibleToRun => !IsCompleteOrCanceled;
 
         public TaskState State { get; protected set; }
 
@@ -40,10 +63,12 @@ namespace LogUtils.Threading
         /// </summary>
         public Task(Action runTask, int waitTimeInMS)
         {
+            if (runTask == null)
+                throw new ArgumentNullException(nameof(runTask));
+
             Run = runTask;
             WaitTimeInterval = TimeSpan.FromMilliseconds(waitTimeInMS);
-            SetID();
-            SetState(TaskState.NotSubmitted);
+            Initialize();
         }
 
         /// <summary>
@@ -51,10 +76,102 @@ namespace LogUtils.Threading
         /// </summary>
         public Task(Action runTask, TimeSpan waitTime)
         {
+            if (runTask == null)
+                throw new ArgumentNullException(nameof(runTask));
+
             Run = runTask;
             WaitTimeInterval = waitTime;
+            Initialize();
+        }
+
+        /// <summary>
+        /// Constructs a Task object - Pass this object into LogTasker to run a task on a background thread
+        /// </summary>
+        public Task(AsyncTaskDelegate runTaskAsync, TimeSpan waitTime)
+        {
+            if (runTaskAsync == null)
+                throw new ArgumentNullException(nameof(runTaskAsync));
+
+            RunAsync = runTaskAsync;
+            WaitTimeInterval = waitTime;
+            Initialize();
+        }
+
+        internal void Initialize()
+        {
             SetID();
             SetState(TaskState.NotSubmitted);
+        }
+
+        /// <summary>
+        /// Get an awaitable handle that will complete when the task ends
+        /// </summary>
+        public TaskHandle GetAsyncHandle()
+        {
+            if (Handle == null)
+                Handle = new TaskHandle(this);
+
+            Handle.OnAccess();
+            return Handle;
+        }
+
+        private void updateAsyncState()
+        {
+            var runTask = _runTaskAsync;
+
+            //TODO: This is not thread-safe
+            if (runTask != null)
+            {
+                //Handle was disposed - we no longer need to run asynchronously
+                if (Handle == null && Run != null)
+                    _runTaskAsync = null;
+                return;
+            }
+
+            //Lazily wrap the current run task with an async wrapper if an async one is unavailable
+            if (Handle != null)
+            {
+                _runTaskAsync = new AsyncTaskDelegate(() =>
+                {
+                    Run.Invoke();
+                    return DotNetTask.CompletedTask;
+                });
+            }
+        }
+
+        public bool IsCompleteOrCanceled => State == TaskState.Complete || State == TaskState.Aborted;
+
+        internal bool TryRun()
+        {
+            if (!PossibleToRun)
+                return false;
+
+            try
+            {
+                RunOnce();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                UtilityLogger.LogError("Task failed to execute", ex);
+                return false;
+            }
+        }
+
+        public void RunOnce()
+        {
+            var runAsync = RunAsync;
+            var handle = Handle;
+
+            if (runAsync != null)
+            {
+                var task = DotNetTask.Run(new Func<DotNetTask>(runAsync));
+
+                if (handle != null)
+                    handle.Task = task;
+                return;
+            }
+            Run.Invoke();
         }
 
         /// <summary>
@@ -71,8 +188,8 @@ namespace LogUtils.Threading
 
             if (force)
             {
-                Run.Invoke();
-                End();
+                RunOnce();
+                Complete();
                 return;
             }
 
@@ -81,19 +198,48 @@ namespace LogUtils.Threading
                 LogTasker.Schedule(this);
         }
 
-        public void End()
+        /// <summary>
+        /// Task will no longer run - asynchronous operations that support cancel operations will be notified
+        /// </summary>
+        public void Cancel()
         {
-            UtilityLogger.DebugLog("Task forced to end");
-            LogTasker.EndTask(this, true);
+            if (State == TaskState.Complete)
+            {
+                UtilityLogger.LogWarning("Failed to cancel - task already completed");
+                return;
+            }
+
+            if (State == TaskState.Aborted) return;
+
+            End(TaskState.Aborted);
+
+            var handle = Handle;
+
+            if (handle?.IsValid == true)
+                handle.CancellationToken.Cancel();
         }
 
         /// <summary>
-        /// Sets fields back to before first activation, and task subscription, doesn't affect wait time, or run delegate
+        /// Task will no longer run - asynchronous operations started by the task may still continue
         /// </summary>
-        internal void ResetToDefaults()
+        public void Complete()
         {
-            InitialTime = TimeSpan.Zero;
-            LastActivationTime = TimeSpan.Zero;
+            if (State == TaskState.Aborted)
+            {
+                UtilityLogger.LogWarning("Failed to complete - task was canceled");
+                return;
+            }
+            End(TaskState.Complete);
+        }
+
+        protected void End(TaskState endState)
+        {
+            if (State == TaskState.NotSubmitted || !PossibleToRun) return;
+
+            UtilityLogger.DebugLog("Task ended after " + TimeConversion.ToMilliseconds(DateTime.UtcNow - InitialTime) + " milliseconds");
+            UtilityLogger.DebugLog("Wait interval " + WaitTimeInterval.TotalMilliseconds + " milliseconds");
+
+            SetState(endState);
         }
 
         /// <summary>
@@ -137,7 +283,29 @@ namespace LogUtils.Threading
         {
             return NextActivationTime - new TimeSpan(DateTime.UtcNow.Ticks);
         }
+
+        /// <summary>
+        /// Blocks until condition is true or timeout occurs.
+        /// </summary>
+        /// <param name="condition">The break condition</param>
+        /// <param name="frequency">The frequency at which the condition will be checked</param>
+        /// <param name="timeout">The timeout in milliseconds</param>
+        public static async DotNetTask WaitUntil(Func<bool> condition, int frequency = 5, int timeout = -1)
+        {
+            //Code sourced from https://stackoverflow.com/a/52357854/30273286
+            var waitTask = DotNetTask.Run(async () =>
+            {
+                while (!condition()) await DotNetTask.Delay(frequency);
+            });
+
+            if (waitTask != await DotNetTask.WhenAny(waitTask, DotNetTask.Delay(timeout)))
+            {
+                throw new TimeoutException();
+            }
+        }
     }
+
+    public delegate DotNetTask AsyncTaskDelegate();
 
     public enum TaskState
     {
