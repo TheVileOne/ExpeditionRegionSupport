@@ -226,7 +226,10 @@ namespace LogUtils.Threading
         public static void EndTask(Task task, bool cancel)
         {
             if (cancel)
+            {
                 task.Cancel();
+                return;
+            }
             task.Complete();
         }
 
