@@ -49,19 +49,6 @@ namespace LogUtils.Threading
             accessCount--;
         }
 
-        public async DotNetTask BlockUntilNextRun(int frequency = 5, int timeout = -1)
-        {
-            var task = Task;
-
-            if (task == null)
-            {
-                UtilityLogger.LogWarning("Attempted to block a null task");
-                await DotNetTask.CompletedTask;
-            }
-
-            await Threading.Task.WaitUntil(() => task.IsCompleted || task.IsCanceled, frequency, timeout);
-        }
-
         public void BlockUntilTaskEnds(int frequency = 5, int timeout = -1)
         {
             var task = Task;
@@ -72,10 +59,7 @@ namespace LogUtils.Threading
                 return;
             }
 
-            Threading.Task.WaitUntil(() =>
-            {
-                return task.IsCompleted || task.IsCanceled; //|| Owner.State == TaskState.Aborted;
-            }, frequency, timeout).Wait();
+            Threading.Task.WaitUntil(() => task.IsCompleted || task.IsCanceled, frequency, timeout).Wait();
         }
 
         public void Dispose()

@@ -299,11 +299,10 @@ namespace LogUtils.Threading
                 {
                     Task task = tasksInProcess[i];
 
-                    if (!handledTaskIDs.Contains(task.ID))
+                    if (handledTaskIDs.Add(task.ID))
                     {
                         UtilityLogger.DebugLog("Processing task: NAME " + task.Name + " ID " + task.ID);
                         UtilityLogger.DebugLog("Is Continuous " + task.IsContinuous);
-                        handledTaskIDs.Add(task.ID);
                     }
 
                     if (!task.PossibleToRun)
