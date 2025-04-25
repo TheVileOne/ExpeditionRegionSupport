@@ -244,46 +244,65 @@ namespace LogUtils.Threading
             }
         }
 
+        private static bool timerStarted = timerUpdate != null;
+        private static Action timerUpdate; 
+
+        public static void StartTimingFrames()
+        {
+            if (timerStarted) return;
+
+            Stopwatch updateTimer = Stopwatch.StartNew();
+
+            long framesSinceLastSlowFrame = 0,
+                 elapsedTicksOnLastCheck = 0;
+
+            timerUpdate = checkUpdateTime;
+
+            //Check time at the start, and end of the update to allow capture the time in between updates
+            OnThreadUpdate += new SyncCallback(timerUpdate);
+            OnThreadUpdateComplete += new SyncCallback(timerUpdate);
+
+            void checkUpdateTime()
+            {
+                const int MAX_REPORTABLE_FRAME_COUNT = 10000000;
+
+                long elapsedTicks = updateTimer.ElapsedTicks;
+                long elapsedMillisecondsThisFrame = (elapsedTicks - elapsedTicksOnLastCheck) / TimeSpan.TicksPerMillisecond;
+
+                bool isSlowFrame = elapsedMillisecondsThisFrame > Diagnostics.Debug.LogFrameReportThreshold;
+
+                if (isSlowFrame)
+                {
+                    bool maxFrameCountReached = framesSinceLastSlowFrame >= MAX_REPORTABLE_FRAME_COUNT;
+
+                    string frameCountReport = !maxFrameCountReached ? framesSinceLastSlowFrame.ToString() : $"Over {MAX_REPORTABLE_FRAME_COUNT} frames";
+
+                    UtilityLogger.Logger.LogDebug($"Frames since last report: {frameCountReport}");
+                    UtilityLogger.Logger.LogDebug($"Frame took longer than {Diagnostics.Debug.LogFrameReportThreshold} milliseconds [{elapsedMillisecondsThisFrame} ms]");
+                    framesSinceLastSlowFrame = 0;
+                }
+                else if (CurrentCrawlMark == CrawlMark.BeginUpdate && framesSinceLastSlowFrame < MAX_REPORTABLE_FRAME_COUNT)
+                    framesSinceLastSlowFrame++;
+
+                elapsedTicksOnLastCheck = elapsedTicks;
+            }
+        }
+
+        public static void StopTimingFrames()
+        {
+            if (!timerStarted) return;
+
+            OnThreadUpdate -= new SyncCallback(timerUpdate);
+            OnThreadUpdateComplete -= new SyncCallback(timerUpdate);
+            timerUpdate = null;
+        }
+
         private static void threadUpdate()
         {
             Thread.CurrentThread.Name = UtilityConsts.UTILITY_NAME;
 
             if (UtilityCore.Build == UtilitySetup.Build.DEVELOPMENT)
-            {
-                Stopwatch updateTimer = Stopwatch.StartNew();
-
-                long framesSinceLastSlowFrame = 0,
-                     elapsedTicksOnLastCheck = 0;
-
-                //Check time at the start, and end of the update to allow capture the time in between updates
-                OnThreadUpdate += checkUpdateTime;
-                OnThreadUpdateComplete += checkUpdateTime;
-
-                void checkUpdateTime()
-                {
-                    const int MAX_REPORTABLE_FRAME_COUNT = 10000000;
-
-                    long elapsedTicks = updateTimer.ElapsedTicks;
-                    long elapsedMillisecondsThisFrame = (elapsedTicks - elapsedTicksOnLastCheck) / TimeSpan.TicksPerMillisecond;
-
-                    bool isSlowFrame = elapsedMillisecondsThisFrame > Diagnostics.Debug.LogFrameReportThreshold;
-
-                    if (isSlowFrame)
-                    {
-                        bool maxFrameCountReached = framesSinceLastSlowFrame >= MAX_REPORTABLE_FRAME_COUNT;
-
-                        string frameCountReport = !maxFrameCountReached ? framesSinceLastSlowFrame.ToString() : $"Over {MAX_REPORTABLE_FRAME_COUNT} frames";
-
-                        UtilityLogger.Logger.LogDebug($"Frames since last report: {frameCountReport}");
-                        UtilityLogger.Logger.LogDebug($"Frame took longer than {Diagnostics.Debug.LogFrameReportThreshold} milliseconds [{elapsedMillisecondsThisFrame} ms]");
-                        framesSinceLastSlowFrame = 0;
-                    }
-                    else if (CurrentCrawlMark == CrawlMark.BeginUpdate && framesSinceLastSlowFrame < MAX_REPORTABLE_FRAME_COUNT)
-                        framesSinceLastSlowFrame++;
-
-                    elapsedTicksOnLastCheck = elapsedTicks;
-                }
-            }
+                StartTimingFrames();
 
             HashSet<int> handledTaskIDs = new HashSet<int>();
 
