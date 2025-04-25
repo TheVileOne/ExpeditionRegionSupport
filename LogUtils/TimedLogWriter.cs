@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEngine;
 using DotNetTask = System.Threading.Tasks.Task;
 
 namespace LogUtils
@@ -61,7 +62,7 @@ namespace LogUtils
             try
             {
                 if (IsDisposed)
-                    throw new ObjectDisposedException("Cannot access a disposed object");
+                    throw new ObjectDisposedException(nameof(TimedLogWriter));
 
                 var activeWriters = LogWriters.Where(w => w.CanWrite);
 
@@ -244,12 +245,28 @@ namespace LogUtils
         {
             if (IsDisposed) return;
 
-            try
+            //Get a handle to the active task, so we can await it later
+            using (TaskHandle waitHandle = WriteTask.GetAsyncHandle())
             {
-                WriteTask.RunOnceAndEnd(true);
-            }
-            catch
-            {
+                try
+                {
+                    WriteTask.RunOnceAndEnd(true);
+                }
+                catch
+                {
+                    WriteTask.Cancel();
+                }
+
+                try
+                {
+                    //If we don't block here, flush operation will happen too late, and the dispose state will forbid it
+                    waitHandle.BlockUntilTaskEnds();
+                }
+                catch (Exception ex)
+                {
+                    UtilityLogger.DebugLog(ex);
+                    Debug.LogException(ex);
+                }
             }
 
             if (disposing)
