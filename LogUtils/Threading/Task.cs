@@ -10,6 +10,15 @@ namespace LogUtils.Threading
 
         public int ID;
 
+        public bool IsRunning
+        {
+            get
+            {
+                var task = Handle?.Task;
+                return task != null && task.Status == System.Threading.Tasks.TaskStatus.Running;
+            }
+        }
+
         public bool IsSynchronous => RunAsync == null;
 
         /// <summary>
@@ -141,20 +150,23 @@ namespace LogUtils.Threading
 
         public bool IsCompleteOrCanceled => State == TaskState.Complete || State == TaskState.Aborted;
 
-        internal bool TryRun()
+        internal TaskResult TryRun()
         {
             if (!PossibleToRun)
-                return false;
+                return TaskResult.UnableToRun;
+
+            if (IsRunning)
+                return TaskResult.AlreadyRunning;
 
             try
             {
                 RunOnce();
-                return true;
+                return TaskResult.Success;
             }
             catch (Exception ex)
             {
                 UtilityLogger.LogError("Task failed to execute", ex);
-                return false;
+                return TaskResult.Error;
             }
         }
 
@@ -306,6 +318,14 @@ namespace LogUtils.Threading
     }
 
     public delegate DotNetTask AsyncTaskDelegate();
+
+    public enum TaskResult
+    {
+        UnableToRun,
+        AlreadyRunning,
+        Error,
+        Success
+    }
 
     public enum TaskState
     {

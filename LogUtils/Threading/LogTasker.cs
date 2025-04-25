@@ -1,5 +1,4 @@
-﻿using LogUtils.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -294,7 +293,6 @@ namespace LogUtils.Threading
 
                 crawlMarkReached(CrawlMark.BeginUpdate);
 
-                int tasksProcessedCount = 0;
                 for (int i = 0; i < tasksInProcess.Count; i++)
                 {
                     Task task = tasksInProcess[i];
@@ -316,24 +314,21 @@ namespace LogUtils.Threading
 
                     if (timeElapsedSinceLastActivation >= task.WaitTimeInterval)
                     {
-                        bool taskRanWithErrors = false;
-                        bool success = task.TryRun();
+                        TaskResult result = task.TryRun();
 
-                        //Only consider a failure as error related if task wasn't ended by another thread
-                        if (!success && task.PossibleToRun)
-                        {
+                        if (result == TaskResult.AlreadyRunning)
+                            continue;
+
+                        if (result != TaskResult.Success)
                             task.IsContinuous = false; //Don't allow task to try again
-                            taskRanWithErrors = true;
-                        }
 
                         task.LastActivationTime = currentTime;
                         if (!task.IsContinuous)
                         {
-                            EndTask(task, taskRanWithErrors);
+                            EndTask(task, result == TaskResult.Error);
                             removeAfterUpdate(task);
                         }
                     }
-                    tasksProcessedCount++;
                 }
                 crawlMarkReached(CrawlMark.EndUpdate);
             }
