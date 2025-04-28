@@ -170,6 +170,14 @@ namespace LogUtils.Diagnostics.Tests
                 if (!testCaseFailed)
                     totalPassedCases++;
                 totalCases++;
+
+                //TODO: This code needs more thorough bug testing
+                var analyzer = Results.GetAnalyzer();
+
+                analyzer.CountResults();
+
+                totalAsserts += analyzer.TotalResults;
+                totalPassedAsserts += analyzer.TotalPassedResults;
             }
 
             //Check for results that belong to child test cases
@@ -218,11 +226,11 @@ namespace LogUtils.Diagnostics.Tests
             //Basic statistics on test failures
             report.AppendLine($"- {totalPassedCases} out of {totalCases} tests passed");
 
-            if (Group != null && Debug.TestCasePolicy.ReportVerbosity != ReportVerbosity.Compact)
+            if (Cases.Count > 0 && Group != null && Debug.TestCasePolicy.ReportVerbosity != ReportVerbosity.Compact)
                 FormatUtils.CreateHeader(report, $"Showing test cases of {Name}");
 
             //We don't need to report on assert count if it 1:1 aligns with the case results
-            if (totalAsserts != totalCases && totalPassedAsserts != totalPassedCases)
+            if (totalAsserts > 0 && totalAsserts != totalCases && totalPassedAsserts != totalPassedCases)
             {
                 report.AppendLine($"- {totalPassedAsserts} out of {totalAsserts} asserts passed");
             }
@@ -258,7 +266,7 @@ namespace LogUtils.Diagnostics.Tests
                 report.AppendLine("- All tests passed");
             }
 
-            if (Group != null)
+            if (Cases.Count > 0 && Group != null)
                 FormatUtils.CreateHeader(report, $"Finished showing test group {Name}");
         }
     }
