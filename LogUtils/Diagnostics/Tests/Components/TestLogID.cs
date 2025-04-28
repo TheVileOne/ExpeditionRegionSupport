@@ -13,6 +13,10 @@ namespace LogUtils.Diagnostics.Tests.Components
         {
         }
 
+        public TestLogID(string filename, string path, LogAccess access) : base(filename, path, access, false)
+        {
+        }
+
         /// <summary>
         /// Cycle to the next LogAccess enum value
         /// </summary>
@@ -30,6 +34,21 @@ namespace LogUtils.Diagnostics.Tests.Components
                     Access = LogAccess.FullAccess;
                     break;
             }
+        }
+
+        public static TestLogID Create(string filename, string path)
+        {
+            return new TestLogID(filename, path, LogAccess.FullAccess);
+        }
+
+        public static TestLogID FromTarget(LogID target, string path)
+        {
+            return new TestLogID(target.value, path, LogAccess.FullAccess);
+        }
+
+        public static TestLogID FromPath(string path)
+        {
+            return new TestLogID(Path.GetRandomFileName(), path, LogAccess.FullAccess);
         }
     }
 }

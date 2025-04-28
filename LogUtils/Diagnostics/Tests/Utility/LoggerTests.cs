@@ -1,4 +1,5 @@
 ﻿using LogUtils.Diagnostics.Tests.Components;
+using LogUtils.Enums;
 using LogUtils.Requests;
 
 namespace LogUtils.Diagnostics.Tests.Utility
@@ -39,22 +40,13 @@ namespace LogUtils.Diagnostics.Tests.Utility
         private void runMultiLoggerTests()
         {
             activeTestGroup = multiLoggerTests;
-            //TODO: Write tests
+            testConflictResolution();
         }
 
         private void testLogRequestSubmissionFromLogger()
         {
-            var testWriter = new FakeLogWriter();
-            var testLogID = new TestLogID();
-            Logger logger = new Logger(testLogID)
-            {
-                Writer = testWriter
-            };
-
-            string fullStringInput = "test",
-                   emptyStringInput = string.Empty,
-                   nullInput = null;
-            object objectInput = logger;
+            Logger logger = createLogger(new TestLogID());
+            var testWriter = (FakeLogWriter)logger.Writer;
 
             LogRequest resultFromFullString,
                        resultFromEmptyString,
@@ -62,33 +54,102 @@ namespace LogUtils.Diagnostics.Tests.Utility
                        resultFromObjectParam;
 
             //Non-empty string test
-            logger.Log(fullStringInput);
+            logger.Log(TestInput.Strings.FULL);
             resultFromFullString = testWriter.LatestRequest;
             
             //Empty string test
-            logger.Log(emptyStringInput);
+            logger.Log(TestInput.Strings.EMPTY);
             resultFromEmptyString = testWriter.LatestRequest;
 
             //Null test
-            logger.Log(nullInput);
+            logger.Log(TestInput.Strings.NULL);
             resultFromNullParam = testWriter.LatestRequest;
             
             //Object test
-            logger.Log(objectInput);
+            logger.Log(TestInput.OBJECT);
             resultFromObjectParam = testWriter.LatestRequest;
 
-            AssertThat(resultFromFullString.Data.Message).IsEqualTo(fullStringInput);
-            AssertThat(resultFromEmptyString.Data.Message).IsEqualTo(string.Empty);
-            AssertThat(resultFromNullParam.Data.Message).IsEqualTo(string.Empty); //Null translates to string.Empty
-            AssertThat(resultFromObjectParam.Data.Message).IsEqualTo(objectInput.ToString());
+            activeTestGroup.AssertThat(resultFromFullString.Data.Message).IsEqualTo(TestInput.Strings.FULL);
+            activeTestGroup.AssertThat(resultFromEmptyString.Data.Message).IsEqualTo(TestInput.Strings.EMPTY);
+            activeTestGroup.AssertThat(resultFromNullParam.Data.Message).IsEqualTo(TestInput.Strings.EMPTY); //Null translates to string.Empty
+            activeTestGroup.AssertThat(resultFromObjectParam.Data.Message).IsEqualTo(TestInput.OBJECT.ToString());
 
             foreach (var request in testWriter.ReceivedRequests)
             {
-                AssertThat(request.Submitted).IsTrue();
-                AssertThat(request.Status).IsEqualTo(RequestStatus.Pending);
-                AssertThat(request.Type).IsEqualTo(RequestType.Local);
-                AssertThat(request.UnhandledReason).IsEqualTo(RejectionReason.None);
+                activeTestGroup.AssertThat(request.Submitted).IsTrue();
+                activeTestGroup.AssertThat(request.Status).IsEqualTo(RequestStatus.Pending);
+                activeTestGroup.AssertThat(request.Type).IsEqualTo(RequestType.Local);
+                activeTestGroup.AssertThat(request.UnhandledReason).IsEqualTo(RejectionReason.None);
             }
+
+            logger.Dispose();
+        }
+
+        /// <summary>
+        /// Tests related to ensuring that LogIDs with equivalent filename, but different paths make it to the correct Logger instances
+        /// </summary>
+        public void testConflictResolution()
+        {
+            //Represent two log files with the same filename, but different paths
+            TestLogID targetA = TestLogID.FromPath(UtilityConsts.PathKeywords.ROOT),
+                      targetB = TestLogID.FromTarget(targetA, UtilityConsts.PathKeywords.STREAMING_ASSETS);
+
+            Logger loggerA = createLogger(targetA),
+                   loggerB = createLogger(targetB);
+
+            FakeLogWriter writerA = (FakeLogWriter)loggerA.Writer,
+                          writerB = (FakeLogWriter)loggerB.Writer;
+
+            string messageA = "A",
+                   messageB = "B";
+
+            testCorrectLoggerIsChosen_SelfTarget();
+            testCorrectLoggerIsChosen_CrossTarget();
+
+            loggerA.Dispose();
+            loggerB.Dispose();
+
+            void testCorrectLoggerIsChosen_SelfTarget()
+            {
+                loggerA.Log(messageA);
+                loggerB.Log(messageB);
+
+                activeTestGroup.AssertThat(writerA.LatestRequest.Data.Message).IsEqualTo(messageA);
+                activeTestGroup.AssertThat(writerB.LatestRequest.Data.Message).IsEqualTo(messageB);
+
+                //Test that specifying the same target has the same behavior
+                loggerA.Log(targetA, messageA);
+                loggerB.Log(targetB, messageB);
+
+                activeTestGroup.AssertThat(writerA.LatestRequest.Data.Message).IsEqualTo(messageA);
+                activeTestGroup.AssertThat(writerB.LatestRequest.Data.Message).IsEqualTo(messageB);
+
+                writerA.ReceivedRequests.Clear();
+                writerB.ReceivedRequests.Clear();
+            }
+
+            void testCorrectLoggerIsChosen_CrossTarget()
+            {
+                loggerA.Log(targetB, messageB);
+                loggerB.Log(targetA, messageA);
+
+                activeTestGroup.AssertThat(writerA.LatestRequest.Data.Message).IsEqualTo(messageA);
+                activeTestGroup.AssertThat(writerB.LatestRequest.Data.Message).IsEqualTo(messageB);
+
+                writerA.ReceivedRequests.Clear();
+                writerB.ReceivedRequests.Clear();
+            }
+        }
+
+        private Logger createLogger(params LogID[] logTargets)
+        {
+            var testWriter = new FakeLogWriter();
+
+            Logger logger = new Logger(logTargets)
+            {
+                Writer = testWriter
+            };
+            return logger;
         }
     }
 }
