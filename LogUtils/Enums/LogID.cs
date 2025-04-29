@@ -27,9 +27,14 @@ namespace LogUtils.Enums
         internal bool HasLocalAccess => !IsGameControlled && (Access == LogAccess.FullAccess || Access == LogAccess.Private);
 
         /// <summary>
+        /// Controls whether messages targetting this log file can be handled by a logger
+        /// </summary>
+        public bool IsEnabled => IsInstanceEnabled && (Properties == null || Properties.AllowLogging);
+
+        /// <summary>
         /// A flag that controls whether logging should be permitted for this LogID instance
         /// </summary>
-        public bool IsEnabled = true;
+        public bool IsInstanceEnabled = true;
 
         /// <summary>
         /// A flag that indicates that this represents a log file managed by the game
@@ -131,10 +136,7 @@ namespace LogUtils.Enums
             IsGameControlled = ManagedReference == this ? UtilityConsts.LogNames.NameMatch(value) : ManagedReference.IsGameControlled;
 
             if (IsGameControlled)
-            {
-                IsEnabled = true;
                 Access = LogAccess.FullAccess;
-            }
         }
 
         protected void InitializeProperties(string logPath)

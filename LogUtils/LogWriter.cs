@@ -78,6 +78,12 @@ namespace LogUtils
                         return;
                     }
 
+                    if (!request.Data.ID.IsEnabled)
+                    {
+                        request.Reject(RejectionReason.LogDisabled);
+                        return;
+                    }
+
                     /*
                      * In order to get back into a write qualifying range, we run a new calculation with zero new accumulated messages until the average logging rate
                      * returns back into the acceptable range

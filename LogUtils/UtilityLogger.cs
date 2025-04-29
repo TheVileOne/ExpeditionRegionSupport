@@ -44,7 +44,7 @@ namespace LogUtils
                 _performanceMode = value;
 
 #if DEBUG
-                LogID.FileActivity.IsEnabled = !value;
+                LogID.FileActivity.Properties.AllowLogging = !value;
 #endif
                 writeBuffer.SetState(value, BufferContext.Debug);
 

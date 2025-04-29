@@ -143,6 +143,11 @@ namespace LogUtils.Properties
         public SetupPeriod AccessPeriod = SetupPeriod.Pregame;
 
         /// <summary>
+        /// Should the logging system handle requests targeting this log file
+        /// </summary>
+        public bool AllowLogging = true;
+
+        /// <summary>
         /// A flag that indicates whether a log session can be, or already is established
         /// </summary>
         public bool CanBeAccessed => LogSessionActive || RWInfo.LatestSetupPeriodReached >= AccessPeriod;

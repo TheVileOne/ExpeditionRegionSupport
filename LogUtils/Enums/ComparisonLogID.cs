@@ -11,7 +11,7 @@ namespace LogUtils.Enums
         public ComparisonLogID(string filename, string relativePathNoFile = null) : base(filename)
         {
             Access = LogAccess.RemoteAccessOnly;
-            IsEnabled = false;
+            IsInstanceEnabled = false;
 
             Properties = LogProperties.PropertyManager.GetProperties(this, relativePathNoFile);
         }

@@ -35,6 +35,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             activeTestGroup = singleLoggerTests;
             testLogRequestSubmissionFromLogger();
+            testLogRequestsObeyEnabledState();
         }
 
         private void runMultiLoggerTests()
@@ -82,6 +83,22 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 activeTestGroup.AssertThat(request.UnhandledReason).IsEqualTo(RejectionReason.None);
             }
 
+            logger.Dispose();
+        }
+
+        public void testLogRequestsObeyEnabledState()
+        {
+            TestLogID testLogID = new TestLogID();
+
+            testLogID.Properties.AllowLogging = false;
+
+            Logger logger = createLogger(testLogID);
+            var testWriter = (FakeLogWriter)logger.Writer;
+
+            logger.Log("test");
+
+            //Enabled state should prevent any LogRequests from making it to the writer
+            activeTestGroup.AssertThat(testWriter.LatestRequest).IsNull();
             logger.Dispose();
         }
 
