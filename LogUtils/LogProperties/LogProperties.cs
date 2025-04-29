@@ -621,7 +621,7 @@ namespace LogUtils.Properties
         /// </summary>
         public void BeginLogSession()
         {
-            if (LogSessionActive) return;
+            if (LogSessionActive || RWInfo.IsShuttingDown) return;
 
             LogID logID = ID;
             UtilityLogger.Log($"Attempting to start log session [{logID}]");
