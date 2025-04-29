@@ -22,6 +22,11 @@ namespace LogUtils.Enums
         public LogAccess Access;
 
         /// <summary>
+        /// Will this LogID be handled as having a local context when passed to a logger
+        /// </summary>
+        internal bool HasLocalAccess => !IsGameControlled && (Access == LogAccess.FullAccess || Access == LogAccess.Private);
+
+        /// <summary>
         /// A flag that controls whether logging should be permitted for this LogID instance
         /// </summary>
         public bool IsEnabled = true;

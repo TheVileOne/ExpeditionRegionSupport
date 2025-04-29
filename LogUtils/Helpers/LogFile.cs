@@ -231,7 +231,7 @@ namespace LogUtils.Helpers
             if (writer == null)
             {
                 //There is no specified RequestType to base this search on, so we retrieve all compatible examples using RequestType.Local
-                IEnumerable<ILogHandler> availableHandlers = UtilityCore.RequestHandler.AvailableLoggers.CompatibleWith(logFile, RequestType.Local, false);
+                IEnumerable<ILogHandler> availableHandlers = UtilityCore.RequestHandler.AvailableLoggers.CompatibleWith(logFile, RequestType.Local);
 
                 writer = availableHandlers.GetWriters(logFile).FirstOrDefault();
             }

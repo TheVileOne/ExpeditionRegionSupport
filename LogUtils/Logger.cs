@@ -1,6 +1,7 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
 using LogUtils.Events;
+using LogUtils.Helpers.Extensions;
 using LogUtils.Requests;
 using System;
 using System.Collections.Generic;
@@ -23,7 +24,7 @@ namespace LogUtils
 
         public virtual bool AllowRegistration => !IsDisposed;
 
-        LogID[] ILogFileHandler.AvailableTargets => LogTargets.ToArray();
+        IEnumerable<LogID> ILogFileHandler.AvailableTargets => LogTargets.ToArray();
 
         /// <summary>
         /// Contains a list of LogIDs (both local and remote) that will be handled in the case of an untargeted log request
@@ -44,6 +45,8 @@ namespace LogUtils
         /// Contains a record of logger field values that can be restored on demand
         /// </summary>
         public LoggerRestorePoint RestorePoint;
+
+        public IRequestValidator Validator;
 
         /// <summary>
         /// Writer implementation (responsible for writing to file, or storing messages in the message buffer)
@@ -132,6 +135,8 @@ namespace LogUtils
             AllowLogging = allowLogging;
 
             LogTargets.AddRange(presets);
+
+            Validator = new RequestValidator(this);
 
             if (mode != LoggingMode.Inherit)
                 SetWriter(mode);
@@ -632,7 +637,7 @@ namespace LogUtils
                 }
                 else
                 {
-                    LogID loggerID = FindEquivalentTarget(target);
+                    LogID loggerID = this.FindEquivalentTarget(target);
 
                     if (loggerID != null)
                     {
@@ -678,42 +683,17 @@ namespace LogUtils
             }
         }
 
-        bool ILogHandler.CanHandle(LogRequest request, bool doPathCheck)
+        public bool CanHandle(LogID logID, RequestType requestType)
         {
-            return CanHandle(request.Data.ID, request.Type, doPathCheck);
-        }
+            if (logID.IsGameControlled) return false;
 
-        /// <summary>
-        /// Returns whether logger instance is able to handle a specified LogID
-        /// </summary>
-        bool ILogHandler.CanHandle(LogID logFile, RequestType requestType, bool doPathCheck)
-        {
-            return CanHandle(logFile, requestType, doPathCheck);
-        }
+            LogID loggerID = this.FindEquivalentTarget(logID);
 
-        internal bool CanHandle(LogID logID, RequestType requestType, bool doPathCheck)
-        {
-            if (logID.IsGameControlled) return false; //This check is here to prevent TryHandleRequest from potentially handling requests that should be handled by a GameLogger
+            if (loggerID == null || loggerID.Access == LogAccess.RemoteAccessOnly) //Logger can only send remote requests for this LogID
+                return false;
 
-            LogID loggerID = FindEquivalentTarget(logID);
-
-            //Enabled status is currently not evaluated here - It is unclear whether it should be part of the access check
-            if (loggerID != null)
-            {
-                if (loggerID.Access == LogAccess.RemoteAccessOnly) //Logger can only send remote requests for this LogID
-                    return false;
-
-                if (doPathCheck && loggerID.Properties.CurrentFolderPath != logID.Properties.CurrentFolderPath) //It is possible for a LogID to associate with more than one path
-                    return false;
-
-                return requestType == RequestType.Local || loggerID.Access != LogAccess.Private;
-            }
-            return false;
-        }
-
-        protected LogID FindEquivalentTarget(LogID logID)
-        {
-            return LogTargets.Find(log => log.Equals(logID));
+            //TODO: Enabled status is currently not evaluated here - It is unclear whether it should be part of the access check
+            return requestType == RequestType.Local || loggerID.Access != LogAccess.Private;
         }
 
         /// <summary>
@@ -734,63 +714,17 @@ namespace LogUtils
             return Writer;
         }
 
-        public void HandleRequest(LogRequest request, bool skipAccessValidation = false)
+        public void HandleRequest(LogRequest request)
         {
             if (request.Submitted)
                 UtilityCore.RequestHandler.CurrentRequest = request;
 
             request.ResetStatus(); //Ensure that processing request is handled in a consistent way
+            request.Validate(Validator);
 
-            LogID requestID = request.Data.ID;
-
-            //A log request must have a compatible LogID that is consistent with the access fields of a LogID targeted by the logger.
-            //Generally skipping this check means access has already been verified. 
-            bool requestCanBeHandled = skipAccessValidation || CanHandle(requestID, request.Type, doPathCheck: true);
-
-            //Check that there is a target with the same filename and path as the request ID
-            LogID loggerID = null;
-            if (requestCanBeHandled)
-            {
-                loggerID = LogTargets.Find(log => log.BaseEquals(requestID));
-                requestCanBeHandled = loggerID?.Equals(requestID) == true;
-            }
-
-            if (!requestCanBeHandled)
-            {
-                if (loggerID != null)
-                {
-                    UtilityLogger.Log("Request not handled, log paths do not match");
-                    request.Reject(RejectionReason.PathMismatch);
-                }
-                else
-                {
-                    //TODO: CanHandle should be replaced with a function that returns an AccessViolation enum that tells us which specific reason to reject the request
-                    UtilityLogger.LogWarning("Request sent to a logger that cannot handle it");
-                    request.Reject(RejectionReason.NotAllowedToHandle);
-                }
+            if (request.Status == RequestStatus.Rejected)
                 return;
-            }
 
-            if (!AllowLogging || !loggerID.IsEnabled)
-            {
-                request.Reject(RejectionReason.LogDisabled);
-                return;
-            }
-
-            if (loggerID.Properties.ShowLogsAware && !RainWorld.ShowLogs)
-            {
-                if (RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD)
-                    request.Reject(RejectionReason.ShowLogsNotInitialized);
-                else
-                    request.Reject(RejectionReason.LogDisabled);
-                return;
-            }
-
-            if (request.Type == RequestType.Remote && (loggerID.Access == LogAccess.Private || !AllowRemoteLogging))
-            {
-                request.Reject(RejectionReason.AccessDenied);
-                return;
-            }
             SendToWriter(request);
         }
 
@@ -842,6 +776,49 @@ namespace LogUtils
         }
 
         #endregion
+
+        public class RequestValidator : IRequestValidator
+        {
+            public ILogHandler Handler;
+
+            public RequestValidator(ILogHandler handler)
+            {
+                Handler = handler;
+            }
+
+            public RejectionReason GetResult(LogRequest request)
+            {
+                LogID targetID = Handler.FindEquivalentTarget(request.Data.ID);
+
+                //There are no suitable targets
+                if (targetID == null)
+                {
+                    if (Handler.AvailableTargets.NearestEquivalent(request.Data.ID) != null)
+                        return RejectionReason.PathMismatch;
+
+                    return RejectionReason.NotAllowedToHandle;
+                }
+
+                //There are other handler specific reasons to not handle this request
+                if (!Handler.CanHandle(request))
+                    return RejectionReason.NotAllowedToHandle;
+
+                if (!Handler.AllowLogging || !targetID.IsEnabled)
+                    return RejectionReason.LogDisabled;
+
+                if (targetID.Properties.ShowLogsAware && !RainWorld.ShowLogs)
+                {
+                    if (RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD)
+                        return RejectionReason.ShowLogsNotInitialized;
+                    return RejectionReason.LogDisabled;
+                }
+
+                if (request.Type == RequestType.Remote && (targetID.Access == LogAccess.Private || !Handler.AllowRemoteLogging))
+                    return RejectionReason.AccessDenied;
+
+                return RejectionReason.None;
+            }
+        }
 
         public class EarlyInitializationException(string message) : InvalidOperationException(message)
         {

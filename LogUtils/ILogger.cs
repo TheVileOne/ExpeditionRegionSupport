@@ -41,19 +41,14 @@ namespace LogUtils
         bool AllowRegistration{ get; }
 
         /// <summary>
-        /// Does this handler accept, and process a specific LogRequest instance
-        /// </summary>
-        bool CanHandle(LogRequest request, bool doPathCheck = false);
-
-        /// <summary>
         /// Does this handler accept LogRequests of a specific log file and request type
         /// </summary>
-        bool CanHandle(LogID logID, RequestType requestType, bool doPathCheck = false);
+        bool CanHandle(LogID logID, RequestType requestType);
 
         /// <summary>
         /// Accepts and processes a LogRequest instance
         /// </summary>
-        void HandleRequest(LogRequest request, bool skipAccessValidation = false);
+        void HandleRequest(LogRequest request);
     }
 
     public interface ILogFileHandler
@@ -61,7 +56,7 @@ namespace LogUtils
         /// <summary>
         /// Log files available for use by the handler
         /// </summary>
-        LogID[] AvailableTargets { get; }
+        IEnumerable<LogID> AvailableTargets { get; }
 
         /// <summary>
         /// Retrieves all log files that are accessible by the handler

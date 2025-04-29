@@ -165,6 +165,14 @@ namespace LogUtils.Requests
             }
         }
 
+        public void Validate(IRequestValidator validator)
+        {
+            RejectionReason reason = validator.GetResult(this);
+
+            if (reason != RejectionReason.None)
+                Reject(reason);
+        }
+
         public void WriteInProcess()
         {
             if (Status != RequestStatus.Pending) return;

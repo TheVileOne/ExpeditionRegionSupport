@@ -444,7 +444,7 @@ namespace LogUtils.Requests
                 }
                 else
                 {
-                    var logger = availableLoggers.FindCompatible(requestID, requestType, doPathCheck: false);
+                    var logger = availableLoggers.FindCompatible(requestID, requestType);
                     selectedLogger = new LoggerSelection(logger, requestType);
                 }
             }
@@ -460,7 +460,7 @@ namespace LogUtils.Requests
 
             //Beyond this point, we can assume that there are no preexisting unhandled requests for this log file
             ILogHandler selectedLogger = !logFile.IsGameControlled
-                ? availableLoggers.FindCompatible(logFile, request.Type, doPathCheck: true) : GameLogger;
+                ? availableLoggers.FindCompatible(logFile, request.Type) : GameLogger;
 
             HandleRequest(request, selectedLogger);
         }
@@ -477,7 +477,7 @@ namespace LogUtils.Requests
                     return;
                 }
 
-                logger.HandleRequest(request, skipAccessValidation: true);
+                logger.HandleRequest(request);
             }
             finally
             {

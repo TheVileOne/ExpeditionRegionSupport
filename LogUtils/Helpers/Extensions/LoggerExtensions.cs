@@ -10,22 +10,29 @@ namespace LogUtils.Helpers.Extensions
     public static class LoggerExtensions
     {
         /// <summary>
+        /// Does this handler accept this LogRequest
+        /// </summary>
+        public static bool CanHandle(this ILogHandler handler, LogRequest request)
+        {
+            return handler.CanHandle(request.Data.ID, request.Type);
+        }
+
+        /// <summary>
         /// Finds a list of all logger instances that accepts log requests for a specified LogID
         /// </summary>
         /// <param name="logFile">LogID to check</param>
         /// <param name="requestType">The request type expected</param>
-        /// <param name="doPathCheck">Should the log file's containing folder bear significance when finding a logger match</param>
-        public static IEnumerable<ILogHandler> CompatibleWith(this IEnumerable<ILogHandler> handlers, LogID logFile, RequestType requestType, bool doPathCheck)
+        public static IEnumerable<ILogHandler> CompatibleWith(this IEnumerable<ILogHandler> handlers, LogID logFile, RequestType requestType)
         {
-            return handlers.Where(handler => handler.CanHandle(logFile, requestType, doPathCheck));
+            return handlers.Where(handler => handler.CanHandle(logFile, requestType));
         }
 
         internal static void FindCompatible(this IEnumerable<ILogHandler> handlers, LogID logFile, out ILogHandler localLogger, out ILogHandler remoteLogger)
         {
             localLogger = remoteLogger = null;
 
-            var remoteHandlers = handlers.CompatibleWith(logFile, RequestType.Remote, doPathCheck: true);
-            var localHandlers = handlers.CompatibleWith(logFile, RequestType.Local, doPathCheck: true);
+            var remoteHandlers = handlers.CompatibleWith(logFile, RequestType.Remote);
+            var localHandlers = handlers.CompatibleWith(logFile, RequestType.Local);
 
             foreach (Logger logger in remoteHandlers)
             {
@@ -88,13 +95,12 @@ namespace LogUtils.Helpers.Extensions
         /// </summary>
         /// <param name="logFile">LogID to check</param>
         /// <param name="requestType">The request type expected</param>
-        /// <param name="doPathCheck">Should the log file's containing folder bear significance when finding a logger match</param>
-        internal static ILogHandler FindCompatible(this IEnumerable<ILogHandler> handlers, LogID logFile, RequestType requestType, bool doPathCheck)
+        internal static ILogHandler FindCompatible(this IEnumerable<ILogHandler> handlers, LogID logFile, RequestType requestType)
         {
             if (requestType == RequestType.Game)
                 return null;
 
-            ILogHandler[] candidates = handlers.CompatibleWith(logFile, requestType, doPathCheck).ToArray();
+            ILogHandler[] candidates = handlers.CompatibleWith(logFile, requestType).ToArray();
 
             if (candidates.Length == 0)
                 return null;
@@ -128,6 +134,40 @@ namespace LogUtils.Helpers.Extensions
                 }
             }
             return bestCandidate;
+        }
+
+        /// <summary>
+        /// Finds the best fit candidate in a target collection for a provided log file
+        /// </summary>
+        /// <returns>A LogID contained in the target collection with a matching filename, and/or path (best fit)</returns>
+        public static LogID NearestEquivalent(this IEnumerable<LogID> targets, LogID logFile)
+        {
+            LogID bestCandidate = null;
+            foreach (LogID target in targets)
+            {
+                if (hasFilenameAndPathMatch(target))
+                {
+                    bestCandidate = target; //Best possible target
+                    break;
+                }
+
+                if (hasFilenameMatch(target))
+                    bestCandidate = target;
+            }
+            return bestCandidate;
+
+            bool hasFilenameMatch(LogID log) => log.BaseEquals(logFile);
+            bool hasFilenameAndPathMatch(LogID log) => log.Equals(logFile);
+        }
+
+        public static LogID FindEquivalentTarget(this ILogHandler handler, LogID logFile)
+        {
+            LogID target = handler.AvailableTargets.NearestEquivalent(logFile);
+
+            if (target == null)
+                return null;
+
+            return target.Equals(logFile) ? target : null;
         }
 
         public static IEnumerable<ILogWriter> GetWriters(this IEnumerable<ILogHandler> handlers)
@@ -166,15 +206,9 @@ namespace LogUtils.Helpers.Extensions
 
         internal static IEnumerable<PersistentLogFileHandle> GetUnusedHandles(this ILogHandler logger, IEnumerable<PersistentLogFileHandle> handlePool)
         {
-            var localTargets = Array.FindAll(logger.AvailableTargets, canLogBeHandledLocally);
+            var localTargets = logger.AvailableTargets.Where(target => target.HasLocalAccess).ToArray();
 
             return handlePool.Where(handle => !localTargets.Contains(handle.FileID));
-        }
-
-        private static bool canLogBeHandledLocally(LogID logID)
-        {
-            //No game-controlled, or remote targets
-            return !logID.IsGameControlled && (logID.Access == LogAccess.FullAccess || logID.Access == LogAccess.Private);
         }
     }
 }

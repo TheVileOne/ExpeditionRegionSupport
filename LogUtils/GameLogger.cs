@@ -4,6 +4,7 @@ using JollyCoop;
 using LogUtils.Compatibility;
 using LogUtils.Enums;
 using LogUtils.Events;
+using LogUtils.Helpers.Extensions;
 using LogUtils.Requests;
 using System;
 using System.Collections.Generic;
@@ -23,13 +24,15 @@ namespace LogUtils
 
         public int GameLoggerRequestCounter;
 
+        public IRequestValidator Validator;
+
         bool ILogHandler.AllowLogging => true;
 
         bool ILogHandler.AllowRemoteLogging => true;
 
         bool ILogHandler.AllowRegistration => false;
 
-        LogID[] ILogFileHandler.AvailableTargets => LogTargets;
+        IEnumerable<LogID> ILogFileHandler.AvailableTargets => LogTargets;
 
         IEnumerable<LogID> ILogFileHandler.GetAccessibleTargets() => LogTargets;
 
@@ -48,13 +51,16 @@ namespace LogUtils
             }
         }
 
-        bool ILogHandler.CanHandle(LogRequest request, bool doPathCheck) => CanHandle(request.Data.ID);
+        bool ILogHandler.CanHandle(LogID logFile, RequestType requestType) => CanHandle(logFile);
 
-        bool ILogHandler.CanHandle(LogID logFile, RequestType requestType, bool doPathCheck) => CanHandle(logFile);
-
-        internal bool CanHandle(LogID logFile) => logFile.IsGameControlled;
+        public bool CanHandle(LogID logFile) => logFile.IsGameControlled;
 
         ILogWriter ILogWriterProvider.GetWriter() => null; //Not associated with a particular writer implementation
+
+        public GameLogger()
+        {
+            Validator = new RequestValidator(this);
+        }
 
         /// <summary>
         /// Retrieves the current LogWriter for a game-controlled log file 
@@ -74,39 +80,20 @@ namespace LogUtils
             return LogWriter.Writer;
         }
 
-        public void HandleRequest(LogRequest request, bool skipAccessValidation = false)
+        public void HandleRequest(LogRequest request)
         {
-            request.ResetStatus(); //Ensure that processing request is handled in a consistent way
-
             if (request.Submitted)
                 UtilityCore.RequestHandler.CurrentRequest = request;
 
-            LogID logFile = request.Data.ID;
-
-            //Normal utility code paths should not allow for this guard to be triggered
-            if (!skipAccessValidation && !CanHandle(logFile))
-            {
-                UtilityLogger.LogWarning("Request sent to a logger that cannot handle it");
-                request.Reject(RejectionReason.NotAllowedToHandle);
-            }
-
-            //Check RainWorld.ShowLogs for logs that are restricted by it
-            if (logFile.Properties.ShowLogsAware && !RainWorld.ShowLogs)
-            {
-                if (RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD)
-                    request.Reject(RejectionReason.ShowLogsNotInitialized);
-                else
-                    request.Reject(RejectionReason.LogDisabled);
-                return;
-            }
-
-            if (!logFile.Properties.CanBeAccessed)
-                request.Reject(RejectionReason.LogUnavailable);
+            request.ResetStatus(); //Ensure that processing request is handled in a consistent way
+            request.Validate(Validator);
 
             if (request.Status == RequestStatus.Rejected)
                 return;
 
             string message = request.Data.Message;
+
+            LogID logFile = request.Data.ID;
 
             if (logFile == LogID.BepInEx)
             {
@@ -288,6 +275,40 @@ namespace LogUtils
 
                 LogFileInProcess = lastProcessState;
                 GameLoggerRequestCounter--;
+            }
+        }
+
+        public class RequestValidator : IRequestValidator
+        {
+            public ILogHandler Handler;
+
+            public RequestValidator(ILogHandler handler)
+            {
+                Handler = handler;
+            }
+
+            public RejectionReason GetResult(LogRequest request)
+            {
+                if (!Handler.CanHandle(request))
+                    return RejectionReason.NotAllowedToHandle;
+
+                LogID logFile = request.Data.ID;
+
+                if (!logFile.IsEnabled)
+                    return RejectionReason.LogDisabled;
+
+                //Check RainWorld.ShowLogs for logs that are restricted by it
+                if (logFile.Properties.ShowLogsAware && !RainWorld.ShowLogs)
+                {
+                    if (RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD)
+                        return RejectionReason.ShowLogsNotInitialized;
+                    return RejectionReason.LogDisabled;
+                }
+
+                if (!logFile.Properties.CanBeAccessed)
+                    return RejectionReason.LogUnavailable;
+
+                return RejectionReason.None;
             }
         }
     }
