@@ -4,8 +4,8 @@ using JollyCoop;
 using LogUtils.Compatibility;
 using LogUtils.Enums;
 using LogUtils.Events;
-using LogUtils.Helpers.Extensions;
 using LogUtils.Requests;
+using LogUtils.Requests.Validation;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -59,7 +59,7 @@ namespace LogUtils
 
         public GameLogger()
         {
-            Validator = new RequestValidator(this);
+            Validator = new GameRequestValidator(this);
         }
 
         /// <summary>
@@ -275,40 +275,6 @@ namespace LogUtils
 
                 LogFileInProcess = lastProcessState;
                 GameLoggerRequestCounter--;
-            }
-        }
-
-        public class RequestValidator : IRequestValidator
-        {
-            public ILogHandler Handler;
-
-            public RequestValidator(ILogHandler handler)
-            {
-                Handler = handler;
-            }
-
-            public RejectionReason GetResult(LogRequest request)
-            {
-                if (!Handler.CanHandle(request))
-                    return RejectionReason.NotAllowedToHandle;
-
-                LogID logFile = request.Data.ID;
-
-                if (!logFile.IsEnabled)
-                    return RejectionReason.LogDisabled;
-
-                //Check RainWorld.ShowLogs for logs that are restricted by it
-                if (logFile.Properties.ShowLogsAware && !RainWorld.ShowLogs)
-                {
-                    if (RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD)
-                        return RejectionReason.ShowLogsNotInitialized;
-                    return RejectionReason.LogDisabled;
-                }
-
-                if (!logFile.Properties.CanBeAccessed)
-                    return RejectionReason.LogUnavailable;
-
-                return RejectionReason.None;
             }
         }
     }

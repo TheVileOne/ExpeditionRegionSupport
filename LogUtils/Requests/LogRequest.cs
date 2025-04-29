@@ -1,5 +1,6 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Events;
+using LogUtils.Requests.Validation;
 using System;
 using System.Threading;
 
