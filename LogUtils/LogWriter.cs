@@ -64,31 +64,33 @@ namespace LogUtils
 
             request.WriteInProcess();
 
-            if (request.ThreadCanWrite)
+            if (!request.ThreadCanWrite) return;
+
+            LogProfiler profiler = request.Data.Properties.Profiler;
+            MessageBuffer writeBuffer = request.Data.Properties.WriteBuffer;
+
+            //Assume that thread is allowed to write if we get to this point
+            try
             {
-                LogProfiler profiler = request.Data.Properties.Profiler;
-                MessageBuffer buffer = request.Data.Properties.WriteBuffer;
-
-                //Assume that thread is allowed to write if we get past this point
-                try
+                if (!LogFilter.IsAllowed(request.Data))
                 {
-                    if (!LogFilter.IsAllowed(request.Data))
-                    {
-                        request.Reject(RejectionReason.FilterMatch);
-                        return;
-                    }
+                    request.Reject(RejectionReason.FilterMatch);
+                    return;
+                }
 
-                    if (!request.Data.ID.IsEnabled)
-                    {
-                        request.Reject(RejectionReason.LogDisabled);
-                        return;
-                    }
+                if (!request.Data.ID.IsEnabled)
+                {
+                    request.Reject(RejectionReason.LogDisabled);
+                    return;
+                }
 
+                if (!RWInfo.IsShuttingDown)
+                {
                     /*
                      * In order to get back into a write qualifying range, we run a new calculation with zero new accumulated messages until the average logging rate
                      * returns back into the acceptable range
                      */
-                    if (buffer.IsBuffering || profiler.IsReadyToAnalyze)
+                    if (writeBuffer.IsBuffering || profiler.IsReadyToAnalyze)
                     {
                         //Perform logging average calculations on message data
                         profiler.UpdateCalculations();
@@ -97,7 +99,7 @@ namespace LogUtils
 
                         bool highVolumePeriod = averageWriteTime < profiler.LogRateThreshold; //Lower value means higher rate
 
-                        if (highVolumePeriod && !buffer.IsBuffering)
+                        if (highVolumePeriod && !writeBuffer.IsBuffering)
                         {
                             UtilityLogger.DebugLog($"Average logging time: {averageWriteTime} ms per message");
 
@@ -107,19 +109,19 @@ namespace LogUtils
 
                         if (highVolumePeriod && profiler.ShouldUseBuffer)
                         {
-                            if (!buffer.IsEntered(BufferContext.HighVolume))
+                            if (!writeBuffer.IsEntered(BufferContext.HighVolume))
                             {
-                                buffer.SetState(true, BufferContext.HighVolume);
+                                writeBuffer.SetState(true, BufferContext.HighVolume);
 
-                                PollingTimer listener = buffer.ActivityListeners.FirstOrDefault(l => Equals(l.Tag, BufferContext.HighVolume));
+                                PollingTimer listener = writeBuffer.ActivityListeners.FirstOrDefault(l => Equals(l.Tag, BufferContext.HighVolume));
 
                                 if (listener == null)
                                 {
-                                    listener = buffer.PollForActivity(null, (t, e) =>
+                                    listener = writeBuffer.PollForActivity(null, (t, e) =>
                                     {
                                         //TODO: This will run on a different thread. It needs to be thread-safe
                                         //Ensure that buffer will disable itself after a short period of time without needing extra log requests to clear the buffer
-                                        if (buffer.SetState(false, BufferContext.HighVolume))
+                                        if (writeBuffer.SetState(false, BufferContext.HighVolume))
                                         {
                                             profiler.Restart();
                                             WriteFromBuffer(request.Data.ID, initialWaitInterval);
@@ -127,30 +129,35 @@ namespace LogUtils
                                     }, initialWaitInterval);
                                     listener.Tag = BufferContext.HighVolume;
                                 }
-                                UtilityLogger.DebugLog($"Activity listeners {buffer.ActivityListeners.Count}");
+                                UtilityLogger.DebugLog($"Activity listeners {writeBuffer.ActivityListeners.Count}");
                             }
                             profiler.BufferedFrameCount++;
                         }
-                        else if (buffer.IsEntered(BufferContext.HighVolume) && buffer.SetState(false, BufferContext.HighVolume))
+                        else if (writeBuffer.IsEntered(BufferContext.HighVolume) && writeBuffer.SetState(false, BufferContext.HighVolume))
                         {
                             profiler.Restart();
                         }
                     }
 
-                    if (buffer.IsBuffering)
+                    if (writeBuffer.IsBuffering)
                     {
                         WriteToBuffer(request);
                         return;
                     }
-
-                    WriteHandler.Invoke(request);
                 }
-                finally
+                else
                 {
-                    if (!buffer.IsBuffering)
-                        profiler.MessagesSinceLastSampling++;
-                    UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+                    //Buffer should be handled immediately, while Rain World is shutting down
+                    WriteFromBuffer(request.Data.ID, TimeSpan.Zero, respectBufferState: false);
                 }
+
+                WriteHandler.Invoke(request);
+            }
+            finally
+            {
+                if (!writeBuffer.IsBuffering || RWInfo.IsShuttingDown)
+                    profiler.MessagesSinceLastSampling++;
+                UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
             }
         }
 
@@ -425,6 +432,10 @@ namespace LogUtils
             string message = ApplyRules(messageData);
 
             writer.WriteLine(message);
+
+            if (RWInfo.IsShuttingDown)
+                writer.Flush();
+
             messageData.Properties.MessagesHandledThisSession++;
         }
 

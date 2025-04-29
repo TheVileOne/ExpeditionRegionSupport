@@ -174,6 +174,8 @@ namespace LogUtils
 
         private static void RainWorld_OnDestroy(On.RainWorld.orig_OnDestroy orig, RainWorld self)
         {
+            RWInfo.IsShuttingDown = true;
+
             //End all active log sessions
             LogProperties.PropertyManager.Properties.ForEach(p => p.EndLogSession());
 
