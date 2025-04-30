@@ -250,10 +250,13 @@ namespace LogUtils
             {
                 try
                 {
-                    WriteTask.RunOnceAndEnd(true);
+                    if (WriteTask.PossibleToRun)
+                        WriteTask.RunOnceAndEnd(true);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    UtilityLogger.DebugLog("Task attempt did not finish - cancelling task");
+                    UtilityLogger.DebugLog(ex);
                     WriteTask.Cancel();
                 }
 

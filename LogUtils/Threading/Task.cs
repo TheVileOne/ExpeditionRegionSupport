@@ -150,7 +150,7 @@ namespace LogUtils.Threading
 
         public bool IsCompleteOrCanceled => State == TaskState.Complete || State == TaskState.Aborted;
 
-        internal TaskResult TryRun()
+        public TaskResult TryRun()
         {
             if (!PossibleToRun)
                 return TaskResult.UnableToRun;
@@ -170,8 +170,19 @@ namespace LogUtils.Threading
             }
         }
 
+        /// <summary>
+        /// Runs the task a single time
+        /// </summary>
+        /// <exception cref="InvalidOperationException">The task is already completed, or canceled OR the task is running on another thread, and task concurrency is not allowed</exception>
         public void RunOnce()
         {
+            if (!PossibleToRun)
+                throw new InvalidOperationException("Unable to run");
+
+            //TODO: Allow opt-in for concurrent run state
+            if (IsRunning)
+                throw new InvalidOperationException("Task is not allowed to run concurrently");
+
             var runAsync = RunAsync;
             var handle = Handle;
 
@@ -190,13 +201,11 @@ namespace LogUtils.Threading
         /// Runs the task a single time before terminating
         /// </summary>
         /// <param name="force">Should this task bypass the scheduling process</param>
+        /// <exception cref="InvalidOperationException">The task is already completed, or canceled OR the task is running on another thread, and task concurrency is not allowed</exception>
         /// <exception cref="InvalidStateException">The state has failed, or has been marked as complete</exception>
         public void RunOnceAndEnd(bool force)
         {
             IsContinuous = false;
-
-            if (!PossibleToRun)
-                throw new InvalidStateException("Unable to run");
 
             if (force)
             {
