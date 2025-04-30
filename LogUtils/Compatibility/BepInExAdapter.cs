@@ -1,5 +1,4 @@
 ﻿using BepInEx.Logging;
-using LogUtils.Compatibility.Listeners;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -67,6 +66,26 @@ namespace LogUtils.Compatibility
         internal static ICollection<ILogListener> GetListeners()
         {
             return BepInEx.Logging.Logger.Listeners;
+        }
+
+        internal static void DisposeListeners()
+        {
+            try
+            {
+                ICollection<ILogListener> listeners = GetListeners();
+
+                foreach (var listener in listeners.ToArray())
+                {
+                    UtilityLogger.DebugLog($"Disposing {listener}");
+                    listener.Dispose();
+                    listeners.Remove(listener);
+                }
+                UtilityLogger.DebugLog("Dispose successful");
+            }
+            catch
+            {
+                UtilityLogger.DebugLog("Dispose process encountered an error");
+            }
         }
     }
 }

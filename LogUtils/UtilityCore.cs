@@ -353,6 +353,9 @@ namespace LogUtils
                 }
             }
 
+            //Stop listening for log events
+            //BepInExAdapter.DisposeListeners();
+
             LogProperties.PropertyManager.SaveToFile();
             LogTasker.Close();
         }
