@@ -672,6 +672,10 @@ namespace LogUtils.Properties
             if (!LogSessionActive) return;
 
             LogID logID = ID;
+
+            //Handle all pending requests, or buffered content before ending the session
+            UtilityCore.RequestHandler.ProcessRequests(logID);
+
             UtilityLogger.Log($"Log session ended [{logID}]");
 
             if (LogFilter.FilteredStrings.TryGetValue(logID, out List<FilteredStringEntry> filter))

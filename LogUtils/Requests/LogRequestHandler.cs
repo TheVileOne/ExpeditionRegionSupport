@@ -1,5 +1,6 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Events;
+using LogUtils.Helpers;
 using LogUtils.Helpers.Extensions;
 using LogUtils.Threading;
 using System;
@@ -305,6 +306,21 @@ namespace LogUtils.Requests
                 logFile.Properties.HandleRecord.Reset();
 
                 LogRequest[] requests = GetRequests(logFile);
+
+                if (requests.Length == 0)
+                {
+                    MessageBuffer writeBuffer = logFile.Properties.WriteBuffer;
+
+                    if (!writeBuffer.IsBuffering && writeBuffer.HasContent)
+                    {
+                        var writer = LogFile.FindWriter(logFile);
+
+                        if (writer != null)
+                            writer.WriteFromBuffer(logFile);
+                    }
+                    return;
+                }
+
                 ILogHandler selectedLogger = null;
 
                 //Evaluate all requests waiting to be handled for this log file
