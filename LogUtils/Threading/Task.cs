@@ -319,10 +319,17 @@ namespace LogUtils.Threading
                 while (!condition()) await DotNetTask.Delay(frequency);
             });
 
+            bool taskRun = waitTask.Wait(timeout);
+
+            if (!taskRun)
+                throw new TimeoutException();
+
+            /*
             if (waitTask != await DotNetTask.WhenAny(waitTask, DotNetTask.Delay(timeout)))
             {
                 throw new TimeoutException();
             }
+            */
         }
     }
 

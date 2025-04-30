@@ -263,12 +263,15 @@ namespace LogUtils
                 try
                 {
                     //If we don't block here, flush operation will happen too late, and the dispose state will forbid it
-                    waitHandle.BlockUntilTaskEnds();
+                    waitHandle.BlockUntilTaskEnds(5, 50);
+                }
+                catch (TimeoutException)
+                {
+                    UtilityLogger.DebugLog("Task took too long to complete");
                 }
                 catch (Exception ex)
                 {
                     UtilityLogger.DebugLog(ex);
-                    Debug.LogException(ex);
                 }
             }
 
