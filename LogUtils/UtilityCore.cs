@@ -354,6 +354,7 @@ namespace LogUtils
             }
 
             LogProperties.PropertyManager.SaveToFile();
+            LogTasker.Close();
         }
     }
 }

@@ -26,6 +26,8 @@ namespace LogUtils.Threading
 
         public static bool IsBatching { get; private set; }
 
+        public static bool IsRunning { get; private set; }
+
         /// <summary>
         /// Allows tasks to be scheduled in an uninterrupted sequence
         /// </summary>
@@ -299,6 +301,7 @@ namespace LogUtils.Threading
 
         private static void threadUpdate()
         {
+            IsRunning = true;
             Thread.CurrentThread.Name = UtilityConsts.UTILITY_NAME;
 
             if (UtilityCore.Build == UtilitySetup.Build.DEVELOPMENT)
@@ -306,7 +309,7 @@ namespace LogUtils.Threading
 
             HashSet<int> handledTaskIDs = new HashSet<int>();
 
-            while (true)
+            while (IsRunning)
             {
                 TimeSpan currentTime = TimeSpan.FromTicks(DateTime.UtcNow.Ticks);
 
@@ -351,17 +354,32 @@ namespace LogUtils.Threading
                 }
                 crawlMarkReached(CrawlMark.EndUpdate);
             }
+            UtilityLogger.DebugLog("Task thread terminating");
         }
 
-        internal static void SyncWaitOnCrawlMark(CrawlMark crawlMark)
+        internal static void Close()
         {
-            WaitOnCrawlMark = crawlMark;
+            bool tasksCanceled = false;
 
-            if (crawlMark != CrawlMark.None)
+            //Block the task thread
+            WaitOnCrawlMark = CrawlMark.BeginUpdate;
+
+            //Cancel all current tasks
+            OnThreadUpdate += () =>
             {
-                while (!WaitingOnSignal)
-                    continue;
-            }
+                tasksInProcess.ForEach(t => t.Cancel());
+                tasksCanceled = true;
+            };
+
+            //Block current thread until synced with task thread
+            SpinWait.SpinUntil(() => WaitingOnSignal);
+
+            //Release task thread
+            WaitOnCrawlMark = CrawlMark.None;
+
+            //Block current thread until all tasks are canceled
+            SpinWait.SpinUntil(() => !tasksCanceled);
+            IsRunning = false;
         }
 
         public delegate void SyncCallback();
