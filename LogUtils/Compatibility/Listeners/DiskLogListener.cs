@@ -7,9 +7,9 @@ using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
 
-namespace LogUtils.Compatibility
+namespace LogUtils.Compatibility.Listeners
 {
-    public sealed class BepInExDiskLogListener : ILogListener
+    public sealed class DiskLogListener : ILogListener
     {
         /// <summary>
         /// This writer handles all BepInEx log traffic for Rain World
@@ -21,7 +21,7 @@ namespace LogUtils.Compatibility
         /// </summary>
         private readonly List<LogRequest> utilityRequestsInProcess = new List<LogRequest>();
 
-        public BepInExDiskLogListener(ILogWriter writer)
+        public DiskLogListener(ILogWriter writer)
         {
             Writer = writer;
         }
@@ -126,7 +126,7 @@ namespace LogUtils.Compatibility
             GC.SuppressFinalize(this);
         }
 
-        ~BepInExDiskLogListener()
+        ~DiskLogListener()
         {
             Dispose(disposing: false);
         }

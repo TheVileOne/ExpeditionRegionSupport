@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Compatibility.Listeners;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,11 +10,11 @@ namespace LogUtils.Compatibility
     /// </summary>
     internal static class BepInExAdapter
     {
-        internal static BepInExDiskLogListener LogListener;
+        internal static Listeners.DiskLogListener LogListener;
 
         public static void Run()
         {
-            LogListener = new BepInExDiskLogListener(new TimedLogWriter());
+            LogListener = new Listeners.DiskLogListener(new TimedLogWriter());
 
             AdaptLoggingSystem();
             TransferData();
@@ -27,7 +28,7 @@ namespace LogUtils.Compatibility
             ICollection<ILogListener> listeners = GetListeners();
 
             //Find the LogListener that writes to the BepInEx root directory
-            ILogListener found = listeners.FirstOrDefault(l => l is DiskLogListener);
+            ILogListener found = listeners.FirstOrDefault(l => l is BepInEx.Logging.DiskLogListener);
 
             //This listener is incompatible with LogUtils, and must be replaced
             if (found != null)
