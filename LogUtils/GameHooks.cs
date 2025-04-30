@@ -176,37 +176,14 @@ namespace LogUtils
         {
             RWInfo.IsShuttingDown = true;
 
-            //End all active log sessions
-            LogProperties.PropertyManager.Properties.ForEach(properties =>
+            try
             {
-                if (properties.ID.Equals(LogID.BepInEx))
-                    return;
-
-                using (properties.FileLock.Acquire())
-                {
-                    properties.EndLogSession();
-                    properties.AllowLogging = false; //No new logs should happen beyond this point
-                }
-            });
-
-            LogID logFile = LogID.BepInEx;
-
-            if (logFile.Properties.FileExists)
-            {
-                using (logFile.Properties.FileLock.Acquire())
-                {
-                    //End the log session later than the others to ensure that session state is reported to file
-                    logFile.Properties.EndLogSession();
-                    logFile.Properties.AllowLogging = false;
-
-                    //BepInEx log file requires special treatment. This log file cannot be replaced on game start like the other log files
-                    //To account for this, replace this log file when the game closes
-                    logFile.Properties.CreateTempFile(true);
-                }
+                UtilityCore.OnShutdown();
             }
-
-            LogProperties.PropertyManager.SaveToFile();
-            orig(self);
+            finally
+            {
+                orig(self);
+            }
         }
 
         private static void ModManager_WrapModInitHooks(On.ModManager.orig_WrapModInitHooks orig)
