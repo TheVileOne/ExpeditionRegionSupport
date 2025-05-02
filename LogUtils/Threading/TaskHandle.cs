@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using DotNetTask = System.Threading.Tasks.Task;
 
 namespace LogUtils.Threading
@@ -59,7 +60,7 @@ namespace LogUtils.Threading
                 return;
             }
 
-            Threading.Task.WaitUntil(() => task.IsCompleted || task.IsCanceled, frequency, timeout).Wait();
+            Threading.Task.WaitUntil(() => task.Status >= TaskStatus.RanToCompletion, frequency, timeout).Wait();
         }
 
         public void Dispose()

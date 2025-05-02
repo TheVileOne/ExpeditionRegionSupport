@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using UnityEngine;
 using DotNetTask = System.Threading.Tasks.Task;
 
 namespace LogUtils
@@ -245,34 +244,38 @@ namespace LogUtils
         {
             if (IsDisposed) return;
 
-            //Get a handle to the active task, so we can await it later
-            using (TaskHandle waitHandle = WriteTask.GetAsyncHandle())
+            if (LogTasker.IsRunning)
             {
-                try
+                //Get a handle to the active task, so we can await it later
+                using (TaskHandle waitHandle = WriteTask.GetAsyncHandle())
                 {
                     if (WriteTask.PossibleToRun)
-                        WriteTask.RunOnceAndEnd(true);
-                }
-                catch (Exception ex)
-                {
-                    UtilityLogger.DebugLog("Task attempt did not finish - cancelling task");
-                    UtilityLogger.DebugLog(ex);
-                    WriteTask.Cancel();
-                }
+                    {
+                        try
+                        {
+                            WriteTask.RunOnceAndEnd(true);
+                        }
+                        catch
+                        {
+                            UtilityLogger.DebugLog("Task attempt did not finish - cancelling task");
+                            WriteTask.Cancel();
+                        }
+                    }
 
-                try
-                {
-                    //If we don't block here, flush operation will happen too late, and the dispose state will forbid it
-                    waitHandle.BlockUntilTaskEnds(5, 50);
+                    try
+                    {
+                        //If we don't block here, flush operation will happen too late, and the dispose state will forbid it
+                        waitHandle.BlockUntilTaskEnds(frequency: 5, timeout: 50);
+                    }
+                    catch (TimeoutException)
+                    {
+                        UtilityLogger.DebugLog("Task took too long to complete");
+                    }
                 }
-                catch (TimeoutException)
-                {
-                    UtilityLogger.DebugLog("Task took too long to complete");
-                }
-                catch (Exception ex)
-                {
-                    UtilityLogger.DebugLog(ex);
-                }
+            }
+            else
+            {
+                Flush();
             }
 
             if (disposing)

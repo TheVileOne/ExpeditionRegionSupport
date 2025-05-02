@@ -1,5 +1,6 @@
 ﻿using LogUtils.Helpers;
 using System;
+using System.Threading;
 using DotNetTask = System.Threading.Tasks.Task;
 
 namespace LogUtils.Threading
@@ -311,6 +312,7 @@ namespace LogUtils.Threading
         /// <param name="condition">The break condition</param>
         /// <param name="frequency">The frequency at which the condition will be checked</param>
         /// <param name="timeout">The timeout in milliseconds</param>
+        /// <exception cref="TimeoutException">Timeout expired</exception>
         public static async DotNetTask WaitUntil(Func<bool> condition, int frequency = 5, int timeout = -1)
         {
             //Code sourced from https://stackoverflow.com/a/52357854/30273286
@@ -319,17 +321,17 @@ namespace LogUtils.Threading
                 while (!condition()) await DotNetTask.Delay(frequency);
             });
 
-            bool taskRun = waitTask.Wait(timeout);
-
-            if (!taskRun)
-                throw new TimeoutException();
-
-            /*
-            if (waitTask != await DotNetTask.WhenAny(waitTask, DotNetTask.Delay(timeout)))
+            using (CancellationTokenSource cancelSource = new CancellationTokenSource())
             {
-                throw new TimeoutException();
+                var task = DotNetTask.WhenAny(waitTask, DotNetTask.Delay(timeout, cancelSource.Token));
+
+                await task;
+
+                if (task.Result != waitTask)
+                    throw new TimeoutException();
+
+                cancelSource.Cancel(); //Ensure that delay is canceled
             }
-            */
         }
     }
 
