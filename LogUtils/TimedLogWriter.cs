@@ -109,7 +109,7 @@ namespace LogUtils
 
             fileLock.Acquire();
 
-            ProcessResult streamResult = AssignWriterSafe(logFile, out StreamWriter writer);
+            ProcessResult streamResult = TryAssignWriter(logFile, out StreamWriter writer);
 
             //Handle request rejection, and message receive events
             bool canReceiveMessage = false;

@@ -90,7 +90,7 @@ namespace LogUtils
                 fileLock.Acquire();
                 fileLock.SetActivity(logEntry.ID, FileAction.Write);
 
-                ProcessResult streamResult = AssignWriterSafe(logEntry.ID, out StreamWriter writer);
+                ProcessResult streamResult = TryAssignWriter(logEntry.ID, out StreamWriter writer);
 
                 try
                 {

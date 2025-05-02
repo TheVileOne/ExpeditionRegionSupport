@@ -228,7 +228,7 @@ namespace LogUtils
                 fileLock.Acquire();
                 fileLock.SetActivity(logFile, FileAction.Write);
 
-                ProcessResult result = AssignWriterSafe(logFile, out StreamWriter writer);
+                ProcessResult result = TryAssignWriter(logFile, out StreamWriter writer);
 
                 try
                 {
@@ -281,7 +281,7 @@ namespace LogUtils
             fileLock.Acquire();
             fileLock.SetActivity(logFile, FileAction.Write);
 
-            ProcessResult streamResult = AssignWriterSafe(logFile, out StreamWriter writer);
+            ProcessResult streamResult = TryAssignWriter(logFile, out StreamWriter writer);
 
             //Handle request rejection, and message receive events
             bool canReceiveMessage = false;
@@ -346,7 +346,7 @@ namespace LogUtils
         /// <summary>
         /// Assigns a writer instance for handling a specified log file
         /// </summary>
-        protected ProcessResult AssignWriterSafe(LogID logFile, out StreamWriter writer)
+        protected ProcessResult TryAssignWriter(LogID logFile, out StreamWriter writer)
         {
             try
             {
