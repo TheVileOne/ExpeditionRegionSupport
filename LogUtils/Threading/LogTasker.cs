@@ -309,52 +309,59 @@ namespace LogUtils.Threading
 
             HashSet<int> handledTaskIDs = new HashSet<int>();
 
-            while (IsRunning)
+            try
             {
-                TimeSpan currentTime = TimeSpan.FromTicks(DateTime.UtcNow.Ticks);
-
-                crawlMarkReached(CrawlMark.BeginUpdate);
-
-                for (int i = 0; i < tasksInProcess.Count; i++)
+                while (IsRunning)
                 {
-                    Task task = tasksInProcess[i];
+                    TimeSpan currentTime = TimeSpan.FromTicks(DateTime.UtcNow.Ticks);
 
-                    if (handledTaskIDs.Add(task.ID))
+                    crawlMarkReached(CrawlMark.BeginUpdate);
+
+                    for (int i = 0; i < tasksInProcess.Count; i++)
                     {
-                        UtilityLogger.DebugLog("Processing task: NAME " + task.Name + " ID " + task.ID);
-                        UtilityLogger.DebugLog("Is Continuous " + task.IsContinuous);
-                    }
+                        Task task = tasksInProcess[i];
 
-                    if (!task.PossibleToRun)
-                    {
-                        removeAfterUpdate(task);
-                        continue;
-                    }
-
-                    //Time since last activation, or task subscription time
-                    TimeSpan timeElapsedSinceLastActivation = currentTime - (task.HasRunOnce ? task.LastActivationTime : task.InitialTime);
-
-                    if (timeElapsedSinceLastActivation >= task.WaitTimeInterval)
-                    {
-                        TaskResult result = task.TryRun();
-
-                        if (result == TaskResult.AlreadyRunning)
-                            continue;
-
-                        if (result != TaskResult.Success)
-                            task.IsContinuous = false; //Don't allow task to try again
-
-                        task.LastActivationTime = currentTime;
-                        if (!task.IsContinuous)
+                        if (handledTaskIDs.Add(task.ID))
                         {
-                            EndTask(task, result == TaskResult.Error);
+                            UtilityLogger.DebugLog("Processing task: NAME " + task.Name + " ID " + task.ID);
+                            UtilityLogger.DebugLog("Is Continuous " + task.IsContinuous);
+                        }
+
+                        if (!task.PossibleToRun)
+                        {
                             removeAfterUpdate(task);
+                            continue;
+                        }
+
+                        //Time since last activation, or task subscription time
+                        TimeSpan timeElapsedSinceLastActivation = currentTime - (task.HasRunOnce ? task.LastActivationTime : task.InitialTime);
+
+                        if (timeElapsedSinceLastActivation >= task.WaitTimeInterval)
+                        {
+                            TaskResult result = task.TryRun();
+
+                            if (result == TaskResult.AlreadyRunning)
+                                continue;
+
+                            if (result != TaskResult.Success)
+                                task.IsContinuous = false; //Don't allow task to try again
+
+                            task.LastActivationTime = currentTime;
+                            if (!task.IsContinuous)
+                            {
+                                EndTask(task, result == TaskResult.Error);
+                                removeAfterUpdate(task);
+                            }
                         }
                     }
+                    crawlMarkReached(CrawlMark.EndUpdate);
                 }
-                crawlMarkReached(CrawlMark.EndUpdate);
             }
-            UtilityLogger.DebugLog("Task thread terminating");
+            finally
+            {
+                UtilityLogger.DebugLog("Task thread terminating" + (IsRunning ? " unexpectedly" : string.Empty));
+                IsRunning = false;
+            }
         }
 
         internal static void Close()
