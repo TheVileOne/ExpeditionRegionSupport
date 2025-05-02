@@ -324,6 +324,8 @@ namespace LogUtils
 
         internal static void OnShutdown()
         {
+            LogProperties.PropertyManager.SaveToFile();
+
             //End all active log sessions
             LogProperties.PropertyManager.Properties.ForEach(properties =>
             {
@@ -354,9 +356,7 @@ namespace LogUtils
             }
 
             //Stop listening for log events
-            //BepInExAdapter.DisposeListeners();
-
-            LogProperties.PropertyManager.SaveToFile();
+            BepInExAdapter.DisposeListeners();
             LogTasker.Close();
         }
     }

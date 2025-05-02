@@ -178,11 +178,11 @@ namespace LogUtils
 
             try
             {
-                UtilityCore.OnShutdown();
+                orig(self);
             }
             finally
             {
-                orig(self);
+                UtilityCore.OnShutdown();
             }
         }
 

@@ -258,7 +258,23 @@ namespace LogUtils.Properties
 
         public void SaveToFile()
         {
-            PropertyFile.Writer.Write(GetUpdateList());
+            bool success = false;
+            try
+            {
+                PropertyFile.Writer.Write(GetUpdateList());
+                success = true;
+            }
+            catch (IOException ex)
+            {
+                UtilityLogger.LogError(ex);
+            }
+            finally
+            {
+                if (success)
+                    UtilityLogger.Log("Properties file saved");
+                else
+                    UtilityLogger.LogWarning("Properties file could not be saved");
+            }
         }
 
         /// <summary>
