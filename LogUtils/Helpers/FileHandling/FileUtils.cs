@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogUtils.Helpers.Comparers;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -86,7 +87,7 @@ namespace LogUtils.Helpers.FileHandling
 
             UtilityLogger.Log($"Copying {sourceFilename} to {destFilename}");
 
-            if (PathUtils.PathsAreEqual(sourcePath, destPath))
+            if (ComparerUtils.PathComparer.CompareFilenameAndPath(sourcePath, destPath, true) == 0)
             {
                 UtilityLogger.LogError($"Copy target file {sourceFilename} cannot be copied to its source path");
                 return false;
@@ -151,7 +152,7 @@ namespace LogUtils.Helpers.FileHandling
 
             UtilityLogger.Log($"Moving {sourceFilename} to {destFilename}");
 
-            if (PathUtils.PathsAreEqual(sourcePath, destPath))
+            if (ComparerUtils.PathComparer.CompareFilenameAndPath(sourcePath, destPath, true) == 0)
             {
                 UtilityLogger.Log($"Same filepath for {sourceFilename}");
                 return true;

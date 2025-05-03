@@ -13,6 +13,27 @@ public class PathComparer : ComparerBase<string>
     {
     }
 
+    /// <summary>
+    /// Compares two paths (with or without a filename)
+    /// </summary>
+    public int CompareFilenameAndPath(string path, string pathOther, bool ignoreExtensions)
+    {
+        //GetPathFromKeyword will strip the filename
+        if (PathUtils.IsPathKeyword(path))
+            path = PathUtils.GetPathFromKeyword(path);
+
+        if (PathUtils.IsPathKeyword(pathOther))
+            pathOther = PathUtils.GetPathFromKeyword(pathOther);
+
+        if (ignoreExtensions)
+        {
+            path = FileUtils.RemoveExtension(path);
+            pathOther = FileUtils.RemoveExtension(pathOther);
+        }
+
+        return InternalCompare(path, pathOther);
+    }
+
     public override int Compare(string path, string pathOther)
     {
         //Make sure we are comparing path data, not keywords
