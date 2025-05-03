@@ -86,6 +86,12 @@ namespace LogUtils.Helpers.FileHandling
 
             UtilityLogger.Log($"Copying {sourceFilename} to {destFilename}");
 
+            if (PathUtils.PathsAreEqual(sourcePath, destPath))
+            {
+                UtilityLogger.LogError($"Copy target file {sourceFilename} cannot be copied to its source path");
+                return false;
+            }
+
             bool destEmpty = !File.Exists(destPath);
             bool exceptionLogged = false;
             while (attemptsAllowed > 0)
@@ -145,7 +151,7 @@ namespace LogUtils.Helpers.FileHandling
 
             UtilityLogger.Log($"Moving {sourceFilename} to {destFilename}");
 
-            if (sourcePath == destPath)
+            if (PathUtils.PathsAreEqual(sourcePath, destPath))
             {
                 UtilityLogger.Log($"Same filepath for {sourceFilename}");
                 return true;
