@@ -590,14 +590,22 @@ namespace LogUtils.Properties
 
             using (FileLock.Acquire())
             {
+                FileStatus status;
                 if (copyOnly)
                 {
                     FileLock.SetActivity(ID, FileAction.Copy);
-                    return LogFile.Copy(LastKnownFilePath, ReplacementFilePath);
+                    status = LogFile.Copy(LastKnownFilePath, ReplacementFilePath);
+                }
+                else
+                {
+                    FileLock.SetActivity(ID, FileAction.Move);
+                    status = LogFile.Move(LastKnownFilePath, ReplacementFilePath);
                 }
 
-                FileLock.SetActivity(ID, FileAction.Move);
-                return LogFile.Move(LastKnownFilePath, ReplacementFilePath);
+                if (status == FileStatus.MoveComplete || status == FileStatus.CopyComplete)
+                    BackupListener.OnTempFileCreated(ID);
+
+                return status;
             }
         }
 
