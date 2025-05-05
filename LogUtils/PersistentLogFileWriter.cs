@@ -59,8 +59,12 @@ namespace LogUtils
 
             try
             {
-                //Handle base logic before disposing handle. The stream buffer needs to be flushed before handle can be disposed
-                base.Dispose(disposing);
+                Flush();
+            }
+            catch (ObjectDisposedException) { }
+
+            try
+            {
                 Handle?.Dispose();
                 Handle = null;
             }
