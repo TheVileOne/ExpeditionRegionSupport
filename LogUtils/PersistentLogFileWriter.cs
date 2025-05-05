@@ -1,12 +1,25 @@
 ﻿using BepInEx;
 using System;
 using System.IO;
+using System.Reflection;
 
 namespace LogUtils
 {
     public class PersistentLogFileWriter : StreamWriter, IDisposable
     {
-        public bool CanWrite => Handle != null && !Handle.IsClosed;
+        public bool CanWrite
+        {
+            get
+            {
+                if (IsDisposed) return false;
+
+                //This will happen when resuming from a stream interruption
+                if (Handle.Stream != BaseStream)
+                    SetStreamFromHandle();
+
+                return !Handle.IsClosed;
+            }
+        }
 
         public PersistentLogFileHandle Handle { get; private set; }
 
@@ -24,6 +37,17 @@ namespace LogUtils
         {
             if (CanWrite)
                 base.Flush();
+        }
+
+        /// <summary>
+        /// Injects file handle stream into the base StreamWriter
+        /// </summary>
+        internal void SetStreamFromHandle()
+        {
+            UtilityLogger.Log("Refreshing write stream");
+
+            BindingFlags searchFlags = BindingFlags.NonPublic | BindingFlags.Instance;
+            typeof(StreamWriter).GetField("stream", searchFlags).SetValue(this, Handle.Stream);
         }
 
         protected bool IsDisposed;
