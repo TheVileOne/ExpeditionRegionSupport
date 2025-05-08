@@ -4,6 +4,7 @@ using LogUtils.Diagnostics.Tools;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
+using LogUtils.IPC;
 using LogUtils.Properties;
 using LogUtils.Requests;
 using LogUtils.Threading;
@@ -63,14 +64,24 @@ namespace LogUtils
         /// </summary>
         private static bool hasAnnouncedBuild;
 
-        public static PersistenceManager PersistenceManager;
-
-        public static PropertyDataController PropertyManager;
-
         /// <summary>
         /// Handles cross-mod data storage for the utility
         /// </summary>
         public static SharedDataHandler DataHandler;
+
+        public static PersistenceManager PersistenceManager;
+
+        /// <summary>
+        /// An IPC client representing the Rain World process that LogUtils operates on
+        /// </summary>
+        public static PipeClient ProcessClient;
+
+        /// <summary>
+        /// An IPC server allowing basic communication between other Rain World processes
+        /// </summary>
+        public static PipeServer ProcessServer;
+
+        public static PropertyDataController PropertyManager;
 
         /// <summary>
         /// Handles log requests between different loggers
@@ -275,6 +286,11 @@ namespace LogUtils
             PersistenceManager = ComponentUtils.GetOrCreate<PersistenceManager>(UtilityConsts.ComponentTags.PERSISTENCE_MANAGER, out _);
             DataHandler = ComponentUtils.GetOrCreate<SharedDataHandler>(UtilityConsts.ComponentTags.SHARED_DATA, out _);
             RequestHandler = ComponentUtils.GetOrCreate<LogRequestHandler>(UtilityConsts.ComponentTags.REQUEST_DATA, out _);
+
+            ProcessClient = ComponentUtils.GetOrCreate<PipeClient>(UtilityConsts.ComponentTags.IPC_CLIENT, out _);
+
+            if (ProcessClient.IsPrimary)
+                ProcessServer = ComponentUtils.GetOrCreate<PipeServer>(UtilityConsts.ComponentTags.IPC_SERVER, out _);
 
             PropertyManager = ComponentUtils.GetOrCreate<PropertyDataController>(UtilityConsts.ComponentTags.PROPERTY_DATA, out bool wasCreated);
 
