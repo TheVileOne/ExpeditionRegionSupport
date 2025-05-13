@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO.Pipes;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LogUtils.IPC
@@ -46,21 +47,57 @@ namespace LogUtils.IPC
             return responder;
         }
 
-        public void SendResponse(ResponseCode response)
+
+        /// <summary>
+        /// Sends a response to IPC server, and waits for server to receive it
+        /// </summary>
+        /// <returns>Whether response was successful</returns>
+        public bool SendResponse(ResponseCode response)
         {
-            SendResponseAsync(response).Wait();
+            var task = SendResponseAsync(response);
+
+            SpinWait.SpinUntil(() => task.Status >= TaskStatus.RanToCompletion);
+
+            if (task.IsFaulted)
+                return false;
+
+            return task.Result;
         }
 
-        public async Task SendResponseAsync(ResponseCode response)
+        /// <summary>
+        /// Sends a response to IPC server, and waits for server to receive it
+        /// </summary>
+        /// <param name="timeout">A time period to wait for server before failing to respond</param>
+        /// <returns>Whether response was successful</returns>
+        public bool SendResponse(ResponseCode response, TimeSpan timeout)
         {
+            var task = SendResponseAsync(response);
+
+            bool taskAchieved = SpinWait.SpinUntil(() => task.Status >= TaskStatus.RanToCompletion, (int)timeout.TotalMilliseconds);
+
+            if (!taskAchieved || task.IsFaulted)
+                return false;
+
+            return task.Result;
+        }
+
+        /// <summary>
+        /// Sends a response to IPC server, and waits for server to receive it
+        /// </summary>
+        /// <returns>A task representing the response</returns>
+        public async Task<bool> SendResponseAsync(ResponseCode response)
+        {
+            //TODO: Cancel support
             UtilityLogger.Log("Sending client response: " + response);
 
             NamedPipeClientStream responder = await ConnectToServer();
 
-            if (responder == null) return;
+            if (responder == null)
+                return false;
 
             UtilityLogger.Log("Client connected successfully");
 
+            bool responseSent = false;
             using (responder)
             {
                 UtilityLogger.Log("Sending response");
@@ -72,15 +109,19 @@ namespace LogUtils.IPC
 
                     //Keep connection open until response is read
                     await Task.Run(responder.WaitForPipeDrain);
+
+                    responseSent = true;
                 }
                 catch (Exception ex)
                 {
                     UtilityLogger.LogError("Client error", ex);
+                    responseSent = false;
                 }
             }
 
             UtilityLogger.Log("Is client connected? " + responder.IsConnected);
             UtilityLogger.Log("Releasing pipe stream");
+            return responseSent;
         }
 
         private Task updateTask;
