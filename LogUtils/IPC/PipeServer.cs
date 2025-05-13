@@ -71,88 +71,6 @@ namespace LogUtils.IPC
             }
         }
 
-        public void UpdateOld()
-        {
-            UtilityLogger.Log("Server update start");
-
-            if (Receiver.SafePipeHandle.IsClosed)
-            {
-                UtilityLogger.Log("Server disconnected");
-                Receiver.Disconnect();
-                return;
-            }
-
-            try
-            {
-                UtilityLogger.Log("Server read");
-
-                if (updateTask == null)
-                {
-                    updateTask = Task.Run(() =>
-                    {
-                        try
-                        {
-                            Receiver.WaitForConnection();
-                        }
-                        catch
-                        {
-                        }
-                    });
-                }
-
-                if (updateTask.Status < TaskStatus.RanToCompletion)
-                    return;
-
-                updateTask = null;
-
-                UtilityLogger.Log("Listening...");
-                var result = ListenForResponseOld().Result;//ListenForResponseAsync().Result;
-
-                UtilityLogger.LogWarning(result);
-
-                try
-                {
-                    UtilityLogger.LogWarning(result + " " + 1);
-                    if (result != ResponseCode.Invalid)
-                    {
-                        uint clientProcessId;
-                        if (GetNamedPipeClientProcessId(Receiver.SafePipeHandle.DangerousGetHandle(), out clientProcessId))
-                        {
-                            UtilityLogger.Log($"Received: {result} from PID {clientProcessId}");
-                        }
-                        else
-                        {
-                            UtilityLogger.Log("Failed to get client process ID.");
-                        }
-                    }
-                    UtilityLogger.LogWarning(result + " " + 2);
-                }
-                catch
-                {
-                }
-
-                try
-                {
-                    Receiver.Disconnect();
-                    UtilityLogger.LogWarning(result + " " + 3);
-                    Receiver.WaitForConnection();
-                    UtilityLogger.LogWarning(result + " " + 4);
-                }
-                catch
-                {
-                    UtilityLogger.LogWarning(result + " " + "error");
-                }
-                UtilityLogger.LogWarning(result + " " + 5);
-                UtilityLogger.Log("Server write");
-            }
-            catch (Exception ex)
-            {
-                UtilityLogger.LogError(ex);
-            }
-
-            UtilityLogger.Log("Server update end");
-        }
-
         internal async Task EstablishLocalConnection()
         {
             UtilityLogger.Log("Establishing local connection");
@@ -251,10 +169,10 @@ namespace LogUtils.IPC
 
             UtilityLogger.Log("Listening for client response");
 
+            //Wait until we receive a response from the client
             while (response == ResponseCode.Invalid)
             {
-                response = await ListenForResponseAsync();
-                //await Task.Yield();
+                response = await ListenForResponse();
             }
 
             UtilityLogger.Log("Receiving client response: " + response);
@@ -270,71 +188,7 @@ namespace LogUtils.IPC
             }
         }
 
-        bool waitingForResults = false;
-        internal ResponseCode ListenForResponse()
-        {
-            byte[] receivedBytes = new byte[1];
-
-            waitingForResults = true;
-            try
-            {
-                var result = Receiver.BeginRead(receivedBytes, 0, 1, (IAsyncResult result) =>
-                {
-                    try
-                    {
-                        if (receivedBytes[0] != 0)
-                        {
-                            UtilityLogger.Log("Server received a response");
-                            Receiver.WriteByte((byte)ResponseCode.Ack);
-                            Receiver.EndRead(result);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        UtilityLogger.LogError("Server error", ex);
-                    }
-                    waitingForResults = false;
-                }, null);
-            }
-            catch (Exception ex)
-            {
-                UtilityLogger.LogError("Server error", ex);
-            }
-
-            while (waitingForResults)
-            { }
-
-            return (ResponseCode)receivedBytes[0];
-        }
-
-        Task ReadTask;
-
-        internal async Task<ResponseCode> ListenForResponseOld()
-        {
-            byte[] receivedBytes = new byte[1];
-            if (ReadTask == null)
-                ReadTask = Receiver.ReadAsync(receivedBytes, 0, 1);
-
-            var task = ReadTask;
-            var taskStatus = task.Status;
-
-            if (taskStatus != TaskStatus.RanToCompletion)
-            {
-                if (taskStatus > TaskStatus.RanToCompletion) //Task wont ever complete
-                {
-                    if (taskStatus == TaskStatus.Faulted)
-                        UtilityLogger.LogWarning("Read fault");
-                    ReadTask = null;
-                }
-
-                return ResponseCode.Invalid;
-            }
-
-            ReadTask = null;
-            return (ResponseCode)receivedBytes[0];
-        }
-
-        internal async Task<ResponseCode> ListenForResponseAsync()
+        internal async Task<ResponseCode> ListenForResponse()
         {
             byte[] receivedBytes = new byte[1];
 
@@ -342,35 +196,6 @@ namespace LogUtils.IPC
             Task readTask = Receiver.ReadAsync(receivedBytes, 0, 1);
 
             await readTask;
-            return (ResponseCode)receivedBytes[0];
-
-            bool waitingForResults = true;
-            var result = Receiver.BeginRead(receivedBytes, 0, 1, (IAsyncResult result) =>
-            {
-                if (receivedBytes[0] != 0)
-                {
-                    UtilityLogger.Log("Server received a response");
-                    Receiver.WriteByte((byte)ResponseCode.Ack);
-                    Receiver.EndRead(result);
-                }
-                waitingForResults = false;
-            }, null);
-
-            //Wait until we receive a response
-            while (waitingForResults)//readTask.Status < TaskStatus.RanToCompletion)
-            {
-                UtilityLogger.Log("Yielding");
-                //await Task.Yield();
-            }
-
-            //UtilityLogger.Log("Task status: " + readTask.Status);
-
-            //if (readTask.IsFaulted)
-            //{
-            //    UtilityLogger.LogError("Server error", readTask.Exception.InnerException);
-            //    return ResponseCode.Invalid;
-            //}
-
             return (ResponseCode)receivedBytes[0];
         }
 
