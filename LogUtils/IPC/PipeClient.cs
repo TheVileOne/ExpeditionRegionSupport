@@ -56,33 +56,26 @@ namespace LogUtils.IPC
 
             UtilityLogger.Log("Client connected successfully");
 
-            try
+            using (responder)
             {
-                using (responder)
-                {
-                    UtilityLogger.Log("Sending response");
+                UtilityLogger.Log("Sending response");
 
+                try
+                {
                     byte[] bytes = [(byte)response];
                     await responder.WriteAsync(bytes, 0, 1);
 
-                    int serverAck = responder.ReadByte();
-
-                    if ((ResponseCode)serverAck == ResponseCode.Ack)
-                    {
-                        UtilityLogger.Log("Acknowledged");
-                    }
+                    //Keep connection open until response is read
+                    await Task.Run(responder.WaitForPipeDrain);
                 }
-
-                //Keep connection open until response is read
-                await Task.Run(responder.WaitForPipeDrain);
-
-                UtilityLogger.Log("Is client connected? " + responder.IsConnected);
-                UtilityLogger.Log("Releasing pipe stream");
+                catch (Exception ex)
+                {
+                    UtilityLogger.LogError("Client error", ex);
+                }
             }
-            catch (Exception ex)
-            {
-                UtilityLogger.LogError("Client error", ex);
-            }
+
+            UtilityLogger.Log("Is client connected? " + responder.IsConnected);
+            UtilityLogger.Log("Releasing pipe stream");
         }
 
         private Task updateTask;
