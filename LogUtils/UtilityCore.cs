@@ -317,7 +317,7 @@ namespace LogUtils
                 namedPipeServer = new NamedPipeServerStream("test-pipe");
             }
             catch (Exception ex)
-                {
+            {
                 UtilityLogger.LogError(ex);
             }
 
@@ -328,7 +328,20 @@ namespace LogUtils
             //using (NamedPipeServerStream namedPipeServer = new NamedPipeServerStream("test-pipe"))
             {
                 UtilityLogger.Log("Server waiting for a connection...");
-                namedPipeServer.WaitForConnection();
+
+                bool connected = false;
+                while (!connected)
+                {
+                    try
+                    {
+                        namedPipeServer.WaitForConnection();
+                        connected = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        UtilityLogger.LogError("Server error", ex);
+                    }
+                }
                 UtilityLogger.Log("A client has connected, send a byte from the server: ");
 
                 testEnumerator.MoveNext();
@@ -364,14 +377,20 @@ namespace LogUtils
 
             using (NamedPipeClientStream namedPipeClient = new NamedPipeClientStream("test-pipe"))
             {
-                try
+                bool connected = false;
+                while (!connected)
                 {
-                    namedPipeClient.Connect();
+                    try
+                    {
+                        namedPipeClient.Connect();
+                        connected = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        UtilityLogger.LogError("Client error", ex);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    UtilityLogger.LogError(ex);
-                }
+
                 UtilityLogger.Log("Client connected to the named pipe server. Waiting for server to send first byte...");
                 UtilityLogger.Log(string.Format("The server sent a single byte to the client: {0}", namedPipeClient.ReadByte()));
                 UtilityLogger.Log("Provide a byte response from client: ");
