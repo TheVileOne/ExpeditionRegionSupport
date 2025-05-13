@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO.Pipes;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace LogUtils.IPC
 {
-    public sealed class PipeServer : NetworkComponent
+    public sealed class PipeServer : NetworkComponentLegacy
     {
         protected override PipeStream BaseStream => Server;
 
-        public readonly NamedPipeServerStream Server = new NamedPipeServerStream("RW-LogUtils");
+        public NamedPipeServerStream Server = new NamedPipeServerStream("RW-LogUtils");
 
         /// <summary>
         /// The total amount of Rain World clients that have connected (includes disconnected clients)
@@ -32,10 +35,92 @@ namespace LogUtils.IPC
 
         public bool IsServerClient(byte clientID) => ServerID == clientID;
 
-        protected override void Process(byte[] messageData)
+        public void Awake()
         {
-            ResponseCode response = (ResponseCode)messageData[0];
-            byte clientID = messageData[1];
+            enabled = true;
+            EstablishConnection();
+            UtilityLogger.Log("Server activated");
+        }
+
+        private Mutex mutex = new Mutex(false, "RW-LogUtils");
+
+        protected override bool EstablishConnection()
+        {
+            UtilityLogger.Log("Establishing connection");
+
+            if (WaitTask == null)
+            {
+                WaitTask = Task.Run(() =>
+                {
+                    lock (SyncLock)
+                    {
+                        Server.WaitForConnection();
+                    }
+                });
+            }
+
+            //Asynchronously wait for a client to signal us. This may take awhile...
+            if (WaitTask.IsFaulted)
+                UtilityLogger.LogError("Connection wait error", WaitTask.Exception.InnerException);
+
+            if (WaitTask.Status >= TaskStatus.RanToCompletion)
+                WaitTask = null;
+            return Server.IsConnected;
+        }
+
+        internal void Process(ResponseCode response)
+        {
+            var clientID = ConnectionID;
+
+            UtilityLogger.Log("Server received response");
+            UtilityLogger.Log(response);
+
+            switch (response)
+            {
+                case ResponseCode.Connected:
+                    break;
+                case ResponseCode.ClientLost:
+                    {
+                        RemoveClient(clientID);
+                        break;
+                    }
+                case ResponseCode.PrimaryClientLost:
+                    {
+                        RemovePrimaryClient(clientID);
+                        break;
+                    }
+                case ResponseCode.NewClient:
+                    {
+                        AddClient();
+                        break;
+                    }
+                case ResponseCode.AddPrivileges:
+                    {
+                        AddPrivileges(clientID);
+                        break;
+                    }
+                case ResponseCode.RevokePrivileges:
+                    {
+                        RevokePrivileges(clientID);
+                        break;
+                    }
+                case ResponseCode.ReceiveID: //Server doesn't need to handle these requests
+                case ResponseCode.RequestNewPrimary:
+                case ResponseCode.RequestNewPrimaryServer:
+                    break;
+                default:
+                case ResponseCode.Invalid:
+                    throw new InvalidResponseException();
+            }
+        }
+
+        protected override void Process(byte[] responseData)
+        {
+            ResponseCode response = (ResponseCode)responseData[0];
+            byte clientID = ConnectionID = responseData[1];
+
+            UtilityLogger.Log("Server received response");
+            UtilityLogger.Log(response);
 
             switch (response)
             {
@@ -210,68 +295,145 @@ namespace LogUtils.IPC
             OutgoingResponseData[responseTarget] = [(byte)response, responseValue]; 
         }
 
-        private HeaderData readDataHeader()
+        internal Task<int> ReadTask;
+
+        private byte[] readBuffer = new byte[1];
+        internal bool ListenForResponse(out ResponseCode response)
         {
-            const int HEADER_SIZE = 5;
+            if (ReadTask == null)
+                ReadTask = Server.ReadAsync(readBuffer, 0, 1);
 
-            byte[] headerData = new byte[HEADER_SIZE];
-            int bytesRead = Client.Read(headerData, 0, HEADER_SIZE);
+            var task = ReadTask;
+            var taskStatus = task.Status;
 
-            if (bytesRead == 0)
-                return HeaderData.None;
-
-            if (bytesRead < HEADER_SIZE) //Invalid header
+            if (taskStatus != TaskStatus.RanToCompletion)
             {
-                //TODO: throw exception?
-                return HeaderData.None;
+                if (taskStatus > TaskStatus.RanToCompletion) //Task wont ever complete
+                {
+                    if (taskStatus == TaskStatus.Faulted)
+                        UtilityLogger.LogWarning("Read fault");
+                    ReadTask = null;
+                }
+
+                response = ResponseCode.Invalid;
+                return false;
             }
 
-            var header = new HeaderData
-            {
-                MessageID = headerData[0],
-                MessageSize = BitConverter.ToInt32(headerData, 1)
-            };
-            return header;
+            ReadTask = null;
+            response = (ResponseCode)readBuffer[0];
+            return true;
+
+            //if (ReadTask != null && ReadTask.Status >= TaskStatus.RanToCompletion) //cancelled, completed, or faulted
+            //{
+            //    if (ReadTask.IsCompleted)
+            //    {
+            //        uint clientProcessId;
+            //        if (GetNamedPipeClientProcessId(Server.SafePipeHandle.DangerousGetHandle(), out clientProcessId))
+            //        {
+            //            UtilityLogger.Log($"Received: {(ResponseCode)buffer[0]} from PID {clientProcessId}");
+            //        }
+            //        else
+            //        {
+            //            UtilityLogger.Log("Failed to get client process ID.");
+            //        }
+            //    }
+
+            //    if (ReadTask.IsFaulted)
+            //        UtilityLogger.LogWarning("Read fault");
+            //    ReadTask = null;
+            //}
+
+            //if (ReadTask == null)
+            //    ReadTask = Server.ReadAsync(buffer, 0, 1);
         }
 
-        protected override bool EstablishConnection()
+        Task task;
+
+        public override void Update()
         {
-            if (Server.IsConnected) return true;
+            UtilityLogger.Log("Server update start");
 
-            if (WaitTask == null)
-                WaitTask = Server.WaitForConnectionAsync();
-
-            //Asynchronously wait for a client to signal us. This may take awhile...
-            if (!WaitTask.IsCompleted)
+            if (Server.SafePipeHandle.IsClosed)
             {
-                if (WaitTask.IsFaulted)
-                    UtilityLogger.LogError("Connection wait error", WaitTask.Exception);
+                UtilityLogger.Log("Server disconnected");
+                Server.Disconnect();
+                return;
             }
-            WaitTask = null;
-            return Server.IsConnected;
+
+            try
+            {
+                UtilityLogger.Log("Server read");
+
+                if (task == null || task.IsCompleted)
+                {
+                    task = Task.Run(() =>
+                    {
+                        try
+                        {
+                            Server.WaitForConnection();
+                        }
+                        catch
+                        {
+                        }
+                    });
+                }
+
+                if (!task.IsCompleted)
+                    return;
+
+                if (ListenForResponse(out ResponseCode response))
+                {
+                    uint clientProcessId;
+                    if (GetNamedPipeClientProcessId(Server.SafePipeHandle.DangerousGetHandle(), out clientProcessId))
+                    {
+                        UtilityLogger.Log($"Received: {response} from PID {clientProcessId}");
+                    }
+                    else
+                    {
+                        UtilityLogger.Log("Failed to get client process ID.");
+                    }
+                }
+
+                Server.Disconnect();
+
+                //if (ReadTask != null && ReadTask.Status >= TaskStatus.RanToCompletion) //cancelled, completed, or faulted
+                //{
+                //    if (ReadTask.IsCompleted)
+                //    {
+                //        uint clientProcessId;
+                //        if (GetNamedPipeClientProcessId(Server.SafePipeHandle.DangerousGetHandle(), out clientProcessId))
+                //        {
+                //            UtilityLogger.Log($"Received: {(ResponseCode)buffer[0]} from PID {clientProcessId}");
+                //        }
+                //        else
+                //        {
+                //            UtilityLogger.Log("Failed to get client process ID.");
+                //        }
+                //    }
+
+                //    if (ReadTask.IsFaulted)
+                //        UtilityLogger.LogWarning("Read fault");
+                //    ReadTask = null;
+                //}
+
+                //if (ReadTask == null)
+                //    ReadTask = Server.ReadAsync(buffer, 0, 1);
+
+                //ReadFromStream();
+                UtilityLogger.Log("Server write");
+                //WriteToStream();
+            }
+            catch (Exception ex)
+            {
+                UtilityLogger.LogError(ex);
+            }
+
+            UtilityLogger.Log("Server update end");
         }
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool GetNamedPipeClientProcessId(IntPtr pipe, out uint clientProcessId);
 
         public override string Tag => UtilityConsts.ComponentTags.IPC_SERVER;
-    }
-
-    public struct HeaderData
-    {
-        public static HeaderData None = default;
-
-        public byte MessageID;
-        public int MessageSize;
-
-        public bool IsValid()
-        {
-            if (Equals(None))
-                return false;
-
-            switch (MessageID)
-            {
-                case 2: //example
-                    return MessageSize == 6;
-            }
-            return false;
-        }
     }
 }
