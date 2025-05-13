@@ -27,35 +27,47 @@ namespace LogUtils.IPC
         /// </summary>
         private NamedPipeClientStream localClient = new NamedPipeClientStream("RW-LogUtils_local");
 
+        public bool IsRunning;
+
+        private bool readyForNewUpdate => updateTask == null || updateTask.Status >= TaskStatus.RanToCompletion;
+
         private Task updateTask;
+
+        internal void Start()
+        {
+            IsRunning = true;
+            Task.Run(Update);
+        }
 
         public void Update()
         {
-            UpdateOld();
-            return;
+            UtilityLogger.Log("Server started");
 
-            UtilityLogger.Log("Server update");
-
-            if (updateTask != null)
+            while (IsRunning)
             {
-                if (updateTask.Status == TaskStatus.WaitingForActivation)
-                    updateTask = null;
-                else
-                    UtilityLogger.Log(updateTask.Status);
-            }
+                if (readyForNewUpdate)
+                {
+                    UtilityLogger.Log("Server update");
 
-            if (updateTask == null)
-            {
-                updateTask = UpdateAsync();
-                return;
-            }
+                    Task task = updateTask;
 
-            if (updateTask.Status >= TaskStatus.RanToCompletion)
-            {
-                if (updateTask.IsFaulted)
-                    UtilityLogger.LogError("Server error", updateTask.Exception.InnerException);
+                    if (task != null)
+                    {
+                        UtilityLogger.Log("Server update complete");
 
-                updateTask = null;
+                        if (task.IsFaulted)
+                            UtilityLogger.LogError("Server error", task.Exception.InnerException);
+                    }
+
+                    try
+                    {
+                        updateTask = UpdateAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        UtilityLogger.LogError("Server error", ex);
+                    }
+                }
             }
         }
 
@@ -87,8 +99,6 @@ namespace LogUtils.IPC
                         }
                     });
                 }
-
-                //UtilityLogger.Log("Update state:" + updateTask.Status);
 
                 if (updateTask.Status < TaskStatus.RanToCompletion)
                     return;
@@ -236,10 +246,6 @@ namespace LogUtils.IPC
 
             if (!HasClient)
                 await WaitForClientConnection();
-
-            UtilityLogger.Log("Has client: " + HasClient);
-
-            if (!HasClient) return;
 
             ResponseCode response = ResponseCode.Invalid;
 

@@ -287,8 +287,10 @@ namespace LogUtils
             DataHandler = ComponentUtils.GetOrCreate<SharedDataHandler>(UtilityConsts.ComponentTags.SHARED_DATA, out _);
             RequestHandler = ComponentUtils.GetOrCreate<LogRequestHandler>(UtilityConsts.ComponentTags.REQUEST_DATA, out _);
 
-            ProcessServer = ComponentUtils.GetOrCreate<PipeServer>(UtilityConsts.ComponentTags.IPC_SERVER, out _);
+            ProcessServer = new PipeServer();//ComponentUtils.GetOrCreate<PipeServer>(UtilityConsts.ComponentTags.IPC_SERVER, out _);
             ProcessClient = ComponentUtils.GetOrCreate<PipeClient>(UtilityConsts.ComponentTags.IPC_CLIENT, out _);
+
+            ProcessServer.Start();
 
             PropertyManager = ComponentUtils.GetOrCreate<PropertyDataController>(UtilityConsts.ComponentTags.PROPERTY_DATA, out bool wasCreated);
 
