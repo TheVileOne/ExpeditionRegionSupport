@@ -11,10 +11,8 @@ using LogUtils.Threading;
 using LogUtils.Timers;
 using Menu;
 using System;
-using System.IO.Pipes;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using Debug = LogUtils.Diagnostics.Debug;
 
 namespace LogUtils
@@ -298,121 +296,6 @@ namespace LogUtils
             {
                 IsControllingAssembly = true;
                 PropertyManager.SetPropertiesFromFile();
-            }
-        }
-
-        private static void test()
-        {
-            UtilityLogger.DebugLog("Running tasks");
-            System.Threading.Tasks.Task.Run(SendByteAndReceiveResponseContinuous);
-            System.Threading.Tasks.Task.Run(ReceiveByteAndRespondContinuous);
-        }
-
-        static NamedPipeServerStream namedPipeServer;
-
-        private static void SendByteAndReceiveResponseContinuous()
-        {
-            try
-            {
-                namedPipeServer = new NamedPipeServerStream("test-pipe");
-            }
-            catch (Exception ex)
-            {
-                UtilityLogger.LogError(ex);
-            }
-
-            string[] testValues = ["test", "yes", "x"];
-
-            var testEnumerator = testValues.GetEnumerator();
-
-            //using (NamedPipeServerStream namedPipeServer = new NamedPipeServerStream("test-pipe"))
-            {
-                UtilityLogger.Log("Server waiting for a connection...");
-
-                bool connected = false;
-                while (!connected)
-                {
-                    try
-                    {
-                        namedPipeServer.WaitForConnection();
-                        connected = true;
-                    }
-                    catch (Exception ex)
-                    {
-                        UtilityLogger.LogError("Server error", ex);
-                    }
-                }
-                UtilityLogger.Log("A client has connected, send a byte from the server: ");
-
-                testEnumerator.MoveNext();
-                string b = (string)testEnumerator.Current;
-
-                UtilityLogger.Log(string.Format("About to send byte {0} to client.", b));
-                namedPipeServer.WriteByte(Encoding.UTF8.GetBytes(b).First());
-                UtilityLogger.Log("Byte sent, waiting for response from client...");
-                int byteFromClient = namedPipeServer.ReadByte();
-                UtilityLogger.Log(string.Format("Received byte response from client: {0}", byteFromClient));
-                while (byteFromClient != 120)
-                {
-                    UtilityLogger.Log("Send a byte response: ");
-
-                    testEnumerator.MoveNext();
-                    b = (string)testEnumerator.Current;
-
-                    UtilityLogger.Log(string.Format("About to send byte {0} to client.", b));
-                    namedPipeServer.WriteByte(Encoding.UTF8.GetBytes(b).First());
-                    UtilityLogger.Log("Byte sent, waiting for response from client...");
-                    byteFromClient = namedPipeServer.ReadByte();
-                    UtilityLogger.Log(string.Format("Received byte response from client: {0}", byteFromClient));
-                }
-                UtilityLogger.Log("Server exiting, client sent an 'x'...");
-            }
-        }
-
-        private static void ReceiveByteAndRespondContinuous()
-        {
-            string[] testValues = ["no", "fear", "x"];
-
-            var testEnumerator = testValues.GetEnumerator();
-
-            using (NamedPipeClientStream namedPipeClient = new NamedPipeClientStream("test-pipe"))
-            {
-                bool connected = false;
-                while (!connected)
-                {
-                    try
-                    {
-                        namedPipeClient.Connect();
-                        connected = true;
-                    }
-                    catch (Exception ex)
-                    {
-                        UtilityLogger.LogError("Client error", ex);
-                    }
-                }
-
-                UtilityLogger.Log("Client connected to the named pipe server. Waiting for server to send first byte...");
-                UtilityLogger.Log(string.Format("The server sent a single byte to the client: {0}", namedPipeClient.ReadByte()));
-                UtilityLogger.Log("Provide a byte response from client: ");
-
-                testEnumerator.MoveNext();
-                string b = (string)testEnumerator.Current;
-
-                UtilityLogger.Log(string.Format("About to send byte {0} to server.", b));
-                namedPipeClient.WriteByte(Encoding.UTF8.GetBytes(b).First());
-                while (b != "x")
-                {
-                    UtilityLogger.Log(string.Format("The server sent a single byte to the client: {0}", namedPipeClient.ReadByte()));
-                    UtilityLogger.Log("Provide a byte response from client: ");
-
-                    testEnumerator.MoveNext();
-                    b = (string)testEnumerator.Current;
-
-                    UtilityLogger.Log(string.Format("About to send byte {0} to server.", b));
-                    namedPipeClient.WriteByte(Encoding.UTF8.GetBytes(b).First());
-                }
-
-                UtilityLogger.Log("Client chose to disconnect...");
             }
         }
 
