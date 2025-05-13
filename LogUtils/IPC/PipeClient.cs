@@ -46,7 +46,12 @@ namespace LogUtils.IPC
             return responder;
         }
 
-        public async Task SendResponse(ResponseCode response)
+        public void SendResponse(ResponseCode response)
+        {
+            SendResponseAsync(response).Wait();
+        }
+
+        public async Task SendResponseAsync(ResponseCode response)
         {
             UtilityLogger.Log("Sending client response: " + response);
 
@@ -99,10 +104,8 @@ namespace LogUtils.IPC
 
         internal async Task UpdateAsync()
         {
-            UtilityLogger.Log("Sending response 1");
-            await SendResponse(ResponseCode.Connected);
-            //UtilityLogger.Log("Sending response 2");
-            //await SendResponse(ResponseCode.NewClient);
+            //TODO: This can be removed if it is not needed
+            await Task.CompletedTask;
         }
 
         public override string Tag => UtilityConsts.ComponentTags.IPC_CLIENT;
