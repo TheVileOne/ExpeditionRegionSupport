@@ -20,6 +20,9 @@ namespace LogUtils.IPC
             if (message.StartsWith("Pipe is not connected") || message.StartsWith("Win32 IO returned 233"))
                 return ErrorCode.PipeDisconnected;
 
+            if (message.StartsWith("The system cannot find"))
+                return ErrorCode.PipeHandleNotSet;
+
             return ErrorCode.Unknown;
         }
     }
@@ -28,6 +31,7 @@ namespace LogUtils.IPC
     {
         PipeBusy,
         PipeDisconnected,
+        PipeHandleNotSet,
         PipeAlreadyExists,
         ProcessAlreadyExists,
         Unknown
