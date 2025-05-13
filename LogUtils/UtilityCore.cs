@@ -74,12 +74,12 @@ namespace LogUtils
         /// <summary>
         /// An IPC client representing the Rain World process that LogUtils operates on
         /// </summary>
-        public static PipeServerNew.Client ProcessClient;
+        public static PipeClient ProcessClient;
 
         /// <summary>
         /// An IPC server allowing basic communication between other Rain World processes
         /// </summary>
-        public static PipeServerNew.Server ProcessServer;
+        public static PipeServer ProcessServer;
 
         public static PropertyDataController PropertyManager;
 
@@ -287,8 +287,8 @@ namespace LogUtils
             DataHandler = ComponentUtils.GetOrCreate<SharedDataHandler>(UtilityConsts.ComponentTags.SHARED_DATA, out _);
             RequestHandler = ComponentUtils.GetOrCreate<LogRequestHandler>(UtilityConsts.ComponentTags.REQUEST_DATA, out _);
 
-            ProcessServer = ComponentUtils.GetOrCreate<PipeServerNew.Server>(UtilityConsts.ComponentTags.IPC_SERVER, out _);
-            ProcessClient = ComponentUtils.GetOrCreate<PipeServerNew.Client>(UtilityConsts.ComponentTags.IPC_CLIENT, out _);
+            ProcessServer = ComponentUtils.GetOrCreate<PipeServer>(UtilityConsts.ComponentTags.IPC_SERVER, out _);
+            ProcessClient = ComponentUtils.GetOrCreate<PipeClient>(UtilityConsts.ComponentTags.IPC_CLIENT, out _);
 
             PropertyManager = ComponentUtils.GetOrCreate<PropertyDataController>(UtilityConsts.ComponentTags.PROPERTY_DATA, out bool wasCreated);
 

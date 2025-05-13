@@ -1,307 +1,313 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using LogUtils.Diagnostics;
+using System;
+using System.IO;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace LogUtils.IPC
 {
-    public sealed class PipeServer : NetworkComponentLegacy
+    public class PipeServer : NetworkComponent
     {
-        protected override PipeStream BaseStream => Server;
-
-        public NamedPipeServerStream Server = new NamedPipeServerStream("RW-LogUtils");
-
-        /// <summary>
-        /// The total amount of Rain World clients that have connected (includes disconnected clients)
-        /// </summary>
-        public byte TotalClients { get; private set; }
-
-        /// <summary>
-        /// Contains the ID of the Rain World client that maintains the server
-        /// </summary>
-        public byte ServerID { get; private set; }
+        public NamedPipeServerStream Receiver = new NamedPipeServerStream(pipeName: "RW-LogUtils");
+                                                                        /*direction: PipeDirection.InOut,
+                                                                          maxNumberOfServerInstances: 1,
+                                                                          transmissionMode: PipeTransmissionMode.Byte,
+                                                                          options: PipeOptions.Asynchronous | PipeOptions.WriteThrough,
+                                                                          inBufferSize: 1,
+                                                                          outBufferSize: 1);*/
 
         /// <summary>
-        /// A list of Rain World client IDs known to still be active
+        /// Used to establish the first server to connect as the primary server - only one primary server is allowed
         /// </summary>
-        public List<byte> ActiveClientIDs = new List<byte>();
+        private NamedPipeServerStream localServer = new NamedPipeServerStream("RW-LogUtils_local");
 
         /// <summary>
-        /// A list of Rain World client IDs known to still be active that have logging privileges
+        /// Used to establish the first server to connect as the primary server - only one primary server is allowed
         /// </summary>
-        public List<byte> ActivePrimaryClientIDs = new List<byte>();
+        private NamedPipeClientStream localClient = new NamedPipeClientStream("RW-LogUtils_local");
 
-        public bool IsServerClient(byte clientID) => ServerID == clientID;
+        private Task updateTask;
 
-        public void Awake()
+        public void Update()
         {
-            enabled = true;
-            EstablishConnection();
-            UtilityLogger.Log("Server activated");
-        }
+            UpdateOld();
+            return;
 
-        private Mutex mutex = new Mutex(false, "RW-LogUtils");
+            UtilityLogger.Log("Server update");
 
-        protected override bool EstablishConnection()
-        {
-            UtilityLogger.Log("Establishing connection");
-
-            if (WaitTask == null)
+            if (updateTask != null)
             {
-                WaitTask = Task.Run(() =>
-                {
-                    lock (SyncLock)
-                    {
-                        Server.WaitForConnection();
-                    }
-                });
-            }
-
-            //Asynchronously wait for a client to signal us. This may take awhile...
-            if (WaitTask.IsFaulted)
-                UtilityLogger.LogError("Connection wait error", WaitTask.Exception.InnerException);
-
-            if (WaitTask.Status >= TaskStatus.RanToCompletion)
-                WaitTask = null;
-            return Server.IsConnected;
-        }
-
-        internal void Process(ResponseCode response)
-        {
-            var clientID = ConnectionID;
-
-            UtilityLogger.Log("Server received response");
-            UtilityLogger.Log(response);
-
-            switch (response)
-            {
-                case ResponseCode.Connected:
-                    break;
-                case ResponseCode.ClientLost:
-                    {
-                        RemoveClient(clientID);
-                        break;
-                    }
-                case ResponseCode.PrimaryClientLost:
-                    {
-                        RemovePrimaryClient(clientID);
-                        break;
-                    }
-                case ResponseCode.NewClient:
-                    {
-                        AddClient();
-                        break;
-                    }
-                case ResponseCode.AddPrivileges:
-                    {
-                        AddPrivileges(clientID);
-                        break;
-                    }
-                case ResponseCode.RevokePrivileges:
-                    {
-                        RevokePrivileges(clientID);
-                        break;
-                    }
-                case ResponseCode.ReceiveID: //Server doesn't need to handle these requests
-                case ResponseCode.RequestNewPrimary:
-                case ResponseCode.RequestNewPrimaryServer:
-                    break;
-                default:
-                case ResponseCode.Invalid:
-                    throw new InvalidResponseException();
-            }
-        }
-
-        protected override void Process(byte[] responseData)
-        {
-            ResponseCode response = (ResponseCode)responseData[0];
-            byte clientID = ConnectionID = responseData[1];
-
-            UtilityLogger.Log("Server received response");
-            UtilityLogger.Log(response);
-
-            switch (response)
-            {
-                case ResponseCode.Connected:
-                    break;
-                case ResponseCode.ClientLost:
-                    {
-                        RemoveClient(clientID);
-                        break;
-                    }
-                case ResponseCode.PrimaryClientLost:
-                    {
-                        RemovePrimaryClient(clientID);
-                        break;
-                    }
-                case ResponseCode.NewClient:
-                    {
-                        AddClient();
-                        break;
-                    }
-                case ResponseCode.AddPrivileges:
-                    {
-                        AddPrivileges(clientID);
-                        break;
-                    }
-                case ResponseCode.RevokePrivileges:
-                    {
-                        RevokePrivileges(clientID);
-                        break;
-                    }
-                case ResponseCode.ReceiveID: //Server doesn't need to handle these requests
-                case ResponseCode.RequestNewPrimary:
-                case ResponseCode.RequestNewPrimaryServer:
-                    break;
-                default:
-                case ResponseCode.Invalid:
-                    throw new InvalidResponseException();
-            }
-        }
-
-        internal void AddClient()
-        {
-            int totalActiveClients = ActiveClientIDs.Count;
-
-            if (totalActiveClients == byte.MaxValue)
-                throw new ClientOverflowException();
-
-            byte clientID = TotalClients++;
-
-            //The very unlikely situation where we have assigned all available IDs and need to recycle
-            if (clientID > byte.MaxValue)
-            {
-                if (ActiveClientIDs[0] != 0)
-                    clientID = 0;
-                else if (totalActiveClients == 1)
-                    clientID = 1;
+                if (updateTask.Status == TaskStatus.WaitingForActivation)
+                    updateTask = null;
                 else
-                {
-                    bool clientFound = false;
+                    UtilityLogger.Log(updateTask.Status);
+            }
 
-                    //Find the earliest available ID
-                    for (int i = 1; i < totalActiveClients; i++)
+            if (updateTask == null)
+            {
+                updateTask = UpdateAsync();
+                return;
+            }
+
+            if (updateTask.Status >= TaskStatus.RanToCompletion)
+            {
+                if (updateTask.IsFaulted)
+                    UtilityLogger.LogError("Server error", updateTask.Exception.InnerException);
+
+                updateTask = null;
+            }
+        }
+
+        public void UpdateOld()
+        {
+            UtilityLogger.Log("Server update start");
+
+            if (Receiver.SafePipeHandle.IsClosed)
+            {
+                UtilityLogger.Log("Server disconnected");
+                Receiver.Disconnect();
+                return;
+            }
+
+            try
+            {
+                UtilityLogger.Log("Server read");
+
+                if (updateTask == null)
+                {
+                    updateTask = Task.Run(() =>
                     {
-                        if (ActiveClientIDs[i] - ActiveClientIDs[i - 1] > 1)
+                        try
                         {
-                            clientID = (byte)(ActiveClientIDs[i - 1] + 1);
-                            break;
+                            Receiver.WaitForConnection();
+                        }
+                        catch
+                        {
+                        }
+                    });
+                }
+
+                //UtilityLogger.Log("Update state:" + updateTask.Status);
+
+                if (updateTask.Status < TaskStatus.RanToCompletion)
+                    return;
+
+                updateTask = null;
+
+                UtilityLogger.Log("Listening...");
+                var result = ListenForResponseOld().Result;//ListenForResponseAsync().Result;
+
+                UtilityLogger.LogWarning(result);
+
+                try
+                {
+                    UtilityLogger.LogWarning(result + " " + 1);
+                    if (result != ResponseCode.Invalid)
+                    {
+                        uint clientProcessId;
+                        if (GetNamedPipeClientProcessId(Receiver.SafePipeHandle.DangerousGetHandle(), out clientProcessId))
+                        {
+                            UtilityLogger.Log($"Received: {result} from PID {clientProcessId}");
+                        }
+                        else
+                        {
+                            UtilityLogger.Log("Failed to get client process ID.");
                         }
                     }
+                    UtilityLogger.LogWarning(result + " " + 2);
+                }
+                catch
+                {
+                }
 
-                    if (!clientFound)
+                try
+                {
+                    Receiver.Disconnect();
+                    UtilityLogger.LogWarning(result + " " + 3);
+                    Receiver.WaitForConnection();
+                    UtilityLogger.LogWarning(result + " " + 4);
+                }
+                catch
+                {
+                    UtilityLogger.LogWarning(result + " " + "error");
+                }
+                UtilityLogger.LogWarning(result + " " + 5);
+                UtilityLogger.Log("Server write");
+            }
+            catch (Exception ex)
+            {
+                UtilityLogger.LogError(ex);
+            }
+
+            UtilityLogger.Log("Server update end");
+        }
+
+        internal async Task EstablishLocalConnection()
+        {
+            UtilityLogger.Log("Establishing local connection");
+
+            Task connectClient = Task.Run(connectLocalClient);
+            Task waitForClient = Task.Run(waitForLocalClient);
+
+            Task checkTask = Task.WhenAll(connectClient, waitForClient);
+
+            //Schedule check client to connect, to try to establish a local connection
+            //This is expected to fail if another server instance has a local connection by design
+            await checkTask;
+
+            //Both tasks must complete successfully to establish a local connection
+            if (checkTask.IsFaulted)
+                UtilityLogger.LogError("Server error", checkTask.Exception.InnerException);
+        }
+
+        internal bool HasClient;
+
+        internal async Task WaitForClientConnection()
+        {
+            UtilityLogger.Log("Waiting for client to connect");
+
+            while (!HasClient)
+            {
+                try
+                {
+                    Receiver.WaitForConnection();
+                    HasClient = true;
+                }
+                catch (Exception ex)
+                {
+                    if (ErrorCodeProvider.GetCode(ex) == ErrorCode.ProcessAlreadyExists)
                     {
-                        //Entire client ID list must not contain any number gaps for this to execute
-                        clientID = (byte)(ActiveClientIDs[totalActiveClients - 1] + 1);
+                        HasClient = true;
+                        break;
+                    }
+
+                    UtilityLogger.LogError("Server error", ex);
+                    await Task.Yield();
+                }
+            }
+        }
+
+        internal void DisconnectClient()
+        {
+            HasClient = false;
+
+            try
+            {
+                Receiver.Disconnect();
+            }
+            catch
+            {
+                //Untrustworthy process
+            }
+
+        }
+
+        internal async Task UpdateAsync()
+        {
+            UtilityLogger.Log("Server update async");
+
+            //Wait for a client to connect to the server
+            if (!localClient.IsConnected)
+            {
+                await EstablishLocalConnection();
+
+                if (localClient.IsConnected)
+                {
+                    UtilityLogger.Log("Local connection established");
+
+                    bool processFileExists = File.Exists("processes.txt");
+
+                    if (!processFileExists)
+                        UtilityLogger.Log("Process file does not exist");
+
+                    //When a new local server has been established, we need to check for the LogUtils created processes.txt. It will provide
+                    //information on Rain World processes collected by a once-existing, but now terminated primary server
+                    if (processFileExists)
+                    {
+                        //Read file
+
                     }
                 }
             }
-            ActiveClientIDs.Add(clientID);
-        }
 
-        internal void RemoveClient(byte clientID)
-        {
-            ActiveClientIDs.Remove(clientID);
-        }
+            //Only one server is allowed to wait on client requests at a time
+            if (!localClient.IsConnected) return;
 
-        internal void RemovePrimaryClient(byte clientID)
-        {
-            ActiveClientIDs.Remove(clientID);
-            RevokePrivileges(clientID);
-        }
+            if (!HasClient)
+                await WaitForClientConnection();
 
-        internal void AddPrivileges(byte clientID)
-        {
-            //The first client to register becomes the default server controller. This is enforced clientside
-            if (ActiveClientIDs.Count == 0)
-                ServerID = clientID;
+            UtilityLogger.Log("Has client: " + HasClient);
 
-            int totalPrimaryClients = ActivePrimaryClientIDs.Count;
+            if (!HasClient) return;
 
-            bool requiresInsertion = totalPrimaryClients > 0 && ActivePrimaryClientIDs[totalPrimaryClients - 1] > clientID;
+            ResponseCode response = ResponseCode.Invalid;
 
-            if (requiresInsertion)
+            UtilityLogger.Log("Listening for client response");
+
+            while (response == ResponseCode.Invalid)
             {
-                int index = totalPrimaryClients - 1;
-                while (clientID > ActivePrimaryClientIDs[index])
-                    index--;
-                ActivePrimaryClientIDs.Insert(index + 1, clientID); //index + 1 targets the index after the value that is below clientID
-                return;
-            }
-            ActivePrimaryClientIDs.Add(clientID);
-        }
-
-        internal void RevokePrivileges(byte clientID)
-        {
-            if (!ActivePrimaryClientIDs.Contains(clientID))
-            {
-                UtilityLogger.Log("Client does not have logging privileges");
-                return;
+                response = await ListenForResponseAsync();
+                //await Task.Yield();
             }
 
-            ActivePrimaryClientIDs.Remove(clientID);
+            UtilityLogger.Log("Receiving client response: " + response);
 
-            if (ActiveClientIDs.Count == 0) //Most likely Rain World's only process is shutting down
+            try
             {
-                UtilityLogger.Log("No clients available to select");
-                return;
+                Process(response);
             }
-
-            int totalPrimaryClients = ActivePrimaryClientIDs.Count;
-
-            ResponseCode request;
-            byte requestClient;
-            if (IsServerClient(clientID))
+            finally
             {
-                //The client with the lowest ID gets selected to be the new server host with primary clients receiving priority over regular clients
-                request = ResponseCode.RequestNewPrimaryServer;
-                requestClient = totalPrimaryClients > 0 ? ActivePrimaryClientIDs[0] : ActiveClientIDs[0];
-
-                SendResponse(request, requestClient, NOT_IMPORTANT);
-                return;
+                DisconnectClient();
+                UtilityLogger.Log("Client disconnected");
             }
-
-            //No need to assign a new primary client as long as we have at least one available
-            if (totalPrimaryClients > 0)
-                return;
-
-            //Request an existing client to receive logging privileges that does not manage the server
-            request = ResponseCode.RequestNewPrimary;
-            requestClient = ActiveClientIDs[0];
-            SendResponse(request, requestClient, NOT_IMPORTANT);
         }
 
-        /// <summary>
-        /// The client ID that is currently connected to the server
-        /// </summary>
-        internal byte ConnectionID;
-
-        internal Dictionary<int, byte[]> OutgoingResponseData;
-
-        internal void SendResponse(ResponseCode response, byte responseTarget, byte responseValue)
+        bool waitingForResults = false;
+        internal ResponseCode ListenForResponse()
         {
-            //Check whether we can send this response immediately
-            if (ConnectionID == responseTarget)
+            byte[] receivedBytes = new byte[1];
+
+            waitingForResults = true;
+            try
             {
-                Server.WriteByte((byte)response);
-                Server.WriteByte(responseValue);
-                return;
+                var result = Receiver.BeginRead(receivedBytes, 0, 1, (IAsyncResult result) =>
+                {
+                    try
+                    {
+                        if (receivedBytes[0] != 0)
+                        {
+                            UtilityLogger.Log("Server received a response");
+                            Receiver.WriteByte((byte)ResponseCode.Ack);
+                            Receiver.EndRead(result);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        UtilityLogger.LogError("Server error", ex);
+                    }
+                    waitingForResults = false;
+                }, null);
+            }
+            catch (Exception ex)
+            {
+                UtilityLogger.LogError("Server error", ex);
             }
 
-            //Otherwise, we have to stash it and handle it later - This will overwrite any previously unhandled responses.
-            //Try to ensure that a single client doesn't need to receive more than one pending response
-            OutgoingResponseData[responseTarget] = [(byte)response, responseValue]; 
+            while (waitingForResults)
+            { }
+
+            return (ResponseCode)receivedBytes[0];
         }
 
-        internal Task<int> ReadTask;
+        Task ReadTask;
 
-        private byte[] readBuffer = new byte[1];
-        internal bool ListenForResponse(out ResponseCode response)
+        internal async Task<ResponseCode> ListenForResponseOld()
         {
+            byte[] receivedBytes = new byte[1];
             if (ReadTask == null)
-                ReadTask = Server.ReadAsync(readBuffer, 0, 1);
+                ReadTask = Receiver.ReadAsync(receivedBytes, 0, 1);
 
             var task = ReadTask;
             var taskStatus = task.Status;
@@ -315,120 +321,85 @@ namespace LogUtils.IPC
                     ReadTask = null;
                 }
 
-                response = ResponseCode.Invalid;
-                return false;
+                return ResponseCode.Invalid;
             }
 
             ReadTask = null;
-            response = (ResponseCode)readBuffer[0];
-            return true;
-
-            //if (ReadTask != null && ReadTask.Status >= TaskStatus.RanToCompletion) //cancelled, completed, or faulted
-            //{
-            //    if (ReadTask.IsCompleted)
-            //    {
-            //        uint clientProcessId;
-            //        if (GetNamedPipeClientProcessId(Server.SafePipeHandle.DangerousGetHandle(), out clientProcessId))
-            //        {
-            //            UtilityLogger.Log($"Received: {(ResponseCode)buffer[0]} from PID {clientProcessId}");
-            //        }
-            //        else
-            //        {
-            //            UtilityLogger.Log("Failed to get client process ID.");
-            //        }
-            //    }
-
-            //    if (ReadTask.IsFaulted)
-            //        UtilityLogger.LogWarning("Read fault");
-            //    ReadTask = null;
-            //}
-
-            //if (ReadTask == null)
-            //    ReadTask = Server.ReadAsync(buffer, 0, 1);
+            return (ResponseCode)receivedBytes[0];
         }
 
-        Task task;
-
-        public override void Update()
+        internal async Task<ResponseCode> ListenForResponseAsync()
         {
-            UtilityLogger.Log("Server update start");
+            byte[] receivedBytes = new byte[1];
 
-            if (Server.SafePipeHandle.IsClosed)
+            //Keep listening until we receive a response
+            Task readTask = Receiver.ReadAsync(receivedBytes, 0, 1);
+
+            await readTask;
+            return (ResponseCode)receivedBytes[0];
+
+            bool waitingForResults = true;
+            var result = Receiver.BeginRead(receivedBytes, 0, 1, (IAsyncResult result) =>
             {
-                UtilityLogger.Log("Server disconnected");
-                Server.Disconnect();
-                return;
-            }
-
-            try
-            {
-                UtilityLogger.Log("Server read");
-
-                if (task == null || task.IsCompleted)
+                if (receivedBytes[0] != 0)
                 {
-                    task = Task.Run(() =>
-                    {
-                        try
-                        {
-                            Server.WaitForConnection();
-                        }
-                        catch
-                        {
-                        }
-                    });
+                    UtilityLogger.Log("Server received a response");
+                    Receiver.WriteByte((byte)ResponseCode.Ack);
+                    Receiver.EndRead(result);
                 }
+                waitingForResults = false;
+            }, null);
 
-                if (!task.IsCompleted)
-                    return;
-
-                if (ListenForResponse(out ResponseCode response))
-                {
-                    uint clientProcessId;
-                    if (GetNamedPipeClientProcessId(Server.SafePipeHandle.DangerousGetHandle(), out clientProcessId))
-                    {
-                        UtilityLogger.Log($"Received: {response} from PID {clientProcessId}");
-                    }
-                    else
-                    {
-                        UtilityLogger.Log("Failed to get client process ID.");
-                    }
-                }
-
-                Server.Disconnect();
-
-                //if (ReadTask != null && ReadTask.Status >= TaskStatus.RanToCompletion) //cancelled, completed, or faulted
-                //{
-                //    if (ReadTask.IsCompleted)
-                //    {
-                //        uint clientProcessId;
-                //        if (GetNamedPipeClientProcessId(Server.SafePipeHandle.DangerousGetHandle(), out clientProcessId))
-                //        {
-                //            UtilityLogger.Log($"Received: {(ResponseCode)buffer[0]} from PID {clientProcessId}");
-                //        }
-                //        else
-                //        {
-                //            UtilityLogger.Log("Failed to get client process ID.");
-                //        }
-                //    }
-
-                //    if (ReadTask.IsFaulted)
-                //        UtilityLogger.LogWarning("Read fault");
-                //    ReadTask = null;
-                //}
-
-                //if (ReadTask == null)
-                //    ReadTask = Server.ReadAsync(buffer, 0, 1);
-
-                //ReadFromStream();
-                UtilityLogger.Log("Server write");
-                //WriteToStream();
-            }
-            catch (Exception ex)
+            //Wait until we receive a response
+            while (waitingForResults)//readTask.Status < TaskStatus.RanToCompletion)
             {
-                UtilityLogger.LogError(ex);
+                UtilityLogger.Log("Yielding");
+                //await Task.Yield();
             }
 
-            UtilityLogger.Log("Server update end");
+            //UtilityLogger.Log("Task status: " + readTask.Status);
+
+            //if (readTask.IsFaulted)
+            //{
+            //    UtilityLogger.LogError("Server error", readTask.Exception.InnerException);
+            //    return ResponseCode.Invalid;
+            //}
+
+            return (ResponseCode)receivedBytes[0];
+        }
+
+        private void connectLocalClient()
+        {
+            localClient.Connect();
+        }
+
+        private async Task waitForLocalClient()
+        {
+            UtilityLogger.Log("Waiting for local client");
+            //localServer.WaitForConnection();
+
+            bool waitingForResult = true;
+
+            await Task.Run(() =>
+            {
+                localServer.BeginWaitForConnection((IAsyncResult result) =>
+                {
+                    waitingForResult = false;
+                }, null);
+            });
+
+            while (waitingForResult)
+            {
+                //UtilityLogger.Log("Yielding");
+                await Task.Yield();
+            }
+
+            Condition.Assert(localClient.IsConnected, new AssertHandler(UtilityLogger.Logger));
+        }
+
+        internal void Process(ResponseCode response)
+        {
+            //TODO: Handle logic
         }
 
         [DllImport("kernel32.dll", SetLastError = true)]

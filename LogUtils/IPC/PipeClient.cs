@@ -1,166 +1,115 @@
 ﻿using System;
-using System.IO;
 using System.IO.Pipes;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace LogUtils.IPC
 {
-    public class PipeClient : NetworkComponentLegacy
+    public class PipeClient : NetworkComponent
     {
-        protected override PipeStream BaseStream => Client;
-
-        public NamedPipeClientStream Client = new NamedPipeClientStream(".", "RW-LogUtils");
-
-        /// <summary>
-        /// This flag controls whether this client is permitted to conduct LogUtils services (the first client to connect becomes the primary client) 
-        /// </summary>
-        public bool IsPrimary;
-
-        /// <summary>
-        /// The unique identifier for this client
-        /// </summary>
-        public int ID;
-
         public void Awake()
         {
-            ID = System.Diagnostics.Process.GetCurrentProcess().Id;
-
-            IsPrimary = true;
             enabled = true;
-            UtilityLogger.Log("Client activated");
-            SendResponse(ResponseCode.NewClient);
+            UtilityLogger.Log($"Client registered [ID {System.Diagnostics.Process.GetCurrentProcess().Id}]");
         }
 
-        private Mutex mutex = new Mutex(false, "RW-LogUtils");
-
-        protected override bool EstablishConnection()
+        internal async Task<NamedPipeClientStream> ConnectToServer()
         {
-            if (Client.IsConnected) return true;
+            NamedPipeClientStream responder = new NamedPipeClientStream(".", "RW-LogUtils", PipeDirection.InOut);
 
-            if (WaitTask == null)
+            int connectionAttempts = 0;
+            await Task.Run(() =>
             {
-                WaitTask = Task.Run(async () =>
+                while (connectionAttempts < 10)
                 {
-                    //mutex.WaitOne();
-
-                    //lock (SyncLock)
+                    try
                     {
-                        try
-                        {
-                            if (!Client.IsConnected)
-                            {
-                                UtilityLogger.Log("Attempting to connect to pipe...");
-                                try
-                                {
-                                    Client.Close();// Connect();
-                                }
-                                finally
-                                {
-                                    //await Task.Delay(5000);
-                                    ResetStream();
-                                }
-                            }
-                        }
-                        finally
-                        {
-                            //mutex.ReleaseMutex();
-                        }
-                    }
-                });
-            }
-
-            //if (WaitTask == null)
-            //    WaitTask = Task.Run(Client.Connect);
-
-            //Asynchronously wait for a server to become available. This may take awhile...
-            if (WaitTask.IsFaulted)
-                UtilityLogger.LogError("Connection wait error", WaitTask.Exception.InnerException);
-
-            if (WaitTask.Status >= TaskStatus.RanToCompletion)
-                WaitTask = null;
-            return Client.IsConnected;
-        }
-
-        protected override void Process(byte[] responseData)
-        {
-            ResponseCode response = (ResponseCode)responseData[0];
-
-            UtilityLogger.Log("Client received response");
-            UtilityLogger.Log(response);
-
-            switch (response)
-            {
-                case ResponseCode.ReceiveID:
-                    {
-                        ID = responseData[1];
+                        responder.Connect();
                         break;
                     }
-                case ResponseCode.RequestNewPrimary:
+                    catch (Exception ex)
                     {
-                        IsPrimary = true;
-                        break;
+                        UtilityLogger.LogError(ex);
+
+                        //Server may be busy
+                        connectionAttempts++;
                     }
-                case ResponseCode.RequestNewPrimaryServer:
-                    {
-                        IsPrimary = true;
-                        UtilityCore.ProcessServer = new PipeServerNew.Server(); //placeholder
-                        break;
-                    }
-                case ResponseCode.ClientLost: //Client doesn't need to handle these requests
-                case ResponseCode.PrimaryClientLost:
-                case ResponseCode.NewClient:
-                case ResponseCode.AddPrivileges:
-                case ResponseCode.RevokePrivileges:
-                    break;
-                default:
-                case ResponseCode.Invalid:
-                    throw new InvalidResponseException();
-            }
-        }
-
-        public void SendResponse(ResponseCode response)
-        {
-            Buffer.Enqueue(((byte)response, 0));
-        }
-
-        public override void Update()
-        {
-            UtilityLogger.Log("Sending response 1");
-            SendResponse("RW-LogUtils", ResponseCode.Connected);
-            UtilityLogger.Log("Sending response 2");
-            SendResponse("RW-LogUtils", ResponseCode.NewClient);
-            return;
-            using (Client = new NamedPipeClientStream("RW-LogUtils"))
-            {
-                UtilityLogger.Log("Client update start");
-                bool hasConnected = EstablishConnection();
-
-                UtilityLogger.Log("Connected: " + hasConnected);
-
-                SendResponse(ResponseCode.Connected);
-                if (hasConnected)
-                {
-                    //ReadFromStream();
-                    //WriteToStream();
                 }
-                UtilityLogger.Log("Client update end");
+            });
+
+            //Check that we were able to connect, and if we did return the connected client, otherwise clean up resources
+            if (connectionAttempts == 10)
+            {
+                UtilityLogger.LogWarning("Connection timed out");
+                responder.Dispose();
+                return null;
             }
+            return responder;
         }
 
-        /// <summary>
-        /// Close the current pipe and create a new instance
-        /// </summary>
-        protected void ResetStream()
+        public async Task SendResponse(ResponseCode response)
         {
+            UtilityLogger.Log("Sending client response: " + response);
+
+            NamedPipeClientStream responder = await ConnectToServer();
+
+            if (responder == null) return;
+
+            UtilityLogger.Log("Client connected successfully");
+
             try
             {
-                //Client.Dispose();
+                using (responder)
+                {
+                    UtilityLogger.Log("Sending response");
+
+                    byte[] bytes = [(byte)response];
+                    await responder.WriteAsync(bytes, 0, 1);
+
+                    int serverAck = responder.ReadByte();
+
+                    if ((ResponseCode)serverAck == ResponseCode.Ack)
+                    {
+                        UtilityLogger.Log("Acknowledged");
+                    }
+                }
+
+                //Keep connection open until response is read
+                await Task.Run(responder.WaitForPipeDrain);
+
+                UtilityLogger.Log("Is client connected? " + responder.IsConnected);
+                UtilityLogger.Log("Releasing pipe stream");
             }
-            finally
+            catch (Exception ex)
             {
-                //Client = new NamedPipeClientStream("RW-LogUtils");
+                UtilityLogger.LogError("Client error", ex);
             }
+        }
+
+        private Task updateTask;
+
+        public void Update()
+        {
+            if (updateTask == null)
+            {
+                updateTask = UpdateAsync();
+                return;
+            }
+
+            if (updateTask.Status >= TaskStatus.RanToCompletion)
+            {
+                if (updateTask.IsFaulted)
+                    UtilityLogger.LogError(updateTask.Exception.InnerException);
+
+                updateTask = null;
+            }
+        }
+
+        internal async Task UpdateAsync()
+        {
+            UtilityLogger.Log("Sending response 1");
+            await SendResponse(ResponseCode.Connected);
+            //UtilityLogger.Log("Sending response 2");
+            //await SendResponse(ResponseCode.NewClient);
         }
 
         public override string Tag => UtilityConsts.ComponentTags.IPC_CLIENT;
