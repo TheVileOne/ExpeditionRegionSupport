@@ -7,15 +7,92 @@ namespace LogUtils.IPC
 {
     public class PipeClient : NetworkComponent
     {
+        public int ID;
+
+        internal NamedPipeServerStream Receiver;
+
+        internal Task ReadTask;
+
+        internal static bool ListenForResponses = true; //Static to avoid impacting disposal
+
         public void Awake()
         {
             enabled = true;
-            UtilityLogger.Log($"Client registered [ID {System.Diagnostics.Process.GetCurrentProcess().Id}]");
+
+            ID = System.Diagnostics.Process.GetCurrentProcess().Id;
+            Receiver = new NamedPipeServerStream($"RW-LogUtils_{ID}", PipeDirection.InOut);
+
+            ReadTask = Task.Run(async () =>
+            {
+                Receiver.WaitForConnection();
+
+                while (ListenForResponses)
+                {
+                    try
+                    {
+                        byte[] receivedBytes = new byte[1];
+                        await Receiver.ReadAsync(receivedBytes, 0, 1);
+
+                        ResponseCode response = (ResponseCode)receivedBytes[0];
+
+                        if (response == ResponseCode.Ack)
+                            OnConfirmation();
+                    }
+                    catch (Exception ex)
+                    {
+                        UtilityLogger.LogError("Client error", ex);
+                    }
+                }
+            });
         }
 
-        internal async Task<NamedPipeClientStream> ConnectToServer()
+        private bool confirmationFlag;
+
+        internal void OnConfirmation()
         {
-            NamedPipeClientStream responder = new NamedPipeClientStream(".", "RW-LogUtils", PipeDirection.InOut);
+            confirmationFlag = true;
+        }
+
+        internal bool ConsumeConfirmation()
+        {
+            if (confirmationFlag)
+            {
+                confirmationFlag = false;
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> WaitForConfirmation(int timeout = -1)
+        {
+            bool confirmed = false;
+
+            CancellationTokenSource cancelToken = new CancellationTokenSource(timeout);
+
+            try
+            {
+                await Task.Run(checkForConfirmation, cancelToken.Token);
+            }
+            catch (TaskCanceledException)
+            {
+            }
+            return confirmed;
+
+            void checkForConfirmation()
+            {
+                while (!confirmed)
+                {
+                    confirmed = ConsumeConfirmation();
+
+                    if (cancelToken.IsCancellationRequested)
+                        throw new TaskCanceledException();
+                }
+            }
+        }
+
+        internal static async Task<NamedPipeClientStream> ConnectToServer(string portName)
+        {
+            NamedPipeClientStream responder = new NamedPipeClientStream(".", portName, PipeDirection.InOut);
 
             int connectionAttempts = 0;
             await Task.Run(() =>
@@ -29,7 +106,7 @@ namespace LogUtils.IPC
                     }
                     catch (Exception ex)
                     {
-                        UtilityLogger.LogError(ex);
+                        UtilityLogger.LogError("Client error", ex);
 
                         //Server may be busy
                         connectionAttempts++;
@@ -44,9 +121,30 @@ namespace LogUtils.IPC
                 responder.Dispose();
                 return null;
             }
+
+            UtilityLogger.Log("Connection successful");
             return responder;
         }
 
+
+        internal void Register()
+        {
+            UtilityLogger.Log("Client registration");
+            var task = SendResponseAsync(ResponseCode.NewClient);
+
+            while (task.Status < TaskStatus.RanToCompletion)
+            {
+                //busy wait
+            }
+
+            if (task.Result)
+                UtilityLogger.LogError("Client registered");
+            else
+            {
+                UtilityLogger.LogWarning("Client failed to register. Retrying...");
+                Register();
+            }
+        }
 
         /// <summary>
         /// Sends a response to IPC server, and waits for server to receive it
@@ -54,14 +152,22 @@ namespace LogUtils.IPC
         /// <returns>Whether response was successful</returns>
         public bool SendResponse(ResponseCode response)
         {
-            var task = SendResponseAsync(response);
+            try
+            {
+                var task = SendResponseAsync(response);
 
-            SpinWait.SpinUntil(() => task.Status >= TaskStatus.RanToCompletion);
+                SpinWait.SpinUntil(() => task.Status >= TaskStatus.RanToCompletion);
 
-            if (task.IsFaulted)
+                if (task.IsFaulted)
+                    return false;
+
+                return task.Result;
+            }
+            catch (Exception ex)
+            {
+                UtilityLogger.LogError(ex);
                 return false;
-
-            return task.Result;
+            }
         }
 
         /// <summary>
@@ -90,7 +196,7 @@ namespace LogUtils.IPC
             //TODO: Cancel support
             UtilityLogger.Log("Sending client response: " + response);
 
-            NamedPipeClientStream responder = await ConnectToServer();
+            NamedPipeClientStream responder = await ConnectToServer("RW-LogUtils");
 
             if (responder == null)
                 return false;
@@ -104,13 +210,9 @@ namespace LogUtils.IPC
 
                 try
                 {
-                    byte[] bytes = [(byte)response];
-                    await responder.WriteAsync(bytes, 0, 1);
+                    await responder.Send(response);
 
-                    //Keep connection open until response is read
-                    await Task.Run(responder.WaitForPipeDrain);
-
-                    responseSent = true;
+                    responseSent = await WaitForConfirmation(20);
                 }
                 catch (Exception ex)
                 {
@@ -149,6 +251,22 @@ namespace LogUtils.IPC
             await Task.CompletedTask;
         }
 
+        ~PipeClient()
+        {
+            ListenForResponses = false;
+        }
+
         public override string Tag => UtilityConsts.ComponentTags.IPC_CLIENT;
+    }
+
+    internal static class ClientExtensions
+    {
+        public static async Task Send(this NamedPipeClientStream responder,  ResponseCode response)
+        {
+            await responder.WriteAsync([(byte)response], 0, 1);
+
+            //Keep connection open until response is read
+            await Task.Run(responder.WaitForPipeDrain);
+        }
     }
 }

@@ -14,6 +14,9 @@ namespace LogUtils.IPC
             if (message.StartsWith("There is a process"))
                 return ErrorCode.ProcessAlreadyExists;
 
+            if (message.StartsWith("The pipe is being closed"))
+                return ErrorCode.PipeClosing;
+
             if (message.StartsWith("All pipe instances are busy"))
                 return ErrorCode.PipeBusy;
 
@@ -30,6 +33,7 @@ namespace LogUtils.IPC
     public enum ErrorCode
     {
         PipeBusy,
+        PipeClosing,
         PipeDisconnected,
         PipeHandleNotSet,
         PipeAlreadyExists,

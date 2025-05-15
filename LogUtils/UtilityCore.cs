@@ -277,20 +277,34 @@ namespace LogUtils
             RWInfo.LatestSetupPeriodReached = startupPeriod;
         }
 
+        internal static void EstablishIpcChannel()
+        {
+            try
+            {
+                UtilityLogger.Log("Starting server and client");
+                ProcessServer = new PipeServer();//ComponentUtils.GetOrCreate<PipeServer>(UtilityConsts.ComponentTags.IPC_SERVER, out _);
+                ProcessClient = ComponentUtils.GetOrCreate<PipeClient>(UtilityConsts.ComponentTags.IPC_CLIENT, out _);
+
+                ProcessServer.Start();
+                ProcessClient.Register();
+            }
+            catch (Exception ex)
+            {
+                UtilityLogger.DebugLog(ex);
+            }
+        }
+
         /// <summary>
         /// Creates, or establishes a reference to an existing instance of necessary utility components
         /// </summary>
         internal static void LoadComponents()
         {
+            EstablishIpcChannel();
+
             Scheduler = ComponentUtils.GetOrCreate<EventScheduler>(UtilityConsts.ComponentTags.SCHEDULER, out _);
             PersistenceManager = ComponentUtils.GetOrCreate<PersistenceManager>(UtilityConsts.ComponentTags.PERSISTENCE_MANAGER, out _);
             DataHandler = ComponentUtils.GetOrCreate<SharedDataHandler>(UtilityConsts.ComponentTags.SHARED_DATA, out _);
             RequestHandler = ComponentUtils.GetOrCreate<LogRequestHandler>(UtilityConsts.ComponentTags.REQUEST_DATA, out _);
-
-            ProcessServer = new PipeServer();//ComponentUtils.GetOrCreate<PipeServer>(UtilityConsts.ComponentTags.IPC_SERVER, out _);
-            ProcessClient = ComponentUtils.GetOrCreate<PipeClient>(UtilityConsts.ComponentTags.IPC_CLIENT, out _);
-
-            ProcessServer.Start();
 
             PropertyManager = ComponentUtils.GetOrCreate<PropertyDataController>(UtilityConsts.ComponentTags.PROPERTY_DATA, out bool wasCreated);
 

@@ -1,5 +1,6 @@
 ﻿using LogUtils.Diagnostics;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
@@ -32,6 +33,20 @@ namespace LogUtils.IPC
         private bool readyForNewUpdate => updateTask == null || updateTask.Status >= TaskStatus.RanToCompletion;
 
         private Task updateTask;
+
+        private List<int> clientIDs = new List<int>();
+
+        internal void Register(int clientProcessID)
+        {
+            if (clientIDs.Contains(clientProcessID))
+            {
+                UtilityLogger.Log("Client already exists");
+                return;
+            }
+
+            UtilityLogger.Log($"Registering Rain World client [{clientProcessID}]");
+            clientIDs.Add(clientProcessID);
+        }
 
         internal void Start()
         {
@@ -104,10 +119,14 @@ namespace LogUtils.IPC
                 }
                 catch (Exception ex)
                 {
-                    if (ErrorCodeProvider.GetCode(ex) == ErrorCode.ProcessAlreadyExists)
+                    switch (ErrorCodeProvider.GetCode(ex))
                     {
-                        HasClient = true;
-                        break;
+                        case ErrorCode.ProcessAlreadyExists:
+                            HasClient = true;
+                            continue;
+                        case ErrorCode.PipeClosing:
+                            await Task.Delay(15);
+                            continue;
                     }
 
                     UtilityLogger.LogError("Server error", ex);
@@ -179,12 +198,50 @@ namespace LogUtils.IPC
 
             try
             {
-                Process(response);
+                if (GetNamedPipeClientProcessId(Receiver.SafePipeHandle.DangerousGetHandle(), out uint clientProcessID))
+                {
+                    int clientID = (int)clientProcessID;
+
+                    //Keep a record of every active client process
+                    Register(clientID);
+
+                    //Let client know that the server received the response - responses may not make it to the server (and confirmation may not make it to the client either)
+                    await SendConfirmation(clientID);
+
+                    //Even if confirmation fails, we will still process it on the server. For this reason, all server functions should be able to be performed multiple times
+                    //(in the case the client resends its response) without corrupting any state
+                    Process(response, clientID);
+                }
+                else
+                {
+                    UtilityLogger.Log("Failed to get client process ID.");
+                }
             }
             finally
             {
                 DisconnectClient();
                 UtilityLogger.Log("Client disconnected");
+            }
+        }
+
+        internal async Task SendConfirmation(int clientID)
+        {
+            UtilityLogger.Log("Sending confirmation");
+
+            var responder = await PipeClient.ConnectToServer($"RW-LogUtils_{clientID}");
+
+            //Not much that can be done if connection failed - perhaps we could keep trying
+            if (responder == null)
+                return;
+
+            try
+            {
+                UtilityLogger.Log("Ready to send to client");
+                await responder.Send(ResponseCode.Ack);
+            }
+            catch (Exception ex)
+            {
+                UtilityLogger.LogError("Server error", ex);
             }
         }
 
@@ -195,8 +252,24 @@ namespace LogUtils.IPC
             //Keep listening until we receive a response
             Task readTask = Receiver.ReadAsync(receivedBytes, 0, 1);
 
-            await readTask;
-            return (ResponseCode)receivedBytes[0];
+            try
+            {
+                await readTask;
+                return (ResponseCode)receivedBytes[0];
+            }
+            catch (Exception ex)
+            {
+                switch (ErrorCodeProvider.GetCode(ex))
+                {
+                    case ErrorCode.PipeDisconnected:
+                        await WaitForClientConnection();
+                        break;
+                    default:
+                        UtilityLogger.LogError("Server error", ex);
+                        break;
+                }
+                return ResponseCode.Invalid;
+            }
         }
 
         private void connectLocalClient()
@@ -228,7 +301,7 @@ namespace LogUtils.IPC
             Condition.Assert(localClient.IsConnected, new AssertHandler(UtilityLogger.Logger));
         }
 
-        internal void Process(ResponseCode response)
+        internal void Process(ResponseCode response, int clientID)
         {
             //TODO: Handle logic
         }
