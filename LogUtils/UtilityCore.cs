@@ -41,7 +41,7 @@ namespace LogUtils
         /// <summary>
         /// The assembly responsible for loading core resources for the utility
         /// </summary>
-        public static bool IsControllingAssembly { get; private set; }
+        public static bool IsControllingAssembly => ProcessMonitor.IsConnected;
 
         /// <summary>
         /// The initialized state for the assembly. This does NOT indicate that another version of the assembly has initialized,
@@ -201,46 +201,36 @@ namespace LogUtils
                         nextStep = UtilitySetup.InitializationStep.ADAPT_LOGGING_SYSTEM;
                         break;
                     }
+                case UtilitySetup.InitializationStep.ADAPT_LOGGING_SYSTEM:
+                    {
+                        //This must be run before late initialized log files are handled to allow BepInEx log file to be moved
+                        BepInExAdapter.Run();
+                        LogConsole.Initialize();
+
+                        nextStep = UtilitySetup.InitializationStep.POST_LOGID_PROCESSING;
+                        break;
+                    }
+                case UtilitySetup.InitializationStep.POST_LOGID_PROCESSING:
+                    {
+                        PropertyManager.ProcessLogFiles();
+
+                        //Listen for Unity log requests while the log file is unavailable
+                        if (!LogID.Unity.Properties.CanBeAccessed)
+                            UnityLogger.ReceiveUnityLogEvents = true;
+
+                        nextStep = UtilitySetup.InitializationStep.APPLY_HOOKS;
+                        break;
+                    }
+                case UtilitySetup.InitializationStep.APPLY_HOOKS:
+                    {
+                        GameHooks.Initialize();
+                        break;
+                    }
             }
 
-            //The steps after this point should only be run by a single assembly
             if (nextStep != currentStep)
                 return nextStep;
 
-            if (IsControllingAssembly)
-            {
-                switch (currentStep)
-                {
-                    case UtilitySetup.InitializationStep.ADAPT_LOGGING_SYSTEM:
-                        {
-                            //This must be run before late initialized log files are handled to allow BepInEx log file to be moved
-                            BepInExAdapter.Run();
-                            LogConsole.Initialize();
-
-                            nextStep = UtilitySetup.InitializationStep.POST_LOGID_PROCESSING;
-                            break;
-                        }
-                    case UtilitySetup.InitializationStep.POST_LOGID_PROCESSING:
-                        {
-                            PropertyManager.ProcessLogFiles();
-
-                            //Listen for Unity log requests while the log file is unavailable
-                            if (!LogID.Unity.Properties.CanBeAccessed)
-                                UnityLogger.ReceiveUnityLogEvents = true;
-
-                            nextStep = UtilitySetup.InitializationStep.APPLY_HOOKS;
-                            break;
-                        }
-                    case UtilitySetup.InitializationStep.APPLY_HOOKS:
-                        {
-                            GameHooks.Initialize();
-                            break;
-                        }
-                }
-
-                if (nextStep != currentStep)
-                    return nextStep;
-            }
             return nextStep = UtilitySetup.InitializationStep.COMPLETE;
         }
 
@@ -279,18 +269,16 @@ namespace LogUtils
         /// </summary>
         internal static void LoadComponents()
         {
+            ProcessMonitor.WaitOnConnectionStatus();
+            UtilityLogger.Log("IsControllingAssembly: " + IsControllingAssembly);
+
             Scheduler = ComponentUtils.GetOrCreate<EventScheduler>(UtilityConsts.ComponentTags.SCHEDULER, out _);
             PersistenceManager = ComponentUtils.GetOrCreate<PersistenceManager>(UtilityConsts.ComponentTags.PERSISTENCE_MANAGER, out _);
             DataHandler = ComponentUtils.GetOrCreate<SharedDataHandler>(UtilityConsts.ComponentTags.SHARED_DATA, out _);
             RequestHandler = ComponentUtils.GetOrCreate<LogRequestHandler>(UtilityConsts.ComponentTags.REQUEST_DATA, out _);
 
-            PropertyManager = ComponentUtils.GetOrCreate<PropertyDataController>(UtilityConsts.ComponentTags.PROPERTY_DATA, out bool wasCreated);
-
-            if (wasCreated)
-            {
-                IsControllingAssembly = true;
-                PropertyManager.SetPropertiesFromFile();
-            }
+            PropertyManager = ComponentUtils.GetOrCreate<PropertyDataController>(UtilityConsts.ComponentTags.PROPERTY_DATA, out _);
+            PropertyManager.SetPropertiesFromFile();
         }
 
         private static void onSetupPeriodReached(SetupPeriodEventArgs e)
