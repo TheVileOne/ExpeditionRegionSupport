@@ -1,5 +1,6 @@
 ﻿using LogUtils.Diagnostics;
 using System;
+using System.Diagnostics;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -11,13 +12,18 @@ namespace LogUtils.IPC
         /// <summary>
         /// Only one Rain World process can connect to this at a time
         /// </summary>
-        private static NamedPipeServerStream monitorServer = new NamedPipeServerStream("RW-LogUtils");
+        private static NamedPipeServerStream monitorServer;
 
-        private static NamedPipeClientStream monitorClient = new NamedPipeClientStream("RW-LogUtils");
+        private static NamedPipeClientStream monitorClient;
 
         public static bool IsRunning;
 
         private static bool readyForNewUpdate => updateTask == null || updateTask.Status >= TaskStatus.RanToCompletion;
+
+        /// <summary>
+        /// The initialization process either has not run, or there was an error preventing it from completing
+        /// </summary>
+        public static bool RequiresInitialization = true;
 
         private static Task updateTask;
 
@@ -32,12 +38,38 @@ namespace LogUtils.IPC
             IsRunning = false;
         }
 
+        internal static bool TryInit()
+        {
+            try
+            {
+                monitorServer = new NamedPipeServerStream("RW-LogUtils");
+                monitorClient = new NamedPipeClientStream("RW-LogUtils");
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         internal static void Update()
         {
             IsRunning = true;
 
             while (IsRunning)
             {
+                //Constructing pipe server instances on secondary Rain World instances throw on construction - we need to keep trying
+                //to initalize here until it completes
+                if (RequiresInitialization)
+                {
+                    if (TryInit())
+                    {
+                        UtilityLogger.Logger.LogMessage($"Init successful [{Process.GetCurrentProcess().Id}]");
+                        RequiresInitialization = false;
+                    }
+                    continue;
+                }
+
                 if (readyForNewUpdate)
                 {
                     Task task = updateTask;
