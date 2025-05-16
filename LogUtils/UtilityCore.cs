@@ -71,16 +71,6 @@ namespace LogUtils
 
         public static PersistenceManager PersistenceManager;
 
-        /// <summary>
-        /// An IPC client representing the Rain World process that LogUtils operates on
-        /// </summary>
-        public static PipeClient ProcessClient;
-
-        /// <summary>
-        /// An IPC server allowing basic communication between other Rain World processes
-        /// </summary>
-        public static PipeServer ProcessServer;
-
         public static PropertyDataController PropertyManager;
 
         /// <summary>
@@ -167,6 +157,13 @@ namespace LogUtils
                 case UtilitySetup.InitializationStep.START_SCHEDULER:
                     {
                         LogTasker.Start();
+
+                        nextStep = UtilitySetup.InitializationStep.ESTABLISH_MONITOR_CONNECTION;
+                        break;
+                    }
+                case UtilitySetup.InitializationStep.ESTABLISH_MONITOR_CONNECTION:
+                    {
+                        ProcessMonitor.Connect();
 
                         nextStep = UtilitySetup.InitializationStep.ESTABLISH_SETUP_PERIOD;
                         break;
@@ -277,30 +274,11 @@ namespace LogUtils
             RWInfo.LatestSetupPeriodReached = startupPeriod;
         }
 
-        internal static void EstablishIpcChannel()
-        {
-            try
-            {
-                UtilityLogger.Log("Starting server and client");
-                ProcessServer = new PipeServer();//ComponentUtils.GetOrCreate<PipeServer>(UtilityConsts.ComponentTags.IPC_SERVER, out _);
-                ProcessClient = ComponentUtils.GetOrCreate<PipeClient>(UtilityConsts.ComponentTags.IPC_CLIENT, out _);
-
-                ProcessServer.Start();
-                ProcessClient.Register();
-            }
-            catch (Exception ex)
-            {
-                UtilityLogger.DebugLog(ex);
-            }
-        }
-
         /// <summary>
         /// Creates, or establishes a reference to an existing instance of necessary utility components
         /// </summary>
         internal static void LoadComponents()
         {
-            EstablishIpcChannel();
-
             Scheduler = ComponentUtils.GetOrCreate<EventScheduler>(UtilityConsts.ComponentTags.SCHEDULER, out _);
             PersistenceManager = ComponentUtils.GetOrCreate<PersistenceManager>(UtilityConsts.ComponentTags.PERSISTENCE_MANAGER, out _);
             DataHandler = ComponentUtils.GetOrCreate<SharedDataHandler>(UtilityConsts.ComponentTags.SHARED_DATA, out _);

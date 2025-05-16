@@ -109,8 +109,6 @@ namespace LogUtils
 
         public static class ComponentTags
         {
-            public const string IPC_CLIENT = "IPC Client";
-            public const string IPC_SERVER = "IPC Server";
             public const string PERSISTENCE_MANAGER = "PersistenceManager";
             public const string PROPERTY_DATA = "LogProperties";
             public const string REQUEST_DATA = "RequestData";
