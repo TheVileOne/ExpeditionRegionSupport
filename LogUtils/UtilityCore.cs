@@ -352,7 +352,11 @@ namespace LogUtils
             }
 
             //Stop listening for log events
-            BepInExAdapter.DisposeListeners();
+            var disposeTask = System.Threading.Tasks.Task.Run(BepInExAdapter.DisposeListeners);
+
+            //Disposing the listeners sometimes locks up the main thread for some reason. Running on a background thread avoids potential lock ups
+            disposeTask.Wait();
+
             LogTasker.Close();
         }
     }
