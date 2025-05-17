@@ -22,8 +22,8 @@ namespace LogUtils.Threading
 
         protected readonly Action Run;
 
-        private AsyncTaskDelegate _runTaskAsync;
-        protected AsyncTaskDelegate RunAsync
+        private TaskProvider _runTaskAsync;
+        protected TaskProvider RunAsync
         {
             get
             {
@@ -90,7 +90,7 @@ namespace LogUtils.Threading
         /// <summary>
         /// Constructs a Task object - Pass this object into LogTasker to run a task on a background thread
         /// </summary>
-        public Task(AsyncTaskDelegate runTaskAsync, TimeSpan waitTime)
+        public Task(TaskProvider runTaskAsync, TimeSpan waitTime)
         {
             if (runTaskAsync == null)
                 throw new ArgumentNullException(nameof(runTaskAsync));
@@ -136,7 +136,7 @@ namespace LogUtils.Threading
             //Lazily wrap the current run task with an async wrapper if an async one is unavailable
             if (Handle != null)
             {
-                _runTaskAsync = new AsyncTaskDelegate(() =>
+                _runTaskAsync = new TaskProvider(() =>
                 {
                     Run.Invoke();
                     return DotNetTask.CompletedTask;
@@ -348,7 +348,7 @@ namespace LogUtils.Threading
         }
     }
 
-    public delegate DotNetTask AsyncTaskDelegate();
+    public delegate DotNetTask TaskProvider();
 
     public enum TaskResult
     {
