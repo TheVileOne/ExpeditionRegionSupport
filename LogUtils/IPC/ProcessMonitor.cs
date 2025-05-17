@@ -21,16 +21,16 @@ namespace LogUtils.IPC
         {
             connectTask = new Task(() =>
             {
-                establishConnection();
-
-                isWaitingOnFirstUpdate = false;
-
                 if (RWInfo.IsShuttingDown)
                 {
                     UtilityLogger.Logger.LogMessage($"Connection attempts canceled due to process shutdown [{Process.GetCurrentProcess().Id}]");
                     Disconnect();
                     return;
                 }
+
+                establishConnection();
+
+                isWaitingOnFirstUpdate = false;
 
                 if (IsConnected)
                 {
