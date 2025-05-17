@@ -11,14 +11,7 @@ namespace LogUtils.Threading
 
         public int ID;
 
-        public bool IsRunning
-        {
-            get
-            {
-                var task = Handle?.Task;
-                return task != null && task.Status == System.Threading.Tasks.TaskStatus.Running;
-            }
-        }
+        public bool IsRunning => State == TaskState.Running;
 
         public bool IsSynchronous => RunAsync == null;
 
@@ -103,6 +96,8 @@ namespace LogUtils.Threading
                 throw new ArgumentNullException(nameof(runTaskAsync));
 
             RunAsync = runTaskAsync;
+            Handle = new TaskHandle(this);
+
             WaitTimeInterval = waitTime;
             Initialize();
         }
@@ -184,18 +179,36 @@ namespace LogUtils.Threading
             if (IsRunning)
                 throw new InvalidOperationException("Task is not allowed to run concurrently");
 
+            TaskState lastState = State;
+
+            SetState(TaskState.Running);
+
             var runAsync = RunAsync;
             var handle = Handle;
 
             if (runAsync != null)
             {
                 var task = DotNetTask.Run(new Func<DotNetTask>(runAsync));
+                task.ContinueWith((task) =>
+                {
+                    if (PossibleToRun)
+                        SetState(lastState);
+                });
 
                 if (handle != null)
                     handle.Task = task;
                 return;
             }
-            Run.Invoke();
+
+            try
+            {
+                Run.Invoke();
+            }
+            finally
+            {
+                if (PossibleToRun)
+                    SetState(lastState);
+            }
         }
 
         /// <summary>
@@ -350,6 +363,7 @@ namespace LogUtils.Threading
         NotSubmitted,
         PendingSubmission,
         Submitted,
+        Running,
         Complete,
         Aborted
     }
