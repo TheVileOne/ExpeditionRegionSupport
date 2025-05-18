@@ -1,5 +1,7 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Helpers;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace LogUtils.Compatibility
@@ -27,7 +29,7 @@ namespace LogUtils.Compatibility
             ICollection<ILogListener> listeners = GetListeners();
 
             //Find the LogListener that writes to the BepInEx root directory
-            ILogListener found = listeners.FirstOrDefault(l => l is BepInEx.Logging.DiskLogListener);
+            ILogListener found = listeners.FirstOrDefault(l => l is DiskLogListener);
 
             //This listener is incompatible with LogUtils, and must be replaced
             if (found != null)
@@ -37,6 +39,29 @@ namespace LogUtils.Compatibility
             }
 
             listeners.Add(LogListener);
+
+            if (!UtilityCore.IsControllingAssembly)
+                CleanBepInExFolder();
+        }
+
+        /// <summary>
+        /// Detects, and removes log file copies in the original BepInEx logs folder directory
+        /// </summary>
+        internal static void CleanBepInExFolder()
+        {
+            string[] strayLogFiles = Directory.GetFiles(Paths.BepInExRootPath, UtilityConsts.LogNames.BepInEx + "*");
+
+            foreach (string file in strayLogFiles)
+            {
+                try
+                {
+                    File.Delete(file);
+                }
+                catch (IOException)
+                {
+                    //File may be opened by another process
+                }
+            }
         }
 
         /// <summary>
