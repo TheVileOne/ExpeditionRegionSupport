@@ -1,9 +1,12 @@
-﻿using LogUtils.Enums;
+﻿using BepInEx.Logging;
+using LogUtils.Diagnostics;
+using LogUtils.Enums;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Threading;
 using System;
 using System.IO;
 using System.Linq;
+using UnityEngine;
 
 namespace LogUtils
 {
@@ -173,9 +176,91 @@ namespace LogUtils
             Logger.LogWarning(data);
         }
 
+        /// <summary>
+        /// Creates a logger that LogUtils can use to log to files directly (without using LogIDs, or the log request system) - not intended for users of LogUtils
+        /// </summary>
+        internal static DebugLogger CreateLogger(string path, StringProvider provider)
+        {
+            return new DebugLogger(new DirectToFileLogger(path), provider);
+        }
+
         static UtilityLogger()
         {
             UtilityCore.EnsureInitializedState();
+        }
+
+        private sealed class DirectToFileLogger : ILogger
+        {
+            public string LogPath;
+
+            public DirectToFileLogger(string path) : this(path, null)
+            {
+            }
+
+            public DirectToFileLogger(string path, StringProvider provider)
+            {
+                LogPath = path;
+            }
+
+            public void Log(object data)
+            {
+                FileUtils.WriteLine(LogPath, data?.ToString());
+            }
+
+            public void Log(LogType category, object data)
+            {
+                Log(data);
+            }
+
+            public void Log(LogLevel category, object data)
+            {
+                Log(data);
+            }
+
+            public void Log(string category, object data)
+            {
+                Log(data);
+            }
+
+            public void Log(LogCategory category, object data)
+            {
+                Log(data);
+            }
+
+            public void LogDebug(object data)
+            {
+                Log(data);
+            }
+
+            public void LogError(object data)
+            {
+                Log(data);
+            }
+
+            public void LogFatal(object data)
+            {
+                Log(data);
+            }
+
+            public void LogImportant(object data)
+            {
+                Log(data);
+            }
+
+            public void LogInfo(object data)
+            {
+                Log(data);
+            }
+
+            public void LogMessage(object data)
+            {
+                Log(data);
+            }
+
+            public void LogWarning(object data)
+            {
+                Log(data);
+            }
         }
     }
 }
