@@ -95,7 +95,6 @@ namespace LogUtils.Helpers.Extensions
         /// <returns>The number of removed entries</returns>
         public static int RemoveCollectedEntries<T>(this ICollection<WeakReference<T>> collection) where T : class
         {
-            UtilityLogger.DebugLog("TEST");
             var list = collection as IList<WeakReference<T>>;
 
             int collectedCount = 0;
@@ -136,8 +135,6 @@ namespace LogUtils.Helpers.Extensions
                     index++;
                 }
             }
-
-            UtilityLogger.DebugLog("DONE");
             return collectedCount;
         }
     }
