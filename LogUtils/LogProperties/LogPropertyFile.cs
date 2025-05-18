@@ -41,13 +41,35 @@ namespace LogUtils.Properties
             Stream.Seek(0, SeekOrigin.Begin);
         }
 
+        /// <summary>
+        /// Closes and reopens the filestream
+        /// </summary>
+        public void RefreshStream()
+        {
+            if (WaitingToResume) return;
+
+            UtilityLogger.Log("REFRESHING STREAM");
+
+            var resumer = InterruptStream();
+            resumer.Resume();
+        }
+
         protected override void CreateFileStream()
         {
             //It is possible to redirect here by referencing resumeHandle. Unsure if that would be good behavior or not.
             if (WaitingToResume)
                 throw new IOException("Attempt to create an interrupted filestream is not allowed");
 
-            Stream = new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read, 4096, FileOptions.SequentialScan);
+            FileMode mode = FileMode.OpenOrCreate;
+            FileAccess access = FileAccess.ReadWrite;
+
+            if (!UtilityCore.IsControllingAssembly)
+            {
+                mode = FileMode.Open;
+                access = FileAccess.Read;
+            }
+
+            Stream = new FileStream(FilePath, mode, access, FileShare.ReadWrite, 4096, FileOptions.SequentialScan);
         }
     }
 }

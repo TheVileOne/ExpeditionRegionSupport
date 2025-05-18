@@ -34,6 +34,8 @@ namespace LogUtils.IPC
 
                 if (IsConnected)
                 {
+                    UtilityCore.OnConnection();
+
                     UtilityLogger.Logger.LogMessage($"Connection established [{Process.GetCurrentProcess().Id}]");
                     connectTask.Complete();
                     connectTask = null;

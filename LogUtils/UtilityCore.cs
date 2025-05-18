@@ -318,6 +318,16 @@ namespace LogUtils
             DeadlockTester.Run();
         }
 
+        internal static void OnConnection()
+        {
+            //Utility state should not need to be touched if connection occurs before a certain initialization step
+            if (UtilitySetup.CurrentStep <= UtilitySetup.InitializationStep.INITIALIZE_COMPONENTS)
+                return;
+
+            //Refresh PropertyFile stream - It is currently has read only permissions
+            PropertyManager.PropertyFile.RefreshStream();
+        }
+
         internal static void OnShutdown()
         {
             LogProperties.PropertyManager.SaveToFile();

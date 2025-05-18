@@ -258,6 +258,12 @@ namespace LogUtils.Properties
 
         public void SaveToFile()
         {
+            if (!PropertyFile.Stream.CanWrite)
+            {
+                UtilityLogger.LogWarning("Property file data could not be saved");
+                return;
+            }
+
             bool success = false;
             try
             {
