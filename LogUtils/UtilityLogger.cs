@@ -96,10 +96,11 @@ namespace LogUtils
                 sources.Add(Logger);
             }
 
-            File.Delete("LogActivity.log");
-
-            //TODO: Restrict Debug log to the Development build
-            File.Delete("test.txt");
+            if (UtilityCore.IsControllingAssembly)
+            {
+                File.Delete("LogActivity.log");
+                File.Delete("test.txt");
+            }
         }
 
         public static void DebugLog(object data)

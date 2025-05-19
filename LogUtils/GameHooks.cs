@@ -40,8 +40,6 @@ namespace LogUtils
         /// </summary>
         internal static void Apply()
         {
-            if (!UtilityCore.IsControllingAssembly) return; //Only the controlling assembly is allowed to apply the hooks
-
             On.RainWorld.Awake += RainWorld_Awake;
             IL.RainWorld.Awake += RainWorld_Awake;
             On.RainWorld.OnDestroy += RainWorld_OnDestroy;
@@ -82,8 +80,6 @@ namespace LogUtils
         /// </summary>
         public static void Reload()
         {
-            if (!UtilityCore.IsControllingAssembly) return;
-
             Unload();
             Apply();
         }
@@ -93,8 +89,6 @@ namespace LogUtils
         /// </summary>
         public static void Unload()
         {
-            if (!UtilityCore.IsControllingAssembly) return;
-
             On.RainWorld.Awake -= RainWorld_Awake;
             IL.RainWorld.Awake -= RainWorld_Awake;
             On.RainWorld.OnDestroy -= RainWorld_OnDestroy;
@@ -509,7 +503,7 @@ namespace LogUtils
 
         private static void ExpLog_ClearLog(On.Expedition.ExpLog.orig_ClearLog orig)
         {
-            if (disableLogClearing) return;
+            if (disableLogClearing || !UtilityCore.IsControllingAssembly) return;
 
             orig();
         }
@@ -601,7 +595,7 @@ namespace LogUtils
 
         private static void JollyCustom_CreateJollyLog(On.JollyCoop.JollyCustom.orig_CreateJollyLog orig)
         {
-            if (disableLogClearing) return;
+            if (disableLogClearing || !UtilityCore.IsControllingAssembly) return;
 
             orig();
         }
