@@ -1,4 +1,6 @@
-﻿namespace LogUtils.Properties.Custom
+﻿using LogUtils.Properties.Formatting;
+
+namespace LogUtils.Properties.Custom
 {
     public class CustomLogProperty
     {

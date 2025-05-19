@@ -1,11 +1,10 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Events;
-using LogUtils.Properties;
+using LogUtils.Properties.Formatting;
 using LogUtils.Requests;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace LogUtils
 {

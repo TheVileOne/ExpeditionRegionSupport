@@ -2,6 +2,7 @@
 using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties;
+using LogUtils.Properties.Formatting;
 using System;
 using System.Collections.Generic;
 using System.IO;

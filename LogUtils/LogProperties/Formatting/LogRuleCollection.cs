@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LogUtils.Properties
+namespace LogUtils.Properties.Formatting
 {
     public class LogRuleCollection : IOrderedEnumerable<LogRule>
     {

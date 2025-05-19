@@ -1,6 +1,6 @@
 ﻿using LogUtils.Events;
 
-namespace LogUtils.Properties
+namespace LogUtils.Properties.Formatting
 {
     /// <summary>
     /// A LogRule that stores its apply logic inside of a delegate

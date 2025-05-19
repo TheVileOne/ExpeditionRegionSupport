@@ -1,7 +1,7 @@
 ﻿using LogUtils.Events;
 using System;
 
-namespace LogUtils.Properties
+namespace LogUtils.Properties.Formatting
 {
     public abstract class LogRule
     {
@@ -118,9 +118,7 @@ namespace LogUtils.Properties
                 Owner?.ResetRecord(); //Clear any past changes before operation runs
 
                 if (TemporaryOverride == null)
-                {
                     TemporaryOverride = (LogRule)Activator.CreateInstance(GetType(), new object[] { true });
-                }
                 else
                 {
                     TemporaryOverride.Enable();
@@ -142,9 +140,7 @@ namespace LogUtils.Properties
                 Owner?.ResetRecord(); //Clear any past changes before operation runs
 
                 if (TemporaryOverride == null)
-                {
                     TemporaryOverride = (LogRule)Activator.CreateInstance(GetType(), new object[] { false });
-                }
                 else
                 {
                     TemporaryOverride.Disable();

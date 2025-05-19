@@ -1,7 +1,7 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Events;
 
-namespace LogUtils.Properties
+namespace LogUtils.Properties.Formatting
 {
     public class ErrorsOnlyHeaderRule : ShowCategoryRule
     {

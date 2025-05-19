@@ -1,5 +1,5 @@
 ﻿using LogUtils.Events;
-using LogUtils.Properties;
+using LogUtils.Properties.Formatting;
 using System.Linq;
 
 namespace LogUtils

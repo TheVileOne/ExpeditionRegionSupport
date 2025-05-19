@@ -1,6 +1,6 @@
 ﻿using LogUtils.Events;
 
-namespace LogUtils.Properties
+namespace LogUtils.Properties.Formatting
 {
     internal class BepInExHeaderRule : ShowCategoryRule
     {
