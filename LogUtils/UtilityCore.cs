@@ -127,7 +127,7 @@ namespace LogUtils
                 UtilityLogger.LogFatal(ex);
             }
 
-            if (Build == UtilitySetup.Build.DEVELOPMENT)
+            if (IsControllingAssembly && Build == UtilitySetup.Build.DEVELOPMENT)
             {
                 Debug.InitializeTestSuite();
                 Debug.RunTests();
