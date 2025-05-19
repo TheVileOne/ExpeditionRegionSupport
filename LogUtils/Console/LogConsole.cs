@@ -153,6 +153,35 @@ namespace LogUtils.Console
             setConsoleColor.Invoke(null, [color]);
         }
 
+        /// <summary>
+        /// Sets the enabled state for the BepInEx console (when it supported) 
+        /// </summary>
+        public static void SetEnabledState(bool state)
+        {
+            if (IsEnabled == state) return;
+
+            try
+            {
+                if (state)
+                {
+                    createConsole.Invoke(null, null);
+                    UtilityLogger.Log("Creating console window"); //Needs to log after console construction to show up in the console
+                }
+                else
+                {
+                    UtilityLogger.Log("Destroying console window");
+                    detachConsole.Invoke(null, null);
+                }
+
+                //TODO: Confirm that console will always show, or not be shown if execution makes it to this point
+                IsEnabled = state;
+            }
+            catch (Exception ex)
+            {
+                UtilityLogger.LogError(ex);
+            }
+        }
+
         private static bool matchConsoleManager(Type type) => type.Namespace == "BepInEx" && type.Name == "ConsoleManager";
 
         /// <summary>

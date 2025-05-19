@@ -207,6 +207,12 @@ namespace LogUtils
                         BepInExAdapter.Run();
                         LogConsole.Initialize();
 
+                        if (!IsControllingAssembly)
+                        {
+                            //Disable console states activated from other Rain World processes
+                            LogConsole.SetEnabledState(false);
+                        }
+
                         nextStep = UtilitySetup.InitializationStep.POST_LOGID_PROCESSING;
                         break;
                     }
@@ -323,6 +329,9 @@ namespace LogUtils
             //Utility state should not need to be touched if connection occurs before a certain initialization step
             if (UtilitySetup.CurrentStep <= UtilitySetup.InitializationStep.INITIALIZE_COMPONENTS)
                 return;
+
+            if (LogConsole.FindWriter(ConsoleID.BepInEx, false) != null)
+                LogConsole.SetEnabledState(true);
 
             //Refresh PropertyFile stream - It is currently has read only permissions
             PropertyManager.PropertyFile.RefreshStream();
