@@ -163,6 +163,7 @@ namespace LogUtils
                     }
                 case UtilitySetup.InitializationStep.ESTABLISH_MONITOR_CONNECTION:
                     {
+                        UtilityEvents.OnProcessSwitch += OnProcessSwitch;
                         ProcessMonitor.Connect();
 
                         nextStep = UtilitySetup.InitializationStep.ESTABLISH_SETUP_PERIOD;
@@ -324,12 +325,8 @@ namespace LogUtils
             DeadlockTester.Run();
         }
 
-        internal static void OnConnection()
+        internal static void OnProcessSwitch()
         {
-            //Utility state should not need to be touched if connection occurs before a certain initialization step
-            if (UtilitySetup.CurrentStep <= UtilitySetup.InitializationStep.INITIALIZE_COMPONENTS)
-                return;
-
             if (LogConsole.FindWriter(ConsoleID.BepInEx, false) != null)
                 LogConsole.SetEnabledState(true);
 
