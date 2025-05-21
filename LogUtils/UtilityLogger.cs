@@ -1,16 +1,15 @@
-﻿using BepInEx.Logging;
-using LogUtils.Diagnostics;
+﻿using LogUtils.Diagnostics;
 using LogUtils.Enums;
-using LogUtils.Helpers.FileHandling;
 using LogUtils.Threading;
 using System;
 using System.Linq;
-using UnityEngine;
 
 namespace LogUtils
 {
     internal static class UtilityLogger
     {
+        internal static DirectToFileLogger DebugLogger = new DirectToFileLogger(DirectToFileLogger.DEFAULT_LOG_NAME);
+
         public static UtilityLogSource Logger;
 
 #if DEBUG
@@ -24,11 +23,6 @@ namespace LogUtils
         /// Used to maintain the high performance write implementation
         /// </summary>
         private static Task writeTask;
-
-        /// <summary>
-        /// Used to store pending messages waiting to be handled by the high performance write task
-        /// </summary>
-        private static MessageBuffer writeBuffer = new MessageBuffer();
 
         private static bool _performanceMode;
 
@@ -48,26 +42,14 @@ namespace LogUtils
 #if DEBUG
                 LogID.FileActivity.Properties.AllowLogging = !value;
 #endif
-                writeBuffer.SetState(value, BufferContext.Debug);
+                //Enable the buffer when performance mode is enabled, and disable it when it is no longer necessary
+                DebugLogger.WriteBuffer.SetState(value, BufferContext.Debug);
 
                 if (value)
                 {
                     Logger.LogDebug("Performance mode enabled");
-                    writeTask = new Task(() =>
-                    {
-                        if (writeBuffer.HasContent)
-                        {
-                            try
-                            {
-                                writeMessage(writeBuffer.ToString());
-                                writeBuffer.Clear();
-                            }
-                            catch (ArgumentOutOfRangeException)
-                            {
-                                //Race condition exception - ignore and retry on the next cycle
-                            }
-                        }
-                    }, 2000);
+
+                    writeTask = new Task(() => DebugLogger.TryFlush(), 2000);
                     writeTask.IsContinuous = true;
                     LogTasker.Schedule(writeTask);
                 }
@@ -98,19 +80,7 @@ namespace LogUtils
 
         public static void DebugLog(object data)
         {
-            string message = data?.ToString();
-
-            if (PerformanceMode)
-            {
-                writeBuffer.AppendMessage(message);
-                return;
-            }
-            writeMessage(message);
-        }
-
-        private static void writeMessage(string message)
-        {
-            FileUtils.WriteLine("test.txt", message);
+            DebugLogger.Log(data);
         }
 
         public static void Log(object data)
@@ -173,88 +143,16 @@ namespace LogUtils
         /// <summary>
         /// Creates a logger that LogUtils can use to log to files directly (without using LogIDs, or the log request system) - not intended for users of LogUtils
         /// </summary>
-        internal static DebugLogger CreateLogger(string path, StringProvider provider)
+        internal static DebugLogger CreateLogger(string logName, StringProvider provider)
         {
-            return new DebugLogger(new DirectToFileLogger(path), provider);
+            var logger = logName == DirectToFileLogger.DEFAULT_LOG_NAME ? DebugLogger : new DirectToFileLogger(logName);
+
+            return new DebugLogger(logger, provider);
         }
 
         static UtilityLogger()
         {
             UtilityCore.EnsureInitializedState();
-        }
-
-        private sealed class DirectToFileLogger : ILogger
-        {
-            public string LogPath;
-
-            public DirectToFileLogger(string path) : this(path, null)
-            {
-            }
-
-            public DirectToFileLogger(string path, StringProvider provider)
-            {
-                LogPath = path;
-            }
-
-            public void Log(object data)
-            {
-                FileUtils.WriteLine(LogPath, data?.ToString());
-            }
-
-            public void Log(LogType category, object data)
-            {
-                Log(data);
-            }
-
-            public void Log(LogLevel category, object data)
-            {
-                Log(data);
-            }
-
-            public void Log(string category, object data)
-            {
-                Log(data);
-            }
-
-            public void Log(LogCategory category, object data)
-            {
-                Log(data);
-            }
-
-            public void LogDebug(object data)
-            {
-                Log(data);
-            }
-
-            public void LogError(object data)
-            {
-                Log(data);
-            }
-
-            public void LogFatal(object data)
-            {
-                Log(data);
-            }
-
-            public void LogImportant(object data)
-            {
-                Log(data);
-            }
-
-            public void LogInfo(object data)
-            {
-                Log(data);
-            }
-
-            public void LogMessage(object data)
-            {
-                Log(data);
-            }
-
-            public void LogWarning(object data)
-            {
-                Log(data);
-            }
         }
     }
 }

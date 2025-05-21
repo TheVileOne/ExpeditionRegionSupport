@@ -31,7 +31,14 @@ namespace LogUtils
 
         public void AppendMessage(string message)
         {
-            Content.AppendLine(message);
+            try
+            {
+                Content.AppendLine(message);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                UtilityLogger.LogWarning("Write buffer exceeded capacity");
+            }
         }
 
         public void Clear()

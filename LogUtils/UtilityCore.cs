@@ -333,7 +333,7 @@ namespace LogUtils
             if (!isProcessSwitch)
             {
                 FileUtils.SafeDelete("LogActivity.log");
-                FileUtils.SafeDelete("test.txt");
+                UtilityLogger.DebugLogger.DeleteAll();
                 return;
             }
             UtilityEvents.OnProcessSwitch.Invoke();
