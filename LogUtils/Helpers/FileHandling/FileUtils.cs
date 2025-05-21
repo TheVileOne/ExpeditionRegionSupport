@@ -244,9 +244,6 @@ namespace LogUtils.Helpers.FileHandling
 
         public static void WriteLine(string path, string message)
         {
-            if (!UtilityCore.IsControllingAssembly)
-                return;
-
             /*
             using (FileStream stream = File.Open(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
             {
