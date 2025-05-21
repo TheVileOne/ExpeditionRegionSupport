@@ -1,5 +1,6 @@
 ﻿using LogUtils.Diagnostics;
 using LogUtils.Enums;
+using LogUtils.Helpers.FileHandling;
 using LogUtils.Threading;
 using System;
 using System.Linq;
@@ -76,6 +77,12 @@ namespace LogUtils
                 Logger = new UtilityLogSource();
                 sources.Add(Logger);
             }
+        }
+
+        internal static void DeleteInternalLogs()
+        {
+            FileUtils.SafeDelete("LogActivity.log");
+            DebugLogger.DeleteAll();
         }
 
         public static void DebugLog(object data)

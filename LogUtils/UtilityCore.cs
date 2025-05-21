@@ -4,7 +4,6 @@ using LogUtils.Diagnostics.Tools;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
-using LogUtils.Helpers.FileHandling;
 using LogUtils.IPC;
 using LogUtils.Properties;
 using LogUtils.Requests;
@@ -332,8 +331,7 @@ namespace LogUtils
 
             if (!isProcessSwitch)
             {
-                FileUtils.SafeDelete("LogActivity.log");
-                UtilityLogger.DebugLogger.DeleteAll();
+                UtilityLogger.DeleteInternalLogs();
                 return;
             }
             UtilityEvents.OnProcessSwitch.Invoke();
