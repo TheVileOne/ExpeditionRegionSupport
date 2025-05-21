@@ -4,6 +4,7 @@ using LogUtils.Diagnostics.Tools;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
+using LogUtils.Helpers.FileHandling;
 using LogUtils.IPC;
 using LogUtils.Properties;
 using LogUtils.Requests;
@@ -113,7 +114,6 @@ namespace LogUtils
                 UtilitySetup.CurrentStep = UtilitySetup.InitializationStep.INITALIZE_CORE_LOGGER;
                 while (UtilitySetup.CurrentStep != UtilitySetup.InitializationStep.COMPLETE)
                 {
-                    UtilityLogger.DebugLog("Applying " + UtilitySetup.CurrentStep);
                     UtilitySetup.CurrentStep = ApplyStep(UtilitySetup.CurrentStep);
                 }
             }
@@ -323,6 +323,20 @@ namespace LogUtils
                 AnnounceBuild();
             }
             DeadlockTester.Run();
+        }
+
+        internal static void OnProcessConnected()
+        {
+            //A process switch occurs when a process gives up control to another process - this flag defines when it it considered too early to detect a process switch
+            bool isProcessSwitch = UtilitySetup.CurrentStep > UtilitySetup.InitializationStep.INITIALIZE_COMPONENTS;
+
+            if (!isProcessSwitch)
+            {
+                FileUtils.SafeDelete("LogActivity.log");
+                FileUtils.SafeDelete("test.txt");
+                return;
+            }
+            UtilityEvents.OnProcessSwitch.Invoke();
         }
 
         internal static void OnProcessSwitch()

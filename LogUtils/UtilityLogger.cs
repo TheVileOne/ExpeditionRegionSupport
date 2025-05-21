@@ -4,7 +4,6 @@ using LogUtils.Enums;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Threading;
 using System;
-using System.IO;
 using System.Linq;
 using UnityEngine;
 
@@ -94,12 +93,6 @@ namespace LogUtils
             {
                 Logger = new UtilityLogSource();
                 sources.Add(Logger);
-            }
-
-            if (UtilityCore.IsControllingAssembly)
-            {
-                File.Delete("LogActivity.log");
-                File.Delete("test.txt");
             }
         }
 

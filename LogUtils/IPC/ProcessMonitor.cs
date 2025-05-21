@@ -1,5 +1,4 @@
-﻿using LogUtils.Events;
-using LogUtils.Threading;
+﻿using LogUtils.Threading;
 using System.Diagnostics;
 using System.IO.Pipes;
 
@@ -35,10 +34,7 @@ namespace LogUtils.IPC
 
                 if (IsConnected)
                 {
-                    //A process switch occurs when a process gives up control to another process - this check determines when it it considered too early
-                    //to detect a process switch
-                    if (UtilitySetup.CurrentStep > UtilitySetup.InitializationStep.INITIALIZE_COMPONENTS)
-                        UtilityEvents.OnProcessSwitch.Invoke();
+                    UtilityCore.OnProcessConnected();
 
                     UtilityLogger.Logger.LogMessage($"Connection established [{Process.GetCurrentProcess().Id}]");
                     connectTask.Complete();
