@@ -161,6 +161,11 @@ namespace LogUtils.Helpers.FileHandling
             return path;
         }
 
+        public static bool IsEmpty(string path)
+        {
+            return string.IsNullOrWhiteSpace(path);
+        }
+
         public static bool IsPathKeyword(string pathString)
         {
             if (pathString == null) return false;

@@ -57,10 +57,10 @@ public class PathComparer : ComparerBase<string>
     /// </summary>
     internal int InternalCompare(string path, string pathOther)
     {
-        if (path == null)
+        if (PathUtils.IsEmpty(path))
             return pathOther != null ? int.MinValue : 0;
 
-        if (pathOther == null)
+        if (PathUtils.IsEmpty(pathOther))
             return int.MaxValue;
 
         path = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar);
@@ -74,10 +74,10 @@ public class PathComparer : ComparerBase<string>
     /// </summary>
     internal bool InternalEquals(string path, string pathOther)
     {
-        if (path == null)
-            return pathOther == null;
+        if (PathUtils.IsEmpty(path))
+            return PathUtils.IsEmpty(pathOther);
 
-        if (pathOther == null)
+        if (PathUtils.IsEmpty(pathOther))
             return false;
 
         path = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar);
