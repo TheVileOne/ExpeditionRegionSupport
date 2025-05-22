@@ -215,7 +215,7 @@ namespace LogUtils.Properties
                 if (_version == value) return;
 
                 if (value == null)
-                    throw new ArgumentNullException(nameof(Version) + " cannot be null");
+                    throw new ArgumentNullException(nameof(Version));
 
                 ReadOnly = false; //Updating the version exposes LogProperties to changes
                 _version = value;
@@ -258,7 +258,7 @@ namespace LogUtils.Properties
                 if (_folderPath == value || ReadOnly) return;
 
                 if (value == null)
-                    throw new ArgumentNullException(nameof(FolderPath) + " cannot be null. Use root, or customroot as a value instead.");
+                    throw new ArgumentNullException(nameof(FolderPath), "Property is not allowed to be null. Use root, or customroot as a value instead.");
                 _folderPath = value;
             }
         }
@@ -274,7 +274,7 @@ namespace LogUtils.Properties
                 if (_originalFolderPath == value || ReadOnly) return;
 
                 if (value == null)
-                    throw new ArgumentNullException(nameof(OriginalFolderPath) + " cannot be null. Use root, or customroot as a value instead.");
+                    throw new ArgumentNullException(nameof(OriginalFolderPath), "Property is not allowed to be null. Use root, or customroot as a value instead.");
                 _originalFolderPath = value;
             }
         }
@@ -295,13 +295,13 @@ namespace LogUtils.Properties
                 if (_filename == value || ReadOnly) return;
 
                 if (value == null)
-                    throw new ArgumentNullException(nameof(Filename) + " cannot be null");
+                    throw new ArgumentNullException(nameof(Filename));
                 _filename = value;
             }
         }
 
         /// <summary>
-        /// The filename that will be used if the write path is the Logs directory. May be null if same as Filename
+        /// The filename that will be used if the write path is the Logs directory. May be null, or empty if same as Filename
         /// </summary>
         public string AltFilename
         {
@@ -311,7 +311,7 @@ namespace LogUtils.Properties
                 if (_altFilename == value || ReadOnly) return;
 
                 if (value == null)
-                    throw new ArgumentNullException(nameof(AltFilename) + " cannot be null");
+                    throw new ArgumentNullException(nameof(AltFilename));
                 _altFilename = value;
             }
         }
@@ -612,17 +612,7 @@ namespace LogUtils.Properties
 
         public void RemoveTempFile()
         {
-            if (!File.Exists(ReplacementFilePath))
-                return;
-
-            try
-            {
-                File.Delete(ReplacementFilePath);
-            }
-            catch (Exception ex)
-            {
-                UtilityLogger.LogError(null, new IOException("Unable to delete temporary file", ex));
-            }
+            FileUtils.SafeDelete(ReplacementFilePath, "Unable to delete temporary file");
         }
 
         /// <summary>

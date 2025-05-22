@@ -2,7 +2,6 @@
 using LogUtils.Helpers.Extensions;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Requests;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -171,48 +170,41 @@ namespace LogUtils.Helpers
 
             using (fileLock.Acquire())
             {
-                try
-                {
-                    fileLock.SetActivity(logFile, FileAction.Delete);
+                fileLock.SetActivity(logFile, FileAction.Delete);
 
-                    if (logFile.Properties.FileExists)
-                    {
-                        File.Delete(logFile.Properties.CurrentFilePath);
+                if (logFile.Properties.FileExists)
+                {
+                    bool fileRemoved = FileUtils.SafeDelete(logFile.Properties.CurrentFilePath, "Unable to delete log file");
+
+                    if (fileRemoved)
                         logFile.Properties.FileExists = false;
-                    }
                 }
-                catch (Exception ex)
-                {
-                    UtilityLogger.LogError("Unable to delete log file", ex);
-                }
-                finally
-                {
-                    logFile.Properties.BeginLogSession();
 
-                    if (logFile.Properties.FileExists)
-                        streamsToResume.ResumeAll();
-                    else
+                logFile.Properties.BeginLogSession();
+
+                if (logFile.Properties.FileExists)
+                    streamsToResume.ResumeAll();
+                else
+                {
+                    string reportMessage = $"Unable to start {logFile} log";
+
+                    //Cannot log to a file that doesn't exist
+                    if (logFile != LogID.BepInEx)
+                        UtilityLogger.LogWarning(reportMessage);
+                    Debug.LogWarning(reportMessage);
+
+                    reportMessage = "Disposing handle";
+
+                    //There does not seem to be a point to keep an invalid handle around, dispose any handles for this log file
+                    var handlesToDispose = logFile.Properties.PersistentStreamHandles.ToArray();
+
+                    foreach (var handle in handlesToDispose)
                     {
-                        string reportMessage = $"Unable to start {logFile} log";
-
                         //Cannot log to a file that doesn't exist
                         if (logFile != LogID.BepInEx)
                             UtilityLogger.LogWarning(reportMessage);
                         Debug.LogWarning(reportMessage);
-
-                        reportMessage = "Disposing handle";
-
-                        //There does not seem to be a point to keep an invalid handle around, dispose any handles for this log file
-                        var handlesToDispose = logFile.Properties.PersistentStreamHandles.ToArray();
-
-                        foreach (var handle in handlesToDispose)
-                        {
-                            //Cannot log to a file that doesn't exist
-                            if (logFile != LogID.BepInEx)
-                                UtilityLogger.LogWarning(reportMessage);
-                            Debug.LogWarning(reportMessage);
-                            handle.Dispose();
-                        }
+                        handle.Dispose();
                     }
                 }
             }

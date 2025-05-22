@@ -73,16 +73,18 @@ namespace LogUtils.Helpers.FileHandling
             return fileExt == fileExt2;
         }
 
-        public static void SafeDelete(string path, string customErrorMsg = null)
+        public static bool SafeDelete(string path, string customErrorMsg = null)
         {
             try
             {
                 if (File.Exists(path))
                     File.Delete(path);
+                return true;
             }
             catch (Exception ex)
             {
                 UtilityLogger.LogError(customErrorMsg ?? "Unable to delete file", ex);
+                return false;
             }
         }
 
