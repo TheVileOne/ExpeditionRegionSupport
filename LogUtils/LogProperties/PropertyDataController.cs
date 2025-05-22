@@ -249,11 +249,46 @@ namespace LogUtils.Properties
                     Properties.Add(properties);
                 }
             }
+        }
 
-            static int compareByIDHash(LogProperties properties, LogProperties propertiesOther)
+        internal void ReloadFromProcessSwitch()
+        {
+            var propertyComparer = Comparer<LogProperties>.Create(compareByIDHash);
+
+            foreach (LogPropertyData data in PropertyFile.Reader.ReadData())
             {
-                return properties.IDHash.CompareTo(propertiesOther.IDHash);
+                data.ProcessFields();
+                LogProperties properties = data.Processor.Results;
+
+                if (properties != null)
+                {
+                    LogProperties existingProperties = Properties.Find(p => propertyComparer.Compare(p, properties) == 0);
+
+                    //When a main process closes, it's state is written to file - in particular the current path for the file gets stored as the last known path.
+                    //We need to restore this metadata so that the incoming process knows where to log new messages
+                    if (existingProperties != null)
+                    {
+                        existingProperties.ChangePath(properties.LastKnownFilePath);
+                        continue;
+                    }
+
+                    properties.ChangePath(properties.LastKnownFilePath);
+
+                    //This log file is unrecognized by this process and must be new
+                    if (data.UnrecognizedFields.Count > 0)
+                        UnrecognizedFields[properties] = data.UnrecognizedFields;
+
+                    properties.UpdateWriteHash();
+                    properties.ReadOnly = true;
+
+                    Properties.Add(properties);
+                }
             }
+        }
+
+        private static int compareByIDHash(LogProperties properties, LogProperties propertiesOther)
+        {
+            return properties.IDHash.CompareTo(propertiesOther.IDHash);
         }
 
         public void SaveToFile()

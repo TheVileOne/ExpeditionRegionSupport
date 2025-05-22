@@ -342,6 +342,8 @@ namespace LogUtils
             if (LogConsole.FindWriter(ConsoleID.BepInEx, false) != null)
                 LogConsole.SetEnabledState(true);
 
+            PropertyManager.ReloadFromProcessSwitch();
+
             //Refresh PropertyFile stream - It is currently has read only permissions
             PropertyManager.PropertyFile.RefreshStream();
         }
