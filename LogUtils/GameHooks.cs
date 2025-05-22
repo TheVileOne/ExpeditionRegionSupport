@@ -211,9 +211,10 @@ namespace LogUtils
             orig(self);
 
             //TODO: It could be guaranteed that this runs after all hooks by setting a flag here, that is checked in ModManager.CheckInitIssues, or we could possibly use the scheduler
-            Array.ForEach(LogProperties.PropertyManager.Properties, prop => prop.ReadOnly = true);
-            LogProperties.PropertyManager.IsEditGracePeriod = false;
+            foreach (LogProperties properties in LogProperties.PropertyManager.Properties)
+                properties.ReadOnly = true;
 
+            LogProperties.PropertyManager.IsEditGracePeriod = false;
             LogFilter.DeactivateKeyword(UtilityConsts.FilterKeywords.ACTIVATION_PERIOD_STARTUP);
         }
 

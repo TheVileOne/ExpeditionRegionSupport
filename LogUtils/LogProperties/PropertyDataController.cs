@@ -2,7 +2,6 @@
 using LogUtils.Helpers;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties.Custom;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,7 +12,7 @@ namespace LogUtils.Properties
     {
         private List<LogProperties> _properties = new List<LogProperties>();
 
-        public LogProperties[] Properties => _properties.ToArray();
+        public IEnumerable<LogProperties> Properties => _properties.ToArray();
         public CustomLogPropertyCollection CustomLogProperties = new CustomLogPropertyCollection();
         public Dictionary<LogProperties, LogPropertyStringDictionary> UnrecognizedFields = new Dictionary<LogProperties, LogPropertyStringDictionary>();
 
@@ -234,7 +233,7 @@ namespace LogUtils.Properties
 
                 if (properties != null)
                 {
-                    bool propertiesAlreadyExists = Array.Exists(Properties, p => propertyComparer.Compare(p, properties) == 0);
+                    bool propertiesAlreadyExists = Properties.Any(p => propertyComparer.Compare(p, properties) == 0);
 
                     if (propertiesAlreadyExists)
                     {
@@ -265,7 +264,7 @@ namespace LogUtils.Properties
 
                 if (properties != null)
                 {
-                    LogProperties existingProperties = Array.Find(Properties, p => propertyComparer.Compare(p, properties) == 0);
+                    LogProperties existingProperties = Properties.FirstOrDefault(p => propertyComparer.Compare(p, properties) == 0);
 
                     //When a main process closes, it's state is written to file - in particular the current path for the file gets stored as the last known path.
                     //We need to restore this metadata so that the incoming process knows where to log new messages
@@ -327,10 +326,10 @@ namespace LogUtils.Properties
         internal LogProperties[] GetUpdateEntries()
         {
             if (ForceWriteAll || !File.Exists(PropertyFile.FilePath))
-                return Properties;
+                return (LogProperties[])Properties;
 
             //Reasons to update include new log file data, incomplete data read from file, or modifications made to property data 
-            return Array.FindAll(Properties, p => p.ProcessedWithErrors || p.HasModifiedData());
+            return Properties.Where(p => p.ProcessedWithErrors || p.HasModifiedData()).ToArray();
         }
 
         public override Dictionary<string, object> GetFields()
