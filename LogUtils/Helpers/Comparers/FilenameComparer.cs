@@ -44,7 +44,7 @@ namespace LogUtils.Helpers.Comparers
             if (ignoreExtensions)
             {
                 filename = FileUtils.RemoveExtension(filename);
-                filenameOther = FileUtils.RemoveExtension(filename);
+                filenameOther = FileUtils.RemoveExtension(filenameOther);
             }
             return Equals(filename, filenameOther);
         }

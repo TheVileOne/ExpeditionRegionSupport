@@ -34,16 +34,22 @@ namespace LogUtils.Helpers.FileHandling
             return filename;
         }
 
+        /// <summary>
+        /// Extracts the file extension from the filename. If there is no extension, this method returns null
+        /// </summary>
         public static string GetExtension(string filename, bool normalize = true)
         {
-            if (normalize)
-                return Path.GetExtension(filename).ToLower();
-            return Path.GetExtension(filename);
+            if (!Path.HasExtension(filename))
+                return null;
+
+            string extInfo = Path.GetExtension(filename);
+
+            return !normalize ? extInfo : extInfo.ToLower();
         }
 
         public static string RemoveExtension(string filename)
         {
-            return Path.ChangeExtension(filename, string.Empty);
+            return Path.ChangeExtension(filename, null);
         }
 
         public static string TransferExtension(string transferFrom, string transferTo)
