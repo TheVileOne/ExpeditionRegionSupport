@@ -353,7 +353,7 @@ namespace LogUtils
             LogProperties.PropertyManager.SaveToFile();
 
             //End all active log sessions
-            LogProperties.PropertyManager.Properties.ForEach(properties =>
+            foreach (LogProperties properties in LogProperties.PropertyManager.Properties)
             {
                 if (properties.ID.Equals(LogID.BepInEx))
                     return;
@@ -363,7 +363,7 @@ namespace LogUtils
                     properties.EndLogSession();
                     properties.AllowLogging = false; //No new logs should happen beyond this point
                 }
-            });
+            };
 
             LogID logFile = LogID.BepInEx;
 

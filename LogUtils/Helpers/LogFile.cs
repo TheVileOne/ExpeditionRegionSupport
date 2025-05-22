@@ -173,7 +173,6 @@ namespace LogUtils.Helpers
             {
                 try
                 {
-
                     fileLock.SetActivity(logFile, FileAction.Delete);
 
                     if (logFile.Properties.FileExists)

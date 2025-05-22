@@ -2,6 +2,7 @@
 using LogUtils.Helpers;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties.Custom;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,7 +11,9 @@ namespace LogUtils.Properties
 {
     public class PropertyDataController : UtilityComponent
     {
-        public List<LogProperties> Properties = new List<LogProperties>();
+        private List<LogProperties> _properties = new List<LogProperties>();
+
+        public LogProperties[] Properties => _properties.ToArray();
         public CustomLogPropertyCollection CustomLogProperties = new CustomLogPropertyCollection();
         public Dictionary<LogProperties, LogPropertyStringDictionary> UnrecognizedFields = new Dictionary<LogProperties, LogPropertyStringDictionary>();
 
@@ -210,7 +213,7 @@ namespace LogUtils.Properties
         {
             LogProperties properties = new LogProperties(logID.value, relativePathNoFile);
 
-            Properties.Add(properties);
+            _properties.Add(properties);
             return properties;
         }
 
@@ -231,7 +234,7 @@ namespace LogUtils.Properties
 
                 if (properties != null)
                 {
-                    bool propertiesAlreadyExists = Properties.Exists(p => propertyComparer.Compare(p, properties) == 0);
+                    bool propertiesAlreadyExists = Array.Exists(Properties, p => propertyComparer.Compare(p, properties) == 0);
 
                     if (propertiesAlreadyExists)
                     {
@@ -246,7 +249,7 @@ namespace LogUtils.Properties
                     properties.UpdateWriteHash();
                     properties.ReadOnly = true;
 
-                    Properties.Add(properties);
+                    _properties.Add(properties);
                 }
             }
         }
@@ -262,7 +265,7 @@ namespace LogUtils.Properties
 
                 if (properties != null)
                 {
-                    LogProperties existingProperties = Properties.Find(p => propertyComparer.Compare(p, properties) == 0);
+                    LogProperties existingProperties = Array.Find(Properties, p => propertyComparer.Compare(p, properties) == 0);
 
                     //When a main process closes, it's state is written to file - in particular the current path for the file gets stored as the last known path.
                     //We need to restore this metadata so that the incoming process knows where to log new messages
@@ -281,7 +284,7 @@ namespace LogUtils.Properties
                     properties.UpdateWriteHash();
                     properties.ReadOnly = true;
 
-                    Properties.Add(properties);
+                    _properties.Add(properties);
                 }
             }
         }
@@ -302,7 +305,7 @@ namespace LogUtils.Properties
             bool success = false;
             try
             {
-                PropertyFile.Writer.Write(GetUpdateList());
+                PropertyFile.Writer.Write(GetUpdateEntries());
                 success = true;
             }
             catch (IOException ex)
@@ -319,15 +322,15 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
-        /// Returns a list of property instances that have data that needs to be written to file
+        /// Returns an array of property instances that have data that needs to be written to file
         /// </summary>
-        internal List<LogProperties> GetUpdateList()
+        internal LogProperties[] GetUpdateEntries()
         {
             if (ForceWriteAll || !File.Exists(PropertyFile.FilePath))
                 return Properties;
 
             //Reasons to update include new log file data, incomplete data read from file, or modifications made to property data 
-            return Properties.FindAll(p => p.ProcessedWithErrors || p.HasModifiedData());
+            return Array.FindAll(Properties, p => p.ProcessedWithErrors || p.HasModifiedData());
         }
 
         public override Dictionary<string, object> GetFields()

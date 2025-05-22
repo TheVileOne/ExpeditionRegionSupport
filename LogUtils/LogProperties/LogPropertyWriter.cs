@@ -18,11 +18,11 @@ namespace LogUtils.Properties
         /// <summary>
         /// Writes property data to file. If the content already exists, it is overwritten, if it doesn't exist, it is written at the current stream position.
         /// </summary>
-        public void Write(List<LogProperties> needToUpdate)
+        public void Write(LogProperties[] needToUpdate)
         {
-            if (needToUpdate.Count == 0) return;
+            if (needToUpdate.Length == 0) return;
 
-            string writeString = compileWriteString(needToUpdate);
+            string writeString = compileWriteString(needToUpdate.ToList());
 
             propertyFile.PrepareStream();
 
@@ -35,7 +35,7 @@ namespace LogUtils.Properties
             LogProperties.PropertyManager.NotifyWriteCompleted();
         }
 
-        private string compileWriteString(List<LogProperties> updateList)
+        private string compileWriteString(List<LogProperties> updateEntries)
         {
             bool hasDuplicateEntries = LogProperties.PropertyManager.HasDuplicateFileEntries;
 
@@ -56,7 +56,7 @@ namespace LogUtils.Properties
                     IEnumerable<LogProperties> availableProperties = LogProperties.PropertyManager.GetProperties(new ComparisonLogID(dataID));
 
                     //Find a comparison match that is contained within updateList
-                    LogProperties properties = updateList.Intersect(availableProperties).FirstOrDefault();
+                    LogProperties properties = updateEntries.Intersect(availableProperties).FirstOrDefault();
 
                     int idHash = properties != null ? properties.IDHash : data.GetHashCode();
 
@@ -76,19 +76,19 @@ namespace LogUtils.Properties
                         properties.UpdateWriteHash();
                         sb.AppendLine(properties.GetWriteString(data.Comments));
 
-                        updateList.Remove(properties);
+                        updateEntries.Remove(properties);
                     }
                 }
             }
 
             //All remaining entries must be new, and can be written after all existing entries
-            foreach (LogProperties properties in updateList)
+            foreach (LogProperties properties in updateEntries)
             {
                 properties.UpdateWriteHash();
                 sb.AppendLine(properties.GetWriteString());
             }
 
-            updateList.Clear(); //Task complete - list no longer needed
+            updateEntries.Clear(); //Task complete - list no longer needed
             return sb.ToString();
         }
     }

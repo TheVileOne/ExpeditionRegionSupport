@@ -243,14 +243,9 @@ namespace LogUtils.Enums
         /// </summary>
         public static LogID[] FindByTag(params string[] tags)
         {
-            List<LogID> found = new List<LogID>(LogProperties.PropertyManager.Properties.Count);
-
-            foreach (var properties in LogProperties.PropertyManager.Properties)
-            {
-                if (properties.Tags.Any(tag => tags.Contains(tag, ComparerUtils.StringComparerIgnoreCase)))
-                    found.Add(properties.ID);
-            }
-            return found.ToArray();
+            return LogProperties.PropertyManager.Properties.Where(properties => properties.Tags.Any(tag => tags.Contains(tag, ComparerUtils.StringComparerIgnoreCase)))
+                                                           .Select(p => p.ID)
+                                                           .ToArray();
         }
 
         /// <summary>
