@@ -13,7 +13,7 @@ namespace LogUtils.Helpers.FileHandling
         /// <param name="dirLevelsToCheck">The number of directory separators to check starting from the right</param>
         public static bool ContainsDirectory(string path, string dirName, int dirLevelsToCheck)
         {
-            if (path == null) return false;
+            if (IsEmpty(path)) return false;
 
             path = PathWithoutFilename(path);
 
@@ -96,7 +96,7 @@ namespace LogUtils.Helpers.FileHandling
         /// </summary>
         public static bool PathRootExists(string path)
         {
-            if (path == null) return false;
+            if (IsEmpty(path)) return false;
 
             path = PathWithoutFilename(path);
 
