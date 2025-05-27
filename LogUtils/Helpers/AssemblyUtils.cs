@@ -22,7 +22,19 @@ namespace LogUtils.Helpers
         /// </summary>
         public static IEnumerable<Type> GetAllTypes()
         {
-            return AppDomain.CurrentDomain.GetAssemblies().SelectMany(assembly => assembly.GetTypes());
+            return AppDomain.CurrentDomain.GetAssemblies().SelectMany(assembly => assembly.GetTypesSafely());
+        }
+
+        public static IEnumerable<Type> GetTypesSafely(this Assembly assembly)
+        {
+            try
+            {
+                return assembly.GetTypes();
+            }
+            catch (ReflectionTypeLoadException loadError)
+            {
+                return loadError.Types.Where(t => t != null);
+            }
         }
 
         public static BaseUnityPlugin GetPlugin(Assembly assembly)

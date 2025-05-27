@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogUtils.Helpers;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,10 +67,35 @@ namespace LogUtils.Diagnostics.Tests
         }
 
         #region Collection code
+
+        /// <summary>
+        /// Searches for all implementors of the ITestable interface in a given assembly, and adds an instance of the type to the test suite 
+        /// </summary>
+        public void AddTests(Assembly assembly)
+        {
+            bool errorLoadingTests = false;
+            foreach (Type type in assembly.GetTypesSafely().Where(t => t.GetInterface(nameof(ITestable)) != null))
+            {
+                try
+                {
+                    Add((ITestable)Activator.CreateInstance(type));
+                }
+                catch
+                {
+                    errorLoadingTests = true;
+                }
+            }
+
+            if (errorLoadingTests)
+                UtilityLogger.LogWarning("Could not load one, or more tests");
+        }
+
         public void Add(ITestable item)
         {
             if (item == null)
                 throw new ArgumentNullException("Collection does not support the storage of null values");
+
+            UtilityLogger.Log("Loading " + item.Name);
 
             //Ensure we have enough space in the array for new values
             if (Capacity - Size == 0)
