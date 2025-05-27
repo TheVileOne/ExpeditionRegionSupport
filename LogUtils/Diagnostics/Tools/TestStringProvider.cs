@@ -20,6 +20,12 @@ namespace LogUtils.Diagnostics.Tools
             factory.Provider = this;
         }
 
+        public TestStringProvider(string template) : this()
+        {
+            if (template != null)
+                Template = template;
+        }
+
         protected class StringFactory : IEnumerable<string>
         {
             internal TestStringProvider Provider;

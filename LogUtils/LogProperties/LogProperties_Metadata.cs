@@ -154,6 +154,7 @@ namespace LogUtils.Properties
 
             if (!pathWillConflict(filename))
             {
+                CurrentFilename = filename;
                 RemoveTag(UtilityConsts.PropertyTag.CONFLICT);
                 return;
             }
@@ -177,22 +178,22 @@ namespace LogUtils.Properties
 
         private int getAvailableConflictDesignation(string filename)
         {
-            var options = CompareOptions.CurrentFilename | CompareOptions.IgnoreBracketInfo;
-
-            UtilityLogger.LogWarning("Options: " + options);
-
             //If that does not resolve the conflict, apply bracket info to the filename
             IEnumerable<LogID> results = LogID.FindAll(filename, CompareOptions.CurrentFilename | CompareOptions.IgnoreBracketInfo);
 
             List<byte> takenDesignations = new List<byte>();
+            IEnumerable<LogID> conflictedLogFiles = results.Where(logFile => !logFile.Equals(ID)
+                                                                          && logFile.Properties.HasFolderPath(CurrentFolderPath)
+                                                                          && logFile.Properties.ContainsTag(UtilityConsts.PropertyTag.CONFLICT));
 
-            foreach (LogID logFile in results.Where(logFile => !logFile.Equals(ID) && logFile.Properties.HasFolderPath(CurrentFolderPath)))
+            foreach (LogID logFile in conflictedLogFiles)
             {
                 string bracketInfo = FileUtils.GetBracketInfo(logFile.Properties.CurrentFilename);
 
                 if (!byte.TryParse(bracketInfo, out byte currentDesignation))
                 {
                     UtilityLogger.LogWarning("Unable to parse conflict designation from filename");
+                    UtilityLogger.LogWarning("FilePath: " + logFile.Properties.CurrentFilename + " INFO: " + bracketInfo);
                     continue;
                 }
                 takenDesignations.Add(currentDesignation);
@@ -202,7 +203,7 @@ namespace LogUtils.Properties
 
             int designationCount = takenDesignations.Count;
 
-            UtilityLogger.Log($"{designationCount} have been taken for this filename");
+            UtilityLogger.LogWarning("Path conflict detected");
 
             int availableDesignation = -1;
 
@@ -263,6 +264,8 @@ namespace LogUtils.Properties
 
             if (newPath == null)
                 throw new ArgumentException("Directory provided cannot be null");
+
+            newPath = GetContainingPath(newPath);
 
             //Any log file that becomes part of the Logs folder directory should use its alt filename by default
             bool useAltFilename = !string.IsNullOrEmpty(AltFilename) && LogsFolder.IsCurrentPath(newPath);

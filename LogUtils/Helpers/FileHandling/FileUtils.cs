@@ -92,7 +92,7 @@ namespace LogUtils.Helpers.FileHandling
             if (bracketIndexLeft == -1 || bracketIndexRight == -1)
                 return null;
 
-            return filename.Substring(bracketIndexLeft + 1, bracketIndexRight - bracketIndexLeft);
+            return filename.Substring(bracketIndexLeft + 1, bracketIndexRight - (bracketIndexLeft + 1));
         }
 
         public static string RemoveBracketInfo(string filename)

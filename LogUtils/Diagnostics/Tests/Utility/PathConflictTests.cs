@@ -1,10 +1,6 @@
-﻿using LogUtils.Helpers.FileHandling;
+﻿using LogUtils.Diagnostics.Tests.Components;
+using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LogUtils.Diagnostics.Tests.Utility
 {
@@ -19,28 +15,125 @@ namespace LogUtils.Diagnostics.Tests.Utility
         public void Test()
         {
             testConflictDetectionRenamesFile();
+            testConflictDetailsArePathDependent();
+            testConflictDetailsAreNumeric();
+            testNewConflictDetailsAreProducedWhenPathIsChanged();
         }
 
         private void testConflictDetectionRenamesFile()
         {
-            LogProperties propertiesA, propertiesB;
+            LogPropertyFactory factory = new LogPropertyFactory("example");
 
-            propertiesA = new LogProperties("Test");
-            LogProperties.PropertyManager.SetProperties(propertiesA);
+            //Create a registered instance to test against - A conflict wont be triggered unless an entry is registered
+            LogProperties target = factory.Create(UtilityConsts.PathKeywords.ROOT, register: true);
 
             //Change filename to something other than the original
-            propertiesA.ChangeFilename("Test-A");
+            target.ChangeFilename("conflict");
 
             //When a second LogProperties instance is created, the filename should resolve the conflict for us
-            propertiesB = new LogProperties("Test-A");
+            LogProperties conflictTrigger = new LogProperties("conflict", target.FolderPath);
 
-            string expectedFilename = string.Format(FileUtils.BRACKET_FORMAT, propertiesB.Filename, "1", string.Empty);
+            AssertThat(conflictTrigger.CurrentFilename).DoesNotEqual(target.CurrentFilename);
 
-            AssertThat(propertiesB.CurrentFilename).IsEqualTo(expectedFilename);
-            LogProperties.PropertyManager.RemoveProperties(propertiesA);
+            //Clean up resources
+            LogProperties.PropertyManager.RemoveProperties(target);
+            factory.Dispose();
+        }
 
-            UtilityLogger.Log("Current: " + propertiesB.CurrentFilename);
-            UtilityLogger.Log("Expected: " + expectedFilename);
+        private void testConflictDetailsArePathDependent()
+        {
+            LogPropertyFactory factory = new LogPropertyFactory("example");
+
+            //Create a registered instance to test against - A conflict wont be triggered unless an entry is registered
+            LogProperties target = factory.Create(UtilityConsts.PathKeywords.ROOT, register: true);
+
+            //Change filename to something other than the original
+            target.ChangeFilename("conflict");
+
+            //When a second LogProperties instance is created, the filename should resolve the conflict for us
+            LogProperties conflictTrigger = new LogProperties("conflict", target.FolderPath);
+
+            //When we try to move to a path without a conflict - the expectation is that the bracket info will be removed
+            conflictTrigger.ChangePath(UtilityConsts.PathKeywords.STREAMING_ASSETS);
+
+            AssertThat(conflictTrigger.CurrentFilename).IsEqualTo(target.CurrentFilename);
+
+            //Clean up resources
+            LogProperties.PropertyManager.RemoveProperties(target);
+            factory.Dispose();
+        }
+
+        private void testConflictDetailsAreNumeric()
+        {
+            LogPropertyFactory factory = new LogPropertyFactory("example");
+
+            string testPath = UtilityConsts.PathKeywords.ROOT;
+
+            LogProperties exampleA = factory.Create(testPath, true);
+            LogProperties exampleB = factory.Create(testPath, true);
+            LogProperties exampleC = factory.Create(testPath, true);
+
+            exampleB.ChangeFilename(exampleA.CurrentFilename);
+            exampleC.ChangeFilename(exampleA.CurrentFilename);
+
+            string conflictDetails = FileUtils.GetBracketInfo(exampleB.CurrentFilename);
+
+            int firstValue, secondValue;
+
+            //Expected output should be numeric
+            AssertThat(conflictDetails).IsNotNull();
+            AssertThat(int.TryParse(conflictDetails, out firstValue)).IsTrue();
+
+            conflictDetails = FileUtils.GetBracketInfo(exampleC.CurrentFilename);
+
+            AssertThat(conflictDetails).IsNotNull();
+            AssertThat(int.TryParse(conflictDetails, out secondValue)).IsTrue();
+
+            //For each additional conflict, the designation should increase by one
+            int valueDiff = secondValue - firstValue;
+            AssertThat(valueDiff).IsEqualTo(1);
+
+            //Clean up resources
+            LogProperties.PropertyManager.RemoveProperties(exampleA);
+            LogProperties.PropertyManager.RemoveProperties(exampleB);
+            LogProperties.PropertyManager.RemoveProperties(exampleC);
+            factory.Dispose();
+        }
+
+        private void testNewConflictDetailsAreProducedWhenPathIsChanged()
+        {
+            LogPropertyFactory factoryA = new LogPropertyFactory("example-A");
+            LogPropertyFactory factoryB = new LogPropertyFactory("example-B");
+
+            string testPathA = UtilityConsts.PathKeywords.ROOT;
+            string testPathB = UtilityConsts.PathKeywords.STREAMING_ASSETS;
+
+            //Create conflicts for two different paths
+            LogProperties exampleA = factoryA.Create(testPathA, true);
+            LogProperties exampleB = factoryA.Create(testPathA, true);
+            LogProperties exampleC = factoryB.Create(testPathB, true);
+            LogProperties exampleD = factoryB.Create(testPathB, true);
+
+            //These examples should now have path conflicts
+            exampleB.ChangeFilename(exampleA.CurrentFilename);
+            exampleD.ChangeFilename(exampleC.CurrentFilename);
+
+            //Move a conflicted example from one path to the other
+            exampleD.ChangePath(exampleA.CurrentFilePath);
+
+            //Moved file should reevaluate its bracket info example[1] should become example[2], not example[1][1]
+            string conflictDetails = FileUtils.GetBracketInfo(exampleD.CurrentFilename);
+
+            int value = int.Parse(conflictDetails);
+            AssertThat(value).IsEqualTo(2);
+
+            //Clean up resources
+            LogProperties.PropertyManager.RemoveProperties(exampleA);
+            LogProperties.PropertyManager.RemoveProperties(exampleB);
+            LogProperties.PropertyManager.RemoveProperties(exampleC);
+            LogProperties.PropertyManager.RemoveProperties(exampleD);
+            factoryA.Dispose();
+            factoryB.Dispose();
         }
 
         [PostTest]
