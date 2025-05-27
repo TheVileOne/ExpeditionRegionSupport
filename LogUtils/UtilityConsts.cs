@@ -199,6 +199,11 @@ namespace LogUtils
             public const string NO_COMPARISON = "{0} could not be compared";
         }
 
+        public static class PropertyTag
+        {
+            public const string CONFLICT = "conflict";
+        }
+
         public static class MessageTag
         {
             public const string EXPECTED = "Expected";

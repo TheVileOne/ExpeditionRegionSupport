@@ -1,6 +1,10 @@
-﻿using LogUtils.Helpers.FileHandling;
+﻿using LogUtils.Enums;
+using LogUtils.Helpers.Comparers;
+using LogUtils.Helpers.FileHandling;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace LogUtils.Properties
 {
@@ -118,6 +122,186 @@ namespace LogUtils.Properties
             }
         }
 
+        /// <summary>
+        /// Given the last available current filename, and the property assign AltFilename, this method returns the option not represented as the current path
+        /// </summary>
+        /// <returns>The filename that is either the last available current filename, or the alt filename depending on the assignment of CurrentFilename.
+        /// <br>If all options refer to the current path, or the unused path is not defined - this method returns null</br></returns>
+        internal string GetUnusedFilename()
+        {
+            string filename = CurrentFilename;
+
+            if (ContainsTag(UtilityConsts.PropertyTag.CONFLICT))
+                filename = FileUtils.RemoveBracketInfo(filename);
+
+            if (string.IsNullOrEmpty(AltFilename) || ComparerUtils.FilenameComparer.Equals(filename, AltFilename))
+            {
+                //TODO: Define field to track the last current filename when filename is renamed to AltFilename
+                return null;
+            }
+            return AltFilename;
+        }
+
+        /// <summary>
+        /// Ensures that current file path info is unique for the current log file
+        /// </summary>
+        public void EnsurePathDoesNotConflict()
+        {
+            string filename = CurrentFilename;
+
+            if (ContainsTag(UtilityConsts.PropertyTag.CONFLICT))
+                filename = FileUtils.RemoveBracketInfo(filename);
+
+            if (!pathWillConflict(filename))
+            {
+                RemoveTag(UtilityConsts.PropertyTag.CONFLICT);
+                return;
+            }
+
+            //First - check whether we can use the other available filename
+            string secondaryFilename = GetUnusedFilename();
+
+            if (secondaryFilename != null && !pathWillConflict(secondaryFilename))
+            {
+                RemoveTag(UtilityConsts.PropertyTag.CONFLICT);
+                CurrentFilename = secondaryFilename;
+                return;
+            }
+
+            int availableDesignation = getAvailableConflictDesignation(filename);
+
+            AddTag(UtilityConsts.PropertyTag.CONFLICT);
+            CurrentFilename = FileUtils.ApplyBracketInfo(filename, availableDesignation.ToString());
+            UtilityLogger.Log("Conflicting filename is now resolved");
+        }
+
+        private int getAvailableConflictDesignation(string filename)
+        {
+            var options = CompareOptions.CurrentFilename | CompareOptions.IgnoreBracketInfo;
+
+            UtilityLogger.LogWarning("Options: " + options);
+
+            //If that does not resolve the conflict, apply bracket info to the filename
+            IEnumerable<LogID> results = LogID.FindAll(filename, CompareOptions.CurrentFilename | CompareOptions.IgnoreBracketInfo);
+
+            List<byte> takenDesignations = new List<byte>();
+
+            foreach (LogID logFile in results.Where(logFile => !logFile.Equals(ID) && logFile.Properties.HasFolderPath(CurrentFolderPath)))
+            {
+                string bracketInfo = FileUtils.GetBracketInfo(logFile.Properties.CurrentFilename);
+
+                if (!byte.TryParse(bracketInfo, out byte currentDesignation))
+                {
+                    UtilityLogger.LogWarning("Unable to parse conflict designation from filename");
+                    continue;
+                }
+                takenDesignations.Add(currentDesignation);
+            }
+
+            takenDesignations.Sort();
+
+            int designationCount = takenDesignations.Count;
+
+            UtilityLogger.Log($"{designationCount} have been taken for this filename");
+
+            int availableDesignation = -1;
+
+            if (designationCount == 0 || takenDesignations[0] > 1)
+            {
+                availableDesignation = 1;
+            }
+            else if (designationCount == 1) //Must be valued 1 or 0, because of above check
+            {
+                availableDesignation = 2;
+            }
+            else
+            {
+                for (int i = 1; i < takenDesignations.Count; i++)
+                {
+                    byte value1 = takenDesignations[i - 1];
+                    byte value2 = takenDesignations[i];
+
+                    if (value2 - value1 > 1) //Check for value gaps
+                    {
+                        availableDesignation = value1 + 1;
+                        break;
+                    }
+                }
+
+                if (availableDesignation == -1) //There are no gaps - assign a new highest designation
+                    availableDesignation = takenDesignations[designationCount - 1] + 1;
+            }
+            return availableDesignation;
+        }
+
+        private bool pathWillConflict(string filename)
+        {
+            var results = LogID.FindAll(filename, CompareOptions.All);
+
+            //Search through all of the results for conflicting filepaths
+            return results.Any(logFile => !logFile.Equals(ID) && logFile.Properties.HasFolderPath(CurrentFolderPath));
+        }
+
         public string PreferredFileExt = FileExt.DEFAULT;
+
+        public void ChangeFilename(string newFilename)
+        {
+            if (newFilename == null)
+                throw new ArgumentNullException(nameof(newFilename));
+
+            newFilename = FileUtils.RemoveExtension(newFilename).Trim();
+
+            if (newFilename == string.Empty)
+                throw new ArgumentException("Filename cannot be empty");
+
+            UpdateCurrentPath(CurrentFolderPath, newFilename);
+        }
+
+        public void ChangePath(string newPath)
+        {
+            newPath = PathUtils.PathWithoutFilename(newPath, out string newFilename);
+
+            if (newPath == null)
+                throw new ArgumentException("Directory provided cannot be null");
+
+            //Any log file that becomes part of the Logs folder directory should use its alt filename by default
+            bool useAltFilename = !string.IsNullOrEmpty(AltFilename) && LogsFolder.IsCurrentPath(newPath);
+
+            if (useAltFilename)
+            {
+                if (newFilename != null)
+                    UtilityLogger.LogWarning("Provided filename ignored - using alternate filename instead");
+
+                newFilename = AltFilename;
+            }
+            else if (string.IsNullOrWhiteSpace(newFilename))
+            {
+                newFilename = CurrentFilename;
+            }
+
+            UpdateCurrentPath(newPath, newFilename);
+        }
+
+        internal void UpdateCurrentPath(string path, string filename)
+        {
+            using (FileLock.Acquire())
+            {
+                string lastFilePath = CurrentFilePath;
+
+                CurrentFilename = filename;
+                CurrentFolderPath = path;
+
+                EnsurePathDoesNotConflict();
+
+                bool changesPresent = !PathUtils.PathsAreEqual(CurrentFilePath, lastFilePath);
+
+                if (changesPresent)
+                {
+                    FileExists = File.Exists(CurrentFilePath);
+                    LastKnownFilePath = CurrentFilePath;
+                    NotifyPathChanged();
+                }
+            }
+        }
     }
 }

@@ -33,6 +33,7 @@ namespace LogUtils.Diagnostics
             UtilityTests.Add(new FrameTimerTests());
             UtilityTests.Add(new ExtEnumTests());
             UtilityTests.Add(new LogIDTests.ComparisonTests());
+            UtilityTests.Add(new PathConflictTests());
         }
 
         internal static void RunTests()

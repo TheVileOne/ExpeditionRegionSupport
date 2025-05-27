@@ -331,6 +331,8 @@ namespace LogUtils.Properties
 
             CurrentFilename = Filename;
             CurrentFolderPath = OriginalFolderPath = FolderPath;
+
+            EnsurePathDoesNotConflict();
             LastKnownFilePath = CurrentFilePath;
 
             IDHash = CreateIDHash(_idValue, OriginalFolderPath);
@@ -421,7 +423,7 @@ namespace LogUtils.Properties
         {
             if (Tags == null)
             {
-                Tags = new string[] { tag };
+                Tags = [tag];
                 return;
             }
 
@@ -432,41 +434,19 @@ namespace LogUtils.Properties
             }
         }
 
-        public void ChangePath(string newPath)
+        public void RemoveTag(string tag)
         {
-            newPath = PathUtils.PathWithoutFilename(newPath, out string newFilename);
+            if (Tags == null || !Tags.Contains(tag)) return;
 
-            using (FileLock.Acquire())
-            {
-                bool changesPresent = false;
+            var list = Tags.ToList(); //Convert to list for better thread safety
 
-                //Compare the current filename to the new filename
-                if (newFilename != null && !ComparerUtils.FilenameComparer.Equals(CurrentFilename, newFilename, true))
-                {
-                    CurrentFilename = FileUtils.RemoveExtension(newFilename);
-                    changesPresent = true;
-                }
-
-                //Compare the current path to the new path
-                if (!PathUtils.PathsAreEqual(CurrentFolderPath, newPath)) //The paths are different
-                {
-                    CurrentFolderPath = newPath;
-                    changesPresent = true;
-                }
-
-                //Loggers need to be notified of any changes that might affect managed LogIDs
-                if (changesPresent)
-                {
-                    FileExists = File.Exists(CurrentFilePath);
-                    LastKnownFilePath = CurrentFilePath;
-                    NotifyPathChanged();
-                }
-            }
+            list.Remove(tag);
+            Tags = list.ToArray();
         }
 
-        public void ChangePath(string newPath, string newFilename)
+        public bool ContainsTag(string tag)
         {
-            ChangePath(Path.Combine(newPath, newFilename));
+            return Tags != null && Tags.Contains(tag);
         }
 
         public FileStatus CreateTempFile(bool copyOnly = false)
@@ -685,13 +665,22 @@ namespace LogUtils.Properties
 
         public LogPropertyStringDictionary ToDictionary()
         {
+            string[] oldTags = Tags;
+
+            //This tag does not need to be saved to file - leave it out of the dictionary
+            RemoveTag(UtilityConsts.PropertyTag.CONFLICT);
+
+            //Restore the tags array here
+            string[] dataTags = Tags;
+            Tags = oldTags;
+
             var fields = new LogPropertyStringDictionary
             {
                 [DataFields.LOGID] = ID.value,
                 [DataFields.FILENAME] = Filename,
                 [DataFields.ALTFILENAME] = AltFilename,
                 [DataFields.VERSION] = Version,
-                [DataFields.TAGS] = Tags != null ? string.Join(",", Tags) : string.Empty,
+                [DataFields.TAGS] = dataTags != null ? string.Join(",", dataTags) : string.Empty,
                 [DataFields.LOGS_FOLDER_AWARE] = LogsFolderAware.ToString(),
                 [DataFields.LOGS_FOLDER_ELIGIBLE] = LogsFolderEligible.ToString(),
                 [DataFields.SHOW_LOGS_AWARE] = ShowLogsAware.ToString(),
@@ -759,7 +748,13 @@ namespace LogUtils.Properties
             if ((compareOptions & CompareOptions.Filename) != 0)
                 addString(Filename);
             if ((compareOptions & CompareOptions.CurrentFilename) != 0)
-                addString(CurrentFilename);
+            {
+                string filename = CurrentFilename;
+                if (ContainsTag(UtilityConsts.PropertyTag.CONFLICT) && (compareOptions & CompareOptions.IgnoreBracketInfo) != 0)
+                    filename = FileUtils.RemoveBracketInfo(filename);
+
+                addString(filename);
+            }
             if ((compareOptions & CompareOptions.AltFilename) != 0)
                 addString(AltFilename);
 
@@ -908,6 +903,7 @@ namespace LogUtils.Properties
         Filename = 2, //Compare against the Filename field
         CurrentFilename = 4, //Compare against the CurrentFilename field
         AltFilename = 8, //Compare against the AltFilename field
+        IgnoreBracketInfo = 16, //Comparison will ignore bracket info
         Basic = ID | Filename | CurrentFilename,
         All = Basic | AltFilename
     }

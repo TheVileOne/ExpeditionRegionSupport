@@ -208,6 +208,16 @@ namespace LogUtils.Properties
             return bestCandidate;
         }
 
+        internal void SetProperties(LogProperties properties)
+        {
+            _properties.Add(properties);
+        }
+
+        internal void RemoveProperties(LogProperties properties)
+        {
+            _properties.Remove(properties);
+        }
+
         public LogProperties SetProperties(LogID logID, string relativePathNoFile)
         {
             LogProperties properties = new LogProperties(logID.value, relativePathNoFile);

@@ -8,6 +8,11 @@ namespace LogUtils.Helpers.FileHandling
 {
     public static class FileUtils
     {
+        /// <summary>
+        /// Used to attach information to a filename
+        /// </summary>
+        public const string BRACKET_FORMAT = "{0}[{1}]{2}";
+
         public static string[] SupportedExtensions = { FileExt.LOG, FileExt.TEXT, FileExt.TEMP };
 
         public static void CreateTextFile(string filepath)
@@ -16,22 +21,6 @@ namespace LogUtils.Helpers.FileHandling
 
             stream.Close();
             stream = null;
-        }
-
-        public static string GetFilenameWithoutExtension(string filename, out string fileExt)
-        {
-            if (filename != null)
-            {
-                int extIndex = filename.LastIndexOf('.');
-
-                if (extIndex != -1 && extIndex != filename.Length)
-                {
-                    fileExt = filename.Substring(extIndex + 1);
-                    return filename.Substring(0, extIndex);
-                }
-            }
-            fileExt = string.Empty;
-            return filename;
         }
 
         /// <summary>
@@ -50,6 +39,22 @@ namespace LogUtils.Helpers.FileHandling
         public static string RemoveExtension(string filename)
         {
             return Path.ChangeExtension(filename, null);
+        }
+
+        public static string RemoveExtension(string filename, out string fileExt)
+        {
+            fileExt = null;
+            if (filename != null)
+            {
+                int extIndex = filename.LastIndexOf('.');
+
+                if (extIndex != -1)
+                {
+                    fileExt = filename.Substring(extIndex);
+                    return filename.Substring(0, extIndex);
+                }
+            }
+            return filename;
         }
 
         public static string TransferExtension(string transferFrom, string transferTo)
@@ -71,6 +76,36 @@ namespace LogUtils.Helpers.FileHandling
             string fileExt2 = GetExtension(filename2);
 
             return fileExt == fileExt2;
+        }
+
+        public static string ApplyBracketInfo(string filename, string info)
+        {
+            filename = RemoveExtension(filename, out string fileExt);
+            return string.Format(BRACKET_FORMAT, filename, info, fileExt);
+        }
+
+        public static string GetBracketInfo(string filename)
+        {
+            int bracketIndexLeft = filename.LastIndexOf('['),
+                bracketIndexRight = filename.LastIndexOf(']');
+
+            if (bracketIndexLeft == -1 || bracketIndexRight == -1)
+                return null;
+
+            return filename.Substring(bracketIndexLeft + 1, bracketIndexRight - bracketIndexLeft);
+        }
+
+        public static string RemoveBracketInfo(string filename)
+        {
+            int bracketIndex = filename.LastIndexOf('[');
+
+            if (bracketIndex == -1)
+                return filename;
+
+            string extInfo = GetExtension(filename, false);
+
+            //Strips the bracket info at the end, while retaining the file extension
+            return filename.Substring(0, bracketIndex) + extInfo;
         }
 
         public static bool SafeDelete(string path, string customErrorMsg = null)
