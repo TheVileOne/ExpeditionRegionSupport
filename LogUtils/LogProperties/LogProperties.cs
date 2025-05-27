@@ -752,37 +752,23 @@ namespace LogUtils.Properties
 
         internal string[] GetFilenamesToCompare(CompareOptions compareOptions)
         {
-            if ((compareOptions & CompareOptions.Basic) != 0)
-            {
-                return new string[3]
-                {
-                    _idValue,
-                    Filename,
-                    CurrentFilename,
-                };
-            }
-
-            if ((compareOptions & CompareOptions.All) != 0)
-            {
-                return new string[4]
-                {
-                    _idValue,
-                    Filename,
-                    CurrentFilename,
-                    AltFilename
-                };
-            }
-
             List<string> compareStrings = new List<string>();
 
             if ((compareOptions & CompareOptions.ID) != 0)
-                compareStrings.Add(_idValue);
+                addString(_idValue);
             if ((compareOptions & CompareOptions.Filename) != 0)
-                compareStrings.Add(Filename);
+                addString(Filename);
             if ((compareOptions & CompareOptions.CurrentFilename) != 0)
-                compareStrings.Add(CurrentFilename);
+                addString(CurrentFilename);
             if ((compareOptions & CompareOptions.AltFilename) != 0)
-                compareStrings.Add(AltFilename);
+                addString(AltFilename);
+
+            void addString(string value)
+            {
+                if (!string.IsNullOrEmpty(value))
+                    compareStrings.Add(value);
+            }
+
             return compareStrings.ToArray();
         }
 
