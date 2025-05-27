@@ -18,7 +18,7 @@ namespace LogUtils.Helpers
         /// <param name="copyPath">The full path to the destination of the log file. Log filename is optional</param>
         public static FileStatus Copy(LogID logFile, string copyPath)
         {
-            return Copy(logFile.Properties.CurrentFilename, copyPath);
+            return Copy(logFile.Properties.CurrentFilePath, copyPath);
         }
 
         /// <summary>
