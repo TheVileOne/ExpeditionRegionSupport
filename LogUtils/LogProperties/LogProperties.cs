@@ -922,7 +922,7 @@ namespace LogUtils.Properties
         Filename = 2, //Compare against the Filename field
         CurrentFilename = 4, //Compare against the CurrentFilename field
         AltFilename = 8, //Compare against the AltFilename field
-        Basic = ID & Filename & CurrentFilename,
-        All = Basic & AltFilename
+        Basic = ID | Filename | CurrentFilename,
+        All = Basic | AltFilename
     }
 }
