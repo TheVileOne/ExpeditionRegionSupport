@@ -18,6 +18,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             testConflictDetailsArePathDependent();
             testConflictDetailsAreNumeric();
             testNewConflictDetailsAreProducedWhenPathIsChanged();
+            testReserveFilename();
         }
 
         private void testConflictDetectionRenamesFile()
@@ -134,6 +135,20 @@ namespace LogUtils.Diagnostics.Tests.Utility
             LogProperties.PropertyManager.RemoveProperties(exampleD);
             factoryA.Dispose();
             factoryB.Dispose();
+        }
+
+        private void testReserveFilename()
+        {
+            LogProperties example = new LogProperties("example");
+
+            example.AltFilename = "alt";
+            example.ChangeFilename("example-A");         //Set name again to establish that the reserve is not the same as the initial filename
+            example.ChangeFilename(example.AltFilename); //Name is no longer example-A
+
+            //Reserve should be example-A here
+            string reserveFilename = example.GetUnusedFilename();
+            AssertThat(reserveFilename).DoesNotEqual(example.Filename);
+            AssertThat(reserveFilename).IsEqualTo(example.ReserveFilename);
         }
 
         [PostTest]

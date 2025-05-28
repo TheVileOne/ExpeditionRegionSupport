@@ -329,7 +329,7 @@ namespace LogUtils.Properties
             Filename = filename;
             FolderPath = GetContainingPath(relativePathNoFile);
 
-            CurrentFilename = Filename;
+            CurrentFilename = ReserveFilename = Filename;
             CurrentFolderPath = OriginalFolderPath = FolderPath;
 
             EnsurePathDoesNotConflict();

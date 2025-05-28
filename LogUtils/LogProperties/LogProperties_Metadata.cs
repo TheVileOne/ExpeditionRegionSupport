@@ -118,9 +118,19 @@ namespace LogUtils.Properties
 
                 if (value == null)
                     throw new ArgumentNullException(nameof(AltFilename));
+
+                //The reserve filename should never be the same value as the alternate filename
+                if (ComparerUtils.FilenameComparer.Equals(AltFilename, ReserveFilename))
+                    ReserveFilename = null;
+
                 _altFilename = value;
             }
         }
+
+        /// <summary>
+        /// The filename that will serve as the replacement filename if the alternate filename needs to be renamed due to a conflict
+        /// </summary>
+        public string ReserveFilename { get; private set; }
 
         /// <summary>
         /// Given the last available current filename, and the property assign AltFilename, this method returns the option not represented as the current path
@@ -136,8 +146,9 @@ namespace LogUtils.Properties
 
             if (string.IsNullOrEmpty(AltFilename) || ComparerUtils.FilenameComparer.Equals(filename, AltFilename))
             {
-                //TODO: Define field to track the last current filename when filename is renamed to AltFilename
-                return null;
+                if (ComparerUtils.FilenameComparer.Equals(filename, ReserveFilename)) //Both reserve, and alt filename are either used, or unavailable
+                    return null;
+                return ReserveFilename;
             }
             return AltFilename;
         }
@@ -290,6 +301,12 @@ namespace LogUtils.Properties
             using (FileLock.Acquire())
             {
                 string lastFilePath = CurrentFilePath;
+
+                bool usingAltFilename = ComparerUtils.FilenameComparer.Equals(filename, AltFilename);
+
+                //Cache the last non-alternate filename in order to go back to it when the alt filename is no longer necessary
+                if (!usingAltFilename)
+                    ReserveFilename = filename;
 
                 CurrentFilename = filename;
                 CurrentFolderPath = path;
