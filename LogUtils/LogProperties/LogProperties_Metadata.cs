@@ -256,25 +256,32 @@ namespace LogUtils.Properties
 
         public string PreferredFileExt = FileExt.DEFAULT;
 
+        /// <summary>
+        /// Allows the filename, or file extension to be changed
+        /// <br>Note: This will not initiate a file move, or rename any file</br>
+        /// </summary>
+        /// <param name="newFilename">The new filename</param>
+        /// <exception cref="ArgumentException">The filename is null, empty, or contains invalid characters</exception>
         public void ChangeFilename(string newFilename)
         {
-            if (newFilename == null)
-                throw new ArgumentNullException(nameof(newFilename));
-
-            newFilename = FileUtils.RemoveExtension(newFilename).Trim();
-
-            if (newFilename == string.Empty)
-                throw new ArgumentException("Filename cannot be empty");
+            if (PathUtils.IsEmpty(FileUtils.RemoveExtension(newFilename)))
+                throw new ArgumentException("Filename cannot be null, or empty");
 
             UpdateCurrentPath(CurrentFolderPath, newFilename);
         }
 
+        /// <summary>
+        /// Allows the filepath (filename optional) to be changed
+        /// <br>Note: This will not initiate a file move, or rename any file</br>
+        /// </summary>
+        /// <param name="newPath">The new path</param>
+        /// <exception cref="ArgumentException">The directory is null, empty, or contains invalid characters</exception>
         public void ChangePath(string newPath)
         {
             newPath = PathUtils.PathWithoutFilename(newPath, out string newFilename);
 
-            if (newPath == null)
-                throw new ArgumentException("Directory provided cannot be null");
+            if (PathUtils.IsEmpty(FileUtils.RemoveExtension(newPath)))
+                throw new ArgumentException("Path cannot be null, or empty");
 
             newPath = GetContainingPath(newPath);
 
@@ -288,7 +295,7 @@ namespace LogUtils.Properties
 
                 newFilename = AltFilename;
             }
-            else if (string.IsNullOrWhiteSpace(newFilename))
+            else if (PathUtils.IsEmpty(newFilename))
             {
                 newFilename = CurrentFilename;
             }
