@@ -330,7 +330,7 @@ namespace LogUtils.Properties
             UtilityLogger.Log("Generating properties for " + propertyID);
             _idValue = propertyID;
 
-            Filename = filename;
+            Filename = new LogFilename(filename);
             FolderPath = GetContainingPath(relativePathNoFile);
 
             CurrentFilename = ReserveFilename = Filename;
@@ -677,8 +677,8 @@ namespace LogUtils.Properties
             var fields = new LogPropertyStringDictionary
             {
                 [DataFields.LOGID] = ID.value,
-                [DataFields.FILENAME] = Filename,
-                [DataFields.ALTFILENAME] = AltFilename,
+                [DataFields.FILENAME] = Filename.WithExtension(),
+                [DataFields.ALTFILENAME] = AltFilename?.WithExtension(),
                 [DataFields.VERSION] = Version,
                 [DataFields.TAGS] = dataTags != null ? string.Join(",", dataTags) : string.Empty,
                 [DataFields.LOGS_FOLDER_AWARE] = LogsFolderAware.ToString(),

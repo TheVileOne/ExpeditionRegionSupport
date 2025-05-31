@@ -1,5 +1,4 @@
 ﻿using LogUtils.Enums;
-using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.FileHandling;
 using System;
 using System.Collections.Generic;
@@ -11,8 +10,8 @@ namespace LogUtils.Properties
     public partial class LogProperties
     {
         private bool _fileExists;
-        private string _filename = string.Empty;
-        private string _altFilename = string.Empty;
+        private LogFilename _filename;
+        private LogFilename _altFilename;
         private string _folderPath = string.Empty;
         private string _originalFolderPath = string.Empty;
 
@@ -29,19 +28,53 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
-        /// The active filename of the log file (without file extension)
+        /// The filename that will be used in the typical write path for the log file
         /// </summary>
-        public string CurrentFilename { get; private set; }
+        public LogFilename Filename
+        {
+            get => _filename;
+            set
+            {
+                if (_filename == value || ReadOnly) return;
+
+                if (value == null)
+                    throw new ArgumentNullException(nameof(Filename));
+                _filename = value;
+            }
+        }
 
         /// <summary>
-        /// The active filename of the log file (with file extension)
+        /// The filename that will be used if the write path is the Logs directory. May be null
         /// </summary>
-        public string CurrentFilenameWithExtension => CurrentFilename + PreferredFileExt;
+        public LogFilename AltFilename
+        {
+            get => _altFilename;
+            set
+            {
+                if (_altFilename == value || ReadOnly) return;
+
+                if (value == null)
+                    throw new ArgumentNullException(nameof(AltFilename));
+
+                _altFilename = value;
+                UpdateReserveFilename();
+            }
+        }
+
+        /// <summary>
+        /// The filename that will serve as the replacement filename if the alternate filename needs to be renamed due to a conflict
+        /// </summary>
+        public LogFilename ReserveFilename { get; private set; }
+
+        /// <summary>
+        /// The active filename of the log file (without file extension)
+        /// </summary>
+        public LogFilename CurrentFilename { get; private set; }
 
         /// <summary>
         /// The active filepath of the log file (with filename)
         /// </summary>
-        public string CurrentFilePath => Path.Combine(CurrentFolderPath, CurrentFilenameWithExtension);
+        public string CurrentFilePath => Path.Combine(CurrentFolderPath, CurrentFilename.WithExtension());
 
         /// <summary>
         /// The path to the log file when it has been slated to be replaced or removed
@@ -91,72 +124,40 @@ namespace LogUtils.Properties
         public string LastKnownFilePath { get; internal set; }
 
         /// <summary>
-        /// The filename that will be used in the typical write path for the log file
-        /// </summary>
-        public string Filename
-        {
-            get => _filename;
-            set
-            {
-                if (_filename == value || ReadOnly) return;
-
-                if (value == null)
-                    throw new ArgumentNullException(nameof(Filename));
-                _filename = value;
-            }
-        }
-
-        /// <summary>
-        /// The filename that will be used if the write path is the Logs directory. May be null, or empty if same as Filename
-        /// </summary>
-        public string AltFilename
-        {
-            get => _altFilename;
-            set
-            {
-                if (_altFilename == value || ReadOnly) return;
-
-                if (value == null)
-                    throw new ArgumentNullException(nameof(AltFilename));
-
-                //The reserve filename should never be the same value as the alternate filename
-                if (ComparerUtils.FilenameComparer.Equals(AltFilename, ReserveFilename))
-                    ReserveFilename = null;
-
-                _altFilename = value;
-            }
-        }
-
-        /// <summary>
-        /// The filename that will serve as the replacement filename if the alternate filename needs to be renamed due to a conflict
-        /// </summary>
-        public string ReserveFilename { get; private set; }
-
-        /// <summary>
         /// Given the last available current filename, and the property assign AltFilename, this method returns the option not represented as the current path
         /// </summary>
         /// <returns>The filename that is either the last available current filename, or the alt filename depending on the assignment of CurrentFilename.
         /// <br>If all options refer to the current path, or the unused path is not defined - this method returns null</br></returns>
-        internal string GetUnusedFilename()
+        internal LogFilename GetFallbackFilename()
         {
             string filename = CurrentFilename;
 
             if (ContainsTag(UtilityConsts.PropertyTag.CONFLICT))
                 filename = FileUtils.RemoveBracketInfo(filename);
 
-            if (string.IsNullOrEmpty(AltFilename) || ComparerUtils.FilenameComparer.Equals(filename, AltFilename))
+            LogFilename result = null;
+            if (AltFilename != null)
             {
-                if (ComparerUtils.FilenameComparer.Equals(filename, ReserveFilename)) //Both reserve, and alt filename are either used, or unavailable
-                    return null;
-                return ReserveFilename;
+                //When the current filename is equal to the alternate filename, the reserve filename becomes the target
+                if (AltFilename.Equals(filename))
+                {
+                    if (!AltFilename.Equals(ReserveFilename))
+                        result = ReserveFilename; //Target ReserveFilename, because it is either available, and not the current filename
+                }
+                else
+                {
+                    result = AltFilename; //Target AltFilename, because it is available, and not the current filename
+                }
             }
-            return AltFilename;
+
+            //When AltFilename is unavailable, no other filename will be available
+            return result;
         }
 
         /// <summary>
         /// Ensures that current file path info is unique for the current log file
         /// </summary>
-        public void EnsurePathDoesNotConflict()
+        internal void EnsurePathDoesNotConflict()
         {
             string filename = CurrentFilename;
 
@@ -165,25 +166,30 @@ namespace LogUtils.Properties
 
             if (!pathWillConflict(filename))
             {
-                CurrentFilename = filename;
+                CurrentFilename = new LogFilename(filename, CurrentFilename.Extension);
                 RemoveTag(UtilityConsts.PropertyTag.CONFLICT);
                 return;
             }
 
-            //First - check whether we can use the other available filename
-            string secondaryFilename = GetUnusedFilename();
+            //LogUtils supports specification of a second filename - not all log files may have a second filename specified. For the ones that do have one,
+            //we can check to see if we can resolve the conflict through it. If the current filename is that second filename, it will seek the filename
+            //before that filename was used
+            LogFilename filenameFallback = GetFallbackFilename();
 
-            if (secondaryFilename != null && !pathWillConflict(secondaryFilename))
+            if (filenameFallback != null && !pathWillConflict(filenameFallback))
             {
                 RemoveTag(UtilityConsts.PropertyTag.CONFLICT);
-                CurrentFilename = secondaryFilename;
+                CurrentFilename = filenameFallback;
                 return;
             }
 
             int availableDesignation = getAvailableConflictDesignation(filename);
 
+            filename = FileUtils.ApplyBracketInfo(filename, availableDesignation.ToString()); //Does not contain file extension information yet
+
+            CurrentFilename = new LogFilename(filename, CurrentFilename.Extension);
             AddTag(UtilityConsts.PropertyTag.CONFLICT);
-            CurrentFilename = FileUtils.ApplyBracketInfo(filename, availableDesignation.ToString());
+
             UtilityLogger.Log("Conflicting filename is now resolved");
         }
 
@@ -254,8 +260,6 @@ namespace LogUtils.Properties
             return results.Any(logFile => !logFile.Equals(ID) && logFile.Properties.HasFolderPath(CurrentFolderPath));
         }
 
-        public string PreferredFileExt = FileExt.DEFAULT;
-
         /// <summary>
         /// Allows the filename, or file extension to be changed
         /// <br>Note: This will not initiate a file move, or rename any file</br>
@@ -307,15 +311,45 @@ namespace LogUtils.Properties
         {
             using (FileLock.Acquire())
             {
+                bool hasConflictDetails = ContainsTag(UtilityConsts.PropertyTag.CONFLICT);
+
+                if (!CurrentFilename.Equals(filename, hasConflictDetails))
+                {
+                    string currentFilenameBase = CurrentFilename;
+
+                    //Make sure we don't assign bracket info for the reserve filename
+                    if (hasConflictDetails)
+                        currentFilenameBase = FileUtils.RemoveBracketInfo(CurrentFilename);
+
+                    string reserveFilename = null,
+                           reserveFileExt = null;
+
+                    //Avoid assigning AltFilename as a reserve filename
+                    if (AltFilename != null)
+                    {
+                        if (AltFilename.Equals(currentFilenameBase)) //Assign existing filename as the reserve
+                            reserveFilename = currentFilenameBase;
+                        else if (!AltFilename.Equals(filename)) //Assign incoming filename as the reserve
+                            reserveFilename = FileUtils.RemoveExtension(filename, out reserveFileExt);
+                    }
+                    else
+                    {
+                        reserveFilename = FileUtils.RemoveExtension(filename, out reserveFileExt);
+                    }
+
+                    if (reserveFilename != null)
+                    {
+                        //Provided file extension should be given priority over the existing one for the current filename if it exists
+                        if (reserveFileExt != null)
+                            reserveFileExt = CurrentFilename.Extension;
+
+                        ReserveFilename = new LogFilename(reserveFilename, reserveFileExt);
+                    }
+                }
+
                 string lastFilePath = CurrentFilePath;
 
-                bool usingAltFilename = ComparerUtils.FilenameComparer.Equals(filename, AltFilename);
-
-                //Cache the last non-alternate filename in order to go back to it when the alt filename is no longer necessary
-                if (!usingAltFilename)
-                    ReserveFilename = filename;
-
-                CurrentFilename = filename;
+                CurrentFilename = new LogFilename(filename, CurrentFilename.Extension);
                 CurrentFolderPath = path;
 
                 EnsurePathDoesNotConflict();
@@ -329,6 +363,25 @@ namespace LogUtils.Properties
                     NotifyPathChanged();
                 }
             }
+        }
+
+        internal void UpdateReserveFilename()
+        {
+            if (CurrentFilename == null) return; //ReserveFilename wont be assigned yet
+
+            bool hasConflictDetails = ContainsTag(UtilityConsts.PropertyTag.CONFLICT);
+
+            string currentFilenameBase = CurrentFilename;
+
+            //Make sure we don't assign bracket info for the reserve filename
+            if (hasConflictDetails)
+                currentFilenameBase = FileUtils.RemoveBracketInfo(CurrentFilename);
+
+            if (ReserveFilename != null && ReserveFilename.Equals(AltFilename)) //AltFilename and ReserveFilename must be different
+                ReserveFilename = null;
+
+            if (AltFilename == null || !AltFilename.Equals(currentFilenameBase))
+                ReserveFilename = new LogFilename(currentFilenameBase, CurrentFilename.Extension);
         }
     }
 }

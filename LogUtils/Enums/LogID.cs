@@ -83,7 +83,11 @@ namespace LogUtils.Enums
         {
         }
 
-        internal LogID(LogProperties properties, string filename, string relativePathNoFile, bool register) : base(Path.GetFileNameWithoutExtension(filename), register)
+        internal LogID(LogProperties properties, string filename, string fileExt, string path, bool register) : this(properties, filename + fileExt, path, register)
+        {
+        }
+
+        internal LogID(LogProperties properties, string filename, string path, bool register) : base(Path.GetFileNameWithoutExtension(filename), register)
         {
             Access = LogAccess.RemoteAccessOnly;
             InitializeFields();
@@ -91,15 +95,7 @@ namespace LogUtils.Enums
             Properties = properties;
 
             if (Properties == null)
-            {
-                InitializeProperties(relativePathNoFile);
-
-                //This extension will overwrite an existing one with unknown side effects
-                string fileExt = Path.GetExtension(filename);
-
-                if (fileExt != string.Empty)
-                    Properties.PreferredFileExt = fileExt;
-            }
+                InitializeProperties(filename, path);
         }
 
         /// <summary>
@@ -123,13 +119,7 @@ namespace LogUtils.Enums
             Access = access;
 
             InitializeFields();
-            InitializeProperties(relativePathNoFile);
-
-            //This extension will overwrite an existing one with unknown side effects
-            string fileExt = Path.GetExtension(filename);
-
-            if (fileExt != string.Empty)
-                Properties.PreferredFileExt = fileExt;
+            InitializeProperties(filename, relativePathNoFile);
         }
 
         protected void InitializeFields()
@@ -140,16 +130,16 @@ namespace LogUtils.Enums
                 Access = LogAccess.FullAccess;
         }
 
-        protected void InitializeProperties(string logPath)
+        protected void InitializeProperties(string filename, string logPath)
         {
             Properties = LogProperties.PropertyManager.GetProperties(this, logPath);
 
             if (Properties == null)
             {
+                Properties = new LogProperties(filename, logPath);
+
                 if (Registered)
-                    Properties = LogProperties.PropertyManager.SetProperties(this, logPath); //Register a new LogProperties instance for this LogID
-                else
-                    Properties = new LogProperties(value, logPath);
+                    LogProperties.PropertyManager.SetProperties(Properties);
             }
         }
 
@@ -268,11 +258,11 @@ namespace LogUtils.Enums
         internal static void InitializeEnums()
         {
             //Game-defined LogIDs
-            BepInEx = new LogID(null, UtilityConsts.LogNames.BepInEx, Paths.BepInExRootPath, true);
-            Exception = new LogID(null, UtilityConsts.LogNames.Exception, UtilityConsts.PathKeywords.ROOT, true);
-            Expedition = new LogID(null, UtilityConsts.LogNames.Expedition, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
-            JollyCoop = new LogID(null, UtilityConsts.LogNames.JollyCoop, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
-            Unity = new LogID(null, UtilityConsts.LogNames.Unity, UtilityConsts.PathKeywords.ROOT, true);
+            BepInEx    = new LogID(null, UtilityConsts.LogNames.BepInEx,    FileExt.LOG,  Paths.BepInExRootPath, true);
+            Exception  = new LogID(null, UtilityConsts.LogNames.Exception,  FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
+            Expedition = new LogID(null, UtilityConsts.LogNames.Expedition, FileExt.TEXT, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
+            JollyCoop  = new LogID(null, UtilityConsts.LogNames.JollyCoop,  FileExt.TEXT, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
+            Unity      = new LogID(null, UtilityConsts.LogNames.Unity,      FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
 
 #if DEBUG
             //File activity monitoring LogID
@@ -284,11 +274,10 @@ namespace LogUtils.Enums
             BepInEx.Properties.AccessPeriod = SetupPeriod.Pregame;
             BepInEx.Properties.AddTag(nameof(BepInEx));
             BepInEx.Properties.LogSourceName = nameof(BepInEx);
-            BepInEx.Properties.AltFilename = UtilityConsts.LogNames.BepInExAlt;
+            BepInEx.Properties.AltFilename = new LogFilename(UtilityConsts.LogNames.BepInExAlt, FileExt.LOG);
             BepInEx.Properties.IsWriteRestricted = true;
             BepInEx.Properties.FileExists = true;
             BepInEx.Properties.LogSessionActive = true; //BepInEx log is active before the utility can initialize
-            BepInEx.Properties.PreferredFileExt = FileExt.LOG;
             BepInEx.Properties.ShowCategories.IsEnabled = true;
 
             BepInEx.Properties.Profiler.Start();
@@ -297,28 +286,24 @@ namespace LogUtils.Enums
             Exception.Properties.AccessPeriod = SetupPeriod.RWAwake;
             Exception.Properties.AddTag(nameof(Exception));
             Exception.Properties.LogSourceName = nameof(Exception);
-            Exception.Properties.AltFilename = UtilityConsts.LogNames.ExceptionAlt;
-            Exception.Properties.PreferredFileExt = FileExt.TEXT;
+            Exception.Properties.AltFilename = new LogFilename(UtilityConsts.LogNames.ExceptionAlt, FileExt.LOG);
 
             Expedition.Properties.AccessPeriod = SetupPeriod.ModsInit;
             Expedition.Properties.AddTag(nameof(Expedition));
             Expedition.Properties.LogSourceName = nameof(Expedition);
-            Expedition.Properties.AltFilename = UtilityConsts.LogNames.ExpeditionAlt;
-            Expedition.Properties.PreferredFileExt = FileExt.TEXT;
+            Expedition.Properties.AltFilename = new LogFilename(UtilityConsts.LogNames.ExpeditionAlt, FileExt.LOG);
             Expedition.Properties.ShowLogsAware = true;
 
             JollyCoop.Properties.AccessPeriod = SetupPeriod.ModsInit;
             JollyCoop.Properties.AddTag(nameof(JollyCoop));
             JollyCoop.Properties.LogSourceName = nameof(JollyCoop);
-            JollyCoop.Properties.AltFilename = UtilityConsts.LogNames.JollyCoopAlt;
-            JollyCoop.Properties.PreferredFileExt = FileExt.TEXT;
+            JollyCoop.Properties.AltFilename = new LogFilename(UtilityConsts.LogNames.JollyCoopAlt, FileExt.LOG);
             JollyCoop.Properties.ShowLogsAware = true;
 
             Unity.Properties.AccessPeriod = SetupPeriod.RWAwake;
             Unity.Properties.AddTag(nameof(Unity));
             Unity.Properties.LogSourceName = nameof(Unity);
-            Unity.Properties.AltFilename = UtilityConsts.LogNames.UnityAlt;
-            Unity.Properties.PreferredFileExt = FileExt.TEXT;
+            Unity.Properties.AltFilename = new LogFilename(UtilityConsts.LogNames.UnityAlt, FileExt.LOG);
         }
 
         static LogID()

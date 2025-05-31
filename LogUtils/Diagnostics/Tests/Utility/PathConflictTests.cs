@@ -19,6 +19,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             testConflictDetailsAreNumeric();
             testNewConflictDetailsAreProducedWhenPathIsChanged();
             testReserveFilename();
+            testReserveFilenameState();
         }
 
         private void testConflictDetectionRenamesFile()
@@ -141,14 +142,43 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             LogProperties example = new LogProperties("example");
 
-            example.AltFilename = "alt";
+            example.AltFilename = new LogFilename("alt");
             example.ChangeFilename("example-A");         //Set name again to establish that the reserve is not the same as the initial filename
             example.ChangeFilename(example.AltFilename); //Name is no longer example-A
 
             //Reserve should be example-A here
-            string reserveFilename = example.GetUnusedFilename();
+            string reserveFilename = example.GetFallbackFilename();
             AssertThat(reserveFilename).DoesNotEqual(example.Filename);
             AssertThat(reserveFilename).IsEqualTo(example.ReserveFilename);
+        }
+
+        private void testReserveFilenameState()
+        {
+            LogPropertyFactory factory = new LogPropertyFactory("example");
+
+            string testPath = UtilityConsts.PathKeywords.ROOT;
+
+            LogProperties exampleA = factory.Create(testPath, true);
+            LogProperties exampleB = factory.Create(testPath, true);
+
+            //The two filename fields should be in sync at this point
+            AssertThat(exampleA.ReserveFilename).IsEqualTo(exampleA.CurrentFilename);
+
+            exampleA.AltFilename = exampleA.CurrentFilename;
+            AssertThat(exampleA.ReserveFilename).IsNull();
+
+            //Filename isn't meaningfully different here - ReserveFilename should still be null
+            exampleA.ChangeFilename(exampleA.CurrentFilename.WithExtension());
+            AssertThat(exampleA.ReserveFilename).IsNull();
+
+            //This will cause a conflict, and filename will be renamed
+            exampleB.ChangeFilename(exampleA.CurrentFilename);
+            AssertThat(exampleB.ReserveFilename).IsEqualTo(exampleA.CurrentFilename); //Filename conflict should not affect ReserveFilename
+
+            //Clean up resources
+            LogProperties.PropertyManager.RemoveProperties(exampleA);
+            LogProperties.PropertyManager.RemoveProperties(exampleB);
+            factory.Dispose();
         }
 
         [PostTest]
