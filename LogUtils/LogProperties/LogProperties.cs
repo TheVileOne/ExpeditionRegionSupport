@@ -320,7 +320,11 @@ namespace LogUtils.Properties
         public LogRule ShowLineCount => Rules.FindByType<ShowLineCountRule>();
         #endregion
 
-        public LogProperties(string propertyID, string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS)
+        public LogProperties(string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS) : this(FileUtils.RemoveExtension(filename), filename, relativePathNoFile)
+        {
+        }
+
+        internal LogProperties(string propertyID, string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS)
         {
             UtilityLogger.DebugLog("Generating properties for " + propertyID);
             UtilityLogger.Log("Generating properties for " + propertyID);
@@ -374,10 +378,6 @@ namespace LogUtils.Properties
 
             OnLogSessionStart += LogProperties_OnLogSessionStart;
             OnLogSessionFinish += LogProperties_OnLogSessionFinish;
-        }
-
-        public LogProperties(string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS) : this(filename, filename, relativePathNoFile)
-        {
         }
 
         private void onCustomPropertyAdded(CustomLogProperty property)
