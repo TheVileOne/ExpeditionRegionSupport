@@ -1,5 +1,5 @@
 ﻿using LogUtils.Enums;
-using System.IO;
+using LogUtils.Helpers.FileHandling;
 
 namespace LogUtils.Diagnostics.Tests.Components
 {
@@ -9,7 +9,7 @@ namespace LogUtils.Diagnostics.Tests.Components
         {
         }
 
-        public TestLogID(LogAccess access) : base(Path.GetRandomFileName(), access, false)
+        public TestLogID(LogAccess access) : base(PathUtils.GetRandomFilename(FileExt.DEFAULT), access, false)
         {
         }
 
@@ -48,7 +48,7 @@ namespace LogUtils.Diagnostics.Tests.Components
 
         public static TestLogID FromPath(string path)
         {
-            return new TestLogID(Path.GetRandomFileName(), path, LogAccess.FullAccess);
+            return new TestLogID(PathUtils.GetRandomFilename(FileExt.DEFAULT), path, LogAccess.FullAccess);
         }
     }
 }

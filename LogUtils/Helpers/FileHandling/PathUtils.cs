@@ -82,6 +82,12 @@ namespace LogUtils.Helpers.FileHandling
             return pathOther.Substring(0, charsMatched);
         }
 
+        public static string GetRandomFilename(string fileExt)
+        {
+            string filename = Path.GetRandomFileName();
+            return Path.ChangeExtension(filename, fileExt);
+        }
+
         /// <summary>
         /// Replace all directory separator characters with the default platform-specific directory separator character 
         /// </summary>
