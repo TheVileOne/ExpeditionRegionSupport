@@ -151,7 +151,7 @@ namespace LogUtils
             if (properties.LogsFolderEligible && properties.LogsFolderAware)
                 AddToFolder(properties);
             else
-                RevokeDesignation(properties); //TODO: LogManager needs a way to ignore this when LogsFolderAware is set to false
+                RemoveFromFolder(properties); //TODO: Need a way to ignore this when LogsFolderAware is set to false
         }
 
         internal static void OnPathChanged(PathChangedEventArgs e)
@@ -181,7 +181,7 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Designates a log file to write to the Logs folder if it exists
+        /// Transfers a log file to the Logs folder (when it exists)
         /// </summary>
         public static void AddToFolder(LogProperties properties)
         {
@@ -223,31 +223,38 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Removes association with the Logs folder
+        /// Transfers a log file from the Logs folder (when it exists)
         /// </summary>
-        internal static void RevokeDesignation(LogProperties properties)
+        public static void RemoveFromFolder(LogProperties properties)
         {
-            if (!UtilityCore.IsControllingAssembly) return;
+            if (Path == null || !UtilityCore.IsControllingAssembly) return;
 
-            using (properties.FileLock.Acquire())
+            LogID logFile = properties.ID;
+
+            if (IsCurrentPath(properties.FolderPath))
             {
-                if (!IsLogsFolderPath(properties.CurrentFolderPath)) //Check that the log file is currently designated
-                    return;
-
-                string newPath = properties.FolderPath;
-
-                if (Path != null && properties.FileExists) //When Path is null, Logs folder does not exist
-                {
-                    properties.FileLock.SetActivity(properties.ID, FileAction.Move);
-
-                    //This particular MoveLog overload doesn't update current path
-                    FileStatus moveResult = LogFile.Move(properties.CurrentFolderPath, newPath);
-
-                    if (moveResult != FileStatus.MoveComplete) //There was an issue moving this file
-                        return;
-                }
-                properties.ChangePath(newPath);
+                //We cannot move this file unless we have a destination path to move it into
+                UtilityLogger.Log($"Unable to move {logFile}");
+                return;
             }
+
+            string newPath = properties.FolderPath;
+
+            //When moving a file out of this folder, we should rename it to what it was before it was moved into the folder
+            LogFilename filename = properties.ReserveFilename ?? properties.Filename;
+
+            if (!properties.CurrentFilename.Equals(filename))
+                UtilityLogger.Log($"Renaming file to {filename}");
+
+            newPath = System.IO.Path.Combine(properties.FolderPath, filename.WithExtension());
+
+            if (!properties.FileExists)
+            {
+                properties.ChangePath(newPath);
+                return;
+            }
+
+            LogFile.Move(logFile, newPath);
         }
 
         public static bool TryMove(LogsFolderAccessToken accessToken, string path)
