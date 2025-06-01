@@ -462,12 +462,12 @@ namespace LogUtils.Properties
                 if (copyOnly)
                 {
                     FileLock.SetActivity(ID, FileAction.Copy);
-                    status = LogFile.Copy(LastKnownFilePath, ReplacementFilePath);
+                    status = LogFile.Copy(LastKnownFilePath, ReplacementFilePath, true);
                 }
                 else
                 {
                     FileLock.SetActivity(ID, FileAction.Move);
-                    status = LogFile.Move(LastKnownFilePath, ReplacementFilePath);
+                    status = LogFile.Move(LastKnownFilePath, ReplacementFilePath, true);
                 }
 
                 if (status == FileStatus.MoveComplete || status == FileStatus.CopyComplete)

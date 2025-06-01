@@ -10,6 +10,11 @@ namespace LogUtils
         private readonly string sourcePath, destPath;
 
         /// <summary>
+        /// Move attempt will replace a file at the destination path when true; fail to move when false
+        /// </summary>
+        public bool ReplaceExistingFile = true;
+
+        /// <summary>
         /// Creates an object capable of moving, or copying log files to a new destination
         /// </summary>
         /// <param name="sourceLogPath">The full path to the log file that needs to be moved (including filename + ext)</param>
@@ -92,7 +97,7 @@ namespace LogUtils
             FileStatus status;
             try
             {
-                sourceFilePath.CopyTo(destFilePath.FullName, true);
+                sourceFilePath.CopyTo(destFilePath.FullName, ReplaceExistingFile);
                 status = FileStatus.CopyComplete;
             }
             catch (Exception ex)
@@ -124,10 +129,16 @@ namespace LogUtils
                 if (FileUtils.ExtensionsMatch(sourceFilename, destFilename) && sourceFilename == destFilename)
                     return FileStatus.NoActionRequired; //Same file, no copy necessary
 
+                if (!ReplaceExistingFile && destFilePath.Exists)
+                    return FileStatus.FileAlreadyExists;
+
                 destFilePath.Delete(); //Move will fail if a file already exists
             }
             else if (destFileDir.Exists)
             {
+                if (!ReplaceExistingFile && destFilePath.Exists)
+                    return FileStatus.FileAlreadyExists;
+
                 destFilePath.Delete();
             }
             else

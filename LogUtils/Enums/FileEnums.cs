@@ -7,6 +7,7 @@
         MoveRequired,
         MoveComplete,
         CopyComplete,
+        FileAlreadyExists,
         ValidationFailed,
         Error
     }

@@ -120,7 +120,7 @@ namespace LogUtils.Properties
                         properties.FileLock.SetActivity(properties.ID, FileAction.Move);
 
                         //Move the file, and if it fails, change the path. Either way, log file exists
-                        FileStatus moveResult = LogFile.Move(originalFilePath, properties.CurrentFilePath);
+                        FileStatus moveResult = LogFile.Move(originalFilePath, properties.CurrentFilePath, overwriteExisting: true);
 
                         if (moveResult != FileStatus.MoveComplete)
                             properties.ChangePath(originalFilePath);
