@@ -1,5 +1,6 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Helpers;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -34,8 +35,20 @@ namespace LogUtils.Compatibility
             //This listener is incompatible with LogUtils, and must be replaced
             if (found != null)
             {
-                found.Dispose(); //This will flush any messages held by the original listener
-                listeners.Remove(found);
+                listeners.Remove(found); //Remove before disposal to ensure that no messages sneak in while reference is disposed
+
+                try
+                {
+                    found.Dispose(); //This will flush any messages held by the original listener
+                }
+                catch
+                {
+                    //BepInEx library doesn't handle disposal very safely
+                }
+                finally
+                {
+                    GC.SuppressFinalize(found); //Suppress since this version of BepInEx doesn't suppress on dispose
+                }
             }
 
             listeners.Add(LogListener);
