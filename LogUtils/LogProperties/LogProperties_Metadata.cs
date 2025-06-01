@@ -271,7 +271,7 @@ namespace LogUtils.Properties
             if (PathUtils.IsEmpty(FileUtils.RemoveExtension(newFilename)))
                 throw new ArgumentException("Filename cannot be null, or empty");
 
-            UpdateCurrentPath(CurrentFolderPath, newFilename);
+            UpdateCurrentPath(CurrentFolderPath, new LogFilename(newFilename));
         }
 
         /// <summary>
@@ -282,32 +282,19 @@ namespace LogUtils.Properties
         /// <exception cref="ArgumentException">The directory is null, empty, or contains invalid characters</exception>
         public void ChangePath(string newPath)
         {
-            newPath = PathUtils.PathWithoutFilename(newPath, out string newFilename);
+            newPath = PathUtils.PathWithoutFilename(newPath, out string filename);
 
-            if (PathUtils.IsEmpty(FileUtils.RemoveExtension(newPath)))
+            if (PathUtils.IsEmpty(newPath))
                 throw new ArgumentException("Path cannot be null, or empty");
 
+            LogFilename newFilename;
             newPath = GetContainingPath(newPath);
-
-            //Any log file that becomes part of the Logs folder directory should use its alt filename by default
-            bool useAltFilename = !string.IsNullOrEmpty(AltFilename) && LogsFolder.IsCurrentPath(newPath);
-
-            if (useAltFilename)
-            {
-                if (newFilename != null)
-                    UtilityLogger.LogWarning("Provided filename ignored - using alternate filename instead");
-
-                newFilename = AltFilename;
-            }
-            else if (PathUtils.IsEmpty(newFilename))
-            {
-                newFilename = CurrentFilename;
-            }
+            newFilename = filename == null ? CurrentFilename : new LogFilename(filename);
 
             UpdateCurrentPath(newPath, newFilename);
         }
 
-        internal void UpdateCurrentPath(string path, string filename)
+        internal void UpdateCurrentPath(string path, LogFilename filename)
         {
             using (FileLock.Acquire())
             {
@@ -321,35 +308,28 @@ namespace LogUtils.Properties
                     if (hasConflictDetails)
                         currentFilenameBase = FileUtils.RemoveBracketInfo(CurrentFilename);
 
-                    string reserveFilename = null,
-                           reserveFileExt = null;
+                    LogFilename reserveFilename = null;
 
                     //Avoid assigning AltFilename as a reserve filename
                     if (AltFilename != null)
                     {
                         if (AltFilename.Equals(currentFilenameBase)) //Assign existing filename as the reserve
-                            reserveFilename = currentFilenameBase;
+                            reserveFilename = new LogFilename(currentFilenameBase, CurrentFilename.Extension);
                         else if (!AltFilename.Equals(filename)) //Assign incoming filename as the reserve
-                            reserveFilename = FileUtils.RemoveExtension(filename, out reserveFileExt);
+                            reserveFilename = filename;
                     }
                     else
                     {
-                        reserveFilename = FileUtils.RemoveExtension(filename, out reserveFileExt);
+                        reserveFilename = filename;
                     }
 
                     if (reserveFilename != null)
-                    {
-                        //Provided file extension should be given priority over the existing one for the current filename if it exists
-                        if (reserveFileExt != null)
-                            reserveFileExt = CurrentFilename.Extension;
-
-                        ReserveFilename = new LogFilename(reserveFilename, reserveFileExt);
-                    }
+                        ReserveFilename = reserveFilename;
                 }
 
                 string lastFilePath = CurrentFilePath;
 
-                CurrentFilename = new LogFilename(filename, CurrentFilename.Extension);
+                CurrentFilename = filename;
                 CurrentFolderPath = path;
 
                 EnsurePathDoesNotConflict();

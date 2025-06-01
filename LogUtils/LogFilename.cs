@@ -47,7 +47,7 @@ namespace LogUtils
             Extension = fileExt ?? FileExt.DEFAULT; //Treat no extension as the default
         }
 
-        internal bool Equals(string filenameOther, bool hasBracketInfo)
+        internal bool Equals(LogFilename filenameOther, bool hasBracketInfo)
         {
             string value = Value,
                    valueOther = filenameOther;
@@ -57,20 +57,20 @@ namespace LogUtils
             if (!hasBracketInfo)
                 return Equals(filenameOther);
 
-            if (comparer.Equals(value, valueOther, ignoreExtensions: true))
+            if (comparer.Equals(value, valueOther))
                 return true;
 
             //When the common checks fail to find the match, check the remaining value combinations
             string valueWithoutInfo = FileUtils.RemoveBracketInfo(Value),
                    valueWithoutInfoOther = FileUtils.RemoveBracketInfo(filenameOther);
 
-            if (comparer.Equals(valueWithoutInfo, valueOther, ignoreExtensions: true))
+            if (comparer.Equals(valueWithoutInfo, valueOther))
                 return true;
 
-            if (comparer.Equals(valueWithoutInfo, valueWithoutInfoOther, ignoreExtensions: true))
+            if (comparer.Equals(valueWithoutInfo, valueWithoutInfoOther))
                 return true;
 
-            return comparer.Equals(value, valueWithoutInfoOther, ignoreExtensions: true);
+            return comparer.Equals(value, valueWithoutInfoOther);
         }
 
         public int CompareTo(string filenameOther)
