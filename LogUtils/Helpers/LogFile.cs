@@ -54,11 +54,14 @@ namespace LogUtils.Helpers
                 //The move operation requires that all persistent file activity be closed until move is complete
                 var streamsToResume = logFile.Properties.PersistentStreamHandles.InterruptAll();
 
+                logFile.Properties.WriteBuffer.SetState(true, BufferContext.CriticalArea);
+
                 FileStatus moveResult = Move(logFile.Properties.CurrentFilePath, newLogPath);
 
                 if (moveResult == FileStatus.MoveComplete)
                     logFile.Properties.ChangePath(newLogPath);
 
+                logFile.Properties.WriteBuffer.SetState(false, BufferContext.CriticalArea);
                 streamsToResume.ResumeAll();
                 return moveResult;
             }
