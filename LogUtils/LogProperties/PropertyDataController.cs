@@ -132,7 +132,7 @@ namespace LogUtils.Properties
                     properties.CreateTempFile();
 
                 //When the Logs folder is available, favor that path over the original path to the log file
-                if (properties.LogsFolderAware && properties.LogsFolderEligible)
+                if (properties.LogsFolderAware)
                     LogsFolder.AddToFolder(properties);
             }
         }

@@ -177,41 +177,7 @@ namespace LogUtils
         public static void ProcessFiles()
         {
             foreach (LogProperties properties in LogProperties.PropertyManager.Properties)
-            {
-                LogID logFile = properties.ID;
-
-                if (!properties.LogsFolderEligible)
-                {
-                    UtilityLogger.Log($"{logFile} is currently ineligible to be moved to Logs folder");
-                    continue;
-                }
-
-                string newPath = Path;
-
-                LogFilename filename = logFile.Properties.AltFilename;
-
-                if (filename != null)
-                {
-                    if (!logFile.Properties.CurrentFilename.Equals(filename))
-                        UtilityLogger.Log($"Renaming file to {filename}");
-
-                    newPath = System.IO.Path.Combine(Path, filename.WithExtension());
-                }
-
-                if (!properties.FileExists)
-                {
-                    properties.ChangePath(newPath);
-                    continue;
-                }
-
-                bool isMoveRequired = !PathUtils.PathsAreEqual(properties.CurrentFolderPath, newPath);
-
-                if (isMoveRequired)
-                {
-                    UtilityLogger.Log($"Moving {logFile} to Logs folder");
-                    LogFile.Move(logFile, newPath);
-                }
-            }
+                AddToFolder(properties);
         }
 
         /// <summary>
@@ -219,25 +185,40 @@ namespace LogUtils
         /// </summary>
         public static void AddToFolder(LogProperties properties)
         {
-            if (Path == null) return;
+            if (Path == null || !UtilityCore.IsControllingAssembly) return;
 
-            using (properties.FileLock.Acquire())
+            LogID logFile = properties.ID;
+
+            if (!properties.LogsFolderEligible)
             {
-                if (IsCurrentPath(properties.CurrentFolderPath)) return;
+                UtilityLogger.Log($"{logFile} is currently ineligible to be moved to Logs folder");
+                return;
+            }
 
-                string newPath = Path;
+            string newPath = Path;
 
-                if (properties.FileExists)
-                {
-                    properties.FileLock.SetActivity(properties.ID, FileAction.Move);
+            LogFilename filename = logFile.Properties.AltFilename;
 
-                    //This particular MoveLog overload doesn't update current path
-                    FileStatus moveResult = LogFile.Move(properties.CurrentFolderPath, newPath);
+            if (filename != null)
+            {
+                if (!logFile.Properties.CurrentFilename.Equals(filename))
+                    UtilityLogger.Log($"Renaming file to {filename}");
 
-                    if (moveResult != FileStatus.MoveComplete) //There was an issue moving this file
-                        return;
-                }
+                newPath = System.IO.Path.Combine(Path, filename.WithExtension());
+            }
+
+            if (!properties.FileExists)
+            {
                 properties.ChangePath(newPath);
+                return;
+            }
+
+            bool isMoveRequired = !PathUtils.PathsAreEqual(properties.CurrentFolderPath, newPath);
+
+            if (isMoveRequired)
+            {
+                UtilityLogger.Log($"Moving {logFile} to Logs folder");
+                LogFile.Move(logFile, newPath);
             }
         }
 
@@ -246,6 +227,8 @@ namespace LogUtils
         /// </summary>
         internal static void RevokeDesignation(LogProperties properties)
         {
+            if (!UtilityCore.IsControllingAssembly) return;
+
             using (properties.FileLock.Acquire())
             {
                 if (!IsLogsFolderPath(properties.CurrentFolderPath)) //Check that the log file is currently designated
