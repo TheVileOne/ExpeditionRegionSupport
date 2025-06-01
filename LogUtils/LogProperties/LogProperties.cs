@@ -451,7 +451,7 @@ namespace LogUtils.Properties
 
         public FileStatus CreateTempFile(bool copyOnly = false)
         {
-            if (!UtilityCore.IsControllingAssembly || !File.Exists(LastKnownFilePath))
+            if (!File.Exists(LastKnownFilePath))
                 return FileStatus.NoActionRequired;
 
             ReplacementFilePath = Path.ChangeExtension(LastKnownFilePath, FileExt.TEMP);

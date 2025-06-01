@@ -57,7 +57,7 @@ namespace LogUtils.Properties
         {
             LogsFolder.UpdatePath();
 
-            bool shouldRunStartupRoutine = RWInfo.LatestSetupPeriodReached < RWInfo.STARTUP_CUTOFF_PERIOD;
+            bool shouldRunStartupRoutine = UtilityCore.IsControllingAssembly && RWInfo.LatestSetupPeriodReached < RWInfo.STARTUP_CUTOFF_PERIOD;
 
             if (shouldRunStartupRoutine)
                 StartupRoutineActive = true; //Notify that startup process might be happening early
@@ -95,6 +95,17 @@ namespace LogUtils.Properties
                 bool moveFileFromOriginalPath = !PathUtils.PathsAreEqual(originalFilePath, properties.CurrentFilePath);
                 bool lastKnownFileOverwritten = PathUtils.PathsAreEqual(originalFilePath, properties.LastKnownFilePath);
 
+                bool originalFileDeleted = false;
+                if (!UtilityCore.IsControllingAssembly)
+                {
+                    if (logFile != LogID.BepInEx && moveFileFromOriginalPath) //This file would already have been moved by the controlling process - this original file is likely a duplicate
+                        originalFileDeleted = FileUtils.SafeDelete(originalFilePath);
+
+                    //Moving files on other processes is not supported
+                    moveFileFromOriginalPath = false;
+                    properties.SkipStartupRoutine = true;
+                }
+
                 if (moveFileFromOriginalPath)
                 {
                     //Set up the temp file for this log file if it isn't too late to do so
@@ -109,16 +120,25 @@ namespace LogUtils.Properties
                         properties.FileLock.SetActivity(properties.ID, FileAction.Move);
 
                         //Move the file, and if it fails, change the path. Either way, log file exists
-                        if (LogFile.Move(originalFilePath, properties.CurrentFilePath) == FileStatus.MoveComplete)
-                            properties.ChangePath(properties.CurrentFilePath);
-                        else
+                        FileStatus moveResult = LogFile.Move(originalFilePath, properties.CurrentFilePath);
+
+                        if (moveResult != FileStatus.MoveComplete)
                             properties.ChangePath(originalFilePath);
 
                         properties.FileExists = true;
                         properties.LogSessionActive = true;
                     }
                 }
-
+                else if (!originalFileDeleted)
+                {
+                    using (properties.FileLock.Acquire())
+                    {
+                        //File exists - we don't necessarily know if it is an old file here though
+                        properties.FileExists = true;
+                        properties.LogSessionActive = true;
+                    }
+                }
+                
                 properties.SkipStartupRoutine |= lastKnownFileOverwritten;
             }
         }
