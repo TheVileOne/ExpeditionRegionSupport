@@ -352,11 +352,13 @@ namespace LogUtils
         {
             LogProperties.PropertyManager.SaveToFile();
 
+            UtilityLogger.Log("Disabling log files");
+
             //End all active log sessions
             foreach (LogProperties properties in LogProperties.PropertyManager.Properties)
             {
                 if (properties.ID.Equals(LogID.BepInEx))
-                    return;
+                    continue;
 
                 using (properties.FileLock.Acquire())
                 {
