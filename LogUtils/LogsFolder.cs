@@ -174,6 +174,46 @@ namespace LogUtils
             }
         }
 
+        public static void ProcessFiles()
+        {
+            foreach (LogProperties properties in LogProperties.PropertyManager.Properties)
+            {
+                LogID logFile = properties.ID;
+
+                if (!properties.LogsFolderEligible)
+                {
+                    UtilityLogger.Log($"{logFile} is currently ineligible to be moved to Logs folder");
+                    continue;
+                }
+
+                string newPath = Path;
+
+                LogFilename filename = logFile.Properties.AltFilename;
+
+                if (filename != null)
+                {
+                    if (!logFile.Properties.CurrentFilename.Equals(filename))
+                        UtilityLogger.Log($"Renaming file to {filename}");
+
+                    newPath = System.IO.Path.Combine(Path, filename.WithExtension());
+                }
+
+                if (!properties.FileExists)
+                {
+                    properties.ChangePath(newPath);
+                    continue;
+                }
+
+                bool isMoveRequired = !PathUtils.PathsAreEqual(properties.CurrentFolderPath, newPath);
+
+                if (isMoveRequired)
+                {
+                    UtilityLogger.Log($"Moving {logFile} to Logs folder");
+                    LogFile.Move(logFile, newPath);
+                }
+            }
+        }
+
         /// <summary>
         /// Designates a log file to write to the Logs folder if it exists
         /// </summary>
