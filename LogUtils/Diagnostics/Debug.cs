@@ -2,6 +2,7 @@
 using LogUtils.Enums;
 using LogUtils.Helpers;
 using LogUtils.Requests;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -32,6 +33,7 @@ namespace LogUtils.Diagnostics
             UtilityTests.RunAllTests();
             //StressTests.TestLoggerDisposal();
             //StressTests.LogEveryFrame(LogID.Unity, messageFrequency: 1, logUntilThisFrame: 100000, messagesPerFrame: 100);
+            //TestLogsFolder();
         }
 
         /// <summary>
@@ -61,6 +63,31 @@ namespace LogUtils.Diagnostics
 
             logger.LogDebug(report.ToString());
             logger.Dispose();
+        }
+
+        internal static void TestLogsFolder()
+        {
+            UtilityCore.Scheduler.Schedule(() =>
+            {
+                try
+                {
+                    //Alternate between having log files in the Logs folder, and having them at their original location
+                    if (!LogsFolder.IsEnabled)
+                    {
+                        UtilityLogger.DebugLog("Enabled");
+                        LogsFolder.Enable();
+                    }
+                    else
+                    {
+                        UtilityLogger.DebugLog("Disabled");
+                        LogsFolder.Disable();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    UtilityLogger.DebugLog(ex);
+                }
+            }, frameInterval: 200);
         }
 
         public static class TestCasePolicy

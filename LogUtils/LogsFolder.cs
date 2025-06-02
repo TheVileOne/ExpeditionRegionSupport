@@ -46,6 +46,20 @@ namespace LogUtils
 
         public static bool HasInitialized;
 
+        public static bool IsEnabled { get; private set; }
+
+        public static void Enable()
+        {
+            if (!IsEnabled)
+                MoveFilesToFolder();
+        }
+
+        public static void Disable()
+        {
+            if (IsEnabled)
+                RestoreFiles();
+        }
+
         /// <summary>
         /// Checks a path against the current Logs directory path
         /// </summary>
@@ -174,10 +188,18 @@ namespace LogUtils
             }
         }
 
-        public static void ProcessFiles()
+        public static void MoveFilesToFolder()
         {
+            IsEnabled = Path != null;
             foreach (LogProperties properties in LogProperties.PropertyManager.Properties)
                 AddToFolder(properties);
+        }
+
+        public static void RestoreFiles()
+        {
+            IsEnabled = false;
+            foreach (LogProperties properties in LogProperties.PropertyManager.Properties)
+                RemoveFromFolder(properties);
         }
 
         /// <summary>
@@ -234,7 +256,13 @@ namespace LogUtils
             if (IsCurrentPath(properties.FolderPath))
             {
                 //We cannot move this file unless we have a destination path to move it into
-                UtilityLogger.Log($"Unable to move {logFile}");
+                UtilityLogger.Log($"Unable to move file {logFile}");
+                return;
+            }
+
+            if (!IsCurrentPath(properties.CurrentFolderPath))
+            {
+                UtilityLogger.Log($"{logFile} file is not a part of Logs folder");
                 return;
             }
 
@@ -254,6 +282,7 @@ namespace LogUtils
                 return;
             }
 
+            UtilityLogger.Log($"Moving {logFile} out of Logs folder");
             LogFile.Move(logFile, newPath);
         }
 
