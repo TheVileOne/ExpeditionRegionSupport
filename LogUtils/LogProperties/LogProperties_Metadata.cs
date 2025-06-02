@@ -313,7 +313,7 @@ namespace LogUtils.Properties
                     //Avoid assigning AltFilename as a reserve filename
                     if (AltFilename != null)
                     {
-                        if (AltFilename.Equals(currentFilenameBase)) //Assign existing filename as the reserve
+                        if (!AltFilename.Equals(currentFilenameBase)) //Assign existing filename as the reserve
                             reserveFilename = new LogFilename(currentFilenameBase, CurrentFilename.Extension);
                         else if (!AltFilename.Equals(filename)) //Assign incoming filename as the reserve
                             reserveFilename = filename;
