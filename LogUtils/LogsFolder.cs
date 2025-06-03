@@ -385,15 +385,6 @@ namespace LogUtils
             }
         }
 
-        /// <summary>
-        /// Attempts to move log files back to where they were before the files were moved to a Logs folder
-        /// </summary>
-        public static void Restore()
-        {
-            //TODO: Implement
-            throw new NotImplementedException();
-        }
-
         internal static bool RequestAccess(LogsFolderAccessToken accessToken, string requestPath)
         {
             if (accessToken.Access == FolderAccess.Unrestricted)
