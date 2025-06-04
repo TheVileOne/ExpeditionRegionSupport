@@ -7,6 +7,34 @@ namespace LogUtils.Diagnostics.Tests.Utility
 {
     internal static class LogIDTests
     {
+        internal sealed class PropertyTests : TestCase, ITestable
+        {
+            internal const string TEST_NAME = "Test - LogID Properties";
+
+            public PropertyTests() : base(TEST_NAME)
+            {
+            }
+
+            public void Test()
+            {
+                testOnlyOnePropertiesInstancePerLogFile();
+            }
+
+            private void testOnlyOnePropertiesInstancePerLogFile()
+            {
+                LogID exampleA = new LogID("example", register: false),
+                      exampleB = new LogID("example", register: false);
+
+                AssertThat(exampleA.Properties).IsSameInstance(exampleB.Properties);
+            }
+
+            [PostTest]
+            public void ShowResults()
+            {
+                TestLogger.LogDebug(CreateReport());
+            }
+        }
+
         internal sealed class ComparisonTests : TestCase, ITestable
         {
             internal const string TEST_NAME = "Test - LogID Comparison";
