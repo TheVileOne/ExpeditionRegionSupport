@@ -325,17 +325,14 @@ namespace LogUtils.Properties
 
         public void SaveToFile()
         {
-            if (!PropertyFile.Stream.CanWrite)
-            {
-                UtilityLogger.LogWarning("Property file data could not be saved");
-                return;
-            }
-
             bool success = false;
             try
             {
-                PropertyFile.Writer.Write(GetUpdateEntries());
-                success = true;
+                if (!PropertyFile.IsClosed)
+                {
+                    PropertyFile.Writer.Write(GetUpdateEntries());
+                    success = true;
+                }
             }
             catch (IOException ex)
             {
