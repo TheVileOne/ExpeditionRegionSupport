@@ -171,6 +171,11 @@ namespace LogUtils.Properties
             }
         }
 
+        /// <summary>
+        /// List of targeted ConsoleIDs to send requests to when logging to file
+        /// </summary>
+        public List<ConsoleID> ConsoleIDs = new List<ConsoleID>();
+
         public ManualLogSource LogSource
         {
             get

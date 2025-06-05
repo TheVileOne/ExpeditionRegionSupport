@@ -1,5 +1,6 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
+using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Requests;
 using System;
@@ -200,10 +201,13 @@ namespace LogUtils.Console
 
             if (console == null) return;
 
-            console.WriteFrom(new ConsoleLogRequest(new Events.LogMessageEventArgs(LogID.BepInEx, message, category)
+            LogRequest request = new LogRequest(RequestType.Console, new LogMessageEventArgs(LogID.BepInEx, message, category)
             {
                 LogSource = source
-            }));
+            });
+
+            request.Data.ExtraArgs.Add(new ConsoleRequestEventArgs(ConsoleID.BepInEx));
+            console.WriteFrom(request);
         }
 
         private struct ReflectionResult

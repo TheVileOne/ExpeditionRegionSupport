@@ -1,4 +1,6 @@
-﻿using LogUtils.Diagnostics.Tools;
+﻿using LogUtils.Console;
+using LogUtils.Diagnostics;
+using LogUtils.Diagnostics.Tools;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
@@ -151,6 +153,15 @@ namespace LogUtils
                     WriteFromBuffer(request.Data.ID, TimeSpan.Zero, respectBufferState: false);
                 }
 
+                if (request.Type == RequestType.Console || request.Data.PendingConsoleIDs.Any())
+                {
+                    WriteToConsole(request);
+
+                    //Only requests that exclusively target the console should return early
+                    if (request.Type == RequestType.Console)
+                        return;
+                }
+
                 WriteHandler.Invoke(request);
             }
             finally
@@ -260,6 +271,33 @@ namespace LogUtils
 
             SendToBuffer(request.Data);
             request.Complete(); //LogRequest no longer needs to be processed once its message has been added to the write buffer
+        }
+
+        protected virtual void WriteToConsole(LogRequest request)
+        {
+            try
+            {
+                var pendingIDs = request.Data.PendingConsoleIDs.ToArray();
+
+                foreach (ConsoleID consoleID in pendingIDs)
+                {
+                    ConsoleLogWriter console = LogConsole.FindWriter(consoleID, enabledOnly: false);
+
+                    if (console == null)
+                    {
+                        request.Reject(RejectionReason.LogUnavailable, consoleID);
+                        continue;
+                    }
+                    console.WriteFrom(request);
+                }
+                Assert.That(request.Data.PendingConsoleIDs.Any()).IsFalse();
+            }
+            finally
+            {
+                //It should not be possible for ConsoleIDs to be pending here
+                if (request.Type == RequestType.Console)
+                    request.Complete();
+            }
         }
 
         /// <summary>

@@ -3,6 +3,7 @@ using LogUtils.Events;
 using LogUtils.Requests;
 using System;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 namespace LogUtils.Console
@@ -55,35 +56,46 @@ namespace LogUtils.Console
 
         protected virtual void SendToConsole(LogMessageEventArgs messageData)
         {
-            try
-            {
-                Color messageColor = messageData.Category.ConsoleColor;
-                if (LogConsole.ANSIColorSupport)
-                {
-                    string message = ApplyColorFormatting(ApplyRules(messageData), messageColor);
-                    Stream.WriteLine(message);
-                }
-                else
-                {
-                    string message = ApplyRules(messageData);
+            string message = ApplyRules(messageData);
 
-                    LogConsole.SetConsoleColor(ConsoleColorMap.ClosestConsoleColor(messageColor));
-                    Stream.WriteLine(message);
-                    LogConsole.SetConsoleColor(ConsoleColor.Gray);
-                }
-            }
-            catch (Exception ex)
+            Color messageColor = messageData.Category.ConsoleColor;
+            if (LogConsole.ANSIColorSupport)
             {
-                //TODO: Report
+                message = ApplyColorFormatting(message, messageColor);
+                Stream.WriteLine(message);
+            }
+            else
+            {
+                LogConsole.SetConsoleColor(ConsoleColorMap.ClosestConsoleColor(messageColor));
+                Stream.WriteLine(message);
+                LogConsole.SetConsoleColor(ConsoleColor.Gray);
             }
         }
 
         public void WriteFrom(LogRequest request)
         {
-            SendToConsole(request.Data);
+            try
+            {
+                if (!IsEnabled)
+                {
+                    request.Reject(RejectionReason.LogDisabled, ID);
+                    return;
+                }
 
-            if (request.Type == RequestType.Console)
-                request.Complete();
+                SendToConsole(request.Data);
+            }
+            catch (Exception ex)
+            {
+                request.Reject(RejectionReason.FailedToWrite, ID);
+                UtilityLogger.LogError("Console write error", ex);
+            }
+            finally
+            {
+                request.NotifyComplete(ID);
+
+                if (request.Type == RequestType.Console && !request.Data.PendingConsoleIDs.Any())
+                    request.Complete();
+            }
         }
 
         public void WriteFromBuffer(LogID logFile, TimeSpan waitTime, bool respectBufferState = true)

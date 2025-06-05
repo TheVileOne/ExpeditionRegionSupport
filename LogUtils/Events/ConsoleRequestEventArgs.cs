@@ -20,6 +20,11 @@ namespace LogUtils.Events
         {
         }
 
+        public ConsoleRequestEventArgs(ConsoleID pendingConsoleID)
+        {
+            Pending.Add(pendingConsoleID);
+        }
+
         public ConsoleRequestEventArgs(List<ConsoleID> pendingConsoleIDs)
         {
             Pending.AddRange(pendingConsoleIDs);

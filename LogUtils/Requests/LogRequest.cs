@@ -79,9 +79,6 @@ namespace LogUtils.Requests
         {
             Data = data;
             Type = type;
-
-            if (Type == RequestType.Console && this is not ConsoleLogRequest)
-                throw new ArgumentException("RequestType not valid for this instance");
         }
 
         public bool CanRetryRequest()
@@ -121,7 +118,7 @@ namespace LogUtils.Requests
             NotifyOnChange();
         }
 
-        public void Reject(RejectionReason reason)
+        public void Reject(RejectionReason reason, object context = null)
         {
             if (Status == RequestStatus.Complete)
             {
@@ -135,34 +132,41 @@ namespace LogUtils.Requests
                 return;
             }
 
-            _state.Status = RequestStatus.Rejected;
-            managedThreadID = -1;
+            ConsoleID consoleContext = context as ConsoleID;
 
-            if (UnhandledReason != RejectionReason.None)
-                UtilityLogger.Log("Unhandled reason already exists");
-
-
-            if ((RainWorld.ShowLogs || RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD) && !shouldIgnore(reason))
+            //The main difference between a console context and other types of requests is that a console request context can only be "completed",
+            //the rejection reason should not be recorded when a context is provided
+            if (consoleContext == null)
             {
+                _state.Status = RequestStatus.Rejected;
+                managedThreadID = -1;
+
+                if (UnhandledReason != RejectionReason.None)
+                    UtilityLogger.Log("Unhandled reason already exists");
+
+                if (reason != RejectionReason.ExceptionAlreadyReported && reason != RejectionReason.FilterMatch) //Temporary conditions should not be recorded
+                    Data.Properties.HandleRecord.SetReason(reason);
+
+                if (UnhandledReason != reason)
+                {
+                    _state.UnhandledReason = reason;
+                    NotifyOnChange();
+                }
+            }
+            else
+            {
+                NotifyComplete(consoleContext);
+            }
+
+            bool showLogsActive = RainWorld.ShowLogs || RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD;
+
+            if (showLogsActive && reason != RejectionReason.WaitingOnOtherRequests) //This reason can get spammy - ignore it
+            {
+                UtilityLogger.DebugLog("Log request was rejected REASON: " + reason);
                 UtilityLogger.Log("Log request was rejected REASON: " + reason);
 
-                //UtilityLogger.DebugLog("Log request was rejected REASON: " + reason);
-                //UtilityLogger.DebugLog(ToString());
-            }
-
-            if (reason != RejectionReason.ExceptionAlreadyReported && reason != RejectionReason.FilterMatch) //Temporary conditions should not be recorded
-                Data.Properties.HandleRecord.SetReason(reason);
-
-            if (UnhandledReason != reason)
-            {
-                _state.UnhandledReason = reason;
-                NotifyOnChange();
-            }
-
-            static bool shouldIgnore(RejectionReason reason)
-            {
-                //This reason can get spammy - ignore it
-                return reason == RejectionReason.WaitingOnOtherRequests;
+                if (context != null)
+                    UtilityLogger.Log("CONTEXT: " + context);
             }
         }
 
@@ -189,6 +193,21 @@ namespace LogUtils.Requests
             Interlocked.CompareExchange(ref managedThreadID, Thread.CurrentThread.ManagedThreadId, -1);
 
             NotifyOnChange();
+        }
+
+        /// <summary>
+        /// Notify that the following consoleID no longer needs to be processed
+        /// </summary>
+        public void NotifyComplete(ConsoleID consoleID)
+        {
+            var consoleRequestData = Data.FindData<ConsoleRequestEventArgs>();
+
+            //Console data may not exist if the ConsoleIDs are sourced from the LogID instead of a Logger
+            if (consoleRequestData == null)
+                Data.ExtraArgs.Add(consoleRequestData = new ConsoleRequestEventArgs());
+
+            consoleRequestData.Pending.Remove(consoleID);
+            consoleRequestData.Handled.Add(consoleID);
         }
 
         /// <summary>

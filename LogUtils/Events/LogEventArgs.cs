@@ -103,6 +103,27 @@ namespace LogUtils.Events
         public string Message { get; }
 
         /// <summary>
+        /// An enumerable containing ConsoleIDs that have yet to handle the message data
+        /// </summary>
+        public IEnumerable<ConsoleID> PendingConsoleIDs
+        {
+            get
+            {
+                var consoleRequestData = FindData<ConsoleRequestEventArgs>();
+
+                if (consoleRequestData != null)
+                {
+                    List<ConsoleID> sentToConsole = consoleRequestData.Handled;
+                    List<ConsoleID> waitingToBeHandled = consoleRequestData.Pending;
+
+                    return waitingToBeHandled.Union(Properties.ConsoleIDs.Except(sentToConsole));
+                }
+
+                return Properties.ConsoleIDs;
+            }
+        }
+
+        /// <summary>
         /// Whether this request's message should be filtered after request is successfully handled
         /// </summary>
         public bool ShouldFilter;
