@@ -673,7 +673,9 @@ namespace LogUtils
                     using (UtilityCore.RequestHandler.BeginCriticalSection())
                     {
                         UtilityCore.RequestHandler.Submit(request, false);
-                        SendToWriter(request);
+
+                        if (request.Status != RequestStatus.Rejected)
+                            SendToWriter(request);
                     }
                 }
             }
