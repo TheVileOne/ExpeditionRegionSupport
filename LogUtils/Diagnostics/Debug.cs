@@ -1,4 +1,6 @@
 ﻿using LogUtils.Diagnostics.Tests;
+using LogUtils.Diagnostics.Tests;
+using LogUtils.Diagnostics.Tests.Utility;
 using LogUtils.Enums;
 using LogUtils.Helpers;
 using LogUtils.Requests;
@@ -31,6 +33,7 @@ namespace LogUtils.Diagnostics
         internal static void RunTests()
         {
             UtilityTests.RunAllTests();
+            //StressTests.TestMultithreadedLogging();
             //StressTests.TestLoggerDisposal();
             //StressTests.LogEveryFrame(LogID.Unity, messageFrequency: 1, logUntilThisFrame: 100000, messagesPerFrame: 100);
             //TestLogsFolder();
@@ -63,6 +66,23 @@ namespace LogUtils.Diagnostics
 
             logger.LogDebug(report.ToString());
             logger.Dispose();
+        }
+
+        internal static void TestMultipleWritersOneFile()
+        {
+            Logger t1, t2, t3;
+
+            LogID testLogID = new LogID("test.log", UtilityConsts.PathKeywords.ROOT, LogAccess.FullAccess, false);
+
+            t1 = new Logger(LoggingMode.Timed, testLogID);
+            t2 = new Logger(LoggingMode.Queue, testLogID);
+            t3 = new Logger(LoggingMode.Normal, testLogID);
+
+            //These logs will not log to file properly. Writers are not aware of when other writers are flushing to the stream
+            t1.Log("Message logged using timed writer");
+            t2.Log("Message logged using queue writer");
+            t3.Log("Message logged using standard writer");
+            t1.Log("This message will break LogUtils");
         }
 
         internal static void TestLogsFolder()

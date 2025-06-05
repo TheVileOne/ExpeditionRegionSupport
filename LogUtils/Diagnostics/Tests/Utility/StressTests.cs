@@ -2,6 +2,7 @@
 using LogUtils.Timers;
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace LogUtils.Diagnostics.Tests.Utility
 {
@@ -65,6 +66,48 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 //UtilityCore.RequestHandler.Unregister(loggers[i]);
             }
             loggers = null;
+        }
+
+        public static void TestMultithreadedLogging()
+        {
+            const int MESSAGE_COUNT = 250;
+
+            LogID testLogID = new LogID("test.log", UtilityConsts.PathKeywords.ROOT, LogAccess.Private, false);
+
+            Task.Run(() =>
+            {
+                //TODO: Testing this behavior frequently triggers game lockups. Need to investigate
+                //TODO: Queued messages before Rain World can update don't get processed
+                try
+                {
+                    TestMultithreadedLogging(testLogID, LoggingMode.Normal, MESSAGE_COUNT).Wait();
+                    TestMultithreadedLogging(testLogID, LoggingMode.Timed, MESSAGE_COUNT).Wait();
+                    TestMultithreadedLogging(testLogID, LoggingMode.Queue, MESSAGE_COUNT).Wait();
+                }
+                catch (Exception ex)
+                {
+                    UtilityLogger.LogError(ex);
+                }
+            });
+        }
+
+        internal static async Task TestMultithreadedLogging(LogID target, LoggingMode mode, int messageCount)
+        {
+            Logger testLogger = new Logger(mode, target);
+
+            testLogger.LogDebug($"Logging mode {mode}");
+            testLogger.LogDebug($"Logging {messageCount} messages");
+            Task[] tasks = new Task[messageCount];
+
+            //Schedule a lot of scheduled log requests to ensure messages log properly to file in a multithreaded environment
+            for (int i = 0; i < messageCount; i++)
+            {
+                int tIndex = i;
+                tasks[tIndex] = Task.Run(() => testLogger.LogDebug($"Log #[{tIndex}]"));
+            }
+            await Task.WhenAll(tasks);
+
+            testLogger.Dispose();
         }
     }
 }
