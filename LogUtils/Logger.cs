@@ -640,7 +640,7 @@ namespace LogUtils
                 {
                     LogID loggerID = this.FindEquivalentTarget(target);
 
-                    if (loggerID != null)
+                    if (loggerID?.HasLocalAccess == true)
                     {
                         requestType = RequestType.Local;
                     }
