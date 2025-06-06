@@ -328,11 +328,8 @@ namespace LogUtils.Properties
             bool success = false;
             try
             {
-                if (!PropertyFile.IsClosed)
-                {
-                    PropertyFile.Writer.Write(GetUpdateEntries());
-                    success = true;
-                }
+                PropertyFile.Writer.Write(GetUpdateEntries());
+                success = true;
             }
             catch (IOException ex)
             {
