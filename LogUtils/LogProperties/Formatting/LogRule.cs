@@ -231,7 +231,7 @@ namespace LogUtils.Properties.Formatting
 
         protected override string ApplyRule(string message, LogMessageEventArgs logEventData)
         {
-            return string.Format("[{0}] {1}", logEventData.Properties.MessagesHandledThisSession, message);
+            return string.Format("[{0}] {1}", logEventData.TotalMessagesLogged + 1, message); //Add one to start indexing at one, instead of zero
         }
 
         protected override float GetPriority()

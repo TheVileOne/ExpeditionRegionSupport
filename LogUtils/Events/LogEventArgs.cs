@@ -102,6 +102,8 @@ namespace LogUtils.Events
         /// </summary>
         public string Message { get; }
 
+        public uint TotalMessagesLogged;
+
         /// <summary>
         /// An enumerable containing ConsoleIDs that have yet to handle the message data
         /// </summary>

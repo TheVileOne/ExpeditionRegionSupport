@@ -448,6 +448,8 @@ namespace LogUtils
             {
                 fileLock.SetActivity(logFile, FileAction.Buffering);
 
+                messageData.TotalMessagesLogged = logFile.Properties.MessagesHandledThisSession;
+
                 //Keep this inside a lock, we want to ensure that it remains in sync with the MessagesHandled count, which is used for this process
                 string message = ApplyRules(messageData);
 
@@ -466,6 +468,8 @@ namespace LogUtils
                 writer.WriteLine(writeBuffer);
                 writeBuffer.Clear();
             }
+
+            messageData.TotalMessagesLogged = messageData.Properties.MessagesHandledThisSession;
 
             string message = ApplyRules(messageData);
 

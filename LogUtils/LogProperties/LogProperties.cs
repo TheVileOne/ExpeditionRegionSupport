@@ -56,7 +56,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// The amount of messages logged to file, or stored in the WriteBuffer since the last logging session was started
         /// </summary>
-        public int MessagesHandledThisSession;
+        public uint MessagesHandledThisSession;
 
         /// <summary>
         /// A list of persistent FileStreams known to be open for this log file
