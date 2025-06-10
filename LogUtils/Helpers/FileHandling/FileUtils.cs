@@ -253,7 +253,7 @@ namespace LogUtils.Helpers.FileHandling
             return false;
         }
 
-        public static void SafeWriteToFile(string filePath, IEnumerable<string> values)
+        public static void SafeWriteToFile(string filePath, params string[] values)
         {
             bool fileWriteSuccess = false;
             Exception fileWriteError = null;
@@ -281,6 +281,11 @@ namespace LogUtils.Helpers.FileHandling
                 if (fileWriteError != null)
                     UtilityLogger.LogError(fileWriteError);
             }
+        }
+
+        public static void SafeWriteToFile(string filePath, IEnumerable<string> values)
+        {
+            SafeWriteToFile(filePath, values.ToArray());
         }
 
         private static readonly object writeLock = new object();

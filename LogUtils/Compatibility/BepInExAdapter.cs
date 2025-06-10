@@ -1,9 +1,14 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Enums;
+using LogUtils.Events;
 using LogUtils.Helpers;
+using LogUtils.Helpers.FileHandling;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace LogUtils.Compatibility
 {
@@ -19,7 +24,6 @@ namespace LogUtils.Compatibility
             LogListener = new Listeners.DiskLogListener(new TimedLogWriter());
 
             AdaptLoggingSystem();
-            TransferData();
         }
 
         /// <summary>
@@ -53,7 +57,25 @@ namespace LogUtils.Compatibility
 
             listeners.Add(LogListener);
 
-            if (!UtilityCore.IsControllingAssembly)
+            //It is not possible to intercept logged messages to BepInEx made before Chainloader is initialized
+            //This code determines what should happen to the existing BepInEx log file
+            if (UtilityCore.IsControllingAssembly)
+            {
+                string bepInExLogPath = Path.Combine(Paths.BepInExRootPath, UtilityConsts.LogNames.BepInEx + FileExt.LOG);
+
+                if (File.Exists(bepInExLogPath)) //Perhaps someone is using a newer, or modified BepInEx version
+                {
+                    DateTime lastWriteTime = File.GetLastWriteTime(bepInExLogPath);
+
+                    //Apply rules only on a file that has been modified since the current process was launched. Only one process can access this file at a time
+                    if (lastWriteTime > Process.GetCurrentProcess().StartTime)
+                    {
+                        UtilityLogger.DebugLog("Applying log rules retroactively");
+                        RetroactivelyApplyRules();
+                    }
+                }
+            }
+            else
                 CleanBepInExFolder();
         }
 
@@ -78,27 +100,82 @@ namespace LogUtils.Compatibility
         }
 
         /// <summary>
-        /// Migrates existing log file over to new file when necessary
+        /// Applies log rules to already logged messages, overwriting the existing file with the new changes
         /// </summary>
-        internal static void TransferData()
+        internal static void RetroactivelyApplyRules()
         {
-            /*
-            LogProperties logProperties = LogID.BepInEx.Properties;
+            bool shouldHaveCategories = LogID.BepInEx.Properties.ShowCategories.IsEnabled;
+            bool shouldHaveLineCount = LogID.BepInEx.Properties.ShowLineCount.IsEnabled;
 
-            //This code wont support changes to only the file extension
-            bool hasDefaultPath = PathUtils.PathsAreEqual(logProperties.CurrentFolderPath, logProperties.OriginalFolderPath);
-            bool hasDefaultFileName = ComparerUtils.FilenameComparer.Equals(logProperties.CurrentFilename, UtilityConsts.LogNames.BepInEx);
+            //TODO: Can we check for other rules present? Rules could be fetched by reflection
+            bool shouldRewrite = !shouldHaveCategories || shouldHaveLineCount;
 
-            bool fileMoveRequired = !hasDefaultPath || !hasDefaultFileName;
+            if (!shouldRewrite) return;
 
-            if (fileMoveRequired)
+            string bepInExLogPath = Path.Combine(Paths.BepInExRootPath, UtilityConsts.LogNames.BepInEx + FileExt.LOG);
+
+            short totalLinesProcessed = 0;
+
+            LogCategory category = null;
+            ManualLogSource source = null;
+
+            string message;
+            StringBuilder messageBuilder = new StringBuilder(),
+                          newFileContent = new StringBuilder();
+            foreach (string line in File.ReadAllLines(bepInExLogPath))
             {
-                string originalLogPath = Path.Combine(logProperties.OriginalFolderPath, UtilityConsts.LogNames.BepInEx + FileExt.LOG);
+                //BepInEx probably doesn't have any multiline strings, but check anyways just to be safe
+                if (line.StartsWith("[")) //Starting with a bracket indicates a line start
+                {
+                    int headerStart = 1,
+                        headerEnd = line.IndexOf(']');
 
-                //Due to BepInEx log file already existing by the time this assembly is loaded
-                LogFile.Move(Path.Combine(originalLogPath, LogID.BepInEx.Properties.CurrentFilePath), logProperties.CurrentFilePath);
+                    string[] headerData = line.Substring(headerStart, headerEnd - 1).Split(':');
+
+                    if (totalLinesProcessed > 0) //For each line after the first, we append a new line to the content buffer
+                    {
+                        message = buildMessage(category, source);
+                        newFileContent.AppendLine().Append(message);
+                    }
+
+                    category = new LogCategory(headerData[0].Trim());
+                    source = new ManualLogSource(headerData[1].Trim());
+
+                    //Slight chance this could fail - if a false positive line start is handled. It shouldn't happen under typical run conditions
+                    int messageStartIndex = headerEnd + 1;
+
+                    if (messageStartIndex == line.Length) //Empty string
+                        messageBuilder.Append(string.Empty);
+                    else
+                        messageBuilder.Append(line.Substring(messageStartIndex));
+
+                    totalLinesProcessed++;
+                }
+                else //While not starting with a bracket, indicates a continuation of a line
+                {
+                    messageBuilder.AppendLine().Append(line); //Instead of appending the new line to the content buffer, we include it in the line buffer as part of the multiline string
+                }
             }
-            */
+
+            //The final message does not get built inside the loop
+            message = buildMessage(category, source);
+            newFileContent.AppendLine().Append(message);
+
+            FileUtils.SafeWriteToFile(bepInExLogPath, newFileContent.ToString());
+
+            string buildMessage(LogCategory category, ManualLogSource source)
+            {
+                var messageData = new LogMessageEventArgs(LogID.BepInEx, messageBuilder, category)
+                {
+                    LogSource = source
+                };
+
+                string message = LogMessageFormatter.Default.Format(messageData);
+
+                LogID.BepInEx.Properties.MessagesHandledThisSession++; //Count logged messages as if it were just logged
+                messageBuilder.Clear(); //Prepare for the next line
+                return message;
+            }
         }
 
         internal static ICollection<ILogListener> GetListeners()
