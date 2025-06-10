@@ -30,7 +30,7 @@ namespace LogUtils.Enums
         /// <summary>
         /// Controls whether messages targetting this log file can be handled by a logger
         /// </summary>
-        public bool IsEnabled => IsInstanceEnabled && (Properties == null || Properties.AllowLogging);
+        public bool IsEnabled => UtilityCore.IsControllingAssembly && IsInstanceEnabled && (Properties == null || Properties.AllowLogging);
 
         /// <summary>
         /// A flag that controls whether logging should be permitted for this LogID instance
