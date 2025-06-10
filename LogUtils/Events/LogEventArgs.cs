@@ -102,7 +102,17 @@ namespace LogUtils.Events
         /// </summary>
         public string Message { get; }
 
-        public uint TotalMessagesLogged;
+        private uint? _totalMessageCache;
+        
+        public uint TotalMessagesLogged => _totalMessageCache ?? Properties.MessagesHandledThisSession;
+
+        /// <summary>
+        ///  Assigns a value to TotalMessagesLogged that will not change when new messages are logged 
+        /// </summary>
+        public void CacheMessageTotal()
+        {
+            _totalMessageCache = Properties.MessagesHandledThisSession;
+        }
 
         /// <summary>
         /// An enumerable containing ConsoleIDs that have yet to handle the message data
