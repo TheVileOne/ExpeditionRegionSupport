@@ -63,20 +63,36 @@ namespace LogUtils.Compatibility
             {
                 string bepInExLogPath = Path.Combine(Paths.BepInExRootPath, UtilityConsts.LogNames.BepInEx + FileExt.LOG);
 
-                if (File.Exists(bepInExLogPath)) //Perhaps someone is using a newer, or modified BepInEx version
+                if (!File.Exists(bepInExLogPath)) //Perhaps someone is using a newer, or modified BepInEx version
                 {
-                    DateTime lastWriteTime = File.GetLastWriteTime(bepInExLogPath);
+                    UtilityLogger.LogWarning("Unable to locate BepInEx log file");
+                    return;
+                }
 
-                    //Apply rules only on a file that has been modified since the current process was launched. Only one process can access this file at a time
-                    if (lastWriteTime > Process.GetCurrentProcess().StartTime)
+                bool shouldHaveCategories = LogID.BepInEx.Properties.ShowCategories.IsEnabled;
+                bool shouldHaveLineCount = LogID.BepInEx.Properties.ShowLineCount.IsEnabled;
+
+                //TODO: Can we check for other rules present? Rules could be fetched by reflection
+                bool shouldApplyRules =
+                    (!shouldHaveCategories || shouldHaveLineCount) //Will the active rules affect the log formatting for this file
+                  && File.GetLastWriteTime(bepInExLogPath) > Process.GetCurrentProcess().StartTime; //Was the file modified by BepInEx or another Rain World process
+
+                if (shouldApplyRules)
+                {
+                    UtilityLogger.DebugLog("Applying log rules retroactively");
+                    try
                     {
-                        UtilityLogger.DebugLog("Applying log rules retroactively");
-                        RetroactivelyApplyRules();
+                        FileUtils.SafeWriteToFile(bepInExLogPath, RetroactivelyApplyRules(bepInExLogPath));
+                    }
+                    catch (IOException)
+                    {
+                        UtilityLogger.LogWarning("Unable to read BepInEx log file");
                     }
                 }
+                return;
             }
-            else
-                CleanBepInExFolder();
+
+            CleanBepInExFolder();
         }
 
         /// <summary>
@@ -102,18 +118,8 @@ namespace LogUtils.Compatibility
         /// <summary>
         /// Applies log rules to already logged messages, overwriting the existing file with the new changes
         /// </summary>
-        internal static void RetroactivelyApplyRules()
+        internal static string RetroactivelyApplyRules(string logPath)
         {
-            bool shouldHaveCategories = LogID.BepInEx.Properties.ShowCategories.IsEnabled;
-            bool shouldHaveLineCount = LogID.BepInEx.Properties.ShowLineCount.IsEnabled;
-
-            //TODO: Can we check for other rules present? Rules could be fetched by reflection
-            bool shouldRewrite = !shouldHaveCategories || shouldHaveLineCount;
-
-            if (!shouldRewrite) return;
-
-            string bepInExLogPath = Path.Combine(Paths.BepInExRootPath, UtilityConsts.LogNames.BepInEx + FileExt.LOG);
-
             short totalLinesProcessed = 0;
 
             LogCategory category = null;
@@ -122,7 +128,7 @@ namespace LogUtils.Compatibility
             string message;
             StringBuilder messageBuilder = new StringBuilder(),
                           newFileContent = new StringBuilder();
-            foreach (string line in File.ReadAllLines(bepInExLogPath))
+            foreach (string line in File.ReadAllLines(logPath))
             {
                 //BepInEx probably doesn't have any multiline strings, but check anyways just to be safe
                 if (line.StartsWith("[")) //Starting with a bracket indicates a line start
@@ -161,7 +167,7 @@ namespace LogUtils.Compatibility
             message = buildMessage(category, source);
             newFileContent.AppendLine().Append(message);
 
-            FileUtils.SafeWriteToFile(bepInExLogPath, newFileContent.ToString());
+            return newFileContent.ToString();
 
             string buildMessage(LogCategory category, ManualLogSource source)
             {
