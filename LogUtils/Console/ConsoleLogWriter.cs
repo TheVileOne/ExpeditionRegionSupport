@@ -40,15 +40,6 @@ namespace LogUtils.Console
             return Formatter.Format(messageData);
         }
 
-        public string ApplyColorFormatting(string message, Color messageColor)
-        {
-            //Convert Unity color data to an ANSI escape code
-            string ansiForeground = AnsiColorConverter.AnsiToForeground(messageColor);
-
-            //Build the message string with ANSI code prepended and a reset at the end
-            return string.Concat(ansiForeground, message, AnsiColorConverter.AnsiReset);
-        }
-
         public void SendToBuffer(LogMessageEventArgs messageData)
         {
             throw new NotImplementedException();
@@ -57,18 +48,18 @@ namespace LogUtils.Console
         protected virtual void SendToConsole(LogMessageEventArgs messageData)
         {
             string message = ApplyRules(messageData);
-
             Color messageColor = messageData.Category.ConsoleColor;
+
             if (LogConsole.ANSIColorSupport)
             {
-                message = ApplyColorFormatting(message, messageColor);
+                message = AnsiColorConverter.ApplyFormat(message, messageColor);
                 Stream.WriteLine(message);
             }
             else
             {
                 LogConsole.SetConsoleColor(ConsoleColorMap.ClosestConsoleColor(messageColor));
                 Stream.WriteLine(message);
-                LogConsole.SetConsoleColor(ConsoleColor.Gray);
+                LogConsole.SetConsoleColor(ConsoleColorMap.DefaultConsoleColor);
             }
         }
 

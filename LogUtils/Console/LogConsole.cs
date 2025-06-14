@@ -195,6 +195,29 @@ namespace LogUtils.Console
             WriteLine(UtilityLogger.Logger, category, message);
         }
 
+        public static void WriteLine(string message)
+        {
+            WriteLine(LogCategory.Info, message);
+        }
+
+        internal static void WriteLineTest()
+        {
+            ConsoleLogWriter console = FindWriter(ConsoleID.BepInEx, enabledOnly: true);
+
+            foreach (ConsoleColor colorValue in Enum.GetValues(typeof(ConsoleColor)))
+            {
+                //Show that color helpers return correct values, and the console produces the correct color
+                SetConsoleColor(colorValue);
+                console.Stream.WriteLine(colorValue);
+
+                var unityColor = ConsoleColorMap.GetColor(colorValue);
+                SetConsoleColor(ConsoleColorMap.ClosestConsoleColor(unityColor));
+                console.Stream.WriteLine("Unity Color");
+                console.Stream.WriteLine(AnsiColorConverter.ApplyFormat("ANSI Color", unityColor));
+            }
+            SetConsoleColor(ConsoleColorMap.DefaultConsoleColor);
+        }
+
         public static void WriteLine(ILogSource source, LogCategory category, string message)
         {
             ConsoleLogWriter console = FindWriter(ConsoleID.BepInEx, enabledOnly: true);
