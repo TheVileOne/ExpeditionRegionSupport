@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEngine;
 using DiskLogListener = LogUtils.Compatibility.BepInEx.Listeners.DiskLogListener;
 using Logging = BepInEx.Logging.Logger;
 
@@ -19,6 +20,11 @@ namespace LogUtils.Compatibility.BepInEx
         public static ICollection<ILogListener> Listeners => Logging.Listeners;
 
         internal static DiskLogListener LogListener { get; private set; }
+
+        /// <summary>
+        /// The GameObject that contains the game, and all modded assemblies
+        /// </summary>
+        public static GameObject ManagerObject => Chainloader.ManagerObject;
 
         public static List<PluginInfo> PluginInfos;
 

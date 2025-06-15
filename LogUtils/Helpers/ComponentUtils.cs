@@ -1,18 +1,13 @@
-﻿using System;
-using UnityEngine;
+﻿using LogUtils.Compatibility.BepInEx;
+using System;
 
 namespace LogUtils.Helpers
 {
     public static class ComponentUtils
     {
-        /// <summary>
-        /// The GameObject that contains the game, and all modded assemblies
-        /// </summary>
-        public static GameObject ManagerObject => BepInEx.Bootstrap.Chainloader.ManagerObject;
-
         public static UtilityComponent FindWithTag(string tag)
         {
-            return Array.Find(ManagerObject.GetComponents<UtilityComponent>(), c => c.Tag == tag);
+            return Array.Find(BepInExInfo.ManagerObject.GetComponents<UtilityComponent>(), c => c.Tag == tag);
         }
 
         public static T GetOrCreate<T>(string tag, out bool didCreate) where T : UtilityComponent
@@ -23,12 +18,12 @@ namespace LogUtils.Helpers
             Version activeVersion = null;
             try
             {
-                managedComponent = ManagerObject.GetComponent<T>();
+                managedComponent = BepInExInfo.ManagerObject.GetComponent<T>();
 
                 if (managedComponent == null)
                 {
                     didCreate = true;
-                    managedComponent = ManagerObject.AddComponent<T>();
+                    managedComponent = BepInExInfo.ManagerObject.AddComponent<T>();
                 }
 
                 activeVersion = managedComponent.Version;
