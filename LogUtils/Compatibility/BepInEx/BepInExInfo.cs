@@ -7,15 +7,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using DiskLogListener = LogUtils.Compatibility.Listeners.DiskLogListener;
+using DiskLogListener = LogUtils.Compatibility.BepInEx.Listeners.DiskLogListener;
+using Logging = BepInEx.Logging.Logger;
 
-namespace LogUtils.Compatibility
+namespace LogUtils.Compatibility.BepInEx
 {
     public static class BepInExInfo
     {
         public static ConfigFile Config;
 
-        public static ICollection<ILogListener> Listeners => BepInEx.Logging.Logger.Listeners;
+        public static ICollection<ILogListener> Listeners => Logging.Listeners;
 
         internal static DiskLogListener LogListener { get; private set; }
 

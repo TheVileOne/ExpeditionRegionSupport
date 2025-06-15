@@ -6,8 +6,9 @@ using LogUtils.Requests;
 using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
+using LogEventArgs = BepInEx.Logging.LogEventArgs;
 
-namespace LogUtils.Compatibility.Listeners
+namespace LogUtils.Compatibility.BepInEx.Listeners
 {
     public sealed class DiskLogListener : ILogListener
     {
@@ -26,7 +27,7 @@ namespace LogUtils.Compatibility.Listeners
             Writer = writer;
         }
 
-        public void LogEvent(object sender, BepInEx.Logging.LogEventArgs eventArgs)
+        public void LogEvent(object sender, LogEventArgs eventArgs)
         {
             if (eventArgs.Source is UnityLogSource) return;
 

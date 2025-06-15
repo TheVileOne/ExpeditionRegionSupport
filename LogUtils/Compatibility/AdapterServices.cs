@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Compatibility.BepInEx;
 using System;
 
 namespace LogUtils.Compatibility

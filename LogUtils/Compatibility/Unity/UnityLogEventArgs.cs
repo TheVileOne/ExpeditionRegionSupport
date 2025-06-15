@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LogUtils.Compatibility
+namespace LogUtils.Compatibility.Unity
 {
     public class UnityLogEventArgs : EventArgs
     {

@@ -1,7 +1,7 @@
 ﻿using BepInEx.Logging;
 using Expedition;
 using JollyCoop;
-using LogUtils.Compatibility;
+using LogUtils.Compatibility.BepInEx;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Requests;

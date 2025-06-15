@@ -1,4 +1,5 @@
-﻿using LogUtils.Compatibility;
+﻿using LogUtils.Compatibility.BepInEx;
+using LogUtils.Compatibility.Unity;
 using LogUtils.Console;
 using LogUtils.Diagnostics.Tools;
 using LogUtils.Enums;

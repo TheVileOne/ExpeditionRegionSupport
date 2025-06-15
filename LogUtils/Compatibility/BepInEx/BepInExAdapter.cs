@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace LogUtils.Compatibility
+namespace LogUtils.Compatibility.BepInEx
 {
     /// <summary>
     /// Adapter service for converting the BepInEx logging system to the system that LogUtils operates

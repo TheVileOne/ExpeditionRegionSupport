@@ -2,7 +2,7 @@
 using LogUtils.Enums;
 using UnityEngine;
 
-namespace LogUtils.Compatibility
+namespace LogUtils.Compatibility.BepInEx
 {
     public class BepInExLogger : ILogger
     {

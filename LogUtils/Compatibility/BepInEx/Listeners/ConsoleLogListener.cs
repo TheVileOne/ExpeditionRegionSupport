@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace LogUtils.Compatibility.Listeners
+namespace LogUtils.Compatibility.BepInEx.Listeners
 {
     public class ConsoleLogListener : ILogListener, IDisposable
     {
