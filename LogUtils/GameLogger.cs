@@ -71,7 +71,7 @@ namespace LogUtils
                 return null;
 
             if (logFile.Equals(LogID.BepInEx))
-                return BepInExAdapter.LogListener.Writer;
+                return BepInExInfo.LogListener.Writer;
 
             if (logFile.Equals(LogID.JollyCoop))
                 return LogWriter.JollyWriter;

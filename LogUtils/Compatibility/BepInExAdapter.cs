@@ -3,8 +3,6 @@ using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Helpers.FileHandling;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -17,12 +15,9 @@ namespace LogUtils.Compatibility
     /// </summary>
     internal static class BepInExAdapter
     {
-        internal static Listeners.DiskLogListener LogListener;
-
         public static void Run()
         {
-            LogListener = new Listeners.DiskLogListener(new TimedLogWriter());
-
+            BepInExInfo.BuildInfoCache();
             AdaptLoggingSystem();
         }
 
@@ -31,31 +26,14 @@ namespace LogUtils.Compatibility
         /// </summary>
         internal static void AdaptLoggingSystem()
         {
-            ICollection<ILogListener> listeners = GetListeners();
+            //These listener instances are incompatible with LogUtils and must be replaced
+            ILogListener closeTarget = BepInExInfo.Find<DiskLogListener>();
+            BepInExInfo.Close(closeTarget);
 
-            //Find the LogListener that writes to the BepInEx root directory
-            ILogListener found = listeners.FirstOrDefault(l => l is DiskLogListener);
+            closeTarget = BepInExInfo.Find<ConsoleLogListener>();
+            BepInExInfo.Close(closeTarget);
 
-            //This listener is incompatible with LogUtils, and must be replaced
-            if (found != null)
-            {
-                listeners.Remove(found); //Remove before disposal to ensure that no messages sneak in while reference is disposed
-
-                try
-                {
-                    found.Dispose(); //This will flush any messages held by the original listener
-                }
-                catch
-                {
-                    //BepInEx library doesn't handle disposal very safely
-                }
-                finally
-                {
-                    GC.SuppressFinalize(found); //Suppress since this version of BepInEx doesn't suppress on dispose
-                }
-            }
-
-            listeners.Add(LogListener);
+            BepInExInfo.InitializeListener();
 
             //It is not possible to intercept logged messages to BepInEx made before Chainloader is initialized
             //This code determines what should happen to the existing BepInEx log file
@@ -184,29 +162,14 @@ namespace LogUtils.Compatibility
             }
         }
 
-        internal static ICollection<ILogListener> GetListeners()
-        {
-            return BepInEx.Logging.Logger.Listeners;
-        }
-
         internal static void DisposeListeners()
         {
-            try
+            foreach (var listener in BepInExInfo.Listeners.ToArray())
             {
-                ICollection<ILogListener> listeners = GetListeners();
-
-                foreach (var listener in listeners.ToArray())
-                {
-                    UtilityLogger.DebugLog($"Disposing {listener}");
-                    listener.Dispose();
-                    listeners.Remove(listener);
-                }
-                UtilityLogger.DebugLog("Dispose successful");
+                UtilityLogger.DebugLog($"Disposing {listener}");
+                BepInExInfo.Close(listener);
             }
-            catch
-            {
-                UtilityLogger.DebugLog("Dispose process encountered an error");
-            }
+            UtilityLogger.DebugLog("Dispose successful");
         }
     }
 }
