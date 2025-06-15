@@ -1,9 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Bootstrap;
-using BepInEx.Configuration;
 using BepInEx.Logging;
 using LogUtils.Helpers.Extensions;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -15,8 +13,6 @@ namespace LogUtils.Compatibility.BepInEx
 {
     public static class BepInExInfo
     {
-        public static ConfigFile Config;
-
         public static ICollection<ILogListener> Listeners => Logging.Listeners;
 
         internal static DiskLogListener LogListener { get; private set; }
@@ -52,18 +48,7 @@ namespace LogUtils.Compatibility.BepInEx
 
         internal static void BuildInfoCache()
         {
-            Config = GetConfigFile();
             PluginInfos = Chainloader.PluginInfos.Values.OrderBy(p => p.Location).ToList();
-        }
-
-        /// <summary>
-        /// Gets the BepInEx core config file through reflection
-        /// </summary>
-        internal static ConfigFile GetConfigFile()
-        {
-            Type type = typeof(ConfigFile);
-            PropertyInfo configProperty = type.GetProperty("CoreConfig", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
-            return configProperty.GetValue(null, null) as ConfigFile;
         }
 
         public static BaseUnityPlugin GetPlugin(Assembly assembly)
