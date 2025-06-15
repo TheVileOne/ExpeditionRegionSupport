@@ -11,10 +11,10 @@ namespace LogUtils
         /// <summary>
         /// Formats message data into a log ready format
         /// </summary>
-        public string Format(LogMessageEventArgs messageData)
+        public virtual string Format(LogMessageEventArgs messageData)
         {
             string message = messageData.Message;
-            var activeRules = messageData.Properties.Rules.Where(r => r.IsEnabled);
+            var activeRules = messageData.Rules.Where(r => r.IsEnabled);
 
             foreach (LogRule rule in activeRules)
                 rule.Apply(ref message, messageData);

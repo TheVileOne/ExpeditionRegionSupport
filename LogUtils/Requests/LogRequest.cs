@@ -200,7 +200,7 @@ namespace LogUtils.Requests
         /// </summary>
         public void NotifyComplete(ConsoleID consoleID)
         {
-            var consoleRequestData = Data.FindData<ConsoleRequestEventArgs>();
+            var consoleRequestData = Data.GetConsoleData();
 
             //Console data may not exist if the ConsoleIDs are sourced from the LogID instead of a Logger
             if (consoleRequestData == null)

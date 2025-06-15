@@ -1,7 +1,9 @@
 ﻿using BepInEx.Logging;
 using JollyCoop;
+using LogUtils.Console;
 using LogUtils.Enums;
 using LogUtils.Properties;
+using LogUtils.Properties.Formatting;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -45,10 +47,16 @@ namespace LogUtils.Events
         /// </summary>
         public readonly List<EventArgs> ExtraArgs = new List<EventArgs>();
 
+        private ILogSource _logSource;
+
         /// <summary>
         /// Contains source information needed to log through the BepInEx logger
         /// </summary>
-        public ILogSource LogSource;
+        public ILogSource LogSource
+        {
+            get => _logSource ?? Properties.LogSource;
+            set => _logSource = value;
+        }
 
         private LogCategory _category;
         private LogLevel? _categoryBepInEx;
@@ -102,9 +110,38 @@ namespace LogUtils.Events
         /// </summary>
         public string Message { get; }
 
+        /// <summary>
+        /// The message format rules associated with this message data
+        /// </summary>
+        public LogRuleCollection Rules
+        {
+            get
+            {
+                var consoleMessageData = GetConsoleData();
+
+                //Console data does not use the same field, which is reserved for log files only
+                if (consoleMessageData?.Writer != null)
+                    return consoleMessageData.Rules;
+
+                return Properties.Rules;
+            }
+        }
+
         private uint? _totalMessageCache;
-        
-        public uint TotalMessagesLogged => _totalMessageCache ?? Properties.MessagesHandledThisSession;
+
+        public uint TotalMessagesLogged
+        {
+            get
+            {
+                var consoleMessageData = GetConsoleData();
+
+                //Console data does not use the same field, which is reserved for log files only
+                if (consoleMessageData?.Writer != null)
+                    return consoleMessageData.TotalMessagesLogged;
+
+                return _totalMessageCache ?? Properties.MessagesHandledThisSession;
+            }
+        }
 
         /// <summary>
         ///  Assigns a value to TotalMessagesLogged that will not change when new messages are logged 
@@ -121,7 +158,7 @@ namespace LogUtils.Events
         {
             get
             {
-                var consoleRequestData = FindData<ConsoleRequestEventArgs>();
+                var consoleRequestData = GetConsoleData();
 
                 if (consoleRequestData != null)
                 {
@@ -176,6 +213,30 @@ namespace LogUtils.Events
         public TData FindData<TData>() where TData : EventArgs
         {
             return this as TData ?? ExtraArgs.OfType<TData>().FirstOrDefault();
+        }
+
+        public ConsoleRequestEventArgs GetConsoleData() => FindData<ConsoleRequestEventArgs>();
+
+        public ConsoleLogWriter GetConsoleWriter()
+        {
+            var consoleMessageData = GetConsoleData();
+
+            return consoleMessageData?.Writer;
+        }
+
+        public void SetConsoleWriter(ConsoleLogWriter writer)
+        {
+            var consoleMessageData = FindData<ConsoleRequestEventArgs>();
+
+            if (consoleMessageData == null)
+            {
+                //We only want to create console data when we have a writer to set
+                if (writer == null)
+                    return;
+
+                ExtraArgs.Add(consoleMessageData = new ConsoleRequestEventArgs(writer.ID));
+            }
+            consoleMessageData.Writer = writer;
         }
 
         /// <summary>

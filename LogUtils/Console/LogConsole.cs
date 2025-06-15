@@ -80,7 +80,10 @@ namespace LogUtils.Console
                 {
                     //TODO: Writer may need to be included at a later time (Override BepInEx console config setting) 
                     Writers.RemoveAll(console => console.ID == ConsoleID.BepInEx);
-                    Writers.Add(writer = new ConsoleLogWriter(ConsoleID.BepInEx, TextWriter.Synchronized(consoleState.ConsoleStream)));
+                    Writers.Add(writer = new ConsoleLogWriter(ConsoleID.BepInEx, TextWriter.Synchronized(consoleState.ConsoleStream))
+                    {
+                        Rules = LogID.BepInEx.Properties.Rules
+                    });
                 }
             }
 
@@ -92,7 +95,7 @@ namespace LogUtils.Console
             }
             else
             {
-                UtilityLogger.Log("Console is enabled");
+                UtilityLogger.Log("Console stream started");
                 IsEnabled = true;
             }
 

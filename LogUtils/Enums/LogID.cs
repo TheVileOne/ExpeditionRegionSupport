@@ -273,6 +273,7 @@ namespace LogUtils.Enums
 
             BepInEx.Properties.AccessPeriod = SetupPeriod.Pregame;
             BepInEx.Properties.AddTag(nameof(BepInEx));
+            BepInEx.Properties.ConsoleIDs.Add(ConsoleID.BepInEx);
             BepInEx.Properties.LogSourceName = nameof(BepInEx);
             BepInEx.Properties.AltFilename = new LogFilename(UtilityConsts.LogNames.BepInExAlt, FileExt.LOG);
             BepInEx.Properties.IsWriteRestricted = true;
@@ -302,6 +303,8 @@ namespace LogUtils.Enums
 
             Unity.Properties.AccessPeriod = SetupPeriod.RWAwake;
             Unity.Properties.AddTag(nameof(Unity));
+            //TODO: Add RainWorld ConsoleID to this LogID
+            Unity.Properties.ConsoleIDs.Add(ConsoleID.BepInEx); //Unity logs to BepInEx by default
             Unity.Properties.LogSourceName = nameof(Unity);
             Unity.Properties.AltFilename = new LogFilename(UtilityConsts.LogNames.UnityAlt, FileExt.LOG);
         }

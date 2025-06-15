@@ -1,5 +1,6 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Events;
+using LogUtils.Properties.Formatting;
 using LogUtils.Requests;
 using System;
 using System.IO;
@@ -23,9 +24,16 @@ namespace LogUtils.Console
         }
 
         /// <summary>
+        /// The message format rules associated with this writer
+        /// </summary>
+        public LogRuleCollection Rules = new LogRuleCollection();
+
+        /// <summary>
         /// The active write stream for writers that use one
         /// </summary>
         public readonly TextWriter Stream;
+
+        public uint TotalMessagesLogged;
 
         public ConsoleLogWriter(ConsoleID consoleID, TextWriter stream)
         {
@@ -65,6 +73,8 @@ namespace LogUtils.Console
 
         public void WriteFrom(LogRequest request)
         {
+            ConsoleRequestEventArgs consoleMessageData = null;
+
             try
             {
                 if (!IsEnabled)
@@ -73,7 +83,16 @@ namespace LogUtils.Console
                     return;
                 }
 
+                consoleMessageData = request.Data.GetConsoleData();
+
+                if (consoleMessageData == null)
+                    request.Data.ExtraArgs.Add(consoleMessageData = new ConsoleRequestEventArgs(ID));
+
+                consoleMessageData.TotalMessagesLogged = TotalMessagesLogged;
+                consoleMessageData.Writer = this;
+
                 SendToConsole(request.Data);
+                TotalMessagesLogged++;
             }
             catch (Exception ex)
             {
@@ -82,6 +101,9 @@ namespace LogUtils.Console
             }
             finally
             {
+                if (consoleMessageData != null)
+                    consoleMessageData.Writer = null;
+
                 request.NotifyComplete(ID);
 
                 if (request.Type == RequestType.Console && !request.Data.PendingConsoleIDs.Any())
