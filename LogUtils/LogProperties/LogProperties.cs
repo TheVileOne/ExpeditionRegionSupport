@@ -681,7 +681,7 @@ namespace LogUtils.Properties
 
             var fields = new LogPropertyStringDictionary
             {
-                [DataFields.LOGID] = ID.value,
+                [DataFields.LOGID] = ID.Value,
                 [DataFields.FILENAME] = Filename.WithExtension(),
                 [DataFields.ALTFILENAME] = AltFilename?.WithExtension(),
                 [DataFields.VERSION] = Version,

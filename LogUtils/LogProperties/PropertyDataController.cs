@@ -88,7 +88,7 @@ namespace LogUtils.Properties
             LogProperties properties = logFile.Properties;
 
             //The original filename is stored without its original file extension in the value field of the LogID
-            string originalFilePath = LogFile.FindPathWithoutFileExtension(properties.OriginalFolderPath, logFile.value);
+            string originalFilePath = LogFile.FindPathWithoutFileExtension(properties.OriginalFolderPath, logFile.Value);
 
             if (originalFilePath != null) //This shouldn't be null under typical circumstances
             {
@@ -240,7 +240,7 @@ namespace LogUtils.Properties
 
         public LogProperties SetProperties(LogID logID, string relativePathNoFile)
         {
-            LogProperties properties = new LogProperties(logID.value, relativePathNoFile);
+            LogProperties properties = new LogProperties(logID.Value, relativePathNoFile);
 
             _properties.Add(properties);
             return properties;

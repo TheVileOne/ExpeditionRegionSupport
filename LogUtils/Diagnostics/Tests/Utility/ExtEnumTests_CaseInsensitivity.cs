@@ -38,8 +38,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
             testEnumA.Unregister();
             clearSharedData();
 
-            testEnumA = new TestEnum("another " + testEnumA.value, register: false);
-            testEnumB = new TestEnum("another " + testEnumB.value, register: true);
+            testEnumA = new TestEnum("another " + testEnumA.Value, register: false);
+            testEnumB = new TestEnum("another " + testEnumB.Value, register: true);
 
             AssertThat(testEnumA.Index).IsEqualTo(testEnumB.Index); //Registered index of B should tranfer to A
 

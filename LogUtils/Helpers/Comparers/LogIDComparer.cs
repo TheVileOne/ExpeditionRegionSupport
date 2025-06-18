@@ -98,7 +98,7 @@ namespace LogUtils.Helpers.Comparers
             {
                 if (compareValue == 0) break;
                 if (value != string.Empty)
-                    compareValue = base.Compare(value, id.value);
+                    compareValue = base.Compare(value, id.Value);
             }
             return compareValue;
         }

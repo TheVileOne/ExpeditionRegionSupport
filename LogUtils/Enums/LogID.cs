@@ -124,7 +124,7 @@ namespace LogUtils.Enums
 
         protected void InitializeFields()
         {
-            IsGameControlled = ManagedReference == this ? UtilityConsts.LogNames.NameMatch(value) : ManagedReference.IsGameControlled;
+            IsGameControlled = ManagedReference == this ? UtilityConsts.LogNames.NameMatch(Value) : ManagedReference.IsGameControlled;
 
             if (IsGameControlled)
                 Access = LogAccess.FullAccess;

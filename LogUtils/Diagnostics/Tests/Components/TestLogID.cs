@@ -43,7 +43,7 @@ namespace LogUtils.Diagnostics.Tests.Components
 
         public static TestLogID FromTarget(LogID target, string path)
         {
-            return new TestLogID(target.value, path, LogAccess.FullAccess);
+            return new TestLogID(target.Value, path, LogAccess.FullAccess);
         }
 
         public static TestLogID FromPath(string path)

@@ -33,20 +33,26 @@ namespace LogUtils.Enums
             get
             {
                 if (!ReferenceEquals(ManagedReference, this))
-                    return ManagedReference?.Tag ?? value; //Can be null here when it is accessed through the constructor
-                return value;
+                    return ManagedReference?.Tag ?? Value; //Can be null here when it is accessed through the constructor
+                return Value;
             }
         }
 
         /// <summary>
         /// An identifying string assigned to each ExtEnum
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Naming convention of a dependency")]
-        public new string value
+        public string Value
         {
             get => base.value;
-            protected set => base.@value = value;
+            protected set => base.value = value;
         }
+
+        /// <summary>
+        /// An identifying string assigned to each ExtEnum
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Naming convention of a dependency")]
+        [Obsolete("This property is from the base class. Use Value instead.")]
+        public new string value => base.value;
 
         public SharedExtEnum(string value, bool register = false) : base(value, false)
         {
@@ -58,7 +64,7 @@ namespace LogUtils.Enums
             }
             else if (!ReferenceEquals(ManagedReference, this) && ManagedReference.Registered) //Propagate field values from registered reference
             {
-                base.value = ManagedReference.value;
+                Value = ManagedReference.Value;
                 valueHash = ManagedReference.valueHash;
                 index = ManagedReference.Index;
             }
@@ -124,13 +130,13 @@ namespace LogUtils.Enums
             {
                 if (ManagedReference.Registered)
                 {
-                    value = ManagedReference.value;
+                    Value = ManagedReference.Value;
                     valueHash = ManagedReference.valueHash;
                     index = ManagedReference.Index;
                 }
                 else //Registration status should propagate to managed reference
                 {
-                    ManagedReference.value = value;
+                    ManagedReference.Value = Value;
                     ManagedReference.valueHash = valueHash;
 
                     //Register the managed reference and get the assigned index from it
@@ -141,7 +147,7 @@ namespace LogUtils.Enums
             }
             else if (!Registered)
             {
-                values.AddEntry(value);
+                values.AddEntry(Value);
                 index = values.Count - 1;
             }
         }
@@ -153,7 +159,7 @@ namespace LogUtils.Enums
 
         public virtual bool CheckTag(string tag)
         {
-            return string.Equals(value, tag, StringComparison.InvariantCultureIgnoreCase);
+            return string.Equals(Value, tag, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public int CompareTo(T value)
