@@ -88,12 +88,16 @@ namespace LogUtils.Requests
             if (Type == RequestType.Console)
             {
                 Data.IsTargetingConsole = true;
-                Data.ExtraArgs.Add(new ConsoleRequestEventArgs());
+                //Probably not needed
+                //Data.ExtraArgs.Add(new ConsoleRequestEventArgs());
             }
         }
 
         public bool CanRetryRequest()
         {
+            if (Type == RequestType.Console)
+                return UnhandledReason == RejectionReason.None;
+
             return CanRetryRequest(UnhandledReason);
         }
 

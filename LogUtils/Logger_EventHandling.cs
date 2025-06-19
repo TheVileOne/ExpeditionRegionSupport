@@ -12,19 +12,11 @@ namespace LogUtils
         /// </summary>
         private ThreadLocal<EventArgs> unityDataCache;
 
-        /// <summary>
-        /// Contains event data exclusive to logging to a console (only once per request batch)
-        /// </summary>
-        private ThreadLocal<EventArgs> consoleDataCache;
-
         private LogRequestEventHandler newRequestHandler;
         private RegistrationChangedEventHandler registrationChangedHandler;
 
         protected virtual void ClearEventData()
         {
-            if (consoleDataCache?.IsValueCreated == true)
-                consoleDataCache.Value = null;
-
             if (unityDataCache?.IsValueCreated == true)
                 unityDataCache.Value = null;
         }
@@ -74,22 +66,6 @@ namespace LogUtils
 
         protected virtual void OnNewRequest(LogRequest request)
         {
-            //Console data
-            if (request.Type == RequestType.Local && ConsoleTargets.Count > 0)
-            {
-                if (consoleDataCache == null)
-                    consoleDataCache = new ThreadLocal<EventArgs>();
-
-                var data = consoleDataCache.Value;
-
-                if (data == null)
-                {
-                    data = new ConsoleRequestEventArgs(ConsoleTargets);
-                    consoleDataCache.Value = data;
-                }
-                request.Data.ExtraArgs.Add(data);
-            }
-
             //Unity exclusive data
             if (unityDataCache != null)
             {

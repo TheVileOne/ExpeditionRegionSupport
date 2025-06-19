@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Diagnostics;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
@@ -47,6 +48,43 @@ namespace LogUtils.Console
         public static ConsoleLogWriter[] FindWriters(IEnumerable<ConsoleID> targets, bool enabledOnly)
         {
             return Writers.FindAll(console => targets.Contains(console.ID) && (!enabledOnly || console.IsEnabled)).ToArray();
+        }
+
+        internal static void HandleRequest(LogRequest request)
+        {
+            try
+            {
+                //Get all pending console requests to handle
+                var pendingIDs = request.Data.PendingConsoleIDs.ToArray();
+
+                foreach (ConsoleID consoleID in pendingIDs)
+                {
+                    //Find a writer that is able to process the request
+                    ConsoleLogWriter console = FindWriter(consoleID, enabledOnly: false);
+
+                    if (console == null)
+                    {
+                        request.Reject(RejectionReason.LogUnavailable, consoleID);
+                        continue;
+                    }
+
+                    //Send data to the console
+                    console.WriteFrom(request);
+                }
+                Assert.That(request.Data.PendingConsoleIDs.Any()).IsFalse();
+            }
+            finally
+            {
+                //It should not be possible for ConsoleIDs to be pending here
+                if (request.Type == RequestType.Console)
+                {
+                    //Console requests are not designed to be tried multiple times
+                    if (request.Status != RequestStatus.Rejected)
+                        request.Complete();
+
+                    UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+                }
+            }
         }
 
         internal static void Initialize()
@@ -227,12 +265,10 @@ namespace LogUtils.Console
 
             if (console == null) return;
 
-            LogRequest request = new LogRequest(RequestType.Console, new LogRequestEventArgs(LogID.BepInEx, message, category)
+            LogRequest request = new LogRequest(RequestType.Console, new LogRequestEventArgs(ConsoleID.BepInEx, message, category)
             {
                 LogSource = source
             });
-
-            request.Data.ExtraArgs.Add(new ConsoleRequestEventArgs(ConsoleID.BepInEx));
             console.WriteFrom(request);
         }
 

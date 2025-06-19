@@ -1,4 +1,5 @@
-﻿using LogUtils.Enums;
+﻿using LogUtils.Console;
+using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Helpers.Extensions;
@@ -156,6 +157,15 @@ namespace LogUtils.Requests
                 }
 
                 request.OnSubmit();
+
+                if (request.Type == RequestType.Console)
+                {
+                    if (handleSubmission)
+                        LogConsole.HandleRequest(request);
+
+                    //Console only requests do not support log file processing, and are not treated as a pending request
+                    return request;
+                }
 
                 LogID logFile = request.Data.ID;
 

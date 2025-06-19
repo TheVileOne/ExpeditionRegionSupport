@@ -270,8 +270,8 @@ namespace LogUtils.Enums
             //File activity monitoring LogID
             FileActivity = new LogID("LogActivity", UtilityConsts.PathKeywords.ROOT, LogAccess.Private, false);
 #endif
-            //Fallback LogID
-            Unknown = new ComparisonLogID(UtilityConsts.LogNames.Unknown);
+            //Throwaway LogID
+            NotUsed = new LogID("NotUsed", UtilityConsts.PathKeywords.ROOT, LogAccess.Private, false);
 
             BepInEx.Properties.AccessPeriod = SetupPeriod.Pregame;
             BepInEx.Properties.AddTag(nameof(BepInEx));
@@ -338,6 +338,10 @@ namespace LogUtils.Enums
         internal static LogID FileActivity;
 #endif
         public static LogID JollyCoop;
+        /// <summary>
+        /// An unregistered LogID designed to be used as a throwaway parameter
+        /// </summary>
+        public static LogID NotUsed;
         public static LogID Unity;
         internal static LogID Unknown;
 

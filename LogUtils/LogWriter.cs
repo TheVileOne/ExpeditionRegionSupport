@@ -1,5 +1,4 @@
 ﻿using LogUtils.Console;
-using LogUtils.Diagnostics;
 using LogUtils.Diagnostics.Tools;
 using LogUtils.Enums;
 using LogUtils.Events;
@@ -275,29 +274,7 @@ namespace LogUtils
 
         protected virtual void WriteToConsole(LogRequest request)
         {
-            try
-            {
-                var pendingIDs = request.Data.PendingConsoleIDs.ToArray();
-
-                foreach (ConsoleID consoleID in pendingIDs)
-                {
-                    ConsoleLogWriter console = LogConsole.FindWriter(consoleID, enabledOnly: false);
-
-                    if (console == null)
-                    {
-                        request.Reject(RejectionReason.LogUnavailable, consoleID);
-                        continue;
-                    }
-                    console.WriteFrom(request);
-                }
-                Assert.That(request.Data.PendingConsoleIDs.Any()).IsFalse();
-            }
-            finally
-            {
-                //It should not be possible for ConsoleIDs to be pending here
-                if (request.Type == RequestType.Console)
-                    request.Complete();
-            }
+            LogConsole.HandleRequest(request);
         }
 
         /// <summary>

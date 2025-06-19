@@ -151,18 +151,40 @@ namespace LogUtils.Events
 
         public FilterDuration FilterDuration;
 
+        #region Constructors
+        /// <summary>
+        /// Creates a new data storage instance for a LogRequest event
+        /// </summary>
+        /// <param name="logID">The targeted log file ID</param>
+        /// <param name="messageData">The message to log</param>
+        /// <param name="category">The category associated with the message</param>
+        /// <exception cref="NullReferenceException">The LogID, or its properties field is null</exception>
         public LogRequestEventArgs(LogID logID, object messageData, LogCategory category = null) : base(logID)
         {
             Category = category ?? LogCategory.Default;
             Message = processMessage(messageData);
         }
 
+        /// <summary>
+        /// Creates a new data storage instance for a LogRequest event
+        /// </summary>
+        /// <param name="logID">The targeted log file ID</param>
+        /// <param name="messageData">The message to log</param>
+        /// <param name="category">The category associated with the message</param>
+        /// <exception cref="NullReferenceException">The LogID, or its properties field is null</exception>
         public LogRequestEventArgs(LogID logID, object messageData, LogLevel category) : base(logID)
         {
             BepInExCategory = category;
             Message = processMessage(messageData);
         }
 
+        /// <summary>
+        /// Creates a new data storage instance for a LogRequest event
+        /// </summary>
+        /// <param name="logID">The targeted log file ID</param>
+        /// <param name="messageData">The message to log</param>
+        /// <param name="category">The category associated with the message</param>
+        /// <exception cref="NullReferenceException">The LogID, or its properties field is null</exception>
         public LogRequestEventArgs(LogID logID, object messageData, LogType category) : base(logID)
         {
             UnityCategory = category;
@@ -173,6 +195,40 @@ namespace LogUtils.Events
         {
             LogSource = args.Source;
         }
+
+        /// <summary>
+        /// Creates a new data storage instance for a LogRequest event
+        /// </summary>
+        /// <param name="consoleID">The targeted console ID</param>
+        /// <param name="messageData">The message to log</param>
+        /// <param name="category">The category associated with the message</param>
+        public LogRequestEventArgs(ConsoleID consoleID, object messageData, LogCategory category = null) : this(LogID.NotUsed, messageData, category)
+        {
+            ExtraArgs.Add(new ConsoleRequestEventArgs(consoleID));
+        }
+
+        /// <summary>
+        /// Creates a new data storage instance for a LogRequest event
+        /// </summary>
+        /// <param name="consoleID">The targeted console ID</param>
+        /// <param name="messageData">The message to log</param>
+        /// <param name="category">The category associated with the message</param>
+        public LogRequestEventArgs(ConsoleID consoleID, object messageData, LogLevel category) : this(LogID.NotUsed, messageData, category)
+        {
+            ExtraArgs.Add(new ConsoleRequestEventArgs(consoleID));
+        }
+
+        /// <summary>
+        /// Creates a new data storage instance for a LogRequest event
+        /// </summary>
+        /// <param name="consoleID">The targeted console ID</param>
+        /// <param name="messageData">The message to log</param>
+        /// <param name="category">The category associated with the message</param>
+        public LogRequestEventArgs(ConsoleID consoleID, object messageData, LogType category) : this(LogID.NotUsed, messageData, category)
+        {
+            ExtraArgs.Add(new ConsoleRequestEventArgs(consoleID));
+        }
+        #endregion
 
         private string processMessage(object data)
         {

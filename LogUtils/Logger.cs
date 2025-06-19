@@ -548,10 +548,22 @@ namespace LogUtils
                     return;
                 }
 
-                LogRequest request = new LogRequest(requestType, new LogRequestEventArgs(target, data, category)
+                LogRequest request = null;
+                LogRequestEventArgs requestData = null;
+
+                if (requestType == RequestType.Console)
                 {
-                    LogSource = ManagedLogSource
-                });
+                    ConsoleID consoleTarget = (ConsoleID)target;
+                    requestData = new LogRequestEventArgs(consoleTarget, data, category);
+                }
+                else
+                {
+                    LogID fileTarget = (LogID)target;
+                    requestData = new LogRequestEventArgs(fileTarget, data, category);
+                }
+
+                requestData.LogSource = ManagedLogSource;
+                request = new LogRequest(requestType, requestData);
 
                 if (shouldFilter)
                 {
