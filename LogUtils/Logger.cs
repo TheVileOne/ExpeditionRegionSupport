@@ -27,15 +27,17 @@ namespace LogUtils
 
         IEnumerable<LogID> ILogFileHandler.AvailableTargets => LogTargets.ToArray();
 
+        protected LogTargetCollection Targets = new LogTargetCollection();
+
         /// <summary>
         /// Contains a list of LogIDs (both local and remote) that will be handled in the case of an untargeted log request
         /// </summary>
-        public List<LogID> LogTargets = new List<LogID>();
+        public List<LogID> LogTargets => Targets.LogIDs;
 
         /// <summary>
         /// Contains a list of ConsoleIDs that will be handled by any log request that can be handled by this logger
         /// </summary>
-        public List<ConsoleID> ConsoleTargets = new List<ConsoleID>();
+        public List<ConsoleID> ConsoleTargets => Targets.ConsoleIDs;
 
         /// <summary>
         /// BepInEx logging source object
@@ -313,7 +315,7 @@ namespace LogUtils
 
         public void Log(LogCategory category, object data)
         {
-            LogData(LogTargets, category, data, false);
+            LogData(Targets, category, data, false);
         }
 
         public void LogOnce(LogType category, object data)
@@ -333,289 +335,192 @@ namespace LogUtils
 
         public void LogOnce(LogCategory category, object data)
         {
-            LogData(LogTargets, category, data, true);
+            LogData(Targets, category, data, true);
         }
 
         #endregion
         #region  Log Overloads (LogID, object)
 
-        public void Log(LogID target, object data)
+        public void Log(ILogTarget target, object data)
         {
             Log(target, LogCategory.Default, data);
         }
 
-        public void LogOnce(LogID target, object data)
+        public void LogOnce(ILogTarget target, object data)
         {
             Log(target, LogCategory.Default, data);
         }
 
-        public void LogDebug(LogID target, object data)
+        public void LogDebug(ILogTarget target, object data)
         {
             Log(target, LogCategory.Debug, data);
         }
 
-        public void LogInfo(LogID target, object data)
+        public void LogInfo(ILogTarget target, object data)
         {
             Log(target, LogCategory.Info, data);
         }
 
-        public void LogImportant(LogID target, object data)
+        public void LogImportant(ILogTarget target, object data)
         {
             Log(target, LogCategory.Important, data);
         }
 
-        public void LogMessage(LogID target, object data)
+        public void LogMessage(ILogTarget target, object data)
         {
             Log(target, LogCategory.Message, data);
         }
 
-        public void LogWarning(LogID target, object data)
+        public void LogWarning(ILogTarget target, object data)
         {
             Log(target, LogCategory.Warning, data);
         }
 
-        public void LogError(LogID target, object data)
+        public void LogError(ILogTarget target, object data)
         {
             Log(target, LogCategory.Error, data);
         }
 
-        public void LogFatal(LogID target, object data)
+        public void LogFatal(ILogTarget target, object data)
         {
             Log(target, LogCategory.Fatal, data);
         }
 
-        public void Log(LogID target, LogLevel category, object data)
+        public void Log(ILogTarget target, LogLevel category, object data)
         {
             Log(target, LogCategory.ToCategory(category), data);
         }
 
-        public void Log(LogID target, string category, object data)
+        public void Log(ILogTarget target, string category, object data)
         {
             Log(target, LogCategory.ToCategory(category), data);
         }
 
-        public void Log(LogID target, LogCategory category, object data)
+        public void Log(ILogTarget target, LogCategory category, object data)
         {
             LogData(target, category, data, false);
         }
 
-        public void LogOnce(LogID target, LogCategory category, object data)
+        public void LogOnce(ILogTarget target, LogCategory category, object data)
         {
             LogData(target, category, data, true);
-        }
-
-        public void Log(LogID target1, LogID target2, object data)
-        {
-            Log(new LogID[] { target1, target2 }, LogCategory.Default, data);
-        }
-
-        public void LogOnce(LogID target1, LogID target2, object data)
-        {
-            Log(new LogID[] { target1, target2 }, LogCategory.Default, data);
-        }
-
-        public void LogDebug(LogID target1, LogID target2, object data)
-        {
-            Log(new LogID[] { target1, target2 }, LogCategory.Debug, data);
-        }
-
-        public void LogInfo(LogID target1, LogID target2, object data)
-        {
-            Log(new LogID[] { target1, target2 }, LogCategory.Info, data);
-        }
-
-        public void LogImportant(LogID target1, LogID target2, object data)
-        {
-            Log(new LogID[] { target1, target2 }, LogCategory.Important, data);
-        }
-
-        public void LogMessage(LogID target1, LogID target2, object data)
-        {
-            Log(new LogID[] { target1, target2 }, LogCategory.Message, data);
-        }
-
-        public void LogWarning(LogID target1, LogID target2, object data)
-        {
-            Log(new LogID[] { target1, target2 }, LogCategory.Warning, data);
-        }
-
-        public void LogError(LogID target1, LogID target2, object data)
-        {
-            Log(new LogID[] { target1, target2 }, LogCategory.Error, data);
-        }
-
-        public void LogFatal(LogID target1, LogID target2, object data)
-        {
-            Log(new LogID[] { target1, target2 }, LogCategory.Fatal, data);
-        }
-
-        public void Log(LogID target1, LogID target2, LogLevel category, object data)
-        {
-            Log(new LogID[] { target1, target2 }, LogCategory.ToCategory(category), data);
-        }
-
-        public void Log(LogID target1, LogID target2, string category, object data)
-        {
-            Log(new LogID[] { target1, target2 }, LogCategory.ToCategory(category), data);
-        }
-
-        public void Log(LogID target1, LogID target2, LogCategory category, object data)
-        {
-            LogData(new LogID[] { target1, target2 }, category, data, false);
-        }
-
-        public void LogOnce(LogID target1, LogID target2, LogCategory category, object data)
-        {
-            LogData(new LogID[] { target1, target2 }, category, data, true);
-        }
-
-        public void Log(LogID target1, LogID target2, LogID target3, object data)
-        {
-            Log(new LogID[] { target1, target2, target3 }, LogCategory.Default, data);
-        }
-
-        public void LogOnce(LogID target1, LogID target2, LogID target3, object data)
-        {
-            Log(new LogID[] { target1, target2, target3 }, LogCategory.Default, data);
-        }
-
-        public void LogDebug(LogID target1, LogID target2, LogID target3, object data)
-        {
-            Log(new LogID[] { target1, target2, target3 }, LogCategory.Debug, data);
-        }
-
-        public void LogInfo(LogID target1, LogID target2, LogID target3, object data)
-        {
-            Log(new LogID[] { target1, target2, target3 }, LogCategory.Info, data);
-        }
-
-        public void LogImportant(LogID target1, LogID target2, LogID target3, object data)
-        {
-            Log(new LogID[] { target1, target2, target3 }, LogCategory.Important, data);
-        }
-
-        public void LogMessage(LogID target1, LogID target2, LogID target3, object data)
-        {
-            Log(new LogID[] { target1, target2, target3 }, LogCategory.Message, data);
-        }
-
-        public void LogWarning(LogID target1, LogID target2, LogID target3, object data)
-        {
-            Log(new LogID[] { target1, target2, target3 }, LogCategory.Warning, data);
-        }
-
-        public void LogError(LogID target1, LogID target2, LogID target3, object data)
-        {
-            Log(new LogID[] { target1, target2, target3 }, LogCategory.Error, data);
-        }
-
-        public void LogFatal(LogID target1, LogID target2, LogID target3, object data)
-        {
-            Log(new LogID[] { target1, target2, target3 }, LogCategory.Fatal, data);
-        }
-
-        public void Log(LogID target1, LogID target2, LogID target3, LogLevel category, object data)
-        {
-            Log(new LogID[] { target1, target2, target3 }, LogCategory.ToCategory(category), data);
-        }
-
-        public void Log(LogID target1, LogID target2, LogID target3, string category, object data)
-        {
-            Log(new LogID[] { target1, target2, target3 }, LogCategory.ToCategory(category), data);
-        }
-
-        public void Log(LogID target1, LogID target2, LogID target3, LogCategory category, object data)
-        {
-            LogData(new LogID[] { target1, target2, target3 }, category, data, false);
-        }
-
-        public void LogOnce(LogID target1, LogID target2, LogID target3, LogCategory category, object data)
-        {
-            LogData(new LogID[] { target1, target2, target3 }, category, data, true);
         }
 
         #endregion
         #region  Log Overloads (IEnumerable<LogID>, object)
 
-        public void Log(IEnumerable<LogID> targets, object data)
+        public void Log(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Default, data);
         }
 
-        public void LogOnce(IEnumerable<LogID> targets, object data)
+        public void LogOnce(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Default, data);
         }
 
-        public void LogDebug(IEnumerable<LogID> targets, object data)
+        public void LogDebug(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Debug, data);
         }
 
-        public void LogInfo(IEnumerable<LogID> targets, object data)
+        public void LogInfo(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Info, data);
         }
 
-        public void LogImportant(IEnumerable<LogID> targets, object data)
+        public void LogImportant(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Important, data);
         }
 
-        public void LogMessage(IEnumerable<LogID> targets, object data)
+        public void LogMessage(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Message, data);
         }
 
-        public void LogWarning(IEnumerable<LogID> targets, object data)
+        public void LogWarning(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Warning, data);
         }
 
-        public void LogError(IEnumerable<LogID> targets, object data)
+        public void LogError(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Error, data);
         }
 
-        public void LogFatal(IEnumerable<LogID> targets, object data)
+        public void LogFatal(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Fatal, data);
         }
 
-        public void Log(IEnumerable<LogID> targets, LogLevel category, object data)
+        public void Log(IEnumerable<ILogTarget> targets, LogLevel category, object data)
         {
             Log(targets, LogCategory.ToCategory(category), data);
         }
 
-        public void Log(IEnumerable<LogID> targets, string category, object data)
+        public void Log(IEnumerable<ILogTarget> targets, string category, object data)
         {
             Log(targets, LogCategory.ToCategory(category), data);
         }
 
-        public void Log(IEnumerable<LogID> targets, LogCategory category, object data)
+        public void Log(IEnumerable<ILogTarget> targets, LogCategory category, object data)
         {
-            LogData(targets, category, data, false);
+            LogData(new LogTargetCollection(targets), category, data, false);
         }
 
-        public void LogOnce(IEnumerable<LogID> targets, LogCategory category, object data)
+        public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, object data)
         {
-            LogData(targets, category, data, true);
+            LogData(new LogTargetCollection(targets), category, data, true);
         }
 
         #endregion
 
-        protected virtual void LogData(IEnumerable<LogID> targets, LogCategory category, object data, bool shouldFilter)
+        protected virtual void LogData(ILogTarget target, LogCategory category, object data, bool shouldFilter)
+        {
+            ClearEventData();
+
+            if (target == null)
+                throw new ArgumentNullException("Log target");
+
+            throw new NotSupportedException("Log target is unrecognized");
+        }
+
+        protected virtual void LogData(LogID target, LogCategory category, object data, bool shouldFilter)
         {
             try
             {
-                if (!targets.Any())
+                LogData(target, category, data, shouldFilter, LoggingContext.SingleRequest);
+            }
+            finally
+            {
+                ClearEventData();
+            }
+        }
+
+        protected virtual void LogData(ConsoleID target, LogCategory category, object data, bool shouldFilter)
+        {
+            try
+            {
+                //TODO: Console handling code
+            }
+            finally
+            {
+                ClearEventData();
+            }
+        }
+
+        protected virtual void LogData(LogTargetCollection targets, LogCategory category, object data, bool shouldFilter)
+        {
+            try
+            {
+                if (targets.Count == 0)
                 {
                     UtilityLogger.LogWarning("Attempted to log message with no available log targets");
                     return;
                 }
 
-                //Log data for each targetted LogID
-                foreach (LogID target in targets)
+                foreach (LogID target in targets.LogIDs)
                     LogData(target, category, data, shouldFilter, LoggingContext.Batching);
             }
             finally
@@ -624,30 +529,18 @@ namespace LogUtils
             }
         }
 
-        protected virtual void LogData(LogID target, LogCategory category, object data, bool shouldFilter, LoggingContext context = LoggingContext.SingleRequest)
+        protected virtual void LogData(ILogTarget target, LogCategory category, object data, bool shouldFilter, LoggingContext context)
         {
             try
             {
                 if (!AllowLogging || !target.IsEnabled) return;
 
-                RequestType requestType;
+                RequestType requestType = target.GetRequestType(this);
 
-                if (target.IsGameControlled)
+                if (requestType == RequestType.Invalid)
                 {
-                    requestType = RequestType.Game;
-                }
-                else
-                {
-                    LogID loggerID = this.FindEquivalentTarget(target);
-
-                    if (loggerID?.HasLocalAccess == true)
-                    {
-                        requestType = RequestType.Local;
-                    }
-                    else
-                    {
-                        requestType = RequestType.Remote;
-                    }
+                    UtilityLogger.LogWarning("Processed an invalid log request");
+                    return;
                 }
 
                 LogRequest request = new LogRequest(requestType, new LogMessageEventArgs(target, data, category)

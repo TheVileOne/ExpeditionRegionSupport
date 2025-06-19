@@ -1,7 +1,11 @@
-﻿namespace LogUtils.Enums
+﻿using LogUtils.Requests;
+
+namespace LogUtils.Enums
 {
-    public class ConsoleID : ExtEnum<ConsoleID>
+    public class ConsoleID : SharedExtEnum<ConsoleID>, ILogTarget
     {
+        public bool IsEnabled => true;
+
         public ConsoleID(string value, bool register = false) : base(value, register)
         {
         }
@@ -15,6 +19,11 @@
         {
             BepInEx = new ConsoleID("BepInEx", true);
             RainWorld = new ConsoleID("RainWorld", true);
+        }
+
+        public RequestType GetRequestType(ILogHandler handler)
+        {
+            return RequestType.Console;
         }
 
         public static ConsoleID BepInEx;

@@ -74,11 +74,10 @@ namespace LogUtils.Requests
         /// </summary>
         /// <param name="type">The identifying request category (affects how request is handled)</param>
         /// <param name="data">Data used to construct a log message</param>
-        /// <exception cref="ArgumentException">RequestType given is not valid for this instance</exception>
         public LogRequest(RequestType type, LogMessageEventArgs data)
         {
-            Data = data;
             Type = type;
+            Data = data;
         }
 
         public bool CanRetryRequest()
@@ -274,8 +273,9 @@ namespace LogUtils.Requests
         Complete
     }
 
-    public enum RequestType : byte
+    public enum RequestType
     {
+        Invalid = -1,
         Local,
         Remote,
         Game,

@@ -1,8 +1,10 @@
 ﻿using LogUtils.Helpers;
 using LogUtils.Helpers.Comparers;
+using LogUtils.Helpers.Extensions;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties;
 using LogUtils.Properties.Formatting;
+using LogUtils.Requests;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,7 +12,7 @@ using System.Linq;
 
 namespace LogUtils.Enums
 {
-    public class LogID : SharedExtEnum<LogID>, IEquatable<LogID>
+    public class LogID : SharedExtEnum<LogID>, ILogTarget, IEquatable<LogID>
     {
         /// <summary>
         /// Contains path information, and other settings that affect logging behavior 
@@ -307,6 +309,21 @@ namespace LogUtils.Enums
             Unity.Properties.ConsoleIDs.Add(ConsoleID.BepInEx); //Unity logs to BepInEx by default
             Unity.Properties.LogSourceName = nameof(Unity);
             Unity.Properties.AltFilename = new LogFilename(UtilityConsts.LogNames.UnityAlt, FileExt.LOG);
+        }
+
+        public RequestType GetRequestType(ILogHandler handler)
+        {
+            if (Properties == null)
+                return RequestType.Invalid;
+
+            if (IsGameControlled)
+                return RequestType.Game;
+
+            LogID handlerID = handler.FindEquivalentTarget(this);
+            
+            //Check whether LogID should be handled as a local request, or an outgoing (remote) request. Not being recognized by the handler means that
+            //the handler is processing a target specifically made through one of the logging method overloads
+            return handlerID != null && handlerID.HasLocalAccess ? RequestType.Local : RequestType.Remote;
         }
 
         static LogID()
