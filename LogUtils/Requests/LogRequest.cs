@@ -53,7 +53,7 @@ namespace LogUtils.Requests
         /// <summary>
         /// Indicates that a ConsoleID is the current target for this request (of which there may be multiple targets)
         /// </summary>
-        public bool IsTargetingConsole { get; private set; } 
+        public bool IsTargetingConsole => Data.IsTargetingConsole;
 
         public RejectionReason UnhandledReason => _state.UnhandledReason;
 
@@ -83,11 +83,13 @@ namespace LogUtils.Requests
         public LogRequest(RequestType type, LogRequestEventArgs data)
         {
             Type = type;
+            Data = data;
 
             if (Type == RequestType.Console)
-                IsTargetingConsole = true;
-
-            Data = data;
+            {
+                Data.IsTargetingConsole = true;
+                Data.ExtraArgs.Add(new ConsoleRequestEventArgs());
+            }
         }
 
         public bool CanRetryRequest()
@@ -119,7 +121,7 @@ namespace LogUtils.Requests
         /// </summary>
         public void ResetTarget()
         {
-            IsTargetingConsole = Type == RequestType.Console;
+            Data.IsTargetingConsole = Type == RequestType.Console;
         }
 
         public ConsoleRequestEventArgs SetDataFromWriter(ConsoleLogWriter writer)
@@ -136,7 +138,7 @@ namespace LogUtils.Requests
 
         public void TargetConsole()
         {
-            IsTargetingConsole = true;
+            Data.IsTargetingConsole = true;
         }
 
         public void Complete()

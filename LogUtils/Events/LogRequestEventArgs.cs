@@ -75,6 +75,8 @@ namespace LogUtils.Events
             private set => _categoryUnity = value;
         }
 
+        internal bool IsTargetingConsole;
+
         /// <summary>
         /// A message to be handled by a logger
         /// </summary>
@@ -87,12 +89,12 @@ namespace LogUtils.Events
         {
             get
             {
-                var consoleMessageData = GetConsoleData();
-
-                //Console data does not use the same field, which is reserved for log files only
-                if (consoleMessageData?.Writer != null)
+                if (IsTargetingConsole)
+                {
+                    //Console data does not use the same field, which is reserved for log files only
+                    var consoleMessageData = GetConsoleData();
                     return consoleMessageData.Rules;
-
+                }
                 return Properties.Rules;
             }
         }
@@ -103,12 +105,12 @@ namespace LogUtils.Events
         {
             get
             {
-                var consoleMessageData = GetConsoleData();
-
-                //Console data does not use the same field, which is reserved for log files only
-                if (consoleMessageData?.Writer != null)
+                if (IsTargetingConsole)
+                {
+                    //Console data does not use the same field, which is reserved for log files only
+                    var consoleMessageData = GetConsoleData();
                     return consoleMessageData.TotalMessagesLogged;
-
+                }
                 return _totalMessageCache ?? Properties.MessagesHandledThisSession;
             }
         }
@@ -196,7 +198,7 @@ namespace LogUtils.Events
 
         public void SetConsoleWriter(ConsoleLogWriter writer)
         {
-            var consoleMessageData = FindData<ConsoleRequestEventArgs>();
+            var consoleMessageData = GetConsoleData();
 
             if (consoleMessageData == null)
             {
