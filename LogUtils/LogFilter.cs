@@ -28,7 +28,7 @@ namespace LogUtils
             filter.Add(entry);
         }
 
-        public static bool IsAllowed(LogMessageEventArgs messageData)
+        public static bool IsAllowed(LogRequestEventArgs messageData)
         {
             var categoryFilter = LogCategory.GlobalFilter;
 

@@ -13,7 +13,7 @@ namespace LogUtils.Diagnostics.Tests.Components
 
         public LogRequest LatestRequest => ReceivedRequests.LastOrDefault();
 
-        string ILogWriter.ApplyRules(LogMessageEventArgs logEventData)
+        string ILogWriter.ApplyRules(LogRequestEventArgs logEventData)
         {
             return logEventData.Message;
         }
@@ -23,7 +23,7 @@ namespace LogUtils.Diagnostics.Tests.Components
             ReceivedRequests.Add((LogRequest)request.Clone());
         }
 
-        void IBufferHandler.SendToBuffer(LogMessageEventArgs messageData)
+        void IBufferHandler.SendToBuffer(LogRequestEventArgs messageData)
         {
             //Does nothing
         }

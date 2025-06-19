@@ -413,7 +413,7 @@ namespace LogUtils
             return ProcessResult.Success;
         }
 
-        public virtual string ApplyRules(LogMessageEventArgs messageData)
+        public virtual string ApplyRules(LogRequestEventArgs messageData)
         {
             return Formatter.Format(messageData);
         }
@@ -433,12 +433,12 @@ namespace LogUtils
             }
         }
 
-        protected virtual void OnLogMessageReceived(LogMessageEventArgs messageData)
+        protected virtual void OnLogMessageReceived(LogRequestEventArgs messageData)
         {
             UtilityEvents.OnMessageReceived?.Invoke(messageData);
         }
 
-        public void SendToBuffer(LogMessageEventArgs messageData)
+        public void SendToBuffer(LogRequestEventArgs messageData)
         {
             LogID logFile = messageData.ID;
 
@@ -458,7 +458,7 @@ namespace LogUtils
             }
         }
 
-        protected void SendToWriter(StreamWriter writer, LogMessageEventArgs messageData)
+        protected void SendToWriter(StreamWriter writer, LogRequestEventArgs messageData)
         {
             MessageBuffer writeBuffer = messageData.Properties.WriteBuffer;
 
@@ -509,7 +509,7 @@ namespace LogUtils
         /// <summary>
         /// Applies rule-defined formatting to a message
         /// </summary>
-        string ApplyRules(LogMessageEventArgs messageData);
+        string ApplyRules(LogRequestEventArgs messageData);
 
         /// <summary>
         /// Provides a procedure for writing a message to file
@@ -525,7 +525,7 @@ namespace LogUtils
         /// Bypasses the LogRequest system - intended to be used as a fallback message handling process
         /// </remarks></br>
         /// </summary>
-        void SendToBuffer(LogMessageEventArgs messageData);
+        void SendToBuffer(LogRequestEventArgs messageData);
 
         /// <summary>
         /// Attempts to write content from the message buffer to file after a specified amount of time

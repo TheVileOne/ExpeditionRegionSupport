@@ -129,11 +129,11 @@ namespace LogUtils.Compatibility.Unity
                         if (!RWInfo.CheckExceptionMatch(LogID.Exception, exceptionInfo))
                         {
                             RWInfo.ReportException(LogID.Exception, exceptionInfo);
-                            UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.Exception, exceptionInfo, category)), false);
+                            UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Exception, exceptionInfo, category)), false);
                         }
                         return;
                     }
-                    UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.Unity, message, category)), false);
+                    UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Unity, message, category)), false);
                 }
             }
         }

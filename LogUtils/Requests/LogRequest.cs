@@ -20,7 +20,7 @@ namespace LogUtils.Requests
         private int managedThreadID = -1;
         private RequestState _state;
 
-        public LogMessageEventArgs Data;
+        public LogRequestEventArgs Data;
 
         /// <summary>
         /// The log handler that has taken responsibility for handling the write process for this request
@@ -80,7 +80,7 @@ namespace LogUtils.Requests
         /// </summary>
         /// <param name="type">The identifying request category (affects how request is handled)</param>
         /// <param name="data">Data used to construct a log message</param>
-        public LogRequest(RequestType type, LogMessageEventArgs data)
+        public LogRequest(RequestType type, LogRequestEventArgs data)
         {
             Type = type;
 

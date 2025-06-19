@@ -172,7 +172,7 @@ namespace LogUtils.Properties.Formatting
             Name = name;
         }
 
-        public void Apply(ref string message, LogMessageEventArgs logEventData)
+        public void Apply(ref string message, LogRequestEventArgs logEventData)
         {
             if (TemporaryOverride != null)
             {
@@ -182,7 +182,7 @@ namespace LogUtils.Properties.Formatting
             message = ApplyRule(message, logEventData);
         }
 
-        protected virtual string ApplyRule(string message, LogMessageEventArgs logEventData)
+        protected virtual string ApplyRule(string message, LogRequestEventArgs logEventData)
         {
             return message;
         }
@@ -202,7 +202,7 @@ namespace LogUtils.Properties.Formatting
             return ToPropertyString();
         }
 
-        public delegate string ApplyDelegate(string message, LogMessageEventArgs logEventData);
+        public delegate string ApplyDelegate(string message, LogRequestEventArgs logEventData);
     }
 
     public class ShowCategoryRule : LogRule
@@ -211,7 +211,7 @@ namespace LogUtils.Properties.Formatting
         {
         }
 
-        protected override string ApplyRule(string message, LogMessageEventArgs logEventData)
+        protected override string ApplyRule(string message, LogRequestEventArgs logEventData)
         {
             //TODO: Padding doesn't work
             return string.Format("[{0,-4}] {1}", logEventData.Category, message);
@@ -229,7 +229,7 @@ namespace LogUtils.Properties.Formatting
         {
         }
 
-        protected override string ApplyRule(string message, LogMessageEventArgs logEventData)
+        protected override string ApplyRule(string message, LogRequestEventArgs logEventData)
         {
             return string.Format("[{0}] {1}", logEventData.TotalMessagesLogged + 1, message); //Add one to start indexing at one, instead of zero
         }

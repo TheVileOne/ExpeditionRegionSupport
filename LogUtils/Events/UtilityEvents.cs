@@ -1,11 +1,12 @@
-﻿using System;
+﻿using LogUtils.Requests;
+using System;
 
 namespace LogUtils.Events
 {
     public static class UtilityEvents
     {
         //Logging events
-        public static LogMessageEventHandler OnMessageReceived;
+        public static LogRequestDataEventHandler OnMessageReceived;
         public static RegistrationChangedEventHandler OnRegistrationChanged;
 
         //File operation events
@@ -28,7 +29,8 @@ namespace LogUtils.Events
 
     public delegate void EventHandler<TSource, TData>(TSource source, TData data);
     public delegate void LogEventHandler(LogEventArgs e);
-    public delegate void LogMessageEventHandler(LogMessageEventArgs e);
+    public delegate void LogRequestEventHandler(LogRequest request);
+    public delegate void LogRequestDataEventHandler(LogRequestEventArgs e);
     public delegate void LogMovePendingEventHandler(LogMovePendingEventArgs e);
     public delegate void LogStreamEventHandler(LogStreamEventArgs e);
     public delegate void RegistrationChangedEventHandler(ILogHandler logger, RegistrationChangedEventArgs registrationStatus);

@@ -43,17 +43,17 @@ namespace LogUtils.Console
             IsEnabled = Stream != null;
         }
 
-        public string ApplyRules(LogMessageEventArgs messageData)
+        public string ApplyRules(LogRequestEventArgs messageData)
         {
             return Formatter.Format(messageData);
         }
 
-        public void SendToBuffer(LogMessageEventArgs messageData)
+        public void SendToBuffer(LogRequestEventArgs messageData)
         {
             throw new NotImplementedException();
         }
 
-        protected virtual void SendToConsole(LogMessageEventArgs messageData)
+        protected virtual void SendToConsole(LogRequestEventArgs messageData)
         {
             string message = ApplyRules(messageData);
             Color messageColor = messageData.Category.ConsoleColor;

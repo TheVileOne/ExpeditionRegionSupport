@@ -46,7 +46,7 @@ namespace LogUtils.Compatibility.BepInEx.Listeners
 
                 if ((request == null || request.Data.ID != LogID.BepInEx) && eventArgs.Source.SourceName == UtilityConsts.UTILITY_NAME)
                 {
-                    request = new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.BepInEx, eventArgs));
+                    request = new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.BepInEx, eventArgs));
                     logUtilityEvent(request);
                     return;
                 }
@@ -58,7 +58,7 @@ namespace LogUtils.Compatibility.BepInEx.Listeners
 
                 if (request == null)
                 {
-                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.BepInEx, eventArgs)), false);
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.BepInEx, eventArgs)), false);
 
                     if (request.Status == RequestStatus.Rejected)
                         return;

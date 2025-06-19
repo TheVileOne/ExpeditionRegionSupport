@@ -325,7 +325,7 @@ namespace LogUtils
 
                 LogRequest createRequest()
                 {
-                    return new LogRequest(RequestType.Game, new LogMessageEventArgs(logFile, logTarget, LogCategory.ToCategory(logLevel)));
+                    return new LogRequest(RequestType.Game, new LogRequestEventArgs(logFile, logTarget, LogCategory.ToCategory(logLevel)));
                 }
             }
         }
@@ -356,7 +356,7 @@ namespace LogUtils
 
                 if (request == null)
                 {
-                    request = UtilityCore.RequestHandler.TrySubmit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.Exception, exceptionString)), false);
+                    request = UtilityCore.RequestHandler.TrySubmit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Exception, exceptionString)), false);
 
                     if (request.Status == RequestStatus.Rejected)
                         return;
@@ -400,7 +400,7 @@ namespace LogUtils
 
                 if (request == null)
                 {
-                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.Unity, logString)), false);
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Unity, logString)), false);
 
                     if (request.Status == RequestStatus.Rejected)
                         return false;
@@ -478,7 +478,7 @@ namespace LogUtils
                     //Ensure that request is always constructed before a message is logged
                     if (request == null)
                     {
-                        request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.Expedition, logString)), false);
+                        request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Expedition, logString)), false);
 
                         if (request.Status == RequestStatus.Rejected)
                             return;
@@ -573,7 +573,7 @@ namespace LogUtils
                     if (request == null)
                     {
                         LogCategory category = !isErrorMessage ? LogCategory.Default : LogCategory.Error;
-                        request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.JollyCoop, logString, category)), false);
+                        request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.JollyCoop, logString, category)), false);
 
                         if (request.Status == RequestStatus.Rejected)
                             return false;

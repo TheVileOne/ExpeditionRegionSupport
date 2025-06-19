@@ -227,7 +227,7 @@ namespace LogUtils.Console
 
             if (console == null) return;
 
-            LogRequest request = new LogRequest(RequestType.Console, new LogMessageEventArgs(LogID.BepInEx, message, category)
+            LogRequest request = new LogRequest(RequestType.Console, new LogRequestEventArgs(LogID.BepInEx, message, category)
             {
                 LogSource = source
             });

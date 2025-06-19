@@ -213,7 +213,7 @@ namespace LogUtils
                 string message = null;
                 if (request == null) //CurrentRequest has already passed preprocess validation checks if this is not null
                 {
-                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.Expedition, data, category)), false);
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Expedition, data, category)), false);
 
                     if (request.Status == RequestStatus.Rejected)
                         return;
@@ -246,7 +246,7 @@ namespace LogUtils
                 string message = null;
                 if (request == null) //CurrentRequest has already passed preprocess validation checks if this is not null
                 {
-                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.JollyCoop, data, category)), false);
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.JollyCoop, data, category)), false);
 
                     if (request.Status == RequestStatus.Rejected)
                         return;

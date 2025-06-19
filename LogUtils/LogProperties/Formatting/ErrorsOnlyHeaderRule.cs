@@ -9,7 +9,7 @@ namespace LogUtils.Properties.Formatting
         {
         }
 
-        protected override string ApplyRule(string message, LogMessageEventArgs logEventData)
+        protected override string ApplyRule(string message, LogRequestEventArgs logEventData)
         {
             if (!LogCategory.IsErrorCategory(logEventData.Category))
                 return message;

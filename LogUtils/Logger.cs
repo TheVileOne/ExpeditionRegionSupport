@@ -548,7 +548,7 @@ namespace LogUtils
                     return;
                 }
 
-                LogRequest request = new LogRequest(requestType, new LogMessageEventArgs(target, data, category)
+                LogRequest request = new LogRequest(requestType, new LogRequestEventArgs(target, data, category)
                 {
                     LogSource = ManagedLogSource
                 });

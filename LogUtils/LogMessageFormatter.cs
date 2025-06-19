@@ -11,7 +11,7 @@ namespace LogUtils
         /// <summary>
         /// Formats message data into a log ready format
         /// </summary>
-        public virtual string Format(LogMessageEventArgs messageData)
+        public virtual string Format(LogRequestEventArgs messageData)
         {
             string message = messageData.Message;
             var activeRules = messageData.Rules.Where(r => r.IsEnabled);

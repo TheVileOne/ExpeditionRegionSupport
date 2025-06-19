@@ -29,7 +29,7 @@ namespace LogUtils.Properties.Formatting
             RuleAction = action;
         }
 
-        protected override string ApplyRule(string message, LogMessageEventArgs logEventData)
+        protected override string ApplyRule(string message, LogRequestEventArgs logEventData)
         {
             return RuleAction.Invoke(message, logEventData);
         }

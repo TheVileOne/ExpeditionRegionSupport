@@ -149,7 +149,7 @@ namespace LogUtils.Compatibility.BepInEx
 
             string buildMessage(LogCategory category, ManualLogSource source)
             {
-                var messageData = new LogMessageEventArgs(LogID.BepInEx, messageBuilder, category)
+                var messageData = new LogRequestEventArgs(LogID.BepInEx, messageBuilder, category)
                 {
                     LogSource = source
                 };

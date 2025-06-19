@@ -14,14 +14,14 @@ namespace LogUtils
     /// </summary>
     public class QueueLogWriter : LogWriter, IFlushable
     {
-        internal Queue<LogMessageEventArgs> LogCache = new Queue<LogMessageEventArgs>();
+        internal Queue<LogRequestEventArgs> LogCache = new Queue<LogRequestEventArgs>();
 
         public QueueLogWriter()
         {
             WriteHandler = WriteToBuffer;
         }
 
-        public override string ApplyRules(LogMessageEventArgs messageData)
+        public override string ApplyRules(LogRequestEventArgs messageData)
         {
             LogID logFile = messageData.ID;
             LogRule headerRule = logFile.Properties.ShowCategories;
@@ -57,7 +57,7 @@ namespace LogUtils
             request.Complete();
         }
 
-        protected void EnqueueMessage(LogMessageEventArgs messageData)
+        protected void EnqueueMessage(LogRequestEventArgs messageData)
         {
             OnLogMessageReceived(messageData);
             LogCache.Enqueue(messageData);
@@ -134,7 +134,7 @@ namespace LogUtils
 
             if (!RWInfo.CheckExceptionMatch(logFile, exceptionInfo)) //Only log unreported exceptions
             {
-                var errorEntry = new LogMessageEventArgs(logFile, exception, LogCategory.Error);
+                var errorEntry = new LogRequestEventArgs(logFile, exception, LogCategory.Error);
 
                 RWInfo.ReportException(logFile, exceptionInfo);
                 EnqueueMessage(errorEntry);
