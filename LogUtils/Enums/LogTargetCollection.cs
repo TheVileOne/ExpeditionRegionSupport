@@ -30,13 +30,44 @@ namespace LogUtils.Enums
         {
         }
 
+        public LogTargetCollection(CompositeLogTarget targets)
+        {
+            AddRange(targets.Set);
+        }
+
         /// <summary>
         /// Constructs a new target collection containing the elements of the provided IEnumerable
         /// </summary>
         public LogTargetCollection(IEnumerable<ILogTarget> targets) : this()
         {
-            LogIDs.AddRange(targets.OfType<LogID>());
-            ConsoleIDs.AddRange(targets.OfType<ConsoleID>());
+            AddRange(targets);
+        }
+
+        public void AddRange(IEnumerable<ILogTarget> targets)
+        {
+            foreach (var target in targets)
+            {
+                LogID fileTarget = target as LogID;
+
+                if (fileTarget != null)
+                {
+                    LogIDs.Add(fileTarget);
+                    continue;
+                }
+
+                ConsoleID consoleTarget = target as ConsoleID;
+
+                if (consoleTarget != null)
+                {
+                    ConsoleIDs.Add(consoleTarget);
+                    continue;
+                }
+
+                CompositeLogTarget compositeTarget = target as CompositeLogTarget;
+
+                if (compositeTarget != null)
+                    AddRange(compositeTarget.Set);
+            }
         }
 
         public bool Contains(ILogTarget target) => LogIDs.Contains(target) || ConsoleIDs.Contains(target);

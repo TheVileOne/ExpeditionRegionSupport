@@ -340,6 +340,11 @@ namespace LogUtils.Enums
         public static LogID JollyCoop;
         public static LogID Unity;
         internal static LogID Unknown;
+
+        public static CompositeLogTarget operator |(LogID a, ILogTarget b)
+        {
+            return LogTarget.Combiner.Combine(a, b);
+        }
     }
 
     public enum LogAccess

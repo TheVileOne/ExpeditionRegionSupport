@@ -28,5 +28,10 @@ namespace LogUtils.Enums
 
         public static ConsoleID BepInEx;
         public static ConsoleID RainWorld;
+
+        public static CompositeLogTarget operator |(ConsoleID a, ILogTarget b)
+        {
+            return LogTarget.Combiner.Combine(a, b);
+        }
     }
 }

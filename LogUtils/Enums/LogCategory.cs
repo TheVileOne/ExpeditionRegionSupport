@@ -105,7 +105,7 @@ namespace LogUtils.Enums
 
         public static LogCategory[] RegisteredEntries => values.entries.Select(entry => new LogCategory(entry)).ToArray();
 
-        public static LogCategoryCombiner Combiner = new LogCategoryCombiner();
+        public static ICombiner<LogCategory, CompositeLogCategory> Combiner = new LogCategoryCombiner();
 
         public static IFilter<LogCategory> GlobalFilter;
 

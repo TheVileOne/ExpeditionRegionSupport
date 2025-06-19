@@ -2,6 +2,11 @@
 
 namespace LogUtils.Enums
 {
+    public static class LogTarget
+    {
+        public static ICombiner<ILogTarget, CompositeLogTarget> Combiner = new LogTargetCombiner();
+    }
+
     /// <summary>
     /// Shared by implementations that function as a compatible target by a Logger instance
     /// </summary>

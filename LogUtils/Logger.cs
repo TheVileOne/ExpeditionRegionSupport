@@ -486,6 +486,11 @@ namespace LogUtils
             throw new NotSupportedException("Log target is unrecognized");
         }
 
+        protected void LogData(CompositeLogTarget target, LogCategory category, object data, bool shouldFilter)
+        {
+            LogData(target.ToCollection(), category, data, shouldFilter);
+        }
+
         protected virtual void LogData(LogID target, LogCategory category, object data, bool shouldFilter)
         {
             try
