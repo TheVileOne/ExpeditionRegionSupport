@@ -75,8 +75,8 @@ namespace LogUtils
         /// <summary>
         /// Constructs a logger instance
         /// </summary>
-        /// <param name="preset">The LogID to target, or handle by request by this logger</param>
-        public Logger(LogID preset) : this(LoggingMode.Inherit, true, preset)
+        /// <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
+        public Logger(ILogTarget preset) : this(LoggingMode.Inherit, true, preset)
         {
         }
 
@@ -84,8 +84,8 @@ namespace LogUtils
         /// Constructs a logger instance
         /// </summary>
         /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
-        /// <param name="preset">The LogID to target, or handle by request by this logger</param>
-        public Logger(bool allowLogging, LogID preset) : this(LoggingMode.Inherit, allowLogging, preset)
+        /// <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
+        public Logger(bool allowLogging, ILogTarget preset) : this(LoggingMode.Inherit, allowLogging, preset)
         {
         }
 
@@ -93,16 +93,16 @@ namespace LogUtils
         /// Constructs a logger instance
         /// </summary>
         /// <param name="mode">Changes the technique used to write messages to file</param>
-        /// <param name="preset">The LogID to target, or handle by request by this logger</param>
-        public Logger(LoggingMode mode, LogID preset) : this(mode, true, preset)
+        /// <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
+        public Logger(LoggingMode mode, ILogTarget preset) : this(mode, true, preset)
         {
         }
 
         /// <summary>
         /// Constructs a logger instance
         /// </summary>
-        /// <param name="presets">Include any LogIDs that this logger targets, or handles on request</param>
-        public Logger(params LogID[] presets) : this(LoggingMode.Inherit, true, presets)
+        /// <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
+        public Logger(params ILogTarget[] presets) : this(LoggingMode.Inherit, true, presets)
         {
         }
 
@@ -110,8 +110,8 @@ namespace LogUtils
         /// Constructs a logger instance
         /// </summary>
         /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
-        /// <param name="presets">Include any LogIDs that this logger targets, or handles on request</param>
-        public Logger(bool allowLogging, params LogID[] presets) : this(LoggingMode.Inherit, allowLogging, presets)
+        /// <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
+        public Logger(bool allowLogging, params ILogTarget[] presets) : this(LoggingMode.Inherit, allowLogging, presets)
         {
         }
 
@@ -119,8 +119,8 @@ namespace LogUtils
         /// Constructs a logger instance
         /// </summary>
         /// <param name="mode">Changes the technique used to write messages to file</param>
-        /// <param name="presets">Include any LogIDs that this logger targets, or handles on request</param>
-        public Logger(LoggingMode mode, params LogID[] presets) : this(mode, true, presets)
+        /// <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
+        public Logger(LoggingMode mode, params ILogTarget[] presets) : this(mode, true, presets)
         {
         }
 
@@ -129,15 +129,15 @@ namespace LogUtils
         /// </summary>
         /// <param name="mode">Changes the technique used to write messages to file</param>
         /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
-        /// <param name="presets">Include any LogIDs that this logger targets, or handles on request</param>
-        public Logger(LoggingMode mode, bool allowLogging, params LogID[] presets)
+        /// <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
+        public Logger(LoggingMode mode, bool allowLogging, params ILogTarget[] presets)
         {
             if (UtilitySetup.CurrentStep < UtilitySetup.InitializationStep.INITIALIZE_ENUMS)
                 throw new EarlyInitializationException("Logger created too early");
 
             AllowLogging = allowLogging;
 
-            LogTargets.AddRange(presets);
+            Targets.AddRange(presets);
 
             Validator = new RequestValidator(this);
 
