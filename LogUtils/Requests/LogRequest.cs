@@ -1,4 +1,5 @@
-﻿using LogUtils.Enums;
+﻿using LogUtils.Console;
+using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Requests.Validation;
 using System;
@@ -49,6 +50,11 @@ namespace LogUtils.Requests
 
         public readonly RequestType Type;
 
+        /// <summary>
+        /// Indicates that a ConsoleID is the current target for this request (of which there may be multiple targets)
+        /// </summary>
+        public bool IsTargetingConsole { get; private set; } 
+
         public RejectionReason UnhandledReason => _state.UnhandledReason;
 
         public bool WaitingOnOtherRequests
@@ -77,6 +83,10 @@ namespace LogUtils.Requests
         public LogRequest(RequestType type, LogMessageEventArgs data)
         {
             Type = type;
+
+            if (Type == RequestType.Console)
+                IsTargetingConsole = true;
+
             Data = data;
         }
 
@@ -102,6 +112,31 @@ namespace LogUtils.Requests
         public void ResetStatus()
         {
             _state.Reset();
+        }
+
+        /// <summary>
+        /// Reset the console target status back to its value set on construction
+        /// </summary>
+        public void ResetTarget()
+        {
+            IsTargetingConsole = Type == RequestType.Console;
+        }
+
+        public ConsoleRequestEventArgs SetDataFromWriter(ConsoleLogWriter writer)
+        {
+            ConsoleRequestEventArgs consoleMessageData = Data.GetConsoleData();
+
+            if (consoleMessageData == null)
+                Data.ExtraArgs.Add(consoleMessageData = new ConsoleRequestEventArgs(writer.ID));
+
+            consoleMessageData.TotalMessagesLogged = writer.TotalMessagesLogged;
+            consoleMessageData.Writer = writer;
+            return consoleMessageData;
+        }
+
+        public void TargetConsole()
+        {
+            IsTargetingConsole = true;
         }
 
         public void Complete()

@@ -83,13 +83,8 @@ namespace LogUtils.Console
                     return;
                 }
 
-                consoleMessageData = request.Data.GetConsoleData();
-
-                if (consoleMessageData == null)
-                    request.Data.ExtraArgs.Add(consoleMessageData = new ConsoleRequestEventArgs(ID));
-
-                consoleMessageData.TotalMessagesLogged = TotalMessagesLogged;
-                consoleMessageData.Writer = this;
+                request.TargetConsole();
+                consoleMessageData = request.SetDataFromWriter(this);
 
                 SendToConsole(request.Data);
                 TotalMessagesLogged++;
@@ -101,6 +96,7 @@ namespace LogUtils.Console
             }
             finally
             {
+                request.ResetTarget();
                 if (consoleMessageData != null)
                     consoleMessageData.Writer = null;
 
