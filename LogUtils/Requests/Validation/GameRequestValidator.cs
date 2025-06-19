@@ -26,12 +26,10 @@ namespace LogUtils.Requests.Validation
                 return RejectionReason.LogDisabled;
 
             //Check RainWorld.ShowLogs for logs that are restricted by it
-            if (logFile.Properties.ShowLogsAware && !RainWorld.ShowLogs)
-            {
-                if (RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD)
-                    return RejectionReason.ShowLogsNotInitialized;
-                return RejectionReason.LogDisabled;
-            }
+            RejectionReason showLogsViolation = RequestValidator.ShowLogsValidation(logFile);
+
+            if (showLogsViolation != RejectionReason.None)
+                return showLogsViolation;
 
             if (!logFile.Properties.CanBeAccessed)
                 return RejectionReason.LogUnavailable;

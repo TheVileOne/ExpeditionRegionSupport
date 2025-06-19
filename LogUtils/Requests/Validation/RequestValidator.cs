@@ -32,17 +32,35 @@ namespace LogUtils.Requests.Validation
             if (!Handler.AllowLogging || !targetID.IsEnabled)
                 return RejectionReason.LogDisabled;
 
-            if (targetID.Properties.ShowLogsAware && !RainWorld.ShowLogs)
-            {
-                if (RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD)
-                    return RejectionReason.ShowLogsNotInitialized;
-                return RejectionReason.LogDisabled;
-            }
+            RejectionReason showLogsViolation = ShowLogsValidation(targetID);
+
+            if (showLogsViolation != RejectionReason.None)
+                return showLogsViolation;
 
             if (request.Type == RequestType.Remote && (targetID.Access == LogAccess.Private || !Handler.AllowRemoteLogging))
                 return RejectionReason.AccessDenied;
 
             return RejectionReason.None;
+        }
+
+        /// <summary>
+        /// Checks that the ShowLogs property is applicable to the provided LogID, and returns the applicable RejectionReason when it does
+        /// </summary>
+        public static RejectionReason ShowLogsValidation(LogID logID)
+        {
+            if (logID.Properties.ShowLogsAware && !RainWorld.ShowLogs)
+                return ShowLogsViolation();
+            return RejectionReason.None;
+        }
+
+        /// <summary>
+        /// Gets the applicable RejectionReason for a ShowLogs aware log request
+        /// </summary>
+        public static RejectionReason ShowLogsViolation()
+        {
+            if (RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD)
+                return RejectionReason.ShowLogsNotInitialized;
+            return RejectionReason.LogDisabled;
         }
     }
 

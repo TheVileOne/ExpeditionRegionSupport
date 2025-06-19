@@ -2,6 +2,7 @@
 using LogUtils.Events;
 using LogUtils.Properties.Formatting;
 using LogUtils.Requests;
+using LogUtils.Requests.Validation;
 using System;
 using System.IO;
 using System.Linq;
@@ -27,6 +28,8 @@ namespace LogUtils.Console
         /// The message format rules associated with this writer
         /// </summary>
         public LogRuleCollection Rules = new LogRuleCollection();
+
+        public bool ShowLogsAware;
 
         /// <summary>
         /// The active write stream for writers that use one
@@ -80,6 +83,12 @@ namespace LogUtils.Console
                 if (!IsEnabled)
                 {
                     request.Reject(RejectionReason.LogDisabled, ID);
+                    return;
+                }
+
+                if (ShowLogsAware && !RainWorld.ShowLogs)
+                {
+                    request.Reject(RequestValidator.ShowLogsViolation(), ID);
                     return;
                 }
 
