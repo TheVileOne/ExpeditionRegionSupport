@@ -1,145 +1,111 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Mono.Cecil;
-using System.Collections.Generic;
-using System;
 
-namespace LogUtils.Patcher
+namespace LogUtils.Patcher;
+
+public static class Patcher
 {
-    public static class Patcher
+    private static readonly string LogFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "patcher.log");
+
+    private static readonly string ModsRootPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RainWorld_Data", "StreamingAssets", "mods");
+
+    public static IEnumerable<string> TargetDLLs => GetDLLs();
+
+    public static IEnumerable<string> GetDLLs()
     {
-        private static readonly string logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "patcher.log");
+        if (File.Exists(LogFilePath)) File.Delete(LogFilePath);
+        Log("=== Patcher.GetDLLs() start ===");
 
-        private static readonly string pluginRootPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins");
-
-        public static IEnumerable<string> TargetDLLs => GetDLLs();
-
-        public static IEnumerable<string> GetDLLs()
+        var latest = FindLatestLogUtilsDll(ModsRootPath);
+        if (latest != null)
         {
-            File.Delete("patcher.log");
-
-            foreach (var dll in GetLogUtilsDLLsFromPlugins(pluginRootPath))
-            {
-                yield return dll;
-            }
-
-            yield return "Assembly-CSharp.dll";
+            Log("Loading latest LogUtils DLL: " + latest);
+            Assembly.LoadFrom(latest);
+            yield return latest;
+        }
+        else
+        {
+            Log("No LogUtils plugin found; falling back.");
         }
 
-        public static IEnumerable<string> GetLogUtilsDLLsFromPlugins(string rootDirectory)
+        yield return "Assembly-CSharp.dll";
+    }
+
+    private static string FindLatestLogUtilsDll(string rootPath)
+    {
+        if (!Directory.Exists(rootPath))
         {
-            if (!Directory.Exists(rootDirectory))
-            {
-                Log("Plugin root directory not found: " + rootDirectory);
-                yield break;
-            }
-
-            var dllFiles = Directory.EnumerateFiles(rootDirectory, "LogUtils*.dll", SearchOption.AllDirectories);
-            if (!dllFiles.Any())
-            {
-                Log("No LogUtils DLLs found in plugin folders under " + rootDirectory);
-            }
-
-            string latestDll = null;
-            Version latestVersion = new Version(0, 0, 0, 0);
-
-            foreach (var file in dllFiles)
-            {
-                try
-                {
-                    Version version = GetDllVersion(file);
-                    if (version > latestVersion)
-                    {
-                        latestVersion = version;
-                        latestDll = file;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log($"Error reading {file}: {ex}");
-                }
-            }
-
-            if (!string.IsNullOrEmpty(latestDll))
-            {
-                Log("Latest LogUtils DLL determined: " + latestDll);
-                yield return latestDll;
-            }
+            Log("Mods root not found: " + rootPath);
+            return null;
         }
 
-        public static void Patch(AssemblyDefinition assembly)
-        {
-            Log("Starting patch process for assembly: " + assembly.Name.Name);
+        var dllFiles = Directory
+          .EnumerateFiles(rootPath, "LogUtils.dll", SearchOption.AllDirectories)
+          .Where(path => path.Split(Path.DirectorySeparatorChar)
+          .Any(segment => segment.Equals("plugins", StringComparison.OrdinalIgnoreCase)));
 
-            try
-            {
-                Log("Patching completed successfully.");
-            }
-            catch (Exception ex)
-            {
-                Log("Error during patching: " + ex);
-                throw;
-            }
+        if (!dllFiles.Any())
+        {
+            Log("No LogUtils DLLs detected under mods root.");
+            return null;
         }
 
-        public static string GetLatestFrameworkDll(string directoryPath)
-        {
-            if (!Directory.Exists(directoryPath))
-            {
-                Log("Directory not found: " + directoryPath);
-                return null;
-            }
+        string latestVersionPath = null;
+        var latestVersion = new Version(0, 0, 0, 0);
 
-            var files = Directory.GetFiles(directoryPath, "LogUtils*.dll");
-            if (files.Length == 0)
-            {
-                Log("No framework DLLs found in " + directoryPath);
-                return null;
-            }
-
-            string latestDll = null;
-            Version latestVersion = new Version(0, 0, 0, 0);
-
-            foreach (var file in files)
-            {
-                try
-                {
-                    Version version = GetDllVersion(file);
-                    if (version > latestVersion)
-                    {
-                        latestVersion = version;
-                        latestDll = file;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log($"Error reading {file}: {ex}");
-                    throw new Exception($"Error reading {file}: {ex}");
-                }
-            }
-
-            Log("Latest framework DLL determined: " + latestDll);
-            return latestDll;
-        }
-
-        private static Version GetDllVersion(string dllPath)
-        {
-            var assemblyName = AssemblyName.GetAssemblyName(dllPath);
-            return assemblyName.Version;
-        }
-
-        private static void Log(string message)
+        foreach (var file in dllFiles)
         {
             try
             {
-                string logMessage = $"{System.DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}{System.Environment.NewLine}";
-                File.AppendAllText(logFilePath, logMessage);
+                var version = AssemblyName.GetAssemblyName(file).Version;
+                Log($"Found candidate {file} v{version}");
+                if (version > latestVersion)
+                {
+                    latestVersion = version;
+                    latestVersionPath = file;
+                }
             }
             catch (Exception ex)
             {
-                throw new Exception("Error writing to log file. " + ex);
+                Log($"Error reading version from {file}: {ex.Message}");
             }
+        }
+
+        if (latestVersionPath != null)
+            Log($"Selected latest: {latestVersionPath} v{latestVersion}");
+
+        return latestVersionPath;
+    }
+
+    public static void Patch(AssemblyDefinition assembly)
+    {
+        Log("Starting patch process for assembly: " + assembly.Name.Name);
+        try
+        {
+            Log("Patching completed successfully.");
+        }
+        catch (Exception ex)
+        {
+            Log("Error during patching: " + ex);
+            throw;
+        }
+    }
+
+    private static void Log(string message)
+    {
+        try
+        {
+            var line = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}{Environment.NewLine}";
+            File.AppendAllText(LogFilePath, line);
+        }
+        catch (Exception ex)
+        {
+            var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            File.AppendAllText(LogFilePath, $"{timestamp} - !!!Exception: {ex}{Environment.NewLine}");
         }
     }
 }
