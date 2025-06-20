@@ -475,44 +475,14 @@ namespace LogUtils
         }
 
         #endregion
-
-        protected virtual void LogData(ILogTarget target, LogCategory category, object data, bool shouldFilter)
+        protected void LogData(ILogTarget target, LogCategory category, object data, bool shouldFilter)
         {
-            ClearEventData();
-
-            if (target == null)
-                throw new ArgumentNullException("Log target");
-
-            throw new NotSupportedException("Log target is unrecognized");
+            LogData(target, category, data, shouldFilter, null, LoggingContext.SingleRequest);
         }
 
         protected void LogData(CompositeLogTarget target, LogCategory category, object data, bool shouldFilter)
         {
             LogData(target.ToCollection(), category, data, shouldFilter);
-        }
-
-        protected virtual void LogData(LogID target, LogCategory category, object data, bool shouldFilter)
-        {
-            try
-            {
-                LogData(target, category, data, shouldFilter, LoggingContext.SingleRequest);
-            }
-            finally
-            {
-                ClearEventData();
-            }
-        }
-
-        protected virtual void LogData(ConsoleID target, LogCategory category, object data, bool shouldFilter)
-        {
-            try
-            {
-                //TODO: Console handling code
-            }
-            finally
-            {
-                ClearEventData();
-            }
         }
 
         protected virtual void LogData(LogTargetCollection targets, LogCategory category, object data, bool shouldFilter)
@@ -525,8 +495,23 @@ namespace LogUtils
                     return;
                 }
 
+                LogRequest lastRequest = null;
                 foreach (LogID target in targets.LogIDs)
-                    LogData(target, category, data, shouldFilter, LoggingContext.Batching);
+                    lastRequest = LogData(target, category, data, shouldFilter, lastRequest, LoggingContext.Batching);
+
+                IEnumerable<ConsoleID> consoleTargets = targets.ConsoleIDs;
+
+                if (lastRequest != null) //Possible to be null if all of the requests were rejected
+                {
+                    var consoleMessageData = lastRequest.Data.GetConsoleData();
+
+                    //Exclude any ConsoleIDs that were already handled when the LogIDs were processed
+                    if (consoleMessageData != null)
+                        consoleTargets = consoleTargets.Except(consoleMessageData.Handled);
+                }
+
+                foreach (ConsoleID target in consoleTargets)
+                    lastRequest = LogData(target, category, data, shouldFilter, lastRequest, LoggingContext.Batching);
             }
             finally
             {
@@ -534,18 +519,21 @@ namespace LogUtils
             }
         }
 
-        protected virtual void LogData(ILogTarget target, LogCategory category, object data, bool shouldFilter, LoggingContext context)
+        protected virtual LogRequest LogData(ILogTarget target, LogCategory category, object data, bool shouldFilter, LogRequest lastRequest, LoggingContext context)
         {
             try
             {
-                if (!AllowLogging || !target.IsEnabled) return;
+                if (target is CompositeLogTarget)
+                    UtilityLogger.LogWarning("Composite processing not supported");
+
+                if (!AllowLogging || !target.IsEnabled) return null;
 
                 RequestType requestType = target.GetRequestType(this);
 
                 if (requestType == RequestType.Invalid)
                 {
                     UtilityLogger.LogWarning("Processed an invalid log request");
-                    return;
+                    return null;
                 }
 
                 LogRequest request = null;
@@ -571,6 +559,15 @@ namespace LogUtils
                     request.Data.FilterDuration = FilterDuration.OnClose;
                 }
 
+                if (lastRequest != null)
+                {
+                    //ConsoleIDs that were processed by an earlier request need to be transferred to the current request to avoid messages being logged to console more than once
+                    var consoleMessageData = lastRequest.Data.GetConsoleData();
+
+                    if (consoleMessageData != null)
+                        request.NotifyComplete(consoleMessageData.Handled);
+                }
+
                 request.Sender = this;
 
                 //Local requests are processed immediately by the logger, while other types of requests are handled through RequestHandler
@@ -588,6 +585,7 @@ namespace LogUtils
                             SendToWriter(request);
                     }
                 }
+                return request;
             }
             finally
             {

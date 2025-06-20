@@ -3,6 +3,7 @@ using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Requests.Validation;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace LogUtils.Requests
@@ -236,7 +237,7 @@ namespace LogUtils.Requests
         }
 
         /// <summary>
-        /// Notify that the following consoleID no longer needs to be processed
+        /// Notify that the specified ConsoleID no longer needs to be processed
         /// </summary>
         public void NotifyComplete(ConsoleID consoleID)
         {
@@ -248,6 +249,24 @@ namespace LogUtils.Requests
 
             consoleRequestData.Pending.Remove(consoleID);
             consoleRequestData.Handled.Add(consoleID);
+        }
+
+        /// <summary>
+        /// Notify that a collection of ConsoleIDs no longer needs to be processed
+        /// </summary>
+        public void NotifyComplete(IEnumerable<ConsoleID> consoleIDs)
+        {
+            var consoleRequestData = Data.GetConsoleData();
+
+            //Console data may not exist if the ConsoleIDs are sourced from the LogID instead of a Logger
+            if (consoleRequestData == null)
+                Data.ExtraArgs.Add(consoleRequestData = new ConsoleRequestEventArgs());
+
+            foreach (ConsoleID consoleID in consoleIDs)
+            {
+                consoleRequestData.Pending.Remove(consoleID);
+                consoleRequestData.Handled.Add(consoleID);
+            }
         }
 
         /// <summary>

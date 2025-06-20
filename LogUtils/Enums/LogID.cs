@@ -309,6 +309,8 @@ namespace LogUtils.Enums
             Unity.Properties.ConsoleIDs.Add(ConsoleID.BepInEx); //Unity logs to BepInEx by default
             Unity.Properties.LogSourceName = nameof(Unity);
             Unity.Properties.AltFilename = new LogFilename(UtilityConsts.LogNames.UnityAlt, FileExt.LOG);
+
+            NotUsed.Properties.LogSourceName = UtilityLogger.Logger.SourceName;
         }
 
         public RequestType GetRequestType(ILogHandler handler)
