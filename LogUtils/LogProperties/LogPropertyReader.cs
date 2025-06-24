@@ -26,7 +26,7 @@ namespace LogUtils.Properties
             bool expectedFieldsMatch = true;
             int fieldMatchCount = 0; //Amount of consecuative fields that are consistent with the expected write order 
             int commentCountForThisField = 0;
-            List<CommentEntry> commentEntries = new List<CommentEntry>();
+            List<CommentEntry> commentEntries = [];
 
             StreamReader reader = new StreamReader(propertyFile.Stream);
 
@@ -88,11 +88,11 @@ namespace LogUtils.Properties
                         var lastComments = commentEntries;
 
                         //Start a new entry for the next set of data fields
-                        propertyInFile = new LogPropertyStringDictionary();
+                        propertyInFile = [];
 
                         if (lastProcessed != null)
                         {
-                            commentEntries = new List<CommentEntry>();
+                            commentEntries = [];
 
                             LogPropertyData data = new LogPropertyData(lastProcessed, lastComments)
                             {

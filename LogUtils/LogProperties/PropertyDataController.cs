@@ -10,11 +10,11 @@ namespace LogUtils.Properties
 {
     public class PropertyDataController : UtilityComponent
     {
-        private List<LogProperties> _properties = new List<LogProperties>();
+        private List<LogProperties> _properties = [];
 
         public IEnumerable<LogProperties> Properties => _properties.ToArray();
         public CustomLogPropertyCollection CustomLogProperties = new CustomLogPropertyCollection();
-        public Dictionary<LogProperties, LogPropertyStringDictionary> UnrecognizedFields = new Dictionary<LogProperties, LogPropertyStringDictionary>();
+        public Dictionary<LogProperties, LogPropertyStringDictionary> UnrecognizedFields = [];
 
         public LogPropertyFile PropertyFile = new LogPropertyFile();
 
@@ -138,7 +138,7 @@ namespace LogUtils.Properties
                         properties.LogSessionActive = true;
                     }
                 }
-                
+
                 properties.SkipStartupRoutine |= lastKnownFileOverwritten;
             }
         }

@@ -9,6 +9,7 @@ namespace LogUtils.Helpers.FileHandling
         /// <summary>
         /// Checks that a directory is contained within a path string
         /// </summary>
+        /// <param name="path"></param>
         /// <param name="dirName">The directory name to check</param>
         /// <param name="dirLevelsToCheck">The number of directory separators to check starting from the right</param>
         public static bool ContainsDirectory(string path, string dirName, int dirLevelsToCheck)
@@ -178,13 +179,11 @@ namespace LogUtils.Helpers.FileHandling
 
             pathString = pathString.ToLower();
 
-            switch (pathString)
+            return pathString switch
             {
-                case UtilityConsts.PathKeywords.ROOT:
-                case UtilityConsts.PathKeywords.STREAMING_ASSETS:
-                    return true;
-            }
-            return false;
+                UtilityConsts.PathKeywords.ROOT or UtilityConsts.PathKeywords.STREAMING_ASSETS => true,
+                _ => false,
+            };
         }
 
         public static string GetPathKeyword(string path)

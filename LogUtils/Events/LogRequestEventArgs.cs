@@ -15,7 +15,7 @@ namespace LogUtils.Events
         /// <summary>
         /// A field for extra arguments - Use in cases when it is inconvenient to replace existing argument data  
         /// </summary>
-        public readonly List<EventArgs> ExtraArgs = new List<EventArgs>();
+        public readonly List<EventArgs> ExtraArgs = [];
 
         private ILogSource _logSource;
 

@@ -9,7 +9,7 @@ namespace LogUtils.Diagnostics.Tests.Components
 {
     public class FakeLogWriter : ILogWriter
     {
-        public List<LogRequest> ReceivedRequests = new List<LogRequest>();
+        public List<LogRequest> ReceivedRequests = [];
 
         public LogRequest LatestRequest => ReceivedRequests.LastOrDefault();
 

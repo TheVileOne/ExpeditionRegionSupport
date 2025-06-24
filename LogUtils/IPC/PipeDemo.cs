@@ -48,12 +48,12 @@ namespace LogUtils.IPC
             string b = (string)testEnumerator.Current;
 
             UtilityLogger.Log(string.Format("About to send byte {0} to client.", b));
-            
+
             demoServer.WriteByte(Encoding.UTF8.GetBytes(b).First());
-            
-            UtilityLogger.Log("Byte sent, waiting for response from client...");         
+
+            UtilityLogger.Log("Byte sent, waiting for response from client...");
             int byteFromClient = demoServer.ReadByte();
-            
+
             UtilityLogger.Log(string.Format("Received byte response from client: {0}", byteFromClient));
             while (byteFromClient != 120)
             {

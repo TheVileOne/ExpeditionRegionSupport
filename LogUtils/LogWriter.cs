@@ -220,9 +220,11 @@ namespace LogUtils
                     writeTask.WaitTimeInterval = waitInterval;
                 }
 
-            }, waitTime);
-            writeTask.Name = "BufferWriteTask";
-            writeTask.IsContinuous = true;
+            }, waitTime)
+            {
+                Name = "BufferWriteTask",
+                IsContinuous = true
+            };
 
             LogTasker.Schedule(writeTask);
             return writeTask;

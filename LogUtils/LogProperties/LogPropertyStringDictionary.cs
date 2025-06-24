@@ -130,7 +130,7 @@ namespace LogUtils.Properties
         public string ToString(List<CommentEntry> comments, bool sortFields)
         {
             if (comments == null)
-                comments = new List<CommentEntry>();
+                comments = [];
 
             StringBuilder sb = new StringBuilder();
 

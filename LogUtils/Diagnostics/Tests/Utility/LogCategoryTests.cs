@@ -1,7 +1,6 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Helpers.Comparers;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace LogUtils.Diagnostics.Tests.Utility
@@ -304,15 +303,15 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
         private void testEquality()
         {
-            var emptyComposite = new CompositeLogCategory(new HashSet<LogCategory>()
-            {
+            var emptyComposite = new CompositeLogCategory(
+            [
                 LogCategory.None
-            });
+            ]);
 
-            var valuedComposite = new CompositeLogCategory(new HashSet<LogCategory>()
-            {
+            var valuedComposite = new CompositeLogCategory(
+            [
                 LogCategory.Info
-            });
+            ]);
 
             //Test that an empty composite is valued the same as LogCategory.None
             testEquality(emptyComposite, LogCategory.None);
@@ -339,10 +338,10 @@ namespace LogUtils.Diagnostics.Tests.Utility
         #region Miscellaneous Tests
         private void testErrorCategoryDoesNotIncludeCategoryAll()
         {
-            var composite = new CompositeLogCategory(new HashSet<LogCategory>()
-            {
+            var composite = new CompositeLogCategory(
+            [
                 LogCategory.All
-            });
+            ]);
             AssertThat(LogCategory.IsErrorCategory(composite)).IsFalse();
         }
         #endregion

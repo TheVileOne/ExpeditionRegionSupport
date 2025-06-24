@@ -90,7 +90,7 @@ namespace LogUtils.Diagnostics.Tests
             Name = name;
             GroupState = state;
             Formatter = new MessageFormatter();
-            Results = new List<Condition.Result>();
+            Results = [];
         }
 
         /// <summary>
@@ -120,8 +120,7 @@ namespace LogUtils.Diagnostics.Tests
         public void Dispose()
         {
             //Alert the case group that this case is finished handling cases, and the next test can take over
-            if (Group != null)
-                Group.NextCase();
+            Group?.NextCase();
         }
 
         public virtual void Handle(Condition.Result result)

@@ -10,7 +10,7 @@ namespace LogUtils.Properties.Formatting
     {
         public bool ReadOnly;
 
-        protected List<LogRule> InnerList = new List<LogRule>();
+        protected List<LogRule> InnerList = [];
         protected IOrderedEnumerable<LogRule> InnerEnumerable => InnerList.OrderBy(r => r.Priority);
 
         private static readonly StringComparer nameComparer = ComparerUtils.StringComparerIgnoreCase;

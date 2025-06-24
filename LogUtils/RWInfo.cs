@@ -31,7 +31,7 @@ namespace LogUtils
         /// <summary>
         /// Dictionary of last reported errors logged to a specific log file
         /// </summary>
-        public static Dictionary<LogID, ExceptionInfo> LastReportedException = new Dictionary<LogID, ExceptionInfo>();
+        public static Dictionary<LogID, ExceptionInfo> LastReportedException = [];
 
         /// <summary>
         /// A flag indicating merge folder is ready to access

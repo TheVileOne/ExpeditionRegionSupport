@@ -56,8 +56,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 List<string> testDataB;
                 CustomCollection testDataC;
 
-                testDataA = new List<string> { "test", "data" };
-                testDataB = new List<string> { "test", "data" };
+                testDataA = ["test", "data"];
+                testDataB = ["test", "data"];
                 testDataC = new CustomCollection();
 
                 using (TestCase test = new TestCase(testGroup, "Test: ICollection support"))

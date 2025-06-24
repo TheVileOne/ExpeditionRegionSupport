@@ -6,8 +6,8 @@ using LogUtils.Helpers;
 using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.Extensions;
 using LogUtils.Helpers.FileHandling;
-using LogUtils.Properties.Formatting;
 using LogUtils.Properties.Custom;
+using LogUtils.Properties.Formatting;
 using LogUtils.Requests;
 using LogUtils.Threading;
 using LogUtils.Timers;
@@ -29,7 +29,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// A prioritized order of process actions that must be applied to a message string before logging it to file 
         /// </summary>
-        public LogRuleCollection Rules = new LogRuleCollection();
+        public LogRuleCollection Rules = [];
 
         /// <summary>
         /// Events triggers at the start, or the end of a log session
@@ -61,7 +61,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// A list of persistent FileStreams known to be open for this log file
         /// </summary>
-        public List<PersistentLogFileHandle> PersistentStreamHandles = new List<PersistentLogFileHandle>();
+        public List<PersistentLogFileHandle> PersistentStreamHandles = [];
 
         /// <summary>
         /// Indicates that this instance was read from file, but one or more fields could not be processed
@@ -174,7 +174,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// List of targeted ConsoleIDs to send requests to when logging to file
         /// </summary>
-        public List<ConsoleID> ConsoleIDs = new List<ConsoleID>();
+        public List<ConsoleID> ConsoleIDs = [];
 
         public ManualLogSource LogSource
         {
@@ -575,7 +575,8 @@ namespace LogUtils.Properties
                             using (StreamWriter writer = new StreamWriter(stream))
                             {
                                 OnLogSessionFinish(new LogStreamEventArgs(logID, writer));
-                            };
+                            }
+                            ;
                         }
                     }
                 }
@@ -746,7 +747,7 @@ namespace LogUtils.Properties
 
         internal string[] GetFilenamesToCompare(CompareOptions compareOptions)
         {
-            List<string> compareStrings = new List<string>();
+            List<string> compareStrings = [];
 
             if ((compareOptions & CompareOptions.ID) != 0)
                 addString(_idValue);

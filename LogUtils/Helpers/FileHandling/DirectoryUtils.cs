@@ -34,7 +34,7 @@ namespace LogUtils.Helpers.FileHandling
 
         public static void Copy(string sourceDir, string destinationDir, bool recursive)
         {
-            List<string> failedToCopy = new List<string>();
+            List<string> failedToCopy = [];
 
             // Get information about the source directory
             DirectoryInfo dir = new DirectoryInfo(sourceDir);

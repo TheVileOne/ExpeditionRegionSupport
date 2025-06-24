@@ -6,7 +6,7 @@ namespace LogUtils
 {
     public static class BackupListener
     {
-        private static List<EventRecord> records = new List<EventRecord>();
+        private static List<EventRecord> records = [];
 
         private static EventFeed eventHandle;
 
@@ -60,7 +60,7 @@ namespace LogUtils
             /// <summary>
             /// A list of source paths for log backups created by other mods (use in case the file is no longer at the primary source path)
             /// </summary>
-            public ICollection<string> BackupPaths = new List<string>();
+            public ICollection<string> BackupPaths = [];
 
             public EventRecord(LogID logFile)
             {

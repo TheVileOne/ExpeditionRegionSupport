@@ -60,7 +60,7 @@ namespace LogUtils
         public GameLogger()
         {
             Validator = new GameRequestValidator(this);
-            ExpectedRequestCounter = new Dictionary<LogID, int>();
+            ExpectedRequestCounter = [];
         }
 
         /// <summary>

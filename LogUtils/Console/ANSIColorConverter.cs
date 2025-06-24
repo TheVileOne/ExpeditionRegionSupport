@@ -47,7 +47,6 @@ namespace LogUtils.Console
         /// </summary>
         public const string AnsiReset = "\x1b[0m";
 
-
         /// <summary>
         /// Sends color debug information to the console
         /// </summary>

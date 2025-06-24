@@ -19,7 +19,7 @@ namespace LogUtils.Compatibility.BepInEx.Listeners
         /// <summary>
         /// Stores LogUtils requests until they are able to be handled
         /// </summary>
-        private readonly List<LogRequest> utilityRequestsInProcess = new List<LogRequest>();
+        private readonly List<LogRequest> utilityRequestsInProcess = [];
 
         public DiskLogListener(ILogWriter writer)
         {
@@ -86,9 +86,10 @@ namespace LogUtils.Compatibility.BepInEx.Listeners
                 Task utilityRequestTask = new Task(() =>
                 {
                     logUtilityEvent(request);
-                }, retry_request_time);
-
-                utilityRequestTask.Name = UtilityConsts.UTILITY_NAME;
+                }, retry_request_time)
+                {
+                    Name = UtilityConsts.UTILITY_NAME
+                };
 
                 LogTasker.Schedule(utilityRequestTask);
                 return;

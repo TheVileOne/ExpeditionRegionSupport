@@ -15,9 +15,9 @@ namespace LogUtils.Timers
         /// <summary>
         /// Maintain a strong list of ScheduledEvents to prevent their associated FrameTimers from disposing
         /// </summary>
-        private List<ScheduledEvent> scheduledEvents = new List<ScheduledEvent>();
+        private List<ScheduledEvent> scheduledEvents = [];
 
-        internal WeakReferenceCollection<FrameTimer> Timers = new WeakReferenceCollection<FrameTimer>();
+        internal WeakReferenceCollection<FrameTimer> Timers = [];
 
         public override string Tag => UtilityConsts.ComponentTags.SCHEDULER;
 

@@ -15,7 +15,7 @@ namespace LogUtils.Helpers
             if (maxEntries <= 0)
                 return str.Split([Environment.NewLine], StringSplitOptions.None);
 
-            List<string> strings = new List<string>();
+            List<string> strings = [];
 
             int lineStart = 0, lineEnd;
             while (strings.Count < maxEntries && (lineEnd = str.IndexOf('\n', lineStart)) >= 0)
@@ -75,7 +75,7 @@ namespace LogUtils.Helpers
 
             if (str.EndsWith("\r\n"))
                 return str.Substring(0, str.Length - 2);
-            
+
             if (str.EndsWith("\n") || str.EndsWith("\r"))
                 return str.Substring(0, str.Length - 1);
             return str;

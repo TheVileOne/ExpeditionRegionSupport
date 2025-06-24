@@ -38,7 +38,7 @@ namespace LogUtils
         /// <summary>
         /// Does this handler register with the LogRequest system
         /// </summary>
-        bool AllowRegistration{ get; }
+        bool AllowRegistration { get; }
 
         /// <summary>
         /// Does this handler accept LogRequests of a specific log file and request type

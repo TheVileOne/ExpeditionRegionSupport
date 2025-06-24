@@ -40,9 +40,11 @@ namespace LogUtils.IPC
                     connectTask.Complete();
                     connectTask = null;
                 }
-            }, 1);
-            connectTask.Name = "ProcessMonitor";
-            connectTask.IsContinuous = true;
+            }, 1)
+            {
+                Name = "ProcessMonitor",
+                IsContinuous = true
+            };
 
             LogTasker.Schedule(connectTask);
         }

@@ -71,8 +71,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 #pragma warning restore IDE0055 //Fix formatting
 
                 //Collect entries for testing
-                List<ValuePair<LogID>> testEntries = new List<ValuePair<LogID>>()
-                {
+                List<ValuePair<LogID>> testEntries =
+                [
                     new ValuePair<LogID>(control, sameInstance),
                     new ValuePair<LogID>(control, sameLogNameDifferentReference),
                     new ValuePair<LogID>(control, sameLogNameDifferentFilePath),
@@ -80,7 +80,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
                     new ValuePair<LogID>(control, sameLogPathDifferentCase), //Doesn't pass
                     new ValuePair<LogID>(control, sameLogPathUsesPathKeyword),
                     new ValuePair<LogID>(control, notSameInstance)
-                };
+                ];
 
                 var resultEnumerator = testEntries.Select(entries => getTestResults(entries.A, entries.B)).GetEnumerator();
 

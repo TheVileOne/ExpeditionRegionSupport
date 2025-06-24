@@ -10,18 +10,15 @@ namespace LogUtils.Enums
         {
             get
             {
-                List<ILogTarget> collection = new List<ILogTarget>();
-
-                collection.AddRange(LogIDs);
-                collection.AddRange(ConsoleIDs);
+                List<ILogTarget> collection = [.. LogIDs, .. ConsoleIDs];
                 return collection;
             }
         }
 
         public int Count => LogIDs.Count + ConsoleIDs.Count;
 
-        public List<LogID> LogIDs = new List<LogID>();
-        public List<ConsoleID> ConsoleIDs = new List<ConsoleID>();
+        public List<LogID> LogIDs = [];
+        public List<ConsoleID> ConsoleIDs = [];
 
         /// <summary>
         /// Constructs a new target collection containing no targets

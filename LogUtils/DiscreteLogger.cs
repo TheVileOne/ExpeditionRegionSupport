@@ -7,6 +7,7 @@ namespace LogUtils
     /// </summary>
     public sealed class DiscreteLogger : Logger
     {
+        /// <inheritdoc/>
         public override bool AllowRemoteLogging => false;
 
         /// <summary>

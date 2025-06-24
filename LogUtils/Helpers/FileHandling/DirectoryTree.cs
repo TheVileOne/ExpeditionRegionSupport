@@ -66,7 +66,7 @@ namespace LogUtils.Helpers.FileHandling
             public DirectoryTreeNode(DirectoryTree source, string dirName)
             {
                 DirName = dirName;
-                Children = new List<DirectoryTreeNode>();
+                Children = [];
             }
 
             public DirectoryTreeNode AddNode(string childDirName)
@@ -97,8 +97,7 @@ namespace LogUtils.Helpers.FileHandling
                 //The root node cannot be separated from the directory tree
                 if (IsRoot) return;
 
-                if (Parent != null)
-                    Parent.Children.Remove(this);
+                Parent?.Children.Remove(this);
 
                 //Detaching from parent severs connection with root
                 InvalidateSource();

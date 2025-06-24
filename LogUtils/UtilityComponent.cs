@@ -22,7 +22,7 @@ namespace LogUtils
         /// </summary>
         public virtual Dictionary<string, object> GetFields()
         {
-            Dictionary<string, object> fieldDictionary = new Dictionary<string, object>();
+            Dictionary<string, object> fieldDictionary = [];
 
             fieldDictionary[nameof(Tag)] = Tag;
             fieldDictionary[nameof(Version)] = Version;

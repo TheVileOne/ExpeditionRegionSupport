@@ -83,6 +83,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareObject">The value to compare to</param>
         public static Condition<T> IsEqualTo<T>(this Condition<T> condition, T compareObject)
         {
@@ -120,6 +121,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareObject">The value to compare to</param>
         public static Condition<T> IsEqualTo<T>(this Condition<T> condition, T? compareObject) where T : struct
         {
@@ -138,6 +140,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareObject">The value to compare to</param>
         public static Condition<T?> IsEqualTo<T>(this Condition<T?> condition, T? compareObject) where T : struct
         {
@@ -173,6 +176,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be not equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareObject">The value to compare to</param>
         public static Condition<T> DoesNotEqual<T>(this Condition<T> condition, T compareObject)
         {
@@ -210,6 +214,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be not equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareObject">The value to compare to</param>
         public static Condition<T> DoesNotEqual<T>(this Condition<T> condition, T? compareObject) where T : struct
         {
@@ -228,6 +233,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be not equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareObject">The value to compare to</param>
         public static Condition<T?> DoesNotEqual<T>(this Condition<T?> condition, T? compareObject) where T : struct
         {
@@ -263,6 +269,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target object refers to the same object as a specified object
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareObject">The object to compare to</param>
         public static Condition<T> IsSameInstance<T>(this Condition<T> condition, T compareObject) where T : class
         {
@@ -278,6 +285,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target object refers to a different object than a specified object
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareObject">The object to compare to</param>
         public static Condition<T> IsNotThisInstance<T>(this Condition<T> condition, T compareObject) where T : class
         {
@@ -485,6 +493,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<IComparable<T>> IsEqualTo<T>(this Condition<IComparable<T>> condition, T compareValue)
         {
@@ -520,6 +529,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<sbyte> IsGreaterThan(this Condition<sbyte> condition, sbyte compareValue)
         {
@@ -533,6 +543,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<sbyte> IsGreaterThanOrEqualTo(this Condition<sbyte> condition, sbyte compareValue)
         {
@@ -546,6 +557,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<sbyte> IsLessThan(this Condition<sbyte> condition, sbyte compareValue)
         {
@@ -559,6 +571,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<sbyte> IsLessThanOrEqualTo(this Condition<sbyte> condition, sbyte compareValue)
         {
@@ -572,6 +585,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be in a given interval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         public static Condition<sbyte> IsBetween(this Condition<sbyte> condition, sbyte minimum, sbyte maximum)
@@ -646,6 +660,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<byte> IsGreaterThan(this Condition<byte> condition, byte compareValue)
         {
@@ -659,6 +674,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<byte> IsGreaterThanOrEqualTo(this Condition<byte> condition, byte compareValue)
         {
@@ -672,6 +688,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<byte> IsLessThan(this Condition<byte> condition, byte compareValue)
         {
@@ -685,6 +702,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<byte> IsLessThanOrEqualTo(this Condition<byte> condition, byte compareValue)
         {
@@ -698,6 +716,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be in a given interval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         public static Condition<byte> IsBetween(this Condition<byte> condition, byte minimum, byte maximum)
@@ -772,6 +791,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<short> IsGreaterThan(this Condition<short> condition, short compareValue)
         {
@@ -785,6 +805,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<short> IsGreaterThanOrEqualTo(this Condition<short> condition, short compareValue)
         {
@@ -798,6 +819,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<short> IsLessThan(this Condition<short> condition, short compareValue)
         {
@@ -811,6 +833,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<short> IsLessThanOrEqualTo(this Condition<short> condition, short compareValue)
         {
@@ -824,6 +847,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be in a given interval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         public static Condition<short> IsBetween(this Condition<short> condition, short minimum, short maximum)
@@ -898,6 +922,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ushort> IsGreaterThan(this Condition<ushort> condition, ushort compareValue)
         {
@@ -911,6 +936,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ushort> IsGreaterThanOrEqualTo(this Condition<ushort> condition, ushort compareValue)
         {
@@ -924,6 +950,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ushort> IsLessThan(this Condition<ushort> condition, ushort compareValue)
         {
@@ -937,6 +964,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ushort> IsLessThanOrEqualTo(this Condition<ushort> condition, ushort compareValue)
         {
@@ -950,6 +978,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be in a given interval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         public static Condition<ushort> IsBetween(this Condition<ushort> condition, ushort minimum, ushort maximum)
@@ -1024,6 +1053,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<int> IsGreaterThan(this Condition<int> condition, int compareValue)
         {
@@ -1037,6 +1067,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<int> IsGreaterThanOrEqualTo(this Condition<int> condition, int compareValue)
         {
@@ -1050,6 +1081,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<int> IsLessThan(this Condition<int> condition, int compareValue)
         {
@@ -1063,6 +1095,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<int> IsLessThanOrEqualTo(this Condition<int> condition, int compareValue)
         {
@@ -1076,6 +1109,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be in a given interval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         public static Condition<int> IsBetween(this Condition<int> condition, int minimum, int maximum)
@@ -1150,6 +1184,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<uint> IsGreaterThan(this Condition<uint> condition, uint compareValue)
         {
@@ -1163,6 +1198,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<uint> IsGreaterThanOrEqualTo(this Condition<uint> condition, uint compareValue)
         {
@@ -1176,6 +1212,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<uint> IsLessThan(this Condition<uint> condition, uint compareValue)
         {
@@ -1189,6 +1226,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<uint> IsLessThanOrEqualTo(this Condition<uint> condition, uint compareValue)
         {
@@ -1202,6 +1240,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be in a given interval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         public static Condition<uint> IsBetween(this Condition<uint> condition, uint minimum, uint maximum)
@@ -1276,6 +1315,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<long> IsGreaterThan(this Condition<long> condition, long compareValue)
         {
@@ -1289,6 +1329,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<long> IsGreaterThanOrEqualTo(this Condition<long> condition, long compareValue)
         {
@@ -1302,6 +1343,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<long> IsLessThan(this Condition<long> condition, long compareValue)
         {
@@ -1315,6 +1357,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<long> IsLessThanOrEqualTo(this Condition<long> condition, long compareValue)
         {
@@ -1328,6 +1371,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be in a given interval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         public static Condition<long> IsBetween(this Condition<long> condition, long minimum, long maximum)
@@ -1402,6 +1446,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ulong> IsGreaterThan(this Condition<ulong> condition, ulong compareValue)
         {
@@ -1415,6 +1460,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ulong> IsGreaterThanOrEqualTo(this Condition<ulong> condition, ulong compareValue)
         {
@@ -1428,6 +1474,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ulong> IsLessThan(this Condition<ulong> condition, ulong compareValue)
         {
@@ -1441,6 +1488,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ulong> IsLessThanOrEqualTo(this Condition<ulong> condition, ulong compareValue)
         {
@@ -1454,6 +1502,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be in a given interval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         public static Condition<ulong> IsBetween(this Condition<ulong> condition, ulong minimum, ulong maximum)
@@ -1528,6 +1577,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<float> IsGreaterThan(this Condition<float> condition, float compareValue)
         {
@@ -1541,6 +1591,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<float> IsGreaterThanOrEqualTo(this Condition<float> condition, float compareValue)
         {
@@ -1554,6 +1605,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<float> IsLessThan(this Condition<float> condition, float compareValue)
         {
@@ -1567,6 +1619,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<float> IsLessThanOrEqualTo(this Condition<float> condition, float compareValue)
         {
@@ -1580,6 +1633,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be in a given interval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         public static Condition<float> IsBetween(this Condition<float> condition, float minimum, float maximum)
@@ -1654,6 +1708,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<double> IsGreaterThan(this Condition<double> condition, double compareValue)
         {
@@ -1667,6 +1722,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<double> IsGreaterThanOrEqualTo(this Condition<double> condition, double compareValue)
         {
@@ -1680,6 +1736,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<double> IsLessThan(this Condition<double> condition, double compareValue)
         {
@@ -1693,6 +1750,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<double> IsLessThanOrEqualTo(this Condition<double> condition, double compareValue)
         {
@@ -1706,6 +1764,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be in a given interval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         public static Condition<double> IsBetween(this Condition<double> condition, double minimum, double maximum)
@@ -1780,6 +1839,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<decimal> IsGreaterThan(this Condition<decimal> condition, decimal compareValue)
         {
@@ -1793,6 +1853,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<decimal> IsGreaterThanOrEqualTo(this Condition<decimal> condition, decimal compareValue)
         {
@@ -1806,6 +1867,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<decimal> IsLessThan(this Condition<decimal> condition, decimal compareValue)
         {
@@ -1819,6 +1881,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<decimal> IsLessThanOrEqualTo(this Condition<decimal> condition, decimal compareValue)
         {
@@ -1832,6 +1895,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be in a given interval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         public static Condition<decimal> IsBetween(this Condition<decimal> condition, decimal minimum, decimal maximum)
@@ -1907,6 +1971,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<sbyte?> IsGreaterThan(this Condition<sbyte?> condition, sbyte? compareValue)
         {
@@ -1920,6 +1985,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<sbyte?> IsGreaterThanOrEqualTo(this Condition<sbyte?> condition, sbyte? compareValue)
         {
@@ -1933,6 +1999,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<sbyte?> IsLessThan(this Condition<sbyte?> condition, sbyte? compareValue)
         {
@@ -1946,6 +2013,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<sbyte?> IsLessThanOrEqualTo(this Condition<sbyte?> condition, sbyte? compareValue)
         {
@@ -1959,6 +2027,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be in a given interval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         public static Condition<sbyte?> IsBetween(this Condition<sbyte?> condition, sbyte minimum, sbyte maximum)
@@ -2033,6 +2102,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<byte?> IsGreaterThan(this Condition<byte?> condition, byte? compareValue)
         {
@@ -2046,6 +2116,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<byte?> IsGreaterThanOrEqualTo(this Condition<byte?> condition, byte? compareValue)
         {
@@ -2059,6 +2130,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<byte?> IsLessThan(this Condition<byte?> condition, byte? compareValue)
         {
@@ -2072,6 +2144,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<byte?> IsLessThanOrEqualTo(this Condition<byte?> condition, byte? compareValue)
         {
@@ -2085,6 +2158,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be in a given interval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         public static Condition<byte?> IsBetween(this Condition<byte?> condition, byte minimum, byte maximum)
@@ -2159,6 +2233,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<short?> IsGreaterThan(this Condition<short?> condition, short? compareValue)
         {
@@ -2172,6 +2247,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<short?> IsGreaterThanOrEqualTo(this Condition<short?> condition, short? compareValue)
         {
@@ -2185,6 +2261,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<short?> IsLessThan(this Condition<short?> condition, short? compareValue)
         {
@@ -2198,6 +2275,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<short?> IsLessThanOrEqualTo(this Condition<short?> condition, short? compareValue)
         {
@@ -2211,6 +2289,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be in a given interval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         public static Condition<short?> IsBetween(this Condition<short?> condition, short minimum, short maximum)
@@ -2285,6 +2364,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ushort?> IsGreaterThan(this Condition<ushort?> condition, ushort? compareValue)
         {
@@ -2298,6 +2378,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ushort?> IsGreaterThanOrEqualTo(this Condition<ushort?> condition, ushort? compareValue)
         {
@@ -2311,6 +2392,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ushort?> IsLessThan(this Condition<ushort?> condition, ushort? compareValue)
         {
@@ -2324,6 +2406,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ushort?> IsLessThanOrEqualTo(this Condition<ushort?> condition, ushort? compareValue)
         {
@@ -2337,6 +2420,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be in a given interval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         public static Condition<ushort?> IsBetween(this Condition<ushort?> condition, ushort minimum, ushort maximum)
@@ -2411,6 +2495,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<int?> IsGreaterThan(this Condition<int?> condition, int? compareValue)
         {
@@ -2424,6 +2509,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<int?> IsGreaterThanOrEqualTo(this Condition<int?> condition, int? compareValue)
         {
@@ -2437,6 +2523,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<int?> IsLessThan(this Condition<int?> condition, int? compareValue)
         {
@@ -2450,6 +2537,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<int?> IsLessThanOrEqualTo(this Condition<int?> condition, int? compareValue)
         {
@@ -2463,6 +2551,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be in a given int?erval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         public static Condition<int?> IsBetween(this Condition<int?> condition, int minimum, int maximum)
@@ -2537,6 +2626,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<uint?> IsGreaterThan(this Condition<uint?> condition, uint? compareValue)
         {
@@ -2550,6 +2640,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<uint?> IsGreaterThanOrEqualTo(this Condition<uint?> condition, uint? compareValue)
         {
@@ -2563,6 +2654,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<uint?> IsLessThan(this Condition<uint?> condition, uint? compareValue)
         {
@@ -2576,6 +2668,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<uint?> IsLessThanOrEqualTo(this Condition<uint?> condition, uint? compareValue)
         {
@@ -2589,6 +2682,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be in a given int?erval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         public static Condition<uint?> IsBetween(this Condition<uint?> condition, uint minimum, uint maximum)
@@ -2663,6 +2757,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<long?> IsGreaterThan(this Condition<long?> condition, long? compareValue)
         {
@@ -2676,6 +2771,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<long?> IsGreaterThanOrEqualTo(this Condition<long?> condition, long? compareValue)
         {
@@ -2689,6 +2785,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<long?> IsLessThan(this Condition<long?> condition, long? compareValue)
         {
@@ -2702,6 +2799,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<long?> IsLessThanOrEqualTo(this Condition<long?> condition, long? compareValue)
         {
@@ -2715,6 +2813,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be in a given interval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         public static Condition<long?> IsBetween(this Condition<long?> condition, long minimum, long maximum)
@@ -2789,6 +2888,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ulong?> IsGreaterThan(this Condition<ulong?> condition, ulong? compareValue)
         {
@@ -2802,6 +2902,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ulong?> IsGreaterThanOrEqualTo(this Condition<ulong?> condition, ulong? compareValue)
         {
@@ -2815,6 +2916,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ulong?> IsLessThan(this Condition<ulong?> condition, ulong? compareValue)
         {
@@ -2828,6 +2930,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ulong?> IsLessThanOrEqualTo(this Condition<ulong?> condition, ulong? compareValue)
         {
@@ -2841,6 +2944,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be in a given interval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         public static Condition<ulong?> IsBetween(this Condition<ulong?> condition, ulong minimum, ulong maximum)
@@ -2915,6 +3019,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<float?> IsGreaterThan(this Condition<float?> condition, float? compareValue)
         {
@@ -2928,6 +3033,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<float?> IsGreaterThanOrEqualTo(this Condition<float?> condition, float? compareValue)
         {
@@ -2941,6 +3047,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<float?> IsLessThan(this Condition<float?> condition, float? compareValue)
         {
@@ -2954,6 +3061,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<float?> IsLessThanOrEqualTo(this Condition<float?> condition, float? compareValue)
         {
@@ -2967,6 +3075,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be in a given interval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         public static Condition<float?> IsBetween(this Condition<float?> condition, float minimum, float maximum)
@@ -3041,6 +3150,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<double?> IsGreaterThan(this Condition<double?> condition, double? compareValue)
         {
@@ -3054,6 +3164,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<double?> IsGreaterThanOrEqualTo(this Condition<double?> condition, double? compareValue)
         {
@@ -3067,6 +3178,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<double?> IsLessThan(this Condition<double?> condition, double? compareValue)
         {
@@ -3080,6 +3192,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<double?> IsLessThanOrEqualTo(this Condition<double?> condition, double? compareValue)
         {
@@ -3093,6 +3206,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be in a given interval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         public static Condition<double?> IsBetween(this Condition<double?> condition, double minimum, double maximum)
@@ -3167,6 +3281,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<decimal?> IsGreaterThan(this Condition<decimal?> condition, decimal? compareValue)
         {
@@ -3180,6 +3295,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<decimal?> IsGreaterThanOrEqualTo(this Condition<decimal?> condition, decimal? compareValue)
         {
@@ -3193,6 +3309,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<decimal?> IsLessThan(this Condition<decimal?> condition, decimal? compareValue)
         {
@@ -3206,6 +3323,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<decimal?> IsLessThanOrEqualTo(this Condition<decimal?> condition, decimal? compareValue)
         {
@@ -3219,6 +3337,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be in a given interval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         public static Condition<decimal?> IsBetween(this Condition<decimal?> condition, decimal minimum, decimal maximum)
@@ -3294,6 +3413,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<sbyte> IsGreaterThan(this Condition<sbyte> condition, sbyte? compareValue)
         {
@@ -3307,6 +3427,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<sbyte> IsGreaterThanOrEqualTo(this Condition<sbyte> condition, sbyte? compareValue)
         {
@@ -3320,6 +3441,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<sbyte> IsLessThan(this Condition<sbyte> condition, sbyte? compareValue)
         {
@@ -3333,6 +3455,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<sbyte> IsLessThanOrEqualTo(this Condition<sbyte> condition, sbyte? compareValue)
         {
@@ -3346,6 +3469,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<byte> IsGreaterThan(this Condition<byte> condition, byte? compareValue)
         {
@@ -3359,6 +3483,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<byte> IsGreaterThanOrEqualTo(this Condition<byte> condition, byte? compareValue)
         {
@@ -3372,6 +3497,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<byte> IsLessThan(this Condition<byte> condition, byte? compareValue)
         {
@@ -3385,6 +3511,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<byte> IsLessThanOrEqualTo(this Condition<byte> condition, byte? compareValue)
         {
@@ -3398,6 +3525,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<short> IsGreaterThan(this Condition<short> condition, short? compareValue)
         {
@@ -3411,6 +3539,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<short> IsGreaterThanOrEqualTo(this Condition<short> condition, short? compareValue)
         {
@@ -3424,6 +3553,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<short> IsLessThan(this Condition<short> condition, short? compareValue)
         {
@@ -3437,6 +3567,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<short> IsLessThanOrEqualTo(this Condition<short> condition, short? compareValue)
         {
@@ -3450,6 +3581,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ushort> IsGreaterThan(this Condition<ushort> condition, ushort? compareValue)
         {
@@ -3463,6 +3595,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ushort> IsGreaterThanOrEqualTo(this Condition<ushort> condition, ushort? compareValue)
         {
@@ -3476,6 +3609,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ushort> IsLessThan(this Condition<ushort> condition, ushort? compareValue)
         {
@@ -3489,6 +3623,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ushort> IsLessThanOrEqualTo(this Condition<ushort> condition, ushort? compareValue)
         {
@@ -3502,6 +3637,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<int> IsGreaterThan(this Condition<int> condition, int? compareValue)
         {
@@ -3515,6 +3651,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<int> IsGreaterThanOrEqualTo(this Condition<int> condition, int? compareValue)
         {
@@ -3528,6 +3665,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<int> IsLessThan(this Condition<int> condition, int? compareValue)
         {
@@ -3541,6 +3679,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<int> IsLessThanOrEqualTo(this Condition<int> condition, int? compareValue)
         {
@@ -3554,6 +3693,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<uint> IsGreaterThan(this Condition<uint> condition, uint? compareValue)
         {
@@ -3567,6 +3707,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<uint> IsGreaterThanOrEqualTo(this Condition<uint> condition, uint? compareValue)
         {
@@ -3580,6 +3721,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<uint> IsLessThan(this Condition<uint> condition, uint? compareValue)
         {
@@ -3593,6 +3735,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<uint> IsLessThanOrEqualTo(this Condition<uint> condition, uint? compareValue)
         {
@@ -3606,6 +3749,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<long> IsGreaterThan(this Condition<long> condition, long? compareValue)
         {
@@ -3619,6 +3763,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<long> IsGreaterThanOrEqualTo(this Condition<long> condition, long? compareValue)
         {
@@ -3632,6 +3777,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<long> IsLessThan(this Condition<long> condition, long? compareValue)
         {
@@ -3645,6 +3791,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<long> IsLessThanOrEqualTo(this Condition<long> condition, long? compareValue)
         {
@@ -3658,6 +3805,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ulong> IsGreaterThan(this Condition<ulong> condition, ulong? compareValue)
         {
@@ -3671,6 +3819,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ulong> IsGreaterThanOrEqualTo(this Condition<ulong> condition, ulong? compareValue)
         {
@@ -3684,6 +3833,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ulong> IsLessThan(this Condition<ulong> condition, ulong? compareValue)
         {
@@ -3697,6 +3847,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<ulong> IsLessThanOrEqualTo(this Condition<ulong> condition, ulong? compareValue)
         {
@@ -3710,6 +3861,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<float> IsGreaterThan(this Condition<float> condition, float? compareValue)
         {
@@ -3723,6 +3875,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<float> IsGreaterThanOrEqualTo(this Condition<float> condition, float? compareValue)
         {
@@ -3736,6 +3889,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<float> IsLessThan(this Condition<float> condition, float? compareValue)
         {
@@ -3749,6 +3903,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<float> IsLessThanOrEqualTo(this Condition<float> condition, float? compareValue)
         {
@@ -3762,6 +3917,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<double> IsGreaterThan(this Condition<double> condition, double? compareValue)
         {
@@ -3775,6 +3931,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<double> IsGreaterThanOrEqualTo(this Condition<double> condition, double? compareValue)
         {
@@ -3788,6 +3945,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<double> IsLessThan(this Condition<double> condition, double? compareValue)
         {
@@ -3801,6 +3959,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<double> IsLessThanOrEqualTo(this Condition<double> condition, double? compareValue)
         {
@@ -3814,6 +3973,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<decimal> IsGreaterThan(this Condition<decimal> condition, decimal? compareValue)
         {
@@ -3827,6 +3987,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<decimal> IsGreaterThanOrEqualTo(this Condition<decimal> condition, decimal? compareValue)
         {
@@ -3840,6 +4001,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<decimal> IsLessThan(this Condition<decimal> condition, decimal? compareValue)
         {
@@ -3853,6 +4015,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         public static Condition<decimal> IsLessThanOrEqualTo(this Condition<decimal> condition, decimal? compareValue)
         {
@@ -3938,6 +4101,7 @@ namespace LogUtils.Diagnostics
         /// Asserts a condition by invoking a delegate using specified values as arguments
         /// </summary>
         /// <param name="conditionArg">Condition argument for delegate</param>
+        /// <param name="conditionDelegate"></param>
         /// <param name="condition">Delegate that evaluates a condition</param>
         /// <param name="criteria">The expected state of the condition</param>
         public static Condition<T> EvaluateCondition<T>(this Condition<T> condition, T conditionArg, Func<T, bool> conditionDelegate, EvaluationCriteria criteria)
@@ -3952,6 +4116,7 @@ namespace LogUtils.Diagnostics
         /// </summary>
         /// <param name="firstArg">First condition argument</param>
         /// <param name="secondArg">Second condition argument</param>
+        /// <param name="conditionDelegate"></param>
         /// <param name="condition">Delegate that evaluates a condition</param>
         /// <param name="criteria">The expected state of the condition</param>
         public static Condition<T> EvaluateCondition<T>(this Condition<T> condition, T firstArg, T secondArg, Func<T, T, bool> conditionDelegate, EvaluationCriteria criteria)
@@ -3964,6 +4129,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Asserts a condition by dynamically invoking a delegate
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="dynamicCondition">Delegate that evaluates a condition (must return a Boolean)</param>
         /// <param name="criteria">The expected state of the condition</param>
         /// <param name="dynamicParams">Parameters for evaluating a condition</param>
@@ -4019,6 +4185,7 @@ namespace LogUtils.Diagnostics
             /// <summary>
             /// Asserts that the target value must be greater than a specified value
             /// </summary>
+            /// <param name="condition"></param>
             /// <param name="compareValue">The value to compare to</param>
             public static Condition<T> IsGreaterThan<T>(this Condition<T> condition, T compareValue) where T : IComparable<T>
             {
@@ -4032,6 +4199,7 @@ namespace LogUtils.Diagnostics
             /// <summary>
             /// Asserts that the target value must be greater than or equal to a specified value
             /// </summary>
+            /// <param name="condition"></param>
             /// <param name="compareValue">The value to compare to</param>
             public static Condition<T> IsGreaterThanOrEqualTo<T>(this Condition<T> condition, T compareValue) where T : IComparable<T>
             {
@@ -4045,6 +4213,7 @@ namespace LogUtils.Diagnostics
             /// <summary>
             /// Asserts that the target value must be less than a specified value
             /// </summary>
+            /// <param name="condition"></param>
             /// <param name="compareValue">The value to compare to</param>
             public static Condition<T> IsLessThan<T>(this Condition<T> condition, T compareValue) where T : IComparable<T>
             {
@@ -4058,6 +4227,7 @@ namespace LogUtils.Diagnostics
             /// <summary>
             /// Asserts that the target value must be less than or equal to a specified value
             /// </summary>
+            /// <param name="condition"></param>
             /// <param name="compareValue">The value to compare to</param>
             public static Condition<T> IsLessThanOrEqualTo<T>(this Condition<T> condition, T compareValue) where T : IComparable<T>
             {
@@ -4071,6 +4241,7 @@ namespace LogUtils.Diagnostics
             /// <summary>
             /// Asserts that the target value must be in a given interval
             /// </summary>
+            /// <param name="condition"></param>
             /// <param name="minimum">The lower bound</param>
             /// <param name="maximum">The upper bound</param>
             public static Condition<T> IsBetween<T>(this Condition<T> condition, T minimum, T maximum) where T : IComparable<T>

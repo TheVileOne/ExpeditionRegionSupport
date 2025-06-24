@@ -10,6 +10,7 @@ namespace LogUtils.Diagnostics.Extensions
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         internal static void MustBeGreaterThan<T>(ref Condition<T> condition, T compareValue) where T : IComparable<T>
         {
@@ -25,6 +26,7 @@ namespace LogUtils.Diagnostics.Extensions
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         internal static void MustBeGreaterThanOrEqualTo<T>(ref Condition<T> condition, T compareValue) where T : IComparable<T>
         {
@@ -40,6 +42,7 @@ namespace LogUtils.Diagnostics.Extensions
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         internal static void MustBeLessThan<T>(ref Condition<T> condition, T compareValue) where T : IComparable<T>
         {
@@ -55,6 +58,7 @@ namespace LogUtils.Diagnostics.Extensions
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         internal static void MustBeLessThanOrEqualTo<T>(ref Condition<T> condition, T compareValue) where T : IComparable<T>
         {
@@ -70,6 +74,7 @@ namespace LogUtils.Diagnostics.Extensions
         /// <summary>
         /// Asserts that the target value must be in a given interval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         internal static void MustBeBetween<T>(ref Condition<T> condition, T minimum, T maximum) where T : IComparable<T>
@@ -167,6 +172,7 @@ namespace LogUtils.Diagnostics.Extensions
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         internal static void MustBeGreaterThan<T>(ref Condition<T> condition, T? compareValue) where T : struct, IComparable<T>
         {
@@ -188,6 +194,7 @@ namespace LogUtils.Diagnostics.Extensions
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         internal static void MustBeGreaterThanOrEqualTo<T>(ref Condition<T> condition, T? compareValue) where T : struct, IComparable<T>
         {
@@ -209,6 +216,7 @@ namespace LogUtils.Diagnostics.Extensions
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         internal static void MustBeLessThan<T>(ref Condition<T> condition, T? compareValue) where T : struct, IComparable<T>
         {
@@ -230,6 +238,7 @@ namespace LogUtils.Diagnostics.Extensions
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         internal static void MustBeLessThanOrEqualTo<T>(ref Condition<T> condition, T? compareValue) where T : struct, IComparable<T>
         {
@@ -251,6 +260,7 @@ namespace LogUtils.Diagnostics.Extensions
         /// <summary>
         /// Asserts that the target value must be greater than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         internal static void MustBeGreaterThan<T>(ref Condition<T?> condition, T? compareValue) where T : struct, IComparable<T>
         {
@@ -272,6 +282,7 @@ namespace LogUtils.Diagnostics.Extensions
         /// <summary>
         /// Asserts that the target value must be greater than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         internal static void MustBeGreaterThanOrEqualTo<T>(ref Condition<T?> condition, T? compareValue) where T : struct, IComparable<T>
         {
@@ -297,6 +308,7 @@ namespace LogUtils.Diagnostics.Extensions
         /// <summary>
         /// Asserts that the target value must be less than a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         internal static void MustBeLessThan<T>(ref Condition<T?> condition, T? compareValue) where T : struct, IComparable<T>
         {
@@ -318,6 +330,7 @@ namespace LogUtils.Diagnostics.Extensions
         /// <summary>
         /// Asserts that the target value must be less than or equal to a specified value
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="compareValue">The value to compare to</param>
         internal static void MustBeLessThanOrEqualTo<T>(ref Condition<T?> condition, T? compareValue) where T : struct, IComparable<T>
         {
@@ -343,6 +356,7 @@ namespace LogUtils.Diagnostics.Extensions
         /// <summary>
         /// Asserts that the target value must be in a given interval
         /// </summary>
+        /// <param name="condition"></param>
         /// <param name="minimum">The lower bound</param>
         /// <param name="maximum">The upper bound</param>
         internal static void MustBeBetween<T>(ref Condition<T?> condition, T minimum, T maximum) where T : struct, IComparable<T>

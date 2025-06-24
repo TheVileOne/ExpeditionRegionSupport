@@ -65,7 +65,7 @@ namespace LogUtils.Diagnostics.Tests
             }
         }
 
-        protected List<TestCase> Cases = new List<TestCase>();
+        protected List<TestCase> Cases = [];
 
         public int Count => Cases.Count;
 

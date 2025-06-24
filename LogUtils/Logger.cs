@@ -23,11 +23,13 @@ namespace LogUtils
         /// </summary>
         public virtual bool AllowRemoteLogging { get; set; } = true;
 
+        /// <inheritdoc/>
         public virtual bool AllowRegistration => !IsDisposed;
 
         IEnumerable<LogID> ILogFileHandler.AvailableTargets => LogTargets.ToArray();
 
-        protected LogTargetCollection Targets = new LogTargetCollection();
+        protected LogTargetCollection         /// <inheritdoc/>
+Targets = new LogTargetCollection();
 
         /// <summary>
         /// Contains a list of LogIDs (both local and remote) that will be handled in the case of an untargeted log request
@@ -49,7 +51,8 @@ namespace LogUtils
         /// </summary>
         public LoggerRestorePoint RestorePoint;
 
-        public IRequestValidator Validator;
+        public IRequestValidator         /// <inheritdoc/>
+Validator;
 
         /// <summary>
         /// Writer implementation (responsible for writing to file, or storing messages in the message buffer)
@@ -151,6 +154,7 @@ namespace LogUtils
                 UtilityCore.RequestHandler.Register(this);
         }
 
+        /// <inheritdoc/>
         public void SetWriter(LoggingMode writeMode)
         {
             switch (writeMode)
@@ -176,11 +180,13 @@ namespace LogUtils
         #endregion
         #region Restore Points
 
+        /// <inheritdoc/>
         public void SetRestorePoint()
         {
             RestorePoint = new LoggerRestorePoint(this);
         }
 
+        /// <inheritdoc/>
         public void RestoreState()
         {
             AllowLogging = RestorePoint.AllowLogging;
@@ -196,46 +202,55 @@ namespace LogUtils
 
         #region Log Overloads (object)
 
+        /// <inheritdoc/>
         public void Log(object data)
         {
             Log(LogCategory.Default, data);
         }
 
+        /// <inheritdoc/>
         public void LogOnce(object data)
         {
             LogOnce(LogCategory.Default, data);
         }
 
+        /// <inheritdoc/>
         public void LogDebug(object data)
         {
             Log(LogCategory.Debug, data);
         }
 
+        /// <inheritdoc/>
         public void LogInfo(object data)
         {
             Log(LogCategory.Info, data);
         }
 
+        /// <inheritdoc/>
         public void LogImportant(object data)
         {
             Log(LogCategory.Important, data);
         }
 
+        /// <inheritdoc/>
         public void LogMessage(object data)
         {
             Log(LogCategory.Message, data);
         }
 
+        /// <inheritdoc/>
         public void LogWarning(object data)
         {
             Log(LogCategory.Warning, data);
         }
 
+        /// <inheritdoc/>
         public void LogError(object data)
         {
             Log(LogCategory.Error, data);
         }
 
+        /// <inheritdoc/>
         public void LogFatal(object data)
         {
             Log(LogCategory.Fatal, data);
@@ -243,54 +258,64 @@ namespace LogUtils
 
         #region Base log overloads
         #region BepInEx
+        /// <inheritdoc/>
         public void LogBepEx(object data)
         {
             LogData(LogID.BepInEx, LogCategory.Default, data, false);
         }
 
+        /// <inheritdoc/>
         public void LogBepEx(LogLevel category, object data)
         {
             LogData(LogID.BepInEx, LogCategory.ToCategory(category), data, false);
         }
 
+        /// <inheritdoc/>
         public void LogBepEx(LogCategory category, object data)
         {
             LogData(LogID.BepInEx, category, data, false);
         }
         #endregion
         #region Unity
+        /// <inheritdoc/>
         public void LogUnity(object data)
         {
             LogData(LogID.Unity, LogCategory.Default, data, false);
         }
 
+        /// <inheritdoc/>
         public void LogUnity(LogType category, object data)
         {
             LogData(LogCategory.GetUnityLogID(category), LogCategory.ToCategory(category), data, false);
         }
 
+        /// <inheritdoc/>
         public void LogUnity(LogCategory category, object data)
         {
             LogData(LogCategory.GetUnityLogID(category.UnityCategory), category, data, false);
         }
         #endregion
         #region Expedition
+        /// <inheritdoc/>
         public void LogExp(object data)
         {
             LogData(LogID.Expedition, LogCategory.Default, data, false);
         }
 
+        /// <inheritdoc/>
         public void LogExp(LogCategory category, object data)
         {
             LogData(LogID.Expedition, category, data, false);
         }
         #endregion
         #region JollyCoop
+        /// <inheritdoc/>
         public void LogJolly(object data)
         {
             LogData(LogID.JollyCoop, LogCategory.Default, data, false);
         }
 
+        /// <inheritdoc/>
         public void LogJolly(LogCategory category, object data)
         {
             LogData(LogID.JollyCoop, category, data, false);
@@ -298,41 +323,49 @@ namespace LogUtils
         #endregion
         #endregion
 
+        /// <inheritdoc/>
         public void Log(LogType category, object data)
         {
             Log(LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc/>
         public void Log(LogLevel category, object data)
         {
             Log(LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc/>
         public void Log(string category, object data)
         {
             Log(LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc/>
         public void Log(LogCategory category, object data)
         {
             LogData(Targets, category, data, false);
         }
 
+        /// <inheritdoc/>
         public void LogOnce(LogType category, object data)
         {
             LogOnce(LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc/>
         public void LogOnce(LogLevel category, object data)
         {
             LogOnce(LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc/>
         public void LogOnce(string category, object data)
         {
             LogOnce(LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc/>
         public void LogOnce(LogCategory category, object data)
         {
             LogData(Targets, category, data, true);
@@ -341,66 +374,79 @@ namespace LogUtils
         #endregion
         #region  Log Overloads (LogID, object)
 
+        /// <inheritdoc/>
         public void Log(ILogTarget target, object data)
         {
             Log(target, LogCategory.Default, data);
         }
 
+        /// <inheritdoc/>
         public void LogOnce(ILogTarget target, object data)
         {
             Log(target, LogCategory.Default, data);
         }
 
+        /// <inheritdoc/>
         public void LogDebug(ILogTarget target, object data)
         {
             Log(target, LogCategory.Debug, data);
         }
 
+        /// <inheritdoc/>
         public void LogInfo(ILogTarget target, object data)
         {
             Log(target, LogCategory.Info, data);
         }
 
+        /// <inheritdoc/>
         public void LogImportant(ILogTarget target, object data)
         {
             Log(target, LogCategory.Important, data);
         }
 
+        /// <inheritdoc/>
         public void LogMessage(ILogTarget target, object data)
         {
             Log(target, LogCategory.Message, data);
         }
 
+        /// <inheritdoc/>
         public void LogWarning(ILogTarget target, object data)
         {
             Log(target, LogCategory.Warning, data);
         }
 
+        /// <inheritdoc/>
         public void LogError(ILogTarget target, object data)
         {
             Log(target, LogCategory.Error, data);
         }
 
+        /// <inheritdoc/>
         public void LogFatal(ILogTarget target, object data)
         {
             Log(target, LogCategory.Fatal, data);
         }
 
+        /// <inheritdoc/>
         public void Log(ILogTarget target, LogLevel category, object data)
         {
             Log(target, LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc/>
         public void Log(ILogTarget target, string category, object data)
         {
             Log(target, LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc/>
         public void Log(ILogTarget target, LogCategory category, object data)
         {
             LogData(target, category, data, false);
         }
 
+        /// <inheritdoc/>
         public void LogOnce(ILogTarget target, LogCategory category, object data)
         {
             LogData(target, category, data, true);
@@ -409,82 +455,98 @@ namespace LogUtils
         #endregion
         #region  Log Overloads (IEnumerable<LogID>, object)
 
+        /// <inheritdoc/>
         public void Log(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Default, data);
         }
 
+        /// <inheritdoc/>
         public void LogOnce(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Default, data);
         }
 
+        /// <inheritdoc/>
         public void LogDebug(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Debug, data);
         }
 
+        /// <inheritdoc/>
         public void LogInfo(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Info, data);
         }
 
+        /// <inheritdoc/>
         public void LogImportant(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Important, data);
         }
 
+        /// <inheritdoc/>
         public void LogMessage(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Message, data);
         }
 
+        /// <inheritdoc/>
         public void LogWarning(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Warning, data);
         }
 
+        /// <inheritdoc/>
         public void LogError(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Error, data);
         }
 
+        /// <inheritdoc/>
         public void LogFatal(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Fatal, data);
         }
 
+        /// <inheritdoc/>
         public void Log(IEnumerable<ILogTarget> targets, LogLevel category, object data)
         {
             Log(targets, LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc/>
         public void Log(IEnumerable<ILogTarget> targets, string category, object data)
         {
             Log(targets, LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc/>
         public void Log(IEnumerable<ILogTarget> targets, LogCategory category, object data)
         {
             LogData(new LogTargetCollection(targets), category, data, false);
         }
 
+        /// <inheritdoc/>
         public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, object data)
         {
             LogData(new LogTargetCollection(targets), category, data, true);
         }
 
         #endregion
+        /// <inheritdoc/>
         protected void LogData(ILogTarget target, LogCategory category, object data, bool shouldFilter)
         {
             LogData(target, category, data, shouldFilter, null, LoggingContext.SingleRequest);
         }
 
+        /// <inheritdoc/>
         protected void LogData(CompositeLogTarget target, LogCategory category, object data, bool shouldFilter)
         {
             LogData(target.ToCollection(), category, data, shouldFilter);
         }
 
+        /// <inheritdoc/>
         protected virtual void LogData(LogTargetCollection targets, LogCategory category, object data, bool shouldFilter)
         {
             try
@@ -519,6 +581,7 @@ namespace LogUtils
             }
         }
 
+        /// <inheritdoc/>
         protected virtual LogRequest LogData(ILogTarget target, LogCategory category, object data, bool shouldFilter, LogRequest lastRequest, LoggingContext context)
         {
             try
@@ -597,6 +660,7 @@ namespace LogUtils
             }
         }
 
+        /// <inheritdoc/>
         public bool CanHandle(LogID logID, RequestType requestType)
         {
             if (logID.IsGameControlled) return false;
@@ -628,6 +692,7 @@ namespace LogUtils
             return Writer;
         }
 
+        /// <inheritdoc/>
         public void HandleRequest(LogRequest request)
         {
             if (request.Submitted)
@@ -659,8 +724,10 @@ namespace LogUtils
 
         #region Dispose pattern
 
-        protected bool IsDisposed;
+        protected bool         /// <inheritdoc/>
+IsDisposed;
 
+        /// <inheritdoc/>
         protected virtual void Dispose(bool disposing)
         {
             if (IsDisposed) return;
@@ -677,6 +744,7 @@ namespace LogUtils
             IsDisposed = true;
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             //Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
@@ -684,6 +752,7 @@ namespace LogUtils
             GC.SuppressFinalize(this);
         }
 
+        /// <inheritdoc/>
         ~Logger()
         {
             Dispose(disposing: false);
@@ -691,22 +760,40 @@ namespace LogUtils
 
         #endregion
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public class EarlyInitializationException(string message) : InvalidOperationException(message)
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
         {
         }
     }
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public enum LoggingContext
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         SingleRequest,
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         Batching
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public enum LoggingMode
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         Inherit = 0,
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         Normal,
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         Queue,
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         Timed
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
 }

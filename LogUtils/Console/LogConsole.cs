@@ -32,7 +32,7 @@ namespace LogUtils.Console
 
         public static bool IsEnabled { get; private set; }
 
-        public static readonly List<ConsoleLogWriter> Writers = new List<ConsoleLogWriter>();
+        public static readonly List<ConsoleLogWriter> Writers = [];
 
         /// <summary>
         /// Finds the writer associated with a given ConsoleID

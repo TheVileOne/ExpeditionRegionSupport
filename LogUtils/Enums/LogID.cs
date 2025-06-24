@@ -267,11 +267,11 @@ namespace LogUtils.Enums
             DebugPolicy.UpdateAllowConditions();
 
             //Game-defined LogIDs
-            BepInEx    = new LogID(null, UtilityConsts.LogNames.BepInEx,    FileExt.LOG,  Paths.BepInExRootPath, true);
-            Exception  = new LogID(null, UtilityConsts.LogNames.Exception,  FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
+            BepInEx = new LogID(null, UtilityConsts.LogNames.BepInEx, FileExt.LOG, Paths.BepInExRootPath, true);
+            Exception = new LogID(null, UtilityConsts.LogNames.Exception, FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
             Expedition = new LogID(null, UtilityConsts.LogNames.Expedition, FileExt.TEXT, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
-            JollyCoop  = new LogID(null, UtilityConsts.LogNames.JollyCoop,  FileExt.TEXT, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
-            Unity      = new LogID(null, UtilityConsts.LogNames.Unity,      FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
+            JollyCoop = new LogID(null, UtilityConsts.LogNames.JollyCoop, FileExt.TEXT, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
+            Unity = new LogID(null, UtilityConsts.LogNames.Unity, FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
 
             //Throwaway LogID
             NotUsed = new LogID("NotUsed", UtilityConsts.PathKeywords.ROOT, LogAccess.Private, false);
@@ -329,7 +329,7 @@ namespace LogUtils.Enums
                 return RequestType.Game;
 
             LogID handlerID = handler.FindEquivalentTarget(this);
-            
+
             //Check whether LogID should be handled as a local request, or an outgoing (remote) request. Not being recognized by the handler means that
             //the handler is processing a target specifically made through one of the logging method overloads
             return handlerID != null && handlerID.HasLocalAccess ? RequestType.Local : RequestType.Remote;

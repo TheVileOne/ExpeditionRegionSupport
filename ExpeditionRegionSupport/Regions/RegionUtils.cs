@@ -121,8 +121,10 @@ namespace ExpeditionRegionSupport.Regions
 
             if (regionCache.Regions.Count > 0) //Do not clear old cache data here - Allow cache to be stored and compared by reference
             {
-                regionCache = new RegionsCache();
-                regionCache.LastAccessed = slugcat;
+                regionCache = new RegionsCache
+                {
+                    LastAccessed = slugcat
+                };
             }
 
             regionCache.Store(slugcatEquivalentRegion);
@@ -836,7 +838,6 @@ namespace ExpeditionRegionSupport.Regions
         {
             return roomName.StartsWith("GATE");
         }
-
 
         #endregion
 

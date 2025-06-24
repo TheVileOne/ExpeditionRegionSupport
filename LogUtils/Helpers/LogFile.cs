@@ -263,7 +263,7 @@ namespace LogUtils.Helpers
 
         public static ILogWriter FindWriter(LogID logFile)
         {
-             var writer = UtilityCore.RequestHandler.GameLogger.GetWriter(logFile);
+            var writer = UtilityCore.RequestHandler.GameLogger.GetWriter(logFile);
 
             if (writer == null)
             {

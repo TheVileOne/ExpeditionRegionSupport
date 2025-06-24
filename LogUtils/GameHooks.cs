@@ -18,7 +18,7 @@ namespace LogUtils
 {
     public static class GameHooks
     {
-        private static List<IDetour> managedHooks = new List<IDetour>();
+        private static List<IDetour> managedHooks = [];
 
         /// <summary>
         /// Generates managed hooks, and applies all hooks used by the utility module

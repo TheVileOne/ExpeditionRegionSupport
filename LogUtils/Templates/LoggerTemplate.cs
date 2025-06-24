@@ -13,7 +13,7 @@ namespace LogUtils.Templates
     {
         #region Implementation
 
-        public List<LogID> LogTargets = new List<LogID>();
+        public List<LogID> LogTargets = [];
 
         public void Log(object data)
         {

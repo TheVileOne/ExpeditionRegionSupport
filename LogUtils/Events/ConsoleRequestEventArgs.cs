@@ -11,12 +11,12 @@ namespace LogUtils.Events
         /// <summary>
         /// List of ConsoleIDs that were transfered from pending status
         /// </summary>
-        public List<ConsoleID> Handled = new List<ConsoleID>();
+        public List<ConsoleID> Handled = [];
 
         /// <summary>
         /// List of ConsoleIDs waiting to be handled
         /// </summary>
-        public List<ConsoleID> Pending = new List<ConsoleID>();
+        public List<ConsoleID> Pending = [];
 
         public ConsoleLogWriter Writer;
 

@@ -14,7 +14,7 @@ namespace LogUtils
     {
         protected bool IsDisposed;
 
-        protected List<PersistentLogFileWriter> LogWriters = new List<PersistentLogFileWriter>();
+        protected List<PersistentLogFileWriter> LogWriters = [];
 
         /// <summary>
         /// This task handles writing to file, on a fixed interval off the main thread

@@ -44,8 +44,7 @@ namespace Extensions
 
         public static void ChangeOwner(this MenuObject self, MenuObject newOwner)
         {
-            if (self.owner != null)
-                self.owner.RemoveSubObject(self);
+            self.owner?.RemoveSubObject(self);
 
             self.owner = newOwner;
             self.ChangeMenu(newOwner?.menu);

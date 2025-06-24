@@ -10,17 +10,17 @@ namespace LogUtils
         /// <summary>
         /// List of filter keywords - A filter entry with a keyword must have that keyword in this list in order for the filter to be effective 
         /// </summary>
-        public static List<string> ActiveKeywords = new List<string>();
+        public static List<string> ActiveKeywords = [];
 
         /// <summary>
         /// Dictionary of strings that should be ignored when a log attempt is made
         /// </summary>
-        public static Dictionary<LogID, List<FilteredStringEntry>> FilteredStrings = new Dictionary<LogID, List<FilteredStringEntry>>();
+        public static Dictionary<LogID, List<FilteredStringEntry>> FilteredStrings = [];
 
         public static void AddFilterEntry(LogID logID, FilteredStringEntry entry)
         {
             if (!FilteredStrings.TryGetValue(logID, out List<FilteredStringEntry> filter)) //Ensure list is created
-                filter = FilteredStrings[logID] = new List<FilteredStringEntry>();
+                filter = FilteredStrings[logID] = [];
 
             if (logID == LogID.Expedition)
                 ExpLog.onceText.Add(entry.Value); //No longer used, but keep it updated for legacy purposes

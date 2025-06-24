@@ -6,7 +6,7 @@ namespace LogUtils.Properties.Custom
 {
     public class CustomLogPropertyCollection : IEnumerable<CustomLogProperty>
     {
-        protected List<CustomLogProperty> InnerList = new List<CustomLogProperty>();
+        protected List<CustomLogProperty> InnerList = [];
 
         public EventDelegate OnPropertyAdded, OnPropertyRemoved;
 

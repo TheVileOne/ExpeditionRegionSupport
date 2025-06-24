@@ -41,61 +41,73 @@ namespace LogUtils.Compatibility.Unity
                 Debug.unityLogger.filterLogType = capacityWanted;
         }
 
+        /// <inheritdoc/>
         public void Log(object data)
         {
             Debug.Log(data);
         }
 
+        /// <inheritdoc/>
         public void LogDebug(object data)
         {
             Debug.Log(data);
         }
 
+        /// <inheritdoc/>
         public void LogInfo(object data)
         {
             Log(LogCategory.Info, data);
         }
 
+        /// <inheritdoc/>
         public void LogImportant(object data)
         {
             Log(LogCategory.Important, data);
         }
 
+        /// <inheritdoc/>
         public void LogMessage(object data)
         {
             Log(LogCategory.Message, data);
         }
 
+        /// <inheritdoc/>
         public void LogWarning(object data)
         {
             Debug.LogWarning(data);
         }
 
+        /// <inheritdoc/>
         public void LogError(object data)
         {
             Debug.LogError(data);
         }
 
+        /// <inheritdoc/>
         public void LogFatal(object data)
         {
             Log(LogCategory.Fatal, data);
         }
 
+        /// <inheritdoc/>
         public void Log(LogType category, object data)
         {
             Debug.unityLogger.Log(category, data);
         }
 
+        /// <inheritdoc/>
         public void Log(LogLevel category, object data)
         {
             Log(LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc/>
         public void Log(string category, object data)
         {
             Log(LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc/>
         public void Log(LogCategory category, object data)
         {
             Debug.unityLogger.Log(category.UnityCategory, data);

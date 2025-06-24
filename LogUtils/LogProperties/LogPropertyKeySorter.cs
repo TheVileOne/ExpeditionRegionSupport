@@ -31,8 +31,8 @@ namespace LogUtils.Properties
 
             IDictionaryEnumerator fieldEnumerator = (IDictionaryEnumerator)Dictionary.GetEnumerator();
 
-            List<string> unrecognizedFields = new List<string>();
-            List<int> unsorted = new List<int>();
+            List<string> unrecognizedFields = [];
+            List<int> unsorted = [];
 
             bool checkUnsorted = false;
 

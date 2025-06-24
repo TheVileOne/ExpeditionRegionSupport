@@ -42,7 +42,7 @@ namespace LogUtils.Properties
             if (hasDuplicateEntries)
                 UtilityLogger.DebugLog("File contains duplicate entries - Removing unnecessary entries from write string");
 
-            HashSet<int> processedHashes = new HashSet<int>();
+            HashSet<int> processedHashes = [];
             StringBuilder sb = new StringBuilder();
 
             //Read all data from file

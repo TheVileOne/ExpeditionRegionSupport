@@ -17,7 +17,7 @@ namespace LogUtils.Diagnostics.Tools
             }
         }
 
-        internal Dictionary<Lock, LockRecord> EventRecord = new Dictionary<Lock, LockRecord>();
+        internal Dictionary<Lock, LockRecord> EventRecord = [];
 
         public DeadlockTester()
         {
@@ -103,7 +103,7 @@ namespace LogUtils.Diagnostics.Tools
         internal record LockRecord
         {
             public int Holder;
-            public List<int> WaitingOnRelease = new List<int>();
+            public List<int> WaitingOnRelease = [];
 
             public void RecordWaitEvent()
             {

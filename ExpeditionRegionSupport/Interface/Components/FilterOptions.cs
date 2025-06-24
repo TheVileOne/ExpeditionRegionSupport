@@ -275,7 +275,7 @@ namespace ExpeditionRegionSupport.Interface.Components
         public override void Clicked()
         {
             //Check if this option is enabled, and is allowed to be checked on/off
-            if (buttonBehav.greyedOut || !FilterImmune && !Owner.HasCheckedOptions(this)) return;
+            if (buttonBehav.greyedOut || (!FilterImmune && !Owner.HasCheckedOptions(this))) return;
 
             //Invoking base will update the base Checked state, which will notify FilterOptions of the state change.
             //This may not end up actually changing the state due to double-click protection, but currently will be set anyways.

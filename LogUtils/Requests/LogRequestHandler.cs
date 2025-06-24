@@ -22,7 +22,7 @@ namespace LogUtils.Requests
 
         public override string Tag => UtilityConsts.ComponentTags.REQUEST_DATA;
 
-        private readonly WeakReferenceCollection<ILogHandler> availableLoggers = new WeakReferenceCollection<ILogHandler>();
+        private readonly WeakReferenceCollection<ILogHandler> availableLoggers = [];
 
         /// <summary>
         /// A list of loggers available to handle local or remote log requests
@@ -373,8 +373,7 @@ namespace LogUtils.Requests
                     {
                         var writer = LogFile.FindWriter(logFile);
 
-                        if (writer != null)
-                            writer.WriteFromBuffer(logFile);
+                        writer?.WriteFromBuffer(logFile);
                     }
                     return;
                 }

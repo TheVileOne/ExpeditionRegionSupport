@@ -20,7 +20,7 @@ namespace LogUtils
         /// </summary>
         public bool IsBuffering { get; protected set; }
 
-        public ICollection<PollingTimer> ActivityListeners = new List<PollingTimer>();
+        public ICollection<PollingTimer> ActivityListeners = [];
 
         protected ICollection<BufferContext> Scopes = new HashSet<BufferContext>();
 

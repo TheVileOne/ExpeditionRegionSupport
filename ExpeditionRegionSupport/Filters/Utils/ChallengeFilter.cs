@@ -74,7 +74,7 @@ namespace ExpeditionRegionSupport.Filters.Utils
         public override bool ConditionMet()
         {
             //If player has not visited Shoreline, or Five Pebbles, this challenge type cannot be chosen
-            return !Enabled || Evaluate("SL", true) && Evaluate("SS", true);
+            return !Enabled || (Evaluate("SL", true) && Evaluate("SS", true));
         }
     }
 }

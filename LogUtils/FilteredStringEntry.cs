@@ -10,7 +10,7 @@ namespace LogUtils
     {
         public FilterDuration Duration;
         public bool IsRegex;
-        public List<string> Keywords = new List<string>();
+        public List<string> Keywords = [];
         public string Value;
 
         public FilteredStringEntry(string entryString, FilterDuration duration)

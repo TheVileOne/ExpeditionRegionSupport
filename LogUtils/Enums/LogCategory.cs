@@ -19,13 +19,13 @@ namespace LogUtils.Enums
         /// </summary>
         public const LogType LOG_TYPE_DEFAULT = LogType.Log;
 
-        private LogLevel  _bepInExConversion = LOG_LEVEL_DEFAULT;
-        private LogType   _unityConversion = LOG_TYPE_DEFAULT;
-        private LogGroup  _defaultGroup = LogGroupMap.DefaultGroup;
-        private Color     _defaultConsoleColor = ConsoleColorMap.DefaultColor;
+        private LogLevel _bepInExConversion = LOG_LEVEL_DEFAULT;
+        private LogType _unityConversion = LOG_TYPE_DEFAULT;
+        private LogGroup _defaultGroup = LogGroupMap.DefaultGroup;
+        private Color _defaultConsoleColor = ConsoleColorMap.DefaultColor;
         private LogGroup? _userDefinedGroup;
         private LogGroup? _userDefinedColorGroup;
-        private Color?    _userDefinedConsoleColor;
+        private Color? _userDefinedConsoleColor;
 
         private bool conversionFieldsNeedUpdating;
         private bool defaultsNeedUpdating;

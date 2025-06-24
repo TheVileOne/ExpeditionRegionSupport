@@ -8,7 +8,7 @@ namespace LogUtils.Diagnostics
 {
     public class AssertHandler : IConditionHandler, ICloneable
     {
-        private static AssertHandler _default = new AssertHandler(new UnityLogger()); 
+        private static AssertHandler _default = new AssertHandler(new UnityLogger());
         private static AssertHandler _customDefault;
 
         public static AssertHandler Default

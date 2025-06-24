@@ -34,18 +34,18 @@ namespace LogUtils
         {
             return activity switch
             {
-                FileAction.Write          => "write in process",
-                FileAction.Buffering      => "is buffering",
-                FileAction.SessionStart   => "started",
-                FileAction.SessionEnd     => "ended",
-                FileAction.Open           => "opened",
-                FileAction.PathUpdate     => "path updated",
-                FileAction.Move           => "moved",
-                FileAction.Copy           => "copied",
-                FileAction.Create         => "created",
-                FileAction.Delete         => "deleted",
+                FileAction.Write => "write in process",
+                FileAction.Buffering => "is buffering",
+                FileAction.SessionStart => "started",
+                FileAction.SessionEnd => "ended",
+                FileAction.Open => "opened",
+                FileAction.PathUpdate => "path updated",
+                FileAction.Move => "moved",
+                FileAction.Copy => "copied",
+                FileAction.Create => "created",
+                FileAction.Delete => "deleted",
                 FileAction.StreamDisposal => "stream disposed",
-                _                         => "accessed",
+                _ => "accessed",
             };
         }
     }

@@ -140,9 +140,10 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
         private void testReserveFilename()
         {
-            LogProperties example = new LogProperties("example");
-
-            example.AltFilename = new LogFilename("alt");
+            LogProperties example = new LogProperties("example")
+            {
+                AltFilename = new LogFilename("alt")
+            };
             example.ChangeFilename("example-A");         //Set name again to establish that the reserve is not the same as the initial filename
             example.ChangeFilename(example.AltFilename); //Name is no longer example-A
 

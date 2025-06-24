@@ -52,7 +52,7 @@ namespace LogUtils
                     string[] headerData = line.Substring(0, headerEnd).Split(',');
                     string keywordPrefix = UtilityConsts.FilterKeywords.KEYWORD_PREFIX;
 
-                    List<string> parsedKeywords = new List<string>();
+                    List<string> parsedKeywords = [];
 
                     bool hasData = false;
                     foreach (string value in headerData.Select(s => s.Trim()))

@@ -27,7 +27,7 @@ namespace LogUtils.Console
         /// <summary>
         /// The message format rules associated with this writer
         /// </summary>
-        public LogRuleCollection Rules = new LogRuleCollection();
+        public LogRuleCollection Rules = [];
 
         public bool ShowLogsAware;
 

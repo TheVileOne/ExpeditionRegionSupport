@@ -161,7 +161,7 @@ namespace LogUtils.Diagnostics
             /// <summary>
             /// A set of strings to be appended to the end of the message for result reports
             /// </summary>
-            public HashSet<string> Tags = new HashSet<string>();
+            public HashSet<string> Tags = [];
 
             /// <summary>
             /// Constructs a response message
@@ -280,7 +280,7 @@ namespace LogUtils.Diagnostics
             {
                 Passed = true;
                 Expectation = State.None;
-                Handlers = new List<IConditionHandler>();
+                Handlers = [];
                 Message = Message.Empty;
             }
 

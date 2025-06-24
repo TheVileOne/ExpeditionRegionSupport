@@ -7,7 +7,7 @@ namespace LogUtils.Threading
 {
     public static class LogTasker
     {
-        private static List<Task> tasksInProcess = new List<Task>();
+        private static List<Task> tasksInProcess = [];
 
         private static Thread _thread;
 
@@ -72,8 +72,10 @@ namespace LogUtils.Threading
 
         internal static void Start()
         {
-            _thread = new Thread(threadUpdate);
-            _thread.IsBackground = true;
+            _thread = new Thread(threadUpdate)
+            {
+                IsBackground = true
+            };
             _thread.Start();
         }
 
@@ -247,7 +249,7 @@ namespace LogUtils.Threading
         }
 
         private static bool timerStarted = timerUpdate != null;
-        private static Action timerUpdate; 
+        private static Action timerUpdate;
 
         public static void StartTimingFrames()
         {
@@ -307,7 +309,7 @@ namespace LogUtils.Threading
             if (UtilityCore.Build == UtilitySetup.Build.DEVELOPMENT)
                 StartTimingFrames();
 
-            HashSet<int> handledTaskIDs = new HashSet<int>();
+            HashSet<int> handledTaskIDs = [];
 
             try
             {

@@ -19,8 +19,7 @@ namespace LogUtils.Diagnostics.Tests.Components
 
                 _provider = value;
 
-                if (NameEnumerator != null)
-                    NameEnumerator.Dispose();
+                NameEnumerator?.Dispose();
 
                 NameEnumerator = _provider.GetEnumerator(); //Each time an enumerator is 
             }

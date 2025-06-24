@@ -33,8 +33,10 @@ namespace ExpeditionRegionSupport.Regions
         {
             if (regionCache == null || regionCache.LastAccessed != slugcat)
             {
-                regionCache = new RegionsCache();
-                regionCache.LastAccessed = slugcat;
+                regionCache = new RegionsCache
+                {
+                    LastAccessed = slugcat
+                };
             }
             return regionCache;
         }

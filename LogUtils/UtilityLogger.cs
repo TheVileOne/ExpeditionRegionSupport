@@ -48,8 +48,10 @@ namespace LogUtils
                 {
                     Logger.LogDebug("Performance mode enabled");
 
-                    writeTask = new Task(() => DebugLogger.TryFlush(), 2000);
-                    writeTask.IsContinuous = true;
+                    writeTask = new Task(() => DebugLogger.TryFlush(), 2000)
+                    {
+                        IsContinuous = true
+                    };
                     LogTasker.Schedule(writeTask);
                 }
                 else

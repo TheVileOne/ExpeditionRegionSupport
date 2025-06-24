@@ -28,7 +28,7 @@ namespace LogUtils.Enums
             }
         }
 
-        internal static readonly HashSet<LogCategory> EmptySet  = new HashSet<LogCategory>();
+        internal static readonly HashSet<LogCategory> EmptySet = [];
 
         /// <summary>
         /// Contains the flags that represent the composite instance
@@ -247,10 +247,10 @@ namespace LogUtils.Enums
 
             if (flags.Length == 1)
             {
-                return new CompositeLogCategory(new HashSet<LogCategory>()
-                {
+                return new CompositeLogCategory(
+                [
                     GetEquivalent(flags[0])
-                });
+                ]);
             }
 
             //Create a composite LogCategory from the available enum flags
@@ -279,10 +279,10 @@ namespace LogUtils.Enums
 
             if (flags.Length == 1)
             {
-                return new CompositeLogCategory(new HashSet<LogCategory>()
-                {
+                return new CompositeLogCategory(
+                [
                     GetEquivalent(flags[0])
-                });
+                ]);
             }
 
             //Create a composite LogCategory from the available enum flags
@@ -319,7 +319,7 @@ namespace LogUtils.Enums
 
             return Set.Where(flag => (flag.Group & mostRelevantGroup) != 0).ToArray();
         }
-        
+
         /// <summary>
         /// Checks whether this instance contains the specified flag element
         /// </summary>

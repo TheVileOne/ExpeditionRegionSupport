@@ -198,7 +198,7 @@ namespace LogUtils.Properties
             //If that does not resolve the conflict, apply bracket info to the filename
             IEnumerable<LogID> results = LogID.FindAll(filename, CompareOptions.CurrentFilename | CompareOptions.IgnoreBracketInfo);
 
-            List<byte> takenDesignations = new List<byte>();
+            List<byte> takenDesignations = [];
             IEnumerable<LogID> conflictedLogFiles = results.Where(logFile => !logFile.Equals(ID)
                                                                           && logFile.Properties.HasFolderPath(CurrentFolderPath)
                                                                           && logFile.Properties.ContainsTag(UtilityConsts.PropertyTag.CONFLICT));

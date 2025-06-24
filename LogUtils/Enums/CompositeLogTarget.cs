@@ -9,7 +9,7 @@ namespace LogUtils.Enums
 
         public bool IsEnabled => false; //Composite targets are never available to be handled
 
-        internal static readonly HashSet<ILogTarget> EmptySet = new HashSet<ILogTarget>();
+        internal static readonly HashSet<ILogTarget> EmptySet = [];
 
         /// <summary>
         /// Contains the flags that represent the composite instance

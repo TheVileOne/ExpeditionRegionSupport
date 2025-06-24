@@ -7,24 +7,16 @@ namespace LogUtils.Compatibility.DotNet
     {
         public static LogCategory GetEquivalentCategory(LogLevel category)
         {
-            switch (category)
+            return category switch
             {
-                case LogLevel.Trace:
-                case LogLevel.Debug:
-                    return LogCategory.Debug;
-                case LogLevel.Information:
-                    return LogCategory.Info;
-                case LogLevel.Warning:
-                    return LogCategory.Warning;
-                case LogLevel.Error:
-                    return LogCategory.Error;
-                case LogLevel.Critical:
-                    return LogCategory.Fatal;
-                case LogLevel.None:
-                    return LogCategory.None;
-                default:
-                    return LogCategory.All; //Is this good behavior?
-            }
+                LogLevel.Trace or LogLevel.Debug => LogCategory.Debug,
+                LogLevel.Information => LogCategory.Info,
+                LogLevel.Warning => LogCategory.Warning,
+                LogLevel.Error => LogCategory.Error,
+                LogLevel.Critical => LogCategory.Fatal,
+                LogLevel.None => LogCategory.None,
+                _ => LogCategory.All,//Is this good behavior?
+            };
         }
     }
 }

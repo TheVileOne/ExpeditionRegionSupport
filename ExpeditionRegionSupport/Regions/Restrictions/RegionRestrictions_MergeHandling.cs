@@ -82,8 +82,10 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                             listToProcess = current.Rooms;
                             listToProcess2 = compareTarget.Rooms;
 
-                            restrictionsTarget = new RoomRestrictions(current.RegionCode);
-                            restrictionsTarget.Restrictions = MergeUtils.GetMergedValues(Restrictions.RoomRestrictions.GetRestrictionsByIndex(compareTarget, this, j), current.Restrictions);
+                            restrictionsTarget = new RoomRestrictions(current.RegionCode)
+                            {
+                                Restrictions = MergeUtils.GetMergedValues(Restrictions.RoomRestrictions.GetRestrictionsByIndex(compareTarget, this, j), current.Restrictions)
+                            };
                             RoomRestrictions.Insert(i, restrictionsTarget);
                         }
 

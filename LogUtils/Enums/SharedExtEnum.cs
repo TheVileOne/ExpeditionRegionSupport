@@ -89,7 +89,6 @@ namespace LogUtils.Enums
         /// A static means of finding a registered instance, or creating a new instance if there are no registered instances
         /// </summary>
         /// <param name="value">Case insensitive value to compare with</param>
-        /// <param name="result">The instance created from the provided value</param>
         /// <exception cref="ArgumentException">The argument provided was not of a valid format</exception>
         /// <exception cref="ValueNotFoundException">A registered entry was not found with the given value</exception>
         public static T Parse(string value)

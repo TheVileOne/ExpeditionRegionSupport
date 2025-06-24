@@ -1,5 +1,4 @@
 ﻿using LogUtils.Diagnostics.Tests;
-using LogUtils.Diagnostics.Tests.Utility;
 using LogUtils.Enums;
 using LogUtils.Helpers;
 using LogUtils.Requests;
@@ -25,7 +24,7 @@ namespace LogUtils.Diagnostics
 
         internal static void InitializeTestSuite()
         {
-            UtilityTests = new TestSuite();
+            UtilityTests = [];
             UtilityTests.AddTests(UtilityCore.Assembly);
         }
 

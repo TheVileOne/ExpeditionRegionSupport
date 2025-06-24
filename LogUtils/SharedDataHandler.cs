@@ -9,7 +9,7 @@ namespace LogUtils
     /// </summary>
     public class SharedDataHandler : UtilityComponent
     {
-        public Dictionary<Type, List<IShareable>> DataCollection = new Dictionary<Type, List<IShareable>>();
+        public Dictionary<Type, List<IShareable>> DataCollection = [];
 
         public override string Tag => UtilityConsts.ComponentTags.SHARED_DATA;
 
@@ -71,7 +71,7 @@ namespace LogUtils
         public void RegisterType(Type type)
         {
             if (!DataCollection.ContainsKey(type))
-                DataCollection[type] = new List<IShareable>();
+                DataCollection[type] = [];
         }
 
         /// <summary>
