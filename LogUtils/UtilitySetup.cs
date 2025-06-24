@@ -7,7 +7,7 @@
         public enum InitializationStep
         {
             NOT_STARTED = 0,
-            INITALIZE_CORE_LOGGER = 1,
+            SETUP_ENVIRONMENT = 1,
             START_SCHEDULER = 2,
             ESTABLISH_MONITOR_CONNECTION = 3,
             ESTABLISH_SETUP_PERIOD = 4,

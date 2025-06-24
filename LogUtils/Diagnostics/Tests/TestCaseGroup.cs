@@ -1,5 +1,6 @@
 ﻿using LogUtils.Helpers;
 using LogUtils.Helpers.Extensions;
+using LogUtils.Policy;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -226,7 +227,7 @@ namespace LogUtils.Diagnostics.Tests
             //Basic statistics on test failures
             report.AppendLine($"- {totalPassedCases} out of {totalCases} tests passed");
 
-            if (Cases.Count > 0 && Group != null && Debug.TestCasePolicy.ReportVerbosity != ReportVerbosity.Compact)
+            if (Cases.Count > 0 && Group != null && TestCasePolicy.ReportVerbosity != ReportVerbosity.Compact)
                 FormatUtils.CreateHeader(report, $"Showing test cases of {Name}");
 
             //We don't need to report on assert count if it 1:1 aligns with the case results
@@ -235,7 +236,7 @@ namespace LogUtils.Diagnostics.Tests
                 report.AppendLine($"- {totalPassedAsserts} out of {totalAsserts} asserts passed");
             }
 
-            if (!allTestsPassed || Debug.TestCasePolicy.ReportVerbosity != ReportVerbosity.Compact)
+            if (!allTestsPassed || TestCasePolicy.ReportVerbosity != ReportVerbosity.Compact)
             {
                 if (base.HasFailed())
                 {
@@ -243,7 +244,7 @@ namespace LogUtils.Diagnostics.Tests
                     ReportResultEntries(report, analyzer.GetFailedResults());
                 }
 
-                var casesToReport = Debug.TestCasePolicy.ReportVerbosity != ReportVerbosity.Compact ? Cases : Cases.Where(c => c.HasReportDetails());
+                var casesToReport = TestCasePolicy.ReportVerbosity != ReportVerbosity.Compact ? Cases : Cases.Where(c => c.HasReportDetails());
 
                 TestCase lastTestProcessed = null;
                 foreach (var testCase in casesToReport)

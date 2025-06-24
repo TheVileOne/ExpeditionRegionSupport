@@ -27,17 +27,7 @@ namespace LogUtils
         /// <summary>
         /// The active build environment for the assembly
         /// </summary>
-        internal static UtilitySetup.Build Build
-        {
-            get
-            {
-#if DEBUG
-                return UtilitySetup.Build.DEVELOPMENT;
-#else
-                return UtilitySetup.Build.RELEASE;
-#endif
-            }
-        }
+        internal static UtilitySetup.Build Build;
 
         /// <summary>
         /// The assembly responsible for loading core resources for the utility
@@ -59,11 +49,6 @@ namespace LogUtils
         /// The initialization process is in progress for the current assembly
         /// </summary>
         private static bool initializingInProgress;
-
-        /// <summary>
-        /// Indicates whether the utility initialization declaration message has been reported - this should only happen once 
-        /// </summary>
-        private static bool hasAnnouncedBuild;
 
         /// <summary>
         /// Handles cross-mod data storage for the utility
@@ -94,6 +79,13 @@ namespace LogUtils
         {
             Assembly = Assembly.GetExecutingAssembly();
             AssemblyVersion = Assembly.GetName().Version;
+
+            Build =
+#if DEBUG
+                UtilitySetup.Build.DEVELOPMENT;
+#else
+                UtilitySetup.Build.RELEASE;
+#endif
         }
 
         internal static void Initialize()
@@ -104,14 +96,9 @@ namespace LogUtils
 
             UtilitySetup.CurrentStep = UtilitySetup.InitializationStep.NOT_STARTED;
 
-#if DEBUG
-            //Used for debugging purposes only - not meant for production builds
-            SetupDebugEnvironment();
-#endif
-
             try
             {
-                UtilitySetup.CurrentStep = UtilitySetup.InitializationStep.INITALIZE_CORE_LOGGER;
+                UtilitySetup.CurrentStep = UtilitySetup.InitializationStep.SETUP_ENVIRONMENT;
                 while (UtilitySetup.CurrentStep != UtilitySetup.InitializationStep.COMPLETE)
                 {
                     UtilitySetup.CurrentStep = ApplyStep(UtilitySetup.CurrentStep);
@@ -143,13 +130,15 @@ namespace LogUtils
 
             switch (currentStep)
             {
-                case UtilitySetup.InitializationStep.INITALIZE_CORE_LOGGER:
+                case UtilitySetup.InitializationStep.SETUP_ENVIRONMENT:
                     {
                         UnityLogger.EnsureLogTypeCapacity(UtilityConsts.CUSTOM_LOGTYPE_LIMIT);
                         UtilityLogger.Initialize();
 
-                        if (!hasAnnouncedBuild)
-                            AnnounceBuild();
+                        //TODO: Read LogUtils policies from config file
+                        AnnounceBuild();
+
+                        DeadlockTester.Run();
 
                         nextStep = UtilitySetup.InitializationStep.START_SCHEDULER;
                         break;
@@ -312,18 +301,6 @@ namespace LogUtils
         internal static void AnnounceBuild()
         {
             UtilityLogger.Logger.LogMessage($"{UtilityConsts.UTILITY_NAME} {AssemblyVersion} {Build} BUILD started");
-            hasAnnouncedBuild = true;
-        }
-
-        internal static void SetupDebugEnvironment()
-        {
-            //Ensure that Logger is always initialized before the debug environment is setup
-            if (UtilityLogger.Logger == null)
-            {
-                UtilityLogger.Initialize();
-                AnnounceBuild();
-            }
-            DeadlockTester.Run();
         }
 
         internal static void OnProcessConnected()

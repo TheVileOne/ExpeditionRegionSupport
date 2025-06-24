@@ -12,6 +12,8 @@ namespace LogUtils
     {
         public const string DEFAULT_LOG_NAME = "debug";
 
+        public bool AllowLogging;
+
         public string Name { get; }
 
         public string LogPath { get; }
@@ -20,6 +22,7 @@ namespace LogUtils
 
         public DirectToFileLogger(string name) : base()
         {
+            AllowLogging = true;
             Name = name;
             LogPath = getLogPath();
             WriteBuffer = new MessageBuffer();
@@ -78,6 +81,8 @@ namespace LogUtils
 
         public void Log(object data)
         {
+            if (!AllowLogging) return;
+
             string message = data?.ToString();
 
             //not allowed to write to file when in buffering mode

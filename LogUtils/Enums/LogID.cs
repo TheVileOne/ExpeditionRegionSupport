@@ -2,6 +2,7 @@
 using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.Extensions;
 using LogUtils.Helpers.FileHandling;
+using LogUtils.Policy;
 using LogUtils.Properties;
 using LogUtils.Properties.Formatting;
 using LogUtils.Requests;
@@ -259,6 +260,12 @@ namespace LogUtils.Enums
 
         internal static void InitializeEnums()
         {
+            //File activity monitoring LogID
+            FileActivity = new LogID("LogActivity", UtilityConsts.PathKeywords.ROOT, LogAccess.Private, false);
+
+            //This must be called after FileActivity LogID is created
+            DebugPolicy.UpdateAllowConditions();
+
             //Game-defined LogIDs
             BepInEx    = new LogID(null, UtilityConsts.LogNames.BepInEx,    FileExt.LOG,  Paths.BepInExRootPath, true);
             Exception  = new LogID(null, UtilityConsts.LogNames.Exception,  FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
@@ -266,10 +273,6 @@ namespace LogUtils.Enums
             JollyCoop  = new LogID(null, UtilityConsts.LogNames.JollyCoop,  FileExt.TEXT, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
             Unity      = new LogID(null, UtilityConsts.LogNames.Unity,      FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
 
-#if DEBUG
-            //File activity monitoring LogID
-            FileActivity = new LogID("LogActivity", UtilityConsts.PathKeywords.ROOT, LogAccess.Private, false);
-#endif
             //Throwaway LogID
             NotUsed = new LogID("NotUsed", UtilityConsts.PathKeywords.ROOT, LogAccess.Private, false);
 
@@ -340,16 +343,13 @@ namespace LogUtils.Enums
         public static LogID BepInEx;
         public static LogID Exception;
         public static LogID Expedition;
-#if DEBUG
         internal static LogID FileActivity;
-#endif
         public static LogID JollyCoop;
         /// <summary>
         /// An unregistered LogID designed to be used as a throwaway parameter
         /// </summary>
         public static LogID NotUsed;
         public static LogID Unity;
-        internal static LogID Unknown;
 
         public static CompositeLogTarget operator |(LogID a, ILogTarget b)
         {

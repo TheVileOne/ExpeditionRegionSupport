@@ -1,6 +1,7 @@
 ﻿using LogUtils.Diagnostics;
 using LogUtils.Enums;
 using LogUtils.Helpers.FileHandling;
+using LogUtils.Policy;
 using LogUtils.Threading;
 using System;
 using System.Linq;
@@ -13,12 +14,10 @@ namespace LogUtils
 
         public static UtilityLogSource Logger;
 
-#if DEBUG
         /// <summary>
         /// Activity logger is responsible for reporting file behavior associated with log related files
         /// </summary>
         private static Logger activityLogger;
-#endif
 
         /// <summary>
         /// Used to maintain the high performance write implementation
@@ -40,9 +39,8 @@ namespace LogUtils
 
                 _performanceMode = value;
 
-#if DEBUG
-                LogID.FileActivity.Properties.AllowLogging = !value;
-#endif
+                DebugPolicy.UpdateAllowConditions();
+
                 //Enable the buffer when performance mode is enabled, and disable it when it is no longer necessary
                 DebugLogger.WriteBuffer.SetState(value, BufferContext.Debug);
 
@@ -100,7 +98,6 @@ namespace LogUtils
             Logger.Log(category.BepInExCategory, data);
         }
 
-#if DEBUG
         public static void LogActivity(FormattableString message)
         {
             if (activityLogger == null)
@@ -116,7 +113,6 @@ namespace LogUtils
             }
             activityLogger.Log(message);
         }
-#endif
 
         public static void LogError(object data)
         {
@@ -159,6 +155,7 @@ namespace LogUtils
 
         static UtilityLogger()
         {
+            DebugLogger.AllowLogging = DebugPolicy.ShowDebugLog;
             UtilityCore.EnsureInitializedState();
         }
     }

@@ -1,6 +1,7 @@
 ﻿using LogUtils.Console;
 using LogUtils.Enums;
 using LogUtils.Events;
+using LogUtils.Policy;
 using LogUtils.Requests.Validation;
 using System;
 using System.Collections.Generic;
@@ -183,7 +184,7 @@ namespace LogUtils.Requests
                 managedThreadID = -1;
 
                 if (UnhandledReason != RejectionReason.None)
-                    UtilityLogger.Log("Unhandled reason already exists");
+                    UtilityLogger.Logger.LogDebug("Unhandled reason already exists");
 
                 if (reason != RejectionReason.ExceptionAlreadyReported && reason != RejectionReason.FilterMatch) //Temporary conditions should not be recorded
                     Data.Properties.HandleRecord.SetReason(reason);
@@ -201,7 +202,7 @@ namespace LogUtils.Requests
 
             bool showLogsActive = RainWorld.ShowLogs || RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD;
 
-            if (!UtilityLogger.PerformanceMode && showLogsActive && reason != RejectionReason.WaitingOnOtherRequests) //This reason can get spammy - ignore it
+            if (LogRequestPolicy.ShowRejectionReasons && !UtilityLogger.PerformanceMode && showLogsActive && reason != RejectionReason.WaitingOnOtherRequests) //This reason can get spammy - ignore it
             {
                 UtilityLogger.DebugLog("Log request was rejected REASON: " + reason);
                 UtilityLogger.Log("Log request was rejected REASON: " + reason);
