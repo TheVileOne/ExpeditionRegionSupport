@@ -201,7 +201,7 @@ namespace LogUtils.Requests
 
             bool showLogsActive = RainWorld.ShowLogs || RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD;
 
-            if (showLogsActive && reason != RejectionReason.WaitingOnOtherRequests) //This reason can get spammy - ignore it
+            if (!UtilityLogger.PerformanceMode && showLogsActive && reason != RejectionReason.WaitingOnOtherRequests) //This reason can get spammy - ignore it
             {
                 UtilityLogger.DebugLog("Log request was rejected REASON: " + reason);
                 UtilityLogger.Log("Log request was rejected REASON: " + reason);
