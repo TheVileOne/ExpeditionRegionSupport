@@ -236,96 +236,80 @@ namespace LogUtils
             orig(self);
         }
 
-        /// <summary>
-        /// Stores the amount of invocation requests received by the game's logging hooks
-        /// </summary>
-        private static int gameHookRequestCounter = 0;
-
-        private static bool checkRecursionRequestCounters()
-        {
-            int gameLoggerRequestCounter = UtilityCore.RequestHandler.GameLogger.GameLoggerRequestCounter;
-            return gameLoggerRequestCounter > 0 && gameHookRequestCounter != gameLoggerRequestCounter;
-        }
-
-        private static void RainWorld_HandleLog(On.RainWorld.orig_HandleLog orig, RainWorld self, string logString, string stackTrace, LogType logLevel)
+        private static void RainWorld_HandleLog(On.RainWorld.orig_HandleLog orig, RainWorld self, string logString, string stackTrace, LogType category)
         {
             using (UtilityCore.RequestHandler.BeginCriticalSection())
             {
-                gameHookRequestCounter++;
+                LogID logFile = LogCategory.GetUnityLogID(category);
 
-                bool recursionDetected = checkRecursionRequestCounters();
+                LogRequest request = UtilityCore.RequestHandler.GetRequestFromAPI(logFile, true);
 
-                object logTarget = logString;
+                //if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake)
+                //    ThreadUtils.AssertRunningOnMainThread(logFile);
 
-                LogID logFile = LogCategory.GetUnityLogID(logLevel);
-
-                if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake)
-                    ThreadUtils.AssertRunningOnMainThread(logFile);
+                bool processFinished = false;
 
                 if (logFile == LogID.Exception)
+                {
+                    handleExceptionMessage();
+
+                    if (processFinished)
+                        return;
+                }
+
+                try
+                {
+                    UtilityCore.RequestHandler.RecursionCheckCounter++;
+                    orig(self, logString, stackTrace, category);
+                    processFinished = true;
+                }
+                finally
+                {
+                    finishProcessing();
+                    UtilityCore.RequestHandler.RecursionCheckCounter--;
+                }
+
+                void handleExceptionMessage()
                 {
                     //Compile the log strings provided by Unity's logging API into an ExceptionInfo object
                     ExceptionInfo exceptionInfo = new ExceptionInfo(logString, stackTrace);
 
                     //Check that the last exception reported matches information stored
-                    if (!RWInfo.CheckExceptionMatch(LogID.Exception, exceptionInfo))
+                    if (RWInfo.CheckExceptionMatch(LogID.Exception, exceptionInfo))
                     {
-                        RWInfo.ReportException(LogID.Exception, exceptionInfo);
-
-                        //The game is no longer able to set these accurately, and probably better to handle off the stack anyways
-                        self.lastLoggedException = logString;
-                        self.lastLoggedStackTrace = stackTrace;
-
-                        //Replace existing log string with the compiled exception message and stack trace
-                        logString = exceptionInfo.ToString();
-                        logTarget = exceptionInfo;
-                    }
-                    else
-                    {
-                        gameHookRequestCounter--;
+                        if (request != null && request.Data.ID == LogID.Exception)
+                        {
+                            request.Reject(RejectionReason.ExceptionAlreadyReported);
+                            UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+                        }
+                        processFinished = true;
                         return;
                     }
+
+                    RWInfo.ReportException(LogID.Exception, exceptionInfo);
+
+                    //The game is no longer able to set these accurately, and probably better to handle off the stack anyways
+                    self.lastLoggedException = logString;
+                    self.lastLoggedStackTrace = stackTrace;
+
+                    //Replace existing log string with the compiled exception message and stack trace
+                    logString = exceptionInfo.ToString();
                 }
 
-                if (recursionDetected)
+                void finishProcessing()
                 {
-                    UtilityLogger.LogWarning("Potential recursive log request handling detected");
+                    if (processFinished && (request == null || request.IsCompleteOrRejected))
+                        return;
 
-                    //While requests are being handled in the pipeline, we cannot handle this request
-                    UtilityCore.RequestHandler.HandleOnNextAvailableFrame.Enqueue(createRequest());
-                    gameHookRequestCounter--;
-                    return;
-                }
+                    UtilityLogger.LogWarning("Logging operation has ended unexpectedly");
 
-                bool processFinished = false;
-
-                try
-                {
-                    orig(self, logString, stackTrace, logLevel);
-                    processFinished = true;
-                }
-                finally
-                {
-                    LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
-
-                    if (request != null && (!processFinished || !request.IsCompleteOrRejected))
+                    if (request.Status != RequestStatus.Rejected) //Unknown issue - don't retry request
                     {
-                        UtilityLogger.LogWarning("Logging operation has ended unexpectedly");
-
-                        if (request.Status != RequestStatus.Rejected) //Unknown issue - don't retry request
-                        {
-                            request.Reject(RejectionReason.FailedToWrite);
-                            LogWriter.Writer.SendToBuffer(request.Data);
-                        }
-
-                        UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+                        request.Reject(RejectionReason.FailedToWrite);
+                        LogWriter.Writer.SendToBuffer(request.Data);
                     }
-                    gameHookRequestCounter--;
-                }
 
-                LogRequest createRequest()
-                {
-                    return new LogRequest(RequestType.Game, new LogRequestEventArgs(logFile, logTarget, LogCategory.ToCategory(logLevel)));
+                    UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
                 }
             }
         }
@@ -352,7 +336,7 @@ namespace LogUtils
             {
                 UtilityCore.RequestHandler.SanitizeCurrentRequest();
 
-                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+                LogRequest request = UtilityCore.RequestHandler.GetRequestFromAPI(LogID.Exception);
 
                 if (request == null)
                 {
@@ -395,8 +379,7 @@ namespace LogUtils
             cursor.EmitDelegate((string logString) =>
             {
                 UtilityCore.RequestHandler.SanitizeCurrentRequest();
-
-                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+                LogRequest request = UtilityCore.RequestHandler.GetRequestFromAPI(LogID.Unity);
 
                 if (request == null)
                 {
@@ -428,27 +411,33 @@ namespace LogUtils
 
         private static void ExpLog_Log(On.Expedition.ExpLog.orig_Log orig, string logString)
         {
-            try
+            using (UtilityCore.RequestHandler.BeginCriticalSection())
             {
-                gameHookRequestCounter++;
-                orig(logString);
-            }
-            finally
-            {
-                gameHookRequestCounter--;
+                try
+                {
+                    UtilityCore.RequestHandler.RecursionCheckCounter++;
+                    orig(logString);
+                }
+                finally
+                {
+                    UtilityCore.RequestHandler.RecursionCheckCounter--;
+                }
             }
         }
 
         private static void ExpLog_LogOnce(On.Expedition.ExpLog.orig_LogOnce orig, string logString)
         {
-            try
+            using (UtilityCore.RequestHandler.BeginCriticalSection())
             {
-                gameHookRequestCounter++;
-                orig(logString);
-            }
-            finally
-            {
-                gameHookRequestCounter--;
+                try
+                {
+                    UtilityCore.RequestHandler.RecursionCheckCounter++;
+                    orig(logString);
+                }
+                finally
+                {
+                    UtilityCore.RequestHandler.RecursionCheckCounter--;
+                }
             }
         }
 
@@ -469,29 +458,26 @@ namespace LogUtils
             cursor.Emit(OpCodes.Ldarg_0); //Static method, this is the log string
             cursor.EmitDelegate((string logString) =>
             {
-                using (UtilityCore.RequestHandler.BeginCriticalSection())
+                UtilityCore.RequestHandler.SanitizeCurrentRequest();
+
+                LogRequest request = UtilityCore.RequestHandler.GetRequestFromAPI(LogID.Expedition);
+
+                //Ensure that request is always constructed before a message is logged
+                if (request == null)
                 {
-                    UtilityCore.RequestHandler.SanitizeCurrentRequest();
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Expedition, logString)), false);
 
-                    LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
-
-                    //Ensure that request is always constructed before a message is logged
-                    if (request == null)
-                    {
-                        request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Expedition, logString)), false);
-
-                        if (request.Status == RequestStatus.Rejected)
-                            return;
-                    }
-
-                    if (shouldFilter)
-                    {
-                        request.Data.ShouldFilter = true;
-                        request.Data.FilterDuration = FilterDuration.OnClose;
-                    }
-
-                    LogWriter.Writer.WriteFrom(request);
+                    if (request.Status == RequestStatus.Rejected)
+                        return;
                 }
+
+                if (shouldFilter)
+                {
+                    request.Data.ShouldFilter = true;
+                    request.Data.FilterDuration = FilterDuration.OnClose;
+                }
+
+                LogWriter.Writer.WriteFrom(request);
             });
 
             branchToReturn(cursor);
@@ -525,14 +511,17 @@ namespace LogUtils
 
         private static void JollyCustom_Log(On.JollyCoop.JollyCustom.orig_Log orig, string message, bool throwException)
         {
-            try
+            using (UtilityCore.RequestHandler.BeginCriticalSection())
             {
-                gameHookRequestCounter++;
-                orig(message, throwException);
-            }
-            finally
-            {
-                gameHookRequestCounter--;
+                try
+                {
+                    UtilityCore.RequestHandler.RecursionCheckCounter++;
+                    orig(message, throwException);
+                }
+                finally
+                {
+                    UtilityCore.RequestHandler.RecursionCheckCounter--;
+                }
             }
         }
 
@@ -565,22 +554,19 @@ namespace LogUtils
             cursor.Emit(OpCodes.Ldarg_1);
             cursor.EmitDelegate((string logString, bool isErrorMessage) =>
             {
-                using (UtilityCore.RequestHandler.BeginCriticalSection())
+                LogRequest request = UtilityCore.RequestHandler.GetRequestFromAPI(LogID.JollyCoop);
+
+                //Ensure that request is always constructed before a message is logged
+                if (request == null)
                 {
-                    LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+                    LogCategory category = !isErrorMessage ? LogCategory.Default : LogCategory.Error;
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.JollyCoop, logString, category)), false);
 
-                    //Ensure that request is always constructed before a message is logged
-                    if (request == null)
-                    {
-                        LogCategory category = !isErrorMessage ? LogCategory.Default : LogCategory.Error;
-                        request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.JollyCoop, logString, category)), false);
-
-                        if (request.Status == RequestStatus.Rejected)
-                            return false;
-                    }
-                    LogWriter.JollyWriter.WriteFrom(request);
-                    return request.Status == RequestStatus.Complete;
+                    if (request.Status == RequestStatus.Rejected)
+                        return false;
                 }
+                LogWriter.JollyWriter.WriteFrom(request);
+                return request.Status == RequestStatus.Complete;
             });
 
             //Branch to place where LogElement is added to log queue. Queue is no longer used, but populate it anyways for legacy purposes

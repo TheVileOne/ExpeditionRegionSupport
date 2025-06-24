@@ -22,7 +22,7 @@ namespace LogUtils
         /// </summary>
         public LogID LogFileInProcess;
 
-        public int GameLoggerRequestCounter;
+        public Dictionary<LogID, int> ExpectedRequestCounter;
 
         public IRequestValidator Validator;
 
@@ -60,6 +60,7 @@ namespace LogUtils
         public GameLogger()
         {
             Validator = new GameRequestValidator(this);
+            ExpectedRequestCounter = new Dictionary<LogID, int>();
         }
 
         /// <summary>
@@ -266,15 +267,8 @@ namespace LogUtils
             using (UtilityCore.RequestHandler.BeginCriticalSection())
             {
                 //Check values to ensure that the same request going into an API is the same request coming out of it
-                GameLoggerRequestCounter++;
-
-                LogID lastProcessState = LogFileInProcess;
-
-                LogFileInProcess = logFile;
+                ExpectedRequestCounter[logFile]++;
                 processLog();
-
-                LogFileInProcess = lastProcessState;
-                GameLoggerRequestCounter--;
             }
         }
     }

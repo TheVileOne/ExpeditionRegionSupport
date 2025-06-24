@@ -107,33 +107,35 @@ namespace LogUtils.Compatibility.Unity
             {
                 UtilityCore.RequestHandler.SanitizeCurrentRequest();
 
-                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+                LogID logFile = LogCategory.GetUnityLogID(category);
 
-                //TODO: Investigate the buggy behavior that requires us to compare by message here
-                bool submitRequest = request == null; 
-                if (request != null && request.Data.Message != message)
-                {
-                    UtilityLogger.Logger.LogDebug("Request in system does not match incoming Unity request");
-                    submitRequest = true;
-                }
+                LogRequest request = UtilityCore.RequestHandler.GetRequestFromAPI(logFile);
 
                 //This submission wont be able to be logged until Rain World can initialize
-                if (submitRequest)
+                if (request == null)
                 {
-                    if (LogCategory.IsErrorCategory(category))
+                    try
                     {
-                        //Handle Unity error logging similarly to how the game would handle it
-                        ExceptionInfo exceptionInfo = new ExceptionInfo(message, stackTrace);
-
-                        //Check that the last exception reported matches information stored
-                        if (!RWInfo.CheckExceptionMatch(LogID.Exception, exceptionInfo))
+                        UtilityCore.RequestHandler.RecursionCheckCounter++;
+                        if (logFile == LogID.Exception)
                         {
-                            RWInfo.ReportException(LogID.Exception, exceptionInfo);
-                            UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Exception, exceptionInfo, category)), false);
+                            //Handle Unity error logging similarly to how the game would handle it
+                            ExceptionInfo exceptionInfo = new ExceptionInfo(message, stackTrace);
+
+                            //Check that the last exception reported matches information stored
+                            if (!RWInfo.CheckExceptionMatch(LogID.Exception, exceptionInfo))
+                            {
+                                RWInfo.ReportException(LogID.Exception, exceptionInfo);
+                                UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Exception, exceptionInfo, category)), false);
+                            }
+                            return;
                         }
-                        return;
+                        UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Unity, message, category)), false);
                     }
-                    UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Unity, message, category)), false);
+                    finally
+                    {
+                        UtilityCore.RequestHandler.RecursionCheckCounter--;
+                    }
                 }
             }
         }

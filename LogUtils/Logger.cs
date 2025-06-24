@@ -523,6 +523,8 @@ namespace LogUtils
         {
             try
             {
+                UtilityCore.RequestHandler.RecursionCheckCounter++;
+
                 if (target is CompositeLogTarget)
                     UtilityLogger.LogWarning("Composite processing not supported");
 
@@ -589,6 +591,7 @@ namespace LogUtils
             }
             finally
             {
+                UtilityCore.RequestHandler.RecursionCheckCounter--;
                 if (context == LoggingContext.SingleRequest)
                     ClearEventData();
             }

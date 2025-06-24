@@ -311,6 +311,10 @@ namespace LogUtils.Enums
             Unity.Properties.AltFilename = new LogFilename(UtilityConsts.LogNames.UnityAlt, FileExt.LOG);
 
             NotUsed.Properties.LogSourceName = UtilityLogger.Logger.SourceName;
+
+            //Initializes part of the recursion detection system that cannot be initialized before LogIDs
+            foreach (LogID gameID in GameLogger.LogTargets)
+                UtilityCore.RequestHandler.GameLogger.ExpectedRequestCounter[gameID] = 0;
         }
 
         public RequestType GetRequestType(ILogHandler handler)

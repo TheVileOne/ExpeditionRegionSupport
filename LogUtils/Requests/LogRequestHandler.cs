@@ -110,6 +110,11 @@ namespace LogUtils.Requests
         /// </summary>
         public bool CheckForHandledRequests;
 
+        /// <summary>
+        /// A counter used to prevent recursive LogRequest submissions
+        /// </summary>
+        public int RecursionCheckCounter;
+
         public LogRequestHandler()
         {
             enabled = true;
@@ -133,6 +138,37 @@ namespace LogUtils.Requests
             RequestProcessLock.Release();
         }
 
+        /// <summary>
+        /// Consumes a request counter for the specified log file if a counter is present
+        /// </summary>
+        /// <returns>A counter value was detected and consumed</returns>
+        internal bool ConsumeRequestCounter(LogID logFile)
+        {
+            if (!logFile.IsGameControlled) return false;
+
+            int requestCount = GameLogger.ExpectedRequestCounter[logFile];
+
+            if (requestCount == 0)
+                return false;
+
+            GameLogger.ExpectedRequestCounter[logFile]--;
+            return true;
+        }
+
+        /// <summary>
+        /// Invoked by external API callbacks to get a request sent through the LogUtils API, and processed by the external API
+        /// </summary>
+        internal LogRequest GetRequestFromAPI(LogID logFile, bool preserveCounter = false)
+        {
+            bool isRequestAvailable = preserveCounter
+                ? UtilityCore.RequestHandler.GameLogger.ExpectedRequestCounter[logFile] > 0
+                : UtilityCore.RequestHandler.ConsumeRequestCounter(logFile);
+
+            if (isRequestAvailable)
+                return UtilityCore.RequestHandler.CurrentRequest;
+            return null;
+        }
+
         public LogRequest[] GetRequests(LogID logFile)
         {
             return UnhandledRequests.Where(req => req.Data.ID.Equals(logFile, doPathCheck: true)).ToArray();
@@ -154,6 +190,14 @@ namespace LogUtils.Requests
                 if (request.Submitted)
                 {
                     UtilityLogger.LogWarning("Submitted request has already been submitted at least once");
+                    return request;
+                }
+
+                //To safely handle a recursive request, it must not be in a submitted state, and must not interfere with the current request
+                if (request.Type != RequestType.Console && RecursionCheckCounter > 1)
+                {
+                    request.Reject(RejectionReason.WaitingOnOtherRequests);
+                    HandleOnNextAvailableFrame.Enqueue(request);
                     return request;
                 }
 
@@ -229,9 +273,15 @@ namespace LogUtils.Requests
             {
                 UtilityLogger.LogError("Unable to submit request", ex);
 
-                //Assign request using a safer method with less rigorous validation checks - wont fail
-                if (request.CanRetryRequest())
-                    PendingRequest = request;
+                if (request != null)
+                {
+                    if (RecursionCheckCounter > 1) //Recursion is handled in the Submit call, and does not need to be handled again here
+                        return request;
+
+                    //Assign request using a safer method with less rigorous validation checks - wont fail
+                    if (request.CanRetryRequest())
+                        PendingRequest = request;
+                }
                 return request;
             }
         }
@@ -611,6 +661,7 @@ namespace LogUtils.Requests
 
                         try
                         {
+                            UtilityCore.RequestHandler.RecursionCheckCounter++;
                             request = Submit(request, true);
                         }
                         catch
@@ -623,6 +674,10 @@ namespace LogUtils.Requests
                                 request.ResetStatus();
                                 LogWriter.Writer.WriteFrom(request);
                             }
+                        }
+                        finally
+                        {
+                            UtilityCore.RequestHandler.RecursionCheckCounter--;
                         }
                     }
                 }

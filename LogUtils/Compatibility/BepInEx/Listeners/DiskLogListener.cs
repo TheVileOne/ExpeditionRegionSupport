@@ -1,7 +1,6 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
 using LogUtils.Events;
-using LogUtils.Helpers;
 using LogUtils.Requests;
 using LogUtils.Threading;
 using System;
@@ -42,26 +41,35 @@ namespace LogUtils.Compatibility.BepInEx.Listeners
             {
                 UtilityCore.RequestHandler.SanitizeCurrentRequest();
 
-                LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
+                LogRequest request = UtilityCore.RequestHandler.GetRequestFromAPI(LogID.BepInEx);
 
-                if ((request == null || request.Data.ID != LogID.BepInEx) && eventArgs.Source.SourceName == UtilityConsts.UTILITY_NAME)
+                //Utility log events are easy to trigger stack overflows through recursive access. For this reason we handle utility sourced requests
+                //differently than other requests. Requests that come through the LogRequestSystem that use the utility SourceName shouldn't be a risk for
+                //a stack overflow here
+                if (request == null && eventArgs.Source.SourceName == UtilityConsts.UTILITY_NAME)
                 {
                     request = new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.BepInEx, eventArgs));
                     logUtilityEvent(request);
                     return;
                 }
 
-                if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake)
-                    ThreadUtils.AssertRunningOnMainThread(LogID.BepInEx);
-
-                request = UtilityCore.RequestHandler.CurrentRequest;
+                //if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake)
+                //    ThreadUtils.AssertRunningOnMainThread(LogID.BepInEx);
 
                 if (request == null)
                 {
-                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.BepInEx, eventArgs)), false);
+                    try
+                    {
+                        UtilityCore.RequestHandler.RecursionCheckCounter++;
+                        request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.BepInEx, eventArgs)), false);
 
-                    if (request.Status == RequestStatus.Rejected)
-                        return;
+                        if (request.Status == RequestStatus.Rejected)
+                            return;
+                    }
+                    finally
+                    {
+                        UtilityCore.RequestHandler.RecursionCheckCounter--;
+                    }
                 }
 
                 request.Data.LogSource = eventArgs.Source;
