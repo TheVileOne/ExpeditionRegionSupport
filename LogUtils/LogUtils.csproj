@@ -5,6 +5,7 @@
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<Title>Rain World Log Utility</Title>
 		<AssemblyVersion>0.9.1</AssemblyVersion>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -25,7 +26,11 @@
 			<CopyPlugins Include="$(TargetPath)" />
 			<CopyPDBs Include="$(OutDir)*.pdb" />
 		</ItemGroup>
+		<ItemGroup>
+			<CopyPlugins Include="$(TargetPath)" />
+			<CopyXMLs Include="$(OutDir)*.xml" />
+		</ItemGroup>
 		<Delete Files="@(RemovePlugins)" />
-		<Copy SourceFiles="@(CopyPlugins);@(CopyPDBs)" DestinationFolder="../mod/plugins/" />
+		<Copy SourceFiles="@(CopyPlugins);@(CopyPDBs);@(CopyXMLs)" DestinationFolder="../mod/plugins/" />
 	</Target>
 </Project>
