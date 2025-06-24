@@ -1,5 +1,6 @@
 ﻿using Expedition;
 using LogUtils.Enums;
+using LogUtils.Events;
 using System.Collections.Generic;
 
 namespace LogUtils
@@ -27,11 +28,19 @@ namespace LogUtils
             filter.Add(entry);
         }
 
-        public static bool CheckFilterMatch(LogID logID, string logString)
+        public static bool IsAllowed(LogRequestEventArgs messageData)
         {
+            var categoryFilter = LogCategory.GlobalFilter;
+
+            return (categoryFilter == null || categoryFilter.IsAllowed(messageData.Category)) && IsAllowed(messageData.ID, messageData.Message);
+        }
+
+        public static bool IsAllowed(LogID logID, string logString)
+        {
+            bool isFiltered = false;
             if (FilteredStrings.TryGetValue(logID, out List<FilteredStringEntry> filter))
-                return filter.Exists(entry => entry.CheckValidation() && entry.CheckMatch(logString));
-            return false;
+                isFiltered = filter.Exists(entry => entry.CheckValidation() && entry.CheckMatch(logString));
+            return !isFiltered;
         }
 
         /// <summary>

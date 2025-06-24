@@ -1,15 +1,20 @@
-﻿using LogUtils.CompatibilityServices;
+﻿using LogUtils.Compatibility.BepInEx;
+using LogUtils.Compatibility.Unity;
+using LogUtils.Console;
 using LogUtils.Diagnostics.Tools;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
+using LogUtils.IPC;
 using LogUtils.Properties;
 using LogUtils.Requests;
 using LogUtils.Threading;
+using LogUtils.Timers;
 using Menu;
 using System;
 using System.Linq;
 using System.Reflection;
+using Debug = LogUtils.Diagnostics.Debug;
 
 namespace LogUtils
 {
@@ -20,9 +25,14 @@ namespace LogUtils
         public static Version AssemblyVersion { get; }
 
         /// <summary>
+        /// The active build environment for the assembly
+        /// </summary>
+        internal static UtilitySetup.Build Build;
+
+        /// <summary>
         /// The assembly responsible for loading core resources for the utility
         /// </summary>
-        public static bool IsControllingAssembly { get; private set; }
+        public static bool IsControllingAssembly => ProcessMonitor.IsConnected;
 
         /// <summary>
         /// The initialized state for the assembly. This does NOT indicate that another version of the assembly has initialized,
@@ -40,23 +50,21 @@ namespace LogUtils
         /// </summary>
         private static bool initializingInProgress;
 
-        public static PersistenceManager PersistenceManager;
-
-        public static PropertyDataController PropertyManager;
-
         /// <summary>
         /// Handles cross-mod data storage for the utility
         /// </summary>
         public static SharedDataHandler DataHandler;
+
+        public static PersistenceManager PersistenceManager;
+
+        public static PropertyDataController PropertyManager;
 
         /// <summary>
         /// Handles log requests between different loggers
         /// </summary>
         public static LogRequestHandler RequestHandler;
 
-        public static FrameTimer Scheduler;
-
-        public static int ThreadID;
+        public static EventScheduler Scheduler;
 
         /// <summary>
         /// Ensures that core functionality is in a proper and useable state by ensuring the initialization procedure has run
@@ -71,6 +79,13 @@ namespace LogUtils
         {
             Assembly = Assembly.GetExecutingAssembly();
             AssemblyVersion = Assembly.GetName().Version;
+
+            Build =
+#if DEBUG
+                UtilitySetup.Build.DEVELOPMENT;
+#else
+                UtilitySetup.Build.RELEASE;
+#endif
         }
 
         internal static void Initialize()
@@ -80,12 +95,12 @@ namespace LogUtils
             initializingInProgress = true;
 
             UtilitySetup.CurrentStep = UtilitySetup.InitializationStep.NOT_STARTED;
+
             try
             {
-                UtilitySetup.CurrentStep = UtilitySetup.InitializationStep.INITALIZE_CORE_LOGGER;
+                UtilitySetup.CurrentStep = UtilitySetup.InitializationStep.SETUP_ENVIRONMENT;
                 while (UtilitySetup.CurrentStep != UtilitySetup.InitializationStep.COMPLETE)
                 {
-                    UtilityLogger.DebugLog("Applying " + UtilitySetup.CurrentStep);
                     UtilitySetup.CurrentStep = ApplyStep(UtilitySetup.CurrentStep);
                 }
             }
@@ -99,7 +114,12 @@ namespace LogUtils
                 UtilityLogger.LogFatal(ex);
             }
 
-            Diagnostics.Debug.InitializeTestSuite();
+            if (IsControllingAssembly && Build == UtilitySetup.Build.DEVELOPMENT)
+            {
+                Debug.InitializeTestSuite();
+                Debug.RunTests();
+            }
+
             initializingInProgress = false;
             IsInitialized = true;
         }
@@ -110,18 +130,30 @@ namespace LogUtils
 
             switch (currentStep)
             {
-                case UtilitySetup.InitializationStep.INITALIZE_CORE_LOGGER:
+                case UtilitySetup.InitializationStep.SETUP_ENVIRONMENT:
                     {
-                        UtilityLogger.EnsureLogTypeCapacity(UtilityConsts.CUSTOM_LOGTYPE_LIMIT);
+                        UnityLogger.EnsureLogTypeCapacity(UtilityConsts.CUSTOM_LOGTYPE_LIMIT);
                         UtilityLogger.Initialize();
 
-                        UtilityLogger.Logger.LogMessage($"{UtilityConsts.UTILITY_NAME} {AssemblyVersion} started");
+                        //TODO: Read LogUtils policies from config file
+                        AnnounceBuild();
+
+                        DeadlockTester.Run();
+
                         nextStep = UtilitySetup.InitializationStep.START_SCHEDULER;
                         break;
                     }
                 case UtilitySetup.InitializationStep.START_SCHEDULER:
                     {
                         LogTasker.Start();
+
+                        nextStep = UtilitySetup.InitializationStep.ESTABLISH_MONITOR_CONNECTION;
+                        break;
+                    }
+                case UtilitySetup.InitializationStep.ESTABLISH_MONITOR_CONNECTION:
+                    {
+                        UtilityEvents.OnProcessSwitch += OnProcessSwitch;
+                        ProcessMonitor.Connect();
 
                         nextStep = UtilitySetup.InitializationStep.ESTABLISH_SETUP_PERIOD;
                         break;
@@ -143,6 +175,7 @@ namespace LogUtils
                 case UtilitySetup.InitializationStep.INITIALIZE_ENUMS:
                     {
                         //These are initialized after components, because they internally depend on SharedDataHandler
+                        ConsoleID.InitializeEnums();
                         LogCategory.InitializeEnums();
                         LogID.InitializeEnums();
 
@@ -159,45 +192,42 @@ namespace LogUtils
                         nextStep = UtilitySetup.InitializationStep.ADAPT_LOGGING_SYSTEM;
                         break;
                     }
+                case UtilitySetup.InitializationStep.ADAPT_LOGGING_SYSTEM:
+                    {
+                        //This must be run before late initialized log files are handled to allow BepInEx log file to be moved
+                        BepInExAdapter.Run();
+                        LogConsole.Initialize();
+
+                        if (!IsControllingAssembly)
+                        {
+                            //Disable console states activated from other Rain World processes
+                            LogConsole.SetEnabledState(false);
+                        }
+
+                        nextStep = UtilitySetup.InitializationStep.POST_LOGID_PROCESSING;
+                        break;
+                    }
+                case UtilitySetup.InitializationStep.POST_LOGID_PROCESSING:
+                    {
+                        PropertyManager.ProcessLogFiles();
+
+                        //Listen for Unity log requests while the log file is unavailable
+                        if (!LogID.Unity.Properties.CanBeAccessed)
+                            UnityLogger.ReceiveUnityLogEvents = true;
+
+                        nextStep = UtilitySetup.InitializationStep.APPLY_HOOKS;
+                        break;
+                    }
+                case UtilitySetup.InitializationStep.APPLY_HOOKS:
+                    {
+                        GameHooks.Initialize();
+                        break;
+                    }
             }
 
-            //The steps after this point should only be run by a single assembly
             if (nextStep != currentStep)
                 return nextStep;
 
-            if (IsControllingAssembly)
-            {
-                switch (currentStep)
-                {
-                    case UtilitySetup.InitializationStep.ADAPT_LOGGING_SYSTEM:
-                        {
-                            //This must be run before late initialized log files are handled to allow BepInEx log file to be moved
-                            BepInExAdapter.Run();
-
-                            nextStep = UtilitySetup.InitializationStep.POST_LOGID_PROCESSING;
-                            break;
-                        }
-                    case UtilitySetup.InitializationStep.POST_LOGID_PROCESSING:
-                        {
-                            PropertyManager.ProcessLogFiles();
-
-                            //Listen for Unity log requests while the log file is unavailable
-                            if (!LogID.Unity.Properties.CanBeAccessed)
-                                UtilityLogger.ReceiveUnityLogEvents = true;
-
-                            nextStep = UtilitySetup.InitializationStep.APPLY_HOOKS;
-                            break;
-                        }
-                    case UtilitySetup.InitializationStep.APPLY_HOOKS:
-                        {
-                            GameHooks.Initialize();
-                            break;
-                        }
-                }
-
-                if (nextStep != currentStep)
-                    return nextStep;
-            }
             return nextStep = UtilitySetup.InitializationStep.COMPLETE;
         }
 
@@ -236,18 +266,16 @@ namespace LogUtils
         /// </summary>
         internal static void LoadComponents()
         {
-            Scheduler = ComponentUtils.GetOrCreate<FrameTimer>(UtilityConsts.ComponentTags.SCHEDULER, out _);
+            ProcessMonitor.WaitOnConnectionStatus();
+            UtilityLogger.Log("IsControllingAssembly: " + IsControllingAssembly);
+
+            Scheduler = ComponentUtils.GetOrCreate<EventScheduler>(UtilityConsts.ComponentTags.SCHEDULER, out _);
             PersistenceManager = ComponentUtils.GetOrCreate<PersistenceManager>(UtilityConsts.ComponentTags.PERSISTENCE_MANAGER, out _);
             DataHandler = ComponentUtils.GetOrCreate<SharedDataHandler>(UtilityConsts.ComponentTags.SHARED_DATA, out _);
             RequestHandler = ComponentUtils.GetOrCreate<LogRequestHandler>(UtilityConsts.ComponentTags.REQUEST_DATA, out _);
 
-            PropertyManager = ComponentUtils.GetOrCreate<PropertyDataController>(UtilityConsts.ComponentTags.PROPERTY_DATA, out bool wasCreated);
-
-            if (wasCreated)
-            {
-                IsControllingAssembly = true;
-                PropertyManager.SetPropertiesFromFile();
-            }
+            PropertyManager = ComponentUtils.GetOrCreate<PropertyDataController>(UtilityConsts.ComponentTags.PROPERTY_DATA, out _);
+            PropertyManager.SetPropertiesFromFile();
         }
 
         private static void onSetupPeriodReached(SetupPeriodEventArgs e)
@@ -268,6 +296,83 @@ namespace LogUtils
                     RequestHandler.ProcessRequests();
                 }
             }
+        }
+
+        internal static void AnnounceBuild()
+        {
+            UtilityLogger.Logger.LogMessage($"{UtilityConsts.UTILITY_NAME} {AssemblyVersion} {Build} BUILD started");
+        }
+
+        internal static void OnProcessConnected()
+        {
+            //A process switch occurs when a process gives up control to another process - this flag defines when it it considered too early to detect a process switch
+            bool isProcessSwitch = UtilitySetup.CurrentStep > UtilitySetup.InitializationStep.INITIALIZE_COMPONENTS;
+
+            if (!isProcessSwitch)
+            {
+                UtilityLogger.DeleteInternalLogs();
+                return;
+            }
+            UtilityEvents.OnProcessSwitch.Invoke();
+        }
+
+        internal static void OnProcessSwitch()
+        {
+            if (LogConsole.FindWriter(ConsoleID.BepInEx, false) != null)
+                LogConsole.SetEnabledState(true);
+
+            PropertyManager.ReloadFromProcessSwitch();
+
+            //Refresh PropertyFile stream - It is currently has read only permissions
+            PropertyManager.PropertyFile.RefreshStream();
+        }
+
+        internal static void OnShutdown()
+        {
+            LogProperties.PropertyManager.SaveToFile();
+
+            UtilityLogger.Log("Disabling log files");
+
+            //End all active log sessions
+            foreach (LogProperties properties in LogProperties.PropertyManager.Properties)
+            {
+                if (properties.ID.Equals(LogID.BepInEx))
+                    continue;
+
+                using (properties.FileLock.Acquire())
+                {
+                    properties.EndLogSession();
+                    properties.AllowLogging = false; //No new logs should happen beyond this point
+                }
+            };
+
+            LogID logFile = LogID.BepInEx;
+
+            if (logFile.Properties.FileExists)
+            {
+                using (logFile.Properties.FileLock.Acquire())
+                {
+                    //End the log session later than the others to ensure that session state is reported to file
+                    logFile.Properties.EndLogSession();
+                    logFile.Properties.AllowLogging = false;
+
+                    if (IsControllingAssembly)
+                    {
+                        //BepInEx log file requires special treatment. This log file cannot be replaced on game start like the other log files
+                        //To account for this, replace this log file when the game closes
+                        logFile.Properties.CreateTempFile(true);
+                        logFile.Properties.RemoveTempFile();
+                    }
+                }
+            }
+
+            //Stop listening for log events
+            var disposeTask = System.Threading.Tasks.Task.Run(BepInExAdapter.DisposeListeners);
+
+            //Disposing the listeners sometimes locks up the main thread for some reason. Running on a background thread avoids potential lock ups
+            disposeTask.Wait();
+
+            LogTasker.Close();
         }
     }
 }

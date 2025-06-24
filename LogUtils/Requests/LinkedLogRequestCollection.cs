@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogUtils.Enums;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace LogUtils.Requests
@@ -9,12 +10,20 @@ namespace LogUtils.Requests
         {
         }
 
-        public LogRequest[] GetRequestsSorted()
+        /// <summary>
+        /// Returns an enumerable that sorts LogRequests by LogID (by value and path)
+        /// </summary>
+        public IOrderedEnumerable<LogRequest> SortRequests()
         {
-            if (Count == 0)
-                return Array.Empty<LogRequest>();
+            return this.OrderBy(req => req.Data.ID).ThenBy(req => req.Data.Properties.CurrentFolderPath);
+        }
 
-            return this.OrderBy(req => req.Data.ID).ThenBy(req => req.Data.Properties.CurrentFolderPath).ToArray();
+        /// <summary>
+        /// Returns an enumerable that sorts LogRequests by LogID (by value and path) into partitioned groups for each different kind
+        /// </summary>
+        public IEnumerable<IGrouping<LogID, LogRequest>> GroupRequests()
+        {
+            return this.GroupBy(s => s.Data.ID, EqualityComparer<LogID>.Default);
         }
     }
 }

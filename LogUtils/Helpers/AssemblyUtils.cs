@@ -1,5 +1,4 @@
-﻿using BepInEx;
-using BepInEx.Bootstrap;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -9,35 +8,30 @@ namespace LogUtils.Helpers
 {
     public static class AssemblyUtils
     {
-        public static List<PluginInfo> PluginInfos;
-
-        public static void BuildInfoCache()
+        /// <summary>
+        /// Get all types from each assembly in the current domain
+        /// </summary>
+        public static IEnumerable<Type> GetAllTypes()
         {
-            PluginInfos = Chainloader.PluginInfos.Values.OrderBy(p => p.Location).ToList();
+            return AppDomain.CurrentDomain.GetAssemblies().SelectMany(assembly => assembly.GetTypesSafely());
         }
 
-        public static BaseUnityPlugin GetPlugin(Assembly assembly)
+        public static IEnumerable<Type> GetTypesSafely(this Assembly assembly)
         {
-            return GetPluginInfo(assembly)?.Instance;
-        }
-
-        public static PluginInfo GetPluginInfo(Assembly assembly)
-        {
-            if (assembly == null)
-                return null;
-
-            return PluginInfos.Find(p => p.Location == assembly.Location);
-        }
-
-        public static BepInPlugin GetPluginMetadata(Assembly assembly)
-        {
-            return GetPluginInfo(assembly)?.Metadata;
+            try
+            {
+                return assembly.GetTypes();
+            }
+            catch (ReflectionTypeLoadException loadError)
+            {
+                return loadError.Types.Where(t => t != null);
+            }
         }
 
         /// <summary>
         /// Get the first calling assembly that is not the executing assembly via a stack trace
         /// </summary>
-        /// Credit for this code goes to WilliamCruisoring
+        /// <remarks>Credit for this code goes to WilliamCruisoring</remarks>
         public static Assembly GetCallingAssembly()
         {
             Assembly thisAssembly = UtilityCore.Assembly;

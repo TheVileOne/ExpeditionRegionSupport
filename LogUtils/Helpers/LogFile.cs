@@ -1,7 +1,7 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Helpers.Extensions;
 using LogUtils.Helpers.FileHandling;
-using System;
+using LogUtils.Requests;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -18,7 +18,7 @@ namespace LogUtils.Helpers
         /// <param name="copyPath">The full path to the destination of the log file. Log filename is optional</param>
         public static FileStatus Copy(LogID logFile, string copyPath)
         {
-            return Copy(logFile.Properties.CurrentFilename, copyPath);
+            return Copy(logFile.Properties.CurrentFilePath, copyPath, false);
         }
 
         /// <summary>
@@ -26,9 +26,13 @@ namespace LogUtils.Helpers
         /// </summary>
         /// <param name="sourceLogPath">The full path to the log file that needs to be copied (including filename + ext)</param>
         /// <param name="destLogPath">The full path to the destination of the log file. Log filename is optional</param>
-        internal static FileStatus Copy(string sourceLogPath, string destLogPath)
+        /// <param name="overwriteExisting">Specifies the behavior that happens when the file already exists at the destination path</param>
+        internal static FileStatus Copy(string sourceLogPath, string destLogPath, bool overwriteExisting)
         {
-            LogFileMover fileMover = new LogFileMover(sourceLogPath, destLogPath);
+            LogFileMover fileMover = new LogFileMover(sourceLogPath, destLogPath)
+            {
+                ReplaceExistingFile = overwriteExisting
+            };
 
             return fileMover.CopyFile();
         }
@@ -45,24 +49,62 @@ namespace LogUtils.Helpers
 
         internal static FileStatus InternalMove(LogID logFile, string newLogPath)
         {
-            FileStatus moveResult;
-
             var fileLock = logFile.Properties.FileLock;
-            lock (fileLock)
+
+            using (fileLock.Acquire())
             {
+                UtilityLogger.Log($"Attempting to move {logFile} to {newLogPath}");
+
+                if (!logFile.Properties.FileExists)
+                {
+                    logFile.Properties.ChangePath(newLogPath);
+                    return FileStatus.NoActionRequired;
+                }
+
                 fileLock.SetActivity(logFile, FileAction.Move);
 
                 //The move operation requires that all persistent file activity be closed until move is complete
                 var streamsToResume = logFile.Properties.PersistentStreamHandles.InterruptAll();
 
-                moveResult = Move(logFile.Properties.CurrentFilePath, newLogPath);
+                logFile.Properties.WriteBuffer.SetState(true, BufferContext.CriticalArea);
 
-                if (moveResult == FileStatus.MoveComplete)
+                FileStatus moveResult = Move(logFile.Properties.CurrentFilePath, newLogPath, false);
+
+                if (moveResult == FileStatus.FileAlreadyExists)
+                {
+                    string lastFilePath = logFile.Properties.CurrentFilePath;
+
+                    //Attempt to resolve the conflict - This will change the filename if conflicting log file is accesible to LogUtils
                     logFile.Properties.ChangePath(newLogPath);
 
+                    moveResult = Move(lastFilePath, newLogPath, false);
+
+                    if (moveResult == FileStatus.FileAlreadyExists)
+                    {
+                        UtilityLogger.LogWarning($"Path conflict exists: Deleting file at target destination");
+                        UtilityLogger.LogWarning($"Path: {newLogPath}");
+
+                        //Last resort effort to move the file - if this fails, we must abort the move
+                        moveResult = Move(lastFilePath, newLogPath, true);
+
+                        if (moveResult != FileStatus.MoveComplete)
+                        {
+                            UtilityLogger.LogWarning($"Failed to move file");
+
+                            //We have no choice, but to restore the original filename and path
+                            logFile.Properties.ChangePath(lastFilePath);
+                        }
+                    }
+                }
+                else if (moveResult == FileStatus.MoveComplete)
+                {
+                    logFile.Properties.ChangePath(newLogPath);
+                }
+
+                logFile.Properties.WriteBuffer.SetState(false, BufferContext.CriticalArea);
                 streamsToResume.ResumeAll();
+                return moveResult;
             }
-            return moveResult;
         }
 
         /// <summary>
@@ -70,10 +112,13 @@ namespace LogUtils.Helpers
         /// </summary>
         /// <param name="sourceLogPath">The full path to the log file that needs to be moved (including filename + ext)</param>
         /// <param name="destLogPath">The full path to the destination of the log file. Log filename is optional</param>
-        internal static FileStatus Move(string sourceLogPath, string destLogPath)
+        /// <param name="overwriteExisting">Specifies the behavior that happens when the file already exists at the destination path</param>
+        internal static FileStatus Move(string sourceLogPath, string destLogPath, bool overwriteExisting)
         {
-            //TODO: LogFileMover should support LogIDs
-            LogFileMover fileMover = new LogFileMover(sourceLogPath, destLogPath);
+            LogFileMover fileMover = new LogFileMover(sourceLogPath, destLogPath)
+            {
+                ReplaceExistingFile = overwriteExisting
+            };
 
             return fileMover.MoveFile();
         }
@@ -88,7 +133,7 @@ namespace LogUtils.Helpers
         {
             var fileLock = logFile.Properties.FileLock;
 
-            lock (fileLock)
+            using (fileLock.Acquire())
             {
                 fileLock.SetActivity(logFile, FileAction.Open);
 
@@ -167,54 +212,45 @@ namespace LogUtils.Helpers
             logFile.Properties.EndLogSession();
 
             var streamsToResume = logFile.Properties.PersistentStreamHandles.InterruptAll();
-
             var fileLock = logFile.Properties.FileLock;
 
-            lock (fileLock)
+            using (fileLock.Acquire())
             {
-                try
+                fileLock.SetActivity(logFile, FileAction.Delete);
+
+                if (logFile.Properties.FileExists)
                 {
+                    bool fileRemoved = FileUtils.SafeDelete(logFile.Properties.CurrentFilePath, "Unable to delete log file");
 
-                    fileLock.SetActivity(logFile, FileAction.Delete);
-
-                    if (logFile.Properties.FileExists)
-                    {
-                        File.Delete(logFile.Properties.CurrentFilePath);
+                    if (fileRemoved)
                         logFile.Properties.FileExists = false;
-                    }
                 }
-                catch (Exception ex)
-                {
-                    UtilityLogger.LogError("Unable to delete log file", ex);
-                }
-                finally
-                {
-                    logFile.Properties.BeginLogSession();
 
-                    if (logFile.Properties.FileExists)
-                        streamsToResume.ResumeAll();
-                    else
+                logFile.Properties.BeginLogSession();
+
+                if (logFile.Properties.FileExists)
+                    streamsToResume.ResumeAll();
+                else
+                {
+                    string reportMessage = $"Unable to start {logFile} log";
+
+                    //Cannot log to a file that doesn't exist
+                    if (logFile != LogID.BepInEx)
+                        UtilityLogger.LogWarning(reportMessage);
+                    Debug.LogWarning(reportMessage);
+
+                    reportMessage = "Disposing handle";
+
+                    //There does not seem to be a point to keep an invalid handle around, dispose any handles for this log file
+                    var handlesToDispose = logFile.Properties.PersistentStreamHandles.ToArray();
+
+                    foreach (var handle in handlesToDispose)
                     {
-                        string reportMessage = $"Unable to start {logFile} log";
-
                         //Cannot log to a file that doesn't exist
                         if (logFile != LogID.BepInEx)
                             UtilityLogger.LogWarning(reportMessage);
                         Debug.LogWarning(reportMessage);
-
-                        reportMessage = "Disposing handle";
-
-                        //There does not seem to be a point to keep an invalid handle around, dispose any handles for this log file
-                        var handlesToDispose = logFile.Properties.PersistentStreamHandles.ToArray();
-
-                        foreach (var handle in handlesToDispose)
-                        {
-                            //Cannot log to a file that doesn't exist
-                            if (logFile != LogID.BepInEx)
-                                UtilityLogger.LogWarning(reportMessage);
-                            Debug.LogWarning(reportMessage);
-                            handle.Dispose();
-                        }
+                        handle.Dispose();
                     }
                 }
             }
@@ -225,23 +261,26 @@ namespace LogUtils.Helpers
             return FileUtils.SupportedExtensions.Select(fileExt => Path.Combine(searchPath, filename + fileExt)).FirstOrDefault(File.Exists);
         }
 
+        public static ILogWriter FindWriter(LogID logFile)
+        {
+             var writer = UtilityCore.RequestHandler.GameLogger.GetWriter(logFile);
+
+            if (writer == null)
+            {
+                //There is no specified RequestType to base this search on, so we retrieve all compatible examples using RequestType.Local
+                IEnumerable<ILogHandler> availableHandlers = UtilityCore.RequestHandler.AvailableLoggers.CompatibleWith(logFile, RequestType.Local);
+
+                writer = availableHandlers.GetWriters(logFile).FirstOrDefault();
+            }
+            return writer;
+        }
+
         /// <summary>
         /// Retrieves all file handles for log files with at least one persistent FileStream open (file is currently in use), or temporarily closed
         /// </summary>
         public static IEnumerable<PersistentLogFileHandle> GetPersistentLogFiles()
         {
-            var enumerator = UtilityCore.PersistenceManager.References.GetEnumerator();
-
-            while (enumerator.MoveNext())
-            {
-                if (enumerator.Current.TryGetTarget(out PersistentFileHandle handle))
-                {
-                    var logFileHandle = handle as PersistentLogFileHandle;
-                    if (logFileHandle != null)
-                        yield return logFileHandle;
-                }
-            }
-            yield break;
+            return UtilityCore.PersistenceManager.References.OfType<PersistentLogFileHandle>();
         }
     }
 }

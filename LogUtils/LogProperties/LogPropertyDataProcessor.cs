@@ -62,7 +62,7 @@ namespace LogUtils.Properties
             OrderedDictionary fieldAssignments = new OrderedDictionary
             {
                 [DataFields.VERSION]              = new Action(() => properties.Version            = dataFields[DataFields.VERSION]),
-                [DataFields.ALTFILENAME]          = new Action(() => properties.AltFilename        = dataFields[DataFields.ALTFILENAME]),
+                [DataFields.ALTFILENAME]          = new Action(() => properties.AltFilename        = (LogFilename)dataFields[DataFields.ALTFILENAME]),
                 [DataFields.ORIGINAL_PATH]        = new Action(() => properties.OriginalFolderPath = dataFields[DataFields.ORIGINAL_PATH]),
                 [DataFields.LAST_KNOWN_PATH]      = new Action(() => properties.LastKnownFilePath  = dataFields[DataFields.LAST_KNOWN_PATH]),
                 [DataFields.TAGS]                 = new Action(() => properties.Tags               = dataFields[DataFields.TAGS].Split(',')),

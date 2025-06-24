@@ -11,56 +11,70 @@ namespace LogUtils
         {
             string basePath = LogsFolder.Path;
 
-            if (basePath == null)
-            {
-                Result = accessToken.AllowedPaths[0];
-                return;
-            }
-
+            string[] allowedPaths = accessToken.AllowedPaths;
             string result = null;
-            for (int i = 0; i < accessToken.AllowedPaths.Length; i++)
+
+            try
             {
-                //Find the index of the base path in AllowedPaths array
-                if (PathUtils.PathsAreEqual(basePath, accessToken.AllowedPaths[i]))
+                if (basePath == null)
                 {
-                    //Wrap to start of array if we are at the end of it
-                    result = i < accessToken.AllowedPaths.Length - 1 ? accessToken.AllowedPaths[i + 1] : accessToken.AllowedPaths[0];
-                    break;
+                    result = allowedPaths.Length > 0 ? allowedPaths[0] : null;
+                    return;
+                }
+
+                for (int i = 0; i < allowedPaths.Length; i++)
+                {
+                    //Find the index of the base path in AllowedPaths array
+                    if (PathUtils.PathsAreEqual(basePath, allowedPaths[i]))
+                    {
+                        //Wrap to start of array if we are at the end of it
+                        result = i < allowedPaths.Length - 1 ? allowedPaths[i + 1] : allowedPaths[0];
+                        break;
+                    }
                 }
             }
+            finally
+            {
+                if (result == null)
+                    throw new InvalidOperationException("PathCycler failed to find a suitable path");
 
-            if (result == null)
-                throw new InvalidOperationException("PathCycler failed to find a suitable path");
-
-            Result = result;
+                Result = result;
+            }
         }
 
         public virtual void CyclePrev(LogsFolderAccessToken accessToken)
         {
             string basePath = LogsFolder.Path;
 
-            if (basePath == null)
-            {
-                Result = accessToken.AllowedPaths[0];
-                return;
-            }
-
+            string[] allowedPaths = accessToken.AllowedPaths;
             string result = null;
-            for (int i = 0; i < accessToken.AllowedPaths.Length; i++)
+
+            try
             {
-                //Find the index of the base path in AllowedPaths array
-                if (PathUtils.PathsAreEqual(basePath, accessToken.AllowedPaths[i]))
+                if (basePath == null)
                 {
-                    //Wrap to end of array if we are at the start of it
-                    result = i > 0 ? accessToken.AllowedPaths[i - 1] : accessToken.AllowedPaths[accessToken.AllowedPaths.Length - 1];
-                    break;
+                    result = allowedPaths.Length > 0 ? allowedPaths[0] : null;
+                    return;
+                }
+
+                for (int i = 0; i < allowedPaths.Length; i++)
+                {
+                    //Find the index of the base path in AllowedPaths array
+                    if (PathUtils.PathsAreEqual(basePath, allowedPaths[i]))
+                    {
+                        //Wrap to end of array if we are at the start of it
+                        result = i > 0 ? allowedPaths[i - 1] : allowedPaths[allowedPaths.Length - 1];
+                        break;
+                    }
                 }
             }
+            finally
+            {
+                if (result == null)
+                    throw new InvalidOperationException("PathCycler failed to find a suitable path");
 
-            if (result == null)
-                throw new InvalidOperationException("PathCycler failed to find a suitable path");
-
-            Result = result;
+                Result = result;
+            }
         }
     }
 }

@@ -1,10 +1,12 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Helpers.Extensions;
 using LogUtils.Requests;
 using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using DotNetTask = System.Threading.Tasks.Task;
 
 namespace LogUtils
 {
@@ -42,13 +44,12 @@ namespace LogUtils
 
             TimeSpan taskInterval = TimeSpan.FromMilliseconds(writeInterval);
 
-            WriteTask = LogTasker.Schedule(new Task(Flush, taskInterval)
+            WriteTask = LogTasker.Schedule(new Task(ScheduleFlush, taskInterval)
             {
                 Name = "LogWriter",
                 IsContinuous = true
             });
             WriteInterval = taskInterval;
-
             UtilityCore.PersistenceManager.OnHandleDisposed += onHandleDisposed;
         }
 
@@ -60,142 +61,168 @@ namespace LogUtils
             try
             {
                 if (IsDisposed)
-                    throw new ObjectDisposedException("Cannot access a disposed object");
+                    throw new ObjectDisposedException(nameof(TimedLogWriter));
 
-                foreach (var writer in LogWriters)
-                    writer.Flush();
+                var activeWriters = LogWriters.Where(w => w.CanWrite);
+
+                foreach (var writer in activeWriters)
+                {
+                    LogID handleID = writer.Handle.FileID;
+                    var fileLock = handleID.Properties.FileLock;
+
+                    using (fileLock.Acquire())
+                    {
+                        writer.Flush();
+                    }
+                }
             }
-            catch (ObjectDisposedException ex)
+            catch (Exception ex)
             {
                 UtilityLogger.LogError(ex);
             }
         }
 
+        public DotNetTask ScheduleFlush()
+        {
+            return DotNetTask.Run(() =>
+            {
+                if (!IsDisposed)
+                    Flush();
+            });
+        }
+
         protected override void WriteToFile(LogRequest request)
         {
-            request.WriteInProcess();
+            LogID logFile = request.Data.ID;
 
-            if (request.ThreadCanWrite)
+            //Get locally controlled LogIDs from the logger, and compare against the persistent file handles managed by the LogWriter
+            if (request.Host != null)
             {
-                //Assume that thread is allowed to write if we get past this point
-                try
+                IEnumerable<PersistentLogFileHandle> handlesToRelease = request.Host.GetUnusedHandles(LogWriters.Select(writer => writer.Handle));
+
+                foreach (PersistentLogFileHandle handle in handlesToRelease)
+                    ReleaseHandle(handle, false);
+            }
+
+            bool errorHandled = false;
+            var fileLock = logFile.Properties.FileLock;
+
+            fileLock.Acquire();
+
+            ProcessResult streamResult = TryAssignWriter(logFile, out StreamWriter writer);
+
+            //Handle request rejection, and message receive events
+            bool canReceiveMessage = false;
+            switch (streamResult)
+            {
+                case ProcessResult.Success:
+                    {
+                        canReceiveMessage = true;
+                        break;
+                    }
+                case ProcessResult.FailedToCreate:
+                    {
+                        canReceiveMessage = true;
+                        request.Reject(RejectionReason.FailedToWrite);
+                        break;
+                    }
+                case ProcessResult.WaitingToResume:
+                    {
+                        request.Reject(RejectionReason.LogUnavailable);
+                        break;
+                    }
+            }
+
+            try
+            {
+                if (canReceiveMessage)
                 {
-                    LogID logFile = request.Data.ID;
-                    string message = request.Data.Message;
+                    OnLogMessageReceived(request.Data);
 
-                    if (LogFilter.CheckFilterMatch(logFile, message))
-                    {
-                        request.Reject(RejectionReason.FilterMatch);
-                        return;
-                    }
+                    if (streamResult != ProcessResult.Success)
+                        throw new IOException("Unable to create stream");
 
-                    //Get locally controlled LogIDs from the logger, and compare against the persistent file handles managed by the LogWriter
-                    if (request.Host != null)
-                    {
-                        IEnumerable<PersistentLogFileHandle> handlesToRelease = request.Host.GetUnusedHandles(LogWriters.Select(writer => writer.Handle));
-
-                        foreach (PersistentLogFileHandle handle in handlesToRelease)
-                            ReleaseHandle(handle, false);
-                    }
-
-                    ProcessResult streamResult = AssignWriter(logFile, out PersistentLogFileWriter writer);
-
-                    switch (streamResult)
-                    {
-                        case ProcessResult.Success:
-                            OnLogMessageReceived(request.Data);
-
-                            try
-                            {
-                                var fileLock = logFile.Properties.FileLock;
-
-                                lock (fileLock)
-                                {
-                                    fileLock.SetActivity(logFile, FileAction.Write);
-
-                                    message = ApplyRules(request.Data);
-                                    writer.WriteLine(message);
-                                    logFile.Properties.MessagesLoggedThisSession++;
-                                }
-                            }
-                            catch (IOException writeException)
-                            {
-                                request.Reject(RejectionReason.FailedToWrite);
-                                UtilityLogger.LogError("Log write error", writeException);
-                                return;
-                            }
-                            break;
-                        case ProcessResult.WaitingToResume:
-                            request.Reject(RejectionReason.LogUnavailable);
-                            break;
-                        case ProcessResult.FailedToCreate:
-                            request.Reject(RejectionReason.FailedToWrite);
-                            break;
-                    }
-
-                    //All checks passed is a complete request
+                    SendToWriter(writer, request.Data);
                     request.Complete();
                 }
-                finally
-                {
-                    UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
-                }
+            }
+            catch (Exception ex)
+            {
+                errorHandled = true;
+                OnWriteException(logFile, ex);
+            }
+            finally
+            {
+                if (errorHandled)
+                    request.Reject(RejectionReason.FailedToWrite);
+
+                if (request.UnhandledReason == RejectionReason.FailedToWrite)
+                    SendToBuffer(request.Data);
+
+                fileLock.Release();
             }
         }
 
-        protected ProcessResult AssignWriter(LogID logFile, out PersistentLogFileWriter writer)
+        protected override ProcessResult AssignWriter(LogID logFile, out StreamWriter writer)
         {
-            writer = FindWriter(logFile);
+            PersistentLogFileWriter localWriter = FindWriter(logFile);
 
-            //Ensure that the writer we found will not be disposed during assignment
-            if (writer != null)
+            try
             {
-                if (!writer.CanWrite)
+                //Ensure that the writer we found will not be disposed during assignment
+                if (localWriter != null)
                 {
-                    UtilityLogger.DebugLog("Writer rejected due to impermissible write state");
-                    writer = null;
-                }
-            }
-
-        retry:
-            PersistentLogFileHandle writeHandle;
-            if (writer == null)
-            {
-                writeHandle = new PersistentLogFileHandle(logFile);
-
-                //An exception will be thrown if we try to create a StreamWriter with an invalid stream
-                if (!writeHandle.IsClosed)
-                {
-                    writer = new PersistentLogFileWriter(writeHandle)
+                    if (!localWriter.CanWrite)
                     {
-                        AutoFlush = false
-                    };
-                    LogWriters.Add(writer);
-                    return ProcessResult.Success;
+                        UtilityLogger.DebugLog("Writer rejected due to impermissible write state");
+                        localWriter = null;
+                    }
                 }
-                return ProcessResult.FailedToCreate;
+
+            retry:
+                PersistentLogFileHandle writeHandle;
+                if (localWriter == null)
+                {
+                    writeHandle = new PersistentLogFileHandle(logFile);
+
+                    //An exception will be thrown if we try to create a StreamWriter with an invalid stream
+                    if (!writeHandle.IsClosed)
+                    {
+                        localWriter = new PersistentLogFileWriter(writeHandle)
+                        {
+                            AutoFlush = false
+                        };
+                        LogWriters.Add(localWriter);
+                        return ProcessResult.Success;
+                    }
+                    return ProcessResult.FailedToCreate;
+                }
+
+                writeHandle = localWriter.Handle;
+
+                if (writeHandle.IsClosed)
+                {
+                    if (writeHandle.WaitingToResume)
+                        return ProcessResult.WaitingToResume;
+
+                    //This writer is no longer useful - time to replace it with a new instance
+                    localWriter.Dispose();
+                    LogWriters.Remove(localWriter);
+
+                    localWriter = null;
+                    goto retry;
+                }
+                else if (writeHandle.Lifetime.TimeRemaining != LifetimeDuration.Infinite)
+                {
+                    UtilityLogger.Log("Lifetime of filestream has been extended");
+                    writeHandle.Lifetime.SetDuration(LifetimeDuration.Infinite);
+                }
+                return ProcessResult.Success;
             }
-
-            writeHandle = writer.Handle;
-
-            if (writeHandle.IsClosed)
+            finally
             {
-                if (writeHandle.WaitingToResume)
-                    return ProcessResult.WaitingToResume;
-
-                //This writer is no longer useful - time to replace it with a new instance
-                writer.Dispose();
-                LogWriters.Remove(writer);
-
-                writer = null;
-                goto retry;
+                writer = localWriter;
             }
-            else if (writeHandle.Lifetime.TimeRemaining != LifetimeDuration.Infinite)
-            {
-                UtilityLogger.Log("Lifetime of filestream has been extended");
-                writeHandle.Lifetime.SetDuration(LifetimeDuration.Infinite);
-            }
-            return ProcessResult.Success;
         }
 
         protected PersistentLogFileWriter FindWriter(LogID logFile)
@@ -217,12 +244,38 @@ namespace LogUtils
         {
             if (IsDisposed) return;
 
-            try
+            if (LogTasker.IsRunning)
             {
-                WriteTask.RunOnceAndEnd(true);
+                //Get a handle to the active task, so we can await it later
+                using (TaskHandle waitHandle = WriteTask.GetAsyncHandle())
+                {
+                    if (WriteTask.PossibleToRun)
+                    {
+                        try
+                        {
+                            WriteTask.RunOnceAndEnd(true);
+                        }
+                        catch
+                        {
+                            UtilityLogger.DebugLog("Task attempt did not finish - cancelling task");
+                            WriteTask.Cancel();
+                        }
+                    }
+
+                    try
+                    {
+                        //If we don't block here, flush operation will happen too late, and the dispose state will forbid it
+                        waitHandle.BlockUntilTaskEnds(frequency: 5, timeout: 50);
+                    }
+                    catch (TimeoutException)
+                    {
+                        UtilityLogger.DebugLog("Task took too long to complete");
+                    }
+                }
             }
-            catch
+            else
             {
+                Flush();
             }
 
             if (disposing)

@@ -26,7 +26,7 @@ namespace LogUtils
         {
             var fileLock = FileID.Properties.FileLock;
 
-            lock (fileLock)
+            using (fileLock.Acquire())
             {
                 if (!WaitingToResume)
                     fileLock.SetActivity(FileID, FileAction.StreamDisposal);
@@ -80,7 +80,7 @@ namespace LogUtils
             var fileLock = FileID.Properties.FileLock;
 
             //Locked to avoid interfering with any write operations
-            lock (fileLock)
+            using (fileLock.Acquire())
             {
                 if (IsDisposed) return;
 

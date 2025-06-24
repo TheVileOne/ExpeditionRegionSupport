@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace LogUtils.Enums
 {
-    public class LogCategoryCombiner
+    public class LogCategoryCombiner : ICombiner<LogCategory, CompositeLogCategory>
     {
         /// <summary>
         /// Create a composite object out of two component objects

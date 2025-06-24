@@ -7,16 +7,23 @@
         public enum InitializationStep
         {
             NOT_STARTED = 0,
-            INITALIZE_CORE_LOGGER = 1,
+            SETUP_ENVIRONMENT = 1,
             START_SCHEDULER = 2,
-            ESTABLISH_SETUP_PERIOD = 3,
-            INITIALIZE_COMPONENTS = 4,
-            INITIALIZE_ENUMS = 5,
-            PARSE_FILTER_RULES = 6,
-            ADAPT_LOGGING_SYSTEM = 7,
-            POST_LOGID_PROCESSING = 8,
-            APPLY_HOOKS = 9,
-            COMPLETE = 10
+            ESTABLISH_MONITOR_CONNECTION = 3,
+            ESTABLISH_SETUP_PERIOD = 4,
+            INITIALIZE_COMPONENTS = 5,
+            INITIALIZE_ENUMS = 6,
+            PARSE_FILTER_RULES = 7,
+            ADAPT_LOGGING_SYSTEM = 8,
+            POST_LOGID_PROCESSING = 9,
+            APPLY_HOOKS = 10,
+            COMPLETE = 11
+        }
+
+        public enum Build
+        {
+            RELEASE = 0,
+            DEVELOPMENT = 1,
         }
     }
 }

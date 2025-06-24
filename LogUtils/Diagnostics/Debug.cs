@@ -3,6 +3,7 @@ using LogUtils.Diagnostics.Tests.Utility;
 using LogUtils.Enums;
 using LogUtils.Helpers;
 using LogUtils.Requests;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,14 +15,27 @@ namespace LogUtils.Diagnostics
     {
         public static bool AssertsEnabled = true;
 
+        /// <summary>
+        /// The maximum amount of time (in milliseconds) that a logging thread update can experience without triggering a slow update report message
+        /// Set to 25 by default (time windows shorter than this will be subject to context switching delays)
+        /// </summary>
+        public static int LogFrameReportThreshold = 25;
+
         internal static TestSuite UtilityTests;
 
         internal static void InitializeTestSuite()
         {
             UtilityTests = new TestSuite();
+            UtilityTests.AddTests(UtilityCore.Assembly);
+        }
 
-            UtilityTests.Add(new AssertTests());
-            UtilityTests.Add(new LogCategoryTests());
+        internal static void RunTests()
+        {
+            UtilityTests.RunAllTests();
+            //StressTests.TestMultithreadedLogging();
+            //StressTests.TestLoggerDisposal();
+            //StressTests.LogEveryFrame(LogID.Unity, messageFrequency: 1, logUntilThisFrame: 100000, messagesPerFrame: 100);
+            //TestLogsFolder();
         }
 
         /// <summary>
@@ -53,25 +67,46 @@ namespace LogUtils.Diagnostics
             logger.Dispose();
         }
 
-        public static class TestCasePolicy
+        internal static void TestMultipleWritersOneFile()
         {
-            /// <summary>
-            /// A flag that affects whether failed expectations qualify as a failure result
-            /// Default: true
-            /// </summary>
-            public static bool PreferExpectationsAsFailures = true;
+            Logger t1, t2, t3;
 
-            /// <summary>
-            /// A flag that affects whether all failure results are reported, or only the unexpected ones
-            /// Default: false
-            /// </summary>
-            public static bool FailuresAreAlwaysReported = false;
+            LogID testLogID = new LogID("test.log", UtilityConsts.PathKeywords.ROOT, LogAccess.FullAccess, false);
 
-            /// <summary>
-            /// This field affects the level of detail revealed in the test case report
-            /// Default: Standard
-            /// </summary>
-            public static ReportVerbosity ReportVerbosity = ReportVerbosity.Standard;
+            t1 = new Logger(LoggingMode.Timed, testLogID);
+            t2 = new Logger(LoggingMode.Queue, testLogID);
+            t3 = new Logger(LoggingMode.Normal, testLogID);
+
+            //These logs will not log to file properly. Writers are not aware of when other writers are flushing to the stream
+            t1.Log("Message logged using timed writer");
+            t2.Log("Message logged using queue writer");
+            t3.Log("Message logged using standard writer");
+            t1.Log("This message will break LogUtils");
+        }
+
+        internal static void TestLogsFolder()
+        {
+            UtilityCore.Scheduler.Schedule(() =>
+            {
+                try
+                {
+                    //Alternate between having log files in the Logs folder, and having them at their original location
+                    if (!LogsFolder.IsEnabled)
+                    {
+                        UtilityLogger.DebugLog("Enabled");
+                        LogsFolder.Enable();
+                    }
+                    else
+                    {
+                        UtilityLogger.DebugLog("Disabled");
+                        LogsFolder.Disable();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    UtilityLogger.DebugLog(ex);
+                }
+            }, frameInterval: 200);
         }
     }
 }

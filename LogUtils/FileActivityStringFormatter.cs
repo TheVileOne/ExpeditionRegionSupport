@@ -32,32 +32,21 @@ namespace LogUtils
 
         private string getActivityString(FileAction activity)
         {
-            switch (activity)
+            return activity switch
             {
-                case FileAction.Write:
-                    return "write in process";
-                case FileAction.SessionStart:
-                    return "started";
-                case FileAction.SessionEnd:
-                    return "ended";
-                case FileAction.Open:
-                    return "opened";
-                case FileAction.PathUpdate:
-                    return "path updated";
-                case FileAction.Move:
-                    return "moved";
-                case FileAction.Copy:
-                    return "copied";
-                case FileAction.Create:
-                    return "created";
-                case FileAction.Delete:
-                    return "deleted";
-                case FileAction.StreamDisposal:
-                    return "stream disposed";
-                case FileAction.None:
-                default:
-                    return "accessed";
-            }
+                FileAction.Write          => "write in process",
+                FileAction.Buffering      => "is buffering",
+                FileAction.SessionStart   => "started",
+                FileAction.SessionEnd     => "ended",
+                FileAction.Open           => "opened",
+                FileAction.PathUpdate     => "path updated",
+                FileAction.Move           => "moved",
+                FileAction.Copy           => "copied",
+                FileAction.Create         => "created",
+                FileAction.Delete         => "deleted",
+                FileAction.StreamDisposal => "stream disposed",
+                _                         => "accessed",
+            };
         }
     }
 }

@@ -35,7 +35,7 @@ namespace LogUtils
 
         public PersistentFileHandle()
         {
-            UtilityCore.PersistenceManager.References.Add(new WeakReference<PersistentFileHandle>(this));
+            UtilityCore.PersistenceManager.References.Add(this);
         }
 
         /// <summary>

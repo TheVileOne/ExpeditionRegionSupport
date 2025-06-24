@@ -1,24 +1,27 @@
-﻿using LogUtils.Enums;
-using System.Threading;
+﻿using System;
 
 namespace LogUtils.Helpers
 {
     public static class ThreadUtils
     {
-        public static bool IsRunningOnMainThread()
-        {
-            return UtilityCore.ThreadID == Thread.CurrentThread.ManagedThreadId;
-        }
+        public static int MainThreadID = -1;
+
+        public static bool IsRunningOnMainThread => MainThreadID == Environment.CurrentManagedThreadId;
 
         public static bool AssertRunningOnMainThread(object context)
         {
-            if (!IsRunningOnMainThread())
+            if (IsRunningOnMainThread) return true;
+
+            if (MainThreadID == -1)
             {
-                UtilityLogger.Log(LogCategory.Debug, "Assert failed: currently not on main thread");
-                UtilityLogger.Log(LogCategory.Debug, $"ThreadInfo: Id [{Thread.CurrentThread.ManagedThreadId}] Source [{context}]");
-                return false;
+                UtilityLogger.Logger.LogDebug("Assert failed: Unable to determine main thread ID");
             }
-            return true;
+            else
+            {
+                UtilityLogger.Logger.LogDebug("Assert failed: Currently not on main thread");
+                UtilityLogger.Logger.LogDebug($"ThreadInfo: Id [{Environment.CurrentManagedThreadId}] Source [{context}]");
+            }
+            return false;
         }
     }
 }

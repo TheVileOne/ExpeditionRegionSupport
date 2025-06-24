@@ -4,9 +4,19 @@ namespace LogUtils.Helpers
 {
     public static class TimeConversion
     {
-        public static double DateTimeInMilliseconds(DateTime date)
+        public static double ToMilliseconds(this DateTime date)
         {
-            return new TimeSpan(date.Ticks).TotalMilliseconds;
+            return date.Ticks / TimeSpan.TicksPerMillisecond;
+        }
+
+        public static TimeSpan MultiplyBy(this TimeSpan span, double amount)
+        {
+            return new TimeSpan((long)(span.Ticks * amount));
+        }
+
+        public static TimeSpan DivideBy(this TimeSpan span, double amount)
+        {
+            return new TimeSpan((long)(span.Ticks / amount));
         }
     }
 }

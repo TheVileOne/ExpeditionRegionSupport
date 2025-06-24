@@ -1,6 +1,7 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace LogUtils.Templates
@@ -11,6 +12,9 @@ namespace LogUtils.Templates
     internal sealed class LoggerTemplate : ILogger
     {
         #region Implementation
+
+        public List<LogID> LogTargets = new List<LogID>();
+
         public void Log(object data)
         {
             throw new NotImplementedException();

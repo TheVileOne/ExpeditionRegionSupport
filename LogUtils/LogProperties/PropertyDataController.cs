@@ -10,13 +10,20 @@ namespace LogUtils.Properties
 {
     public class PropertyDataController : UtilityComponent
     {
-        public List<LogProperties> Properties = new List<LogProperties>();
+        private List<LogProperties> _properties = new List<LogProperties>();
+
+        public IEnumerable<LogProperties> Properties => _properties.ToArray();
         public CustomLogPropertyCollection CustomLogProperties = new CustomLogPropertyCollection();
         public Dictionary<LogProperties, LogPropertyStringDictionary> UnrecognizedFields = new Dictionary<LogProperties, LogPropertyStringDictionary>();
 
         public LogPropertyFile PropertyFile = new LogPropertyFile();
 
         public override string Tag => UtilityConsts.ComponentTags.PROPERTY_DATA;
+
+        /// <summary>
+        /// A flag that indicates that there are duplicate entries in the LogProperties file
+        /// </summary>
+        public bool HasDuplicateFileEntries;
 
         /// <summary>
         /// A flag that forces all properties instances to write to file on the next save attempt
@@ -50,7 +57,7 @@ namespace LogUtils.Properties
         {
             LogsFolder.UpdatePath();
 
-            bool shouldRunStartupRoutine = RWInfo.LatestSetupPeriodReached < RWInfo.STARTUP_CUTOFF_PERIOD;
+            bool shouldRunStartupRoutine = UtilityCore.IsControllingAssembly && RWInfo.LatestSetupPeriodReached < RWInfo.STARTUP_CUTOFF_PERIOD;
 
             if (shouldRunStartupRoutine)
                 StartupRoutineActive = true; //Notify that startup process might be happening early
@@ -81,12 +88,23 @@ namespace LogUtils.Properties
             LogProperties properties = logFile.Properties;
 
             //The original filename is stored without its original file extension in the value field of the LogID
-            string originalFilePath = LogFile.FindPathWithoutFileExtension(properties.OriginalFolderPath, logFile.value);
+            string originalFilePath = LogFile.FindPathWithoutFileExtension(properties.OriginalFolderPath, logFile.Value);
 
             if (originalFilePath != null) //This shouldn't be null under typical circumstances
             {
                 bool moveFileFromOriginalPath = !PathUtils.PathsAreEqual(originalFilePath, properties.CurrentFilePath);
                 bool lastKnownFileOverwritten = PathUtils.PathsAreEqual(originalFilePath, properties.LastKnownFilePath);
+
+                bool originalFileDeleted = false;
+                if (!UtilityCore.IsControllingAssembly)
+                {
+                    if (logFile != LogID.BepInEx && moveFileFromOriginalPath) //This file would already have been moved by the controlling process - this original file is likely a duplicate
+                        originalFileDeleted = FileUtils.SafeDelete(originalFilePath);
+
+                    //Moving files on other processes is not supported
+                    moveFileFromOriginalPath = false;
+                    properties.SkipStartupRoutine = true;
+                }
 
                 if (moveFileFromOriginalPath)
                 {
@@ -97,21 +115,30 @@ namespace LogUtils.Properties
                         properties.SkipStartupRoutine = true;
                     }
 
-                    lock (properties.FileLock)
+                    using (properties.FileLock.Acquire())
                     {
                         properties.FileLock.SetActivity(properties.ID, FileAction.Move);
 
                         //Move the file, and if it fails, change the path. Either way, log file exists
-                        if (LogFile.Move(originalFilePath, properties.CurrentFilePath) == FileStatus.MoveComplete)
-                            properties.ChangePath(properties.CurrentFilePath);
-                        else
+                        FileStatus moveResult = LogFile.Move(originalFilePath, properties.CurrentFilePath, overwriteExisting: true);
+
+                        if (moveResult != FileStatus.MoveComplete)
                             properties.ChangePath(originalFilePath);
 
                         properties.FileExists = true;
                         properties.LogSessionActive = true;
                     }
                 }
-
+                else if (!originalFileDeleted)
+                {
+                    using (properties.FileLock.Acquire())
+                    {
+                        //File exists - we don't necessarily know if it is an old file here though
+                        properties.FileExists = true;
+                        properties.LogSessionActive = true;
+                    }
+                }
+                
                 properties.SkipStartupRoutine |= lastKnownFileOverwritten;
             }
         }
@@ -125,7 +152,7 @@ namespace LogUtils.Properties
                     properties.CreateTempFile();
 
                 //When the Logs folder is available, favor that path over the original path to the log file
-                if (properties.LogsFolderAware && properties.LogsFolderEligible)
+                if (properties.LogsFolderAware)
                     LogsFolder.AddToFolder(properties);
             }
         }
@@ -174,7 +201,7 @@ namespace LogUtils.Properties
 
         public IEnumerable<LogProperties> GetProperties(LogID logID)
         {
-            return Properties.Where(p => p.ID.Equals(logID));
+            return Properties.Where(p => p.ID.BaseEquals(logID));
         }
 
         /// <summary>
@@ -201,11 +228,21 @@ namespace LogUtils.Properties
             return bestCandidate;
         }
 
+        internal void SetProperties(LogProperties properties)
+        {
+            _properties.Add(properties);
+        }
+
+        internal void RemoveProperties(LogProperties properties)
+        {
+            _properties.Remove(properties);
+        }
+
         public LogProperties SetProperties(LogID logID, string relativePathNoFile)
         {
-            LogProperties properties = new LogProperties(logID.value, relativePathNoFile);
+            LogProperties properties = new LogProperties(logID.Value, relativePathNoFile);
 
-            Properties.Add(properties);
+            _properties.Add(properties);
             return properties;
         }
 
@@ -214,6 +251,8 @@ namespace LogUtils.Properties
         /// </summary>
         public void SetPropertiesFromFile()
         {
+            var propertyComparer = Comparer<LogProperties>.Create(compareByIDHash);
+
             foreach (LogPropertyData data in PropertyFile.Reader.ReadData())
             {
                 if (data.FieldOrderMismatch)
@@ -224,32 +263,97 @@ namespace LogUtils.Properties
 
                 if (properties != null)
                 {
+                    bool propertiesAlreadyExists = Properties.Any(p => propertyComparer.Compare(p, properties) == 0);
+
+                    if (propertiesAlreadyExists)
+                    {
+                        ForceWriteAll = true;
+                        HasDuplicateFileEntries = true;
+                        continue;
+                    }
+
                     if (data.UnrecognizedFields.Count > 0)
                         UnrecognizedFields[properties] = data.UnrecognizedFields;
 
                     properties.UpdateWriteHash();
                     properties.ReadOnly = true;
 
-                    Properties.Add(properties);
+                    _properties.Add(properties);
                 }
             }
         }
 
+        internal void ReloadFromProcessSwitch()
+        {
+            var propertyComparer = Comparer<LogProperties>.Create(compareByIDHash);
+
+            foreach (LogPropertyData data in PropertyFile.Reader.ReadData())
+            {
+                data.ProcessFields();
+                LogProperties properties = data.Processor.Results;
+
+                if (properties != null)
+                {
+                    LogProperties existingProperties = Properties.FirstOrDefault(p => propertyComparer.Compare(p, properties) == 0);
+
+                    //When a main process closes, it's state is written to file - in particular the current path for the file gets stored as the last known path.
+                    //We need to restore this metadata so that the incoming process knows where to log new messages
+                    if (existingProperties != null)
+                    {
+                        existingProperties.ChangePath(properties.LastKnownFilePath);
+                        continue;
+                    }
+
+                    properties.ChangePath(properties.LastKnownFilePath);
+
+                    //This log file is unrecognized by this process and must be new
+                    if (data.UnrecognizedFields.Count > 0)
+                        UnrecognizedFields[properties] = data.UnrecognizedFields;
+
+                    properties.UpdateWriteHash();
+                    properties.ReadOnly = true;
+
+                    _properties.Add(properties);
+                }
+            }
+        }
+
+        private static int compareByIDHash(LogProperties properties, LogProperties propertiesOther)
+        {
+            return properties.IDHash.CompareTo(propertiesOther.IDHash);
+        }
+
         public void SaveToFile()
         {
-            PropertyFile.Writer.Write(GetUpdateList());
+            bool success = false;
+            try
+            {
+                PropertyFile.Writer.Write(GetUpdateEntries());
+                success = true;
+            }
+            catch (IOException ex)
+            {
+                UtilityLogger.LogError(ex);
+            }
+            finally
+            {
+                if (success)
+                    UtilityLogger.Log("Properties file saved");
+                else
+                    UtilityLogger.LogWarning("Properties file could not be saved");
+            }
         }
 
         /// <summary>
-        /// Returns a list of property instances that have data that needs to be written to file
+        /// Returns an array of property instances that have data that needs to be written to file
         /// </summary>
-        internal List<LogProperties> GetUpdateList()
+        internal LogProperties[] GetUpdateEntries()
         {
             if (ForceWriteAll || !File.Exists(PropertyFile.FilePath))
-                return Properties;
+                return (LogProperties[])Properties;
 
             //Reasons to update include new log file data, incomplete data read from file, or modifications made to property data 
-            return Properties.FindAll(p => p.ProcessedWithErrors || p.HasModifiedData());
+            return Properties.Where(p => p.ProcessedWithErrors || p.HasModifiedData()).ToArray();
         }
 
         public override Dictionary<string, object> GetFields()
@@ -260,6 +364,13 @@ namespace LogUtils.Properties
             fields[nameof(CustomLogProperties)] = CustomLogProperties;
             fields[nameof(UnrecognizedFields)] = UnrecognizedFields;
             return fields;
+        }
+
+        internal void NotifyWriteCompleted()
+        {
+            //After a file update, associated flags need to be set back to default values
+            ForceWriteAll = false;
+            HasDuplicateFileEntries = false;
         }
 
         public static string FormatAccessString(string logName, string propertyName)

@@ -5,7 +5,7 @@ namespace LogUtils
 {
     public static class UtilityConsts
     {
-        public const int CUSTOM_LOGTYPE_LIMIT = 1000;
+        public const int CUSTOM_LOGTYPE_LIMIT = int.MaxValue;
         public const string UTILITY_NAME = "LogUtils";
 
         public static class DataFields
@@ -209,6 +209,11 @@ namespace LogUtils
             public const string MUST_NOT_BE_NEGATIVE = "{0} must not be negative";
 
             public const string NO_COMPARISON = "{0} could not be compared";
+        }
+
+        public static class PropertyTag
+        {
+            public const string CONFLICT = "conflict";
         }
 
         public static class MessageTag

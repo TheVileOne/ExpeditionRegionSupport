@@ -1,8 +1,11 @@
-﻿using LogUtils.Enums;
+﻿using LogUtils.Console;
+using LogUtils.Diagnostics.Tools;
+using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
-using LogUtils.Properties;
 using LogUtils.Requests;
+using LogUtils.Threading;
+using LogUtils.Timers;
 using System;
 using System.IO;
 using System.Linq;
@@ -11,37 +14,30 @@ namespace LogUtils
 {
     public class LogWriter : ILogWriter
     {
-        private static SharedField<ILogWriter> _writer;
-        private static SharedField<QueueLogWriter> _jollyWriter;
+        /// <summary>
+        /// Writer used by default for most Logger implementations
+        /// </summary>
+        public static ILogWriter Writer = new LogWriter();
 
-        public static ILogWriter Writer
+        /// <summary>
+        /// Writer used by default for JollyCoop
+        /// </summary>
+        public static QueueLogWriter JollyWriter = new QueueLogWriter();
+
+        /// <summary>
+        /// Is this writer recognized by the assembly to be available for any Logger implementation to use
+        /// </summary>
+        public static bool IsCachedWriter(ILogWriter writer)
         {
-            get
-            {
-                if (_writer == null)
-                {
-                    _writer = UtilityCore.DataHandler.GetField<ILogWriter>("logwriter");
-
-                    if (_writer.Value == null)
-                        _writer.Value = new LogWriter();
-                }
-                return _writer.Value;
-            }
+            return writer == Writer || writer == JollyWriter;
         }
 
-        public static QueueLogWriter JollyWriter
-        {
-            get
-            {
-                if (_jollyWriter == null)
-                {
-                    _jollyWriter = UtilityCore.DataHandler.GetField<QueueLogWriter>("logwriter_jolly");
+        private LogMessageFormatter _formatter;
 
-                    if (_jollyWriter.Value == null)
-                        _jollyWriter.Value = new QueueLogWriter();
-                }
-                return _jollyWriter.Value;
-            }
+        public LogMessageFormatter Formatter
+        {
+            get => _formatter ?? LogMessageFormatter.Default;
+            set => _formatter = value;
         }
 
         /// <summary>
@@ -49,20 +45,236 @@ namespace LogUtils
         /// </summary>
         protected bool ShouldCloseWriterAfterUse = true;
 
-        public virtual void WriteFrom(LogRequest request)
+        /// <summary>
+        /// Primary process delegate for handling a write request
+        /// </summary>
+        protected Action<LogRequest> WriteHandler;
+
+        public LogWriter()
+        {
+            WriteHandler = WriteToFile;
+        }
+
+        /// <summary>
+        /// Processes a write request
+        /// </summary>
+        public void WriteFrom(LogRequest request)
         {
             if (request == null)
                 throw new ArgumentNullException(nameof(request));
 
             request.WriteInProcess();
 
-            if (request.ThreadCanWrite)
-                WriteToFile(request);
+            if (!request.ThreadCanWrite) return;
+
+            LogProfiler profiler = request.Data.Properties.Profiler;
+            MessageBuffer writeBuffer = request.Data.Properties.WriteBuffer;
+
+            //Assume that thread is allowed to write if we get to this point
+            try
+            {
+                if (!LogFilter.IsAllowed(request.Data))
+                {
+                    request.Reject(RejectionReason.FilterMatch);
+                    return;
+                }
+
+                if (!request.Data.ID.IsEnabled)
+                {
+                    request.Reject(RejectionReason.LogDisabled);
+                    return;
+                }
+
+                if (!RWInfo.IsShuttingDown)
+                {
+                    /*
+                     * In order to get back into a write qualifying range, we run a new calculation with zero new accumulated messages until the average logging rate
+                     * returns back into the acceptable range
+                     */
+                    if (writeBuffer.IsBuffering || profiler.IsReadyToAnalyze)
+                    {
+                        //Perform logging average calculations on message data
+                        profiler.UpdateCalculations();
+
+                        double averageWriteTime = profiler.AverageLogRate.TotalMilliseconds;
+
+                        bool highVolumePeriod = averageWriteTime < profiler.LogRateThreshold; //Lower value means higher rate
+
+                        if (highVolumePeriod && !writeBuffer.IsBuffering)
+                        {
+                            UtilityLogger.DebugLog($"Average logging time: {averageWriteTime} ms per message");
+
+                            //High volume periods are only counted when not buffering
+                            profiler.PeriodsUnderHighVolume++;
+                        }
+
+                        if (highVolumePeriod && profiler.ShouldUseBuffer)
+                        {
+                            if (!writeBuffer.IsEntered(BufferContext.HighVolume))
+                            {
+                                writeBuffer.SetState(true, BufferContext.HighVolume);
+
+                                PollingTimer listener = writeBuffer.ActivityListeners.FirstOrDefault(l => Equals(l.Tag, BufferContext.HighVolume));
+
+                                if (listener == null)
+                                {
+                                    listener = writeBuffer.PollForActivity(null, (t, e) =>
+                                    {
+                                        //TODO: This will run on a different thread. It needs to be thread-safe
+                                        //Ensure that buffer will disable itself after a short period of time without needing extra log requests to clear the buffer
+                                        if (writeBuffer.SetState(false, BufferContext.HighVolume))
+                                        {
+                                            profiler.Restart();
+                                            WriteFromBuffer(request.Data.ID, initialWaitInterval);
+                                        }
+                                    }, initialWaitInterval);
+                                    listener.Tag = BufferContext.HighVolume;
+                                }
+                                UtilityLogger.DebugLog($"Activity listeners {writeBuffer.ActivityListeners.Count}");
+                            }
+                            profiler.BufferedFrameCount++;
+                        }
+                        else if (writeBuffer.IsEntered(BufferContext.HighVolume) && writeBuffer.SetState(false, BufferContext.HighVolume))
+                        {
+                            profiler.Restart();
+                        }
+                    }
+
+                    if (writeBuffer.IsBuffering)
+                    {
+                        WriteToBuffer(request);
+                        return;
+                    }
+                }
+                else
+                {
+                    //Buffer should be handled immediately, while Rain World is shutting down
+                    WriteFromBuffer(request.Data.ID, TimeSpan.Zero, respectBufferState: false);
+                }
+
+                if (request.Type == RequestType.Console || request.Data.PendingConsoleIDs.Any())
+                {
+                    WriteToConsole(request);
+
+                    //Only requests that exclusively target the console should return early
+                    if (request.Type == RequestType.Console)
+                        return;
+                }
+
+                WriteHandler.Invoke(request);
+            }
+            finally
+            {
+                if (!writeBuffer.IsBuffering || RWInfo.IsShuttingDown)
+                    profiler.MessagesSinceLastSampling++;
+                UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+            }
+        }
+
+        private static readonly TimeSpan initialWaitInterval = TimeSpan.FromMilliseconds(25);
+        private static readonly TimeSpan maxWaitInterval = TimeSpan.FromSeconds(5);
+
+        void IBufferHandler.WriteFromBuffer(LogID logFile, TimeSpan waitTime, bool respectBufferState)
+        {
+            WriteFromBuffer(logFile, waitTime, respectBufferState);
+        }
+
+        /// <summary>
+        /// Attempts to write content from the message buffer to file after a specified amount of time
+        /// <br>Wait behavior: Wait time will double on each failed attempt to write to file (up to a maximum of 5000 ms)</br>
+        /// </summary>
+        /// <param name="logFile">The file that contains the message buffer</param>
+        /// <param name="waitTime">The initial time to wait before writing to file (when set to zero,  write attempt will be immediate)</param>
+        /// <param name="respectBufferState">Allow the buffer state to determine when to make a write attempt</param>
+        /// <returns>A handle to the scheduled write task</returns>
+        public Task WriteFromBuffer(LogID logFile, TimeSpan waitTime, bool respectBufferState = true)
+        {
+            MessageBuffer writeBuffer = logFile.Properties.WriteBuffer;
+            FileLock fileLock = logFile.Properties.FileLock;
+
+            //TODO: Determine if this should always run through a Task
+            if (waitTime <= TimeSpan.Zero)
+            {
+                //Write implementation will ignore this field - make sure we want that to happen
+                if ((!respectBufferState || !writeBuffer.IsBuffering) && tryWrite())
+                    return null;
+
+                waitTime = initialWaitInterval;
+            }
+
+            Task writeTask = null;
+
+            writeTask = new Task(() =>
+            {
+                bool taskCompleted = (!respectBufferState || !writeBuffer.IsBuffering) && tryWrite();
+
+                if (taskCompleted)
+                    writeTask.IsContinuous = false;
+                else
+                {
+                    //Each failed attempt doubles the wait time for the next attempt up to a maximum of 5 seconds
+                    TimeSpan waitInterval = writeTask.WaitTimeInterval.MultiplyBy(2);
+
+                    if (waitInterval > maxWaitInterval)
+                        waitInterval = maxWaitInterval;
+                    writeTask.WaitTimeInterval = waitInterval;
+                }
+
+            }, waitTime);
+            writeTask.Name = "BufferWriteTask";
+            writeTask.IsContinuous = true;
+
+            LogTasker.Schedule(writeTask);
+            return writeTask;
+
+            bool tryWrite()
+            {
+                if (!writeBuffer.HasContent)
+                    return true;
+
+                if (!PrepareLogFile(logFile))
+                    return false;
+
+                fileLock.Acquire();
+                fileLock.SetActivity(logFile, FileAction.Write);
+
+                ProcessResult result = TryAssignWriter(logFile, out StreamWriter writer);
+
+                try
+                {
+                    if (result != ProcessResult.Success)
+                        return false;
+
+                    writer.WriteLine(writeBuffer);
+                    writeBuffer.Clear();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    OnWriteException(logFile, ex);
+                    return false;
+                }
+                finally
+                {
+                    if (ShouldCloseWriterAfterUse && writer != null)
+                        writer.Close();
+
+                    fileLock.Release();
+                }
+            }
         }
 
         protected virtual void WriteToBuffer(LogRequest request)
         {
-            throw new NotImplementedException();
+            OnLogMessageReceived(request.Data);
+
+            SendToBuffer(request.Data);
+            request.Complete(); //LogRequest no longer needs to be processed once its message has been added to the write buffer
+        }
+
+        protected virtual void WriteToConsole(LogRequest request)
+        {
+            LogConsole.HandleRequest(request);
         }
 
         /// <summary>
@@ -70,47 +282,75 @@ namespace LogUtils
         /// </summary>
         protected virtual void WriteToFile(LogRequest request)
         {
-            request.WriteInProcess();
-
-            if (request.ThreadCanWrite)
+            if (!PrepareLogFile(request.Data.ID))
             {
-                //Assume that thread is allowed to write if we get past this point
-                try
-                {
-                    if (LogFilter.CheckFilterMatch(request.Data.ID, request.Data.Message))
-                    {
-                        request.Reject(RejectionReason.FilterMatch);
-                        return;
-                    }
+                request.Reject(RejectionReason.LogUnavailable);
+                return;
+            }
 
-                    if (!PrepareLogFile(request.Data.ID))
+            LogID logFile = request.Data.ID;
+
+            bool errorHandled = false;
+            var fileLock = logFile.Properties.FileLock;
+
+            fileLock.Acquire();
+            fileLock.SetActivity(logFile, FileAction.Write);
+
+            ProcessResult streamResult = TryAssignWriter(logFile, out StreamWriter writer);
+
+            //Handle request rejection, and message receive events
+            bool canReceiveMessage = false;
+            switch (streamResult)
+            {
+                case ProcessResult.Success:
+                    {
+                        canReceiveMessage = true;
+                        break;
+                    }
+                case ProcessResult.FailedToCreate:
+                    {
+                        canReceiveMessage = true;
+                        request.Reject(RejectionReason.FailedToWrite);
+                        break;
+                    }
+                case ProcessResult.WaitingToResume:
                     {
                         request.Reject(RejectionReason.LogUnavailable);
-                        return;
+                        break;
                     }
+            }
 
-                    if (!InternalWriteToFile(request.Data))
-                    {
-                        request.Reject(RejectionReason.FailedToWrite);
-                        return;
-                    }
+            try
+            {
+                if (canReceiveMessage)
+                {
+                    OnLogMessageReceived(request.Data);
 
-                    //All checks passed is a complete request
+                    if (streamResult != ProcessResult.Success)
+                        throw new IOException("Unable to create stream");
+
+                    SendToWriter(writer, request.Data);
                     request.Complete();
                 }
-                finally
-                {
-                    UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
-                }
             }
-        }
+            catch (Exception ex)
+            {
+                errorHandled = true;
+                OnWriteException(logFile, ex);
+            }
+            finally
+            {
+                if (ShouldCloseWriterAfterUse && writer != null)
+                    writer.Close();
 
-        public void WriteToFile(LogID logFile, string message)
-        {
-            RequestType requestType = logFile.IsGameControlled ? RequestType.Game : RequestType.Local;
-            LogMessageEventArgs logEventData = new LogMessageEventArgs(logFile, message);
+                if (errorHandled)
+                    request.Reject(RejectionReason.FailedToWrite);
 
-            WriteFrom(new LogRequest(requestType, logEventData));
+                if (request.UnhandledReason == RejectionReason.FailedToWrite)
+                    SendToBuffer(request.Data);
+
+                fileLock.Release();
+            }
         }
 
         protected virtual bool PrepareLogFile(LogID logFile)
@@ -118,48 +358,26 @@ namespace LogUtils
             return LogFile.TryCreate(logFile);
         }
 
-        internal bool InternalWriteToFile(LogMessageEventArgs logEventData)
+        /// <summary>
+        /// Assigns a writer instance for handling a specified log file
+        /// </summary>
+        protected ProcessResult TryAssignWriter(LogID logFile, out StreamWriter writer)
         {
-            OnLogMessageReceived(logEventData);
-
-            LogID logFile = logEventData.ID;
-            string message = logEventData.Message;
-
-            StreamWriter writer = null;
             try
             {
-                var fileLock = logFile.Properties.FileLock;
-
-                lock (fileLock)
-                {
-                    fileLock.SetActivity(logFile, FileAction.Write);
-                    ProcessResult streamResult = AssignWriter(logFile, out writer);
-
-                    if (streamResult != ProcessResult.Success)
-                        throw new IOException("Unable to create stream");
-
-                    message = ApplyRules(logEventData);
-                    writer.WriteLine(message);
-                    logFile.Properties.MessagesLoggedThisSession++;
-                }
-                return true;
+                return AssignWriter(logFile, out writer);
             }
-            catch (IOException writeException)
+            catch //Exception should be handled, and reported by caller
             {
-                UtilityLogger.LogError("Log write error", writeException);
-                return false;
-            }
-            finally
-            {
-                if (ShouldCloseWriterAfterUse && writer != null)
-                    writer.Close();
+                writer = null;
+                return ProcessResult.FailedToCreate;
             }
         }
 
         /// <summary>
         /// Assigns a writer instance for handling a specified log file
         /// </summary>
-        protected ProcessResult AssignWriter(LogID logFile, out StreamWriter writer)
+        protected virtual ProcessResult AssignWriter(LogID logFile, out StreamWriter writer)
         {
             FileStream stream = LogFile.Open(logFile);
 
@@ -172,19 +390,87 @@ namespace LogUtils
             return ProcessResult.Success;
         }
 
-        public virtual string ApplyRules(LogMessageEventArgs logEventData)
+        public virtual string ApplyRules(LogRequestEventArgs messageData)
         {
-            string message = logEventData.Message;
-            var activeRules = logEventData.Properties.Rules.Where(r => r.IsEnabled);
-
-            foreach (LogRule rule in activeRules)
-                rule.Apply(ref message, logEventData);
-            return message;
+            return Formatter.Format(messageData);
         }
 
-        protected virtual void OnLogMessageReceived(LogMessageEventArgs e)
+        protected virtual void OnWriteException(LogID logFile, Exception exception)
         {
-            UtilityEvents.OnMessageReceived?.Invoke(e);
+            //Do not attempt to log an error to BepInEx when the exception came from attempting to write to BepInEx
+            if (logFile != LogID.BepInEx)
+                UtilityLogger.LogError("Log write error", exception);
+
+            //Use Unity's API to log the exception, unless that option has already failed
+            if (logFile != LogID.Exception)
+                UnityEngine.Debug.LogException(exception);
+            else
+            {
+                //TODO: Add fallback process to ensure exceptions are logged
+            }
+        }
+
+        protected virtual void OnLogMessageReceived(LogRequestEventArgs messageData)
+        {
+            UtilityEvents.OnMessageReceived?.Invoke(messageData);
+        }
+
+        public void SendToBuffer(LogRequestEventArgs messageData)
+        {
+            LogID logFile = messageData.ID;
+
+            var fileLock = logFile.Properties.FileLock;
+
+            using (fileLock.Acquire())
+            {
+                fileLock.SetActivity(logFile, FileAction.Buffering);
+
+                messageData.CacheMessageTotal();
+
+                //Keep this inside a lock, we want to ensure that it remains in sync with the MessagesHandled count, which is used for this process
+                string message = ApplyRules(messageData);
+
+                logFile.Properties.WriteBuffer.AppendMessage(message);
+                logFile.Properties.MessagesHandledThisSession++;
+            }
+        }
+
+        protected void SendToWriter(StreamWriter writer, LogRequestEventArgs messageData)
+        {
+            MessageBuffer writeBuffer = messageData.Properties.WriteBuffer;
+
+            //The buffer always gets written to file before the request message
+            if (writeBuffer.HasContent)
+            {
+                writer.WriteLine(writeBuffer);
+                writeBuffer.Clear();
+            }
+
+            messageData.CacheMessageTotal();
+
+            string message = ApplyRules(messageData);
+
+            writer.WriteLine(message);
+
+            if (RWInfo.IsShuttingDown)
+                writer.Flush();
+
+            messageData.Properties.MessagesHandledThisSession++;
+        }
+
+        public static bool TryDispose(ILogWriter writer)
+        {
+            if (IsCachedWriter(writer)) //Avoid disposing a shared resource
+                return false;
+
+            IDisposable disposable = writer as IDisposable;
+
+            if (disposable != null)
+            {
+                disposable.Dispose();
+                return true;
+            }
+            return false;
         }
 
         protected enum ProcessResult
@@ -195,10 +481,36 @@ namespace LogUtils
         }
     }
 
-    public interface ILogWriter
+    public interface ILogWriter : IBufferHandler
     {
-        public string ApplyRules(LogMessageEventArgs logEventData);
-        internal void WriteFrom(LogRequest request);
-        internal void WriteToFile(LogID logFile, string message);
+        /// <summary>
+        /// Applies rule-defined formatting to a message
+        /// </summary>
+        string ApplyRules(LogRequestEventArgs messageData);
+
+        /// <summary>
+        /// Provides a procedure for writing a message to file
+        /// </summary>
+        void WriteFrom(LogRequest request);
+    }
+
+    public interface IBufferHandler
+    {
+        /// <summary>
+        /// Provides a procedure for adding a message to the WriteBuffer
+        /// <br><remarks>
+        /// Bypasses the LogRequest system - intended to be used as a fallback message handling process
+        /// </remarks></br>
+        /// </summary>
+        void SendToBuffer(LogRequestEventArgs messageData);
+
+        /// <summary>
+        /// Attempts to write content from the message buffer to file after a specified amount of time
+        /// <br>Default behavior: Wait time will double on each failed attempt to write to file (up to a maximum of 5000 ms)</br>
+        /// </summary>
+        /// <param name="logFile">The file that contains the message buffer</param>
+        /// <param name="waitTime">The initial time to wait before writing to file (when set to zero, write attempt will be immediate and only happen once)</param>
+        /// <param name="respectBufferState">Allow the buffer state to determine when to make a write attempt</param>
+        void WriteFromBuffer(LogID logFile, TimeSpan waitTime, bool respectBufferState = true);
     }
 }

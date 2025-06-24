@@ -24,6 +24,8 @@ namespace LogUtils
 
         public static bool IsRainWorldRunning => RainWorld != null;
 
+        public static bool IsShuttingDown;
+
         public static RainWorld.BuildType Build => IsRainWorldRunning ? RainWorld.buildType : default;
 
         /// <summary>

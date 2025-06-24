@@ -1,6 +1,9 @@
-﻿using System;
+﻿using LogUtils.Helpers;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 namespace LogUtils.Diagnostics.Tests
 {
@@ -64,10 +67,35 @@ namespace LogUtils.Diagnostics.Tests
         }
 
         #region Collection code
+
+        /// <summary>
+        /// Searches for all implementors of the ITestable interface in a given assembly, and adds an instance of the type to the test suite 
+        /// </summary>
+        public void AddTests(Assembly assembly)
+        {
+            bool errorLoadingTests = false;
+            foreach (Type type in assembly.GetTypesSafely().Where(t => t.GetInterface(nameof(ITestable)) != null))
+            {
+                try
+                {
+                    Add((ITestable)Activator.CreateInstance(type));
+                }
+                catch
+                {
+                    errorLoadingTests = true;
+                }
+            }
+
+            if (errorLoadingTests)
+                UtilityLogger.LogWarning("Could not load one, or more tests");
+        }
+
         public void Add(ITestable item)
         {
             if (item == null)
                 throw new ArgumentNullException("Collection does not support the storage of null values");
+
+            UtilityLogger.Log("Loading " + item.Name);
 
             //Ensure we have enough space in the array for new values
             if (Capacity - Size == 0)
@@ -170,17 +198,18 @@ namespace LogUtils.Diagnostics.Tests
             ActiveSuite = this;
             try
             {
-                var enumerator = GetEnumerator();
+                var tests = GetEnumerator();
 
-                while (enumerator.MoveNext())
+                while (tests.MoveNext())
                 {
-                    var currentTest = enumerator.Current;
-                    currentTest.Test();
+                    Condition.Result.ResetCount();
+                    Run(tests.Current);
                 }
             }
             finally
             {
                 ActiveSuite = null;
+                Condition.Result.ResetCount();
             }
         }
 
@@ -192,19 +221,62 @@ namespace LogUtils.Diagnostics.Tests
             ActiveSuite = this;
             try
             {
-                var enumerator = GetEnumerator();
+                var tests = GetEnumerator();
 
-                while (enumerator.MoveNext())
+                while (tests.MoveNext())
                 {
-                    var currentTest = enumerator.Current;
-
-                    if (predicate(currentTest))
-                        currentTest.Test();
+                    if (predicate(tests.Current))
+                    {
+                        Condition.Result.ResetCount();
+                        Run(tests.Current);
+                    }
                 }
             }
             finally
             {
                 ActiveSuite = null;
+                Condition.Result.ResetCount();
+            }
+        }
+
+        public void Run(ITestable test)
+        {
+            Type type = test.GetType();
+
+            //Get methods that have at least one custom attribute
+            MethodInfo[] methods = type.GetMethods()
+                                       .Where(m => m.GetCustomAttributes(inherit: true).Any())
+                                       .ToArray();
+
+            IEnumerable<MethodInfo> preTestMethods = methods.Where(m => m.GetCustomAttribute(typeof(PreTestAttribute), inherit: true) != null),
+                                    postTestMethods = methods.Where(m => m.GetCustomAttribute(typeof(PostTestAttribute), inherit: true) != null);
+
+            foreach (var method in preTestMethods)
+            {
+                bool hasParams = method.GetParameters().Length > 0;
+
+                if (!hasParams)
+                {
+                    method.Invoke(test, null);
+                    continue;
+                }
+
+                UtilityLogger.LogError(new InvalidOperationException("Test condition must not have arguments"));
+            }
+
+            test.Test();
+
+            foreach (var method in postTestMethods)
+            {
+                bool hasParams = method.GetParameters().Length > 0;
+
+                if (!hasParams)
+                {
+                    method.Invoke(test, null);
+                    continue;
+                }
+
+                UtilityLogger.LogError(new InvalidOperationException("Test condition must not have arguments"));
             }
         }
         #endregion

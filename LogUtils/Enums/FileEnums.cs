@@ -7,6 +7,7 @@
         MoveRequired,
         MoveComplete,
         CopyComplete,
+        FileAlreadyExists,
         ValidationFailed,
         Error
     }
@@ -16,6 +17,7 @@
         None,
         Create,
         Delete,
+        Buffering,
         Write,
         Move,
         Copy,

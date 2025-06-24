@@ -1,5 +1,5 @@
 ﻿using BepInEx.Logging;
-using LogUtils.Helpers.Console;
+using LogUtils.Console;
 using LogUtils.Helpers.Extensions;
 using System;
 using System.Linq;
@@ -22,8 +22,9 @@ namespace LogUtils.Enums
         private LogLevel  _bepInExConversion = LOG_LEVEL_DEFAULT;
         private LogType   _unityConversion = LOG_TYPE_DEFAULT;
         private LogGroup  _defaultGroup = LogGroupMap.DefaultGroup;
-        private Color     _defaultConsoleColor = ConsoleColorUnity.DefaultColor;
+        private Color     _defaultConsoleColor = ConsoleColorMap.DefaultColor;
         private LogGroup? _userDefinedGroup;
+        private LogGroup? _userDefinedColorGroup;
         private Color?    _userDefinedConsoleColor;
 
         private bool conversionFieldsNeedUpdating;
@@ -85,7 +86,6 @@ namespace LogUtils.Enums
         /// </summary>
         public virtual Color ConsoleColor
         {
-            //TODO: Override for composites
             get
             {
                 if (!ReferenceEquals(ManagedReference, this))
@@ -101,9 +101,11 @@ namespace LogUtils.Enums
             }
         }
 
+        internal bool HasColorOverride => ConsoleColor != _defaultConsoleColor;
+
         public static LogCategory[] RegisteredEntries => values.entries.Select(entry => new LogCategory(entry)).ToArray();
 
-        public static LogCategoryCombiner Combiner = new LogCategoryCombiner();
+        public static ICombiner<LogCategory, CompositeLogCategory> Combiner = new LogCategoryCombiner();
 
         public static IFilter<LogCategory> GlobalFilter;
 
@@ -176,7 +178,7 @@ namespace LogUtils.Enums
         public override void Register()
         {
             //When a registration is applied, set a flag that allows conversion fields to be overwritten
-            if (!ManagedReference.Registered || index < 0)
+            if (!ManagedReference.Registered || BaseIndex < 0) //Base index is checked here, because ManagedReference index would be used if we didn't
                 conversionFieldsNeedUpdating = true;
 
             base.Register();
@@ -184,11 +186,11 @@ namespace LogUtils.Enums
 
         private int indexToConversionValue()
         {
-            if (index < 0) return -1;
+            if (BaseIndex < 0) return -1; //Base index is checked here, because ManagedReference index would be used if we didn't
 
             //Map the registration index to an unmapped region of values designated for custom enum values
             //Assigned value will be a valid bit flag position
-            return (int)Math.Min(CONVERSION_OFFSET * Math.Pow(index, 2), int.MaxValue);
+            return (int)Math.Min(CONVERSION_OFFSET * Math.Pow(BaseIndex, 2), int.MaxValue);
         }
 
         private void updateConversionFields(LogLevel logLevel, LogType logType)
@@ -207,7 +209,7 @@ namespace LogUtils.Enums
             {
                 LogLevel category = BepInExCategory;
                 _defaultGroup = LogGroupMap.GetEquivalent(category, true);
-                _defaultConsoleColor = ConsoleColorUnity.GetColor(category.GetConsoleColor());
+                _defaultConsoleColor = ConsoleColorMap.GetColor(_defaultGroup);
             }
             defaultsNeedUpdating = false;
         }

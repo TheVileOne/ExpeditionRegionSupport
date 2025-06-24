@@ -179,7 +179,19 @@ namespace LogUtils.Diagnostics
             if (!condition.ShouldProcess)
                 return condition;
 
-            bool conditionPassed = !condition.Value.Equals(compareObject);
+            bool conditionPassed;
+
+            bool hasValue = condition.Value != null;
+            bool hasValueOther = compareObject != null;
+
+            if (!hasValue || !hasValueOther) //One or both of these values are null
+            {
+                conditionPassed = hasValue != hasValueOther;
+            }
+            else //Avoid boxing, by handling potential value types here
+            {
+                conditionPassed = !condition.Value.Equals(compareObject);
+            }
 
             if (conditionPassed)
                 condition.Pass();
@@ -254,7 +266,7 @@ namespace LogUtils.Diagnostics
         /// <param name="compareObject">The object to compare to</param>
         public static Condition<T> IsSameInstance<T>(this Condition<T> condition, T compareObject) where T : class
         {
-            bool conditionPassed = ReferenceEquals(condition, compareObject);
+            bool conditionPassed = ReferenceEquals(condition.Value, compareObject);
 
             if (conditionPassed)
                 condition.Pass();
@@ -269,7 +281,7 @@ namespace LogUtils.Diagnostics
         /// <param name="compareObject">The object to compare to</param>
         public static Condition<T> IsNotThisInstance<T>(this Condition<T> condition, T compareObject) where T : class
         {
-            bool conditionPassed = ReferenceEquals(condition, compareObject);
+            bool conditionPassed = ReferenceEquals(condition.Value, compareObject);
 
             if (conditionPassed)
                 condition.Pass();

@@ -1,5 +1,7 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Helpers;
 using LogUtils.Helpers.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -169,6 +171,38 @@ namespace LogUtils.Enums
             }
         }
 
+        public override Color ConsoleColor
+        {
+            get
+            {
+                //Composite represents an exact category in this case
+                if (!isInitialized || FlagCount == 1)
+                    return base.ConsoleColor;
+
+                if (IsEmpty)
+                    return None.ConsoleColor;
+
+                LogCategory[] mostRelevantFlags = GetMostRelevantFlags();
+
+                //Flags with a non-default color set have priority over flags that inherit the default color for their specific LogGroup
+                LogCategory flagWithColorOverride = Array.Find(mostRelevantFlags, flag => flag.HasColorOverride);
+
+                if (flagWithColorOverride != null)
+                    return flagWithColorOverride.ConsoleColor;
+
+                return mostRelevantFlags[0].ConsoleColor;
+            }
+            set
+            {
+                if (!isInitialized || FlagCount == 1)
+                {
+                    base.ConsoleColor = value;
+                    return;
+                }
+                UtilityLogger.Log("Setting ConsoleColor for a composite category is unsupported");
+            }
+        }
+
         internal CompositeLogCategory() : base(None.ToString(), false)
         {
             isInitialized = true;
@@ -268,6 +302,24 @@ namespace LogUtils.Enums
         }
 
         #region Search methods
+
+        /// <summary>
+        /// Finds all flags contained within the most relevant LogGroup for the composite instance
+        /// </summary>
+        public LogCategory[] GetMostRelevantFlags()
+        {
+            if (IsEmpty)
+                return Array.Empty<LogCategory>();
+
+            if (FlagCount == 1)
+                return [Set.First()];
+
+            //The broadest LogGroup is considered the most relevant
+            LogGroup mostRelevantGroup = (LogGroup)FlagUtils.GetHighestBit((int)Group);
+
+            return Set.Where(flag => (flag.Group & mostRelevantGroup) != 0).ToArray();
+        }
+        
         /// <summary>
         /// Checks whether this instance contains the specified flag element
         /// </summary>

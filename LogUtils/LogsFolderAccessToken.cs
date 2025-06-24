@@ -7,13 +7,14 @@ namespace LogUtils
         public readonly FolderAccess Access;
 
         /// <summary>
-        /// Contains folder paths considered as familiar to the access token provider (mod). May be null
+        /// Contains folder paths considered as familiar to the access token provider (mod)
         /// </summary>
         public readonly string[] AllowedPaths;
 
         public LogsFolderAccessToken()
         {
             Access = FolderAccess.Unrestricted;
+            AllowedPaths = Array.Empty<string>();
         }
 
         public LogsFolderAccessToken(FolderAccess access, params string[] folderPaths)
@@ -21,7 +22,7 @@ namespace LogUtils
             Access = access;
             AllowedPaths = folderPaths;
 
-            if (Access != FolderAccess.Unrestricted && (AllowedPaths == null || AllowedPaths.Length == 0))
+            if (Access != FolderAccess.Unrestricted && AllowedPaths.Length == 0)
                 throw new ArgumentException("At least one folder path must be specified for the requested access setting");
         }
     }

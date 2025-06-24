@@ -1,15 +1,12 @@
-﻿using System;
+﻿using LogUtils.Helpers.Comparers;
+using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace LogUtils
 {
     public class ExceptionInfo : IEquatable<ExceptionInfo>
     {
-        /// <summary>
-        /// The maximum amount of characters to check for exception equality
-        /// </summary>
-        public static int CompareThreshold = 1500;
-
         public readonly Exception Exception;
         public readonly string ExceptionMessage;
         public readonly string StackTrace;
@@ -27,40 +24,42 @@ namespace LogUtils
 
         public bool Equals(ExceptionInfo other)
         {
-            return checkMatch(ExceptionMessage, other.ExceptionMessage) && checkMatch(StackTrace, other.StackTrace);
+            return ExceptionComparer.DefaultComparer.Equals(this, other);
+        }
 
-            static bool checkMatch(string str, string str2)
-            {
-                if (str.Length <= CompareThreshold && str2.Length <= CompareThreshold)
-                    return string.Equals(str, str2);
+        public bool Equals(ExceptionInfo other, IEqualityComparer<ExceptionInfo> comparer)
+        {
+            return comparer.Equals(this, other);
+        }
 
-                //We know that both strings are greater than the threshold
-                if (str.Length == str2.Length || str2.Length > str.Length)
-                    return str.StartsWith(str2.Substring(0, CompareThreshold));
-
-                return str2.StartsWith(str.Substring(0, CompareThreshold));
-            }
+        public override int GetHashCode()
+        {
+            string hashString = ExceptionMessage + StackTrace;
+            return hashString.GetHashCode();
         }
 
         public override string ToString()
         {
+            if (StackTrace == string.Empty)
+                return ExceptionMessage;
+
             StringBuilder sb = new StringBuilder();
 
-            if (StackTrace != string.Empty)
-            {
-                sb.AppendLine(ExceptionMessage)
-                  .Append(StackTrace);
+            sb.AppendLine(ExceptionMessage)
+              .Append(StackTrace);
 
-                if (Exception?.InnerException != null)
-                {
-                    sb.AppendLine()
-                      .AppendLine(Exception.InnerException.Message)
-                      .Append(Exception.InnerException.StackTrace);
-                }
-            }
-            else
+            const int MAX_EXCEPTIONS = 5;
+
+            Exception exception = Exception?.InnerException;
+
+            int exceptionTotal = 1;
+            while (exception != null && exceptionTotal <= MAX_EXCEPTIONS)
             {
-                sb.Append(ExceptionMessage);
+                sb.AppendLine()
+                  .AppendLine(exception.Message)
+                  .Append(exception.StackTrace);
+                exception = exception.InnerException;
+                exceptionTotal++;
             }
             return sb.ToString();
         }

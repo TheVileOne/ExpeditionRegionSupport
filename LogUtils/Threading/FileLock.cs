@@ -2,7 +2,7 @@
 
 namespace LogUtils.Threading
 {
-    public sealed class FileLock
+    public sealed class FileLock : Lock
     {
         /// <summary>
         /// The last known file change/access activity that resulted in acquiring the file lock  

@@ -1,4 +1,5 @@
-﻿using System;
+using LogUtils.Diagnostics.Tests;
+using System;
 using System.Collections.Generic;
 
 namespace LogUtils.Diagnostics
@@ -215,6 +216,29 @@ namespace LogUtils.Diagnostics
 
         public class Result
         {
+            private static int _nextID;
+
+            /// <summary>
+            /// Value to be assigned to the next created Result instance
+            /// </summary>
+            private static int nextID
+            {
+                get
+                {
+                    //Maintaining a count for every result could easily balloon into a very high value - limit counting to only test results
+                    if (TestSuite.ActiveSuite == null)
+                        return 0;
+
+                    _nextID++;
+                    return _nextID;
+                }
+            }
+
+            /// <summary>
+            /// Value used for identification of the result (non-zero based)
+            /// </summary>
+            public int ID = nextID;
+
             public bool Passed;
             public Message Message;
 
@@ -299,6 +323,14 @@ namespace LogUtils.Diagnostics
                 if (resultMessage != null)
                     return resultMessage;
                 return string.Empty;
+            }
+
+            /// <summary>
+            /// Change the next result ID to zero
+            /// </summary>
+            public static void ResetCount()
+            {
+                _nextID = 0;
             }
         }
 

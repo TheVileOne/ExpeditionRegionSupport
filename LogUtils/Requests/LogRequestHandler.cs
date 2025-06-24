@@ -1,5 +1,10 @@
-﻿using LogUtils.Enums;
-using LogUtils.Helpers.Comparers;
+﻿using LogUtils.Console;
+using LogUtils.Enums;
+using LogUtils.Events;
+using LogUtils.Helpers;
+using LogUtils.Helpers.Extensions;
+using LogUtils.Requests.Validation;
+using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,16 +18,16 @@ namespace LogUtils.Requests
         /// This lock object marshals control over submission of LogRequests, and processing requests stored in UnhandledRequests. When there is a need to
         /// process LogRequests directly from UnhandledRequests, it is recommended to use this lock object to achieve thread safety
         /// </summary>
-        public object RequestProcessLock = new object();
+        public Lock RequestProcessLock = new Lock();
 
         public override string Tag => UtilityConsts.ComponentTags.REQUEST_DATA;
 
-        private readonly WeakReferenceCollection<Logger> availableLoggers = new WeakReferenceCollection<Logger>();
+        private readonly WeakReferenceCollection<ILogHandler> availableLoggers = new WeakReferenceCollection<ILogHandler>();
 
         /// <summary>
-        /// A list of loggers available to handle remote log requests
+        /// A list of loggers available to handle local or remote log requests
         /// </summary>
-        public IEnumerable<Logger> AvailableLoggers => availableLoggers;
+        public IEnumerable<ILogHandler> AvailableLoggers => availableLoggers;
 
         public GameLogger GameLogger = new GameLogger();
 
@@ -52,7 +57,7 @@ namespace LogUtils.Requests
                     return;
                 }
 
-                lock (RequestProcessLock)
+                using (BeginCriticalSection())
                 {
                     if (CurrentRequest != value)
                         _currentRequest = value;
@@ -80,7 +85,7 @@ namespace LogUtils.Requests
 
             private set
             {
-                lock (RequestProcessLock)
+                using (BeginCriticalSection())
                 {
                     LogRequest lastUnhandledRequest = PendingRequest;
 
@@ -105,10 +110,63 @@ namespace LogUtils.Requests
         /// </summary>
         public bool CheckForHandledRequests;
 
+        /// <summary>
+        /// A counter used to prevent recursive LogRequest submissions
+        /// </summary>
+        public int RecursionCheckCounter;
+
         public LogRequestHandler()
         {
             enabled = true;
             UnhandledRequests = new LinkedLogRequestCollection(20);
+        }
+
+        /// <summary>
+        /// Acquires the lock necessary for entering a critical state pertaining to LogRequest handling
+        /// </summary>
+        /// <returns>A disposable scope object purposed for leaving a critical state</returns>
+        public Lock.Scope BeginCriticalSection()
+        {
+            return RequestProcessLock.Acquire();
+        }
+
+        /// <summary>
+        /// Releases the lock used to enter a critical state
+        /// </summary>
+        public void EndCriticalSection()
+        {
+            RequestProcessLock.Release();
+        }
+
+        /// <summary>
+        /// Consumes a request counter for the specified log file if a counter is present
+        /// </summary>
+        /// <returns>A counter value was detected and consumed</returns>
+        internal bool ConsumeRequestCounter(LogID logFile)
+        {
+            if (!logFile.IsGameControlled) return false;
+
+            int requestCount = GameLogger.ExpectedRequestCounter[logFile];
+
+            if (requestCount == 0)
+                return false;
+
+            GameLogger.ExpectedRequestCounter[logFile]--;
+            return true;
+        }
+
+        /// <summary>
+        /// Invoked by external API callbacks to get a request sent through the LogUtils API, and processed by the external API
+        /// </summary>
+        internal LogRequest GetRequestFromAPI(LogID logFile, bool preserveCounter = false)
+        {
+            bool isRequestAvailable = preserveCounter
+                ? UtilityCore.RequestHandler.GameLogger.ExpectedRequestCounter[logFile] > 0
+                : UtilityCore.RequestHandler.ConsumeRequestCounter(logFile);
+
+            if (isRequestAvailable)
+                return UtilityCore.RequestHandler.CurrentRequest;
+            return null;
         }
 
         public LogRequest[] GetRequests(LogID logFile)
@@ -127,7 +185,7 @@ namespace LogUtils.Requests
         /// <returns>This method returns the same request given to it under any condition. The return value is more reliable than checking CurrentRequest, which may be null</returns>
         public LogRequest Submit(LogRequest request, bool handleSubmission)
         {
-            lock (RequestProcessLock)
+            using (BeginCriticalSection())
             {
                 if (request.Submitted)
                 {
@@ -135,7 +193,24 @@ namespace LogUtils.Requests
                     return request;
                 }
 
+                //To safely handle a recursive request, it must not be in a submitted state, and must not interfere with the current request
+                if (request.Type != RequestType.Console && RecursionCheckCounter > 1)
+                {
+                    request.Reject(RejectionReason.WaitingOnOtherRequests);
+                    HandleOnNextAvailableFrame.Enqueue(request);
+                    return request;
+                }
+
                 request.OnSubmit();
+
+                if (request.Type == RequestType.Console)
+                {
+                    if (handleSubmission)
+                        LogConsole.HandleRequest(request);
+
+                    //Console only requests do not support log file processing, and are not treated as a pending request
+                    return request;
+                }
 
                 LogID logFile = request.Data.ID;
 
@@ -155,13 +230,10 @@ namespace LogUtils.Requests
                 if (!handleSubmission || !logFile.IsGameControlled)
                 {
                     //Check RainWorld.ShowLogs for logs that are restricted by it
-                    if (logFile.Properties.ShowLogsAware && !RainWorld.ShowLogs)
-                    {
-                        if (RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD)
-                            request.Reject(RejectionReason.ShowLogsNotInitialized);
-                        else
-                            request.Reject(RejectionReason.LogDisabled);
-                    }
+                    RejectionReason showLogsViolation = RequestValidator.ShowLogsValidation(logFile);
+
+                    if (showLogsViolation != RejectionReason.None)
+                        request.Reject(showLogsViolation);
 
                     if (!logFile.Properties.CanBeAccessed)
                         request.Reject(RejectionReason.LogUnavailable);
@@ -201,161 +273,43 @@ namespace LogUtils.Requests
             {
                 UtilityLogger.LogError("Unable to submit request", ex);
 
-                //Assign request using a safer method with less rigorous validation checks - wont fail
-                if (request.CanRetryRequest())
-                    PendingRequest = request;
+                if (request != null)
+                {
+                    if (RecursionCheckCounter > 1) //Recursion is handled in the Submit call, and does not need to be handled again here
+                        return request;
+
+                    //Assign request using a safer method with less rigorous validation checks - wont fail
+                    if (request.CanRetryRequest())
+                        PendingRequest = request;
+                }
                 return request;
             }
         }
 
         /// <summary>
-        /// Registers a logger for remote logging
+        /// Registers a logger (required to use LogRequest system for local and remote LogRequests)
         /// </summary>
-        public void Register(Logger logger)
+        public void Register(ILogHandler logger)
         {
-            UtilityLogger.Log("Registering logger");
-            UtilityLogger.Log("Log targets: " + string.Join(" ,", logger.LogTargets));
+            if (!logger.AllowRegistration)
+                throw new InvalidOperationException("Log handler does not allow registration");
 
+            UtilityEvents.OnRegistrationChanged?.Invoke(logger, new RegistrationChangedEventArgs(status: true));
             availableLoggers.Add(logger);
             ProcessRequests(logger);
         }
 
         /// <summary>
-        /// Unregisters a logger for remote logging
+        /// Unregisters a logger
         /// </summary>
-        public void Unregister(Logger logger)
+        public void Unregister(ILogHandler logger)
         {
+            if (!logger.AllowRegistration)
+                throw new InvalidOperationException("Log handler does not allow registration");
+
+            UtilityEvents.OnRegistrationChanged?.Invoke(logger, new RegistrationChangedEventArgs(status: false));
             availableLoggers.Remove(logger);
         }
-
-        #region Find methods
-        /// <summary>
-        /// Finds a list of all logger instances that accepts log requests for a specified LogID
-        /// </summary>
-        /// <param name="logFile">LogID to check</param>
-        /// <param name="requestType">The request type expected</param>
-        /// <param name="doPathCheck">Should the log file's containing folder bear significance when finding a logger match</param>
-        private List<Logger> findCompatibleLoggers(LogID logFile, RequestType requestType, bool doPathCheck)
-        {
-            return availableLoggers.FindAll(logger => logger.CanAccess(logFile, requestType, doPathCheck));
-        }
-
-        private void findCompatibleLoggers(LogID logFile, out Logger localLogger, out Logger remoteLogger)
-        {
-            localLogger = remoteLogger = null;
-
-            foreach (Logger logger in findCompatibleLoggers(logFile, RequestType.Remote, doPathCheck: true))
-            {
-                //Most situations wont make it past the first assignment
-                if (localLogger == null)
-                {
-                    localLogger = remoteLogger = logger;
-                    continue;
-                }
-
-                //Choose the first logger match that allows logging
-                if (!localLogger.AllowLogging)
-                {
-                    localLogger = logger;
-
-                    //Align the remote logger reference with the local logger when remote logging is still unavailable
-                    if (!remoteLogger.AllowRemoteLogging)
-                        remoteLogger = localLogger;
-                    continue;
-                }
-
-                //The local logger is the perfect match for the remote logger
-                if (localLogger.AllowRemoteLogging)
-                {
-                    remoteLogger = localLogger;
-                    break;
-                }
-
-                int results = RemoteLoggerComparer.DefaultComparer.Compare(remoteLogger, logger);
-
-                if (results > 0)
-                {
-                    remoteLogger = logger;
-
-                    if (results == RemoteLoggerComparer.MAX_SCORE)
-                        break;
-                }
-            }
-
-            //Check specifically for a logger instance that handles local requests in the unusual case that no logger instances can handle remote requests
-            if (localLogger == null)
-            {
-                remoteLogger = null;
-
-                foreach (Logger logger in findCompatibleLoggers(logFile, RequestType.Local, doPathCheck: true))
-                {
-                    if (localLogger == null || logger.AllowLogging)
-                    {
-                        localLogger = logger;
-
-                        if (logger.AllowLogging)
-                            break;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Find a logger instance that accepts log requests for a specified LogID
-        /// </summary>
-        /// <param name="logFile">LogID to check</param>
-        /// <param name="requestType">The request type expected</param>
-        /// <param name="doPathCheck">Should the log file's containing folder bear significance when finding a logger match</param>
-        private Logger findCompatibleLogger(LogID logFile, RequestType requestType, bool doPathCheck)
-        {
-            if (requestType == RequestType.Game)
-                return null;
-
-            List<Logger> candidates = findCompatibleLoggers(logFile, requestType, doPathCheck);
-
-            if (candidates.Count == 0)
-                return null;
-
-            if (candidates.Count == 1)
-                return candidates[0];
-
-            Logger bestCandidate;
-            if (requestType == RequestType.Local)
-            {
-                bestCandidate = candidates.Find(logger => logger.AllowLogging) ?? candidates[0];
-            }
-            else
-            {
-                bestCandidate = candidates[0];
-
-                if (bestCandidate.AllowLogging && bestCandidate.AllowRemoteLogging)
-                    return bestCandidate;
-
-                foreach (Logger logger in candidates)
-                {
-                    int results = RemoteLoggerComparer.DefaultComparer.Compare(bestCandidate, logger);
-
-                    if (results > 0)
-                    {
-                        bestCandidate = logger;
-
-                        if (results == RemoteLoggerComparer.MAX_SCORE)
-                            break;
-                    }
-                }
-            }
-            return bestCandidate;
-        }
-
-        private ILoggerBase findCompatibleLoggerBase(LogID logFile, RequestType requestType)
-        {
-            if (logFile.IsGameControlled)
-                return GameLogger;
-
-            findCompatibleLoggers(logFile, out Logger localLogger, out Logger remoteLogger);
-            return requestType == RequestType.Local ? localLogger : remoteLogger;
-        }
-        #endregion
 
         protected bool PrepareRequest(LogRequest request, long processTimestamp = -1)
         {
@@ -404,13 +358,28 @@ namespace LogUtils.Requests
         /// </summary>
         public void ProcessRequests(LogID logFile)
         {
-            lock (RequestProcessLock)
+            using (BeginCriticalSection())
             {
                 //Ensure that we do not handle a stale record
                 logFile.Properties.HandleRecord.Reset();
 
                 LogRequest[] requests = GetRequests(logFile);
-                ILoggerBase selectedLogger = null;
+
+                if (requests.Length == 0)
+                {
+                    MessageBuffer writeBuffer = logFile.Properties.WriteBuffer;
+
+                    if (!writeBuffer.IsBuffering && writeBuffer.HasContent)
+                    {
+                        var writer = LogFile.FindWriter(logFile);
+
+                        if (writer != null)
+                            writer.WriteFromBuffer(logFile);
+                    }
+                    return;
+                }
+
+                ILogHandler selectedLogger = null;
 
                 //Evaluate all requests waiting to be handled for this log file
                 foreach (LogRequest request in requests)
@@ -424,31 +393,42 @@ namespace LogUtils.Requests
                     }
 
                     if (selectedLogger == null || !selectedLogger.CanHandle(request))
-                    {
-                        //Select a logger to handle the request
-                        selectedLogger = findCompatibleLoggerBase(logFile, request.Type);
-                    }
+                        selectLogger(logFile, request.Type);
 
                     HandleRequest(request, selectedLogger);
+                }
+
+                void selectLogger(LogID logFile, RequestType requestType)
+                {
+                    if (logFile.IsGameControlled)
+                    {
+                        selectedLogger = GameLogger;
+                        return;
+                    }
+
+                    availableLoggers.FindCompatible(logFile, out ILogHandler localLogger, out ILogHandler remoteLogger);
+                    selectedLogger = requestType == RequestType.Local ? localLogger : remoteLogger;
                 }
             }
         }
 
-        public void ProcessRequests(Logger logger)
+        public void ProcessRequests(ILogHandler logger)
         {
-            var logHandler = logger.GetHandler();
-
-            lock (RequestProcessLock)
+            using (BeginCriticalSection())
             {
-                logHandler.PrepareRequest += PrepareRequestNoReset;
-                foreach (LogID logFile in logger.GetTargetsForHandler())
+                foreach (LogID logFile in logger.GetAccessibleTargets())
                 {
                     //Ensure that we do not handle a stale record
                     logFile.Properties.HandleRecord.Reset();
 
-                    logHandler.Handle(GetRequests(logFile));
+                    LogRequest[] requests = GetRequests(logFile);
+
+                    foreach (LogRequest request in requests)
+                    {
+                        PrepareRequestNoReset(request);
+                        HandleRequest(request, logger);
+                    }
                 }
-                logHandler.PrepareRequest -= PrepareRequestNoReset;
             }
         }
 
@@ -457,22 +437,35 @@ namespace LogUtils.Requests
         /// </summary>
         public void ProcessRequests()
         {
-            LogID requestID = null,
-                  lastRequestID;
-            ILoggerBase selectedLogger = null;
-            bool verifyRemoteAccess = false;
+            using (BeginCriticalSection())
+            {
+                int requestCount = UnhandledRequests.Count;
 
+                if (requestCount > 0)
+                {
+                    UtilityLogger.DebugLog($"Processing {requestCount} request" + (requestCount > 1 ? "s" : ""));
+
+                    foreach (var requestBatch in UnhandledRequests.GroupRequests())
+                        processBatch(requestBatch);
+                }
+            }
+        }
+
+        private void processBatch(IGrouping<LogID, LogRequest> requests)
+        {
+            LogID requestID = requests.Key;
+            MessageBuffer writeBuffer = requestID.Properties.WriteBuffer;
+
+            writeBuffer.SetState(true, BufferContext.RequestConsolidation);
+
+            //Hold onto a valid write handler - we will need one to schedule a flush of the message buffer after batch process is complete
+            ILogWriter bufferWriter = null;
+            LoggerSelection selectedLogger = default;
             int requestsProcessed = 0;
             long processStartTime = Stopwatch.GetTimestamp();
 
-            lock (RequestProcessLock)
+            try
             {
-                LogRequest[] requests = UnhandledRequests.GetRequestsSorted();
-
-                if (requests.Length == 0) return;
-
-                UtilityLogger.DebugLog($"Processing {requests.Length} request" + (requests.Length > 1 ? "s" : ""));
-
                 foreach (LogRequest request in requests)
                 {
                     bool shouldHandle = PrepareRequest(request, processStartTime);
@@ -484,45 +477,49 @@ namespace LogUtils.Requests
                         continue;
                     }
 
-                    lastRequestID = requestID;
-                    requestID = request.Data.ID;
-
                     requestsProcessed++;
                     UtilityLogger.DebugLog($"Request # [{requestsProcessed}] {request}");
 
-                    CurrentRequest = request;
-
-                    //Find a logger that can be used for this LogID
-                    if (requestID.IsGameControlled)
-                        selectedLogger = GameLogger;
-                    else
+                    if (!selectedLogger.AppliesTo(request.Type))
                     {
-                        if (selectedLogger == null || requestID != lastRequestID || (verifyRemoteAccess && request.Type == RequestType.Remote && !((Logger)selectedLogger).AllowRemoteLogging))
-                        {
-                            verifyRemoteAccess = request.Type == RequestType.Local; //Make the system aware that the logger expects local requests
-                            selectedLogger = findCompatibleLogger(requestID, request.Type, doPathCheck: false);
-                        }
+                        //This will get overwritten during the selection process, but we still need it
+                        RequestType lastAccessTarget = selectedLogger.AccessTarget;
 
-                        if (selectedLogger != null)
-                        {
-                            //Try to handle the log request, and recheck the status
-                            var logHandler = selectedLogger.GetHandler();
-                            
-                            logHandler.Handle(request, skipAccessValidation: true);
+                        selectLogger(request.Type);
 
-                            //TODO: Try to find another compatible logger if the rejection reason is NotAllowedToHandle
-                            if (request.IsCompleteOrRejected && request.UnhandledReason != RejectionReason.PathMismatch)
-                            {
-                                //Request was handled
-                                continue;
-                            }
+                        //Assign writer for handling the message buffer
+                        var selectedWriter = selectedLogger.GetWriter(requestID);
 
-                            //Attempt to find a logger that accepts the target LogID with this exact path
-                            selectedLogger = findCompatibleLogger(requestID, request.Type, doPathCheck: true);
-                        }
+                        //Selection code presumes that all local, and remote log writers are qualified to handle batched messages and
+                        //avoids replacing a compatible local/remote writer with a null entry
+                        if (bufferWriter == null || selectedWriter != null || lastAccessTarget == RequestType.Game)
+                            bufferWriter = selectedWriter;
                     }
 
-                    HandleRequest(request, selectedLogger);
+                    HandleRequest(request, selectedLogger.Handler);
+                }
+            }
+            finally
+            {
+                if (writeBuffer.SetState(false, BufferContext.RequestConsolidation))
+                {
+                    if (bufferWriter != null)
+                        bufferWriter.WriteFromBuffer(requestID);
+                    else
+                        UtilityLogger.LogWarning("No writer was available to process the buffer");
+                }
+            }
+
+            void selectLogger(RequestType requestType)
+            {
+                if (requestID.IsGameControlled)
+                {
+                    selectedLogger = new LoggerSelection(GameLogger, RequestType.Game);
+                }
+                else
+                {
+                    var logger = availableLoggers.FindCompatible(requestID, requestType);
+                    selectedLogger = new LoggerSelection(logger, requestType);
                 }
             }
         }
@@ -536,24 +533,30 @@ namespace LogUtils.Requests
             LogID logFile = request.Data.ID;
 
             //Beyond this point, we can assume that there are no preexisting unhandled requests for this log file
-            ILoggerBase selectedLogger = !logFile.IsGameControlled
-                ? findCompatibleLogger(logFile, request.Type, doPathCheck: true) : GameLogger;
+            ILogHandler selectedLogger = !logFile.IsGameControlled
+                ? availableLoggers.FindCompatible(logFile, request.Type) : GameLogger;
 
             HandleRequest(request, selectedLogger);
         }
 
-        internal void HandleRequest(LogRequest request, ILoggerBase logger)
+        internal void HandleRequest(LogRequest request, ILogHandler logger)
         {
-            if (logger == null)
+            CurrentRequest = request;
+
+            try
             {
-                request.Reject(RejectionReason.LogUnavailable);
-                RequestMayBeCompleteOrInvalid(request);
-                return;
+                if (logger == null)
+                {
+                    request.Reject(RejectionReason.LogUnavailable);
+                    return;
+                }
+
+                logger.HandleRequest(request);
             }
-
-            var logHandler = logger.GetHandler();
-
-            logHandler.Handle(request, skipAccessValidation: true);
+            finally
+            {
+                RequestMayBeCompleteOrInvalid(request);
+            }
         }
 
         public void RejectRequests(LogID logFile, RejectionReason reason)
@@ -577,6 +580,8 @@ namespace LogUtils.Requests
         /// </summary>
         public void RequestMayBeCompleteOrInvalid(LogRequest request)
         {
+            if (request == null) return;
+
             DiscardStatus status = shouldDiscard();
 
             if (status != DiscardStatus.Keep)
@@ -630,11 +635,24 @@ namespace LogUtils.Requests
             CheckForHandledRequests = false;
         }
 
+        /// <summary>
+        /// Ensures that CurrentRequest represents a pending unrejected request
+        /// </summary>
+        public void SanitizeCurrentRequest()
+        {
+            LogRequest requestBeforeProcessing = CurrentRequest;
+
+            RequestMayBeCompleteOrInvalid(CurrentRequest);
+
+            if (requestBeforeProcessing != CurrentRequest)
+                UtilityLogger.DebugLog("Current request sanitized");
+        }
+
         public void Update()
         {
             if (HandleOnNextAvailableFrame.Any())
             {
-                lock (RequestProcessLock)
+                using (BeginCriticalSection())
                 {
                     UtilityLogger.DebugLog("Handling scheduled requests");
                     while (HandleOnNextAvailableFrame.Any())
@@ -643,6 +661,7 @@ namespace LogUtils.Requests
 
                         try
                         {
+                            UtilityCore.RequestHandler.RecursionCheckCounter++;
                             request = Submit(request, true);
                         }
                         catch
@@ -655,6 +674,10 @@ namespace LogUtils.Requests
                                 request.ResetStatus();
                                 LogWriter.Writer.WriteFrom(request);
                             }
+                        }
+                        finally
+                        {
+                            UtilityCore.RequestHandler.RecursionCheckCounter--;
                         }
                     }
                 }
@@ -669,6 +692,34 @@ namespace LogUtils.Requests
             //There is a separate process for handling log requests earlier in the setup process
             if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.PostMods)
                 ProcessRequests();
+        }
+
+        private readonly struct LoggerSelection(ILogHandler handler, RequestType target) : ILogWriterProvider
+        {
+            public readonly ILogHandler Handler = handler;
+
+            /// <summary>
+            /// The access specification used to assign the handler
+            /// </summary>
+            public readonly RequestType AccessTarget = target;
+
+            public bool AppliesTo(RequestType compareTarget)
+            {
+                //Handler must be defined, and have an AccessTarget consistent with the compare value
+                return Handler != null && (AccessTarget == compareTarget || (AccessTarget == RequestType.Remote && compareTarget == RequestType.Local));
+            }
+
+            public ILogWriter GetWriter()
+            {
+                var provider = Handler as ILogWriterProvider;
+                return provider?.GetWriter();
+            }
+
+            public ILogWriter GetWriter(LogID logFile)
+            {
+                var provider = Handler as ILogWriterProvider;
+                return provider?.GetWriter(logFile);
+            }
         }
     }
 }

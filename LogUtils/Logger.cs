@@ -1,7 +1,9 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
 using LogUtils.Events;
+using LogUtils.Helpers.Extensions;
 using LogUtils.Requests;
+using LogUtils.Requests.Validation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,35 +11,50 @@ using UnityEngine;
 
 namespace LogUtils
 {
-    public class Logger : ILogger, ILoggerBase, IDisposable
+    public partial class Logger : ILogger, ILogHandler, ILogWriterProvider, IDisposable
     {
-        protected RequestHandlerModule Handler;
-
-        public ILogWriter Writer = LogWriter.Writer;
-
-        public ManualLogSource ManagedLogSource;
-
-        LogID[] ILoggerBase.AvailableTargets => LogTargets.ToArray();
-
-        /// <summary>
-        /// Contains a list of LogIDs (both local and remote) that will be handled in the case of an untargeted log request
-        /// </summary>
-        public List<LogID> LogTargets = new List<LogID>();
-
         /// <summary>
         /// A flag that allows/disallows handling of log requests (local and remote) through this logger 
         /// </summary>
-        public bool AllowLogging;
+        public bool AllowLogging { get; set; }
 
         /// <summary>
         /// A flag that allows/disallows handling of remote log requests through this logger
         /// </summary>
-        public bool AllowRemoteLogging;
+        public virtual bool AllowRemoteLogging { get; set; } = true;
+
+        public virtual bool AllowRegistration => !IsDisposed;
+
+        IEnumerable<LogID> ILogFileHandler.AvailableTargets => LogTargets.ToArray();
+
+        protected LogTargetCollection Targets = new LogTargetCollection();
+
+        /// <summary>
+        /// Contains a list of LogIDs (both local and remote) that will be handled in the case of an untargeted log request
+        /// </summary>
+        public List<LogID> LogTargets => Targets.LogIDs;
+
+        /// <summary>
+        /// Contains a list of ConsoleIDs that will be handled by any log request that can be handled by this logger
+        /// </summary>
+        public List<ConsoleID> ConsoleTargets => Targets.ConsoleIDs;
+
+        /// <summary>
+        /// BepInEx logging source object
+        /// </summary>
+        public ManualLogSource ManagedLogSource;
 
         /// <summary>
         /// Contains a record of logger field values that can be restored on demand
         /// </summary>
         public LoggerRestorePoint RestorePoint;
+
+        public IRequestValidator Validator;
+
+        /// <summary>
+        /// Writer implementation (responsible for writing to file, or storing messages in the message buffer)
+        /// </summary>
+        public ILogWriter Writer = LogWriter.Writer;
 
         #region Initialization
 
@@ -58,8 +75,8 @@ namespace LogUtils
         /// <summary>
         /// Constructs a logger instance
         /// </summary>
-        /// <param name="presets">Include any LogIDs that this logger targets, or handles on request</param>
-        public Logger(params LogID[] presets) : this(LoggingMode.Inherit, true, presets)
+        /// <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
+        public Logger(ILogTarget preset) : this(LoggingMode.Inherit, true, preset)
         {
         }
 
@@ -67,8 +84,8 @@ namespace LogUtils
         /// Constructs a logger instance
         /// </summary>
         /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
-        /// <param name="presets">Include any LogIDs that this logger targets, or handles on request</param>
-        public Logger(bool allowLogging, params LogID[] presets) : this(LoggingMode.Inherit, allowLogging, presets)
+        /// <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
+        public Logger(bool allowLogging, ILogTarget preset) : this(LoggingMode.Inherit, allowLogging, preset)
         {
         }
 
@@ -76,8 +93,34 @@ namespace LogUtils
         /// Constructs a logger instance
         /// </summary>
         /// <param name="mode">Changes the technique used to write messages to file</param>
-        /// <param name="presets">Include any LogIDs that this logger targets, or handles on request</param>
-        public Logger(LoggingMode mode, params LogID[] presets) : this(mode, true, presets)
+        /// <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
+        public Logger(LoggingMode mode, ILogTarget preset) : this(mode, true, preset)
+        {
+        }
+
+        /// <summary>
+        /// Constructs a logger instance
+        /// </summary>
+        /// <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
+        public Logger(params ILogTarget[] presets) : this(LoggingMode.Inherit, true, presets)
+        {
+        }
+
+        /// <summary>
+        /// Constructs a logger instance
+        /// </summary>
+        /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
+        /// <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
+        public Logger(bool allowLogging, params ILogTarget[] presets) : this(LoggingMode.Inherit, allowLogging, presets)
+        {
+        }
+
+        /// <summary>
+        /// Constructs a logger instance
+        /// </summary>
+        /// <param name="mode">Changes the technique used to write messages to file</param>
+        /// <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
+        public Logger(LoggingMode mode, params ILogTarget[] presets) : this(mode, true, presets)
         {
         }
 
@@ -86,26 +129,26 @@ namespace LogUtils
         /// </summary>
         /// <param name="mode">Changes the technique used to write messages to file</param>
         /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
-        /// <param name="presets">Include any LogIDs that this logger targets, or handles on request</param>
-        public Logger(LoggingMode mode, bool allowLogging, params LogID[] presets)
+        /// <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
+        public Logger(LoggingMode mode, bool allowLogging, params ILogTarget[] presets)
         {
             if (UtilitySetup.CurrentStep < UtilitySetup.InitializationStep.INITIALIZE_ENUMS)
                 throw new EarlyInitializationException("Logger created too early");
 
             AllowLogging = allowLogging;
-            Handler = new RequestHandler(this);
 
-            LogTargets.AddRange(presets);
+            Targets.AddRange(presets);
+
+            Validator = new RequestValidator(this);
 
             if (mode != LoggingMode.Inherit)
                 SetWriter(mode);
-            FinalizeConstruction();
-        }
 
-        protected virtual void FinalizeConstruction()
-        {
+            SetEvents();
             SetRestorePoint();
-            UtilityCore.RequestHandler.Register(this);
+
+            if (AllowRegistration)
+                UtilityCore.RequestHandler.Register(this);
         }
 
         public void SetWriter(LoggingMode writeMode)
@@ -129,8 +172,6 @@ namespace LogUtils
                     break;
             }
         }
-
-        public RequestHandlerModule GetHandler() => Handler;
 
         #endregion
         #region Restore Points
@@ -274,7 +315,7 @@ namespace LogUtils
 
         public void Log(LogCategory category, object data)
         {
-            LogData(LogTargets, category, data, false);
+            LogData(Targets, category, data, false);
         }
 
         public void LogOnce(LogType category, object data)
@@ -294,322 +335,243 @@ namespace LogUtils
 
         public void LogOnce(LogCategory category, object data)
         {
-            LogData(LogTargets, category, data, true);
+            LogData(Targets, category, data, true);
         }
 
         #endregion
         #region  Log Overloads (LogID, object)
 
-        public void Log(LogID target, object data)
+        public void Log(ILogTarget target, object data)
         {
             Log(target, LogCategory.Default, data);
         }
 
-        public void LogOnce(LogID target, object data)
+        public void LogOnce(ILogTarget target, object data)
         {
             Log(target, LogCategory.Default, data);
         }
 
-        public void LogDebug(LogID target, object data)
+        public void LogDebug(ILogTarget target, object data)
         {
             Log(target, LogCategory.Debug, data);
         }
 
-        public void LogInfo(LogID target, object data)
+        public void LogInfo(ILogTarget target, object data)
         {
             Log(target, LogCategory.Info, data);
         }
 
-        public void LogImportant(LogID target, object data)
+        public void LogImportant(ILogTarget target, object data)
         {
             Log(target, LogCategory.Important, data);
         }
 
-        public void LogMessage(LogID target, object data)
+        public void LogMessage(ILogTarget target, object data)
         {
             Log(target, LogCategory.Message, data);
         }
 
-        public void LogWarning(LogID target, object data)
+        public void LogWarning(ILogTarget target, object data)
         {
             Log(target, LogCategory.Warning, data);
         }
 
-        public void LogError(LogID target, object data)
+        public void LogError(ILogTarget target, object data)
         {
             Log(target, LogCategory.Error, data);
         }
 
-        public void LogFatal(LogID target, object data)
+        public void LogFatal(ILogTarget target, object data)
         {
             Log(target, LogCategory.Fatal, data);
         }
 
-        public void Log(LogID target, LogLevel category, object data)
+        public void Log(ILogTarget target, LogLevel category, object data)
         {
             Log(target, LogCategory.ToCategory(category), data);
         }
 
-        public void Log(LogID target, string category, object data)
+        public void Log(ILogTarget target, string category, object data)
         {
             Log(target, LogCategory.ToCategory(category), data);
         }
 
-        public void Log(LogID target, LogCategory category, object data)
+        public void Log(ILogTarget target, LogCategory category, object data)
         {
             LogData(target, category, data, false);
         }
 
-        public void LogOnce(LogID target, LogCategory category, object data)
+        public void LogOnce(ILogTarget target, LogCategory category, object data)
         {
             LogData(target, category, data, true);
-        }
-
-        public void Log(LogID target1, LogID target2, object data)
-        {
-            Log(new LogID[] { target1, target2 }, LogCategory.Default, data);
-        }
-
-        public void LogOnce(LogID target1, LogID target2, object data)
-        {
-            Log(new LogID[] { target1, target2 }, LogCategory.Default, data);
-        }
-
-        public void LogDebug(LogID target1, LogID target2, object data)
-        {
-            Log(new LogID[] { target1, target2 }, LogCategory.Debug, data);
-        }
-
-        public void LogInfo(LogID target1, LogID target2, object data)
-        {
-            Log(new LogID[] { target1, target2 }, LogCategory.Info, data);
-        }
-
-        public void LogImportant(LogID target1, LogID target2, object data)
-        {
-            Log(new LogID[] { target1, target2 }, LogCategory.Important, data);
-        }
-
-        public void LogMessage(LogID target1, LogID target2, object data)
-        {
-            Log(new LogID[] { target1, target2 }, LogCategory.Message, data);
-        }
-
-        public void LogWarning(LogID target1, LogID target2, object data)
-        {
-            Log(new LogID[] { target1, target2 }, LogCategory.Warning, data);
-        }
-
-        public void LogError(LogID target1, LogID target2, object data)
-        {
-            Log(new LogID[] { target1, target2 }, LogCategory.Error, data);
-        }
-
-        public void LogFatal(LogID target1, LogID target2, object data)
-        {
-            Log(new LogID[] { target1, target2 }, LogCategory.Fatal, data);
-        }
-
-        public void Log(LogID target1, LogID target2, LogLevel category, object data)
-        {
-            Log(new LogID[] { target1, target2 }, LogCategory.ToCategory(category), data);
-        }
-
-        public void Log(LogID target1, LogID target2, string category, object data)
-        {
-            Log(new LogID[] { target1, target2 }, LogCategory.ToCategory(category), data);
-        }
-
-        public void Log(LogID target1, LogID target2, LogCategory category, object data)
-        {
-            LogData(new LogID[] { target1, target2 }, category, data, false);
-        }
-
-        public void LogOnce(LogID target1, LogID target2, LogCategory category, object data)
-        {
-            LogData(new LogID[] { target1, target2 }, category, data, true);
-        }
-
-        public void Log(LogID target1, LogID target2, LogID target3, object data)
-        {
-            Log(new LogID[] { target1, target2, target3 }, LogCategory.Default, data);
-        }
-
-        public void LogOnce(LogID target1, LogID target2, LogID target3, object data)
-        {
-            Log(new LogID[] { target1, target2, target3 }, LogCategory.Default, data);
-        }
-
-        public void LogDebug(LogID target1, LogID target2, LogID target3, object data)
-        {
-            Log(new LogID[] { target1, target2, target3 }, LogCategory.Debug, data);
-        }
-
-        public void LogInfo(LogID target1, LogID target2, LogID target3, object data)
-        {
-            Log(new LogID[] { target1, target2, target3 }, LogCategory.Info, data);
-        }
-
-        public void LogImportant(LogID target1, LogID target2, LogID target3, object data)
-        {
-            Log(new LogID[] { target1, target2, target3 }, LogCategory.Important, data);
-        }
-
-        public void LogMessage(LogID target1, LogID target2, LogID target3, object data)
-        {
-            Log(new LogID[] { target1, target2, target3 }, LogCategory.Message, data);
-        }
-
-        public void LogWarning(LogID target1, LogID target2, LogID target3, object data)
-        {
-            Log(new LogID[] { target1, target2, target3 }, LogCategory.Warning, data);
-        }
-
-        public void LogError(LogID target1, LogID target2, LogID target3, object data)
-        {
-            Log(new LogID[] { target1, target2, target3 }, LogCategory.Error, data);
-        }
-
-        public void LogFatal(LogID target1, LogID target2, LogID target3, object data)
-        {
-            Log(new LogID[] { target1, target2, target3 }, LogCategory.Fatal, data);
-        }
-
-        public void Log(LogID target1, LogID target2, LogID target3, LogLevel category, object data)
-        {
-            Log(new LogID[] { target1, target2, target3 }, LogCategory.ToCategory(category), data);
-        }
-
-        public void Log(LogID target1, LogID target2, LogID target3, string category, object data)
-        {
-            Log(new LogID[] { target1, target2, target3 }, LogCategory.ToCategory(category), data);
-        }
-
-        public void Log(LogID target1, LogID target2, LogID target3, LogCategory category, object data)
-        {
-            LogData(new LogID[] { target1, target2, target3 }, category, data, false);
-        }
-
-        public void LogOnce(LogID target1, LogID target2, LogID target3, LogCategory category, object data)
-        {
-            LogData(new LogID[] { target1, target2, target3 }, category, data, true);
         }
 
         #endregion
         #region  Log Overloads (IEnumerable<LogID>, object)
 
-        public void Log(IEnumerable<LogID> targets, object data)
+        public void Log(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Default, data);
         }
 
-        public void LogOnce(IEnumerable<LogID> targets, object data)
+        public void LogOnce(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Default, data);
         }
 
-        public void LogDebug(IEnumerable<LogID> targets, object data)
+        public void LogDebug(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Debug, data);
         }
 
-        public void LogInfo(IEnumerable<LogID> targets, object data)
+        public void LogInfo(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Info, data);
         }
 
-        public void LogImportant(IEnumerable<LogID> targets, object data)
+        public void LogImportant(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Important, data);
         }
 
-        public void LogMessage(IEnumerable<LogID> targets, object data)
+        public void LogMessage(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Message, data);
         }
 
-        public void LogWarning(IEnumerable<LogID> targets, object data)
+        public void LogWarning(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Warning, data);
         }
 
-        public void LogError(IEnumerable<LogID> targets, object data)
+        public void LogError(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Error, data);
         }
 
-        public void LogFatal(IEnumerable<LogID> targets, object data)
+        public void LogFatal(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Fatal, data);
         }
 
-        public void Log(IEnumerable<LogID> targets, LogLevel category, object data)
+        public void Log(IEnumerable<ILogTarget> targets, LogLevel category, object data)
         {
             Log(targets, LogCategory.ToCategory(category), data);
         }
 
-        public void Log(IEnumerable<LogID> targets, string category, object data)
+        public void Log(IEnumerable<ILogTarget> targets, string category, object data)
         {
             Log(targets, LogCategory.ToCategory(category), data);
         }
 
-        public void Log(IEnumerable<LogID> targets, LogCategory category, object data)
+        public void Log(IEnumerable<ILogTarget> targets, LogCategory category, object data)
         {
-            LogData(targets, category, data, false);
+            LogData(new LogTargetCollection(targets), category, data, false);
         }
 
-        public void LogOnce(IEnumerable<LogID> targets, LogCategory category, object data)
+        public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, object data)
         {
-            LogData(targets, category, data, true);
+            LogData(new LogTargetCollection(targets), category, data, true);
         }
 
         #endregion
-
-        protected virtual void LogData(IEnumerable<LogID> targets, LogCategory category, object data, bool shouldFilter)
+        protected void LogData(ILogTarget target, LogCategory category, object data, bool shouldFilter)
         {
-            if (!targets.Any())
-            {
-                UtilityLogger.LogWarning("Attempted to log message with no available log targets");
-                return;
-            }
-
-            //Log data for each targetted LogID
-            foreach (LogID target in targets)
-                LogData(target, category, data, shouldFilter);
+            LogData(target, category, data, shouldFilter, null, LoggingContext.SingleRequest);
         }
 
-        protected virtual void LogData(LogID target, LogCategory category, object data, bool shouldFilter)
+        protected void LogData(CompositeLogTarget target, LogCategory category, object data, bool shouldFilter)
         {
-            if (!AllowLogging || !target.IsEnabled) return;
+            LogData(target.ToCollection(), category, data, shouldFilter);
+        }
 
-            RequestType requestType;
-
-            if (target.IsGameControlled)
+        protected virtual void LogData(LogTargetCollection targets, LogCategory category, object data, bool shouldFilter)
+        {
+            try
             {
-                requestType = RequestType.Game;
+                if (targets.Count == 0)
+                {
+                    UtilityLogger.LogWarning("Attempted to log message with no available log targets");
+                    return;
+                }
+
+                LogRequest lastRequest = null;
+                foreach (LogID target in targets.LogIDs)
+                    lastRequest = LogData(target, category, data, shouldFilter, lastRequest, LoggingContext.Batching);
+
+                IEnumerable<ConsoleID> consoleTargets = targets.ConsoleIDs;
+
+                if (lastRequest != null) //Possible to be null if all of the requests were rejected
+                {
+                    var consoleMessageData = lastRequest.Data.GetConsoleData();
+
+                    //Exclude any ConsoleIDs that were already handled when the LogIDs were processed
+                    if (consoleMessageData != null)
+                        consoleTargets = consoleTargets.Except(consoleMessageData.Handled);
+                }
+
+                foreach (ConsoleID target in consoleTargets)
+                    lastRequest = LogData(target, category, data, shouldFilter, lastRequest, LoggingContext.Batching);
             }
-            else if (target.Access == LogAccess.FullAccess || target.Access == LogAccess.Private)
+            finally
             {
-                requestType = RequestType.Local;
+                ClearEventData();
             }
-            else
-            {
-                requestType = RequestType.Remote;
-            }
+        }
 
-            LogRequest request = new LogRequest(requestType, new LogMessageEventArgs(target, data, category)
+        protected virtual LogRequest LogData(ILogTarget target, LogCategory category, object data, bool shouldFilter, LogRequest lastRequest, LoggingContext context)
+        {
+            try
             {
-                LogSource = ManagedLogSource
-            });
+                UtilityCore.RequestHandler.RecursionCheckCounter++;
 
-            if (shouldFilter)
-            {
-                request.Data.ShouldFilter = true;
-                request.Data.FilterDuration = FilterDuration.OnClose;
-            }
+                if (target is CompositeLogTarget)
+                    UtilityLogger.LogWarning("Composite processing not supported");
 
-            lock (UtilityCore.RequestHandler.RequestProcessLock)
-            {
+                if (!AllowLogging || !target.IsEnabled) return null;
+
+                RequestType requestType = target.GetRequestType(this);
+
+                if (requestType == RequestType.Invalid)
+                {
+                    UtilityLogger.LogWarning("Processed an invalid log request");
+                    return null;
+                }
+
+                LogRequest request = null;
+                LogRequestEventArgs requestData = null;
+
+                if (requestType == RequestType.Console)
+                {
+                    ConsoleID consoleTarget = (ConsoleID)target;
+                    requestData = new LogRequestEventArgs(consoleTarget, data, category);
+                }
+                else
+                {
+                    LogID fileTarget = (LogID)target;
+                    requestData = new LogRequestEventArgs(fileTarget, data, category);
+                }
+
+                requestData.LogSource = ManagedLogSource;
+                request = new LogRequest(requestType, requestData);
+
+                if (shouldFilter)
+                {
+                    request.Data.ShouldFilter = true;
+                    request.Data.FilterDuration = FilterDuration.OnClose;
+                }
+
+                if (lastRequest != null)
+                {
+                    //ConsoleIDs that were processed by an earlier request need to be transferred to the current request to avoid messages being logged to console more than once
+                    var consoleMessageData = lastRequest.Data.GetConsoleData();
+
+                    if (consoleMessageData != null)
+                        request.NotifyComplete(consoleMessageData.Handled);
+                }
+
+                request.Sender = this;
+
                 //Local requests are processed immediately by the logger, while other types of requests are handled through RequestHandler
                 if (request.Type != RequestType.Local)
                 {
@@ -617,65 +579,81 @@ namespace LogUtils
                 }
                 else
                 {
-                    UtilityCore.RequestHandler.Submit(request, false);
-
-                    var writer = Writer;
-
-                    if (writer == null) //This is possible when the Logger gets disposed - Ideally the logger should not be referenced after disposal
+                    using (UtilityCore.RequestHandler.BeginCriticalSection())
                     {
-                        request.Reject(RejectionReason.FailedToWrite);
-                        return;
+                        UtilityCore.RequestHandler.Submit(request, false);
+
+                        if (request.Status != RequestStatus.Rejected)
+                            SendToWriter(request);
                     }
-
-                    request.Host = this;
-                    writer.WriteFrom(request);
                 }
+                return request;
             }
-        }
-
-        public bool CanHandle(LogRequest request, bool doPathCheck = false)
-        {
-            return CanAccess(request.Data.ID, request.Type, doPathCheck);
-        }
-
-        /// <summary>
-        /// Returns whether logger instance is able to handle a specified LogID
-        /// </summary>
-        public bool CanAccess(LogID logID, RequestType requestType, bool doPathCheck)
-        {
-            if (logID.IsGameControlled) return false; //This check is here to prevent TryHandleRequest from potentially handling requests that should be handled by a GameLogger
-
-            //Find the LogID equivalent accepted by the Logger instance - only one LogID with this value can be stored
-            LogID loggerID = LogTargets.Find(log => log.Equals(logID));
-
-            //Enabled status is currently not evaluated here - It is unclear whether it should be part of the access check
-            if (loggerID != null)
+            finally
             {
-                if (loggerID.Access == LogAccess.RemoteAccessOnly) //Logger can only send remote requests for this LogID
-                    return false;
-
-                if (doPathCheck && loggerID.Properties.CurrentFolderPath != logID.Properties.CurrentFolderPath) //It is possible for a LogID to associate with more than one path
-                    return false;
-
-                return requestType == RequestType.Local || loggerID.Access != LogAccess.Private;
+                UtilityCore.RequestHandler.RecursionCheckCounter--;
+                if (context == LoggingContext.SingleRequest)
+                    ClearEventData();
             }
-            return false;
         }
 
-        internal IEnumerable<PersistentLogFileHandle> GetUnusedHandles(IEnumerable<PersistentLogFileHandle> handlePool)
+        public bool CanHandle(LogID logID, RequestType requestType)
         {
-            //No game-controlled, or remote targets
-            var localTargets = LogTargets.FindAll(CanLogBeHandledLocally);
+            if (logID.IsGameControlled) return false;
 
-            return handlePool.Where(handle => !localTargets.Contains(handle.FileID));
+            LogID loggerID = this.FindEquivalentTarget(logID);
+
+            if (loggerID == null || loggerID.Access == LogAccess.RemoteAccessOnly) //Logger can only send remote requests for this LogID
+                return false;
+
+            //TODO: Enabled status is currently not evaluated here - It is unclear whether it should be part of the access check
+            return requestType == RequestType.Local || loggerID.Access != LogAccess.Private;
         }
 
         /// <summary>
-        /// Retrieves all log files this logger instance can handle directly
+        /// Retrieves all log files accessible by the logger
         /// </summary>
-        internal IEnumerable<LogID> GetTargetsForHandler()
+        IEnumerable<LogID> ILogFileHandler.GetAccessibleTargets()
         {
             return LogTargets.Where(log => !log.IsGameControlled && log.Access != LogAccess.RemoteAccessOnly);
+        }
+
+        ILogWriter ILogWriterProvider.GetWriter()
+        {
+            return Writer;
+        }
+
+        ILogWriter ILogWriterProvider.GetWriter(LogID logFile)
+        {
+            return Writer;
+        }
+
+        public void HandleRequest(LogRequest request)
+        {
+            if (request.Submitted)
+                UtilityCore.RequestHandler.CurrentRequest = request;
+
+            request.ResetStatus(); //Ensure that processing request is handled in a consistent way
+            request.Validate(Validator);
+
+            if (request.Status == RequestStatus.Rejected)
+                return;
+
+            SendToWriter(request);
+        }
+
+        internal void SendToWriter(LogRequest request)
+        {
+            var writer = Writer;
+
+            if (writer == null) //This is possible when the Logger gets disposed - Ideally the logger should not be referenced after disposal
+            {
+                UtilityLogger.LogWarning("Log writer unavailable to handle this request - deploying fallback writer");
+                writer = LogWriter.Writer;
+            }
+
+            request.Host = this;
+            writer.WriteFrom(request);
         }
         #endregion
 
@@ -687,17 +665,13 @@ namespace LogUtils
         {
             if (IsDisposed) return;
 
-            ILogWriter localWriter = Writer;
+            LogWriter.TryDispose(Writer);
 
-            if (localWriter != LogWriter.Writer) //Avoid disposing a shared resource
+            if (AllowRegistration)
             {
-                IDisposable disposable = localWriter as IDisposable;
-
-                if (disposable != null)
-                    disposable.Dispose();
+                UtilityCore.RequestHandler.Unregister(this);
+                UtilityEvents.OnRegistrationChanged -= registrationChangedHandler;
             }
-
-            UtilityCore.RequestHandler.Unregister(this);
 
             Writer = null;
             IsDisposed = true;
@@ -717,87 +691,15 @@ namespace LogUtils
 
         #endregion
 
-        internal static bool CanLogBeHandledLocally(LogID logID)
-        {
-            return !logID.IsGameControlled && (logID.Access == LogAccess.FullAccess || logID.Access == LogAccess.Private);
-        }
-
-        public sealed class RequestHandler : RequestHandlerModule
-        {
-            private readonly Logger logger;
-            private LogID loggerID; //Possible for this to become a stale reference under a rare circumstance
-
-            public RequestHandler(Logger owner)
-            {
-                logger = owner;
-            }
-
-            protected override void HandleRequest()
-            {
-                if (RequiresAccessValidation)
-                {
-                    bool allowedToHandle = logger.CanHandle(Request, doPathCheck: true);
-
-                    if (!allowedToHandle)
-                    {
-                        UtilityLogger.LogWarning("Request sent to a logger that cannot handle it");
-                        Request.Reject(RejectionReason.NotAllowedToHandle);
-                        return;
-                    }
-                }
-
-                LogID requestID = Request.Data.ID;
-                if (loggerID == null || loggerID != requestID) //ExtEnums are not compared by reference
-                {
-                    //The local LogID stored in LogTargets will be a different instance to the one stored in a remote log request
-                    //It is important to check the local id instead of the remote id in certain situations
-                    loggerID = logger.LogTargets.Find(id => id == requestID);
-                }
-
-                if (loggerID.Properties.CurrentFolderPath != requestID.Properties.CurrentFolderPath) //Same LogID, different log paths - do not handle
-                {
-                    UtilityLogger.Log("Request not handled, log paths do not match");
-                    Request.Reject(RejectionReason.PathMismatch);
-                    return;
-                }
-
-                if (!logger.AllowLogging || !loggerID.IsEnabled)
-                {
-                    Request.Reject(RejectionReason.LogDisabled);
-                    return;
-                }
-
-                if (loggerID.Properties.ShowLogsAware && !RainWorld.ShowLogs)
-                {
-                    if (RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD)
-                        Request.Reject(RejectionReason.ShowLogsNotInitialized);
-                    else
-                        Request.Reject(RejectionReason.LogDisabled);
-                    return;
-                }
-
-                if (Request.Type == RequestType.Remote && (loggerID.Access == LogAccess.Private || !logger.AllowRemoteLogging))
-                {
-                    Request.Reject(RejectionReason.AccessDenied);
-                    return;
-                }
-
-                var writer = logger.Writer;
-
-                if (writer == null) //This is possible when the Logger gets disposed - Ideally the logger should not be referenced after disposal
-                {
-                    Request.Reject(RejectionReason.FailedToWrite);
-                    return;
-                }
-
-                Request.Host = logger;
-                writer.WriteFrom(Request);
-            }
-        }
-
         public class EarlyInitializationException(string message) : InvalidOperationException(message)
         {
         }
+    }
+
+    public enum LoggingContext
+    {
+        SingleRequest,
+        Batching
     }
 
     public enum LoggingMode

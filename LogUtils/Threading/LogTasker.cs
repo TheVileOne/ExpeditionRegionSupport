@@ -1,5 +1,4 @@
-﻿using LogUtils.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -11,7 +10,6 @@ namespace LogUtils.Threading
         private static List<Task> tasksInProcess = new List<Task>();
 
         private static Thread _thread;
-        //private static Timer _timer; //TODO: Is it worth it?
 
         internal static CrawlMark CurrentCrawlMark = CrawlMark.None;
 
@@ -27,6 +25,8 @@ namespace LogUtils.Threading
         private static object _submissionLock = new object();
 
         public static bool IsBatching { get; private set; }
+
+        public static bool IsRunning { get; private set; }
 
         /// <summary>
         /// Allows tasks to be scheduled in an uninterrupted sequence
@@ -65,7 +65,7 @@ namespace LogUtils.Threading
                             }
                         }
                         OnThreadUpdate -= self;
-                    };
+                    }
                 }
             }
         }
@@ -96,6 +96,7 @@ namespace LogUtils.Threading
             void addTask()
             {
                 SyncCallback self = addTask;
+                task.SetState(TaskState.Submitted);
                 tasksInProcess.Add(task);
 
                 //Batched process will unsubscribe from event instead
@@ -220,94 +221,172 @@ namespace LogUtils.Threading
             _submissionBuffer.Enqueue(taskDeliveryProcess);
         }
 
-        public static void EndTask(Task task, bool rejected)
+        /// <summary>
+        /// Sets the task state to Aborted, or Complete
+        /// </summary>
+        public static void EndTask(Task task, bool cancel)
         {
-            if (task.State == TaskState.NotSubmitted) return;
-
-            UtilityLogger.DebugLog("Task ended after " + TimeConversion.DateTimeInMilliseconds(DateTime.UtcNow - task.InitialTime) + " milliseconds");
-            UtilityLogger.DebugLog("Wait interval " + task.WaitTimeInterval.TotalMilliseconds + " milliseconds");
-
-            task.ResetToDefaults();
-            task.SetState(rejected ? TaskState.Aborted : TaskState.Complete);
-
-            tasksInProcess.Remove(task);
+            if (cancel)
+            {
+                task.Cancel();
+                return;
+            }
+            task.Complete();
         }
 
-        private static Stopwatch _timer = new Stopwatch();
+        private static void removeAfterUpdate(Task task)
+        {
+            OnThreadUpdateComplete += removeAfterUpdate;
 
-        /// <summary>
-        /// A debug field for detecting thread hangs
-        /// </summary>
-        private static int _ticksWaitedThisFrame;
+            void removeAfterUpdate()
+            {
+                SyncCallback self = removeAfterUpdate;
+                tasksInProcess.Remove(task);
+                OnThreadUpdateComplete -= self;
+            }
+        }
+
+        private static bool timerStarted = timerUpdate != null;
+        private static Action timerUpdate; 
+
+        public static void StartTimingFrames()
+        {
+            if (timerStarted) return;
+
+            Stopwatch updateTimer = Stopwatch.StartNew();
+
+            long framesSinceLastSlowFrame = 0,
+                 elapsedTicksOnLastCheck = 0;
+
+            timerUpdate = checkUpdateTime;
+
+            //Check time at the start, and end of the update to allow capture the time in between updates
+            OnThreadUpdate += new SyncCallback(timerUpdate);
+            OnThreadUpdateComplete += new SyncCallback(timerUpdate);
+
+            void checkUpdateTime()
+            {
+                const int MAX_REPORTABLE_FRAME_COUNT = 10000000;
+
+                long elapsedTicks = updateTimer.ElapsedTicks;
+                long elapsedMillisecondsThisFrame = (elapsedTicks - elapsedTicksOnLastCheck) / TimeSpan.TicksPerMillisecond;
+
+                bool isSlowFrame = elapsedMillisecondsThisFrame > Diagnostics.Debug.LogFrameReportThreshold;
+
+                if (isSlowFrame)
+                {
+                    bool maxFrameCountReached = framesSinceLastSlowFrame >= MAX_REPORTABLE_FRAME_COUNT;
+
+                    string frameCountReport = !maxFrameCountReached ? framesSinceLastSlowFrame.ToString() : $"Over {MAX_REPORTABLE_FRAME_COUNT} frames";
+
+                    UtilityLogger.Logger.LogDebug($"Frames since last report: {frameCountReport}");
+                    UtilityLogger.Logger.LogDebug($"Frame took longer than {Diagnostics.Debug.LogFrameReportThreshold} milliseconds [{elapsedMillisecondsThisFrame} ms]");
+                    framesSinceLastSlowFrame = 0;
+                }
+                else if (CurrentCrawlMark == CrawlMark.BeginUpdate && framesSinceLastSlowFrame < MAX_REPORTABLE_FRAME_COUNT)
+                    framesSinceLastSlowFrame++;
+
+                elapsedTicksOnLastCheck = elapsedTicks;
+            }
+        }
+
+        public static void StopTimingFrames()
+        {
+            if (!timerStarted) return;
+
+            OnThreadUpdate -= new SyncCallback(timerUpdate);
+            OnThreadUpdateComplete -= new SyncCallback(timerUpdate);
+            timerUpdate = null;
+        }
 
         private static void threadUpdate()
         {
+            IsRunning = true;
             Thread.CurrentThread.Name = UtilityConsts.UTILITY_NAME;
 
-            while (true)
-            {
-                TimeSpan currentTime = TimeSpan.FromTicks(DateTime.UtcNow.Ticks);
+            if (UtilityCore.Build == UtilitySetup.Build.DEVELOPMENT)
+                StartTimingFrames();
 
-                _timer.Restart();
-                _ticksWaitedThisFrame = 0;
+            HashSet<int> handledTaskIDs = new HashSet<int>();
 
-                crawlMarkReached(CrawlMark.BeginUpdate);
-                int tasksProcessedCount = 0;
-                foreach (Task task in safeGetTasks())
-                {
-                    //Time since last activation, or task subscription time
-                    TimeSpan timeElapsedSinceLastActivation = currentTime - (task.HasRunOnce ? task.LastActivationTime : task.InitialTime);
-
-                    if (timeElapsedSinceLastActivation >= task.WaitTimeInterval)
-                    {
-                        bool taskRanWithErrors = false;
-                        if (!TryRun(task))
-                        {
-                            task.IsContinuous = false; //Don't allow task to try again
-                            taskRanWithErrors = true;
-                        }
-
-                        task.LastActivationTime = currentTime;
-                        if (!task.IsContinuous)
-                            EndTask(task, taskRanWithErrors);
-                    }
-                    tasksProcessedCount++;
-                }
-                crawlMarkReached(CrawlMark.EndUpdate);
-
-                if (_timer.ElapsedMilliseconds > 5)
-                    UtilityLogger.LogWarning($"Frame took longer than 5 milliseconds [{_timer.ElapsedMilliseconds} ms]");
-
-                double waitTimeInMilliseconds = (int)(_ticksWaitedThisFrame / Stopwatch.Frequency) * 1000;
-
-                if (waitTimeInMilliseconds > 1.0d)
-                    UtilityLogger.LogWarning("Wait time took longer than 1 milliseconds");
-            }
-        }
-
-        internal static bool TryRun(Task task)
-        {
             try
             {
-                task.Run();
-                return true;
+                while (IsRunning)
+                {
+                    TimeSpan currentTime = TimeSpan.FromTicks(DateTime.UtcNow.Ticks);
+
+                    crawlMarkReached(CrawlMark.BeginUpdate);
+
+                    for (int i = 0; i < tasksInProcess.Count; i++)
+                    {
+                        Task task = tasksInProcess[i];
+
+                        if (handledTaskIDs.Add(task.ID))
+                        {
+                            UtilityLogger.DebugLog("Processing task: NAME " + task.Name + " ID " + task.ID);
+                            UtilityLogger.DebugLog("Is Continuous " + task.IsContinuous);
+                        }
+
+                        if (!task.PossibleToRun)
+                        {
+                            removeAfterUpdate(task);
+                            continue;
+                        }
+
+                        //Time since last activation, or task subscription time
+                        TimeSpan timeElapsedSinceLastActivation = currentTime - (task.HasRunOnce ? task.LastActivationTime : task.InitialTime);
+
+                        if (timeElapsedSinceLastActivation >= task.WaitTimeInterval)
+                        {
+                            TaskResult result = task.TryRun();
+
+                            if (result == TaskResult.AlreadyRunning)
+                                continue;
+
+                            if (result != TaskResult.Success)
+                                task.IsContinuous = false; //Don't allow task to try again
+
+                            task.LastActivationTime = currentTime;
+                            if (!task.IsContinuous)
+                            {
+                                EndTask(task, result == TaskResult.Error);
+                                removeAfterUpdate(task);
+                            }
+                        }
+                    }
+                    crawlMarkReached(CrawlMark.EndUpdate);
+                }
             }
-            catch (Exception ex)
+            finally
             {
-                UtilityLogger.LogError("Task failed to execute", ex);
-                return false;
+                UtilityLogger.DebugLog("Task thread terminating" + (IsRunning ? " unexpectedly" : string.Empty));
+                IsRunning = false;
             }
         }
 
-        internal static void SyncWaitOnCrawlMark(CrawlMark crawlMark)
+        internal static void Close()
         {
-            WaitOnCrawlMark = crawlMark;
+            bool tasksCanceled = false;
 
-            if (crawlMark != CrawlMark.None)
+            //Block the task thread
+            WaitOnCrawlMark = CrawlMark.BeginUpdate;
+
+            //Cancel all current tasks
+            OnThreadUpdate += () =>
             {
-                while (!WaitingOnSignal)
-                    continue;
-            }
+                tasksInProcess.ForEach(t => t.Cancel());
+                tasksCanceled = true;
+            };
+
+            //Block current thread until synced with task thread
+            SpinWait.SpinUntil(() => WaitingOnSignal);
+
+            //Release task thread
+            WaitOnCrawlMark = CrawlMark.None;
+
+            //Block current thread until all tasks are canceled
+            SpinWait.SpinUntil(() => !tasksCanceled);
+            IsRunning = false;
         }
 
         public delegate void SyncCallback();
@@ -320,13 +399,11 @@ namespace LogUtils.Threading
 
             if (WaitOnCrawlMark == CurrentCrawlMark)
             {
-                long ticksBeforeWait = _timer.ElapsedTicks;
                 while (WaitOnCrawlMark == CurrentCrawlMark)
                 {
                     WaitingOnSignal = true;
                     continue;
                 }
-                _ticksWaitedThisFrame += (int)(_timer.ElapsedTicks - ticksBeforeWait);
                 WaitingOnSignal = false;
             }
 
@@ -349,31 +426,6 @@ namespace LogUtils.Threading
             {
                 UtilityLogger.LogError(ex);
             }
-        }
-
-        private static HashSet<int> handledTaskIDs = new HashSet<int>();
-
-        private static IEnumerable<Task> safeGetTasks()
-        {
-            if (tasksInProcess.Count > 0)
-            {
-                for (int i = 0; i < tasksInProcess.Count; i++)
-                {
-                    Task task = tasksInProcess[i];
-
-                    if (task != null)
-                    {
-                        if (!handledTaskIDs.Contains(task.ID))
-                        {
-                            UtilityLogger.DebugLog("Processing task: NAME " + task.Name + " ID " + task.ID);
-                            UtilityLogger.DebugLog("Is Continuous " + task.IsContinuous);
-                            handledTaskIDs.Add(task.ID);
-                        }
-                        yield return task;
-                    }
-                }
-            }
-            yield break;
         }
     }
 

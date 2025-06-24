@@ -13,7 +13,7 @@ namespace LogUtils.Helpers.FileHandling
         /// <param name="dirLevelsToCheck">The number of directory separators to check starting from the right</param>
         public static bool ContainsDirectory(string path, string dirName, int dirLevelsToCheck)
         {
-            if (path == null) return false;
+            if (IsEmpty(path)) return false;
 
             path = PathWithoutFilename(path);
 
@@ -82,6 +82,12 @@ namespace LogUtils.Helpers.FileHandling
             return pathOther.Substring(0, charsMatched);
         }
 
+        public static string GetRandomFilename(string fileExt)
+        {
+            string filename = Path.GetRandomFileName();
+            return Path.ChangeExtension(filename, fileExt);
+        }
+
         /// <summary>
         /// Replace all directory separator characters with the default platform-specific directory separator character 
         /// </summary>
@@ -96,7 +102,7 @@ namespace LogUtils.Helpers.FileHandling
         /// </summary>
         public static bool PathRootExists(string path)
         {
-            if (path == null) return false;
+            if (IsEmpty(path)) return false;
 
             path = PathWithoutFilename(path);
 
@@ -159,6 +165,11 @@ namespace LogUtils.Helpers.FileHandling
                 return path.Substring(1);
             }
             return path;
+        }
+
+        public static bool IsEmpty(string path)
+        {
+            return string.IsNullOrWhiteSpace(path);
         }
 
         public static bool IsPathKeyword(string pathString)

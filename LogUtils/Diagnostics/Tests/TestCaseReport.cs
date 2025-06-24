@@ -1,5 +1,6 @@
 ﻿using LogUtils.Helpers;
 using LogUtils.Helpers.Extensions;
+using LogUtils.Policy;
 using System.Collections.Generic;
 using System.Text;
 using ReportVerbosity = LogUtils.Enums.FormatEnums.FormatVerbosity;
@@ -55,7 +56,7 @@ namespace LogUtils.Diagnostics.Tests
 
                 ReportResultEntries(report, analyzer.GetFailedResults());
             }
-            else if (Debug.TestCasePolicy.ReportVerbosity == ReportVerbosity.Verbose)
+            else if (TestCasePolicy.ReportVerbosity == ReportVerbosity.Verbose)
             {
                 int totalResults = Results.Count;
                 report.AppendLine($"- {totalResults} out of {totalResults} asserts passed");
@@ -80,10 +81,11 @@ namespace LogUtils.Diagnostics.Tests
 
         protected void ReportResultEntries(StringBuilder report, IEnumerable<Condition.Result> results)
         {
-            string response;
+            const string RESPONSE_FORMAT = "({0}){1}";
+
             foreach (var result in results)
             {
-                response = Formatter.Format(result);
+                string response = string.Format(RESPONSE_FORMAT, result.ID, Formatter.Format(result));
 
                 if (result.HasEmptyMessage)
                     report.Append(result.Passed ? "Pass" : "Fail");

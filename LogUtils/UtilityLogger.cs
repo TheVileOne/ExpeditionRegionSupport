@@ -1,16 +1,17 @@
-﻿using LogUtils.Enums;
-using LogUtils.Events;
+﻿using LogUtils.Diagnostics;
+using LogUtils.Enums;
 using LogUtils.Helpers.FileHandling;
-using LogUtils.Requests;
+using LogUtils.Policy;
+using LogUtils.Threading;
 using System;
-using System.IO;
 using System.Linq;
-using UnityEngine;
 
 namespace LogUtils
 {
     internal static class UtilityLogger
     {
+        internal static DirectToFileLogger DebugLogger = new DirectToFileLogger(DirectToFileLogger.DEFAULT_LOG_NAME);
+
         public static UtilityLogSource Logger;
 
         /// <summary>
@@ -18,10 +19,53 @@ namespace LogUtils
         /// </summary>
         private static Logger activityLogger;
 
-        private static bool _receiveUnityLogEvents;
+        /// <summary>
+        /// Used to maintain the high performance write implementation
+        /// </summary>
+        private static Task writeTask;
+
+        private static bool _performanceMode;
+
+        /// <summary>
+        /// Enables a write buffer that intercepts all debug logs and writes them to file off the main thread
+        /// </summary>
+        public static bool PerformanceMode
+        {
+            get => _performanceMode;
+            set
+            {
+                if (_performanceMode == value)
+                    return;
+
+                _performanceMode = value;
+
+                DebugPolicy.UpdateAllowConditions();
+
+                //Enable the buffer when performance mode is enabled, and disable it when it is no longer necessary
+                DebugLogger.WriteBuffer.SetState(value, BufferContext.Debug);
+
+                if (value)
+                {
+                    Logger.LogDebug("Performance mode enabled");
+
+                    writeTask = new Task(() => DebugLogger.TryFlush(), 2000);
+                    writeTask.IsContinuous = true;
+                    LogTasker.Schedule(writeTask);
+                }
+                else
+                {
+                    Logger.LogDebug("Performance mode disabled");
+                    //We want to run one more time, and end the process
+                    writeTask.RunOnceAndEnd(true);
+                    writeTask = null;
+                }
+            }
+        }
 
         internal static void Initialize()
         {
+            if (Logger != null) return;
+
             var sources = BepInEx.Logging.Logger.Sources;
 
             Logger = sources.FirstOrDefault(l => l.SourceName == UtilityConsts.UTILITY_NAME) as UtilityLogSource;
@@ -31,42 +75,17 @@ namespace LogUtils
                 Logger = new UtilityLogSource();
                 sources.Add(Logger);
             }
-
-            //TODO: Deprecate use of test.txt when utility is close to release
-            File.Delete("test.txt");
         }
 
-        internal static bool ReceiveUnityLogEvents
+        internal static void DeleteInternalLogs()
         {
-            get => _receiveUnityLogEvents;
-            set
-            {
-                if (_receiveUnityLogEvents == value) return;
-
-                if (value)
-                    Application.logMessageReceivedThreaded += handleUnityLog;
-                else
-                    Application.logMessageReceivedThreaded -= handleUnityLog;
-
-                _receiveUnityLogEvents = value;
-            }
-        }
-
-        /// <summary>
-        /// Ensures that the maximum LogType value able to be processed by the Unity logger is at least the specified capacity value </br>
-        /// </summary>
-        /// <param name="capacity">The desired maximum FilterType value as an integer</param>
-        internal static void EnsureLogTypeCapacity(int capacity)
-        {
-            LogType capacityWanted = (LogType)capacity;
-
-            if (Debug.unityLogger.filterLogType < capacityWanted)
-                Debug.unityLogger.filterLogType = capacityWanted;
+            FileUtils.SafeDelete("LogActivity.log");
+            DebugLogger.DeleteAll();
         }
 
         public static void DebugLog(object data)
         {
-            FileUtils.WriteLine("test.txt", data?.ToString());
+            DebugLogger.Log(data);
         }
 
         public static void Log(object data)
@@ -124,33 +143,19 @@ namespace LogUtils
             Logger.LogWarning(data);
         }
 
-        private static void handleUnityLog(string message, string stackTrace, LogType category)
+        /// <summary>
+        /// Creates a logger that LogUtils can use to log to files directly (without using LogIDs, or the log request system) - not intended for users of LogUtils
+        /// </summary>
+        internal static DebugLogger CreateLogger(string logName, StringProvider provider)
         {
-            lock (UtilityCore.RequestHandler.RequestProcessLock)
-            {
-                //This submission wont be able to be logged until Rain World can initialize
-                if (UtilityCore.RequestHandler.CurrentRequest == null)
-                {
-                    if (LogCategory.IsErrorCategory(category))
-                    {
-                        //Handle Unity error logging similarly to how the game would handle it
-                        ExceptionInfo exceptionInfo = new ExceptionInfo(message, stackTrace);
+            var logger = logName == DirectToFileLogger.DEFAULT_LOG_NAME ? DebugLogger : new DirectToFileLogger(logName);
 
-                        //Check that the last exception reported matches information stored
-                        if (!RWInfo.CheckExceptionMatch(LogID.Exception, exceptionInfo))
-                        {
-                            RWInfo.ReportException(LogID.Exception, exceptionInfo);
-                            UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.Exception, exceptionInfo, category)), false);
-                        }
-                        return;
-                    }
-                    UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.Unity, message, category)), false);
-                }
-            }
+            return new DebugLogger(logger, provider);
         }
 
         static UtilityLogger()
         {
+            DebugLogger.AllowLogging = DebugPolicy.ShowDebugLog;
             UtilityCore.EnsureInitializedState();
         }
     }

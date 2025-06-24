@@ -1,19 +1,27 @@
-﻿using LogUtils.Diagnostics;
-using System;
+﻿using System;
 
 namespace LogUtils.Enums
 {
-    public class SharedExtEnum<T> : ExtEnum<T>, IComparable, IComparable<T>, IShareable where T : SharedExtEnum<T>, IShareable
+    public class SharedExtEnum<T> : ExtEnum<T>, IComparable, IComparable<T>, IEquatable<T>, IShareable where T : SharedExtEnum<T>, IShareable
     {
+        /// <summary>
+        /// Index position in values.entries list for this ExtEnum entry
+        /// </summary>
         public override int Index
         {
             get
             {
+                //TODO: Can we prove that managed index can never go out of sync, and write a test for that?
                 if (!ReferenceEquals(ManagedReference, this))
                     return ManagedReference.Index;
-                return index;
+                return base.Index;
             }
         }
+
+        /// <summary>
+        /// Accessing underlying Index position without checking ManagedReference index (useful during the resitration process and values are being synced)
+        /// </summary>
+        public int BaseIndex => base.Index;
 
         /// <summary>
         /// A null-safe reference to the SharedExtEnum that any mod can access
@@ -25,26 +33,30 @@ namespace LogUtils.Enums
             get
             {
                 if (!ReferenceEquals(ManagedReference, this))
-                    return ManagedReference?.Tag ?? value; //Can be null here when it is accessed through the constructor
-                return value;
+                    return ManagedReference?.Tag ?? Value; //Can be null here when it is accessed through the constructor
+                return Value;
             }
         }
 
         /// <summary>
         /// An identifying string assigned to each ExtEnum
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Naming convention of a dependency")]
-        public new string value
+        public string Value
         {
             get => base.value;
-            protected set => base.@value = value;
+            protected set => base.value = value;
         }
+
+        /// <summary>
+        /// An identifying string assigned to each ExtEnum
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Naming convention of a dependency")]
+        [Obsolete("This property is from the base class. Use Value instead.")]
+        public new string value => base.value;
 
         public SharedExtEnum(string value, bool register = false) : base(value, false)
         {
             ManagedReference = (T)UtilityCore.DataHandler.GetOrAssign(this);
-
-            Assert.That(ManagedReference).IsNotNull();
 
             if (register)
             {
@@ -52,7 +64,7 @@ namespace LogUtils.Enums
             }
             else if (!ReferenceEquals(ManagedReference, this) && ManagedReference.Registered) //Propagate field values from registered reference
             {
-                base.value = ManagedReference.value;
+                Value = ManagedReference.Value;
                 valueHash = ManagedReference.valueHash;
                 index = ManagedReference.Index;
             }
@@ -118,13 +130,13 @@ namespace LogUtils.Enums
             {
                 if (ManagedReference.Registered)
                 {
-                    value = ManagedReference.value;
+                    Value = ManagedReference.Value;
                     valueHash = ManagedReference.valueHash;
                     index = ManagedReference.Index;
                 }
                 else //Registration status should propagate to managed reference
                 {
-                    ManagedReference.value = value;
+                    ManagedReference.Value = Value;
                     ManagedReference.valueHash = valueHash;
 
                     //Register the managed reference and get the assigned index from it
@@ -135,21 +147,19 @@ namespace LogUtils.Enums
             }
             else if (!Registered)
             {
-                values.AddEntry(value);
+                values.AddEntry(Value);
                 index = values.Count - 1;
             }
         }
 
-        //TODO: LogIDs don't have proper support for registering, and unregistering
         public new virtual void Unregister()
         {
-            UtilityLogger.LogWarning($"Unregistering of {typeof(T)} is currently not supported, and may not work correctly");
             base.Unregister();
         }
 
         public virtual bool CheckTag(string tag)
         {
-            return string.Equals(value, tag, StringComparison.InvariantCultureIgnoreCase);
+            return string.Equals(Value, tag, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public int CompareTo(T value)
@@ -169,6 +179,66 @@ namespace LogUtils.Enums
                 throw new ArgumentException(string.Format("Object must be the same type as the extEnum. The type passed in was {0}; the extEnum type was {1}.", value.GetType(), enumType));
 
             return CompareTo((T)value);
+        }
+
+        /// <summary>
+        /// Indicates whether the current object is equal to another object of the same time (utilizes the base value hashcode comparison to determine equality)
+        /// </summary>
+        public bool BaseEquals(T other)
+        {
+            return base.Equals(other);
+        }
+
+        /// <summary>
+        /// Indicates whether the current object is equal to another object of the same time (utilizes a customized value hashcode comparison to determine equality)
+        /// </summary>
+        public new bool Equals(T other)
+        {
+            return CompareByHash(this, other) == 0;
+        }
+
+        //These operator overloads will affect the equality checks used in base ExtEnum comparisons. The hashing being different for LogIDs with multiple paths
+        //is probably harmless, but more testing is needed to confirm this.
+        /*
+        public static bool operator ==(SharedExtEnum<T> value, T valueOther)
+        {
+            UtilityLogger.DebugLog("Fetching equality from custom operator");
+            return CompareByHash(value, valueOther) == 0;
+        }
+
+        public static bool operator !=(SharedExtEnum<T> value, T valueOther)
+        {
+            UtilityLogger.DebugLog("Fetching equality from custom operator");
+            return CompareByHash(value, valueOther) != 0;
+        }
+        */
+
+        public static bool operator <(SharedExtEnum<T> left, T right)
+        {
+            return left?.CompareTo(right) < 0;
+        }
+
+        public static bool operator <=(SharedExtEnum<T> left, T right)
+        {
+            return left?.CompareTo(right) <= 0;
+        }
+
+        public static bool operator >(SharedExtEnum<T> left, T right)
+        {
+            return left?.CompareTo(right) > 0;
+        }
+
+        public static bool operator >=(SharedExtEnum<T> left, T right)
+        {
+            return left?.CompareTo(right) >= 0;
+        }
+
+        protected static int CompareByHash(SharedExtEnum<T> left, T right)
+        {
+            int hash = left?.GetHashCode() ?? 0;
+            int hashOther = right?.GetHashCode() ?? 0;
+
+            return hash.CompareTo(hashOther);
         }
     }
 

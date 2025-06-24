@@ -13,6 +13,27 @@ public class PathComparer : ComparerBase<string>
     {
     }
 
+    /// <summary>
+    /// Compares two paths (with or without a filename)
+    /// </summary>
+    public int CompareFilenameAndPath(string path, string pathOther, bool ignoreExtensions)
+    {
+        //GetPathFromKeyword will strip the filename
+        if (PathUtils.IsPathKeyword(path))
+            path = PathUtils.GetPathFromKeyword(path);
+
+        if (PathUtils.IsPathKeyword(pathOther))
+            pathOther = PathUtils.GetPathFromKeyword(pathOther);
+
+        if (ignoreExtensions)
+        {
+            path = FileUtils.RemoveExtension(path);
+            pathOther = FileUtils.RemoveExtension(pathOther);
+        }
+
+        return InternalCompare(path, pathOther);
+    }
+
     public override int Compare(string path, string pathOther)
     {
         //Make sure we are comparing path data, not keywords
@@ -36,10 +57,10 @@ public class PathComparer : ComparerBase<string>
     /// </summary>
     internal int InternalCompare(string path, string pathOther)
     {
-        if (path == null)
+        if (PathUtils.IsEmpty(path))
             return pathOther != null ? int.MinValue : 0;
 
-        if (pathOther == null)
+        if (PathUtils.IsEmpty(pathOther))
             return int.MaxValue;
 
         path = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar);
@@ -53,10 +74,10 @@ public class PathComparer : ComparerBase<string>
     /// </summary>
     internal bool InternalEquals(string path, string pathOther)
     {
-        if (path == null)
-            return pathOther == null;
+        if (PathUtils.IsEmpty(path))
+            return PathUtils.IsEmpty(pathOther);
 
-        if (pathOther == null)
+        if (PathUtils.IsEmpty(pathOther))
             return false;
 
         path = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar);

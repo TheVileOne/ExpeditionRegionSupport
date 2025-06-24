@@ -1,11 +1,10 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Events;
-using LogUtils.Properties;
+using LogUtils.Properties.Formatting;
 using LogUtils.Requests;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace LogUtils
 {
@@ -15,15 +14,20 @@ namespace LogUtils
     /// </summary>
     public class QueueLogWriter : LogWriter, IFlushable
     {
-        internal Queue<LogMessageEventArgs> LogCache = new Queue<LogMessageEventArgs>();
+        internal Queue<LogRequestEventArgs> LogCache = new Queue<LogRequestEventArgs>();
 
-        public override string ApplyRules(LogMessageEventArgs logEventData)
+        public QueueLogWriter()
         {
-            LogID logFile = logEventData.ID;
+            WriteHandler = WriteToBuffer;
+        }
+
+        public override string ApplyRules(LogRequestEventArgs messageData)
+        {
+            LogID logFile = messageData.ID;
             LogRule headerRule = logFile.Properties.ShowCategories;
 
             //All requests that are handled by this type of LogWriter shall display an error header even if the LogID doesn't have all headers enabled
-            if (!headerRule.IsEnabled && LogCategory.IsErrorCategory(logEventData.Category))
+            if (!headerRule.IsEnabled && LogCategory.IsErrorCategory(messageData.Category))
             {
                 headerRule = new ErrorsOnlyHeaderRule(true);
                 logFile.Properties.Rules.SetTemporaryRule(headerRule);
@@ -31,7 +35,7 @@ namespace LogUtils
 
             try
             {
-                return base.ApplyRules(logEventData);
+                return base.ApplyRules(messageData);
             }
             finally
             {
@@ -41,54 +45,22 @@ namespace LogUtils
             }
         }
 
-        public override void WriteFrom(LogRequest request)
-        {
-            if (request == null)
-                throw new ArgumentNullException(nameof(request));
-
-            request.WriteInProcess();
-
-            if (request.ThreadCanWrite)
-                WriteToBuffer(request);
-        }
-
         protected override void WriteToBuffer(LogRequest request)
         {
-            try
+            if (!PrepareLogFile(request.Data.ID))
             {
-                if (LogFilter.CheckFilterMatch(request.Data.ID, request.Data.Message))
-                {
-                    request.Reject(RejectionReason.FilterMatch);
-                    return;
-                }
-
-                if (!PrepareLogFile(request.Data.ID))
-                {
-                    request.Reject(RejectionReason.LogUnavailable);
-                    return;
-                }
-
-                if (!InternalWriteToBuffer(request.Data))
-                {
-                    request.Reject(RejectionReason.FailedToWrite);
-                    return;
-                }
-
-                //All checks passed is a complete request
-                request.Complete();
+                request.Reject(RejectionReason.LogUnavailable);
+                return;
             }
-            finally
-            {
-                UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
-            }
+
+            EnqueueMessage(request.Data);
+            request.Complete();
         }
 
-        internal bool InternalWriteToBuffer(LogMessageEventArgs logEventData)
+        protected void EnqueueMessage(LogRequestEventArgs messageData)
         {
-            OnLogMessageReceived(logEventData);
-
-            LogCache.Enqueue(logEventData);
-            return true;
+            OnLogMessageReceived(messageData);
+            LogCache.Enqueue(messageData);
         }
 
         protected override void WriteToFile(LogRequest request)
@@ -111,58 +83,64 @@ namespace LogUtils
             {
                 var logEntry = LogCache.Dequeue();
 
-                StreamWriter writer = null;
+                bool errorHandled = false;
+                var fileLock = logEntry.Properties.FileLock;
+
+                fileLock.Acquire();
+                fileLock.SetActivity(logEntry.ID, FileAction.Write);
+
+                ProcessResult streamResult = TryAssignWriter(logEntry.ID, out StreamWriter writer);
+
                 try
                 {
-                    var fileLock = logEntry.Properties.FileLock;
+                    if (streamResult != ProcessResult.Success)
+                        throw new IOException("Unable to create stream");
 
-                    lock (fileLock)
+                    bool fileChanged;
+                    do
                     {
-                        fileLock.SetActivity(logEntry.ID, FileAction.Write);
+                        SendToWriter(writer, logEntry);
 
-                        ProcessResult streamResult = AssignWriter(logEntry.ID, out writer);
+                        //Keep StreamWriter open while LogID remains unchanged
+                        fileChanged = LogCache.Count == 0 || LogCache.Peek().ID != logEntry.ID;
 
-                        if (streamResult != ProcessResult.Success)
-                            throw new IOException("Unable to create stream");
-
-                        string message;
-                        bool fileChanged;
-                        do
-                        {
-                            message = ApplyRules(logEntry);
-                            writer.WriteLine(message);
-                            logEntry.ID.Properties.MessagesLoggedThisSession++;
-
-                            //Keep StreamWriter open while LogID remains unchanged
-                            fileChanged = !LogCache.Any() || LogCache.Peek().ID != logEntry.ID;
-
-                            if (!fileChanged)
-                                logEntry = LogCache.Dequeue();
-                        }
-                        while (!fileChanged);
+                        if (!fileChanged)
+                            logEntry = LogCache.Dequeue();
                     }
+                    while (!fileChanged);
                 }
-                catch (IOException writeException)
+                catch (Exception ex)
                 {
-                    ExceptionInfo exceptionInfo = new ExceptionInfo(writeException);
-
-                    if (!RWInfo.CheckExceptionMatch(logEntry.ID, exceptionInfo)) //Only log unreported exceptions
-                    {
-                        logEntry = new LogMessageEventArgs(logEntry.ID, writeException, LogCategory.Error);
-
-                        RWInfo.ReportException(logEntry.ID, exceptionInfo);
-
-                        OnLogMessageReceived(logEntry);
-                        LogCache.Enqueue(logEntry);
-                    }
-                    break;
+                    errorHandled = true;
+                    OnWriteException(logEntry.ID, ex);
+                    break; //Break out of process loop when an exception occurs
                 }
                 finally
                 {
                     if (ShouldCloseWriterAfterUse && writer != null)
                         writer.Close();
+
+                    if (errorHandled)
+                        SendToBuffer(logEntry);
+
+                    fileLock.Release();
                 }
             }
+        }
+
+        protected override void OnWriteException(LogID logFile, Exception exception)
+        {
+            ExceptionInfo exceptionInfo = new ExceptionInfo(exception);
+
+            if (!RWInfo.CheckExceptionMatch(logFile, exceptionInfo)) //Only log unreported exceptions
+            {
+                var errorEntry = new LogRequestEventArgs(logFile, exception, LogCategory.Error);
+
+                RWInfo.ReportException(logFile, exceptionInfo);
+                EnqueueMessage(errorEntry);
+            }
+
+            base.OnWriteException(logFile, exception);
         }
     }
 }

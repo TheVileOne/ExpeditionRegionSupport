@@ -1,11 +1,13 @@
 ﻿using BepInEx.Logging;
 using Expedition;
 using JollyCoop;
-using LogUtils.CompatibilityServices;
+using LogUtils.Compatibility.BepInEx;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Requests;
+using LogUtils.Requests.Validation;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace LogUtils
@@ -13,9 +15,28 @@ namespace LogUtils
     /// <summary>
     /// A class for handling game-controlled log content
     /// </summary>
-    public class GameLogger : ILoggerBase
+    public class GameLogger : ILogHandler, ILogWriterProvider
     {
-        LogID[] ILoggerBase.AvailableTargets
+        /// <summary>
+        /// Set to the LogID of a request while it is being handled through an external logging API accessed by a GameLogger instance
+        /// </summary>
+        public LogID LogFileInProcess;
+
+        public Dictionary<LogID, int> ExpectedRequestCounter;
+
+        public IRequestValidator Validator;
+
+        bool ILogHandler.AllowLogging => true;
+
+        bool ILogHandler.AllowRemoteLogging => true;
+
+        bool ILogHandler.AllowRegistration => false;
+
+        IEnumerable<LogID> ILogFileHandler.AvailableTargets => LogTargets;
+
+        IEnumerable<LogID> ILogFileHandler.GetAccessibleTargets() => LogTargets;
+
+        internal static LogID[] LogTargets
         {
             get
             {
@@ -24,30 +45,77 @@ namespace LogUtils
                     LogID.BepInEx,
                     LogID.Unity,
                     LogID.Exception,
-                    LogID.JollyCoop,
-                    LogID.Expedition
+                    LogID.Expedition,
+                    LogID.JollyCoop
                 };
             }
         }
 
-        /// <summary>
-        /// Set to the LogID of a request while it is being handled through an external logging API accessed by a GameLogger instance
-        /// </summary>
-        public LogID LogFileInProcess;
-        public int GameLoggerRequestCounter;
+        bool ILogHandler.CanHandle(LogID logFile, RequestType requestType) => CanHandle(logFile);
 
-        protected RequestHandlerModule Handler;
+        public bool CanHandle(LogID logFile) => logFile.IsGameControlled;
+
+        ILogWriter ILogWriterProvider.GetWriter() => null; //Not associated with a particular writer implementation
 
         public GameLogger()
         {
-            Handler = new RequestHandler(this);
+            Validator = new GameRequestValidator(this);
+            ExpectedRequestCounter = new Dictionary<LogID, int>();
         }
 
-        public RequestHandlerModule GetHandler() => Handler;
-
-        public bool CanHandle(LogRequest request, bool doPathCheck = false)
+        /// <summary>
+        /// Retrieves the current LogWriter for a game-controlled log file 
+        /// </summary>
+        public ILogWriter GetWriter(LogID logFile)
         {
-            return request.Data.ID.IsGameControlled;
+            if (!logFile.IsGameControlled)
+                return null;
+
+            if (logFile.Equals(LogID.BepInEx))
+                return BepInExInfo.LogListener.Writer;
+
+            if (logFile.Equals(LogID.JollyCoop))
+                return LogWriter.JollyWriter;
+
+            //All others use this
+            return LogWriter.Writer;
+        }
+
+        public void HandleRequest(LogRequest request)
+        {
+            if (request.Submitted)
+                UtilityCore.RequestHandler.CurrentRequest = request;
+
+            request.ResetStatus(); //Ensure that processing request is handled in a consistent way
+            request.Validate(Validator);
+
+            if (request.Status == RequestStatus.Rejected)
+                return;
+
+            string message = request.Data.Message;
+
+            LogID logFile = request.Data.ID;
+
+            if (logFile == LogID.BepInEx)
+            {
+                LogBepEx(request.Data.LogSource, request.Data.BepInExCategory, message);
+            }
+            else if (logFile == LogID.Unity) //Unity, and Exception log requests are not guaranteed to have a defined LogCategory instance
+            {
+                LogUnity(request.Data.UnityCategory, message);
+            }
+            else if (logFile == LogID.Exception)
+            {
+                LogUnity(LogType.Error, message);
+            }
+            else if (logFile == LogID.JollyCoop)
+            {
+                LogJolly(request.Data.Category, message);
+            }
+            else if (logFile == LogID.Expedition)
+            {
+                LogExp(request.Data.Category, message);
+            }
         }
 
         public void LogBepEx(object data)
@@ -139,13 +207,14 @@ namespace LogUtils
 
             void processLog()
             {
-                string message = null;
+                UtilityCore.RequestHandler.SanitizeCurrentRequest();
+
                 LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
-                //CurrentRequest has already passed preprocess validation checks if this is not null
-                if (request == null)
+                string message = null;
+                if (request == null) //CurrentRequest has already passed preprocess validation checks if this is not null
                 {
-                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.Expedition, data, category)), false);
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Expedition, data, category)), false);
 
                     if (request.Status == RequestStatus.Rejected)
                         return;
@@ -171,13 +240,14 @@ namespace LogUtils
 
             void processLog()
             {
-                string message = null;
+                UtilityCore.RequestHandler.SanitizeCurrentRequest();
+
                 LogRequest request = UtilityCore.RequestHandler.CurrentRequest;
 
-                //CurrentRequest has already passed preprocess validation checks if this is not null
-                if (request == null)
+                string message = null;
+                if (request == null) //CurrentRequest has already passed preprocess validation checks if this is not null
                 {
-                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogMessageEventArgs(LogID.JollyCoop, data, category)), false);
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.JollyCoop, data, category)), false);
 
                     if (request.Status == RequestStatus.Rejected)
                         return;
@@ -194,82 +264,12 @@ namespace LogUtils
 
         protected void Process(LogID logFile, Action processLog)
         {
-            lock (UtilityCore.RequestHandler.RequestProcessLock)
+            using (UtilityCore.RequestHandler.BeginCriticalSection())
             {
                 //Check values to ensure that the same request going into an API is the same request coming out of it
-                GameLoggerRequestCounter++;
-
-                LogID lastProcessState = LogFileInProcess;
-
-                LogFileInProcess = logFile;
+                ExpectedRequestCounter[logFile]++;
                 processLog();
-
-                LogFileInProcess = lastProcessState;
-                GameLoggerRequestCounter--;
             }
         }
-
-        public sealed class RequestHandler : RequestHandlerModule
-        {
-            private GameLogger logger;
-
-            public RequestHandler(GameLogger owner)
-            {
-                logger = owner;
-            }
-
-            protected override void HandleRequest()
-            {
-                //Normal utility code paths should not allow for this guard to be triggered
-                if (RequiresAccessValidation && !logger.CanHandle(Request))
-                {
-                    UtilityLogger.LogWarning("Request sent to a logger that cannot handle it");
-                    Request.Reject(RejectionReason.NotAllowedToHandle);
-                }
-
-                LogID logFile = Request.Data.ID;
-
-                //Check RainWorld.ShowLogs for logs that are restricted by it
-                if (logFile.Properties.ShowLogsAware && !RainWorld.ShowLogs)
-                {
-                    if (RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD)
-                        Request.Reject(RejectionReason.ShowLogsNotInitialized);
-                    else
-                        Request.Reject(RejectionReason.LogDisabled);
-                    return;
-                }
-
-                if (!logFile.Properties.CanBeAccessed)
-                    Request.Reject(RejectionReason.LogUnavailable);
-
-                if (Request.Status == RequestStatus.Rejected)
-                    return;
-
-                string message = Request.Data.Message;
-
-                if (logFile == LogID.BepInEx)
-                {
-                    logger.LogBepEx(Request.Data.LogSource, Request.Data.BepInExCategory, message);
-                }
-                else if (logFile == LogID.Unity) //Unity, and Exception log requests are not guaranteed to have a defined LogCategory instance
-                {
-                    logger.LogUnity(Request.Data.UnityCategory, message);
-                }
-                else if (logFile == LogID.Exception)
-                {
-                    logger.LogUnity(LogType.Error, message);
-                }
-                else if (logFile == LogID.JollyCoop)
-                {
-                    logger.LogJolly(Request.Data.Category, message);
-                }
-                else if (logFile == LogID.Expedition)
-                {
-                    logger.LogExp(Request.Data.Category, message);
-                }
-            }
-        }
-
-        public delegate void LogHandler(LogCategory category, string message);
     }
 }

@@ -182,12 +182,12 @@ namespace ExpeditionRegionSupport.Filters
             //Handle situations where OnProcessStart has not been called before AssignChallenge, or RandomChallenge is called
             AssignmentStageLate = AssignmentStage;
 
-            Plugin.Logger.LogInfo(ModEnums.LogID.ErsLog, LogID.Expedition, "Challenge Assignment IN PROGRESS");
-            Plugin.Logger.LogInfo(ModEnums.LogID.ErsLog, LogID.Expedition, $"{requestAmount} challenges requested");
+            Plugin.Logger.LogInfo(ModEnums.LogID.ErsLog | LogID.Expedition, "Challenge Assignment IN PROGRESS");
+            Plugin.Logger.LogInfo(ModEnums.LogID.ErsLog | LogID.Expedition, $"{requestAmount} challenges requested");
 
             if (LateStageProcessing)
             {
-                Plugin.Logger.LogInfo(ModEnums.LogID.ErsLog, LogID.Expedition, "Processing late");
+                Plugin.Logger.LogInfo(ModEnums.LogID.ErsLog | LogID.Expedition, "Processing late");
 
                 if (!AllowLateStageProcessing)
                     throw new InvalidOperationException("Late stage processing has been disabled");
@@ -231,7 +231,7 @@ namespace ExpeditionRegionSupport.Filters
             //Set back to default values
             AssignmentStage = AssignmentStageLate = ProcessStage.None;
 
-            Plugin.Logger.LogInfo(ModEnums.LogID.ErsLog, LogID.Expedition, createAssignmentReport());
+            Plugin.Logger.LogInfo(ModEnums.LogID.ErsLog | LogID.Expedition, createAssignmentReport());
 
             //This should get called regardless if action was aborted this frame
             ChallengeSlot.UpdateAbortedSlots();

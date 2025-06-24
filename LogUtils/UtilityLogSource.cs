@@ -1,5 +1,5 @@
 ﻿using BepInEx.Logging;
-using LogUtils.CompatibilityServices;
+using LogUtils.Compatibility.BepInEx;
 using LogUtils.Enums;
 using System;
 using System.Threading;
@@ -9,13 +9,13 @@ namespace LogUtils
 {
     internal class UtilityLogSource : IExtendedLogSource
     {
+        public event EventHandler<LogEventArgs> LogEvent;
+
         private bool recursiveAccessFlag;
 
         private readonly object sourceLock = new object();
 
         public string SourceName => UtilityConsts.UTILITY_NAME;
-
-        public event EventHandler<LogEventArgs> LogEvent;
 
         internal bool IsAccessRecursive()
         {

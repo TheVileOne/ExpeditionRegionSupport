@@ -1,7 +1,11 @@
 ﻿using LogUtils.Helpers;
 using LogUtils.Helpers.Comparers;
+using LogUtils.Helpers.Extensions;
 using LogUtils.Helpers.FileHandling;
+using LogUtils.Policy;
 using LogUtils.Properties;
+using LogUtils.Properties.Formatting;
+using LogUtils.Requests;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,7 +13,7 @@ using System.Linq;
 
 namespace LogUtils.Enums
 {
-    public class LogID : SharedExtEnum<LogID>, IEquatable<LogID>
+    public class LogID : SharedExtEnum<LogID>, ILogTarget, IEquatable<LogID>
     {
         /// <summary>
         /// Contains path information, and other settings that affect logging behavior 
@@ -22,9 +26,19 @@ namespace LogUtils.Enums
         public LogAccess Access;
 
         /// <summary>
+        /// Will this LogID be handled as having a local context when passed to a logger
+        /// </summary>
+        internal bool HasLocalAccess => !IsGameControlled && (Access == LogAccess.FullAccess || Access == LogAccess.Private);
+
+        /// <summary>
+        /// Controls whether messages targetting this log file can be handled by a logger
+        /// </summary>
+        public bool IsEnabled => UtilityCore.IsControllingAssembly && IsInstanceEnabled && (Properties == null || Properties.AllowLogging);
+
+        /// <summary>
         /// A flag that controls whether logging should be permitted for this LogID instance
         /// </summary>
-        public bool IsEnabled = true;
+        public bool IsInstanceEnabled = true;
 
         /// <summary>
         /// A flag that indicates that this represents a log file managed by the game
@@ -72,7 +86,11 @@ namespace LogUtils.Enums
         {
         }
 
-        internal LogID(LogProperties properties, string filename, string relativePathNoFile, bool register) : base(Path.GetFileNameWithoutExtension(filename), register)
+        internal LogID(LogProperties properties, string filename, string fileExt, string path, bool register) : this(properties, filename + fileExt, path, register)
+        {
+        }
+
+        internal LogID(LogProperties properties, string filename, string path, bool register) : base(Path.GetFileNameWithoutExtension(filename), register)
         {
             Access = LogAccess.RemoteAccessOnly;
             InitializeFields();
@@ -80,15 +98,7 @@ namespace LogUtils.Enums
             Properties = properties;
 
             if (Properties == null)
-            {
-                InitializeProperties(relativePathNoFile);
-
-                //This extension will overwrite an existing one with unknown side effects
-                string fileExt = Path.GetExtension(filename);
-
-                if (fileExt != string.Empty)
-                    Properties.PreferredFileExt = fileExt;
-            }
+                InitializeProperties(filename, path);
         }
 
         /// <summary>
@@ -112,36 +122,27 @@ namespace LogUtils.Enums
             Access = access;
 
             InitializeFields();
-            InitializeProperties(relativePathNoFile);
-
-            //This extension will overwrite an existing one with unknown side effects
-            string fileExt = Path.GetExtension(filename);
-
-            if (fileExt != string.Empty)
-                Properties.PreferredFileExt = fileExt;
+            InitializeProperties(filename, relativePathNoFile);
         }
 
         protected void InitializeFields()
         {
-            IsGameControlled = ManagedReference == this ? UtilityConsts.LogNames.NameMatch(value) : ManagedReference.IsGameControlled;
+            IsGameControlled = ManagedReference == this ? UtilityConsts.LogNames.NameMatch(Value) : ManagedReference.IsGameControlled;
 
             if (IsGameControlled)
-            {
-                IsEnabled = true;
                 Access = LogAccess.FullAccess;
-            }
         }
 
-        protected void InitializeProperties(string logPath)
+        protected void InitializeProperties(string filename, string logPath)
         {
             Properties = LogProperties.PropertyManager.GetProperties(this, logPath);
 
             if (Properties == null)
             {
+                Properties = new LogProperties(filename, logPath);
+
                 if (Registered)
-                    Properties = LogProperties.PropertyManager.SetProperties(this, logPath); //Register a new LogProperties instance for this LogID
-                else
-                    Properties = new LogProperties(value, logPath);
+                    LogProperties.PropertyManager.SetProperties(Properties);
             }
         }
 
@@ -235,14 +236,9 @@ namespace LogUtils.Enums
         /// </summary>
         public static LogID[] FindByTag(params string[] tags)
         {
-            List<LogID> found = new List<LogID>(LogProperties.PropertyManager.Properties.Count);
-
-            foreach (var properties in LogProperties.PropertyManager.Properties)
-            {
-                if (properties.Tags.Any(tag => tags.Contains(tag, ComparerUtils.StringComparerIgnoreCase)))
-                    found.Add(properties.ID);
-            }
-            return found.ToArray();
+            return LogProperties.PropertyManager.Properties.Where(properties => properties.Tags.Any(tag => tags.Contains(tag, ComparerUtils.StringComparerIgnoreCase)))
+                                                           .Select(p => p.ID)
+                                                           .ToArray();
         }
 
         /// <summary>
@@ -255,57 +251,88 @@ namespace LogUtils.Enums
             return Find(filename, relativePathNoFile) != null;
         }
 
+        public override int GetHashCode()
+        {
+            if (Properties != null)
+                return Properties.GetHashCode();
+            return base.GetHashCode();
+        }
+
         internal static void InitializeEnums()
         {
-            //Game-defined LogIDs
-            BepInEx = new LogID(null, UtilityConsts.LogNames.BepInEx, Paths.BepInExRootPath, true);
-            Exception = new LogID(null, UtilityConsts.LogNames.Exception, UtilityConsts.PathKeywords.ROOT, true);
-            Expedition = new LogID(null, UtilityConsts.LogNames.Expedition, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
-            JollyCoop = new LogID(null, UtilityConsts.LogNames.JollyCoop, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
-            Unity = new LogID(null, UtilityConsts.LogNames.Unity, UtilityConsts.PathKeywords.ROOT, true);
-
             //File activity monitoring LogID
             FileActivity = new LogID("LogActivity", UtilityConsts.PathKeywords.ROOT, LogAccess.Private, false);
 
-            //Fallback LogID
-            Unknown = new ComparisonLogID(UtilityConsts.LogNames.Unknown);
+            //This must be called after FileActivity LogID is created
+            DebugPolicy.UpdateAllowConditions();
+
+            //Game-defined LogIDs
+            BepInEx    = new LogID(null, UtilityConsts.LogNames.BepInEx,    FileExt.LOG,  Paths.BepInExRootPath, true);
+            Exception  = new LogID(null, UtilityConsts.LogNames.Exception,  FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
+            Expedition = new LogID(null, UtilityConsts.LogNames.Expedition, FileExt.TEXT, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
+            JollyCoop  = new LogID(null, UtilityConsts.LogNames.JollyCoop,  FileExt.TEXT, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
+            Unity      = new LogID(null, UtilityConsts.LogNames.Unity,      FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
+
+            //Throwaway LogID
+            NotUsed = new LogID("NotUsed", UtilityConsts.PathKeywords.ROOT, LogAccess.Private, false);
 
             BepInEx.Properties.AccessPeriod = UtilityConsts.DefaultAccessPeriod.BepInEx;
             BepInEx.Properties.AddTag(nameof(BepInEx));
+            BepInEx.Properties.ConsoleIDs.Add(ConsoleID.BepInEx);
             BepInEx.Properties.LogSourceName = nameof(BepInEx);
-            BepInEx.Properties.AltFilename = UtilityConsts.LogNames.BepInExAlt;
+            BepInEx.Properties.AltFilename = new LogFilename(UtilityConsts.LogNames.BepInExAlt, FileExt.LOG);
             BepInEx.Properties.IsWriteRestricted = true;
+            BepInEx.Properties.FileExists = true;
             BepInEx.Properties.LogSessionActive = true; //BepInEx log is active before the utility can initialize
-            BepInEx.Properties.PreferredFileExt = FileExt.LOG;
             BepInEx.Properties.ShowCategories.IsEnabled = true;
 
+            BepInEx.Properties.Profiler.Start();
             BepInEx.Properties.Rules.Replace(new BepInExHeaderRule(BepInEx.Properties.ShowCategories.IsEnabled));
 
             Exception.Properties.AccessPeriod = UtilityConsts.DefaultAccessPeriod.Exception;
             Exception.Properties.AddTag(nameof(Exception));
             Exception.Properties.LogSourceName = nameof(Exception);
-            Exception.Properties.AltFilename = UtilityConsts.LogNames.ExceptionAlt;
-            Exception.Properties.PreferredFileExt = FileExt.TEXT;
+            Exception.Properties.AltFilename = new LogFilename(UtilityConsts.LogNames.ExceptionAlt, FileExt.LOG);
 
             Expedition.Properties.AccessPeriod = UtilityConsts.DefaultAccessPeriod.Expedition;
             Expedition.Properties.AddTag(nameof(Expedition));
             Expedition.Properties.LogSourceName = nameof(Expedition);
-            Expedition.Properties.AltFilename = UtilityConsts.LogNames.ExpeditionAlt;
-            Expedition.Properties.PreferredFileExt = FileExt.TEXT;
+            Expedition.Properties.AltFilename = new LogFilename(UtilityConsts.LogNames.ExpeditionAlt, FileExt.LOG);
             Expedition.Properties.ShowLogsAware = true;
 
             JollyCoop.Properties.AccessPeriod = UtilityConsts.DefaultAccessPeriod.JollyCoop;
             JollyCoop.Properties.AddTag(nameof(JollyCoop));
             JollyCoop.Properties.LogSourceName = nameof(JollyCoop);
-            JollyCoop.Properties.AltFilename = UtilityConsts.LogNames.JollyCoopAlt;
-            JollyCoop.Properties.PreferredFileExt = FileExt.TEXT;
+            JollyCoop.Properties.AltFilename = new LogFilename(UtilityConsts.LogNames.JollyCoopAlt, FileExt.LOG);
             JollyCoop.Properties.ShowLogsAware = true;
 
             Unity.Properties.AccessPeriod = UtilityConsts.DefaultAccessPeriod.Unity;
             Unity.Properties.AddTag(nameof(Unity));
+            //TODO: Add RainWorld ConsoleID to this LogID
+            Unity.Properties.ConsoleIDs.Add(ConsoleID.BepInEx); //Unity logs to BepInEx by default
             Unity.Properties.LogSourceName = nameof(Unity);
-            Unity.Properties.AltFilename = UtilityConsts.LogNames.UnityAlt;
-            Unity.Properties.PreferredFileExt = FileExt.TEXT;
+            Unity.Properties.AltFilename = new LogFilename(UtilityConsts.LogNames.UnityAlt, FileExt.LOG);
+
+            NotUsed.Properties.LogSourceName = UtilityLogger.Logger.SourceName;
+
+            //Initializes part of the recursion detection system that cannot be initialized before LogIDs
+            foreach (LogID gameID in GameLogger.LogTargets)
+                UtilityCore.RequestHandler.GameLogger.ExpectedRequestCounter[gameID] = 0;
+        }
+
+        public RequestType GetRequestType(ILogHandler handler)
+        {
+            if (Properties == null)
+                return RequestType.Invalid;
+
+            if (IsGameControlled)
+                return RequestType.Game;
+
+            LogID handlerID = handler.FindEquivalentTarget(this);
+            
+            //Check whether LogID should be handled as a local request, or an outgoing (remote) request. Not being recognized by the handler means that
+            //the handler is processing a target specifically made through one of the logging method overloads
+            return handlerID != null && handlerID.HasLocalAccess ? RequestType.Local : RequestType.Remote;
         }
 
         static LogID()
@@ -318,8 +345,16 @@ namespace LogUtils.Enums
         public static LogID Expedition;
         internal static LogID FileActivity;
         public static LogID JollyCoop;
+        /// <summary>
+        /// An unregistered LogID designed to be used as a throwaway parameter
+        /// </summary>
+        public static LogID NotUsed;
         public static LogID Unity;
-        internal static LogID Unknown;
+
+        public static CompositeLogTarget operator |(LogID a, ILogTarget b)
+        {
+            return LogTarget.Combiner.Combine(a, b);
+        }
     }
 
     public enum LogAccess

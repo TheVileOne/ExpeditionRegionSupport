@@ -1,6 +1,10 @@
-﻿using LogUtils.Enums;
+﻿using LogUtils.Console;
+using LogUtils.Enums;
 using LogUtils.Events;
+using LogUtils.Policy;
+using LogUtils.Requests.Validation;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace LogUtils.Requests
@@ -8,7 +12,7 @@ namespace LogUtils.Requests
     /// <summary>
     /// A class for storing log details until a logger is available to process the request
     /// </summary>
-    public class LogRequest
+    public class LogRequest : ICloneable
     {
         /// <summary>
         /// Rejection codes up to and including this value are not recoverable. A LogRequest that is rejected in this range will not be handled again
@@ -18,19 +22,24 @@ namespace LogUtils.Requests
         private int managedThreadID = -1;
         private RequestState _state;
 
-        public LogMessageEventArgs Data;
+        public LogRequestEventArgs Data;
 
         /// <summary>
-        /// The logger instance that has taken responsibility for handling the write process for this request
+        /// The log handler that has taken responsibility for handling the write process for this request
         /// </summary>
-        public Logger Host;
+        public ILogHandler Host;
 
         /// <summary>
         /// Request has been handled, and no more attempts to process the request should be made
         /// </summary>
         public bool IsCompleteOrInvalid => Status == RequestStatus.Complete || !CanRetryRequest();
 
-        public bool IsCompleteOrRejected => Status == RequestStatus.Complete || Status == RequestStatus.Rejected; 
+        public bool IsCompleteOrRejected => Status == RequestStatus.Complete || Status == RequestStatus.Rejected;
+
+        /// <summary>
+        /// The logger instance (if any) that was responsible for submitting the request
+        /// </summary>
+        public ILogger Sender;
 
         public RequestStatus Status => _state.Status;
 
@@ -42,6 +51,11 @@ namespace LogUtils.Requests
         public bool ThreadCanWrite => Status == RequestStatus.WritePending && Thread.CurrentThread.ManagedThreadId == managedThreadID;
 
         public readonly RequestType Type;
+
+        /// <summary>
+        /// Indicates that a ConsoleID is the current target for this request (of which there may be multiple targets)
+        /// </summary>
+        public bool IsTargetingConsole => Data.IsTargetingConsole;
 
         public RejectionReason UnhandledReason => _state.UnhandledReason;
 
@@ -63,14 +77,29 @@ namespace LogUtils.Requests
 
         public static LogRequestStringFormatter Formatter = new LogRequestStringFormatter();
 
-        public LogRequest(RequestType type, LogMessageEventArgs data)
+        /// <summary>
+        /// Constructs a LogRequest instance
+        /// </summary>
+        /// <param name="type">The identifying request category (affects how request is handled)</param>
+        /// <param name="data">Data used to construct a log message</param>
+        public LogRequest(RequestType type, LogRequestEventArgs data)
         {
-            Data = data;
             Type = type;
+            Data = data;
+
+            if (Type == RequestType.Console)
+            {
+                Data.IsTargetingConsole = true;
+                //Probably not needed
+                //Data.ExtraArgs.Add(new ConsoleRequestEventArgs());
+            }
         }
 
         public bool CanRetryRequest()
         {
+            if (Type == RequestType.Console)
+                return UnhandledReason == RejectionReason.None;
+
             return CanRetryRequest(UnhandledReason);
         }
 
@@ -93,6 +122,31 @@ namespace LogUtils.Requests
             _state.Reset();
         }
 
+        /// <summary>
+        /// Reset the console target status back to its value set on construction
+        /// </summary>
+        public void ResetTarget()
+        {
+            Data.IsTargetingConsole = Type == RequestType.Console;
+        }
+
+        public ConsoleRequestEventArgs SetDataFromWriter(ConsoleLogWriter writer)
+        {
+            ConsoleRequestEventArgs consoleMessageData = Data.GetConsoleData();
+
+            if (consoleMessageData == null)
+                Data.ExtraArgs.Add(consoleMessageData = new ConsoleRequestEventArgs(writer.ID));
+
+            consoleMessageData.TotalMessagesLogged = writer.TotalMessagesLogged;
+            consoleMessageData.Writer = writer;
+            return consoleMessageData;
+        }
+
+        public void TargetConsole()
+        {
+            Data.IsTargetingConsole = true;
+        }
+
         public void Complete()
         {
             if (Status == RequestStatus.Complete) return;
@@ -106,7 +160,7 @@ namespace LogUtils.Requests
             NotifyOnChange();
         }
 
-        public void Reject(RejectionReason reason)
+        public void Reject(RejectionReason reason, object context = null)
         {
             if (Status == RequestStatus.Complete)
             {
@@ -120,36 +174,50 @@ namespace LogUtils.Requests
                 return;
             }
 
-            _state.Status = RequestStatus.Rejected;
-            managedThreadID = -1;
+            ConsoleID consoleContext = context as ConsoleID;
 
-            if (UnhandledReason != RejectionReason.None)
-                UtilityLogger.Log("Unhandled reason already exists");
-
-            //This reason can get spammy - ignore it
-            if (reason != RejectionReason.WaitingOnOtherRequests)
+            //The main difference between a console context and other types of requests is that a console request context can only be "completed",
+            //the rejection reason should not be recorded when a context is provided
+            if (consoleContext == null)
             {
-                UtilityLogger.Log("Log request was rejected REASON: " + reason);
+                _state.Status = RequestStatus.Rejected;
+                managedThreadID = -1;
 
-                //UtilityLogger.DebugLog("Log request was rejected REASON: " + reason);
-                //UtilityLogger.DebugLog(ToString());
+                if (UnhandledReason != RejectionReason.None)
+                    UtilityLogger.Logger.LogDebug("Unhandled reason already exists");
+
+                if (reason != RejectionReason.ExceptionAlreadyReported && reason != RejectionReason.FilterMatch) //Temporary conditions should not be recorded
+                    Data.Properties.HandleRecord.SetReason(reason);
+
+                if (UnhandledReason != reason)
+                {
+                    _state.UnhandledReason = reason;
+                    NotifyOnChange();
+                }
+            }
+            else
+            {
+                NotifyComplete(consoleContext);
             }
 
-            if (reason != RejectionReason.ExceptionAlreadyReported && reason != RejectionReason.FilterMatch) //Temporary conditions should not be recorded
-                Data.Properties.HandleRecord.SetReason(reason);
+            bool showLogsActive = RainWorld.ShowLogs || RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD;
 
-            if (UnhandledReason != reason)
+            if (LogRequestPolicy.ShowRejectionReasons && !UtilityLogger.PerformanceMode && showLogsActive && reason != RejectionReason.WaitingOnOtherRequests) //This reason can get spammy - ignore it
             {
-                _state.UnhandledReason = reason;
-                NotifyOnChange();
+                UtilityLogger.DebugLog("Log request was rejected REASON: " + reason);
+                UtilityLogger.Log("Log request was rejected REASON: " + reason);
+
+                if (context != null)
+                    UtilityLogger.Log("CONTEXT: " + context);
             }
         }
 
-        public void Processed()
+        public void Validate(IRequestValidator validator)
         {
-            //After a process, the only valid states the request can be is Complete, or Rejected
-            if (!IsCompleteOrRejected)
-                Reject(RejectionReason.UnknownProcessDelay);
+            RejectionReason reason = validator.GetResult(this);
+
+            if (reason != RejectionReason.None)
+                Reject(reason);
         }
 
         public void WriteInProcess()
@@ -167,6 +235,39 @@ namespace LogUtils.Requests
             Interlocked.CompareExchange(ref managedThreadID, Thread.CurrentThread.ManagedThreadId, -1);
 
             NotifyOnChange();
+        }
+
+        /// <summary>
+        /// Notify that the specified ConsoleID no longer needs to be processed
+        /// </summary>
+        public void NotifyComplete(ConsoleID consoleID)
+        {
+            var consoleRequestData = Data.GetConsoleData();
+
+            //Console data may not exist if the ConsoleIDs are sourced from the LogID instead of a Logger
+            if (consoleRequestData == null)
+                Data.ExtraArgs.Add(consoleRequestData = new ConsoleRequestEventArgs());
+
+            consoleRequestData.Pending.Remove(consoleID);
+            consoleRequestData.Handled.Add(consoleID);
+        }
+
+        /// <summary>
+        /// Notify that a collection of ConsoleIDs no longer needs to be processed
+        /// </summary>
+        public void NotifyComplete(IEnumerable<ConsoleID> consoleIDs)
+        {
+            var consoleRequestData = Data.GetConsoleData();
+
+            //Console data may not exist if the ConsoleIDs are sourced from the LogID instead of a Logger
+            if (consoleRequestData == null)
+                Data.ExtraArgs.Add(consoleRequestData = new ConsoleRequestEventArgs());
+
+            foreach (ConsoleID consoleID in consoleIDs)
+            {
+                consoleRequestData.Pending.Remove(consoleID);
+                consoleRequestData.Handled.Add(consoleID);
+            }
         }
 
         /// <summary>
@@ -206,6 +307,11 @@ namespace LogUtils.Requests
             }
             return stringFormatter.ToString();
         }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
     }
 
     internal struct RequestState
@@ -228,11 +334,13 @@ namespace LogUtils.Requests
         Complete
     }
 
-    public enum RequestType : byte
+    public enum RequestType
     {
+        Invalid = -1,
         Local,
         Remote,
-        Game
+        Game,
+        Console
     }
 
     public enum RejectionReason : byte
@@ -271,16 +379,12 @@ namespace LogUtils.Requests
         /// </summary>
         WaitingOnOtherRequests = 8,
         /// <summary>
-        /// Attempt to handle log was not immediately completed for some reason
-        /// </summary>
-        UnknownProcessDelay = 9,
-        /// <summary>
         /// No logger is available that accepts the LogID, or the logger accepts the LogID, but enforces a build period on the log file that is not yet satisfied
         /// </summary>
-        LogUnavailable = 10,
+        LogUnavailable = 9,
         /// <summary>
         /// Attempt to log to a ShowLogs aware log before ShowLogs is initialized
         /// </summary>
-        ShowLogsNotInitialized = 11
+        ShowLogsNotInitialized = 10
     }
 }

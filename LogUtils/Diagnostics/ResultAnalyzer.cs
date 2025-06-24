@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using LogUtils.Policy;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace LogUtils.Diagnostics
@@ -67,8 +68,8 @@ namespace LogUtils.Diagnostics
 
         private Condition.State analyzeResult()
         {
-            bool testResultFailed = Debug.TestCasePolicy.PreferExpectationsAsFailures
-                            ? !_currentResult.PassedWithExpectations() || (Debug.TestCasePolicy.FailuresAreAlwaysReported && !_currentResult.Passed)
+            bool testResultFailed = TestCasePolicy.PreferExpectationsAsFailures
+                            ? !_currentResult.PassedWithExpectations() || (TestCasePolicy.FailuresAreAlwaysReported && !_currentResult.Passed)
                             : !_currentResult.Passed;
             return testResultFailed ? Condition.State.Fail : Condition.State.Pass;
         }
