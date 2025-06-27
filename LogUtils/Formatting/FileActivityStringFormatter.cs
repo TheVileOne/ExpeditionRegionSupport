@@ -1,7 +1,7 @@
 ﻿using LogUtils.Enums;
 using System;
 
-namespace LogUtils
+namespace LogUtils.Formatting
 {
     public class FileActivityStringFormatter
     {

@@ -1,6 +1,7 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
 using LogUtils.Events;
+using LogUtils.Formatting;
 using LogUtils.Helpers;
 using LogUtils.Helpers.FileHandling;
 using System.Diagnostics;

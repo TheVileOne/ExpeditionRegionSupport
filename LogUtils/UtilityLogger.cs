@@ -1,5 +1,6 @@
 ﻿using LogUtils.Diagnostics;
 using LogUtils.Enums;
+using LogUtils.Formatting;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Policy;
 using LogUtils.Threading;

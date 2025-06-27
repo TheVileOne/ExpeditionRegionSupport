@@ -1,6 +1,6 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Events;
-using LogUtils.Helpers;
+using LogUtils.Formatting;
 using LogUtils.Timers;
 using System;
 using System.Collections.Generic;

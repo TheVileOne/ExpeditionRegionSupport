@@ -1,6 +1,7 @@
 ﻿using LogUtils.Console;
 using LogUtils.Enums;
 using LogUtils.Events;
+using LogUtils.Formatting;
 using LogUtils.Policy;
 using LogUtils.Requests.Validation;
 using System;

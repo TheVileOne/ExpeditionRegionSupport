@@ -2,6 +2,7 @@
 using LogUtils.Diagnostics.Tools;
 using LogUtils.Enums;
 using LogUtils.Events;
+using LogUtils.Formatting;
 using LogUtils.Helpers;
 using LogUtils.Requests;
 using LogUtils.Threading;

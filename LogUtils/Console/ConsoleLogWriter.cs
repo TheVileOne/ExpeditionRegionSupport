@@ -1,5 +1,6 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Events;
+using LogUtils.Formatting;
 using LogUtils.Properties.Formatting;
 using LogUtils.Requests;
 using LogUtils.Requests.Validation;

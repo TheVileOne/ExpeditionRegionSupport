@@ -30,7 +30,7 @@ namespace LogUtils.Compatibility.Unity
         }
 
         /// <summary>
-        /// Ensures that the maximum LogType value able to be processed by the Unity logger is at least the specified capacity value </br>
+        /// Ensures that the maximum LogType value able to be processed by the Unity logger is at least the specified capacity value
         /// </summary>
         /// <param name="capacity">The desired maximum FilterType value as an integer</param>
         internal static void EnsureLogTypeCapacity(int capacity)

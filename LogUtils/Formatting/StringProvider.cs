@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace LogUtils
+namespace LogUtils.Formatting
 {
     public class StringProvider : IEnumerable<string>
     {

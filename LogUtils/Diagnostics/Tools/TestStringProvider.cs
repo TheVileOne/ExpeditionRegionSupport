@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using LogUtils.Formatting;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace LogUtils.Diagnostics.Tools

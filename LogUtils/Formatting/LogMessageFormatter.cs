@@ -2,7 +2,7 @@
 using LogUtils.Properties.Formatting;
 using System.Linq;
 
-namespace LogUtils
+namespace LogUtils.Formatting
 {
     public class LogMessageFormatter
     {

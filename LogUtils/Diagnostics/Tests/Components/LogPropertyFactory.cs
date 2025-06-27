@@ -1,4 +1,5 @@
 ﻿using LogUtils.Diagnostics.Tools;
+using LogUtils.Formatting;
 using LogUtils.Properties;
 using System;
 using System.Collections.Generic;

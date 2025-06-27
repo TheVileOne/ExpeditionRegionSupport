@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LogUtils.Helpers
+namespace LogUtils.Formatting
 {
     public static class StringParser
     {
