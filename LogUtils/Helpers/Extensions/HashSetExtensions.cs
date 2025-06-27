@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace LogUtils.Helpers.Extensions
 {
-    public static class HashSetExtensions
+    public static partial class ExtensionMethods
     {
         /// <summary>
         /// Ensures that set is not null, and invalid entries are not present

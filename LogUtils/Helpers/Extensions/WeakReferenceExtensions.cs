@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace LogUtils.Helpers.Extensions
 {
-    public static class WeakReferenceExtensions
+    public static partial class ExtensionMethods
     {
         public static WeakReference<T> Add<T>(this ICollection<WeakReference<T>> collection, T item) where T : class
         {

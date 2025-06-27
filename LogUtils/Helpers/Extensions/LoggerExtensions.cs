@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace LogUtils.Helpers.Extensions
 {
-    public static class LoggerExtensions
+    public static partial class ExtensionMethods
     {
         /// <summary>
         /// Does this handler accept this LogRequest

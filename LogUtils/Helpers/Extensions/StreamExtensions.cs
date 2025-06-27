@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace LogUtils.Helpers.Extensions
 {
-    public static class StreamExtensions
+    public static partial class ExtensionMethods
     {
         public static ResultAnalyzer GetAnalyzer(this IEnumerable<Condition.Result> results)
         {

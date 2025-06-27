@@ -70,13 +70,13 @@ namespace LogUtils.Diagnostics.Tests
         protected virtual void BeginReport(StringBuilder report)
         {
             report.AppendLine()
-                  .AppendLine("Test Results");
-            FormatUtils.CreateHeader(report, "Showing test results");
+                  .AppendLine("Test Results")
+                  .AppendHeader("Showing test results");
         }
 
         protected virtual void EndReport(StringBuilder report)
         {
-            FormatUtils.CreateHeader(report, "End of results");
+            report.AppendHeader("End of results");
         }
 
         protected void ReportResultEntries(StringBuilder report, IEnumerable<Condition.Result> results)

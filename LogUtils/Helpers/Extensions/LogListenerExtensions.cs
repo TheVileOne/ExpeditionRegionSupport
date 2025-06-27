@@ -3,9 +3,9 @@ using System;
 
 namespace LogUtils.Helpers.Extensions
 {
-    internal static class LogListenerExtensions
+    public static partial class ExtensionMethods
     {
-        public static void TryDispose(this ILogListener listener)
+        internal static void TryDispose(this ILogListener listener)
         {
             if (listener == null) return;
 

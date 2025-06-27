@@ -1,7 +1,7 @@
 ﻿using LogUtils.Diagnostics.Tests;
 using LogUtils.Diagnostics.Tests.Utility;
 using LogUtils.Enums;
-using LogUtils.Helpers;
+using LogUtils.Helpers.Extensions;
 using LogUtils.Requests;
 using System;
 using System.Collections.Generic;
@@ -49,7 +49,7 @@ namespace LogUtils.Diagnostics
 
             report.AppendLine();
 
-            FormatUtils.CreateHeader(report, "Log Request report");
+            report.AppendHeader("Log Request report");
             if (requests.Any())
             {
                 foreach (LogRequest request in requests)
@@ -59,7 +59,7 @@ namespace LogUtils.Diagnostics
             {
                 report.AppendLine("No requests to show");
             }
-            FormatUtils.CreateHeader(report, "End of report");
+            report.AppendHeader("End of report");
 
             DiscreteLogger logger = new DiscreteLogger(reportFile);
 

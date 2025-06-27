@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace LogUtils.Helpers.Extensions
 {
-    public static class LogEnumExtensions
+    public static partial class ExtensionMethods
     {
         public static bool HasConvertedFlags(this LogLevel logLevel)
         {

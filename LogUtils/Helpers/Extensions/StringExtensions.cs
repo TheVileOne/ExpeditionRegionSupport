@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace LogUtils.Helpers.Extensions
 {
-    public static class StringExtensions
+    public static partial class ExtensionMethods
     {
         /// <summary>
         /// Evaluates whether a string is equal to any of the provided values
