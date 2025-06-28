@@ -1,6 +1,7 @@
 ﻿using LogUtils.Compatibility.Unity;
 using LogUtils.Enums;
 using LogUtils.Events;
+using LogUtils.Formatting;
 using LogUtils.Helpers;
 using LogUtils.Helpers.Extensions;
 using LogUtils.Properties;
@@ -12,6 +13,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading;
 using UnityEngine;
 
 namespace LogUtils
@@ -27,6 +31,10 @@ namespace LogUtils
         {
             try
             {
+                ILHook hook = null;
+                BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+                managedHooks.Add(hook = new ILHook(typeof(StringBuilder).GetMethod("AppendFormatHelper", flags), StringBuilder_AppendFormatHelper));
+
                 Apply();
             }
             catch (Exception ex)
@@ -234,6 +242,95 @@ namespace LogUtils
             if (self.manager?.currentMainLoop == self)
                 UtilityEvents.OnNewUpdateSynced?.Invoke(self, EventArgs.Empty);
             orig(self);
+        }
+
+        private static void StringBuilder_AppendFormatHelper(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            //cursor.GotoNext(MoveType.After, x => x.MatchStloc(0)); //Match an early execution point
+            //cursor.Emit(OpCodes.Ldarg_0);
+            //cursor.EmitDelegate((StringBuilder sb) => //Ensure that placeholder parsing starts with zeroed values
+            //{
+            //    var data = sb.GetData();
+            //    data.CurrentPlaceholder = default;
+            //});
+
+            //Match the third char comparison check - that's where the starting curly brace code is handled
+            cursor.GotoNext(MoveType.After, x => x.MatchBneUn(out _));
+            cursor.GotoNext(MoveType.After, x => x.MatchBneUn(out _));
+            cursor.GotoNext(MoveType.After, x => x.MatchBneUn(out _));
+
+            cursor.Emit(OpCodes.Ldarg_0); //StringBuilder
+            cursor.Emit(OpCodes.Ldloc_3); //ICustomFormatter
+            cursor.Emit(OpCodes.Ldloc_0); //Current index of format string
+            cursor.EmitDelegate(formatPlaceholderStart);
+
+            cursor.GotoNext(MoveType.After, x => x.MatchLdarga(3),       //args array is accessed
+                                            x => x.MatchLdloc(out _),    //Array indexer
+                                            x => x.Match(OpCodes.Call)); //Argument at the provided index is fetched from the args array
+
+            //Handle the char position of the right-most curly brace
+            cursor.Emit(OpCodes.Ldarg_0); //StringBuilder
+            cursor.Emit(OpCodes.Ldloc_3); //ICustomFormatter
+            cursor.Emit(OpCodes.Ldarg_2); //Format string
+            cursor.Emit(OpCodes.Ldloc, 4); //Argument index
+            cursor.Emit(OpCodes.Ldloc, 6); //Argument comma value
+            cursor.Emit(OpCodes.Ldloc_0); //Current index within format string
+            cursor.EmitDelegate((object formatArgument, StringBuilder builder, ICustomFormatter provider, string format, int argIndex, int argValue, int formatIndex) =>
+            {
+                if (provider is IColorFormatProvider)
+                {
+                    formatPlaceholderEnd(builder, provider, format, formatIndex);
+                    formatArgument = prepareArgument(formatArgument, builder, provider, argValue);
+                }
+                return formatArgument;
+            });
+
+            object prepareArgument(object formatArgument, StringBuilder builder, ICustomFormatter provider, int argValue)
+            {
+                //IColorFormatProvider requires additional data to handle color formatting correctly in all instances
+                if (provider is IColorFormatProvider)
+                {
+                    if (formatArgument is Color)
+                    {
+                        var data = builder.GetData();
+
+                        Color colorValue = (Color)formatArgument;
+                        int startIndex = data.CurrentPlaceholder.Position;
+                        int length = argValue;
+
+                        return new ColorPlaceholder(colorValue, startIndex, length);
+                    }
+                }
+                return formatArgument;
+            }
+
+            void formatPlaceholderStart(StringBuilder builder, ICustomFormatter provider, int index)
+            {
+                //We only need to touch CWT data in the context of dealing with a IColorFormatProvider implementation
+                if (provider is IColorFormatProvider)
+                {
+                    //UtilityLogger.Log("Placeholder start");
+                    var data = builder.GetData();
+                    data.CurrentPlaceholder.Position = index;
+                }
+            }
+
+            void formatPlaceholderEnd(StringBuilder builder, ICustomFormatter provider, string format, int index)
+            {
+                //We only need to touch CWT data in the context of dealing with a IColorFormatProvider implementation
+                if (provider is IColorFormatProvider)
+                {
+                    //UtilityLogger.Log("Placeholder end");
+                    var data = builder.GetData();
+
+                    int placeholderStart = data.CurrentPlaceholder.Position;
+                    int placeholderLength = index - placeholderStart;
+
+                    data.CurrentPlaceholder.Placeholder = format.Substring(placeholderStart, placeholderLength);
+                }
+            }
         }
 
         private static void RainWorld_HandleLog(On.RainWorld.orig_HandleLog orig, RainWorld self, string logString, string stackTrace, LogType category)
