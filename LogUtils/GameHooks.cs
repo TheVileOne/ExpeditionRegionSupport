@@ -283,16 +283,47 @@ namespace LogUtils
 
                     placeholderData.Format = format.Substring(placeholderStart, placeholderLength);
 
-                    UtilityLogger.Log("PLACEHOLDER FORMAT: " + placeholderData.Format);
+                    //UtilityLogger.Log("PLACEHOLDER FORMAT: " + placeholderData.Format);
+
+                    if (formatArgument is Color)
+                        formatArgument = new ColorPlaceholder((Color)formatArgument, placeholderData);
+
+                    placeholderData.Argument = formatArgument;
 
                     //Replaced original struct with the more updated copy
                     formatData.CurrentPlaceholder = placeholderData;
-
-                    if (formatArgument is Color)
-                        return new ColorPlaceholder((Color)formatArgument, placeholderData);
                 }
                 return formatArgument;
             });
+
+            cursor.GotoNext(MoveType.After, x => x.MatchStloc(11)); //Assignment of local variable responsible for padding spaces
+
+            ILLabel branchTarget = il.DefineLabel();
+
+            //Put it back on the stack, and check that is not 0
+            cursor.Emit(OpCodes.Ldloc, 11);
+            cursor.Emit(OpCodes.Brfalse, branchTarget);
+
+            //When value is not 0, we need to check if we dealing with the right formatter object
+            cursor.Emit(OpCodes.Ldloc, 11);
+            cursor.Emit(OpCodes.Ldloc_3);
+            cursor.EmitDelegate((int value, ICustomFormatter formatter) =>
+            {
+                var provider = formatter as IColorFormatProvider;
+
+                if (provider != null)
+                {
+                    var formatData = provider.GetData();
+                    var placeholderData = formatData.CurrentPlaceholder;
+
+                    //The padding syntax is being borrowed - this will prevent any padding from being assigned when we are working with a color argument
+                    if (placeholderData.Argument is ColorPlaceholder)
+                        return 0;
+                }
+                return value;
+            });
+            cursor.Emit(OpCodes.Stloc, 11); //Update padding value
+            cursor.MarkLabel(branchTarget);
 
             void formatPlaceholderStart(ICustomFormatter formatter, int index)
             {

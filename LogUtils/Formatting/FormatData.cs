@@ -6,6 +6,11 @@ namespace LogUtils.Formatting
     internal struct FormatData
     {
         /// <summary>
+        /// The format argument
+        /// </summary>
+        public object Argument;
+
+        /// <summary>
         /// The index in the argument array associated with the format placeholder 
         /// </summary>
         public int ArgumentIndex;
