@@ -1,6 +1,9 @@
-﻿using LogUtils.Events;
+﻿using LogUtils.Console;
+using LogUtils.Enums;
+using LogUtils.Events;
 using LogUtils.Formatting;
 using System;
+using UnityEngine;
 
 namespace LogUtils.Properties.Formatting
 {
@@ -163,20 +166,19 @@ namespace LogUtils.Properties.Formatting
 
         public string PropertyString => ToPropertyString();
 
-        public LogRule(bool enabled)
-        {
-            _enabled = enabled;
-        }
-
-        public LogRule(string name, bool enabled) : this(enabled)
+        /// <summary>
+        /// Constructs a new LogRule instance
+        /// </summary>
+        public LogRule(string name, bool enabled)
         {
             Name = name;
+            _enabled = enabled;
         }
 
         /// <summary>
         /// Applies format logic to a message
         /// </summary>
-        /// <param name="formatter">The applicable formatter instance (may be null)</param>
+        /// <param name="formatter">The applicable formatter instance</param>
         /// <param name="message">The message to format</param>
         /// <param name="logEventData">Data associated with the message event</param>
         public void Apply(LogMessageFormatter formatter, ref string message, LogRequestEventArgs logEventData)
@@ -192,7 +194,7 @@ namespace LogUtils.Properties.Formatting
         /// <summary>
         /// Applies format logic to a message
         /// </summary>
-        /// <param name="formatter">The applicable formatter instance (may be null)</param>
+        /// <param name="formatter">The applicable formatter instance</param>
         /// <param name="message">The message to format</param>
         /// <param name="logEventData">Data associated with the message event</param>
         /// <returns>The message after rule formatting is applied</returns>
@@ -219,7 +221,7 @@ namespace LogUtils.Properties.Formatting
         /// <summary>
         /// Delegate signature for applying a LogRule
         /// </summary>
-        /// <param name="formatter">The applicable formatter instance (may be null)</param>
+        /// <param name="formatter">The applicable formatter instance</param>
         /// <param name="message">The message to format</param>
         /// <param name="logEventData">Data associated with the message event</param>
         /// <returns>The message after rule formatting is applied</returns>
@@ -232,10 +234,16 @@ namespace LogUtils.Properties.Formatting
         {
         }
 
+        /// <inheritdoc/>
         protected override string ApplyRule(LogMessageFormatter formatter, string message, LogRequestEventArgs logEventData)
         {
-            //TODO: Padding doesn't work
-            return string.Format("[{0,-4}] {1}", logEventData.Category, message);
+            LogCategory category = logEventData.Category;
+            Color headerColor = category.ConsoleColor;
+
+            string messageHeader = string.Format("[{0,-4}] ", category);
+
+            messageHeader = formatter.ApplyColor(messageHeader, headerColor);
+            return messageHeader + message;
         }
 
         protected override float GetPriority()
@@ -246,13 +254,22 @@ namespace LogUtils.Properties.Formatting
 
     public class ShowLineCountRule : LogRule
     {
+        /// <summary>
+        /// The color that applies to the line count rule
+        /// </summary>
+        public Color RuleColor = ConsoleColorMap.GetColor(ConsoleColor.White);
+
         public ShowLineCountRule(bool enabled) : base(UtilityConsts.DataFields.Rules.SHOW_LINE_COUNT, enabled)
         {
         }
 
+        /// <inheritdoc/>
         protected override string ApplyRule(LogMessageFormatter formatter, string message, LogRequestEventArgs logEventData)
         {
-            return string.Format("[{0}] {1}", logEventData.TotalMessagesLogged + 1, message); //Add one to start indexing at one, instead of zero
+            string messageHeader = string.Format("[{0}] ", logEventData.TotalMessagesLogged + 1); //Add one to start indexing at one, instead of zero
+
+            messageHeader = formatter.ApplyColor(messageHeader, RuleColor);
+            return messageHeader + message; 
         }
 
         protected override float GetPriority()
