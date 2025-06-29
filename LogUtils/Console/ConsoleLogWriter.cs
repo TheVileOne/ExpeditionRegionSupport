@@ -15,15 +15,18 @@ namespace LogUtils.Console
     {
         public readonly ConsoleID ID;
 
-        public bool IsEnabled;
-
         private LogMessageFormatter _formatter;
 
+        /// <summary>
+        /// Applies text-based message format changes
+        /// </summary>
         public LogMessageFormatter Formatter
         {
             get => _formatter ?? LogMessageFormatter.Default;
             set => _formatter = value;
         }
+
+        public bool IsEnabled;
 
         /// <summary>
         /// The message format rules associated with this writer
@@ -43,6 +46,12 @@ namespace LogUtils.Console
         {
             ID = consoleID;
             Stream = stream;
+
+            if (ID == ConsoleID.BepInEx)
+            {
+                Formatter = new LogMessageFormatter(new ANSIColorFormatProvider());
+                Rules = LogID.BepInEx.Properties.Rules;
+            }
 
             IsEnabled = Stream != null;
         }

@@ -118,10 +118,7 @@ namespace LogUtils.Console
                 {
                     //TODO: Writer may need to be included at a later time (Override BepInEx console config setting) 
                     Writers.RemoveAll(console => console.ID == ConsoleID.BepInEx);
-                    Writers.Add(writer = new ConsoleLogWriter(ConsoleID.BepInEx, TextWriter.Synchronized(consoleState.ConsoleStream))
-                    {
-                        Rules = LogID.BepInEx.Properties.Rules
-                    });
+                    Writers.Add(writer = new ConsoleLogWriter(ConsoleID.BepInEx, TextWriter.Synchronized(consoleState.ConsoleStream)));
                 }
             }
 

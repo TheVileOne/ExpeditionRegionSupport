@@ -78,9 +78,14 @@ namespace LogUtils.Events
         internal bool IsTargetingConsole;
 
         /// <summary>
-        /// A message to be handled by a logger
+        /// An object targeted for logging
         /// </summary>
-        public string Message { get; }
+        public readonly object MessageObject;
+
+        /// <summary>
+        /// A message targeted for logging
+        /// </summary>
+        public string Message => MessageObject.ToString();
 
         /// <summary>
         /// The message format rules associated with this message data
@@ -162,7 +167,7 @@ namespace LogUtils.Events
         public LogRequestEventArgs(LogID logID, object messageData, LogCategory category = null) : base(logID)
         {
             Category = category ?? LogCategory.Default;
-            Message = processMessage(messageData);
+            MessageObject = messageData ?? string.Empty;
         }
 
         /// <summary>
@@ -175,7 +180,7 @@ namespace LogUtils.Events
         public LogRequestEventArgs(LogID logID, object messageData, LogLevel category) : base(logID)
         {
             BepInExCategory = category;
-            Message = processMessage(messageData);
+            MessageObject = messageData ?? string.Empty;
         }
 
         /// <summary>
@@ -188,7 +193,7 @@ namespace LogUtils.Events
         public LogRequestEventArgs(LogID logID, object messageData, LogType category) : base(logID)
         {
             UnityCategory = category;
-            Message = processMessage(messageData);
+            MessageObject = messageData ?? string.Empty;
         }
 
         internal LogRequestEventArgs(LogID logID, BepInEx.Logging.LogEventArgs args) : this(logID, args.Data, args.Level)
@@ -229,11 +234,6 @@ namespace LogUtils.Events
             ExtraArgs.Add(new ConsoleRequestEventArgs(consoleID));
         }
         #endregion
-
-        private string processMessage(object data)
-        {
-            return data?.ToString() ?? string.Empty;
-        }
 
         /// <summary>
         /// Finds the first match of a given type, or returns null

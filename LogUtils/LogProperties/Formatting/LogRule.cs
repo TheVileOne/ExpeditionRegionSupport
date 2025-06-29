@@ -1,4 +1,5 @@
 ﻿using LogUtils.Events;
+using LogUtils.Formatting;
 using System;
 
 namespace LogUtils.Properties.Formatting
@@ -172,17 +173,30 @@ namespace LogUtils.Properties.Formatting
             Name = name;
         }
 
-        public void Apply(ref string message, LogRequestEventArgs logEventData)
+        /// <summary>
+        /// Applies format logic to a message
+        /// </summary>
+        /// <param name="formatter">The applicable formatter instance (may be null)</param>
+        /// <param name="message">The message to format</param>
+        /// <param name="logEventData">Data associated with the message event</param>
+        public void Apply(LogMessageFormatter formatter, ref string message, LogRequestEventArgs logEventData)
         {
             if (TemporaryOverride != null)
             {
-                message = TemporaryOverride.ApplyRule(message, logEventData); //Apply temporary rule instead
+                message = TemporaryOverride.ApplyRule(formatter, message, logEventData); //Apply temporary rule instead
                 return;
             }
-            message = ApplyRule(message, logEventData);
+            message = ApplyRule(formatter, message, logEventData);
         }
 
-        protected virtual string ApplyRule(string message, LogRequestEventArgs logEventData)
+        /// <summary>
+        /// Applies format logic to a message
+        /// </summary>
+        /// <param name="formatter">The applicable formatter instance (may be null)</param>
+        /// <param name="message">The message to format</param>
+        /// <param name="logEventData">Data associated with the message event</param>
+        /// <returns>The message after rule formatting is applied</returns>
+        protected virtual string ApplyRule(LogMessageFormatter formatter, string message, LogRequestEventArgs logEventData)
         {
             return message;
         }
@@ -202,7 +216,14 @@ namespace LogUtils.Properties.Formatting
             return ToPropertyString();
         }
 
-        public delegate string ApplyDelegate(string message, LogRequestEventArgs logEventData);
+        /// <summary>
+        /// Delegate signature for applying a LogRule
+        /// </summary>
+        /// <param name="formatter">The applicable formatter instance (may be null)</param>
+        /// <param name="message">The message to format</param>
+        /// <param name="logEventData">Data associated with the message event</param>
+        /// <returns>The message after rule formatting is applied</returns>
+        public delegate string ApplyDelegate(LogMessageFormatter formatter, string message, LogRequestEventArgs logEventData);
     }
 
     public class ShowCategoryRule : LogRule
@@ -211,7 +232,7 @@ namespace LogUtils.Properties.Formatting
         {
         }
 
-        protected override string ApplyRule(string message, LogRequestEventArgs logEventData)
+        protected override string ApplyRule(LogMessageFormatter formatter, string message, LogRequestEventArgs logEventData)
         {
             //TODO: Padding doesn't work
             return string.Format("[{0,-4}] {1}", logEventData.Category, message);
@@ -229,7 +250,7 @@ namespace LogUtils.Properties.Formatting
         {
         }
 
-        protected override string ApplyRule(string message, LogRequestEventArgs logEventData)
+        protected override string ApplyRule(LogMessageFormatter formatter, string message, LogRequestEventArgs logEventData)
         {
             return string.Format("[{0}] {1}", logEventData.TotalMessagesLogged + 1, message); //Add one to start indexing at one, instead of zero
         }

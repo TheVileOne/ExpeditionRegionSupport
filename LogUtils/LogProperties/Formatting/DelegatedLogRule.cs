@@ -1,4 +1,5 @@
 ﻿using LogUtils.Events;
+using LogUtils.Formatting;
 
 namespace LogUtils.Properties.Formatting
 {
@@ -7,31 +8,26 @@ namespace LogUtils.Properties.Formatting
     /// </summary>
     public class DelegatedLogRule : LogRule
     {
-        public ApplyDelegate RuleAction;
+        /// <summary>
+        /// Invoked when rule is applied
+        /// </summary>
+        protected ApplyDelegate Callback;
 
         /// <summary>
         /// Create a DelegatedLogRule instance
         /// </summary>
         /// <param name="name">The name associated with the LogRule. (Make it unique)</param>
+        /// <param name="applyCallback">The delegate to assign as the rule logic</param>
         /// <param name="enabled">Whether the rule is applied</param>
-        public DelegatedLogRule(string name, bool enabled) : base(name, enabled)
+        public DelegatedLogRule(string name, ApplyDelegate applyCallback, bool enabled) : base(name, enabled)
         {
+            Callback = applyCallback;
         }
 
-        /// <summary>
-        /// Create a DelegatedLogRule instance
-        /// </summary>
-        /// <param name="name">The name associated with the LogRule. (Make it unique)</param>
-        /// <param name="action">The delegate to assign as the rule logic</param>
-        /// <param name="enabled">Whether the rule is applied</param>
-        public DelegatedLogRule(string name, ApplyDelegate action, bool enabled) : base(name, enabled)
+        /// <inheritdoc/>
+        protected override string ApplyRule(LogMessageFormatter formatter, string message, LogRequestEventArgs logEventData)
         {
-            RuleAction = action;
-        }
-
-        protected override string ApplyRule(string message, LogRequestEventArgs logEventData)
-        {
-            return RuleAction.Invoke(message, logEventData);
+            return Callback.Invoke(formatter, message, logEventData);
         }
     }
 }
