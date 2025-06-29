@@ -15,7 +15,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading;
 using UnityEngine;
 
 namespace LogUtils
@@ -248,20 +247,11 @@ namespace LogUtils
         {
             ILCursor cursor = new ILCursor(il);
 
-            //cursor.GotoNext(MoveType.After, x => x.MatchStloc(0)); //Match an early execution point
-            //cursor.Emit(OpCodes.Ldarg_0);
-            //cursor.EmitDelegate((StringBuilder sb) => //Ensure that placeholder parsing starts with zeroed values
-            //{
-            //    var data = sb.GetData();
-            //    data.CurrentPlaceholder = default;
-            //});
-
             //Match the third char comparison check - that's where the starting curly brace code is handled
             cursor.GotoNext(MoveType.After, x => x.MatchBneUn(out _));
             cursor.GotoNext(MoveType.After, x => x.MatchBneUn(out _));
             cursor.GotoNext(MoveType.After, x => x.MatchBneUn(out _));
 
-            cursor.Emit(OpCodes.Ldarg_0); //StringBuilder
             cursor.Emit(OpCodes.Ldloc_3); //ICustomFormatter
             cursor.Emit(OpCodes.Ldloc_0); //Current index of format string
             cursor.EmitDelegate(formatPlaceholderStart);
@@ -271,64 +261,49 @@ namespace LogUtils
                                             x => x.Match(OpCodes.Call)); //Argument at the provided index is fetched from the args array
 
             //Handle the char position of the right-most curly brace
-            cursor.Emit(OpCodes.Ldarg_0); //StringBuilder
             cursor.Emit(OpCodes.Ldloc_3); //ICustomFormatter
             cursor.Emit(OpCodes.Ldarg_2); //Format string
             cursor.Emit(OpCodes.Ldloc, 4); //Argument index
             cursor.Emit(OpCodes.Ldloc, 6); //Argument comma value
             cursor.Emit(OpCodes.Ldloc_0); //Current index within format string
-            cursor.EmitDelegate((object formatArgument, StringBuilder builder, ICustomFormatter provider, string format, int argIndex, int argValue, int formatIndex) =>
+            cursor.EmitDelegate((object formatArgument, ICustomFormatter formatter, string format, int argIndex, int commaArg, int formatIndex) =>
             {
-                if (provider is IColorFormatProvider)
+                var provider = formatter as IColorFormatProvider;
+
+                if (provider != null)
                 {
-                    formatPlaceholderEnd(builder, provider, format, formatIndex);
-                    formatArgument = prepareArgument(formatArgument, builder, provider, argValue);
+                    var formatData = provider.GetData();
+                    var placeholderData = formatData.CurrentPlaceholder;
+
+                    placeholderData.ArgumentIndex = argIndex;
+                    placeholderData.CommaArgument = commaArg;
+
+                    int placeholderStart = placeholderData.Position;
+                    int placeholderLength = formatIndex - placeholderStart;
+
+                    placeholderData.Format = format.Substring(placeholderStart, placeholderLength);
+
+                    UtilityLogger.Log("PLACEHOLDER FORMAT: " + placeholderData.Format);
+
+                    //Replaced original struct with the more updated copy
+                    formatData.CurrentPlaceholder = placeholderData;
+
+                    if (formatArgument is Color)
+                        return new ColorPlaceholder((Color)formatArgument, placeholderData);
                 }
                 return formatArgument;
             });
 
-            object prepareArgument(object formatArgument, StringBuilder builder, ICustomFormatter provider, int argValue)
-            {
-                //IColorFormatProvider requires additional data to handle color formatting correctly in all instances
-                if (provider is IColorFormatProvider)
-                {
-                    if (formatArgument is Color)
-                    {
-                        var data = builder.GetData();
-
-                        Color colorValue = (Color)formatArgument;
-                        int startIndex = data.CurrentPlaceholder.Position;
-                        int length = argValue;
-
-                        return new ColorPlaceholder(colorValue, startIndex, length);
-                    }
-                }
-                return formatArgument;
-            }
-
-            void formatPlaceholderStart(StringBuilder builder, ICustomFormatter provider, int index)
+            void formatPlaceholderStart(ICustomFormatter formatter, int index)
             {
                 //We only need to touch CWT data in the context of dealing with a IColorFormatProvider implementation
-                if (provider is IColorFormatProvider)
+                var provider = formatter as IColorFormatProvider;
+
+                if (provider != null)
                 {
                     //UtilityLogger.Log("Placeholder start");
-                    var data = builder.GetData();
+                    var data = provider.GetData();
                     data.CurrentPlaceholder.Position = index;
-                }
-            }
-
-            void formatPlaceholderEnd(StringBuilder builder, ICustomFormatter provider, string format, int index)
-            {
-                //We only need to touch CWT data in the context of dealing with a IColorFormatProvider implementation
-                if (provider is IColorFormatProvider)
-                {
-                    //UtilityLogger.Log("Placeholder end");
-                    var data = builder.GetData();
-
-                    int placeholderStart = data.CurrentPlaceholder.Position;
-                    int placeholderLength = index - placeholderStart;
-
-                    data.CurrentPlaceholder.Placeholder = format.Substring(placeholderStart, placeholderLength);
                 }
             }
         }

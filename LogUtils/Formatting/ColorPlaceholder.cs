@@ -7,6 +7,8 @@ namespace LogUtils.Formatting
     /// </summary>
     public class ColorPlaceholder
     {
+        private FormatData _data;
+
         /// <summary>
         /// The color to use
         /// </summary>
@@ -15,22 +17,21 @@ namespace LogUtils.Formatting
         /// <summary>
         /// The index position within a string where the color will be used
         /// </summary>
-        public int StartIndex;
+        public int StartIndex => _data.Position;
 
         /// <summary>
         /// The number of characters beginning at the start index that should use this color, if set to 0, or less, color will last until string terminates or another
         /// color placeholder is encountered
         /// </summary>
-        public int Length;
+        public int Length => _data.CommaArgument;
 
         /// <summary>
         /// Creates a new ColorPlaceholder object
         /// </summary>
-        public ColorPlaceholder(Color color, int startIndex, int length)
+        internal ColorPlaceholder(Color color, FormatData data)
         {
             Color = color;
-            StartIndex = startIndex;
-            Length = length;
+            _data = data;
         }
     }
 }
