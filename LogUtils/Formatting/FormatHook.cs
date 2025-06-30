@@ -4,19 +4,63 @@ using MonoMod.RuntimeDetour;
 using System;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using UnityEngine;
 
 namespace LogUtils.Formatting
 {
     internal static class FormatHook
     {
-        internal static ILHook Create()
+        internal static IDetour[] Create()
         {
-            BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-            return new ILHook(typeof(StringBuilder).GetMethod("AppendFormatHelper", flags), StringBuilder_AppendFormatHelper);
+            MethodInfo appendFormatHelper = typeof(StringBuilder).GetMethod("AppendFormatHelper", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            MethodInfo hookMethod = typeof(FormatHook).GetMethod("StringBuilder_AppendFormatHelper", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+            
+            //This is required, because this method involves an internal class that cannot be referenced through the IDE
+            var args = appendFormatHelper.GetParameters();
+
+            IDetour[] hooks = new IDetour[]
+            {
+                new Hook(appendFormatHelper, hookMethod.MakeGenericMethod(args[2].ParameterType)),
+                new ILHook(appendFormatHelper, IL_StringBuilder_AppendFormatHelper)
+            };
+            return hooks;
         }
 
-        private static void StringBuilder_AppendFormatHelper(ILContext il)
+        private static ThreadLocal<int> recursiveAccessCount = new ThreadLocal<int>();
+
+        private static StringBuilder StringBuilder_AppendFormatHelper<T>(orig_AppendFormatHelper<T> orig, StringBuilder self, IFormatProvider provider, string format, T args)
+        {
+            var formatter = provider as IColorFormatProvider;
+            FormatDataCWT.Data formatCWT = null;
+
+            if (formatter != null)
+            {
+                formatCWT = formatter.GetData();
+                FormatData data = formatCWT.CurrentPlaceholder;
+
+                if (data.Equals(default))
+                    formatter.GetData().CurrentPlaceholder = new FormatData();
+            }
+
+            try
+            {
+                recursiveAccessCount.Value++;
+                return orig(self, provider, format, args);
+            }
+            finally
+            {
+                recursiveAccessCount.Value--;
+
+                if (recursiveAccessCount.Value == 0)
+                {
+                    formatCWT.PlaceholderData.Add(formatCWT.CurrentPlaceholder);
+                    formatCWT.CurrentPlaceholder = default;
+                }
+            }
+        }
+
+        private static void IL_StringBuilder_AppendFormatHelper(ILContext il)
         {
             ILCursor cursor = new ILCursor(il);
 
@@ -111,5 +155,8 @@ namespace LogUtils.Formatting
                 data.CurrentPlaceholder.Position = index;
             }
         }
+
+        private delegate StringBuilder orig_AppendFormatHelper<T>(StringBuilder self, IFormatProvider provider, string format, T args);
+        private delegate StringBuilder hook_AppendFormatHelper<T>(orig_AppendFormatHelper<T> orig, StringBuilder self, IFormatProvider provider, string format, T args);
     }
 }

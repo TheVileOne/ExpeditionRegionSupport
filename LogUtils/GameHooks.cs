@@ -28,7 +28,7 @@ namespace LogUtils
         {
             try
             {
-                managedHooks.Add(FormatHook.Create());
+                managedHooks.AddRange(FormatHook.Create());
                 Apply();
             }
             catch (Exception ex)
