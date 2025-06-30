@@ -50,6 +50,17 @@ namespace LogUtils.Formatting
             /// </summary>
             /// <remarks>This list is cleared before, and after a format operation completes</remarks>
             public List<FormatData> PlaceholderData = new List<FormatData>();
+
+            public void OnFormat()
+            {
+                CurrentPlaceholder = new FormatData();
+            }
+
+            public void CollectData()
+            {
+                PlaceholderData.Add(CurrentPlaceholder);
+                CurrentPlaceholder = default;
+            }
         }
     }
 }

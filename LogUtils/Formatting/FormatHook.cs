@@ -37,10 +37,7 @@ namespace LogUtils.Formatting
             if (formatter != null)
             {
                 formatCWT = formatter.GetData();
-                FormatData data = formatCWT.CurrentPlaceholder;
-
-                if (data.Equals(default))
-                    formatter.GetData().CurrentPlaceholder = new FormatData();
+                formatCWT.OnFormat();
             }
 
             try
@@ -52,11 +49,8 @@ namespace LogUtils.Formatting
             {
                 recursiveAccessCount.Value--;
 
-                if (recursiveAccessCount.Value == 0)
-                {
-                    formatCWT.PlaceholderData.Add(formatCWT.CurrentPlaceholder);
-                    formatCWT.CurrentPlaceholder = default;
-                }
+                if (formatter != null && recursiveAccessCount.Value == 0)
+                    formatCWT.CollectData();
             }
         }
 
