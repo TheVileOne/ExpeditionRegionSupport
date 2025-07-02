@@ -8,10 +8,10 @@ namespace LogUtils.Formatting
     /// </summary>
     public class EmptyColorFormatProvider : IColorFormatProvider
     {
-        private List<ColorPlaceholder> _formatObjects = new List<ColorPlaceholder>();
+        private List<FormatData> _formatObjects = new List<FormatData>();
 
         /// <inheritdoc/>
-        public List<ColorPlaceholder> FormatObjects => _formatObjects;
+        public List<FormatData> FormatObjects => _formatObjects;
 
         /// <inheritdoc/>
         public string Format(string format, object arg, IFormatProvider formatProvider)
@@ -19,11 +19,11 @@ namespace LogUtils.Formatting
             if (arg == null)
                 return string.Empty;
 
-            ColorPlaceholder colorData = arg as ColorPlaceholder;
+            FormatData formatData = arg as FormatData;
 
-            if (colorData != null)
+            if (formatData != null && formatData.IsColorData)
             {
-                FormatObjects.Add(colorData);
+                FormatObjects.Add(formatData);
                 return string.Empty;
             }
 

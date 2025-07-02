@@ -11,6 +11,6 @@ namespace LogUtils.Formatting
         /// <summary>
         /// List of format objects that contain color data
         /// </summary>
-        List<ColorPlaceholder> FormatObjects { get; }
+        List<FormatData> FormatObjects { get; }
     }
 }

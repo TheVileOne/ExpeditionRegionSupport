@@ -1,6 +1,7 @@
 ﻿using LogUtils.Console;
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace LogUtils.Formatting
 {
@@ -9,39 +10,31 @@ namespace LogUtils.Formatting
     /// </summary>
     public class ANSIColorFormatProvider : IColorFormatProvider
     {
-        private List<ColorPlaceholder> _formatObjects = new List<ColorPlaceholder>();
+        private List<FormatData> _formatObjects = new List<FormatData>();
 
         /// <inheritdoc/>
-        public List<ColorPlaceholder> FormatObjects => _formatObjects;
+        public List<FormatData> FormatObjects => _formatObjects;
 
         /// <inheritdoc/>
         public string Format(string format, object arg, IFormatProvider formatProvider)
         {
-            try
+            if (arg == null)
+                return string.Empty;
+
+            FormatData formatData = arg as FormatData;
+
+            if (formatData != null && formatData.IsColorData)
             {
-                if (arg == null)
-                    return string.Empty;
-
-                ColorPlaceholder colorData = arg as ColorPlaceholder;
-
-                if (colorData != null)
-                {
-                    FormatObjects.Add(colorData);
-                    return AnsiColorConverter.AnsiToForeground(colorData.Color);
-                }
-
-                IFormattable formattableArg = arg as IFormattable;
-
-                if (formattableArg != null)
-                    return formattableArg.ToString(format, formatProvider);
-
-                return arg.ToString();
+                FormatObjects.Add(formatData);
+                return AnsiColorConverter.AnsiToForeground((Color)formatData.Argument);
             }
-            catch (Exception ex)
-            {
-                UtilityLogger.LogError(ex);
-                return arg.ToString();
-            }
+
+            IFormattable formattableArg = arg as IFormattable;
+
+            if (formattableArg != null)
+                return formattableArg.ToString(format, formatProvider);
+
+            return arg.ToString();
         }
 
         /// <inheritdoc/>

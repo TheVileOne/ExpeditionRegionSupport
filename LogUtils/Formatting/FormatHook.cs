@@ -2,10 +2,12 @@
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using System.Threading;
 using UnityEngine;
+using static LogUtils.Formatting.FormatDataAccess;
 
 namespace LogUtils.Formatting
 {
@@ -27,30 +29,26 @@ namespace LogUtils.Formatting
             return hooks;
         }
 
-        private static ThreadLocal<int> recursiveAccessCount = new ThreadLocal<int>();
 
         private static StringBuilder StringBuilder_AppendFormatHelper<T>(orig_AppendFormatHelper<T> orig, StringBuilder self, IFormatProvider provider, string format, T args)
         {
             var formatter = provider as IColorFormatProvider;
-            FormatDataCWT.Data formatCWT = null;
 
-            if (formatter != null)
-            {
-                formatCWT = formatter.GetData();
-                formatCWT.OnFormat();
-            }
+            //The formatter must implement an interface that LogUtils recognizes
+            if (formatter == null)
+                return orig(self, provider, format, args);
+
+            var dataAccess = formatter.GetData();
+            dataAccess.AddNodeEntry(self);
 
             try
             {
-                recursiveAccessCount.Value++;
                 return orig(self, provider, format, args);
             }
             finally
             {
-                recursiveAccessCount.Value--;
-
-                if (formatter != null && recursiveAccessCount.Value == 0)
-                    formatCWT.CollectData();
+                UtilityLogger.DebugLog("Building string complete");
+                dataAccess.RemoveLastNodeEntry();
             }
         }
 
@@ -64,7 +62,6 @@ namespace LogUtils.Formatting
             cursor.GotoNext(MoveType.After, x => x.MatchBneUn(out _));
 
             cursor.Emit(OpCodes.Ldloc_3); //ICustomFormatter
-            cursor.Emit(OpCodes.Ldloc_0); //Current index of format string
             cursor.EmitDelegate(formatPlaceholderStart);
 
             cursor.GotoNext(MoveType.After, x => x.MatchLdarga(3),       //args array is accessed
@@ -73,39 +70,8 @@ namespace LogUtils.Formatting
 
             //Handle the char position of the right-most curly brace
             cursor.Emit(OpCodes.Ldloc_3); //ICustomFormatter
-            cursor.Emit(OpCodes.Ldarg_2); //Format string
-            cursor.Emit(OpCodes.Ldloc, 4); //Argument index
             cursor.Emit(OpCodes.Ldloc, 6); //Argument comma value
-            cursor.Emit(OpCodes.Ldloc_0); //Current index within format string
-            cursor.EmitDelegate((object formatArgument, ICustomFormatter formatter, string format, int argIndex, int commaArg, int formatIndex) =>
-            {
-                var provider = formatter as IColorFormatProvider;
-
-                if (provider != null)
-                {
-                    var formatData = provider.GetData();
-                    var placeholderData = formatData.CurrentPlaceholder;
-
-                    placeholderData.ArgumentIndex = argIndex;
-                    placeholderData.CommaArgument = commaArg;
-
-                    int placeholderStart = placeholderData.Position;
-                    int placeholderLength = formatIndex - placeholderStart;
-
-                    placeholderData.Format = format.Substring(placeholderStart, placeholderLength);
-
-                    //UtilityLogger.Log("PLACEHOLDER FORMAT: " + placeholderData.Format);
-
-                    if (formatArgument is Color)
-                        formatArgument = new ColorPlaceholder((Color)formatArgument, placeholderData);
-
-                    placeholderData.Argument = formatArgument;
-
-                    //Replaced original struct with the more updated copy
-                    formatData.CurrentPlaceholder = placeholderData;
-                }
-                return formatArgument;
-            });
+            cursor.EmitDelegate(resolveArgumentData);
 
             cursor.GotoNext(MoveType.After, x => x.MatchStloc(11)); //Assignment of local variable responsible for padding spaces
 
@@ -118,36 +84,77 @@ namespace LogUtils.Formatting
             //When value is not 0, we need to check if we dealing with the right formatter object
             cursor.Emit(OpCodes.Ldloc, 11);
             cursor.Emit(OpCodes.Ldloc_3);
-            cursor.EmitDelegate((int value, ICustomFormatter formatter) =>
-            {
-                var provider = formatter as IColorFormatProvider;
-
-                if (provider != null)
-                {
-                    var formatData = provider.GetData();
-                    var placeholderData = formatData.CurrentPlaceholder;
-
-                    //The padding syntax is being borrowed - this will prevent any padding from being assigned when we are working with a color argument
-                    if (placeholderData.Argument is ColorPlaceholder)
-                        return 0;
-                }
-                return value;
-            });
+            cursor.EmitDelegate(adjustFormatPadding);
             cursor.Emit(OpCodes.Stloc, 11); //Update padding value
             cursor.MarkLabel(branchTarget);
         }
 
-        private static void formatPlaceholderStart(ICustomFormatter formatter, int index)
+        private static void formatPlaceholderStart(ICustomFormatter formatter)
         {
-            //We only need to touch CWT data in the context of dealing with a IColorFormatProvider implementation
             var provider = formatter as IColorFormatProvider;
 
             if (provider != null)
             {
-                //UtilityLogger.Log("Placeholder start");
                 var data = provider.GetData();
-                data.CurrentPlaceholder.Position = index;
+
+                LinkedListNode<NodeData> currentNode = data.Entries.Last;
+                LinkedListNode<NodeData> previousNode = currentNode.Previous;
+
+                int positionInString = 0;
+
+                //Position in the string is the combined length of strings built up until this point. Since this value is cumulative, we only need to reference the
+                //format data of the last build node for an accurate length
+                if (previousNode != null)
+                    positionInString = previousNode.Value.Current.Position;
+
+                positionInString += currentNode.Value.Builder.Length;
+
+                //This will replace the last FormatData instance with the current one - this is by design
+                currentNode.Value.Current = new FormatData()
+                {
+                    Position = positionInString
+                };
             }
+        }
+
+        private static object resolveArgumentData(object formatArgument, ICustomFormatter formatter, int commaValue)
+        {
+            var provider = formatter as IColorFormatProvider;
+
+            if (provider != null)
+            {
+                var data = provider.GetData();
+
+                LinkedListNode<NodeData> currentNode = data.Entries.Last;
+
+                FormatData currentEntry = currentNode.Value.Current;
+                currentEntry.Argument = formatArgument;
+
+                if (currentEntry.IsColorData)
+                {
+                    currentEntry.Range = commaValue;
+                    return currentEntry;
+                }
+            }
+            return formatArgument;
+        }
+
+        private static int adjustFormatPadding(int paddingValue, ICustomFormatter formatter)
+        {
+            var provider = formatter as IColorFormatProvider;
+
+            if (provider != null)
+            {
+                var data = provider.GetData();
+
+                LinkedListNode<NodeData> currentNode = data.Entries.Last;
+                FormatData placeholderData = currentNode.Value.Current;
+
+                //The padding syntax is being borrowed - this will prevent any padding from being assigned when we are working with a color argument
+                if (placeholderData.IsColorData)
+                    return 0;
+            }
+            return paddingValue;
         }
 
         private delegate StringBuilder orig_AppendFormatHelper<T>(StringBuilder self, IFormatProvider provider, string format, T args);

@@ -1,9 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Text;
+using UnityEngine;
 
 namespace LogUtils.Formatting
 {
-    internal struct FormatData
+    /// <summary>
+    /// A data class for storing format informations
+    /// </summary>
+    public sealed class FormatData
     {
         /// <summary>
         /// The format argument
@@ -11,15 +16,9 @@ namespace LogUtils.Formatting
         public object Argument;
 
         /// <summary>
-        /// The index in the argument array associated with the format placeholder 
+        /// Checks that Argument is a UnityEngine.Color
         /// </summary>
-        public int ArgumentIndex;
-
-        /// <summary>
-        /// The value that appears after a comma in the format placeholder
-        /// </summary>
-        /// <remarks>Example {0,4}</remarks>
-        public int CommaArgument;
+        public bool IsColorData => Argument is Color;
 
         /// <summary>
         /// The index of the first character of the format placeholder in the format string
@@ -27,40 +26,50 @@ namespace LogUtils.Formatting
         public int Position;
 
         /// <summary>
-        /// The string representation of the format placeholder
+        /// The number of valid chars to apply color formatting
         /// </summary>
-        public string Format;
+        public int Range;
     }
 
-    internal static class FormatDataCWT
+    internal static class FormatDataAccess
     {
         private static readonly ConditionalWeakTable<IColorFormatProvider, Data> colorFormatCWT = new();
 
         internal static Data GetData(this IColorFormatProvider self) => colorFormatCWT.GetValue(self, _ => new());
 
-        internal class Data
+        internal sealed class Data
         {
             /// <summary>
-            /// The current placeholder state
+            /// Collection of active format data being processed
             /// </summary>
-            public FormatData CurrentPlaceholder;
+            public LinkedList<NodeData> Entries = new LinkedList<NodeData>();
+
+            public void AddNodeEntry(StringBuilder builder)
+            {
+                NodeData data = new NodeData()
+                {
+                    Builder = builder
+                };
+                Entries.AddLast(new LinkedListNode<NodeData>(data));
+            }
+
+            public void RemoveLastNodeEntry()
+            {
+                Entries.RemoveLast();
+            }
+        }
+
+        internal class NodeData
+        {
+            /// <summary>
+            /// The builder in control of building the formatted string
+            /// </summary>
+            public StringBuilder Builder;
 
             /// <summary>
-            /// A list of format placeholders collected over the course of a format operation
+            /// The format argument currently being processed
             /// </summary>
-            /// <remarks>This list is cleared before, and after a format operation completes</remarks>
-            public List<FormatData> PlaceholderData = new List<FormatData>();
-
-            public void OnFormat()
-            {
-                CurrentPlaceholder = new FormatData();
-            }
-
-            public void CollectData()
-            {
-                PlaceholderData.Add(CurrentPlaceholder);
-                CurrentPlaceholder = default;
-            }
+            public FormatData Current;
         }
     }
 }
