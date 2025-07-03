@@ -65,7 +65,7 @@ namespace LogUtils.Formatting
             if (ColorFormatter is EmptyColorFormatProvider)
                 return message;
 
-            if (ColorFormatter is ANSIColorFormatProvider)
+            if (ColorFormatter is AnsiColorFormatProvider)
                 return AnsiColorConverter.ApplyFormat(message, messageColor);
 
             return string.Format(ColorFormatter, "{0}{1}{2}", messageColor, message, ConsoleColorMap.DefaultColor);

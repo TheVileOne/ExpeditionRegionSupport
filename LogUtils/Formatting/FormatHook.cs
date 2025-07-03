@@ -1,12 +1,11 @@
-﻿using Mono.Cecil.Cil;
+﻿using LogUtils.Diagnostics;
+using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
-using System.Threading;
-using UnityEngine;
 using static LogUtils.Formatting.FormatDataAccess;
 
 namespace LogUtils.Formatting
@@ -29,6 +28,29 @@ namespace LogUtils.Formatting
             return hooks;
         }
 
+        private static ThreadLocal<bool> isHookEntered = new ThreadLocal<bool>();
+
+        //private static void appendFormatHook(StringBuilder self, IFormatProvider formatter, string format, object paramsArray)
+        //{
+        //    if (isHookEntered.Value)
+        //    {
+        //        isHookEntered.Value = false; //We only need to check this once per hook call. Setting to false allows recursive calls to AppendFormatHelper to function
+        //        return;
+        //    }
+
+        //    isHookEntered.Value = true;
+
+        //    try
+        //    {
+        //        DynamicMethodDefinition test = null;
+        //        appendHelperMethod.Invoke(self, new object[] { formatter, format, paramsArray });
+        //    }
+        //    finally
+        //    {
+        //        //Cleanup
+        //    }
+        //    return;
+        //}
 
         private static StringBuilder StringBuilder_AppendFormatHelper<T>(orig_AppendFormatHelper<T> orig, StringBuilder self, IFormatProvider provider, string format, T args)
         {
@@ -38,8 +60,12 @@ namespace LogUtils.Formatting
             if (formatter == null)
                 return orig(self, provider, format, args);
 
-            var dataAccess = formatter.GetData();
-            dataAccess.AddNodeEntry(self);
+            UtilityLogger.DebugLog("New entry");
+            var data = formatter.GetData();
+            data.AddNodeEntry(self);
+
+            if (data.RangeCounter > 0)
+                UtilityLogger.DebugLog($"Expecting {data.RangeCounter} more characters");
 
             try
             {
@@ -47,8 +73,33 @@ namespace LogUtils.Formatting
             }
             finally
             {
-                UtilityLogger.DebugLog("Building string complete");
-                dataAccess.RemoveLastNodeEntry();
+                UtilityLogger.DebugLog("Finally");
+                LinkedListNode<NodeData> currentNode = data.Entries.Last;
+                NodeData currentBuildEntry = currentNode.Value;
+
+                if (data.UpdateBuildLength())
+                {
+                    //Handle color reset
+                    currentBuildEntry.Current = new FormatData()
+                    {
+                        Position = currentBuildEntry.LastCheckedBuildLength
+                    };
+                    formatter.ResetColor(self);
+
+                    if (currentBuildEntry.LastCheckedBuildLength != currentBuildEntry.Builder.Length)
+                    {
+                        int charsRemaining = currentBuildEntry.Builder.Length - currentBuildEntry.LastCheckedBuildLength - 1;
+                        UtilityLogger.DebugLog($"Substring '{currentBuildEntry.Builder.ToString().Substring(currentBuildEntry.Builder.Length - charsRemaining)}' has the reset color");
+                    }
+                }
+
+                int lastBuildLength = currentBuildEntry.LastCheckedBuildLength = currentBuildEntry.Builder.Length;
+                data.RemoveLastNodeEntry();
+
+                currentNode = data.Entries.Last;
+                if (currentNode != null)
+                    currentNode.Value.LastCheckedBuildLength += lastBuildLength;
+
             }
         }
 
@@ -95,22 +146,37 @@ namespace LogUtils.Formatting
 
             if (provider != null)
             {
+                UtilityLogger.DebugLog("Placeholder start");
                 var data = provider.GetData();
 
                 LinkedListNode<NodeData> currentNode = data.Entries.Last;
                 LinkedListNode<NodeData> previousNode = currentNode.Previous;
 
-                int positionInString = 0;
+                NodeData currentBuildEntry = currentNode.Value;
+                StringBuilder currentBuilder = currentBuildEntry.Builder;
 
                 //Position in the string is the combined length of strings built up until this point. Since this value is cumulative, we only need to reference the
                 //format data of the last build node for an accurate length
+                int positionOffset = 0;
                 if (previousNode != null)
-                    positionInString = previousNode.Value.Current.Position;
+                    positionOffset = previousNode.Value.Current.Position;
 
-                positionInString += currentNode.Value.Builder.Length;
+                int positionInString = currentBuilder.Length + positionOffset;
+
+                //UtilityLogger.DebugLog("Build content: " + currentBuilder);
+                //UtilityLogger.DebugLog("Build position: " + currentBuildEntry.LastCheckedBuildLength);
+                if (data.UpdateBuildLength())
+                {
+                    //Handle color reset
+                    currentBuildEntry.Current = new FormatData()
+                    {
+                        Position = currentBuildEntry.LastCheckedBuildLength + positionOffset
+                    };
+                    provider.ResetColor(currentBuilder);
+                }
 
                 //This will replace the last FormatData instance with the current one - this is by design
-                currentNode.Value.Current = new FormatData()
+                currentBuildEntry.Current = new FormatData()
                 {
                     Position = positionInString
                 };
@@ -132,7 +198,10 @@ namespace LogUtils.Formatting
 
                 if (currentEntry.IsColorData)
                 {
+                    Assert.That(data.RangeCounter).IsZero();
+
                     currentEntry.Range = commaValue;
+                    data.RangeCounter = Math.Max(currentEntry.Range, 0);
                     return currentEntry;
                 }
             }

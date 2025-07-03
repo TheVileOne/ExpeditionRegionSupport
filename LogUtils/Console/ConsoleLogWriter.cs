@@ -49,7 +49,7 @@ namespace LogUtils.Console
 
             if (ID == ConsoleID.BepInEx)
             {
-                Formatter = new LogMessageFormatter(new ANSIColorFormatProvider());
+                Formatter = new LogMessageFormatter(new AnsiColorFormatProvider());
                 Rules = LogID.BepInEx.Properties.Rules;
             }
 

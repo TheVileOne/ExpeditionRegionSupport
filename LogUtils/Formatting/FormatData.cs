@@ -44,6 +44,11 @@ namespace LogUtils.Formatting
             /// </summary>
             public LinkedList<NodeData> Entries = new LinkedList<NodeData>();
 
+            /// <summary>
+            /// A check on how many characters are needed to satisfy an argument's range requirement
+            /// </summary>
+            public int RangeCounter;
+
             public void AddNodeEntry(StringBuilder builder)
             {
                 NodeData data = new NodeData()
@@ -56,6 +61,61 @@ namespace LogUtils.Formatting
             public void RemoveLastNodeEntry()
             {
                 Entries.RemoveLast();
+            }
+
+            public bool UpdateBuildLength()
+            {
+                UtilityLogger.DebugLog("Updating");
+
+                LinkedListNode<NodeData> currentNode = Entries.Last;
+
+                NodeData currentBuildEntry = currentNode.Value;
+                StringBuilder currentBuilder = currentBuildEntry.Builder;
+
+                //UtilityLogger.DebugLog("Build position: " + currentBuildEntry.LastCheckedBuildLength);
+
+                int numCharsSinceLastArgument = currentBuilder.Length - currentBuildEntry.LastCheckedBuildLength;
+
+                if (RangeCounter == 0 || numCharsSinceLastArgument == 0)
+                    return false;
+
+                for (int i = currentBuilder.Length - numCharsSinceLastArgument; i < currentBuilder.Length; i++)
+                {
+                    char buildChar = currentBuilder[i];
+
+                    UtilityLogger.DebugLog(buildChar);
+
+                    //Check that character is not a format-specific escape character, whitespace, or an ANSI color code character
+                    bool canHaveColor = buildChar < '\a' || (buildChar > '\r' && buildChar != ' ' && buildChar != '\x1b');
+
+                    if (canHaveColor)
+                        RangeCounter--;
+                    else if (buildChar == '\x1b') //ANSI escape sequence - we need to skip all chars up until the next 'm'
+                        RangeCounter = 0;
+
+                    if (RangeCounter == 0)
+                    {
+                        currentBuildEntry.LastCheckedBuildLength = i;
+                        break;
+                    }
+                }
+
+                try
+                {
+                    if (RangeCounter > 0)
+                    {
+                        currentBuildEntry.LastCheckedBuildLength = currentBuilder.Length;
+                        return false;
+                    }
+                    return true;
+                }
+                finally
+                {
+                    UtilityLogger.DebugLog("Build position after: " + currentBuildEntry.LastCheckedBuildLength);
+
+                    if (RangeCounter > 0)
+                        UtilityLogger.DebugLog($"Expecting {RangeCounter} more characters");
+                }
             }
         }
 
@@ -70,6 +130,10 @@ namespace LogUtils.Formatting
             /// The format argument currently being processed
             /// </summary>
             public FormatData Current;
+
+            public bool HasArguments => Current != null;
+
+            public int LastCheckedBuildLength;
         }
     }
 }

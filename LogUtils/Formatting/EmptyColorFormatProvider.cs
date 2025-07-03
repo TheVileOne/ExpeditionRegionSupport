@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace LogUtils.Formatting
 {
@@ -42,6 +43,12 @@ namespace LogUtils.Formatting
             if (formatType == typeof(ICustomFormatter))
                 return this;
             return null;
+        }
+
+        /// <inheritdoc/>
+        public void ResetColor(StringBuilder builder)
+        {
+            UtilityLogger.DebugLog("COLORS RESET");
         }
     }
 }

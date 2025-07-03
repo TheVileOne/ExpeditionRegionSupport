@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace LogUtils.Formatting
 {
@@ -12,5 +13,10 @@ namespace LogUtils.Formatting
         /// List of format objects that contain color data
         /// </summary>
         List<FormatData> FormatObjects { get; }
+
+        /// <summary>
+        /// Resets the text color back to a default value
+        /// </summary>
+        void ResetColor(StringBuilder builder);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using LogUtils.Console;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 namespace LogUtils.Formatting
@@ -8,7 +9,7 @@ namespace LogUtils.Formatting
     /// <summary>
     /// A type of ColorFormatProvider that replaces color data with ANSI color codes
     /// </summary>
-    public class ANSIColorFormatProvider : IColorFormatProvider
+    public class AnsiColorFormatProvider : IColorFormatProvider
     {
         private List<FormatData> _formatObjects = new List<FormatData>();
 
@@ -44,6 +45,13 @@ namespace LogUtils.Formatting
             if (formatType == typeof(ICustomFormatter))
                 return this;
             return null;
+        }
+
+        /// <inheritdoc/>
+        public void ResetColor(StringBuilder builder)
+        {
+            UtilityLogger.DebugLog("COLORS RESET");
+            builder.Append(AnsiColorConverter.AnsiReset);
         }
     }
 }
