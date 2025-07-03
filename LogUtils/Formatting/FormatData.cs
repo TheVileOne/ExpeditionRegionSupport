@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using LogUtils.Console;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 using UnityEngine;
@@ -49,6 +50,11 @@ namespace LogUtils.Formatting
             /// </summary>
             public int RangeCounter;
 
+            /// <summary>
+            /// Ansi color code escape sequence has been detected. Flag ensures that the code itself isn't considered as including colorable characters
+            /// </summary>
+            public bool ExpectAnsiCode;
+
             public void AddNodeEntry(StringBuilder builder)
             {
                 NodeData data = new NodeData()
@@ -76,22 +82,55 @@ namespace LogUtils.Formatting
 
                 int numCharsSinceLastArgument = currentBuilder.Length - currentBuildEntry.LastCheckedBuildLength;
 
-                if (RangeCounter == 0 || numCharsSinceLastArgument == 0)
-                    return false;
+                //We are not expecting there to be format information in the string here
+                if (!ExpectAnsiCode && (RangeCounter == 0 || numCharsSinceLastArgument == 0))
+                {
+                    string unprocessedBuildString = currentBuilder.ToString().Substring(currentBuilder.Length - numCharsSinceLastArgument);
 
+                    UtilityLogger.DebugLog($"'{unprocessedBuildString}' will remain at the last assigned color");
+                    currentBuildEntry.LastCheckedBuildLength = currentBuilder.Length;
+                    return false;
+                }
+
+                bool ansiTerminatorDetected = false;
                 for (int i = currentBuilder.Length - numCharsSinceLastArgument; i < currentBuilder.Length; i++)
                 {
                     char buildChar = currentBuilder[i];
 
+                    if (buildChar == AnsiColorConverter.ANSI_ESCAPE_CHAR) //ANSI escape character
+                    {
+                        UtilityLogger.DebugLog("ANSI code encountered");
+                        ansiTerminatorDetected = false; //Reset in case there are multiple codes in the build string
+                        RangeCounter = 0;
+                        ExpectAnsiCode = true;
+                        continue;
+                    }
+
+                    if (ExpectAnsiCode)
+                    {
+                        if (!ansiTerminatorDetected)
+                        {
+                            //We don't want to reset ANSI flag inside the loop
+                            if (buildChar == AnsiColorConverter.ANSI_TERMINATOR_CHAR)
+                            {
+                                UtilityLogger.DebugLog("ANSI code terminated");
+                                ansiTerminatorDetected = true;
+                            }
+                        }
+                        else //Show build characters that are after an ANSI code, but not the code itself
+                        {
+                            UtilityLogger.DebugLog(buildChar);
+                        }
+                        continue;
+                    }
+
                     UtilityLogger.DebugLog(buildChar);
 
                     //Check that character is not a format-specific escape character, whitespace, or an ANSI color code character
-                    bool canHaveColor = buildChar < '\a' || (buildChar > '\r' && buildChar != ' ' && buildChar != '\x1b');
+                    bool canHaveColor = buildChar < '\a' || (buildChar > '\r' && buildChar != ' ');
 
                     if (canHaveColor)
                         RangeCounter--;
-                    else if (buildChar == '\x1b') //ANSI escape sequence - we need to skip all chars up until the next 'm'
-                        RangeCounter = 0;
 
                     if (RangeCounter == 0)
                     {
@@ -102,6 +141,13 @@ namespace LogUtils.Formatting
 
                 try
                 {
+                    if (ansiTerminatorDetected)
+                    {
+                        ExpectAnsiCode = false;
+                        currentBuildEntry.LastCheckedBuildLength = currentBuilder.Length;
+                        return false;
+                    }
+
                     if (RangeCounter > 0)
                     {
                         currentBuildEntry.LastCheckedBuildLength = currentBuilder.Length;

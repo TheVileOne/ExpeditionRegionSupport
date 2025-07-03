@@ -9,6 +9,16 @@ namespace LogUtils.Console
     public static class AnsiColorConverter
     {
         /// <summary>
+        /// The presence of this char indicates an ANSI color code has terminated
+        /// </summary>
+        public const char ANSI_TERMINATOR_CHAR = 'm';
+
+        /// <summary>
+        /// Escape character for an ANSI color code
+        /// </summary>
+        public const char ANSI_ESCAPE_CHAR = '\x1b';
+
+        /// <summary>
         /// Surrounds a message withANSI codes necessary to display the message in the console with a specified color, and reset back to the default color at the end of the message
         /// </summary>
         public static string ApplyFormat(string message, Color messageColor)
