@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace LogUtils.Formatting
@@ -9,11 +8,6 @@ namespace LogUtils.Formatting
     /// </summary>
     public class EmptyColorFormatProvider : IColorFormatProvider
     {
-        private List<FormatData> _formatObjects = new List<FormatData>();
-
-        /// <inheritdoc/>
-        public List<FormatData> FormatObjects => _formatObjects;
-
         /// <inheritdoc/>
         public string Format(string format, object arg, IFormatProvider formatProvider)
         {
@@ -23,10 +17,7 @@ namespace LogUtils.Formatting
             FormatData formatData = arg as FormatData;
 
             if (formatData != null && formatData.IsColorData)
-            {
-                FormatObjects.Add(formatData);
                 return string.Empty;
-            }
 
             IFormattable formattableArg = arg as IFormattable;
 
