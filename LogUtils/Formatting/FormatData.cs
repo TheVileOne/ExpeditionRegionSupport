@@ -48,6 +48,15 @@ namespace LogUtils.Formatting
 
         internal static Data GetData(this IColorFormatProvider self) => colorFormatCWT.GetValue(self, _ => new());
 
+        internal static int GetBuildOffset(this LinkedListNode<NodeData> node)
+        {
+            LinkedListNode<NodeData> previousNode = node.Previous;
+
+            //Position in the string is the combined length of strings built up until this point. Since this value is cumulative, we only need to reference the
+            //format data of the last build node for an accurate length
+            return previousNode != null ? previousNode.Value.Current.Position : 0;
+        }
+
         internal sealed class Data
         {
             /// <summary>

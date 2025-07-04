@@ -58,6 +58,7 @@ namespace LogUtils.Formatting
                     //Handle color reset
                     currentBuildEntry.Current = new FormatData()
                     {
+                        BuildOffset = currentNode.GetBuildOffset(),
                         LocalPosition = currentBuildEntry.LastCheckedBuildLength
                     };
                     formatter.ResetColor(self, currentBuildEntry.Current);
@@ -120,19 +121,10 @@ namespace LogUtils.Formatting
                 var data = provider.GetData();
 
                 LinkedListNode<NodeData> currentNode = data.Entries.Last;
-                LinkedListNode<NodeData> previousNode = currentNode.Previous;
-
                 NodeData currentBuildEntry = currentNode.Value;
                 StringBuilder currentBuilder = currentBuildEntry.Builder;
 
-                //Position in the string is the combined length of strings built up until this point. Since this value is cumulative, we only need to reference the
-                //format data of the last build node for an accurate length
-                int positionOffset = 0;
-                if (previousNode != null)
-                    positionOffset = previousNode.Value.Current.Position;
-
-                //UtilityLogger.DebugLog("Build content: " + currentBuilder);
-                //UtilityLogger.DebugLog("Build position: " + currentBuildEntry.LastCheckedBuildLength);
+                int positionOffset = currentNode.GetBuildOffset();
                 if (data.UpdateBuildLength())
                 {
                     //Handle color reset
