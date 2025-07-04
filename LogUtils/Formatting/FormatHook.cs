@@ -108,6 +108,11 @@ namespace LogUtils.Formatting
                         LocalPosition = currentBuildEntry.LastCheckedBuildLength
                     };
                     provider.ResetColor(currentBuilder, currentBuildEntry.Current);
+                    data.UpdateBuildLength();
+                }
+                else
+                {
+                    data.BypassColorCancellation = false;
                 }
 
                 //This will replace the last FormatData instance with the current one - this is by design

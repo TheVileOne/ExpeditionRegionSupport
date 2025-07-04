@@ -102,6 +102,11 @@ namespace LogUtils.Formatting
                         LocalPosition = currentBuildEntry.LastCheckedBuildLength
                     };
                     provider.ResetColor(currentBuildEntry.Builder, currentBuildEntry.Current);
+                    UpdateBuildLength();
+                }
+                else
+                {
+                    BypassColorCancellation = false;
                 }
 
                 int lastBuildLength = currentBuildEntry.LastCheckedBuildLength = currentBuildEntry.Builder.Length;
