@@ -28,30 +28,6 @@ namespace LogUtils.Formatting
             return hooks;
         }
 
-        private static ThreadLocal<bool> isHookEntered = new ThreadLocal<bool>();
-
-        //private static void appendFormatHook(StringBuilder self, IFormatProvider formatter, string format, object paramsArray)
-        //{
-        //    if (isHookEntered.Value)
-        //    {
-        //        isHookEntered.Value = false; //We only need to check this once per hook call. Setting to false allows recursive calls to AppendFormatHelper to function
-        //        return;
-        //    }
-
-        //    isHookEntered.Value = true;
-
-        //    try
-        //    {
-        //        DynamicMethodDefinition test = null;
-        //        appendHelperMethod.Invoke(self, new object[] { formatter, format, paramsArray });
-        //    }
-        //    finally
-        //    {
-        //        //Cleanup
-        //    }
-        //    return;
-        //}
-
         private static StringBuilder StringBuilder_AppendFormatHelper<T>(orig_AppendFormatHelper<T> orig, StringBuilder self, IFormatProvider provider, string format, T args)
         {
             var formatter = provider as IColorFormatProvider;
@@ -82,15 +58,9 @@ namespace LogUtils.Formatting
                     //Handle color reset
                     currentBuildEntry.Current = new FormatData()
                     {
-                        Position = currentBuildEntry.LastCheckedBuildLength
+                        LocalPosition = currentBuildEntry.LastCheckedBuildLength
                     };
-                    formatter.ResetColor(self);
-
-                    if (currentBuildEntry.LastCheckedBuildLength != currentBuildEntry.Builder.Length)
-                    {
-                        int charsRemaining = currentBuildEntry.Builder.Length - currentBuildEntry.LastCheckedBuildLength - 1;
-                        UtilityLogger.DebugLog($"Substring '{currentBuildEntry.Builder.ToString().Substring(currentBuildEntry.Builder.Length - charsRemaining)}' has the reset color");
-                    }
+                    formatter.ResetColor(self, currentBuildEntry.Current);
                 }
 
                 int lastBuildLength = currentBuildEntry.LastCheckedBuildLength = currentBuildEntry.Builder.Length;
@@ -161,8 +131,6 @@ namespace LogUtils.Formatting
                 if (previousNode != null)
                     positionOffset = previousNode.Value.Current.Position;
 
-                int positionInString = currentBuilder.Length + positionOffset;
-
                 //UtilityLogger.DebugLog("Build content: " + currentBuilder);
                 //UtilityLogger.DebugLog("Build position: " + currentBuildEntry.LastCheckedBuildLength);
                 if (data.UpdateBuildLength())
@@ -170,15 +138,17 @@ namespace LogUtils.Formatting
                     //Handle color reset
                     currentBuildEntry.Current = new FormatData()
                     {
-                        Position = currentBuildEntry.LastCheckedBuildLength + positionOffset
+                        BuildOffset = positionOffset,
+                        LocalPosition = currentBuildEntry.LastCheckedBuildLength
                     };
-                    provider.ResetColor(currentBuilder);
+                    provider.ResetColor(currentBuilder, currentBuildEntry.Current);
                 }
 
                 //This will replace the last FormatData instance with the current one - this is by design
                 currentBuildEntry.Current = new FormatData()
                 {
-                    Position = positionInString
+                    BuildOffset = positionOffset,
+                    LocalPosition = currentBuilder.Length
                 };
             }
         }

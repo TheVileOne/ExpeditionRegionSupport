@@ -17,6 +17,6 @@ namespace LogUtils.Formatting
         /// <summary>
         /// Resets the text color back to a default value
         /// </summary>
-        void ResetColor(StringBuilder builder);
+        void ResetColor(StringBuilder builder, FormatData data);
     }
 }

@@ -22,9 +22,19 @@ namespace LogUtils.Formatting
         public bool IsColorData => Argument is Color;
 
         /// <summary>
-        /// The index of the first character of the format placeholder in the format string
+        /// The positional offset between the local build position, and the actual position in the formatted string
         /// </summary>
-        public int Position;
+        public int BuildOffset;
+
+        /// <summary>
+        /// The index position in the local StringBuilder handling the format data
+        /// </summary>
+        public int LocalPosition;
+
+        /// <summary>
+        /// The index position of the format argument in the formatted string
+        /// </summary>
+        public int Position => LocalPosition + BuildOffset;
 
         /// <summary>
         /// The number of valid chars to apply color formatting
