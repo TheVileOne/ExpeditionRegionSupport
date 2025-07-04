@@ -48,7 +48,7 @@ namespace LogUtils.Formatting
         /// <inheritdoc/>
         public void ResetColor(StringBuilder builder, FormatData data)
         {
-            UtilityLogger.DebugLog("COLORS RESET");
+            UtilityLogger.DebugLog("COLOR RESET");
         }
     }
 }

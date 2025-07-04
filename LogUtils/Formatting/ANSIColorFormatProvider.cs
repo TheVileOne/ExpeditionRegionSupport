@@ -50,8 +50,9 @@ namespace LogUtils.Formatting
         /// <inheritdoc/>
         public void ResetColor(StringBuilder builder, FormatData data)
         {
-            UtilityLogger.DebugLog("COLORS RESET");
-            builder.Append(AnsiColorConverter.AnsiReset);
+            UtilityLogger.DebugLog("COLOR RESET");
+            UtilityLogger.DebugLog($"Inserting reset code at index {data.LocalPosition} - Actual position {data.Position}");
+            builder.Insert(data.LocalPosition, AnsiColorConverter.AnsiReset);
         }
     }
 }

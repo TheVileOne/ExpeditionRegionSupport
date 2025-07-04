@@ -158,7 +158,7 @@ namespace LogUtils.Formatting
 
                     if (RangeCounter == 0)
                     {
-                        currentBuildEntry.LastCheckedBuildLength = i;
+                        currentBuildEntry.LastCheckedBuildLength = i + 1; //Adhere to an index + 1 standard
                         break;
                     }
                 }
