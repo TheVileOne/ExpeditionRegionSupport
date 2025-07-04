@@ -79,7 +79,7 @@ namespace LogUtils.Formatting
             /// </summary>
             public bool ExpectAnsiCode;
 
-            public void AddNodeEntry(StringBuilder builder)
+            public void SetEntry(StringBuilder builder)
             {
                 NodeData data = new NodeData()
                 {
@@ -88,15 +88,47 @@ namespace LogUtils.Formatting
                 Entries.AddLast(new LinkedListNode<NodeData>(data));
             }
 
-            public void RemoveLastNodeEntry()
+            public void EntryComplete(IColorFormatProvider provider)
             {
+                LinkedListNode<NodeData> currentNode = Entries.Last;
+                NodeData currentBuildEntry = currentNode.Value;
+
+                if (UpdateBuildLength())
+                {
+                    //Handle color reset
+                    currentBuildEntry.Current = new FormatData()
+                    {
+                        BuildOffset = currentNode.GetBuildOffset(),
+                        LocalPosition = currentBuildEntry.LastCheckedBuildLength
+                    };
+                    provider.ResetColor(currentBuildEntry.Builder, currentBuildEntry.Current);
+                }
+
+                int lastBuildLength = currentBuildEntry.LastCheckedBuildLength = currentBuildEntry.Builder.Length;
                 Entries.RemoveLast();
+
+                //Check whether there are still active entries before clearing CWT state
+                currentNode = Entries.Last;
+                if (currentNode != null)
+                {
+                    currentNode.Value.LastCheckedBuildLength += lastBuildLength;
+                    return;
+                }
+                Clear();
+            }
+
+            /// <summary>
+            /// Set data fields back to default values
+            /// </summary>
+            public void Clear()
+            {
+                Entries.Clear();
+                RangeCounter = 0;
+                BypassColorCancellation = ExpectAnsiCode = false;
             }
 
             public bool UpdateBuildLength()
             {
-                UtilityLogger.DebugLog("Updating");
-
                 LinkedListNode<NodeData> currentNode = Entries.Last;
 
                 NodeData currentBuildEntry = currentNode.Value;

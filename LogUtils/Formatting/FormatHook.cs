@@ -36,41 +36,16 @@ namespace LogUtils.Formatting
             if (formatter == null)
                 return orig(self, provider, format, args);
 
-            UtilityLogger.DebugLog("New entry");
             var data = formatter.GetData();
-            data.AddNodeEntry(self);
-
-            if (data.RangeCounter > 0)
-                UtilityLogger.DebugLog($"Expecting {data.RangeCounter} more characters");
 
             try
             {
+                data.SetEntry(self);
                 return orig(self, provider, format, args);
             }
             finally
             {
-                UtilityLogger.DebugLog("Finally");
-                LinkedListNode<NodeData> currentNode = data.Entries.Last;
-                NodeData currentBuildEntry = currentNode.Value;
-
-                if (data.UpdateBuildLength())
-                {
-                    //Handle color reset
-                    currentBuildEntry.Current = new FormatData()
-                    {
-                        BuildOffset = currentNode.GetBuildOffset(),
-                        LocalPosition = currentBuildEntry.LastCheckedBuildLength
-                    };
-                    formatter.ResetColor(self, currentBuildEntry.Current);
-                }
-
-                int lastBuildLength = currentBuildEntry.LastCheckedBuildLength = currentBuildEntry.Builder.Length;
-                data.RemoveLastNodeEntry();
-
-                currentNode = data.Entries.Last;
-                if (currentNode != null)
-                    currentNode.Value.LastCheckedBuildLength += lastBuildLength;
-
+                data.EntryComplete(formatter);
             }
         }
 
@@ -117,7 +92,6 @@ namespace LogUtils.Formatting
 
             if (provider != null)
             {
-                UtilityLogger.DebugLog("Placeholder start");
                 var data = provider.GetData();
 
                 LinkedListNode<NodeData> currentNode = data.Entries.Last;
