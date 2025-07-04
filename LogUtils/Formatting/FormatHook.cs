@@ -172,6 +172,7 @@ namespace LogUtils.Formatting
 
                     currentEntry.Range = commaValue;
                     data.RangeCounter = Math.Max(currentEntry.Range, 0);
+                    data.BypassColorCancellation = true; //When ANSI color codes are applied for the first time, it will cancel the range check if we don't set this bypass flag
                     return currentEntry;
                 }
             }

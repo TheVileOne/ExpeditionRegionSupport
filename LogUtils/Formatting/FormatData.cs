@@ -61,6 +61,11 @@ namespace LogUtils.Formatting
             public int RangeCounter;
 
             /// <summary>
+            /// Allows color range check to not be reset when an ANSI color code is detected
+            /// </summary>
+            public bool BypassColorCancellation;
+
+            /// <summary>
             /// Ansi color code escape sequence has been detected. Flag ensures that the code itself isn't considered as including colorable characters
             /// </summary>
             public bool ExpectAnsiCode;
@@ -95,9 +100,12 @@ namespace LogUtils.Formatting
                 //We are not expecting there to be format information in the string here
                 if (!ExpectAnsiCode && (RangeCounter == 0 || numCharsSinceLastArgument == 0))
                 {
-                    string unprocessedBuildString = currentBuilder.ToString().Substring(currentBuilder.Length - numCharsSinceLastArgument);
+                    if (numCharsSinceLastArgument > 0)
+                    {
+                        string unprocessedBuildString = currentBuilder.ToString().Substring(currentBuilder.Length - numCharsSinceLastArgument);
 
-                    UtilityLogger.DebugLog($"'{unprocessedBuildString}' will remain at the last assigned color");
+                        UtilityLogger.DebugLog($"'{unprocessedBuildString}' will remain at the last assigned color");
+                    }
                     currentBuildEntry.LastCheckedBuildLength = currentBuilder.Length;
                     return false;
                 }
@@ -111,7 +119,9 @@ namespace LogUtils.Formatting
                     {
                         UtilityLogger.DebugLog("ANSI code encountered");
                         ansiTerminatorDetected = false; //Reset in case there are multiple codes in the build string
-                        RangeCounter = 0;
+
+                        if (!BypassColorCancellation)
+                            RangeCounter = 0;
                         ExpectAnsiCode = true;
                         continue;
                     }
@@ -125,6 +135,10 @@ namespace LogUtils.Formatting
                             {
                                 UtilityLogger.DebugLog("ANSI code terminated");
                                 ansiTerminatorDetected = true;
+
+                                //We have been signaled to skip over this ANSI code - any chars after the terminator may applied towards the range counter
+                                if (BypassColorCancellation)
+                                    ansiTerminatorDetected = ExpectAnsiCode = BypassColorCancellation = false;
                             }
                         }
                         else //Show build characters that are after an ANSI code, but not the code itself
