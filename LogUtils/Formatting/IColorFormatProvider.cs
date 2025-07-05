@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using UnityEngine;
 
 namespace LogUtils.Formatting
 {
@@ -17,5 +18,10 @@ namespace LogUtils.Formatting
         /// Resets the text color back to a default value
         /// </summary>
         void ResetColor(StringBuilder builder, FormatData data);
+
+        /// <summary>
+        /// The color that will be used as the default text color for handled messages
+        /// </summary>
+        Color DefaultMessageColor { get; set; }
     }
 }

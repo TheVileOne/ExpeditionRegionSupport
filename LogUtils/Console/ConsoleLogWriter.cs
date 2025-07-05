@@ -73,19 +73,28 @@ namespace LogUtils.Console
 
         protected virtual void SendToConsole(LogRequestEventArgs messageData, Color messageColor)
         {
-            string message = ApplyRules(messageData);
-
-
-            if (LogConsole.ANSIColorSupport)
+            Color lastDefaultColor = Formatter.ColorFormatter.DefaultMessageColor;
+            try
             {
-                message = Formatter.ApplyColor(message, messageColor);
-                Stream.WriteLine(message);
+                Formatter.ColorFormatter.DefaultMessageColor = messageColor;
+                string message = ApplyRules(messageData);
+
+
+                if (LogConsole.ANSIColorSupport)
+                {
+                    message = Formatter.ApplyColor(message, messageColor);
+                    Stream.WriteLine(message);
+                }
+                else
+                {
+                    LogConsole.SetConsoleColor(ConsoleColorMap.ClosestConsoleColor(messageColor));
+                    Stream.WriteLine(message);
+                    LogConsole.SetConsoleColor(ConsoleColorMap.DefaultConsoleColor);
+                }
             }
-            else
+            finally
             {
-                LogConsole.SetConsoleColor(ConsoleColorMap.ClosestConsoleColor(messageColor));
-                Stream.WriteLine(message);
-                LogConsole.SetConsoleColor(ConsoleColorMap.DefaultConsoleColor);
+                Formatter.ColorFormatter.DefaultMessageColor = lastDefaultColor;
             }
         }
 

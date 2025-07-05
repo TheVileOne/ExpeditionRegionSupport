@@ -10,6 +10,9 @@ namespace LogUtils.Formatting
     /// </summary>
     public class AnsiColorFormatProvider : IColorFormatProvider
     {
+        /// <inheritdoc/>
+        public Color DefaultMessageColor { get; set; }
+
         public string ApplyFormat(string message, Color messageColor)
         {
             if (!LogConsole.ANSIColorSupport)
@@ -57,7 +60,7 @@ namespace LogUtils.Formatting
 
             if (!LogConsole.ANSIColorSupport)
                 return;
-            builder.Insert(data.LocalPosition, AnsiColorConverter.AnsiReset);
+            builder.Insert(data.LocalPosition, AnsiColorConverter.AnsiToForeground(DefaultMessageColor));
         }
     }
 }

@@ -1,5 +1,7 @@
-﻿using System;
+﻿using LogUtils.Console;
+using System;
 using System.Text;
+using UnityEngine;
 
 namespace LogUtils.Formatting
 {
@@ -9,11 +11,16 @@ namespace LogUtils.Formatting
     public class EmptyColorFormatProvider : IColorFormatProvider
     {
         /// <inheritdoc/>
+        public Color DefaultMessageColor { get; set; }
+
+        /// <inheritdoc/>
         public string ApplyFormat(string message, Color messageColor)
         {
             return message;
         }
 
+        /// <inheritdoc/>
+        public virtual string Format(string format, object arg, IFormatProvider formatProvider)
         {
             if (arg == null)
                 return string.Empty;
