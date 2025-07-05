@@ -10,6 +10,13 @@ namespace LogUtils.Formatting
     /// </summary>
     public class AnsiColorFormatProvider : IColorFormatProvider
     {
+        public string ApplyFormat(string message, Color messageColor)
+        {
+            if (!LogConsole.ANSIColorSupport)
+                return message;
+            return AnsiColorConverter.ApplyFormat(message, messageColor);
+        }
+
         /// <inheritdoc/>
         public string Format(string format, object arg, IFormatProvider formatProvider)
         {
@@ -19,7 +26,11 @@ namespace LogUtils.Formatting
             FormatData formatData = arg as FormatData;
 
             if (formatData != null && formatData.IsColorData)
+            {
+                if (!LogConsole.ANSIColorSupport)
+                    return string.Empty;
                 return AnsiColorConverter.AnsiToForeground((Color)formatData.Argument);
+            }
 
             IFormattable formattableArg = arg as IFormattable;
 
@@ -43,6 +54,9 @@ namespace LogUtils.Formatting
         {
             UtilityLogger.DebugLog("COLOR RESET");
             UtilityLogger.DebugLog($"Inserting reset code at index {data.LocalPosition} - Actual position {data.Position}");
+
+            if (!LogConsole.ANSIColorSupport)
+                return;
             builder.Insert(data.LocalPosition, AnsiColorConverter.AnsiReset);
         }
     }

@@ -62,13 +62,7 @@ namespace LogUtils.Formatting
         /// </summary>
         public virtual string ApplyColor(string message, Color messageColor)
         {
-            if (ColorFormatter is EmptyColorFormatProvider)
-                return message;
-
-            if (ColorFormatter is AnsiColorFormatProvider)
-                return AnsiColorConverter.ApplyFormat(message, messageColor);
-
-            return string.Format(ColorFormatter, "{0}{1}{2}", messageColor, message, ConsoleColorMap.DefaultColor);
+            return ColorFormatter.ApplyFormat(message, messageColor);
         }
     }
 }

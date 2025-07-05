@@ -9,7 +9,11 @@ namespace LogUtils.Formatting
     public class EmptyColorFormatProvider : IColorFormatProvider
     {
         /// <inheritdoc/>
-        public string Format(string format, object arg, IFormatProvider formatProvider)
+        public string ApplyFormat(string message, Color messageColor)
+        {
+            return message;
+        }
+
         {
             if (arg == null)
                 return string.Empty;

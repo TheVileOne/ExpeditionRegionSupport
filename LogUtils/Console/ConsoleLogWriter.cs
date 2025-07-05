@@ -66,14 +66,19 @@ namespace LogUtils.Console
             throw new NotImplementedException();
         }
 
-        protected virtual void SendToConsole(LogRequestEventArgs messageData)
+        protected void SendToConsole(LogRequestEventArgs messageData)
+        {
+            SendToConsole(messageData, messageData.Category.ConsoleColor);
+        }
+
+        protected virtual void SendToConsole(LogRequestEventArgs messageData, Color messageColor)
         {
             string message = ApplyRules(messageData);
-            Color messageColor = messageData.Category.ConsoleColor;
+
 
             if (LogConsole.ANSIColorSupport)
             {
-                message = AnsiColorConverter.ApplyFormat(message, messageColor);
+                message = Formatter.ApplyColor(message, messageColor);
                 Stream.WriteLine(message);
             }
             else
