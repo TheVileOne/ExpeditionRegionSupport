@@ -21,6 +21,9 @@ namespace LogUtils.Diagnostics
 
         public readonly bool Passed => Result.Passed;
 
+        /// <summary>
+        /// Indicates whether more processing is necessary to produce a condition result
+        /// </summary>
         public readonly bool ShouldProcess => Passed;
 
         public Condition()
@@ -48,8 +51,8 @@ namespace LogUtils.Diagnostics
 
         /// <summary>
         /// Indicates that the result should expicitly indicate the expected, or unexpected state, assuming passing as the expected state
-        /// <br>Currently is only effective when you use a handler that defers result processing such as using a DeferredAssertHandler</br>
         /// </summary>
+        /// <remarks>Only effective when you use a handler that defers result processing such as DeferredAssertHandler</remarks>
         public void ExpectPass()
         {
             Result.Expectation = Condition.State.Pass;
@@ -57,8 +60,8 @@ namespace LogUtils.Diagnostics
 
         /// <summary>
         /// Indicates that the result should expicitly indicate the expected, or unexpected state, assuming failing as the expected state
-        /// <br>Currently is only effective when you use a handler that defers result processing such as using a DeferredAssertHandler</br>
         /// </summary>
+        /// <remarks>Only effective when you use a handler that defers result processing such as DeferredAssertHandler</remarks>
         public void ExpectFail()
         {
             Result.Expectation = Condition.State.Fail;
@@ -81,8 +84,9 @@ namespace LogUtils.Diagnostics
     public static class Condition
     {
         /// <summary>
-        /// Asserts that the input value is true. Default handle behavior is to log a message when the asserted value is not true
+        /// Asserts that the input value is true
         /// </summary>
+        /// <remarks>Default handle behavior is to log a message when the asserted value is not true</remarks>
         /// <param name="condition">The condition to evaluate</param>
         /// <returns>true, when the condition is true, otherwise false</returns>
         public static Condition<bool> Assert(bool condition)
@@ -90,31 +94,26 @@ namespace LogUtils.Diagnostics
             return Diagnostics.Assert.That(condition).IsTrue();
         }
 
-        /// <summary>
-        /// Asserts that the input value is true. Default handle behavior is to log a message when the asserted value is not true
-        /// </summary>
+        /// <inheritdoc cref="Assert(bool)"/>
         /// <param name="condition">The condition to evaluate</param>
         /// <param name="behavior">The expected behavior of the assert</param>
-        /// <returns>true, when the condition is true, otherwise false</returns>
         public static Condition<bool> Assert(bool condition, AssertBehavior behavior)
         {
             return Diagnostics.Assert.That(condition, behavior).IsTrue();
         }
 
-        /// <summary>
-        /// Asserts that the input value is true. Default handle behavior is to log a message when the asserted value is not true
-        /// </summary>
+        /// <inheritdoc cref="Assert(bool)"/>
         /// <param name="condition">The condition to evaluate</param>
         /// <param name="handler">The exclusive handler to receive the assert result</param>
-        /// <returns>true, when the condition is true, otherwise false</returns>
         public static Condition<bool> Assert(bool condition, IConditionHandler handler)
         {
             return Diagnostics.Assert.That(condition, handler).IsTrue();
         }
 
         /// <summary>
-        /// Asserts that the input value is false. Default handle behavior is to log a message when the asserted value is true
+        /// Asserts that the input value is false
         /// </summary>
+        /// <remarks>Default handle behavior is to log a message when the asserted value is true</remarks>
         /// <param name="condition">The condition to evaluate</param>
         /// <returns>true, when the condition is false, otherwise false</returns>
         public static Condition<bool> AssertFalse(bool condition)
@@ -122,23 +121,17 @@ namespace LogUtils.Diagnostics
             return Diagnostics.Assert.That(condition).IsFalse();
         }
 
-        /// <summary>
-        /// Asserts that the input value is false. Default handle behavior is to log a message when the asserted value is true
-        /// </summary>
+        /// <inheritdoc cref="AssertFalse(bool)"/>
         /// <param name="condition">The condition to evaluate</param>
         /// <param name="behavior">The expected behavior of the assert</param>
-        /// <returns>true, when the condition is false, otherwise false</returns>
         public static Condition<bool> AssertFalse(bool condition, AssertBehavior behavior)
         {
             return Diagnostics.Assert.That(condition, behavior).IsFalse();
         }
 
-        /// <summary>
-        /// Asserts that the input value is false. Default handle behavior is to log a message when the asserted value is true
-        /// </summary>
+        /// <inheritdoc cref="AssertFalse(bool)"/>
         /// <param name="condition">The condition to evaluate</param>
         /// <param name="handler">The exclusive handler to receive the assert result</param>
-        /// <returns>true, when the condition is false, otherwise false</returns>
         public static Condition<bool> AssertFalse(bool condition, IConditionHandler handler)
         {
             return Diagnostics.Assert.That(condition, handler).IsFalse();
@@ -173,9 +166,7 @@ namespace LogUtils.Diagnostics
                 Descriptors = Array.Empty<string>();
             }
 
-            /// <summary>
-            /// Constructs a response message
-            /// </summary>
+            /// <inheritdoc cref="Message(string)"/>
             /// <param name="message">The raw unformatted message string</param>
             /// <param name="formatValues">Values to use for formatting the raw string</param>
             public Message(string message, params string[] formatValues)
@@ -316,6 +307,9 @@ namespace LogUtils.Diagnostics
                 return !IsUnexpected;
             }
 
+            /// <summary>
+            /// Gets the result string
+            /// </summary>
             public override string ToString()
             {
                 string resultMessage = Message.ToString();

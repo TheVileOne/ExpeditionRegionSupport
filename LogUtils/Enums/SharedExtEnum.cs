@@ -19,7 +19,7 @@ namespace LogUtils.Enums
         }
 
         /// <summary>
-        /// Accessing underlying Index position without checking ManagedReference index (useful during the resitration process and values are being synced)
+        /// The underlying ExtEnum value index (used during the registration process when values are being synced)
         /// </summary>
         public int BaseIndex => base.Index;
 
@@ -27,7 +27,13 @@ namespace LogUtils.Enums
         /// A null-safe reference to the SharedExtEnum that any mod can access
         /// </summary>
         public T ManagedReference;
+
+        /// <summary>
+        /// The managed reference associated with this ExtEnum instance has been assigned a valid ExtEnum value index
+        /// </summary>
         public bool Registered => Index >= 0;
+
+        /// <inheritdoc/>
         public string Tag
         {
             get
@@ -47,9 +53,7 @@ namespace LogUtils.Enums
             protected set => base.value = value;
         }
 
-        /// <summary>
-        /// An identifying string assigned to each ExtEnum
-        /// </summary>
+        /// <inheritdoc cref="Value"/>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Naming convention of a dependency")]
         [Obsolete("This property is from the base class. Use Value instead.")]
         public new string value => base.value;
@@ -89,7 +93,6 @@ namespace LogUtils.Enums
         /// A static means of finding a registered instance, or creating a new instance if there are no registered instances
         /// </summary>
         /// <param name="value">Case insensitive value to compare with</param>
-        /// <param name="result">The instance created from the provided value</param>
         /// <exception cref="ArgumentException">The argument provided was not of a valid format</exception>
         /// <exception cref="ValueNotFoundException">A registered entry was not found with the given value</exception>
         public static T Parse(string value)
@@ -123,6 +126,9 @@ namespace LogUtils.Enums
             return result.Registered;
         }
 
+        /// <summary>
+        /// Registers the ExtEnum instance
+        /// </summary>
         public virtual void Register()
         {
             //The shared reference may already exist. Sync any value differences between the two references
@@ -152,16 +158,21 @@ namespace LogUtils.Enums
             }
         }
 
+        /// <summary>
+        /// Unregisters the ExtEnum instance
+        /// </summary>
         public new virtual void Unregister()
         {
             base.Unregister();
         }
 
+        /// <inheritdoc/>
         public virtual bool CheckTag(string tag)
         {
             return string.Equals(Value, tag, StringComparison.InvariantCultureIgnoreCase);
         }
 
+        /// <inheritdoc/>
         public int CompareTo(T value)
         {
             if (value == null)
@@ -170,6 +181,7 @@ namespace LogUtils.Enums
             return Index - value.Index;
         }
 
+        /// <inheritdoc/>
         public new int CompareTo(object value)
         {
             if (value == null)
@@ -242,10 +254,8 @@ namespace LogUtils.Enums
         }
     }
 
-    public class ValueNotFoundException : Exception
-    {
-        public ValueNotFoundException(string message) : base(message)
-        {
-        }
-    }
+    /// <summary>
+    /// Represents an ExtEnum parsing error
+    /// </summary>
+    public class ValueNotFoundException(string message) : Exception(message);
 }

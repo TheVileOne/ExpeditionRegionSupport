@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 namespace LogUtils
 {
+    /// <summary>
+    /// Provides a means for mods to listen for log backup opportunity signals
+    /// </summary>
     public static class BackupListener
     {
         private static List<EventRecord> records = new List<EventRecord>();
@@ -29,7 +32,7 @@ namespace LogUtils
             }
         }
 
-        public static void OnTempFileCreated(LogID logFile)
+        internal static void OnTempFileCreated(LogID logFile)
         {
             //Check for an existing backup record - only one record should be stored per log file
             int index = records.FindIndex(r => r.LogFile.Equals(logFile));

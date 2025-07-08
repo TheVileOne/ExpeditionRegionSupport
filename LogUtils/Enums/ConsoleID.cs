@@ -4,6 +4,7 @@ namespace LogUtils.Enums
 {
     public class ConsoleID : SharedExtEnum<ConsoleID>, ILogTarget
     {
+        /// <inheritdoc/>
         public bool IsEnabled => true;
 
         public ConsoleID(string value, bool register = false) : base(value, register)

@@ -29,6 +29,7 @@ namespace LogUtils
             collectionBase.AddRange(collection);
         }
 
+        /// <inheritdoc/>
         public IEnumerator<T> GetEnumerator()
         {
             var enumerator = InnerEnumerable.GetEnumerator();
@@ -59,6 +60,7 @@ namespace LogUtils
             return GetEnumerator();
         }
 
+        /// <inheritdoc cref="ICollection{T}.Add(T)"/>
         public WeakReference<T> Add(T item)
         {
             return InnerEnumerable.Add(item);
@@ -72,6 +74,7 @@ namespace LogUtils
             return this.Where(predicate).ToList();
         }
 
+        /// <inheritdoc cref="ICollection{T}.Remove(T)"/>
         public bool Remove(T item)
         {
             return InnerEnumerable.Remove(item);

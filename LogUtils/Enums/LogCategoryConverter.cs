@@ -10,11 +10,9 @@ namespace LogUtils.Enums
     {
         /// <summary>
         /// The bit-oriented value position of an enum value (LogLevel or LogType) reserved for custom conversions of LogCategory values
-        /// <br>
-        /// Value must be compliant with BepInEx.LogType, which assigns a max value of 63.
-        /// This value must be at least 64 or greater for compatibility purposes
-        /// </br>
         /// </summary>
+        /// <remarks>Value must be compliant with BepInEx.LogType, which assigns a max value of 63.
+        /// This value must be at least 64 or greater for compatibility purposes</remarks>
         public const short CONVERSION_OFFSET = 256;
 
         /// <summary>

@@ -1,6 +1,7 @@
 ﻿using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.Extensions;
 
+#pragma warning disable CS1591 //Missing XML comment for publicly visible type or member
 namespace LogUtils
 {
     public static class UtilityConsts
@@ -77,7 +78,7 @@ namespace LogUtils
                         return true;
                     default:
                         return false;
-                };
+                }
             }
 
             static DataFields()
@@ -212,3 +213,4 @@ namespace LogUtils
         }
     }
 }
+#pragma warning restore CS1591 //Missing XML comment for publicly visible type or member

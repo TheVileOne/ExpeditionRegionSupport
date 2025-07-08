@@ -247,7 +247,7 @@ namespace LogUtils.Threading
         }
 
         private static bool timerStarted = timerUpdate != null;
-        private static Action timerUpdate; 
+        private static Action timerUpdate;
 
         public static void StartTimingFrames()
         {

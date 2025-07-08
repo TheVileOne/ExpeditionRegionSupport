@@ -20,9 +20,8 @@ namespace LogUtils.Events
 
         public ConsoleLogWriter Writer;
 
-        /// <summary>
-        /// The message format rules associated with this message data. Null when a writer isn't currently assigned
-        /// </summary>
+        /// <inheritdoc cref="ConsoleLogWriter.Rules"/>
+        /// <remarks>Null when a writer isn't currently assigned</remarks>
         public LogRuleCollection Rules => Writer?.Rules;
 
         public uint TotalMessagesLogged;

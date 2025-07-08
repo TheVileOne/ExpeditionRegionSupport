@@ -29,7 +29,7 @@ namespace LogUtils.Console
         public bool IsEnabled;
 
         /// <summary>
-        /// The message format rules associated with this writer
+        /// Collection of associated message format rules
         /// </summary>
         public LogRuleCollection Rules = new LogRuleCollection();
 
@@ -56,11 +56,13 @@ namespace LogUtils.Console
             IsEnabled = Stream != null;
         }
 
+        /// <inheritdoc/>
         public string ApplyRules(LogRequestEventArgs messageData)
         {
             return Formatter.Format(messageData);
         }
 
+        /// <inheritdoc/>
         public void SendToBuffer(LogRequestEventArgs messageData)
         {
             throw new NotImplementedException();
@@ -78,7 +80,6 @@ namespace LogUtils.Console
             {
                 Formatter.ColorFormatter.DefaultMessageColor = messageColor;
                 string message = ApplyRules(messageData);
-
 
                 if (LogConsole.ANSIColorSupport)
                 {
@@ -98,6 +99,7 @@ namespace LogUtils.Console
             }
         }
 
+        /// <inheritdoc/>
         public void WriteFrom(LogRequest request)
         {
             ConsoleRequestEventArgs consoleMessageData = null;
@@ -140,6 +142,7 @@ namespace LogUtils.Console
             }
         }
 
+        /// <inheritdoc/>
         public void WriteFromBuffer(LogID logFile, TimeSpan waitTime, bool respectBufferState = true)
         {
             throw new NotImplementedException();

@@ -46,6 +46,10 @@ namespace LogUtils.Enums
         }
     }
 
+#pragma warning disable CS1591 //Missing XML comment for publicly visible type or member
+    /// <summary>
+    /// A slightly modified set of values based on BepInEx.Logging.LogLevel
+    /// </summary>
     public enum LogGroup
     {
         None = 0,
@@ -59,4 +63,5 @@ namespace LogUtils.Enums
         Debug = 128,
         All = int.MaxValue
     }
+#pragma warning restore CS1591 //Missing XML comment for publicly visible type or member
 }

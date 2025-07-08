@@ -62,6 +62,7 @@ namespace LogUtils.Diagnostics.Tests.Components
             return instance;
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             NameEnumerator.Dispose();

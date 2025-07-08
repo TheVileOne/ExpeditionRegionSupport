@@ -262,8 +262,8 @@ namespace LogUtils.Properties
 
         /// <summary>
         /// Allows the filename, or file extension to be changed
-        /// <br>Note: This will not initiate a file move, or rename any file</br>
         /// </summary>
+        /// <remarks>This will not initiate a file move, or rename any file</remarks>
         /// <param name="newFilename">The new filename</param>
         /// <exception cref="ArgumentException">The filename is null, empty, or contains invalid characters</exception>
         public void ChangeFilename(string newFilename)
@@ -276,8 +276,8 @@ namespace LogUtils.Properties
 
         /// <summary>
         /// Allows the filepath (filename optional) to be changed
-        /// <br>Note: This will not initiate a file move, or rename any file</br>
         /// </summary>
+        /// <remarks>This will not initiate a file move, or rename any file</remarks>
         /// <param name="newPath">The new path</param>
         /// <exception cref="ArgumentException">The directory is null, empty, or contains invalid characters</exception>
         public void ChangePath(string newPath)

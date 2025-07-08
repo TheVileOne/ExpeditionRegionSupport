@@ -279,6 +279,7 @@ namespace LogUtils.Requests
             LogRequestEvents.OnStatusChange?.Invoke(this);
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return ToString(FormatEnums.FormatVerbosity.Standard);
@@ -309,6 +310,7 @@ namespace LogUtils.Requests
             return stringFormatter.ToString();
         }
 
+        /// <inheritdoc/>
         public object Clone()
         {
             return MemberwiseClone();

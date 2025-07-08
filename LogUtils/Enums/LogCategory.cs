@@ -19,6 +19,7 @@ namespace LogUtils.Enums
         /// </summary>
         public const LogType LOG_TYPE_DEFAULT = LogType.Log;
 
+#pragma warning disable IDE0055 //Fix formatting
         private LogLevel  _bepInExConversion = LOG_LEVEL_DEFAULT;
         private LogType   _unityConversion = LOG_TYPE_DEFAULT;
         private LogGroup  _defaultGroup = LogGroupMap.DefaultGroup;
@@ -26,6 +27,7 @@ namespace LogUtils.Enums
         private LogGroup? _userDefinedGroup;
         private LogGroup? _userDefinedColorGroup;
         private Color?    _userDefinedConsoleColor;
+#pragma warning restore IDE0055 //Fix formatting
 
         private bool conversionFieldsNeedUpdating;
         private bool defaultsNeedUpdating;
@@ -175,6 +177,7 @@ namespace LogUtils.Enums
             }
         }
 
+        /// <inheritdoc/>
         public override void Register()
         {
             //When a registration is applied, set a flag that allows conversion fields to be overwritten
@@ -214,6 +217,10 @@ namespace LogUtils.Enums
             defaultsNeedUpdating = false;
         }
 
+        /// <summary>
+        /// Determines if the logging context is general purpose, or targets an exception
+        /// </summary>
+        /// <returns>The proper LogID for the provided logging context</returns>
         public static LogID GetUnityLogID(LogType logType)
         {
             return !IsErrorCategory(logType) ? LogID.Unity : LogID.Exception;
@@ -291,24 +298,27 @@ namespace LogUtils.Enums
             UtilityCore.EnsureInitializedState();
         }
 
+#pragma warning disable IDE0055 //Fix formatting
         internal static void InitializeEnums()
         {
             //Registration order reflects the importance of the message category (errors being most important, and debug messages being least important)
-            None = new LogCategory("None", LogLevel.None, null);
-            Fatal = new LogCategory("Fatal", LogLevel.Fatal, LogType.Error);
-            Error = new LogCategory("Error", LogLevel.Error, LogType.Error);
-            Warning = new LogCategory("Warning", LogLevel.Warning, LogType.Warning);
-            Assert = new LogCategory("Assert", null, LogType.Assert);
+            None      = new LogCategory("None",      LogLevel.None, null);
+            Fatal     = new LogCategory("Fatal",     LogLevel.Fatal, LogType.Error);
+            Error     = new LogCategory("Error",     LogLevel.Error, LogType.Error);
+            Warning   = new LogCategory("Warning",   LogLevel.Warning, LogType.Warning);
+            Assert    = new LogCategory("Assert",    null, LogType.Assert);
             Important = new LogCategory("Important", null, null);
-            Message = new LogCategory("Message", LogLevel.Message, LogType.Log);
-            Info = new LogCategory("Info", LogLevel.Info, LogType.Log);
-            Debug = new LogCategory("Debug", LogLevel.Debug, null);
-            All = new LogCategory("All", LogLevel.All, null);
+            Message   = new LogCategory("Message",   LogLevel.Message, LogType.Log);
+            Info      = new LogCategory("Info",      LogLevel.Info, LogType.Log);
+            Debug     = new LogCategory("Debug",     LogLevel.Debug, null);
+            All       = new LogCategory("All",       LogLevel.All, null);
 
             ErrorFlags = Error | Fatal; //TODO: Include Exception
             Default = Info;
         }
+#pragma warning restore IDE0055 //Fix formatting
 
+#pragma warning disable CS1591 //Missing XML comment for publicly visible type or member
         public static LogCategory All;
         public static LogCategory None;
         public static LogCategory Assert;
@@ -322,5 +332,6 @@ namespace LogUtils.Enums
 
         public static CompositeLogCategory ErrorFlags;
         public static LogCategory Default;
+#pragma warning restore CS1591 //Missing XML comment for publicly visible type or member
     }
 }

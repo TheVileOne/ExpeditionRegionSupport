@@ -173,10 +173,8 @@ namespace LogUtils.Enums
 
         /// <summary>
         /// Finds a registered LogID with the given filename, and path
-        /// <br>
-        /// Compares ID, Filename, and CurrentFilename fields
-        /// </br>
         /// </summary>
+        /// <remarks>Compares ID, Filename, and CurrentFilename fields</remarks>
         /// <param name="filename">The filename to search for</param>
         /// <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
         public static LogID Find(string filename, string relativePathNoFile = null)
@@ -206,10 +204,8 @@ namespace LogUtils.Enums
 
         /// <summary>
         /// Finds all registered LogID with the given filename
-        /// <br>
-        /// Compares ID, Filename, and CurrentFilename fields
-        /// </br>
         /// </summary>
+        /// <remarks>Compares ID, Filename, and CurrentFilename fields</remarks>
         /// <param name="filename">The filename to search for</param>
         public static IEnumerable<LogID> FindAll(string filename)
         {
@@ -251,6 +247,7 @@ namespace LogUtils.Enums
             return Find(filename, relativePathNoFile) != null;
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             if (Properties != null)
@@ -266,12 +263,14 @@ namespace LogUtils.Enums
             //This must be called after FileActivity LogID is created
             DebugPolicy.UpdateAllowConditions();
 
+#pragma warning disable IDE0055 //Fix formatting
             //Game-defined LogIDs
             BepInEx    = new LogID(null, UtilityConsts.LogNames.BepInEx,    FileExt.LOG,  BepInExPath.RootPath, true);
             Exception  = new LogID(null, UtilityConsts.LogNames.Exception,  FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
             Expedition = new LogID(null, UtilityConsts.LogNames.Expedition, FileExt.TEXT, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
             JollyCoop  = new LogID(null, UtilityConsts.LogNames.JollyCoop,  FileExt.TEXT, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
             Unity      = new LogID(null, UtilityConsts.LogNames.Unity,      FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
+#pragma warning restore IDE0055 //Fix formatting
 
             //Throwaway LogID
             NotUsed = new LogID("NotUsed", UtilityConsts.PathKeywords.ROOT, LogAccess.Private, false);
@@ -329,7 +328,7 @@ namespace LogUtils.Enums
                 return RequestType.Game;
 
             LogID handlerID = handler.FindEquivalentTarget(this);
-            
+
             //Check whether LogID should be handled as a local request, or an outgoing (remote) request. Not being recognized by the handler means that
             //the handler is processing a target specifically made through one of the logging method overloads
             return handlerID != null && handlerID.HasLocalAccess ? RequestType.Local : RequestType.Remote;
@@ -340,16 +339,19 @@ namespace LogUtils.Enums
             UtilityCore.EnsureInitializedState();
         }
 
+#pragma warning disable CS1591 //Missing XML comment for publicly visible type or member
+        //Rain World LogIDs
         public static LogID BepInEx;
         public static LogID Exception;
         public static LogID Expedition;
-        internal static LogID FileActivity;
         public static LogID JollyCoop;
-        /// <summary>
-        /// An unregistered LogID designed to be used as a throwaway parameter
-        /// </summary>
-        public static LogID NotUsed;
         public static LogID Unity;
+
+        //LogUtils LogIDs
+        internal static LogID FileActivity;
+        /// <summary>An unregistered LogID designed to be used as a throwaway parameter</summary>
+        public static LogID NotUsed;
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         public static CompositeLogTarget operator |(LogID a, ILogTarget b)
         {
@@ -357,10 +359,22 @@ namespace LogUtils.Enums
         }
     }
 
+    /// <summary>
+    /// Logger permission values - Assign to a LogID provided to a logger to influence how messages are logged, and handled by that logger
+    /// </summary>
     public enum LogAccess
     {
-        FullAccess = 0, //LogID can be handled by either local, or remote loggers
-        RemoteAccessOnly = 1, //LogID cannot be handled by the same mod that makes the log request
-        Private = 2 //LogID can only be handled by the mod that registers it
+        /// <summary>
+        /// LogID can be handled by either local, or remote loggers
+        /// </summary>
+        FullAccess = 0,
+        /// <summary>
+        /// LogID is only able to be handled as a remote request from one logger to another
+        /// </summary>
+        RemoteAccessOnly = 1,
+        /// <summary>
+        /// LogID can only be handled through a local log request
+        /// </summary>
+        Private = 2
     }
 }

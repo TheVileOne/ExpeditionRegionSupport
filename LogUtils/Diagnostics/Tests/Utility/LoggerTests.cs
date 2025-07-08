@@ -57,7 +57,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             //Non-empty string test
             logger.Log(TestInput.Strings.FULL);
             resultFromFullString = testWriter.LatestRequest;
-            
+
             //Empty string test
             logger.Log(TestInput.Strings.EMPTY);
             resultFromEmptyString = testWriter.LatestRequest;
@@ -65,7 +65,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             //Null test
             logger.Log(TestInput.Strings.NULL);
             resultFromNullParam = testWriter.LatestRequest;
-            
+
             //Object test
             logger.Log(TestInput.OBJECT);
             resultFromObjectParam = testWriter.LatestRequest;

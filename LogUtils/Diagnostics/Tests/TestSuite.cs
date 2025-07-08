@@ -36,14 +36,22 @@ namespace LogUtils.Diagnostics.Tests
         /// </summary>
         protected int Size;
 
+        /// <inheritdoc/>
         public int Count => Size;
 
+        /// <inheritdoc/>
         public bool IsReadOnly => false;
 
+        /// <summary>
+        /// Constructs a new TestSuite instance
+        /// </summary>
         public TestSuite()
         {
         }
 
+        /// <summary>
+        /// Constructs a new TestSuite instance with a specified default capacity
+        /// </summary>
         public TestSuite(int capacity)
         {
             EnsureCapacity(capacity);
@@ -67,7 +75,6 @@ namespace LogUtils.Diagnostics.Tests
         }
 
         #region Collection code
-
         /// <summary>
         /// Searches for all implementors of the ITestable interface in a given assembly, and adds an instance of the type to the test suite 
         /// </summary>
@@ -90,6 +97,7 @@ namespace LogUtils.Diagnostics.Tests
                 UtilityLogger.LogWarning("Could not load one, or more tests");
         }
 
+        /// <inheritdoc/>
         public void Add(ITestable item)
         {
             if (item == null)
@@ -108,6 +116,7 @@ namespace LogUtils.Diagnostics.Tests
             Size++;
         }
 
+        /// <inheritdoc/>
         public void Clear()
         {
             if (Size == 0) return;
@@ -115,11 +124,13 @@ namespace LogUtils.Diagnostics.Tests
             Array.Clear(InnerCollection, 0, Size);
         }
 
+        /// <inheritdoc/>
         public bool Contains(ITestable item)
         {
             return Size > 0 && Array.FindIndex(InnerCollection, 0, 0, i => i == item) != -1;
         }
 
+        /// <inheritdoc/>
         public void CopyTo(ITestable[] array, int arrayIndex)
         {
             if (Size == 0) return;
@@ -137,6 +148,7 @@ namespace LogUtils.Diagnostics.Tests
             Capacity = capacity;
         }
 
+        /// <inheritdoc/>
         public IEnumerator<ITestable> GetEnumerator()
         {
             if (Size == 0)
@@ -151,6 +163,7 @@ namespace LogUtils.Diagnostics.Tests
             return GetEnumerator();
         }
 
+        /// <inheritdoc/>
         public bool Remove(ITestable item)
         {
             if (item == null) return false;

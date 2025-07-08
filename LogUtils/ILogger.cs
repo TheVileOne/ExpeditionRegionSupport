@@ -3,26 +3,55 @@ using LogUtils.Enums;
 using LogUtils.Requests;
 using System.Collections.Generic;
 using UnityEngine;
+using LoggerDocs = LogUtils.Documentation.LoggerDocumentation;
 
 namespace LogUtils
 {
+    /// <summary>
+    /// Represents a type used to perform logging
+    /// </summary>
     public interface ILogger
     {
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(object)"/>
         void Log(object data);
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object)"/>
         void LogDebug(object data);
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object)"/>
         void LogInfo(object data);
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object)"/>
         void LogImportant(object data);
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object)"/>
         void LogMessage(object data);
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object)"/>
         void LogWarning(object data);
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogError(object)"/>
         void LogError(object data);
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object)"/>
         void LogFatal(object data);
 
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         void Log(LogType category, object data);
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         void Log(LogLevel category, object data);
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         void Log(string category, object data);
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         void Log(LogCategory category, object data);
     }
 
+    /// <summary>
+    /// Represents a type used to process logging requests
+    /// </summary>
     public interface ILogHandler : ILogFileHandler
     {
         /// <summary>
@@ -38,7 +67,7 @@ namespace LogUtils
         /// <summary>
         /// Does this handler register with the LogRequest system
         /// </summary>
-        bool AllowRegistration{ get; }
+        bool AllowRegistration { get; }
 
         /// <summary>
         /// Does this handler accept LogRequests of a specific log file and request type

@@ -9,6 +9,9 @@ using UnityEngine;
 
 namespace LogUtils.Helpers
 {
+    /// <summary>
+    /// Contains helper methods for basic file operations involving log files
+    /// </summary>
     public static class LogFile
     {
         /// <summary>
@@ -263,7 +266,7 @@ namespace LogUtils.Helpers
 
         public static ILogWriter FindWriter(LogID logFile)
         {
-             var writer = UtilityCore.RequestHandler.GameLogger.GetWriter(logFile);
+            var writer = UtilityCore.RequestHandler.GameLogger.GetWriter(logFile);
 
             if (writer == null)
             {

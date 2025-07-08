@@ -2,7 +2,7 @@
 
 namespace LogUtils.Events
 {
-    public class RegistrationChangedEventArgs: EventArgs
+    public class RegistrationChangedEventArgs : EventArgs
     {
         public readonly bool Current;
 

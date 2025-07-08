@@ -736,7 +736,7 @@ namespace ExpeditionRegionSupport.Regions
             }
             catch (IndexOutOfRangeException)
             {
-                Plugin.Logger.LogWarning($"Room name {roomName} is malformated");
+                Plugin.Logger.LogWarning($"Room name {roomName} is malformatted");
             }
             return roomInfo;
         }
@@ -836,7 +836,6 @@ namespace ExpeditionRegionSupport.Regions
         {
             return roomName.StartsWith("GATE");
         }
-
 
         #endregion
 

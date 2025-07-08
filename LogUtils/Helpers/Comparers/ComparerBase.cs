@@ -22,16 +22,19 @@ namespace LogUtils.Helpers.Comparers
             InnerEqualityComparer = (IEqualityComparer<T>)comparer;
         }
 
+        /// <inheritdoc/>
         public virtual int Compare(T obj, T objOther)
         {
             return InnerComparer.Compare(obj, objOther);
         }
 
+        /// <inheritdoc/>
         public virtual bool Equals(T obj, T objOther)
         {
             return InnerEqualityComparer.Equals(obj, objOther);
         }
 
+        /// <inheritdoc/>
         public virtual int GetHashCode(T obj)
         {
             return InnerEqualityComparer.GetHashCode(obj);

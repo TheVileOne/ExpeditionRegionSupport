@@ -40,9 +40,8 @@ namespace LogUtils.Diagnostics
 
         /// <summary>
         /// Handles all results
-        /// <br></br>
-        /// <br>When delegate returns true, result is handled normally, when false result is discarded</br>
         /// </summary>
+        /// <remarks>When delegate returns true, result is handled normally, when false result is discarded</remarks>
         public DeferredAssertHandler HandleAll(HandleCondition handleWhenTrue)
         {
             while (HasResults)
@@ -74,9 +73,8 @@ namespace LogUtils.Diagnostics
 
         /// <summary>
         /// Handles the currently enumerated result
-        /// <br></br>
-        /// <br>When delegate returns true, result is handled normally, when false result is discarded</br>
         /// </summary>
+        /// <remarks>When delegate returns true, result is handled normally, when false result is discarded</remarks>
         public DeferredAssertHandler HandleCurrent(HandleCondition handleWhenTrue)
         {
             if (HasResults)
@@ -87,7 +85,6 @@ namespace LogUtils.Diagnostics
         protected void InternalHandle()
         {
             base.Handle(Results.Dequeue());
-
         }
 
         protected void InternalHandle(HandleCondition handleWhenTrue)

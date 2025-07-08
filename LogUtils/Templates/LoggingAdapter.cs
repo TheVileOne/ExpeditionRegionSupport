@@ -26,9 +26,8 @@ namespace LogUtils.Templates
             {
                 UnsafeAccess();
 
-                /// <summary>
-                /// These represent the log files you want to target for logging
-                /// </summary>
+                //TODO: Show off composite targets?
+                //These represent the log files you want to target for logging
                 LogID[] myLogTargets = new LogID[] { LogID.BepInEx, LogID.Unity };
 
                 LogUtilsAdapter adapter = new LogUtilsAdapter()
@@ -66,7 +65,7 @@ namespace LogUtils.Templates
             {
                 return LogUtilsAccess.CreateLogger();
             }
-            catch //Exception caught will probably be a TypeLoadException
+            catch //Caught exception will probably be a TypeLoadException
             {
                 return new FallbackLogger();
             }

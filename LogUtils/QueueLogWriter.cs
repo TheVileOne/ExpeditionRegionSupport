@@ -63,6 +63,10 @@ namespace LogUtils
             LogCache.Enqueue(messageData);
         }
 
+        /// <summary>
+        /// Operation is not supported by this write implementation
+        /// </summary>
+        /// <exception cref="NotSupportedException"></exception>
         protected override void WriteToFile(LogRequest request)
         {
             throw new NotSupportedException();

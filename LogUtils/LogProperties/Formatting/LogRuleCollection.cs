@@ -182,16 +182,21 @@ namespace LogUtils.Properties.Formatting
             return Find(r => r.GetType() == type);
         }
 
+        /// <summary>
+        /// Determines whether the rule is part of the collection
+        /// </summary>
         public bool Contains(LogRule rule)
         {
             return InnerList.Contains(rule);
         }
 
+        /// <inheritdoc/>
         public IOrderedEnumerable<LogRule> CreateOrderedEnumerable<TKey>(Func<LogRule, TKey> keySelector, IComparer<TKey> comparer, bool descending)
         {
             return InnerEnumerable;
         }
 
+        /// <inheritdoc/>
         public IEnumerator<LogRule> GetEnumerator()
         {
             return InnerEnumerable.GetEnumerator();

@@ -5,6 +5,9 @@ namespace LogUtils.Compatibility.DotNet
 {
     public static class LoggerUtils
     {
+        /// <summary>
+        /// Converts a LogLevel enum to its LogCategory equivalent value
+        /// </summary>
         public static LogCategory GetEquivalentCategory(LogLevel category)
         {
             switch (category)

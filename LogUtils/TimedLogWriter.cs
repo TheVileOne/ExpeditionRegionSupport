@@ -91,6 +91,7 @@ namespace LogUtils
             });
         }
 
+        /// <inheritdoc/>
         protected override void WriteToFile(LogRequest request)
         {
             LogID logFile = request.Data.ID;
@@ -163,6 +164,7 @@ namespace LogUtils
             }
         }
 
+        /// <inheritdoc/>
         protected override ProcessResult AssignWriter(LogID logFile, out StreamWriter writer)
         {
             PersistentLogFileWriter localWriter = FindWriter(logFile);
@@ -289,6 +291,7 @@ namespace LogUtils
             IsDisposed = true;
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method

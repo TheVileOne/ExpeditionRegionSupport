@@ -1,6 +1,4 @@
-﻿using LogUtils.Requests;
-
-namespace LogUtils.Events
+﻿namespace LogUtils.Events
 {
     public static class LogRequestEvents
     {

@@ -7,7 +7,9 @@ namespace LogUtils.Enums
     {
         public string Value => string.Empty;
 
-        public bool IsEnabled => false; //Composite targets are never available to be handled
+        /// <inheritdoc/>
+        /// <remarks>Composite targets are never available to be handled</remarks>
+        public bool IsEnabled => false;
 
         internal static readonly HashSet<ILogTarget> EmptySet = new HashSet<ILogTarget>();
 

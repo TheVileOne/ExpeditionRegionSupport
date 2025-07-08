@@ -22,6 +22,7 @@ namespace LogUtils
             StackTrace = stackTrace ?? string.Empty;
         }
 
+        /// <inheritdoc/>
         public bool Equals(ExceptionInfo other)
         {
             return ExceptionComparer.DefaultComparer.Equals(this, other);
@@ -32,12 +33,14 @@ namespace LogUtils
             return comparer.Equals(this, other);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             string hashString = ExceptionMessage + StackTrace;
             return hashString.GetHashCode();
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             if (StackTrace == string.Empty)

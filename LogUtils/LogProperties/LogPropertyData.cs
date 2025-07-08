@@ -30,6 +30,7 @@ namespace LogUtils.Properties
             Processor = new LogPropertyDataProcessor(this);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             return LogProperties.CreateIDHash(GetID(), LogProperties.GetContainingPath(Fields[DataFields.ORIGINAL_PATH]));
@@ -80,6 +81,7 @@ namespace LogUtils.Properties
             Processor.Process();
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return GetWriteString(false);

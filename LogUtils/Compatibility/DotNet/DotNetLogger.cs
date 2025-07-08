@@ -6,6 +6,10 @@ using System.Threading;
 
 namespace LogUtils.Compatibility.DotNet
 {
+    /// <summary>
+    /// A logger type that implements Microsoft's ILogger interface 
+    /// </summary>
+    /// <remarks>Allows you to use Microsoft's logging interface in addition to existing Logger provided functions</remarks>
     public class DotNetLogger : Logger, Microsoft.Extensions.Logging.ILogger
     {
         /// <summary>
@@ -15,6 +19,10 @@ namespace LogUtils.Compatibility.DotNet
         {
         }
 
+        /// <summary>
+        /// Currently not implemented
+        /// </summary>
+        /// <exception cref="NotImplementedException"></exception>
         public IDisposable BeginScope<TState>(TState state) where TState : notnull
         {
             //TODO: Implement temporary Logger state

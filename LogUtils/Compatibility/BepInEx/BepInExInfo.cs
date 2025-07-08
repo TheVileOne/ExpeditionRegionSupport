@@ -11,6 +11,9 @@ using Logging = BepInEx.Logging.Logger;
 
 namespace LogUtils.Compatibility.BepInEx
 {
+    /// <summary>
+    /// Contains references to state controlled by BepInEx
+    /// </summary>
     public static class BepInExInfo
     {
         public static ICollection<ILogListener> Listeners => Logging.Listeners;
@@ -51,11 +54,17 @@ namespace LogUtils.Compatibility.BepInEx
             PluginInfos = Chainloader.PluginInfos.Values.OrderBy(p => p.Location).ToList();
         }
 
+        /// <summary>
+        /// Gets the plugin instance associated with the provided assembly
+        /// </summary>
         public static BaseUnityPlugin GetPlugin(Assembly assembly)
         {
             return GetPluginInfo(assembly)?.Instance;
         }
 
+        /// <summary>
+        /// Gets the PluginInfo instance associated with the provided assembly
+        /// </summary>
         public static PluginInfo GetPluginInfo(Assembly assembly)
         {
             if (assembly == null)
@@ -64,6 +73,9 @@ namespace LogUtils.Compatibility.BepInEx
             return PluginInfos.Find(p => p.Location == assembly.Location);
         }
 
+        /// <summary>
+        /// Gets the plugin metadata associated with the provided assembly
+        /// </summary>
         public static BepInPlugin GetPluginMetadata(Assembly assembly)
         {
             return GetPluginInfo(assembly)?.Metadata;

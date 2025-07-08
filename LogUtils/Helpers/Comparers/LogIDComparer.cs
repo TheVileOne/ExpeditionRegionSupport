@@ -18,6 +18,7 @@ namespace LogUtils.Helpers.Comparers
             CompareOptions = compareOptions;
         }
 
+        /// <inheritdoc/>
         public override int Compare(LogID id, LogID idOther)
         {
             if (id == null)

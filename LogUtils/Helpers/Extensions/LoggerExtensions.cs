@@ -20,6 +20,7 @@ namespace LogUtils.Helpers.Extensions
         /// <summary>
         /// Finds a list of all logger instances that accepts log requests for a specified LogID
         /// </summary>
+        /// <param name="handlers"></param>
         /// <param name="logFile">LogID to check</param>
         /// <param name="requestType">The request type expected</param>
         public static IEnumerable<ILogHandler> CompatibleWith(this IEnumerable<ILogHandler> handlers, LogID logFile, RequestType requestType)
@@ -93,6 +94,7 @@ namespace LogUtils.Helpers.Extensions
         /// <summary>
         /// Find a logger instance that accepts log requests for a specified LogID
         /// </summary>
+        /// <param name="handlers"></param>
         /// <param name="logFile">LogID to check</param>
         /// <param name="requestType">The request type expected</param>
         internal static ILogHandler FindCompatible(this IEnumerable<ILogHandler> handlers, LogID logFile, RequestType requestType)
@@ -197,6 +199,7 @@ namespace LogUtils.Helpers.Extensions
         /// <summary>
         /// Attempts to write content from the message buffer to file
         /// </summary>
+        /// <param name="writer"></param>
         /// <param name="logFile">The file that contains the message buffer</param>
         /// <param name="respectBufferState">When true no content will be written to file if MessageBuffer.IsBuffering property is set to true</param>
         public static void WriteFromBuffer(this ILogWriter writer, LogID logFile, bool respectBufferState = true)

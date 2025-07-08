@@ -2,7 +2,8 @@
 
 namespace LogUtils.Compatibility.BepInEx
 {
-    public interface IExtendedLogSource : ILogger, ILogSource
-    {
-    }
+    /// <summary>
+    /// Represents a type that implements both ILogger, and ILogSource
+    /// </summary>
+    public interface IExtendedLogSource : ILogger, ILogSource;
 }

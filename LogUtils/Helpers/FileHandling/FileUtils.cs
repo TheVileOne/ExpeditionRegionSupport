@@ -13,6 +13,9 @@ namespace LogUtils.Helpers.FileHandling
         /// </summary>
         public const string BRACKET_FORMAT = "{0}[{1}]{2}";
 
+        /// <summary>
+        /// Case insensitive file extensions that are supports by LogUtils for use in log filenames, or log backup filenames
+        /// </summary>
         public static string[] SupportedExtensions = { FileExt.LOG, FileExt.TEXT, FileExt.TEMP };
 
         public static void CreateTextFile(string filepath)

@@ -30,6 +30,7 @@ namespace LogUtils.Formatting
             return $"File {fileContext} {appendString}";
         }
 
+#pragma warning disable IDE0055 //Fix formatting
         private string getActivityString(FileAction activity)
         {
             return activity switch
@@ -48,5 +49,6 @@ namespace LogUtils.Formatting
                 _                         => "accessed",
             };
         }
+#pragma warning restore IDE0055 //Fix formatting
     }
 }

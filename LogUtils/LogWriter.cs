@@ -180,13 +180,7 @@ namespace LogUtils
             WriteFromBuffer(logFile, waitTime, respectBufferState);
         }
 
-        /// <summary>
-        /// Attempts to write content from the message buffer to file after a specified amount of time
-        /// <br>Wait behavior: Wait time will double on each failed attempt to write to file (up to a maximum of 5000 ms)</br>
-        /// </summary>
-        /// <param name="logFile">The file that contains the message buffer</param>
-        /// <param name="waitTime">The initial time to wait before writing to file (when set to zero,  write attempt will be immediate)</param>
-        /// <param name="respectBufferState">Allow the buffer state to determine when to make a write attempt</param>
+        /// <inheritdoc cref="IBufferHandler.WriteFromBuffer(LogID, TimeSpan, bool)"/>
         /// <returns>A handle to the scheduled write task</returns>
         public Task WriteFromBuffer(LogID logFile, TimeSpan waitTime, bool respectBufferState = true)
         {
@@ -391,6 +385,7 @@ namespace LogUtils
             return ProcessResult.Success;
         }
 
+        /// <inheritdoc/>
         public virtual string ApplyRules(LogRequestEventArgs messageData)
         {
             return Formatter.Format(messageData);
@@ -416,6 +411,7 @@ namespace LogUtils
             UtilityEvents.OnMessageReceived?.Invoke(messageData);
         }
 
+        /// <inheritdoc/>
         public void SendToBuffer(LogRequestEventArgs messageData)
         {
             LogID logFile = messageData.ID;
@@ -499,18 +495,16 @@ namespace LogUtils
     {
         /// <summary>
         /// Provides a procedure for adding a message to the WriteBuffer
-        /// <br><remarks>
-        /// Bypasses the LogRequest system - intended to be used as a fallback message handling process
-        /// </remarks></br>
         /// </summary>
+        /// <remarks>Bypasses the LogRequest system - intended to be used as a fallback message handling process</remarks>
         void SendToBuffer(LogRequestEventArgs messageData);
 
         /// <summary>
         /// Attempts to write content from the message buffer to file after a specified amount of time
-        /// <br>Default behavior: Wait time will double on each failed attempt to write to file (up to a maximum of 5000 ms)</br>
         /// </summary>
+        /// <remarks>Default behavior: Wait time will double on each failed attempt to write to file (up to a maximum of 5000 ms)</remarks>
         /// <param name="logFile">The file that contains the message buffer</param>
-        /// <param name="waitTime">The initial time to wait before writing to file (when set to zero, write attempt will be immediate and only happen once)</param>
+        /// <param name="waitTime">The initial time to wait before writing to file (when set to zero, write attempt will be immediate)</param>
         /// <param name="respectBufferState">Allow the buffer state to determine when to make a write attempt</param>
         void WriteFromBuffer(LogID logFile, TimeSpan waitTime, bool respectBufferState = true);
     }

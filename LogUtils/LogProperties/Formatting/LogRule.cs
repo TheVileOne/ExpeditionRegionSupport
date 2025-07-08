@@ -213,6 +213,7 @@ namespace LogUtils.Properties.Formatting
             return LogProperties.ToPropertyString(Name.ToLower(), _enabled.ToString());
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return ToPropertyString();
@@ -246,6 +247,7 @@ namespace LogUtils.Properties.Formatting
             return messageHeader + message;
         }
 
+        /// <inheritdoc/>
         protected override float GetPriority()
         {
             return 0.995f; //This rule has the second highest defined priority
@@ -269,9 +271,10 @@ namespace LogUtils.Properties.Formatting
             string messageHeader = string.Format("[{0}] ", logEventData.TotalMessagesLogged + 1); //Add one to start indexing at one, instead of zero
 
             messageHeader = formatter.ApplyColor(messageHeader, RuleColor);
-            return messageHeader + message; 
+            return messageHeader + message;
         }
 
+        /// <inheritdoc/>
         protected override float GetPriority()
         {
             return 1.0f; //This rule has the highest defined priority

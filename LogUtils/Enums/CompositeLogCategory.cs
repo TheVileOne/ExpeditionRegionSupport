@@ -8,6 +8,10 @@ using UnityEngine;
 
 namespace LogUtils.Enums
 {
+    /// <summary>
+    /// A type of LogCategory featuring properties of enum bitflags
+    /// </summary>
+    /// <remarks>LogCategory instances can be combined using overloaded bitflag operators to create a composite instance</remarks>
     public sealed class CompositeLogCategory : LogCategory
     {
         private static CompositeLogCategory _empty;
@@ -28,7 +32,7 @@ namespace LogUtils.Enums
             }
         }
 
-        internal static readonly HashSet<LogCategory> EmptySet  = new HashSet<LogCategory>();
+        internal static readonly HashSet<LogCategory> EmptySet = new HashSet<LogCategory>();
 
         /// <summary>
         /// Contains the flags that represent the composite instance
@@ -319,7 +323,7 @@ namespace LogUtils.Enums
 
             return Set.Where(flag => (flag.Group & mostRelevantGroup) != 0).ToArray();
         }
-        
+
         /// <summary>
         /// Checks whether this instance contains the specified flag element
         /// </summary>
@@ -411,6 +415,7 @@ namespace LogUtils.Enums
         }
         #endregion
         #region Object inherited methods
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             //ExtEnum value field for composites is the same as the joined string of its elements, but without any elements for LogCategory.None,
@@ -420,6 +425,7 @@ namespace LogUtils.Enums
             return base.GetHashCode();
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return isInitialized ? ToStringInternal(Set) : base.ToString();

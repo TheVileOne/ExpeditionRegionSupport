@@ -4,7 +4,7 @@ using LogUtils.Properties;
 
 namespace LogUtils.Diagnostics.Tests.Utility
 {
-    public class PathConflictTests : TestCase, ITestable
+    internal sealed class PathConflictTests : TestCase, ITestable
     {
         internal const string TEST_NAME = "Test - Path Conflicts";
 

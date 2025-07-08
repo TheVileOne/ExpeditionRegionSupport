@@ -45,9 +45,9 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// The latest point in the initialization process that Rain World has reached since the application began </br>
-        /// Note: Do not modify directly, use NotifyOnPeriodReached instead
+        /// The latest point in the initialization process that Rain World has reached since the application began
         /// </summary>
+        /// <remarks>Do not modify directly, use NotifyOnPeriodReached instead</remarks>
         public static SetupPeriod LatestSetupPeriodReached;
 
         public static void NotifyOnPeriodReached(SetupPeriod period)

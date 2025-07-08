@@ -450,8 +450,8 @@ namespace LogUtils
 
         /// <summary>
         /// Sets the logs folder path to that of an existing directory
-        /// <br>DO NOT set to any directory you don't want moved around</br>
         /// </summary>
+        /// <remarks>DO NOT set to any directory you don't want moved around</remarks>
         /// <param name="path">A valid directory path</param>
         public static void SetPath(string path)
         {

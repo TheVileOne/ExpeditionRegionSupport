@@ -22,8 +22,8 @@ namespace LogUtils
 
         /// <summary>
         /// The underlying filestream if it exists, null otherwise. This stream is always active when the file is present 
-        /// <br>Please do not close the stream. Interrupt and resume the stream instead</br>
         /// </summary>
+        /// <remarks>Please do not close the stream. Interrupt and resume the stream instead</remarks>
         public FileStream Stream;
 
         /// <summary>
@@ -78,6 +78,7 @@ namespace LogUtils
         protected bool IsDisposed;
         protected bool IsDisposing;
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             //Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method

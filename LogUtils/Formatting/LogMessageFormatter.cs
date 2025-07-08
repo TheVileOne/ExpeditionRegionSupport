@@ -1,5 +1,4 @@
-﻿using LogUtils.Console;
-using LogUtils.Events;
+﻿using LogUtils.Events;
 using LogUtils.Properties.Formatting;
 using System;
 using System.Linq;

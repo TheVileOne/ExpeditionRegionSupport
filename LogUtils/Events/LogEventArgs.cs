@@ -18,6 +18,9 @@ namespace LogUtils.Events
             ID = properties?.ID;
         }
 
+        /// <summary>
+        /// Clones the current EventArgs assigned with the provided LogID
+        /// </summary>
         public virtual LogEventArgs Clone(LogID newID)
         {
             LogEventArgs copy = (LogEventArgs)Clone();
@@ -26,6 +29,7 @@ namespace LogUtils.Events
             return copy;
         }
 
+        /// <inheritdoc/>
         public virtual object Clone()
         {
             return MemberwiseClone();

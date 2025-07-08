@@ -287,8 +287,10 @@ namespace LogUtils.Requests
         }
 
         /// <summary>
-        /// Registers a logger (required to use LogRequest system for local and remote LogRequests)
+        /// Enables log handler communication with the log request system
         /// </summary>
+        /// <remarks>Registration is required to use the log request system for both local and remote requests</remarks>
+        /// <exception cref="InvalidOperationException">The logger is not allowed to be registered</exception>
         public void Register(ILogHandler logger)
         {
             if (!logger.AllowRegistration)
@@ -300,8 +302,9 @@ namespace LogUtils.Requests
         }
 
         /// <summary>
-        /// Unregisters a logger
+        /// Disables log handler communication with the log request system
         /// </summary>
+        /// <exception cref="InvalidOperationException">The logger is not allowed to be registered</exception>
         public void Unregister(ILogHandler logger)
         {
             if (!logger.AllowRegistration)

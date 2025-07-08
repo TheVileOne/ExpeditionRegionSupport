@@ -10,7 +10,8 @@ namespace LogUtils.Helpers.FileHandling
         /// <summary>
         /// Checks that a directory is contained within a path string
         /// </summary>
-        /// <param name="dirName">The directory name to check</param>
+        /// <param name="path">The path to check</param>
+        /// <param name="dirName">The directory name to search for</param>
         /// <param name="dirLevelsToCheck">The number of directory separators to check starting from the right</param>
         public static bool ContainsDirectory(string path, string dirName, int dirLevelsToCheck)
         {

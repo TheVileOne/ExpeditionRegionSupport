@@ -6,6 +6,9 @@ using SystemColor = System.Drawing.Color;
 
 namespace LogUtils.Console
 {
+    /// <summary>
+    /// This class converts color information into an ANSI color code
+    /// </summary>
     public static class AnsiColorConverter
     {
         /// <summary>

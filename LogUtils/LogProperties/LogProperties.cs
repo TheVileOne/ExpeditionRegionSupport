@@ -111,7 +111,7 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
-        /// A flag that indicates that a low amount of frames (<= 10) have passed since instance was created
+        /// A flag that indicates that a low amount of frames (less than or equal to 10) have passed since instance was created
         /// </summary>
         public bool IsNewInstance { get; private set; }
 
@@ -576,7 +576,7 @@ namespace LogUtils.Properties
                             using (StreamWriter writer = new StreamWriter(stream))
                             {
                                 OnLogSessionFinish(new LogStreamEventArgs(logID, writer));
-                            };
+                            }
                         }
                     }
                 }
@@ -616,18 +616,14 @@ namespace LogUtils.Properties
 
         /// <summary>
         /// The hashcode representing the log filepath at the time of instantiation
-        /// <br><remarks>
-        /// This value is intended to be a unique identifier for this LogProperties instance, and will not change even if the file metadata changes
-        /// </remarks></br>
         /// </summary>
+        /// <remarks>This value is intended to be a unique identifier for this LogProperties instance, and will not change even if the file metadata changes</remarks>
         internal readonly int IDHash = 0;
 
         /// <summary>
         /// The hashcode produced by the write string cached when properties are read from file
-        /// <br><remarks>
-        /// If the value remains at zero, it means that the properties instance hasn't been updated
-        /// </remarks></br>
         /// </summary>
+        /// <remarks>If the value remains at zero, it means that the properties instance hasn't been updated</remarks>
         internal int WriteHash = 0;
 
         /// <summary>
@@ -654,6 +650,7 @@ namespace LogUtils.Properties
             WriteHash = writeString.GetHashCode();
         }
 
+        /// <inheritdoc/>
         public bool Equals(LogProperties other)
         {
             return other != null && IDHash.Equals(other.IDHash);
@@ -740,6 +737,7 @@ namespace LogUtils.Properties
             return fields;
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return GetWriteString();
@@ -782,9 +780,8 @@ namespace LogUtils.Properties
 
         /// <summary>
         /// Compares a filename against one, or more filename fields controlled by the properties instance
-        /// <br>
-        /// Filename is not case sensitive; file extension is unused
-        /// </br>
+        /// </summary>
+        /// <remarks>Filename is not case sensitive; file extension is unused</remarks>
         /// <param name="filename">The filename to compare</param>
         /// <param name="compareOptions">Represents options for specific filename fields</param>
         public bool HasFilename(string filename, CompareOptions compareOptions)
@@ -797,12 +794,7 @@ namespace LogUtils.Properties
             return false;
         }
 
-        /// <summary>
-        /// Compares a filename against one, or more filename fields controlled by the properties instance
-        /// <br>
-        /// Filename is not case sensitive; file extension is unused
-        /// </br>
-        /// </summary>
+        /// <inheritdoc cref="HasFilename(string, CompareOptions)"/>
         /// <param name="filename">The filename to compare</param>
         /// <param name="relativePathNoFile">The filepath to compare. When set to null, the filepath check will be skipped</param>
         /// <param name="compareOptions">Represents options for specific filename fields</param>

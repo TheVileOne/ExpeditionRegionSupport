@@ -8,9 +8,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using LoggerDocs = LogUtils.Documentation.LoggerDocumentation;
 
 namespace LogUtils
 {
+    /// <summary>
+    /// Allows you to log messages to file, or a console using the write implementation of your choosing
+    /// </summary>
     public partial class Logger : ILogger, ILogHandler, ILogWriterProvider, IDisposable
     {
         /// <summary>
@@ -23,6 +27,7 @@ namespace LogUtils
         /// </summary>
         public virtual bool AllowRemoteLogging { get; set; } = true;
 
+        /// <inheritdoc/>
         public virtual bool AllowRegistration => !IsDisposed;
 
         IEnumerable<LogID> ILogFileHandler.AvailableTargets => LogTargets.ToArray();
@@ -193,49 +198,60 @@ namespace LogUtils
         #endregion
 
         #region Logging
-
         #region Log Overloads (object)
 
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(object)"/>
         public void Log(object data)
         {
             Log(LogCategory.Default, data);
         }
 
+        /// <summary>
+        /// Formats and writes a log message only once (even when it is called more than once for the same exact log message)
+        /// </summary>
+        /// <param name="data">The object you want to log (string, interpolated string, object, etc.)</param>
         public void LogOnce(object data)
         {
             LogOnce(LogCategory.Default, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object)"/>
         public void LogDebug(object data)
         {
             Log(LogCategory.Debug, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object)"/>
         public void LogInfo(object data)
         {
             Log(LogCategory.Info, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object)"/>
         public void LogImportant(object data)
         {
             Log(LogCategory.Important, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object)"/>
         public void LogMessage(object data)
         {
             Log(LogCategory.Message, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object)"/>
         public void LogWarning(object data)
         {
             Log(LogCategory.Warning, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogError(object)"/>
         public void LogError(object data)
         {
             Log(LogCategory.Error, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object)"/>
         public void LogFatal(object data)
         {
             Log(LogCategory.Fatal, data);
@@ -243,54 +259,64 @@ namespace LogUtils
 
         #region Base log overloads
         #region BepInEx
+        /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(object)"/>
         public void LogBepEx(object data)
         {
             LogData(LogID.BepInEx, LogCategory.Default, data, false);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(BepInEx.Logging.LogLevel, object)"/>
         public void LogBepEx(LogLevel category, object data)
         {
             LogData(LogID.BepInEx, LogCategory.ToCategory(category), data, false);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(BepInEx.Logging.LogLevel, object)"/>
         public void LogBepEx(LogCategory category, object data)
         {
             LogData(LogID.BepInEx, category, data, false);
         }
         #endregion
         #region Unity
+        /// <inheritdoc cref="LoggerDocs.Game.LogUnity(object)"/>
         public void LogUnity(object data)
         {
             LogData(LogID.Unity, LogCategory.Default, data, false);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, object)"/>
         public void LogUnity(LogType category, object data)
         {
             LogData(LogCategory.GetUnityLogID(category), LogCategory.ToCategory(category), data, false);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, object)"/>
         public void LogUnity(LogCategory category, object data)
         {
             LogData(LogCategory.GetUnityLogID(category.UnityCategory), category, data, false);
         }
         #endregion
         #region Expedition
+        /// <inheritdoc cref="LoggerDocs.Game.LogExp(object)"/>
         public void LogExp(object data)
         {
             LogData(LogID.Expedition, LogCategory.Default, data, false);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Game.LogExp(LogCategory, object)"/>
         public void LogExp(LogCategory category, object data)
         {
             LogData(LogID.Expedition, category, data, false);
         }
         #endregion
         #region JollyCoop
+        /// <inheritdoc cref="LoggerDocs.Game.LogJolly(object)"/>
         public void LogJolly(object data)
         {
             LogData(LogID.JollyCoop, LogCategory.Default, data, false);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Game.LogJolly(LogCategory, object)"/>
         public void LogJolly(LogCategory category, object data)
         {
             LogData(LogID.JollyCoop, category, data, false);
@@ -298,21 +324,25 @@ namespace LogUtils
         #endregion
         #endregion
 
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(LogType category, object data)
         {
             Log(LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(LogLevel category, object data)
         {
             Log(LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(string category, object data)
         {
             Log(LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(LogCategory category, object data)
         {
             LogData(Targets, category, data, false);
@@ -597,6 +627,7 @@ namespace LogUtils
             }
         }
 
+        /// <inheritdoc/>
         public bool CanHandle(LogID logID, RequestType requestType)
         {
             if (logID.IsGameControlled) return false;
@@ -628,6 +659,7 @@ namespace LogUtils
             return Writer;
         }
 
+        /// <inheritdoc/>
         public void HandleRequest(LogRequest request)
         {
             if (request.Submitted)
@@ -677,6 +709,7 @@ namespace LogUtils
             IsDisposed = true;
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             //Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
@@ -691,9 +724,7 @@ namespace LogUtils
 
         #endregion
 
-        public class EarlyInitializationException(string message) : InvalidOperationException(message)
-        {
-        }
+        public class EarlyInitializationException(string message) : InvalidOperationException(message);
     }
 
     public enum LoggingContext

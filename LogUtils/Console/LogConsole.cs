@@ -12,6 +12,9 @@ using System.Reflection;
 
 namespace LogUtils.Console
 {
+    /// <summary>
+    /// This class is responsible for accessing the BepInEx console
+    /// </summary>
     public static class LogConsole
     {
         /// <summary>
@@ -233,6 +236,7 @@ namespace LogUtils.Console
             WriteLine(UtilityLogger.Logger, category, message);
         }
 
+        /// <inheritdoc cref="WriteLine(LogCategory, string)"/>
         public static void WriteLine(string message)
         {
             WriteLine(LogCategory.Info, message);
@@ -286,16 +290,24 @@ namespace LogUtils.Console
         }
     }
 
+    /// <summary>
+    /// Represents errors that occur while initializing the console
+    /// </summary>
     public class ConsoleLoadException : Exception
     {
+        /// <summary>
+        /// Construct a new ConsoleLoadException instance
+        /// </summary>
         public ConsoleLoadException() : base()
         {
         }
 
+        /// <inheritdoc cref="ConsoleLoadException()"/>
         public ConsoleLoadException(string message) : base(message)
         {
         }
 
+        /// <inheritdoc cref="ConsoleLoadException()"/>
         public ConsoleLoadException(string message, Exception innerException) : base(message, innerException)
         {
         }

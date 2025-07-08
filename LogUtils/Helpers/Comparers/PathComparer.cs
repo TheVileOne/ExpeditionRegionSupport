@@ -34,6 +34,7 @@ public class PathComparer : ComparerBase<string>
         return InternalCompare(path, pathOther);
     }
 
+    /// <inheritdoc/>
     public override int Compare(string path, string pathOther)
     {
         //Make sure we are comparing path data, not keywords
@@ -43,6 +44,7 @@ public class PathComparer : ComparerBase<string>
         return InternalCompare(path, pathOther);
     }
 
+    /// <inheritdoc/>
     public override bool Equals(string path, string pathOther)
     {
         //Make sure we are comparing path data, not keywords

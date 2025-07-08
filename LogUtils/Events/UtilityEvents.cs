@@ -1,6 +1,7 @@
 ﻿using LogUtils.Requests;
 using System;
 
+#pragma warning disable CS1591 //Missing XML comment for publicly visible type or member
 namespace LogUtils.Events
 {
     public static class UtilityEvents
@@ -36,3 +37,4 @@ namespace LogUtils.Events
     public delegate void RegistrationChangedEventHandler(ILogHandler logger, RegistrationChangedEventArgs registrationStatus);
     public delegate void SetupPeriodEventHandler(SetupPeriodEventArgs e);
 }
+#pragma warning restore CS1591 //Missing XML comment for publicly visible type or member

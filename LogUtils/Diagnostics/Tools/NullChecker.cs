@@ -18,11 +18,11 @@ namespace LogUtils.Diagnostics.Tools
 
         /// <summary>
         /// Allows a limit to be set on null matches detected. Useful for detecting nulls in an object reference chain.
-        /// <br></br>
-        /// <br>Example: obj.FieldA.FieldB</br>
-        /// <br>Note: Make sure that you null check each potential null, before trying to pass it into the NullChecker.</br>
-        /// <br>The null-condition operator (?) can be used to make this easier.</br>
         /// </summary>
+        /// <remarks>Example: obj.FieldA.FieldB
+        /// <br></br>
+        /// <br>Make sure that you null check each potential null, before trying to pass it into the NullChecker.</br>
+        /// The null-condition operator (?) can be used to make this easier.</remarks>
         public int DetectionThreshold;
 
         private int valueCounter;

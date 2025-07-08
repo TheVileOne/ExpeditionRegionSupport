@@ -5,9 +5,15 @@ using UnityEngine;
 
 namespace LogUtils.Console
 {
+    /// <summary>
+    /// This class provides helper methods for converting ConsoleColor enums to their corresponding Unity color, and vice versa
+    /// </summary>
     public static class ConsoleColorMap
     {
         //TODO: Check that this default can apply to both BepInEx console and RainWorld console
+        /// <summary>
+        /// The primary color used for text in the console
+        /// </summary>
         public static ConsoleColor DefaultConsoleColor = ConsoleColor.Gray;
 
         /// <summary>
@@ -15,6 +21,9 @@ namespace LogUtils.Console
         /// </summary>
         public static Color DefaultColor => GetColor(DefaultConsoleColor);
 
+        /// <summary>
+        /// A map of ConsoleColor values to their associated Unity color
+        /// </summary>
         #pragma warning disable IDE0055 //Fix formatting
         public static (ConsoleColor ConsoleColor, Color UnityColor)[] ColorMap =
         [
@@ -55,8 +64,8 @@ namespace LogUtils.Console
 
         /// <summary>
         /// Gets the Unity color mapped to a specified LogGroup
-        /// <br>Aligned with the colors assigned for BepInEx.LogLevel</br>
         /// </summary>
+        /// <remarks>Aligned with the colors assigned for BepInEx.LogLevel</remarks>
         public static Color GetColor(LogGroup group)
         {
             LogGroup mostRelevantGroup = group != LogGroup.All ? (LogGroup)FlagUtils.GetHighestBit((int)group) : group;
@@ -67,8 +76,8 @@ namespace LogUtils.Console
 
         /// <summary>
         /// Gets the ConsoleColor mapped to a specified LogGroup
-        /// <br>Aligned with the colors assigned for BepInEx.LogLevel</br>
         /// </summary>
+        /// <remarks>Aligned with the colors assigned for BepInEx.LogLevel</remarks>
         #pragma warning disable IDE0055 //Fix formatting
         internal static ConsoleColor GetConsoleColor(LogGroup group)
         {
@@ -87,16 +96,21 @@ namespace LogUtils.Console
         }
         #pragma warning restore IDE0055 //Fix formatting
 
+        /// <summary>
+        /// Finds the nearest compatible ConsoleColor for the given color
+        /// </summary>
         public static ConsoleColor ClosestConsoleColor(Color color)
         {
             return ClosestConsoleColor((byte)(color.r * 255f), (byte)(color.g * 255f), (byte)(color.b * 255f));
         }
 
+        /// <inheritdoc cref="ClosestConsoleColor(Color)"/>
         public static ConsoleColor ClosestConsoleColor(System.Drawing.Color color)
         {
             return ClosestConsoleColor(color.R, color.G, color.B);
         }
 
+        /// <inheritdoc cref="ClosestConsoleColor(Color)"/>
         public static ConsoleColor ClosestConsoleColor(byte r, byte g, byte b)
         {
             double delta = double.MaxValue;

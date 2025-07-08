@@ -18,6 +18,7 @@ namespace LogUtils.Properties
 
         public LogPropertyFile PropertyFile = new LogPropertyFile();
 
+        /// <inheritdoc/>
         public override string Tag => UtilityConsts.ComponentTags.PROPERTY_DATA;
 
         /// <summary>
@@ -138,7 +139,7 @@ namespace LogUtils.Properties
                         properties.LogSessionActive = true;
                     }
                 }
-                
+
                 properties.SkipStartupRoutine |= lastKnownFileOverwritten;
             }
         }

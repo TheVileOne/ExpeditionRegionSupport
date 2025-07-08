@@ -75,7 +75,7 @@ namespace LogUtils.Formatting
 
             if (str.EndsWith("\r\n"))
                 return str.Substring(0, str.Length - 2);
-            
+
             if (str.EndsWith("\n") || str.EndsWith("\r"))
                 return str.Substring(0, str.Length - 1);
             return str;

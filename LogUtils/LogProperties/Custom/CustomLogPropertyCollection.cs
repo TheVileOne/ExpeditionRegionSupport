@@ -41,6 +41,7 @@ namespace LogUtils.Properties.Custom
             return false;
         }
 
+        /// <inheritdoc/>
         public IEnumerator<CustomLogProperty> GetEnumerator()
         {
             return InnerList.GetEnumerator();

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 
 namespace LogUtils.Formatting
@@ -13,6 +12,7 @@ namespace LogUtils.Formatting
             Provider = provider;
         }
 
+        /// <inheritdoc/>
         public IEnumerator<string> GetEnumerator()
         {
             return Provider.GetEnumerator();

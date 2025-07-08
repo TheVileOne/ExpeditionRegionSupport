@@ -6,6 +6,7 @@ namespace LogUtils.Helpers.Extensions
 {
     public static partial class ExtensionMethods
     {
+        /// <inheritdoc cref="ICollection{T}.Add(T)"/>
         public static WeakReference<T> Add<T>(this ICollection<WeakReference<T>> collection, T item) where T : class
         {
             WeakReference<T> reference = new WeakReference<T>(item);
@@ -13,12 +14,16 @@ namespace LogUtils.Helpers.Extensions
             return reference;
         }
 
+        /// <summary>
+        /// Adds each item in the provided collection to the ICollection&lt;T&gt;"/>
+        /// </summary>
         public static void AddRange<T>(this ICollection<WeakReference<T>> collection, IEnumerable<T> items) where T : class
         {
             foreach (var item in items)
                 collection.Add(item);
         }
 
+        /// <inheritdoc cref="ICollection{T}.Remove(T)"/>
         public static bool Remove<T>(this ICollection<WeakReference<T>> collection, T item) where T : class
         {
             var list = collection as IList<WeakReference<T>>;
@@ -51,6 +56,9 @@ namespace LogUtils.Helpers.Extensions
             return false;
         }
 
+        /// <summary>
+        /// Remove items from the ICollection&lt;T&gt; based on a predicate
+        /// </summary>
         public static void RemoveWhere<T>(this ICollection<WeakReference<T>> collection, Predicate<T> predicate) where T : class
         {
             var list = collection as IList<WeakReference<T>>;

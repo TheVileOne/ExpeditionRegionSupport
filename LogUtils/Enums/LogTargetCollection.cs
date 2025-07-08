@@ -18,6 +18,7 @@ namespace LogUtils.Enums
             }
         }
 
+        /// <inheritdoc/>
         public int Count => LogIDs.Count + ConsoleIDs.Count;
 
         public List<LogID> LogIDs = new List<LogID>();
@@ -70,8 +71,12 @@ namespace LogUtils.Enums
             }
         }
 
+        /// <summary>
+        /// Checks whether the collection contains a given log target
+        /// </summary>
         public bool Contains(ILogTarget target) => LogIDs.Contains(target) || ConsoleIDs.Contains(target);
 
+        /// <inheritdoc/>
         public IEnumerator<ILogTarget> GetEnumerator() => AllTargets.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => AllTargets.GetEnumerator();

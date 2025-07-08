@@ -344,7 +344,7 @@ namespace LogUtils
                     properties.EndLogSession();
                     properties.AllowLogging = false; //No new logs should happen beyond this point
                 }
-            };
+            }
 
             LogID logFile = LogID.BepInEx;
 

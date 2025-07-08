@@ -31,14 +31,19 @@ namespace LogUtils.Properties
             }
         }
 
+        /// <inheritdoc/>
         public override int Count => Contents.Count;
 
+        /// <inheritdoc/>
         public override bool IsSynchronized => Contents.IsSynchronized;
 
+        /// <inheritdoc/>
         public override ICollection Keys => Contents.Keys;
 
+        /// <inheritdoc/>
         public override object SyncRoot => Contents.SyncRoot;
 
+        /// <inheritdoc/>
         public override ICollection Values => Contents.Values;
 
         public LogPropertyStringDictionary()
@@ -73,6 +78,7 @@ namespace LogUtils.Properties
             }
         }
 
+        /// <inheritdoc/>
         public override void Add(string key, string value)
         {
             if (key == null)
@@ -81,11 +87,13 @@ namespace LogUtils.Properties
             Contents.Add(key, value);
         }
 
+        /// <inheritdoc/>
         public override void Clear()
         {
             Contents.Clear();
         }
 
+        /// <inheritdoc/>
         public override bool ContainsKey(string key)
         {
             if (key == null)
@@ -94,21 +102,25 @@ namespace LogUtils.Properties
             return Contents.ContainsKey(key);
         }
 
+        /// <inheritdoc/>
         public override bool ContainsValue(string value)
         {
             return Contents.ContainsValue(value);
         }
 
+        /// <inheritdoc/>
         public override void CopyTo(Array array, int index)
         {
             Contents.CopyTo(array, index);
         }
 
+        /// <inheritdoc/>
         public override IEnumerator GetEnumerator()
         {
             return Contents.GetEnumerator();
         }
 
+        /// <inheritdoc/>
         public override void Remove(string key)
         {
             if (key == null)
@@ -117,6 +129,7 @@ namespace LogUtils.Properties
             Contents.Remove(key);
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return ToString(null, false);

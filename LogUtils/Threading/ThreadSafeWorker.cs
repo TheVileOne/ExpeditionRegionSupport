@@ -10,9 +10,9 @@ namespace LogUtils.Threading
         private readonly IEnumerable<object> _locks;
 
         /// <summary>
-        /// A flag that indicates whether locks should be extracted from the provided enumerable, and placed into an array before work starts.
-        /// <br>May be set to false if underlying enumerable is unlikely to be modified during work</br>
+        /// A flag that indicates whether locks should be extracted from the provided enumerable, and placed into an array before work starts
         /// </summary>
+        /// <remarks>May be set to false if underlying enumerable is unlikely to be modified during work</remarks>
         public bool UseEnumerableWrapper = true;
 
         public ThreadSafeWorker(object lockObject)

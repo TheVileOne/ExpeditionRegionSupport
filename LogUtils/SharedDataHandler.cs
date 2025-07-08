@@ -11,6 +11,7 @@ namespace LogUtils
     {
         public Dictionary<Type, List<IShareable>> DataCollection = new Dictionary<Type, List<IShareable>>();
 
+        /// <inheritdoc/>
         public override string Tag => UtilityConsts.ComponentTags.SHARED_DATA;
 
         /// <summary>
@@ -181,6 +182,7 @@ namespace LogUtils
     {
         public bool ReadOnly;
 
+        /// <inheritdoc/>
         public string Tag { get; set; }
         public T Value { get; set; }
 
@@ -190,6 +192,7 @@ namespace LogUtils
             Value = value;
         }
 
+        /// <inheritdoc/>
         public bool CheckTag(string tag)
         {
             return ComparerUtils.StringComparerIgnoreCase.Equals(Tag, tag);
@@ -198,7 +201,16 @@ namespace LogUtils
 
     public interface IShareable
     {
-        public string Tag { get; }
-        public bool CheckTag(string tag);
+        /// <summary>
+        /// An identifying string used for lookup and storage of objects through a SharedDataHandler
+        /// </summary>
+        string Tag { get; }
+
+        /// <summary>
+        /// Checks that a tag matches a given input string
+        /// </summary>
+        /// <param name="tag">The input to compare to</param>
+        /// <returns>Whether a match has been found</returns>
+        bool CheckTag(string tag);
     }
 }

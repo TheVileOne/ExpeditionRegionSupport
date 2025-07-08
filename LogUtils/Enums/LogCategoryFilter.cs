@@ -27,11 +27,13 @@ namespace LogUtils.Enums
                 allowEntryOnMatch = useAsWhitelist;
             }
 
+            /// <inheritdoc/>
             public bool IsAllowed(LogCategory entry)
             {
                 return allowEntryOnMatch == Flags.HasFlag(entry, CompositeLogCategory.FlagSearchOptions.MatchAny);
             }
 
+            /// <inheritdoc/>
             public int CompareTo(LogCategory entry)
             {
                 return IsAllowed(entry) ? 1 : 0;
@@ -52,12 +54,14 @@ namespace LogUtils.Enums
                 AllowedGroups = allowedGroups ^ filterMask;
             }
 
+            /// <inheritdoc/>
             public bool IsAllowed(LogCategory entry)
             {
                 //Check that AllowedGroups contains a flag also contained in the entry group
                 return (AllowedGroups & entry.Group) != 0;
             }
 
+            /// <inheritdoc/>
             public int CompareTo(LogCategory entry)
             {
                 return (int)(AllowedGroups & entry.Group);
@@ -73,12 +77,14 @@ namespace LogUtils.Enums
                 AllowedGroups = allowedGroups;
             }
 
+            /// <inheritdoc/>
             public bool IsAllowed(LogCategory entry)
             {
                 //Check that AllowedGroups contains a flag also contained in the entry group
                 return (AllowedGroups & entry.Group) != 0;
             }
 
+            /// <inheritdoc/>
             public int CompareTo(LogCategory entry)
             {
                 return (int)(AllowedGroups & entry.Group);

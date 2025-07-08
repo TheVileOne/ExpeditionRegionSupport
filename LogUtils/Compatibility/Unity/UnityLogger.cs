@@ -3,6 +3,7 @@ using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Requests;
 using UnityEngine;
+using LoggerDocs = LogUtils.Documentation.LoggerDocumentation;
 
 namespace LogUtils.Compatibility.Unity
 {
@@ -41,61 +42,86 @@ namespace LogUtils.Compatibility.Unity
                 Debug.unityLogger.filterLogType = capacityWanted;
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(object)"/>
+        /// <remarks>Utilizes Unity's logging API</remarks>
         public void Log(object data)
         {
             Debug.Log(data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object)"/>
+        /// <remarks>Utilizes Unity's logging API</remarks>
         public void LogDebug(object data)
         {
+            //TODO: Use Debug context here
             Debug.Log(data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object)"/>
+        /// <remarks>Utilizes Unity's logging API</remarks>
         public void LogInfo(object data)
         {
             Log(LogCategory.Info, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object)"/>
+        /// <remarks>Utilizes Unity's logging API</remarks>
         public void LogImportant(object data)
         {
             Log(LogCategory.Important, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object)"/>
+        /// <remarks>Utilizes Unity's logging API</remarks>
         public void LogMessage(object data)
         {
             Log(LogCategory.Message, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object)"/>
+        /// <remarks>Utilizes Unity's logging API</remarks>
         public void LogWarning(object data)
         {
             Debug.LogWarning(data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogError(object)"/>
+        /// <remarks>Utilizes Unity's logging API</remarks>
         public void LogError(object data)
         {
             Debug.LogError(data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object)"/>
+        /// <remarks>Utilizes Unity's logging API</remarks>
         public void LogFatal(object data)
         {
             Log(LogCategory.Fatal, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
+        /// <remarks>Utilizes Unity's logging API</remarks>
         public void Log(LogType category, object data)
         {
             Debug.unityLogger.Log(category, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
+        /// <remarks>Utilizes Unity's logging API</remarks>
         public void Log(LogLevel category, object data)
         {
             Log(LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
+        /// <remarks>Utilizes Unity's logging API</remarks>
         public void Log(string category, object data)
         {
             Log(LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
+        /// <remarks>Utilizes Unity's logging API</remarks>
         public void Log(LogCategory category, object data)
         {
             Debug.unityLogger.Log(category.UnityCategory, data);

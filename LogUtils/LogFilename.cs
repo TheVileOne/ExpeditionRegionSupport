@@ -73,16 +73,19 @@ namespace LogUtils
             return comparer.Equals(value, valueWithoutInfoOther);
         }
 
+        /// <inheritdoc/>
         public int CompareTo(string filenameOther)
         {
             return ComparerUtils.FilenameComparer.Compare(Value, filenameOther, ignoreExtensions: true);
         }
 
+        /// <inheritdoc/>
         public bool Equals(string filenameOther)
         {
             return ComparerUtils.FilenameComparer.Equals(Value, filenameOther, ignoreExtensions: true);
         }
 
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             LogFilename filenameConversion = obj as LogFilename;
@@ -98,6 +101,7 @@ namespace LogUtils
             return base.Equals(obj);
         }
 
+        /// <inheritdoc/>
         public bool Equals(LogFilename filenameOther)
         {
             if (filenameOther == null)
@@ -106,6 +110,7 @@ namespace LogUtils
             return Equals(filenameOther.Value);
         }
 
+        /// <inheritdoc/>
         public int CompareTo(LogFilename filenameOther)
         {
             if (filenameOther == null)
@@ -114,6 +119,7 @@ namespace LogUtils
             return CompareTo(filenameOther.Value);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             return Value?.GetHashCode() ?? 0;

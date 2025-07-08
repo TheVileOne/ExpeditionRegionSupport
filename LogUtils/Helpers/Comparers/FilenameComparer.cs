@@ -14,6 +14,7 @@ namespace LogUtils.Helpers.Comparers
         {
         }
 
+        /// <inheritdoc cref="ComparerBase{T}.Compare(T, T)"/>
         public int Compare(string filename, string filenameOther, bool ignoreExtensions)
         {
             if (ignoreExtensions)
@@ -24,6 +25,7 @@ namespace LogUtils.Helpers.Comparers
             return Compare(filename, filenameOther);
         }
 
+        /// <inheritdoc/>
         public override int Compare(string filename, string filenameOther)
         {
             if (filename == null)
@@ -39,6 +41,7 @@ namespace LogUtils.Helpers.Comparers
             return base.Compare(filename, filenameOther);
         }
 
+        /// <inheritdoc cref="ComparerBase{T}.Equals(T, T)"/>
         public bool Equals(string filename, string filenameOther, bool ignoreExtensions)
         {
             if (ignoreExtensions)
@@ -49,6 +52,7 @@ namespace LogUtils.Helpers.Comparers
             return Equals(filename, filenameOther);
         }
 
+        /// <inheritdoc/>
         public override bool Equals(string filename, string filenameOther)
         {
             if (filename == null)

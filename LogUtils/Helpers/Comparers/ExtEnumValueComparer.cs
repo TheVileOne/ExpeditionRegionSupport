@@ -14,6 +14,7 @@ namespace LogUtils.Helpers.Comparers
         {
         }
 
+        /// <inheritdoc/>
         public virtual int Compare(T extEnum, T extEnumOther)
         {
             if (extEnum == null)
@@ -28,11 +29,13 @@ namespace LogUtils.Helpers.Comparers
             return hash.CompareTo(hashOther);
         }
 
+        /// <inheritdoc/>
         public virtual bool Equals(T extEnum, T extEnumOther)
         {
             return Compare(extEnum, extEnumOther) == 0;
         }
 
+        /// <inheritdoc/>
         public int GetHashCode(T extEnum)
         {
             return extEnum != null ? extEnum.GetHashCode() : 0;

@@ -1,5 +1,4 @@
-﻿using LogUtils.Console;
-using System;
+﻿using System;
 using System.Text;
 using UnityEngine;
 

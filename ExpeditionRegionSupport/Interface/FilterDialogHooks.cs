@@ -320,7 +320,7 @@ namespace ExpeditionRegionSupport.Interface
 
                                 FilterCheckBox filterOption = replaceCheckBox(filterBox, filterLabel);
                             }
-                        };
+                        }
                     };
                 }
             }
@@ -488,7 +488,6 @@ namespace ExpeditionRegionSupport.Interface
 
         private static void FilterDialog_SetChecked(On.Menu.FilterDialog.orig_SetChecked orig, FilterDialog self, CheckBox box, bool c)
         {
-
         }
 
         private static void SimpleButton_SetSize(On.Menu.SimpleButton.orig_SetSize orig, SimpleButton self, Vector2 newSize)

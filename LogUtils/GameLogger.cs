@@ -9,6 +9,7 @@ using LogUtils.Requests.Validation;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using LoggerDocs = LogUtils.Documentation.LoggerDocumentation;
 
 namespace LogUtils
 {
@@ -22,7 +23,7 @@ namespace LogUtils
         /// </summary>
         public LogID LogFileInProcess;
 
-        public Dictionary<LogID, int> ExpectedRequestCounter;
+        internal Dictionary<LogID, int> ExpectedRequestCounter;
 
         public IRequestValidator Validator;
 
@@ -53,6 +54,9 @@ namespace LogUtils
 
         bool ILogHandler.CanHandle(LogID logFile, RequestType requestType) => CanHandle(logFile);
 
+        /// <summary>
+        /// Checks that provided LogID is game-controlled, the only type of LogID supported by this log handler
+        /// </summary>
         public bool CanHandle(LogID logFile) => logFile.IsGameControlled;
 
         ILogWriter ILogWriterProvider.GetWriter() => null; //Not associated with a particular writer implementation
@@ -118,11 +122,13 @@ namespace LogUtils
             }
         }
 
+        /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(object)"/>
         public void LogBepEx(object data)
         {
             LogBepEx(null, LogLevel.Info, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(ILogSource, BepInEx.Logging.LogLevel, object)"/>
         public void LogBepEx(ILogSource source, LogLevel category, object data)
         {
             Process(LogID.BepInEx, processLog);
@@ -147,6 +153,7 @@ namespace LogUtils
             }
         }
 
+        /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(ILogSource, BepInEx.Logging.LogLevel, object)"/>
         public void LogBepEx(ILogSource source, LogCategory category, object data)
         {
             Process(LogID.BepInEx, processLog);
@@ -171,11 +178,13 @@ namespace LogUtils
             }
         }
 
+        /// <inheritdoc cref="LoggerDocs.Game.LogUnity(object)"/>
         public void LogUnity(object data)
         {
             LogUnity(LogCategory.Default, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, object)"/>
         public void LogUnity(LogType category, object data)
         {
             Process(LogCategory.GetUnityLogID(category), processLog);
@@ -186,6 +195,7 @@ namespace LogUtils
             }
         }
 
+        /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, object)"/>
         public void LogUnity(LogCategory category, object data)
         {
             Process(LogCategory.GetUnityLogID(category.UnityCategory), processLog);
@@ -196,11 +206,13 @@ namespace LogUtils
             }
         }
 
+        /// <inheritdoc cref="LoggerDocs.Game.LogExp(object)"/>
         public void LogExp(object data)
         {
             LogExp(LogCategory.Default, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Game.LogExp(LogCategory, object)"/>
         public void LogExp(LogCategory category, object data)
         {
             Process(LogID.Expedition, processLog);
@@ -229,11 +241,13 @@ namespace LogUtils
             }
         }
 
+        /// <inheritdoc cref="LoggerDocs.Game.LogJolly(object)"/>
         public void LogJolly(object data)
         {
             LogJolly(LogCategory.Default, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Game.LogJolly(LogCategory, object)"/>
         public void LogJolly(LogCategory category, object data)
         {
             Process(LogID.JollyCoop, processLog);

@@ -1,8 +1,6 @@
 ﻿using LogUtils.Formatting;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace LogUtils.Helpers.Comparers
 {
@@ -39,6 +37,7 @@ namespace LogUtils.Helpers.Comparers
             MaxCharsToCheck = maxCharsToCheck;
         }
 
+        /// <inheritdoc/>
         public bool Equals(ExceptionInfo exception, ExceptionInfo exceptionOther)
         {
             if (exception == null)
@@ -126,6 +125,7 @@ namespace LogUtils.Helpers.Comparers
             }
         }
 
+        /// <inheritdoc/>
         public int GetHashCode(ExceptionInfo obj)
         {
             if (obj == null)

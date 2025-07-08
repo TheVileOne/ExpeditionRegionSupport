@@ -31,6 +31,7 @@ namespace LogUtils.Diagnostics.Tools
         {
             internal TestStringProvider Provider;
 
+            /// <inheritdoc/>
             public IEnumerator<string> GetEnumerator()
             {
                 if (Provider == null)

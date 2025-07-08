@@ -7,6 +7,7 @@ namespace LogUtils
     {
         internal WeakReferenceCollection<PersistentFileHandle> References = new WeakReferenceCollection<PersistentFileHandle>();
 
+        /// <inheritdoc/>
         public override string Tag => UtilityConsts.ComponentTags.PERSISTENCE_MANAGER;
 
         /// <summary>
