@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
 
 namespace LogUtils.Helpers.FileHandling
 {
@@ -28,14 +29,14 @@ namespace LogUtils.Helpers.FileHandling
                 return new ResolveResults()
                 {
                     Exists = false,
-                    Result = Paths.StreamingAssetsPath
+                    Result = RainWorldPath.StreamingAssetsPath
                 };
             }
 
             //Make sure path is in a consistent comparable format
             path = path.Normalize().ToLowerInvariant();
 
-            string resolvePath = Path.Combine(Paths.StreamingAssetsPath, "mergedmods");
+            string resolvePath = Path.Combine(RainWorldPath.StreamingAssetsPath, "mergedmods");
 
             if (existCallback(Path.Combine(resolvePath, path)))
             {
@@ -93,9 +94,9 @@ namespace LogUtils.Helpers.FileHandling
             }
             return new ResolveResults()
             {
-                Exists = existCallback(Path.Combine(Paths.StreamingAssetsPath, path)),
+                Exists = existCallback(Path.Combine(RainWorldPath.StreamingAssetsPath, path)),
                 Original = path,
-                Result = Paths.StreamingAssetsPath
+                Result = RainWorldPath.StreamingAssetsPath
             };
         }
     }

@@ -1,10 +1,10 @@
 ﻿using LogUtils.Enums;
-using LogUtils.Helpers;
 using LogUtils.Helpers.Comparers;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
 
 namespace LogUtils
 {
@@ -12,7 +12,7 @@ namespace LogUtils
     {
         public static void ParseFile()
         {
-            string filterPath = Path.Combine(Paths.StreamingAssetsPath, "logfilter.txt");
+            string filterPath = Path.Combine(RainWorldPath.StreamingAssetsPath, "logfilter.txt");
 
             if (File.Exists(filterPath))
             {

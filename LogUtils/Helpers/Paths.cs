@@ -1,14 +1,20 @@
 ﻿using System.IO;
 using UnityEngine;
+using BepInExPath = BepInEx.Paths;
 
 namespace LogUtils.Helpers
 {
-    public static class Paths
+    internal static class Paths
     {
-        public static string BepInExRootPath => BepInEx.Paths.BepInExRootPath;
+        internal static class BepInEx
+        {
+            public static string RootPath => BepInExPath.BepInExRootPath;
+        }
 
-        public static string GameRootPath => Path.GetDirectoryName(Application.dataPath);
-
-        public static string StreamingAssetsPath => Application.streamingAssetsPath;
+        internal static class RainWorld
+        {
+            public static string RootPath => Path.GetDirectoryName(Application.dataPath);
+            public static string StreamingAssetsPath => Application.streamingAssetsPath;
+        }
     }
 }

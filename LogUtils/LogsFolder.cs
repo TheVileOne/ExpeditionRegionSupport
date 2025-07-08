@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
 
 namespace LogUtils
 {
@@ -23,12 +24,12 @@ namespace LogUtils
         /// <summary>
         /// StreamingAssets folder
         /// </summary>
-        public static readonly string AlternativePath = System.IO.Path.Combine(Paths.StreamingAssetsPath, LOGS_FOLDER_NAME);
+        public static readonly string AlternativePath = System.IO.Path.Combine(RainWorldPath.StreamingAssetsPath, LOGS_FOLDER_NAME);
 
         /// <summary>
         /// Rain World root folder
         /// </summary>
-        public static readonly string DefaultPath = System.IO.Path.Combine(Paths.GameRootPath, LOGS_FOLDER_NAME);
+        public static readonly string DefaultPath = System.IO.Path.Combine(RainWorldPath.RootPath, LOGS_FOLDER_NAME);
 
         /// <summary>
         /// The path to the Logs directory if it exists, otherwise null

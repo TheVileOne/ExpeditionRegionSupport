@@ -1,6 +1,7 @@
 ﻿using LogUtils.Helpers.Comparers;
 using System;
 using System.IO;
+using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
 
 namespace LogUtils.Helpers.FileHandling
 {
@@ -195,9 +196,9 @@ namespace LogUtils.Helpers.FileHandling
             var pathComparer = ComparerUtils.PathComparer;
             string keyword = null;
 
-            if (pathComparer.InternalEquals(path, Paths.StreamingAssetsPath))
+            if (pathComparer.InternalEquals(path, RainWorldPath.StreamingAssetsPath))
                 keyword = UtilityConsts.PathKeywords.STREAMING_ASSETS;
-            else if (pathComparer.InternalEquals(path, Paths.GameRootPath))
+            else if (pathComparer.InternalEquals(path, RainWorldPath.RootPath))
                 keyword = UtilityConsts.PathKeywords.ROOT;
 
             return keyword;
@@ -213,10 +214,10 @@ namespace LogUtils.Helpers.FileHandling
             switch (pathString)
             {
                 case UtilityConsts.PathKeywords.ROOT:
-                    pathString = Paths.GameRootPath;
+                    pathString = RainWorldPath.RootPath;
                     break;
                 case UtilityConsts.PathKeywords.STREAMING_ASSETS:
-                    pathString = Paths.StreamingAssetsPath;
+                    pathString = RainWorldPath.StreamingAssetsPath;
                     break;
             }
             return pathString;

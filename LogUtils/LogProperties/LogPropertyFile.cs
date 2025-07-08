@@ -1,5 +1,5 @@
-﻿using LogUtils.Helpers;
-using System.IO;
+﻿using System.IO;
+using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
 
 namespace LogUtils.Properties
 {
@@ -19,7 +19,7 @@ namespace LogUtils.Properties
         public LogPropertyFile() : base()
         {
             Lifetime.UpdateTask.Name = "PropertyFile";
-            FilePath = Path.Combine(Paths.StreamingAssetsPath, "logs.txt");
+            FilePath = Path.Combine(RainWorldPath.StreamingAssetsPath, "logs.txt");
 
             if (File.Exists(FilePath))
                 CreateFileStream();

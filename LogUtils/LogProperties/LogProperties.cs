@@ -6,8 +6,8 @@ using LogUtils.Helpers;
 using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.Extensions;
 using LogUtils.Helpers.FileHandling;
-using LogUtils.Properties.Formatting;
 using LogUtils.Properties.Custom;
+using LogUtils.Properties.Formatting;
 using LogUtils.Requests;
 using LogUtils.Threading;
 using LogUtils.Timers;
@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using DataFields = LogUtils.UtilityConsts.DataFields;
+using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
 
 namespace LogUtils.Properties
 {
@@ -843,7 +844,7 @@ namespace LogUtils.Properties
         public static string GetContainingPath(string relativePath)
         {
             if (relativePath == null)
-                return Paths.StreamingAssetsPath;
+                return RainWorldPath.StreamingAssetsPath;
 
             //Apply some preprocessing to the path based on whether it is a partial, or full path
             string path;
@@ -886,7 +887,7 @@ namespace LogUtils.Properties
             UtilityLogger.Log("Defaulting to custom root. Path check run too early to resolve");
 
             //This is what AssetManager.ResolveDirectory would have returned as a fallback path
-            return Path.Combine(Paths.StreamingAssetsPath, relativePath);
+            return Path.Combine(RainWorldPath.StreamingAssetsPath, relativePath);
         }
 
         public static bool IsPathWildcard(string path)

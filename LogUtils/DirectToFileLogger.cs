@@ -1,10 +1,10 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
-using LogUtils.Helpers;
 using LogUtils.Helpers.FileHandling;
 using System.Diagnostics;
 using System.IO;
 using UnityEngine;
+using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
 
 namespace LogUtils
 {
@@ -33,7 +33,7 @@ namespace LogUtils
             int processID = Process.GetCurrentProcess().Id;
             string filename = string.Format("{0}[{1}]{2}", Name, processID, FileExt.DEFAULT);
 
-            return Path.Combine(Paths.GameRootPath, filename);
+            return Path.Combine(RainWorldPath.RootPath, filename);
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace LogUtils
         /// </summary>
         internal void DeleteAll()
         {
-            foreach (string file in Directory.GetFiles(Paths.GameRootPath, Name + "[*", SearchOption.TopDirectoryOnly))
+            foreach (string file in Directory.GetFiles(RainWorldPath.RootPath, Name + "[*", SearchOption.TopDirectoryOnly))
                 FileUtils.SafeDelete(file);
         }
 

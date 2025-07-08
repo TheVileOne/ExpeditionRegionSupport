@@ -1,7 +1,7 @@
 ﻿using LogUtils.Enums;
-using LogUtils.Helpers;
 using System.Collections.Generic;
 using System.Linq;
+using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
 
 namespace LogUtils.Diagnostics.Tests.Utility
 {
@@ -56,7 +56,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             private void testInstanceEquality()
             {
-                string rootPath = Paths.GameRootPath;
+                string rootPath = RainWorldPath.RootPath;
 
                 LogID control = createTestLogID("Test", rootPath);
 

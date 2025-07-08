@@ -1,5 +1,4 @@
-﻿using LogUtils.Helpers;
-using LogUtils.Helpers.Comparers;
+﻿using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.Extensions;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Policy;
@@ -10,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using BepInExPath = LogUtils.Helpers.Paths.BepInEx;
 
 namespace LogUtils.Enums
 {
@@ -267,7 +267,7 @@ namespace LogUtils.Enums
             DebugPolicy.UpdateAllowConditions();
 
             //Game-defined LogIDs
-            BepInEx    = new LogID(null, UtilityConsts.LogNames.BepInEx,    FileExt.LOG,  Paths.BepInExRootPath, true);
+            BepInEx    = new LogID(null, UtilityConsts.LogNames.BepInEx,    FileExt.LOG,  BepInExPath.RootPath, true);
             Exception  = new LogID(null, UtilityConsts.LogNames.Exception,  FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
             Expedition = new LogID(null, UtilityConsts.LogNames.Expedition, FileExt.TEXT, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
             JollyCoop  = new LogID(null, UtilityConsts.LogNames.JollyCoop,  FileExt.TEXT, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);

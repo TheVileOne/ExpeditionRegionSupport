@@ -2,12 +2,12 @@
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Formatting;
-using LogUtils.Helpers;
 using LogUtils.Helpers.FileHandling;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using BepInExPath = LogUtils.Helpers.Paths.BepInEx;
 
 namespace LogUtils.Compatibility.BepInEx
 {
@@ -40,7 +40,7 @@ namespace LogUtils.Compatibility.BepInEx
             //This code determines what should happen to the existing BepInEx log file
             if (UtilityCore.IsControllingAssembly)
             {
-                string bepInExLogPath = Path.Combine(Paths.BepInExRootPath, UtilityConsts.LogNames.BepInEx + FileExt.LOG);
+                string bepInExLogPath = Path.Combine(BepInExPath.RootPath, UtilityConsts.LogNames.BepInEx + FileExt.LOG);
 
                 if (!File.Exists(bepInExLogPath)) //Perhaps someone is using a newer, or modified BepInEx version
                 {
@@ -79,7 +79,7 @@ namespace LogUtils.Compatibility.BepInEx
         /// </summary>
         internal static void CleanBepInExFolder()
         {
-            string[] strayLogFiles = Directory.GetFiles(Paths.BepInExRootPath, UtilityConsts.LogNames.BepInEx + "*");
+            string[] strayLogFiles = Directory.GetFiles(BepInExPath.RootPath, UtilityConsts.LogNames.BepInEx + "*");
 
             foreach (string file in strayLogFiles)
             {

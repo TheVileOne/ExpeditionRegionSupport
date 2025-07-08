@@ -1,8 +1,8 @@
-﻿using LogUtils.Helpers;
-using LogUtils.Helpers.Comparers;
+﻿using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.Extensions;
 using LogUtils.Helpers.FileHandling;
 using System.IO;
+using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
 
 namespace LogUtils
 {
@@ -20,7 +20,7 @@ namespace LogUtils
 
         public static void Initialize()
         {
-            FolderTree = new DirectoryTree(Paths.GameRootPath);
+            FolderTree = new DirectoryTree(RainWorldPath.RootPath);
 
             //Rain World
             #region Root
