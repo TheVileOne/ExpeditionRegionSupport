@@ -6,6 +6,8 @@
 		<Title>Rain World Log Utility</Title>
 		<AssemblyVersion>0.9.1</AssemblyVersion>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
+		<WarningsAsErrors>CS1574</WarningsAsErrors>
 	</PropertyGroup>
 
 	<ItemGroup>
