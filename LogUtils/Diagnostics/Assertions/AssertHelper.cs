@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AssertDocs = LogUtils.Documentation.AssertDocumentation;
 using AssertResponse = LogUtils.UtilityConsts.AssertResponse;
 
 namespace LogUtils.Diagnostics.Extensions
 {
     internal static class AssertHelper
     {
-        /// <summary>
-        /// Asserts that the target value must be greater than a specified value
-        /// </summary>
-        /// <param name="compareValue">The value to compare to</param>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsGreaterThan(Condition{int}, int)"/>
         internal static void MustBeGreaterThan<T>(ref Condition<T> condition, T compareValue) where T : IComparable<T>
         {
             int valueDiff = compareValues(condition.Value, compareValue);
@@ -22,10 +20,7 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Fail(new Condition.Message(AssertResponse.TOO_LOW, "Value"));
         }
 
-        /// <summary>
-        /// Asserts that the target value must be greater than or equal to a specified value
-        /// </summary>
-        /// <param name="compareValue">The value to compare to</param>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsGreaterThanOrEqualTo(Condition{int}, int)"/>
         internal static void MustBeGreaterThanOrEqualTo<T>(ref Condition<T> condition, T compareValue) where T : IComparable<T>
         {
             int valueDiff = compareValues(condition.Value, compareValue);
@@ -37,10 +32,7 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Fail(new Condition.Message(AssertResponse.TOO_LOW, "Value"));
         }
 
-        /// <summary>
-        /// Asserts that the target value must be less than a specified value
-        /// </summary>
-        /// <param name="compareValue">The value to compare to</param>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsLessThan(Condition{int}, int)"/>
         internal static void MustBeLessThan<T>(ref Condition<T> condition, T compareValue) where T : IComparable<T>
         {
             int valueDiff = compareValues(condition.Value, compareValue);
@@ -52,10 +44,7 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Fail(new Condition.Message(AssertResponse.TOO_HIGH, "Value"));
         }
 
-        /// <summary>
-        /// Asserts that the target value must be less than or equal to a specified value
-        /// </summary>
-        /// <param name="compareValue">The value to compare to</param>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsLessThanOrEqualTo(Condition{int}, int)"/>
         internal static void MustBeLessThanOrEqualTo<T>(ref Condition<T> condition, T compareValue) where T : IComparable<T>
         {
             int valueDiff = compareValues(condition.Value, compareValue);
@@ -67,11 +56,7 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Fail(new Condition.Message(AssertResponse.TOO_HIGH, "Value"));
         }
 
-        /// <summary>
-        /// Asserts that the target value must be in a given interval
-        /// </summary>
-        /// <param name="minimum">The lower bound</param>
-        /// <param name="maximum">The upper bound</param>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsBetween(Condition{int}, int, int)"/>
         internal static void MustBeBetween<T>(ref Condition<T> condition, T minimum, T maximum) where T : IComparable<T>
         {
             //Just in case the values are out of order
@@ -97,9 +82,7 @@ namespace LogUtils.Diagnostics.Extensions
             }
         }
 
-        /// <summary>
-        /// Asserts that the target value must be equal to zero
-        /// </summary>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsZero(Condition{int})"/>
         internal static void MustBeZero<T>(ref Condition<T> condition) where T : IComparable<T>, IComparable
         {
             int valueDiff = compareToZero(condition.Value);
@@ -111,9 +94,7 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Fail(new Condition.Message(valueDiff < 0 ? AssertResponse.TOO_LOW : AssertResponse.TOO_HIGH, "Value"));
         }
 
-        /// <summary>
-        /// Asserts that the target value must not be equal to zero
-        /// </summary>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsNotZero(Condition{int})"/>
         internal static void MustNotBeZero<T>(ref Condition<T> condition) where T : IComparable<T>, IComparable
         {
             int valueDiff = compareToZero(condition.Value);
@@ -125,9 +106,7 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_BE_ZERO, "Value"));
         }
 
-        /// <summary>
-        /// Asserts that the target value must be negative
-        /// </summary>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsNegative(Condition{int})"/>
         internal static void MustBeNegative<T>(ref Condition<T> condition) where T : IComparable<T>, IComparable
         {
             bool conditionPassed = compareToZero(condition.Value) < 0;
@@ -138,9 +117,7 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Fail(new Condition.Message(AssertResponse.MUST_BE_NEGATIVE, "Value"));
         }
 
-        /// <summary>
-        /// Asserts that the target value must be positive
-        /// </summary>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsPositive(Condition{int})"/>
         internal static void MustBePositive<T>(ref Condition<T> condition) where T : IComparable<T>, IComparable
         {
             bool conditionPassed = compareToZero(condition.Value) > 0;
@@ -151,9 +128,7 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Fail(new Condition.Message(AssertResponse.MUST_BE_POSITIVE, "Value"));
         }
 
-        /// <summary>
-        /// Asserts that the target value must not be negative
-        /// </summary>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsPositiveOrZero(Condition{int})"/>
         internal static void MustBePositiveOrZero<T>(ref Condition<T> condition) where T : IComparable
         {
             bool conditionPassed = compareToZero(condition.Value) >= 0;
@@ -164,10 +139,7 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_BE_NEGATIVE, "Value"));
         }
 
-        /// <summary>
-        /// Asserts that the target value must be greater than a specified value
-        /// </summary>
-        /// <param name="compareValue">The value to compare to</param>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsGreaterThan(Condition{int}, int)"/>
         internal static void MustBeGreaterThan<T>(ref Condition<T> condition, T? compareValue) where T : struct, IComparable<T>
         {
             if (compareValue == null)
@@ -185,10 +157,7 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Fail(new Condition.Message(AssertResponse.TOO_LOW, "Value"));
         }
 
-        /// <summary>
-        /// Asserts that the target value must be greater than or equal to a specified value
-        /// </summary>
-        /// <param name="compareValue">The value to compare to</param>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsGreaterThanOrEqualTo(Condition{int}, int)"/>
         internal static void MustBeGreaterThanOrEqualTo<T>(ref Condition<T> condition, T? compareValue) where T : struct, IComparable<T>
         {
             if (compareValue == null)
@@ -206,10 +175,7 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Fail(new Condition.Message(AssertResponse.TOO_LOW, "Value"));
         }
 
-        /// <summary>
-        /// Asserts that the target value must be less than a specified value
-        /// </summary>
-        /// <param name="compareValue">The value to compare to</param>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsLessThan(Condition{int}, int)"/>
         internal static void MustBeLessThan<T>(ref Condition<T> condition, T? compareValue) where T : struct, IComparable<T>
         {
             if (compareValue == null)
@@ -227,10 +193,7 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Fail(new Condition.Message(AssertResponse.TOO_HIGH, "Value"));
         }
 
-        /// <summary>
-        /// Asserts that the target value must be less than or equal to a specified value
-        /// </summary>
-        /// <param name="compareValue">The value to compare to</param>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsLessThanOrEqualTo(Condition{int}, int)"/>
         internal static void MustBeLessThanOrEqualTo<T>(ref Condition<T> condition, T? compareValue) where T : struct, IComparable<T>
         {
             if (compareValue == null)
@@ -248,10 +211,7 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Fail(new Condition.Message(AssertResponse.TOO_HIGH, "Value"));
         }
 
-        /// <summary>
-        /// Asserts that the target value must be greater than a specified value
-        /// </summary>
-        /// <param name="compareValue">The value to compare to</param>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsGreaterThan(Condition{int}, int)"/>
         internal static void MustBeGreaterThan<T>(ref Condition<T?> condition, T? compareValue) where T : struct, IComparable<T>
         {
             if (condition.Value == null || compareValue == null)
@@ -269,10 +229,7 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Fail(new Condition.Message(AssertResponse.TOO_LOW, "Value"));
         }
 
-        /// <summary>
-        /// Asserts that the target value must be greater than or equal to a specified value
-        /// </summary>
-        /// <param name="compareValue">The value to compare to</param>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsGreaterThanOrEqualTo(Condition{int}, int)"/>
         internal static void MustBeGreaterThanOrEqualTo<T>(ref Condition<T?> condition, T? compareValue) where T : struct, IComparable<T>
         {
             if (condition.Value == null || compareValue == null)
@@ -294,10 +251,7 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Fail(new Condition.Message(AssertResponse.TOO_LOW, "Value"));
         }
 
-        /// <summary>
-        /// Asserts that the target value must be less than a specified value
-        /// </summary>
-        /// <param name="compareValue">The value to compare to</param>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsLessThan(Condition{int}, int)"/>
         internal static void MustBeLessThan<T>(ref Condition<T?> condition, T? compareValue) where T : struct, IComparable<T>
         {
             if (condition.Value == null || compareValue == null)
@@ -315,10 +269,7 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Fail(new Condition.Message(AssertResponse.TOO_HIGH, "Value"));
         }
 
-        /// <summary>
-        /// Asserts that the target value must be less than or equal to a specified value
-        /// </summary>
-        /// <param name="compareValue">The value to compare to</param>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsLessThanOrEqualTo(Condition{int}, int)"/>
         internal static void MustBeLessThanOrEqualTo<T>(ref Condition<T?> condition, T? compareValue) where T : struct, IComparable<T>
         {
             if (condition.Value == null || compareValue == null)
@@ -340,11 +291,7 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Fail(new Condition.Message(AssertResponse.TOO_HIGH, "Value"));
         }
 
-        /// <summary>
-        /// Asserts that the target value must be in a given interval
-        /// </summary>
-        /// <param name="minimum">The lower bound</param>
-        /// <param name="maximum">The upper bound</param>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsBetween(Condition{int}, int, int)"/>
         internal static void MustBeBetween<T>(ref Condition<T?> condition, T minimum, T maximum) where T : struct, IComparable<T>
         {
             if (condition.Value == null)
@@ -376,9 +323,7 @@ namespace LogUtils.Diagnostics.Extensions
             }
         }
 
-        /// <summary>
-        /// Asserts that the target value must be equal to zero
-        /// </summary>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsZero(Condition{int})"/>
         internal static void MustBeZero<T>(ref Condition<T?> condition) where T : struct, IComparable
         {
             if (condition.Value == null) //Null is not the same as zero in this context
@@ -396,9 +341,7 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Fail(new Condition.Message(valueDiff < 0 ? AssertResponse.TOO_LOW : AssertResponse.TOO_HIGH, "Value"));
         }
 
-        /// <summary>
-        /// Asserts that the target value must not be equal to zero
-        /// </summary>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsNotZero(Condition{int})"/>
         internal static void MustNotBeZero<T>(ref Condition<T?> condition) where T : struct, IComparable
         {
             if (condition.Value == null)
@@ -416,9 +359,7 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Fail(new Condition.Message(AssertResponse.MUST_NOT_BE_ZERO, "Value"));
         }
 
-        /// <summary>
-        /// Asserts that the target value must be negative
-        /// </summary>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsNegative(Condition{int})"/>
         internal static void MustBeNegative<T>(ref Condition<T?> condition) where T : struct, IComparable
         {
             if (condition.Value == null)
@@ -435,9 +376,7 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Fail(new Condition.Message(AssertResponse.MUST_BE_NEGATIVE, "Value"));
         }
 
-        /// <summary>
-        /// Asserts that the target value must be positive
-        /// </summary>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsPositive(Condition{int})"/>
         internal static void MustBePositive<T>(ref Condition<T?> condition) where T : struct, IComparable
         {
             if (condition.Value == null)
@@ -454,9 +393,7 @@ namespace LogUtils.Diagnostics.Extensions
                 condition.Fail(new Condition.Message(AssertResponse.MUST_BE_POSITIVE, "Value"));
         }
 
-        /// <summary>
-        /// Asserts that the target value must not be negative
-        /// </summary>
+        /// <inheritdoc cref="AssertDocs.NumericAssert.IsPositiveOrZero(Condition{int})"/>
         internal static void MustBePositiveOrZero<T>(ref Condition<T?> condition) where T : struct, IComparable
         {
             if (condition.Value == null)

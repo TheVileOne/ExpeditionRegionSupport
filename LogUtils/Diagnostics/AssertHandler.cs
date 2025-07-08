@@ -6,11 +6,18 @@ using UnityEngine.Assertions;
 
 namespace LogUtils.Diagnostics
 {
+    /// <summary>
+    /// This type defines behavior for handling assert results 
+    /// </summary>
     public class AssertHandler : IConditionHandler, ICloneable
     {
-        private static AssertHandler _default = new AssertHandler(new UnityLogger()); 
+        private static AssertHandler _default = new AssertHandler(new UnityLogger());
         private static AssertHandler _customDefault;
 
+        /// <summary>
+        /// Default assert handling implementation
+        /// </summary>
+        /// <remarks>Possible to customize</remarks>
         public static AssertHandler Default
         {
             get
@@ -98,11 +105,19 @@ namespace LogUtils.Diagnostics
             }
         }
 
+        /// <summary>
+        /// Creates a shallow copy of this instance
+        /// </summary>
         public object Clone()
         {
             return MemberwiseClone();
         }
 
+        /// <summary>
+        /// Creates a shallow copy of this instance with the provided behavior
+        /// </summary>
+        /// <param name="behavior"></param>
+        /// <returns></returns>
         public AssertHandler Clone(AssertBehavior behavior)
         {
             var clone = (AssertHandler)Clone();
@@ -136,7 +151,14 @@ namespace LogUtils.Diagnostics
 
         public class MessageFormatter
         {
+            /// <summary>
+            /// The message that appears by default when an assert fails
+            /// </summary>
             public string FailResponse = UtilityConsts.AssertResponse.FAIL;
+
+            /// <summary>
+            /// The message that appears by default when an assert passes (and pass state is allowed to be reported)
+            /// </summary>
             public string PassResponse = UtilityConsts.AssertResponse.PASS;
 
             public string Format(Condition.Result result, string messageHeader = null)
@@ -164,6 +186,10 @@ namespace LogUtils.Diagnostics
         }
     }
 
+#pragma warning disable CS1591 //Missing XML comment for publicly visible type or member
+    /// <summary>
+    /// The activity that occurs on an assert result
+    /// </summary>
     [Flags]
     public enum AssertBehavior
     {
@@ -173,4 +199,5 @@ namespace LogUtils.Diagnostics
         Throw = 4,
         LogAndThrow = LogOnFail | Throw
     }
+#pragma warning restore CS1591 //Missing XML comment for publicly visible type or member
 }
