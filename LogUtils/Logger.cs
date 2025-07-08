@@ -206,10 +206,7 @@ namespace LogUtils
             Log(LogCategory.Default, data);
         }
 
-        /// <summary>
-        /// Formats and writes a log message only once (even when it is called more than once for the same exact log message)
-        /// </summary>
-        /// <param name="data">The object you want to log (string, interpolated string, object, etc.)</param>
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(object)"/>
         public void LogOnce(object data)
         {
             LogOnce(LogCategory.Default, data);
@@ -257,7 +254,7 @@ namespace LogUtils
             Log(LogCategory.Fatal, data);
         }
 
-        #region Base log overloads
+        #region Rain World Log Overloads
         #region BepInEx
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(object)"/>
         public void LogBepEx(object data)
@@ -348,163 +345,195 @@ namespace LogUtils
             LogData(Targets, category, data, false);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
         public void LogOnce(LogType category, object data)
         {
             LogOnce(LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
         public void LogOnce(LogLevel category, object data)
         {
             LogOnce(LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
         public void LogOnce(string category, object data)
         {
             LogOnce(LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
         public void LogOnce(LogCategory category, object data)
         {
             LogData(Targets, category, data, true);
         }
 
         #endregion
-        #region  Log Overloads (LogID, object)
+        #region  Log Overloads (ILogTarget, object)
 
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, object)"/>
         public void Log(ILogTarget target, object data)
         {
             Log(target, LogCategory.Default, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, object)"/>
         public void LogOnce(ILogTarget target, object data)
         {
             Log(target, LogCategory.Default, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(ILogTarget, object)"/>
         public void LogDebug(ILogTarget target, object data)
         {
             Log(target, LogCategory.Debug, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(ILogTarget, object)"/>
         public void LogInfo(ILogTarget target, object data)
         {
             Log(target, LogCategory.Info, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(ILogTarget, object)"/>
         public void LogImportant(ILogTarget target, object data)
         {
             Log(target, LogCategory.Important, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(ILogTarget, object)"/>
         public void LogMessage(ILogTarget target, object data)
         {
             Log(target, LogCategory.Message, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(ILogTarget, object)"/>
         public void LogWarning(ILogTarget target, object data)
         {
             Log(target, LogCategory.Warning, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogError(ILogTarget, object)"/>
         public void LogError(ILogTarget target, object data)
         {
             Log(target, LogCategory.Error, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(ILogTarget, object)"/>
         public void LogFatal(ILogTarget target, object data)
         {
             Log(target, LogCategory.Fatal, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object)"/>
         public void Log(ILogTarget target, LogLevel category, object data)
         {
             Log(target, LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object)"/>
         public void Log(ILogTarget target, string category, object data)
         {
             Log(target, LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object)"/>
         public void Log(ILogTarget target, LogCategory category, object data)
         {
             LogData(target, category, data, false);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, object)"/>
         public void LogOnce(ILogTarget target, LogCategory category, object data)
         {
             LogData(target, category, data, true);
         }
 
         #endregion
-        #region  Log Overloads (IEnumerable<LogID>, object)
+        #region  Log Overloads (IEnumerable<ILogTarget>, object)
 
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, object)"/>
         public void Log(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Default, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, object)"/>
         public void LogOnce(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Default, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(IEnumerable{ILogTarget}, object)"/>
         public void LogDebug(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Debug, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(IEnumerable{ILogTarget}, object)"/>
         public void LogInfo(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Info, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(IEnumerable{ILogTarget}, object)"/>
         public void LogImportant(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Important, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(IEnumerable{ILogTarget}, object)"/>
         public void LogMessage(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Message, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(IEnumerable{ILogTarget}, object)"/>
         public void LogWarning(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Warning, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogError(IEnumerable{ILogTarget}, object)"/>
         public void LogError(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Error, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(IEnumerable{ILogTarget}, object)"/>
         public void LogFatal(IEnumerable<ILogTarget> targets, object data)
         {
             Log(targets, LogCategory.Fatal, data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object)"/>
         public void Log(IEnumerable<ILogTarget> targets, LogLevel category, object data)
         {
             Log(targets, LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object)"/>
         public void Log(IEnumerable<ILogTarget> targets, string category, object data)
         {
             Log(targets, LogCategory.ToCategory(category), data);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object)"/>
         public void Log(IEnumerable<ILogTarget> targets, LogCategory category, object data)
         {
             LogData(new LogTargetCollection(targets), category, data, false);
         }
 
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, LogCategory, object)"/>
         public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, object data)
         {
             LogData(new LogTargetCollection(targets), category, data, true);
         }
 
         #endregion
+
+#pragma warning disable CS1591 //Missing XML comment for publicly visible type or member
         protected void LogData(ILogTarget target, LogCategory category, object data, bool shouldFilter)
         {
             LogData(target, category, data, shouldFilter, null, LoggingContext.SingleRequest);
@@ -626,6 +655,7 @@ namespace LogUtils
                     ClearEventData();
             }
         }
+#pragma warning restore CS1591 //Missing XML comment for publicly visible type or member
 
         /// <inheritdoc/>
         public bool CanHandle(LogID logID, RequestType requestType)

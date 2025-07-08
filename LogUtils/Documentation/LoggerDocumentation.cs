@@ -1,5 +1,6 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace LogUtils.Documentation
@@ -57,32 +58,134 @@ namespace LogUtils.Documentation
             void LogFatal(object data);
 
             /// <summary>
-            /// Formats and writes a log message with a specified UnityEngine logging context
-            /// </summary>
-            /// <param name="category">The specified logging context</param>
-            /// <param name="data">The object you want to log (string, interpolated string, object, etc.)</param>
-            //void Log(LogType category, object data);
-
-            /// <summary>
-            /// Formats and writes a log message with a specified BepInEx logging context
-            /// </summary>
-            /// <param name="category">The specified logging context</param>
-            /// <param name="data">The object you want to log (string, interpolated string, object, etc.)</param>
-            //void Log(LogLevel category, object data);
-
-            /// <summary>
-            /// Formats and writes a log message with a specified logging context as a string
-            /// </summary>
-            /// <param name="category">The specified logging context</param>
-            /// <param name="data">The object you want to log (string, interpolated string, object, etc.)</param>
-            //void Log(string category, object data);
-
-            /// <summary>
             /// Formats and writes a log message with a specified logging context
             /// </summary>
             /// <param name="category">The specified logging context</param>
             /// <param name="data">The object you want to log (string, interpolated string, object, etc.)</param>
             void Log(LogCategory category, object data);
+
+            /// <summary>
+            /// Formats and writes a log message only once
+            /// </summary>
+            /// <remarks>Prevents logging a message more than once</remarks>
+            /// <param name="data">The object you want to log (string, interpolated string, object, etc.)</param>
+            void LogOnce(object data);
+
+            /// <summary>
+            /// Formats and writes a log message only once with a specified logging context
+            /// </summary>
+            /// <inheritdoc cref="LogOnce(object)" select="remarks"/>
+            /// <param name="category">The specified logging context</param>
+            /// <param name="data">The object you want to log (string, interpolated string, object, etc.)</param>
+            void LogOnce(LogCategory category, object data);
+
+            /// <summary>
+            /// Formats and writes a log message only once
+            /// </summary>
+            /// <remarks>
+            /// <inheritdoc cref="LogOnce(object)" select="remarks"/>
+            /// <para>
+            /// Accepts multiple targets through the use of bitflag operators (to combine multiple log targets into one) <br/>
+            /// When multiple targets are selected, it will log once to each specific target </para>
+            /// </remarks>
+            /// <inheritdoc cref="Log(ILogTarget, LogCategory,  object)" select="param"/>
+            void LogOnce(ILogTarget target, object data);
+
+            /// <summary>
+            /// Formats and writes a log message only once with a specified logging context
+            /// </summary>
+            /// <inheritdoc cref="LogOnce(ILogTarget, object)" select="param, remarks"/>
+            void LogOnce(ILogTarget target, LogCategory category, object data);
+
+            /// <summary>
+            /// Formats and writes a log message
+            /// </summary>
+            /// <remarks>Accepts multiple targets through the use of bitflag operators (to combine multiple log targets into one)</remarks>
+            /// <param name="target">The specified log file, or console identifier to target</param>
+            /// <param name="data">The object you want to log (string, interpolated string, object, etc.)</param>
+            void Log(ILogTarget target, object data);
+
+            /// <inheritdoc cref="Log(LogCategory, object)"/>
+            /// <inheritdoc cref="Log(ILogTarget, object)" select="param"/>
+            void Log(ILogTarget target, LogCategory category, object data);
+
+            /// <inheritdoc cref="LogDebug(object)"/>
+            /// <inheritdoc cref="Log(ILogTarget, object)" select="param"/>
+            void LogDebug(ILogTarget target, object data);
+
+            /// <inheritdoc cref="LogInfo(object)"/>
+            /// <inheritdoc cref="Log(ILogTarget, object)" select="param"/>
+            void LogInfo(ILogTarget target, object data);
+
+            /// <inheritdoc cref="LogImportant(object)"/>
+            /// <inheritdoc cref="Log(ILogTarget, object)" select="param"/>
+            void LogImportant(ILogTarget target, object data);
+
+            /// <inheritdoc cref="LogMessage(object)"/>
+            /// <inheritdoc cref="Log(ILogTarget, object)" select="param"/>
+            void LogMessage(ILogTarget target, object data);
+
+            /// <inheritdoc cref="LogWarning(object)"/>
+            /// <inheritdoc cref="Log(ILogTarget, object)" select="param"/>
+            void LogWarning(ILogTarget target, object data);
+
+            /// <inheritdoc cref="LogError(object)"/>
+            /// <inheritdoc cref="Log(ILogTarget, object)" select="param"/>
+            void LogError(ILogTarget target, object data);
+
+            /// <inheritdoc cref="LogFatal(object)"/>
+            /// <inheritdoc cref="Log(ILogTarget, object)" select="param"/>
+            void LogFatal(ILogTarget target, object data);
+
+            /// <summary>
+            /// Formats and writes a log message to multiple log targets
+            /// </summary>
+            /// <param name="targets">The specified log file, or console identifiers to target</param>
+            /// <param name="data">The object you want to log (string, interpolated string, object, etc.)</param>
+            void Log(IEnumerable<ILogTarget> targets, object data);
+
+            /// <summary>
+            /// Formats and writes a log message to multiple log targets only once
+            /// </summary>
+            /// <inheritdoc cref="LogOnce(object)" select="remarks"/>
+            /// <inheritdoc cref="Log(IEnumerable{ILogTarget}, object)" select="param"/>
+            void LogOnce(IEnumerable<ILogTarget> targets, object data);
+
+            /// <inheritdoc cref="LogDebug(object)"/>
+            /// <inheritdoc cref="Log(IEnumerable{ILogTarget}, object)" select="param"/>
+            void LogDebug(IEnumerable<ILogTarget> targets, object data);
+
+            /// <inheritdoc cref="LogInfo(object)"/>
+            /// <inheritdoc cref="Log(IEnumerable{ILogTarget}, object)" select="param"/>
+            void LogInfo(IEnumerable<ILogTarget> targets, object data);
+
+            /// <inheritdoc cref="LogImportant(object)"/>
+            /// <inheritdoc cref="Log(IEnumerable{ILogTarget}, object)" select="param"/>
+            void LogImportant(IEnumerable<ILogTarget> targets, object data);
+
+            /// <inheritdoc cref="LogMessage(object)"/>
+            /// <inheritdoc cref="Log(IEnumerable{ILogTarget}, object)" select="param"/>
+            void LogMessage(IEnumerable<ILogTarget> targets, object data);
+
+            /// <inheritdoc cref="LogWarning(object)"/>
+            /// <inheritdoc cref="Log(IEnumerable{ILogTarget}, object)" select="param"/>
+            void LogWarning(IEnumerable<ILogTarget> targets, object data);
+
+            /// <inheritdoc cref="LogError(object)"/>
+            /// <inheritdoc cref="Log(IEnumerable{ILogTarget}, object)" select="param"/>
+            void LogError(IEnumerable<ILogTarget> targets, object data);
+
+            /// <inheritdoc cref="LogFatal(object)"/>
+            /// <inheritdoc cref="Log(IEnumerable{ILogTarget}, object)" select="param"/>
+            void LogFatal(IEnumerable<ILogTarget> targets, object data);
+
+            /// <inheritdoc cref="Log(LogCategory, object)"/>
+            /// <inheritdoc cref="Log(IEnumerable{ILogTarget}, object)" select="param"/>
+            void Log(IEnumerable<ILogTarget> targets, LogCategory category, object data);
+
+            /// <inheritdoc cref="LogOnce(LogCategory, object)"/>
+            /// <inheritdoc cref="Log(IEnumerable{ILogTarget}, object)" select="param"/>
+            void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, object data);
         }
 
         internal interface Game
