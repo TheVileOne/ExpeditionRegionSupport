@@ -53,8 +53,7 @@ namespace LogUtils.Compatibility.Unity
         /// <remarks>Utilizes Unity's logging API</remarks>
         public void LogDebug(object data)
         {
-            //TODO: Use Debug context here
-            Debug.Log(data);
+            Log(LogCategory.Debug, data);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object)"/>
