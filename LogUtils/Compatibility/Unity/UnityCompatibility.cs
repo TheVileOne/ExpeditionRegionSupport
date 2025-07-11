@@ -31,7 +31,7 @@ namespace LogUtils
 
         bool UnityEngine.ILogger.IsLogTypeAllowed(LogType logType)
         {
-            return LogCategory.GlobalFilter.IsAllowed(LogCategory.ToCategory(logType));
+            return LogFilter.IsAllowed(LogCategory.ToCategory(logType));
         }
 
         void UnityEngine.ILogger.Log(LogType logType, object message, UnityEngine.Object context)

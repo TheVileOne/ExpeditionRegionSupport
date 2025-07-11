@@ -28,19 +28,33 @@ namespace LogUtils
             filter.Add(entry);
         }
 
+        /// <summary>
+        /// Checks that log request data is allowed to be processed
+        /// </summary>
         public static bool IsAllowed(LogRequestEventArgs messageData)
         {
-            var categoryFilter = LogCategory.GlobalFilter;
-
-            return (categoryFilter == null || categoryFilter.IsAllowed(messageData.Category)) && IsAllowed(messageData.ID, messageData.Message);
+            return IsAllowed(messageData.Category) && IsAllowed(messageData.ID, messageData.Message);
         }
 
+        /// <summary>
+        /// Checks that a specified log message is allowed to be processed
+        /// </summary>
         public static bool IsAllowed(LogID logID, string logString)
         {
             bool isFiltered = false;
             if (FilteredStrings.TryGetValue(logID, out List<FilteredStringEntry> filter))
                 isFiltered = filter.Exists(entry => entry.CheckValidation() && entry.CheckMatch(logString));
             return !isFiltered;
+        }
+
+        /// <summary>
+        /// Checks that a specified logging context is allowed to be processed
+        /// </summary>
+        public static bool IsAllowed(LogCategory category)
+        {
+            var categoryFilter = LogCategory.GlobalFilter;
+
+            return categoryFilter == null || categoryFilter.IsAllowed(category);
         }
 
         /// <summary>

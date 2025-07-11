@@ -31,8 +31,7 @@ namespace LogUtils.Compatibility.DotNet
 
         public bool IsEnabled(LogLevel logLevel)
         {
-            //TODO: Implement
-            return true;
+            return LogFilter.IsAllowed(LoggerUtils.GetEquivalentCategory(logLevel));
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventID, TState state, Exception exception, Func<TState, Exception, string> formatter)
