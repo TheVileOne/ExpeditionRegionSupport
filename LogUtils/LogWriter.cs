@@ -86,6 +86,15 @@ namespace LogUtils
                     return;
                 }
 
+                if (request.Type == RequestType.Console)
+                {
+                    WriteToConsole(request);
+                    return; //Buffering does not apply to console requests
+                }
+
+                if (request.Data.PendingConsoleIDs.Any())
+                    WriteToConsole(request);
+
                 if (!RWInfo.IsShuttingDown)
                 {
                     /*
@@ -153,19 +162,13 @@ namespace LogUtils
                     WriteFromBuffer(request.Data.ID, TimeSpan.Zero, respectBufferState: false);
                 }
 
-                if (request.Type == RequestType.Console || request.Data.PendingConsoleIDs.Any())
-                {
-                    WriteToConsole(request);
-
-                    //Only requests that exclusively target the console should return early
-                    if (request.Type == RequestType.Console)
-                        return;
-                }
-
                 WriteHandler.Invoke(request);
             }
             finally
             {
+                if (!request.IsCompleteOrRejected) //Something horribly went wrong for this code to run
+                    request.Reject(RejectionReason.FailedToWrite);
+
                 if (!writeBuffer.IsBuffering || RWInfo.IsShuttingDown)
                     profiler.MessagesSinceLastSampling++;
                 UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
