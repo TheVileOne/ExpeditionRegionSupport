@@ -93,6 +93,20 @@ namespace LogUtils
         IEnumerable<LogID> GetAccessibleTargets();
     }
 
+    /// <summary>
+    /// Provides access to an ILogSource
+    /// </summary>
+    public interface ILogSourceProvider
+    {
+        /// <summary>
+        /// The logging source associated with the provider
+        /// </summary>
+        ILogSource LogSource { get; set; }
+    }
+
+    /// <summary>
+    /// Provides access to an ILogWriter
+    /// </summary>
     public interface ILogWriterProvider
     {
         /// <summary>

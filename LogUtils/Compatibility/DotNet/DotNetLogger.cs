@@ -46,19 +46,10 @@ namespace LogUtils.Compatibility.DotNet
         {
             if (!AllowLogging || !IsEnabled(logLevel)) return; //Remote logging is not applicable here
 
-            EventArgs extraData = new DotNetLoggerEventArgs(eventID);
-            LogRequest addDataToRequest(ILogTarget target, LogCategory category, object data, bool shouldFilter)
-            {
-                LogRequest request = CreateRequest(target, category, data, shouldFilter);
-
-                if (request != null)
-                    request.Data.ExtraArgs.Add(extraData);
-                return request;
-            }
-
             object messageObj = formatter != null ? formatter.Invoke(state, exception) : state;
 
-            LogData(Targets, LoggerUtils.GetEquivalentCategory(logLevel), messageObj, false, addDataToRequest);
+            EventArgs extraData = new DotNetLoggerEventArgs(eventID);
+            LogData(Targets, LoggerUtils.GetEquivalentCategory(logLevel), messageObj, false, LogRequest.Factory.CreateDataCallback(extraData));
         }
     }
 }

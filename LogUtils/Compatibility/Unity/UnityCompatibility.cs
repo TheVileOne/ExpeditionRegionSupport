@@ -3,6 +3,7 @@ using LogUtils.Enums;
 using LogUtils.Requests;
 using System;
 using UnityEngine;
+using CreateRequestCallback = LogUtils.Requests.LogRequest.Factory.Callback;
 
 namespace LogUtils
 {
@@ -103,21 +104,13 @@ namespace LogUtils
         /// </summary>
         protected void LogData(LogType logType, string tag, object message, UnityEngine.Object context)
         {
-            CreateRequestCallback dataCallback = null;
             bool shouldAddData = context != null || tag != null; //At least some of the data should be available to warrant storage in a data class
 
+            CreateRequestCallback dataCallback = null;
             if (shouldAddData)
             {
                 EventArgs extraData = new UnityLogEventArgs(context, tag);
-                LogRequest addDataToRequest(ILogTarget target, LogCategory category, object data, bool shouldFilter)
-                {
-                    LogRequest request = CreateRequest(target, category, data, shouldFilter);
-
-                    if (request != null)
-                        request.Data.ExtraArgs.Add(extraData);
-                    return request;
-                }
-                dataCallback = addDataToRequest;
+                dataCallback = LogRequest.Factory.CreateDataCallback(extraData);
             }
             LogData(Targets, LogCategory.ToCategory(logType), message, false, dataCallback);
         }

@@ -8,14 +8,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using LogLevel = BepInEx.Logging.LogLevel;
 using LoggerDocs = LogUtils.Documentation.LoggerDocumentation;
+using CreateRequestCallback = LogUtils.Requests.LogRequest.Factory.Callback;
 
 namespace LogUtils
 {
     /// <summary>
     /// Allows you to log messages to file, or a console using the write implementation of your choosing
     /// </summary>
-    public partial class Logger : ILogger, ILogHandler, ILogWriterProvider, IDisposable
+    public partial class Logger : ILogger, ILogHandler, ILogSourceProvider, ILogWriterProvider, IDisposable
     {
         /// <summary>
         /// A flag that allows/disallows handling of log requests (local and remote) through this logger 
@@ -48,9 +50,9 @@ namespace LogUtils
         public List<ConsoleID> ConsoleTargets => Targets.ConsoleIDs;
 
         /// <summary>
-        /// BepInEx logging source object
+        /// A log source that will be applied by default to log requests that require such information
         /// </summary>
-        public ManualLogSource ManagedLogSource;
+        public ILogSource LogSource { get; set; }
 
         /// <summary>
         /// Contains a record of logger field values that can be restored on demand
@@ -74,10 +76,10 @@ namespace LogUtils
         /// <summary>
         /// Constructs a logger instance
         /// </summary>
-        /// <param name="logSource">Assigns a BepInEx log source to this logger, targeting BepInEx log file</param>
-        public Logger(ManualLogSource logSource) : this(LoggingMode.Inherit, true, LogID.BepInEx)
+        /// <param name="logSource">The BepInEx log source (typically a ManualLogsource) to assign to this logger</param>
+        public Logger(ILogSource logSource) : this(LoggingMode.Inherit, true, LogID.BepInEx)
         {
-            ManagedLogSource = logSource;
+            LogSource = logSource;
         }
 
         /// <summary>
@@ -265,13 +267,13 @@ namespace LogUtils
             LogData(LogID.BepInEx, LogCategory.Default, data, false);
         }
 
-        /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(BepInEx.Logging.LogLevel, object)"/>
+        /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object)"/>
         public void LogBepEx(LogLevel category, object data)
         {
             LogData(LogID.BepInEx, LogCategory.ToCategory(category), data, false);
         }
 
-        /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(BepInEx.Logging.LogLevel, object)"/>
+        /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object)"/>
         public void LogBepEx(LogCategory category, object data)
         {
             LogData(LogID.BepInEx, category, data, false);
@@ -538,85 +540,43 @@ namespace LogUtils
 
 #pragma warning disable CS1591 //Missing XML comment for publicly visible type or member
 
-        /// <summary>
-        /// A delegate signature for creating a LogRequest instance
-        /// </summary>
-        /// <param name="target">The log destination identifier</param>
-        /// <param name="category">The category of the logged message</param>
-        /// <param name="messageObj">The object representation of the logged message</param>
-        /// <param name="shouldFilter">Whether a filter should be applied when message is handled</param>
-        public delegate LogRequest CreateRequestCallback(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter);
-
-        /// <summary>
-        /// Creates a new LogRequest instance
-        /// </summary>
-        /// <returns>The created instance, or null if target is unable to be processed</returns>
-        protected LogRequest CreateRequest(ILogTarget target, LogCategory category, object data, bool shouldFilter)
+        protected void LogData(ILogTarget target, LogCategory category, object data, bool shouldFilter, CreateRequestCallback createRequest = null)
         {
-            if (!AllowLogging || !target.IsEnabled) return null;
+            if (!AllowLogging || !target.IsEnabled) return;
 
-            RequestType requestType = target.GetRequestType(this);
+            if (createRequest == null)
+                createRequest = LogRequest.Factory.Create;
 
-            if (requestType == RequestType.Invalid)
-            {
-                UtilityLogger.LogWarning("Log request could not be processed");
-                return null;
-            }
-
-            LogRequestEventArgs requestData = null;
-
-            if (requestType == RequestType.Console)
-            {
-                ConsoleID consoleTarget = (ConsoleID)target;
-                requestData = new LogRequestEventArgs(consoleTarget, data, category);
-            }
-            else
-            {
-                LogID fileTarget = (LogID)target;
-                requestData = new LogRequestEventArgs(fileTarget, data, category);
-            }
-
-            if (shouldFilter)
-            {
-                requestData.ShouldFilter = true;
-                requestData.FilterDuration = FilterDuration.OnClose;
-            }
-
-            requestData.LogSource = ManagedLogSource;
-            return new LogRequest(requestType, requestData);
-        }
-
-        protected void LogData(ILogTarget target, LogCategory category, object data, bool shouldFilter, CreateRequestCallback callback = null)
-        {
-            if (callback == null)
-                callback = CreateRequest;
-
-            LogRequest request = callback.Invoke(target, category, data, shouldFilter);
+            LogRequest request = createRequest.Invoke(target.GetRequestType(this), target, category, data, shouldFilter);
 
             if (request != null)
                 LogData(request);
         }
 
-        protected void LogData(CompositeLogTarget target, LogCategory category, object data, bool shouldFilter, CreateRequestCallback callback = null)
+        protected void LogData(CompositeLogTarget target, LogCategory category, object data, bool shouldFilter, CreateRequestCallback createRequest = null)
         {
-            LogData(target.ToCollection(), category, data, shouldFilter, callback);
+            LogData(target.ToCollection(), category, data, shouldFilter, createRequest);
         }
 
-        protected virtual void LogData(LogTargetCollection targets, LogCategory category, object data, bool shouldFilter, CreateRequestCallback callback = null)
+        protected virtual void LogData(LogTargetCollection targets, LogCategory category, object data, bool shouldFilter, CreateRequestCallback createRequest = null)
         {
+            if (!AllowLogging) return;
+
             if (targets.Count == 0)
             {
                 UtilityLogger.LogWarning("Attempted to log message with no available log targets");
                 return;
             }
 
-            if (callback == null)
-                callback = CreateRequest;
+            if (createRequest == null)
+                createRequest = LogRequest.Factory.Create;
+
+            IEnumerable<ILogTarget> enabledTargets = targets.LogIDs.Where(t => t.IsEnabled);
 
             LogRequest lastRequest = null;
-            foreach (LogID target in targets.LogIDs)
+            foreach (LogID target in enabledTargets)
             {
-                LogRequest currentRequest = callback.Invoke(target, category, data, shouldFilter);
+                LogRequest currentRequest = createRequest.Invoke(target.GetRequestType(this), target, category, data, shouldFilter);
 
                 if (currentRequest != null)
                 {
@@ -628,7 +588,7 @@ namespace LogUtils
                 }
             }
 
-            IEnumerable<ConsoleID> consoleTargets = targets.ConsoleIDs;
+            enabledTargets = targets.ConsoleIDs.Where(t => t.IsEnabled);
 
             if (lastRequest != null) //Possible to be null if all of the requests were rejected
             {
@@ -636,12 +596,12 @@ namespace LogUtils
 
                 //Exclude any ConsoleIDs that were already handled when the LogIDs were processed
                 if (consoleMessageData != null)
-                    consoleTargets = consoleTargets.Except(consoleMessageData.Handled);
+                    enabledTargets = enabledTargets.Except(consoleMessageData.Handled);
             }
 
-            foreach (ConsoleID target in consoleTargets)
+            foreach (ConsoleID target in enabledTargets)
             {
-                LogRequest currentRequest = callback.Invoke(target, category, data, shouldFilter);
+                LogRequest currentRequest = createRequest.Invoke(RequestType.Console, target, category, data, shouldFilter);
 
                 if (currentRequest != null)
                 {
@@ -661,6 +621,7 @@ namespace LogUtils
                 UtilityCore.RequestHandler.RecursionCheckCounter++;
 
                 request.Sender = this;
+                request.Data.LogSource = LogSource;
 
                 //Local requests are processed immediately by the logger, while other types of requests are handled through RequestHandler
                 if (request.Type != RequestType.Local)

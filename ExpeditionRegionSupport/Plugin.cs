@@ -54,7 +54,7 @@ namespace ExpeditionRegionSupport
         {
             Logger = new LogUtils.Logger(ModEnums.LogID.ErsLog)
             {
-                ManagedLogSource = base.Logger
+                LogSource = base.Logger
             };
 
             try

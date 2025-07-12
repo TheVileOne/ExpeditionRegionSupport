@@ -79,7 +79,7 @@ namespace LogUtils.Requests
         public static LogRequestStringFormatter Formatter = new LogRequestStringFormatter();
 
         /// <summary>
-        /// Constructs a LogRequest instance
+        /// Constructs a new LogRequest instance
         /// </summary>
         /// <param name="type">The identifying request category (affects how request is handled)</param>
         /// <param name="data">Data used to construct a log message</param>
@@ -324,6 +324,71 @@ namespace LogUtils.Requests
         public object Clone()
         {
             return MemberwiseClone();
+        }
+
+        /// <summary>
+        /// A class for constructor helper methods, and method signatures for creating LogRequests
+        /// </summary>
+        public static class Factory
+        {
+            /// <summary>
+            /// A delegate signature for creating a LogRequest instance
+            /// </summary>
+            /// <param name="requestType">The type of LogRequest to make</param>
+            /// <param name="target">The log destination identifier</param>
+            /// <param name="category">The logging context to use</param>
+            /// <param name="messageObj">The object representation of the logged message</param>
+            /// <param name="shouldFilter">Whether a filter should be applied when message is handled</param>
+            public delegate LogRequest Callback(RequestType requestType, ILogTarget target, LogCategory category, object messageObj, bool shouldFilter);
+
+            /// <summary>
+            /// Constructs a new LogRequest instance
+            /// </summary>
+            /// <inheritdoc cref="Callback" section="param"/>
+            public static LogRequest Create(RequestType requestType, ILogTarget target, LogCategory category, object messageObj, bool shouldFilter)
+            {
+                if (requestType == RequestType.Invalid)
+                {
+                    UtilityLogger.LogWarning("Log request could not be processed");
+                    return null;
+                }
+
+                LogRequestEventArgs requestData = null;
+
+                if (requestType == RequestType.Console)
+                {
+                    ConsoleID consoleTarget = (ConsoleID)target;
+                    requestData = new LogRequestEventArgs(consoleTarget, messageObj, category);
+                }
+                else
+                {
+                    LogID fileTarget = (LogID)target;
+                    requestData = new LogRequestEventArgs(fileTarget, messageObj, category);
+                }
+
+                if (shouldFilter)
+                {
+                    requestData.ShouldFilter = true;
+                    requestData.FilterDuration = FilterDuration.OnClose;
+                }
+                return new LogRequest(requestType, requestData);
+            }
+
+            /// <summary>
+            /// Creates a callback that will create a new LogRequest with the provided event data when invoked
+            /// </summary>
+            public static Callback CreateDataCallback(EventArgs extraData)
+            {
+                LogRequest addDataToRequest(RequestType type, ILogTarget target, LogCategory category, object data, bool shouldFilter)
+                {
+                    LogRequest request = Factory.Create(type, target, category, data, shouldFilter);
+
+                    if (request != null)
+                        request.Data.ExtraArgs.Add(extraData);
+                    return request;
+                }
+                return addDataToRequest;
+            }
         }
     }
 
