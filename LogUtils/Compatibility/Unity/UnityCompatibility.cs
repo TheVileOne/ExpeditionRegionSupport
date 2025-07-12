@@ -1,8 +1,7 @@
 ﻿using LogUtils.Compatibility.Unity;
 using LogUtils.Enums;
+using LogUtils.Requests;
 using System;
-using System.Linq;
-using System.Threading;
 using UnityEngine;
 
 namespace LogUtils
@@ -99,22 +98,28 @@ namespace LogUtils
             LogData(logType, null, string.Format(format, args), context);
         }
 
+        /// <summary>
+        /// This method receives all log API calls that make use of Unity specific logging arguments for this logger
+        /// </summary>
         protected void LogData(LogType logType, string tag, object message, UnityEngine.Object context)
         {
-            if (!LogTargets.Any())
-            {
-                UtilityLogger.LogWarning("Attempted to log message with no available log targets");
-                return;
-            }
+            CreateRequestCallback dataCallback = null;
+            bool shouldAddData = context != null || tag != null; //At least some of the data should be available to warrant storage in a data class
 
-            if (context != null || tag != null)
+            if (shouldAddData)
             {
-                if (unityDataCache == null)
-                    unityDataCache = new ThreadLocal<EventArgs>();
+                EventArgs extraData = new UnityLogEventArgs(context, tag);
+                LogRequest addDataToRequest(ILogTarget target, LogCategory category, object data, bool shouldFilter)
+                {
+                    LogRequest request = CreateRequest(target, category, data, shouldFilter);
 
-                unityDataCache.Value = new UnityLogEventArgs(context, tag);
+                    if (request != null)
+                        request.Data.ExtraArgs.Add(extraData);
+                    return request;
+                }
+                dataCallback = addDataToRequest;
             }
-            Log(logType, message);
+            LogData(Targets, LogCategory.ToCategory(logType), message, false, dataCallback);
         }
     }
 }

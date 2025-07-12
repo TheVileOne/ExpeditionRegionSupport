@@ -534,100 +534,128 @@ namespace LogUtils
         #endregion
 
 #pragma warning disable CS1591 //Missing XML comment for publicly visible type or member
-        protected void LogData(ILogTarget target, LogCategory category, object data, bool shouldFilter)
-        {
-            LogData(target, category, data, shouldFilter, null, LoggingContext.SingleRequest);
-        }
 
-        protected void LogData(CompositeLogTarget target, LogCategory category, object data, bool shouldFilter)
-        {
-            LogData(target.ToCollection(), category, data, shouldFilter);
-        }
+        /// <summary>
+        /// A delegate signature for creating a LogRequest instance
+        /// </summary>
+        /// <param name="target">The log destination identifier</param>
+        /// <param name="category">The category of the logged message</param>
+        /// <param name="messageObj">The object representation of the logged message</param>
+        /// <param name="shouldFilter">Whether a filter should be applied when message is handled</param>
+        public delegate LogRequest CreateRequestCallback(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter);
 
-        protected virtual void LogData(LogTargetCollection targets, LogCategory category, object data, bool shouldFilter)
+        /// <summary>
+        /// Creates a new LogRequest instance
+        /// </summary>
+        /// <returns>The created instance, or null if target is unable to be processed</returns>
+        protected LogRequest CreateRequest(ILogTarget target, LogCategory category, object data, bool shouldFilter)
         {
-            try
+            if (!AllowLogging || !target.IsEnabled) return null;
+
+            RequestType requestType = target.GetRequestType(this);
+
+            if (requestType == RequestType.Invalid)
             {
-                if (targets.Count == 0)
-                {
-                    UtilityLogger.LogWarning("Attempted to log message with no available log targets");
-                    return;
-                }
-
-                LogRequest lastRequest = null;
-                foreach (LogID target in targets.LogIDs)
-                    lastRequest = LogData(target, category, data, shouldFilter, lastRequest, LoggingContext.Batching);
-
-                IEnumerable<ConsoleID> consoleTargets = targets.ConsoleIDs;
-
-                if (lastRequest != null) //Possible to be null if all of the requests were rejected
-                {
-                    var consoleMessageData = lastRequest.Data.GetConsoleData();
-
-                    //Exclude any ConsoleIDs that were already handled when the LogIDs were processed
-                    if (consoleMessageData != null)
-                        consoleTargets = consoleTargets.Except(consoleMessageData.Handled);
-                }
-
-                foreach (ConsoleID target in consoleTargets)
-                    lastRequest = LogData(target, category, data, shouldFilter, lastRequest, LoggingContext.Batching);
+                UtilityLogger.LogWarning("Log request could not be processed");
+                return null;
             }
-            finally
+
+            LogRequestEventArgs requestData = null;
+
+            if (requestType == RequestType.Console)
             {
-                ClearEventData();
+                ConsoleID consoleTarget = (ConsoleID)target;
+                requestData = new LogRequestEventArgs(consoleTarget, data, category);
+            }
+            else
+            {
+                LogID fileTarget = (LogID)target;
+                requestData = new LogRequestEventArgs(fileTarget, data, category);
+            }
+
+            if (shouldFilter)
+            {
+                requestData.ShouldFilter = true;
+                requestData.FilterDuration = FilterDuration.OnClose;
+            }
+
+            requestData.LogSource = ManagedLogSource;
+            return new LogRequest(requestType, requestData);
+        }
+
+        protected void LogData(ILogTarget target, LogCategory category, object data, bool shouldFilter, CreateRequestCallback callback = null)
+        {
+            if (callback == null)
+                callback = CreateRequest;
+
+            LogRequest request = callback.Invoke(target, category, data, shouldFilter);
+
+            if (request != null)
+                LogData(request);
+        }
+
+        protected void LogData(CompositeLogTarget target, LogCategory category, object data, bool shouldFilter, CreateRequestCallback callback = null)
+        {
+            LogData(target.ToCollection(), category, data, shouldFilter, callback);
+        }
+
+        protected virtual void LogData(LogTargetCollection targets, LogCategory category, object data, bool shouldFilter, CreateRequestCallback callback = null)
+        {
+            if (targets.Count == 0)
+            {
+                UtilityLogger.LogWarning("Attempted to log message with no available log targets");
+                return;
+            }
+
+            if (callback == null)
+                callback = CreateRequest;
+
+            LogRequest lastRequest = null;
+            foreach (LogID target in targets.LogIDs)
+            {
+                LogRequest currentRequest = callback.Invoke(target, category, data, shouldFilter);
+
+                if (currentRequest != null)
+                {
+                    //Avoids the possibility of messages being processed by the console more than once
+                    currentRequest.InheritHandledConsoleTargets(lastRequest);
+
+                    lastRequest = currentRequest;
+                    LogData(currentRequest);
+                }
+            }
+
+            IEnumerable<ConsoleID> consoleTargets = targets.ConsoleIDs;
+
+            if (lastRequest != null) //Possible to be null if all of the requests were rejected
+            {
+                var consoleMessageData = lastRequest.Data.GetConsoleData();
+
+                //Exclude any ConsoleIDs that were already handled when the LogIDs were processed
+                if (consoleMessageData != null)
+                    consoleTargets = consoleTargets.Except(consoleMessageData.Handled);
+            }
+
+            foreach (ConsoleID target in consoleTargets)
+            {
+                LogRequest currentRequest = callback.Invoke(target, category, data, shouldFilter);
+
+                if (currentRequest != null)
+                {
+                    //Avoids the possibility of messages being processed by the console more than once
+                    currentRequest.InheritHandledConsoleTargets(lastRequest);
+
+                    lastRequest = currentRequest;
+                    LogData(currentRequest);
+                }
             }
         }
 
-        protected virtual LogRequest LogData(ILogTarget target, LogCategory category, object data, bool shouldFilter, LogRequest lastRequest, LoggingContext context)
+        protected virtual void LogData(LogRequest request)
         {
             try
             {
                 UtilityCore.RequestHandler.RecursionCheckCounter++;
-
-                if (target is CompositeLogTarget)
-                    UtilityLogger.LogWarning("Composite processing not supported");
-
-                if (!AllowLogging || !target.IsEnabled) return null;
-
-                RequestType requestType = target.GetRequestType(this);
-
-                if (requestType == RequestType.Invalid)
-                {
-                    UtilityLogger.LogWarning("Processed an invalid log request");
-                    return null;
-                }
-
-                LogRequest request = null;
-                LogRequestEventArgs requestData = null;
-
-                if (requestType == RequestType.Console)
-                {
-                    ConsoleID consoleTarget = (ConsoleID)target;
-                    requestData = new LogRequestEventArgs(consoleTarget, data, category);
-                }
-                else
-                {
-                    LogID fileTarget = (LogID)target;
-                    requestData = new LogRequestEventArgs(fileTarget, data, category);
-                }
-
-                requestData.LogSource = ManagedLogSource;
-                request = new LogRequest(requestType, requestData);
-
-                if (shouldFilter)
-                {
-                    request.Data.ShouldFilter = true;
-                    request.Data.FilterDuration = FilterDuration.OnClose;
-                }
-
-                if (lastRequest != null)
-                {
-                    //ConsoleIDs that were processed by an earlier request need to be transferred to the current request to avoid messages being logged to console more than once
-                    var consoleMessageData = lastRequest.Data.GetConsoleData();
-
-                    if (consoleMessageData != null)
-                        request.NotifyComplete(consoleMessageData.Handled);
-                }
 
                 request.Sender = this;
 
@@ -646,18 +674,17 @@ namespace LogUtils
                             SendToWriter(request);
                     }
                 }
-                return request;
             }
             finally
             {
                 UtilityCore.RequestHandler.RecursionCheckCounter--;
-                if (context == LoggingContext.SingleRequest)
-                    ClearEventData();
             }
         }
 #pragma warning restore CS1591 //Missing XML comment for publicly visible type or member
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Determines if the specified LogID can be handled by this logger with the specified RequestType
+        /// </summary>
         public bool CanHandle(LogID logID, RequestType requestType)
         {
             if (logID.IsGameControlled) return false;
@@ -755,12 +782,6 @@ namespace LogUtils
         #endregion
 
         public class EarlyInitializationException(string message) : InvalidOperationException(message);
-    }
-
-    public enum LoggingContext
-    {
-        SingleRequest,
-        Batching
     }
 
     public enum LoggingMode

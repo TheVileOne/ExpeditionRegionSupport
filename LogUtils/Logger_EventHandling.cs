@@ -7,19 +7,8 @@ namespace LogUtils
 {
     public partial class Logger
     {
-        /// <summary>
-        /// Contains event data pertaining to Unity context objects (if applicable)
-        /// </summary>
-        private ThreadLocal<EventArgs> unityDataCache;
-
         private LogRequestEventHandler newRequestHandler;
         private RegistrationChangedEventHandler registrationChangedHandler;
-
-        protected virtual void ClearEventData()
-        {
-            if (unityDataCache?.IsValueCreated == true)
-                unityDataCache.Value = null;
-        }
 
         internal void SetEvents()
         {
@@ -40,6 +29,9 @@ namespace LogUtils
             UtilityEvents.OnRegistrationChanged += registrationChangedHandler;
         }
 
+        /// <summary>
+        /// Event is invoked when the logger is registered
+        /// </summary>
         protected virtual void OnRegister()
         {
             if (newRequestHandler == null)
@@ -59,21 +51,19 @@ namespace LogUtils
             LogRequestEvents.OnSubmit += newRequestHandler;
         }
 
+        /// <summary>
+        /// Event is invoked when the logger becomes unregistered
+        /// </summary>
         protected virtual void OnUnregister()
         {
             LogRequestEvents.OnSubmit -= newRequestHandler;
         }
 
+        /// <summary>
+        /// Event is invoked each time a LogRequest is submitted by the current logger
+        /// </summary>
         protected virtual void OnNewRequest(LogRequest request)
         {
-            //Unity exclusive data
-            if (unityDataCache != null)
-            {
-                var data = unityDataCache.Value;
-
-                if (data != null)
-                    request.Data.ExtraArgs.Add(data);
-            }
         }
     }
 }

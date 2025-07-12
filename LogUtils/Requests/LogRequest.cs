@@ -148,6 +148,16 @@ namespace LogUtils.Requests
             Data.IsTargetingConsole = true;
         }
 
+        internal void InheritHandledConsoleTargets(LogRequest targetProvider)
+        {
+            if (targetProvider == null) return;
+
+            var consoleMessageData = targetProvider.Data.GetConsoleData();
+
+            if (consoleMessageData != null)
+                NotifyComplete(consoleMessageData.Handled);
+        }
+
         public void Complete()
         {
             if (Status == RequestStatus.Complete) return;
@@ -346,8 +356,14 @@ namespace LogUtils.Requests
         Console
     }
 
+    /// <summary>
+    /// Describes the reason why a LogRequest could not be handled
+    /// </summary>
     public enum RejectionReason : byte
     {
+        /// <summary>
+        /// Default state
+        /// </summary>
         None = 0,
         /// <summary>
         /// Logger available to handle the log request is private
