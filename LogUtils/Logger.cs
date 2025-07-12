@@ -540,7 +540,7 @@ namespace LogUtils
 
 #pragma warning disable CS1591 //Missing XML comment for publicly visible type or member
 
-        protected void LogData(ILogTarget target, LogCategory category, object data, bool shouldFilter, CreateRequestCallback createRequest = null)
+        protected virtual void LogData(ILogTarget target, LogCategory category, object data, bool shouldFilter, CreateRequestCallback createRequest = null)
         {
             if (!AllowLogging || !target.IsEnabled) return;
 
