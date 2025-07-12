@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogUtils.Compatibility.BepInEx;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -27,6 +28,11 @@ namespace LogUtils
             fieldDictionary[nameof(Tag)] = Tag;
             fieldDictionary[nameof(Version)] = Version;
             return fieldDictionary;
+        }
+
+        internal static T Create<T>() where T : UtilityComponent
+        {
+            return BepInExInfo.ManagerObject.AddComponent<T>();
         }
     }
 }

@@ -4,7 +4,6 @@ using LogUtils.Console;
 using LogUtils.Diagnostics.Tools;
 using LogUtils.Enums;
 using LogUtils.Events;
-using LogUtils.Helpers;
 using LogUtils.IPC;
 using LogUtils.Properties;
 using LogUtils.Requests;
@@ -269,12 +268,12 @@ namespace LogUtils
             ProcessMonitor.WaitOnConnectionStatus();
             UtilityLogger.Log("IsControllingAssembly: " + IsControllingAssembly);
 
-            Scheduler = ComponentUtils.GetOrCreate<EventScheduler>(UtilityConsts.ComponentTags.SCHEDULER, out _);
-            PersistenceManager = ComponentUtils.GetOrCreate<PersistenceManager>(UtilityConsts.ComponentTags.PERSISTENCE_MANAGER, out _);
-            DataHandler = ComponentUtils.GetOrCreate<SharedDataHandler>(UtilityConsts.ComponentTags.SHARED_DATA, out _);
-            RequestHandler = ComponentUtils.GetOrCreate<LogRequestHandler>(UtilityConsts.ComponentTags.REQUEST_DATA, out _);
+            Scheduler = UtilityComponent.Create<EventScheduler>();
+            PersistenceManager = UtilityComponent.Create<PersistenceManager>();
+            DataHandler = UtilityComponent.Create<SharedDataHandler>();
+            RequestHandler = UtilityComponent.Create<LogRequestHandler>();
 
-            PropertyManager = ComponentUtils.GetOrCreate<PropertyDataController>(UtilityConsts.ComponentTags.PROPERTY_DATA, out _);
+            PropertyManager = UtilityComponent.Create<PropertyDataController>();
             PropertyManager.SetPropertiesFromFile();
         }
 
