@@ -32,6 +32,9 @@ namespace LogUtils
 
         IEnumerable<LogID> ILogFileHandler.AvailableTargets => LogTargets.ToArray();
 
+        /// <summary>
+        /// Contains all assigned log targets
+        /// </summary>
         protected LogTargetCollection Targets = new LogTargetCollection();
 
         /// <summary>
@@ -52,7 +55,7 @@ namespace LogUtils
         /// <summary>
         /// Contains a record of logger field values that can be restored on demand
         /// </summary>
-        public LoggerRestorePoint RestorePoint;
+        public LogRestorePoint RestorePoint;
 
         public IRequestValidator Validator;
 
@@ -183,7 +186,7 @@ namespace LogUtils
 
         public void SetRestorePoint()
         {
-            RestorePoint = new LoggerRestorePoint(this);
+            RestorePoint = new LogRestorePoint(this);
         }
 
         public void RestoreState()
@@ -191,8 +194,8 @@ namespace LogUtils
             AllowLogging = RestorePoint.AllowLogging;
             AllowRemoteLogging = RestorePoint.AllowRemoteLogging;
 
-            LogTargets.Clear();
-            LogTargets.AddRange(RestorePoint.LogTargets);
+            Targets.Clear();
+            Targets.AddRange(RestorePoint.LogTargets);
         }
 
         #endregion
@@ -780,6 +783,23 @@ namespace LogUtils
         }
 
         #endregion
+
+        /// <summary>
+        /// A snapshot of the logger's state at a certain point in time
+        /// </summary>
+        public struct LogRestorePoint
+        {
+            public bool AllowLogging;
+            public bool AllowRemoteLogging;
+            public LogTargetCollection LogTargets;
+
+            public LogRestorePoint(Logger logger)
+            {
+                AllowLogging = logger.AllowLogging;
+                AllowRemoteLogging = logger.AllowRemoteLogging;
+                LogTargets = logger.Targets.AllTargets;
+            }
+        }
 
         public class EarlyInitializationException(string message) : InvalidOperationException(message);
     }
