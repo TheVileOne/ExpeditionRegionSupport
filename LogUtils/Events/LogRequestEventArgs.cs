@@ -216,7 +216,7 @@ namespace LogUtils.Events
         /// <summary>
         /// Finds the first match of a given type, or returns null
         /// </summary>
-        public TData FindData<TData>() where TData : EventArgs
+        public TData FindData<TData>() where TData : class
         {
             return this as TData ?? ExtraArgs.OfType<TData>().FirstOrDefault();
         }
