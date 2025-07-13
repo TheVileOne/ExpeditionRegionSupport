@@ -35,7 +35,7 @@ namespace LogUtils.Helpers.Extensions
             var remoteHandlers = handlers.CompatibleWith(logFile, RequestType.Remote);
             var localHandlers = handlers.CompatibleWith(logFile, RequestType.Local);
 
-            foreach (Logger logger in remoteHandlers)
+            foreach (ILogHandler logger in remoteHandlers)
             {
                 //Most situations wont make it past the first assignment
                 if (localLogger == null)
