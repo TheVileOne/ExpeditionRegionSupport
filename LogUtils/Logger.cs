@@ -203,6 +203,23 @@ namespace LogUtils
         #region Logging
 #pragma warning disable CS1591 //Missing XML comment for publicly visible type or member
 
+        protected void LogData(ILogTarget target, LogCategory category, object data, bool shouldFilter, Color messageColor)
+        {
+            EventArgs extraData = new ColorEventArgs(messageColor);
+            LogData(target, category, data, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
+        }
+
+        protected void LogData(CompositeLogTarget target, LogCategory category, object data, bool shouldFilter, Color messageColor)
+        {
+            LogData(target.ToCollection(), category, data, shouldFilter, messageColor);
+        }
+
+        protected void LogData(LogTargetCollection targets, LogCategory category, object data, bool shouldFilter, Color messageColor)
+        {
+            EventArgs extraData = new ColorEventArgs(messageColor);
+            LogData(targets, category, data, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
+        }
+
         protected virtual void LogData(ILogTarget target, LogCategory category, object data, bool shouldFilter, CreateRequestCallback createRequest = null)
         {
             if (!AllowLogging || !target.IsEnabled) return;
