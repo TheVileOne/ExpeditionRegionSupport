@@ -1,5 +1,4 @@
-﻿using LogUtils.Enums;
-using LogUtils.Requests;
+﻿using LogUtils.Requests;
 using Microsoft.Extensions.Logging;
 using System;
 

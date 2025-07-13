@@ -23,75 +23,75 @@ namespace LogUtils.Compatibility.BepInEx
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object)"/>
-        public void Log(object data)
+        public void Log(object messageObj)
         {
-            Source.LogInfo(data);
+            Source.LogInfo(messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object)"/>
-        public void LogDebug(object data)
+        public void LogDebug(object messageObj)
         {
-            Source.LogDebug(data);
+            Source.LogDebug(messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object)"/>
-        public void LogInfo(object data)
+        public void LogInfo(object messageObj)
         {
-            Source.LogInfo(data);
+            Source.LogInfo(messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object)"/>
-        public void LogImportant(object data)
+        public void LogImportant(object messageObj)
         {
-            Log(LogCategory.Important, data);
+            Log(LogCategory.Important, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object)"/>
-        public void LogMessage(object data)
+        public void LogMessage(object messageObj)
         {
-            Source.LogMessage(data);
+            Source.LogMessage(messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object)"/>
-        public void LogWarning(object data)
+        public void LogWarning(object messageObj)
         {
-            Source.LogWarning(data);
+            Source.LogWarning(messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(object)"/>
-        public void LogError(object data)
+        public void LogError(object messageObj)
         {
-            Source.LogError(data);
+            Source.LogError(messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object)"/>
-        public void LogFatal(object data)
+        public void LogFatal(object messageObj)
         {
-            Source.LogFatal(data);
+            Source.LogFatal(messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        public void Log(LogLevel category, object data)
+        public void Log(LogLevel category, object messageObj)
         {
-            Source.Log(category, data);
+            Source.Log(category, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        public void Log(LogType category, object data)
+        public void Log(LogType category, object messageObj)
         {
-            Log(LogCategory.ToCategory(category), data);
+            Log(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        public void Log(string category, object data)
+        public void Log(string category, object messageObj)
         {
-            Log(LogCategory.ToCategory(category), data);
+            Log(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        public void Log(LogCategory category, object data)
+        public void Log(LogCategory category, object messageObj)
         {
-            Source.Log(category.BepInExCategory, data);
+            Source.Log(category.BepInExCategory, messageObj);
         }
     }
 }

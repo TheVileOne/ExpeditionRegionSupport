@@ -44,86 +44,86 @@ namespace LogUtils.Compatibility.Unity
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object)"/>
         /// <remarks>Utilizes Unity's logging API</remarks>
-        public void Log(object data)
+        public void Log(object messageObj)
         {
-            Debug.Log(data);
+            Debug.Log(messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object)"/>
         /// <remarks>Utilizes Unity's logging API</remarks>
-        public void LogDebug(object data)
+        public void LogDebug(object messageObj)
         {
-            Log(LogCategory.Debug, data);
+            Log(LogCategory.Debug, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object)"/>
         /// <remarks>Utilizes Unity's logging API</remarks>
-        public void LogInfo(object data)
+        public void LogInfo(object messageObj)
         {
-            Log(LogCategory.Info, data);
+            Log(LogCategory.Info, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object)"/>
         /// <remarks>Utilizes Unity's logging API</remarks>
-        public void LogImportant(object data)
+        public void LogImportant(object messageObj)
         {
-            Log(LogCategory.Important, data);
+            Log(LogCategory.Important, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object)"/>
         /// <remarks>Utilizes Unity's logging API</remarks>
-        public void LogMessage(object data)
+        public void LogMessage(object messageObj)
         {
-            Log(LogCategory.Message, data);
+            Log(LogCategory.Message, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object)"/>
         /// <remarks>Utilizes Unity's logging API</remarks>
-        public void LogWarning(object data)
+        public void LogWarning(object messageObj)
         {
-            Debug.LogWarning(data);
+            Debug.LogWarning(messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(object)"/>
         /// <remarks>Utilizes Unity's logging API</remarks>
-        public void LogError(object data)
+        public void LogError(object messageObj)
         {
-            Debug.LogError(data);
+            Debug.LogError(messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object)"/>
         /// <remarks>Utilizes Unity's logging API</remarks>
-        public void LogFatal(object data)
+        public void LogFatal(object messageObj)
         {
-            Log(LogCategory.Fatal, data);
+            Log(LogCategory.Fatal, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         /// <remarks>Utilizes Unity's logging API</remarks>
-        public void Log(LogType category, object data)
+        public void Log(LogType category, object messageObj)
         {
-            Debug.unityLogger.Log(category, data);
+            Debug.unityLogger.Log(category, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         /// <remarks>Utilizes Unity's logging API</remarks>
-        public void Log(LogLevel category, object data)
+        public void Log(LogLevel category, object messageObj)
         {
-            Log(LogCategory.ToCategory(category), data);
+            Log(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         /// <remarks>Utilizes Unity's logging API</remarks>
-        public void Log(string category, object data)
+        public void Log(string category, object messageObj)
         {
-            Log(LogCategory.ToCategory(category), data);
+            Log(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         /// <remarks>Utilizes Unity's logging API</remarks>
-        public void Log(LogCategory category, object data)
+        public void Log(LogCategory category, object messageObj)
         {
-            Debug.unityLogger.Log(category.UnityCategory, data);
+            Debug.unityLogger.Log(category.UnityCategory, messageObj);
         }
 
         private static void logEvent(string message, string stackTrace, LogType category)

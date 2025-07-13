@@ -59,64 +59,64 @@ namespace LogUtils.Diagnostics
         }
 
         #region ILogger implementation
-        void ILogger.Log(object data)
+        void ILogger.Log(object messageObj)
         {
-            Logger.Log(data);
+            Logger.Log(messageObj);
         }
 
-        void ILogger.Log(LogType category, object data)
+        void ILogger.Log(LogType category, object messageObj)
         {
-            Logger.Log(category, data);
+            Logger.Log(category, messageObj);
         }
 
-        void ILogger.Log(LogLevel category, object data)
+        void ILogger.Log(LogLevel category, object messageObj)
         {
-            Logger.Log(category, data);
+            Logger.Log(category, messageObj);
         }
 
-        void ILogger.Log(string category, object data)
+        void ILogger.Log(string category, object messageObj)
         {
-            Logger.Log(category, data);
+            Logger.Log(category, messageObj);
         }
 
-        void ILogger.Log(LogCategory category, object data)
+        void ILogger.Log(LogCategory category, object messageObj)
         {
-            Logger.Log(category, data);
+            Logger.Log(category, messageObj);
         }
 
-        void ILogger.LogDebug(object data)
+        void ILogger.LogDebug(object messageObj)
         {
-            Logger.LogDebug(data);
+            Logger.LogDebug(messageObj);
         }
 
-        void ILogger.LogError(object data)
+        void ILogger.LogError(object messageObj)
         {
-            Logger.LogError(data);
+            Logger.LogError(messageObj);
         }
 
-        void ILogger.LogFatal(object data)
+        void ILogger.LogFatal(object messageObj)
         {
-            Logger.LogFatal(data);
+            Logger.LogFatal(messageObj);
         }
 
-        void ILogger.LogImportant(object data)
+        void ILogger.LogImportant(object messageObj)
         {
-            Logger.LogImportant(data);
+            Logger.LogImportant(messageObj);
         }
 
-        void ILogger.LogInfo(object data)
+        void ILogger.LogInfo(object messageObj)
         {
-            Logger.LogInfo(data);
+            Logger.LogInfo(messageObj);
         }
 
-        void ILogger.LogMessage(object data)
+        void ILogger.LogMessage(object messageObj)
         {
-            Logger.LogMessage(data);
+            Logger.LogMessage(messageObj);
         }
 
-        void ILogger.LogWarning(object data)
+        void ILogger.LogWarning(object messageObj)
         {
-            Logger.LogWarning(data);
+            Logger.LogWarning(messageObj);
         }
         #endregion
 

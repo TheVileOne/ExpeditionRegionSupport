@@ -203,42 +203,42 @@ namespace LogUtils
         #region Logging
 #pragma warning disable CS1591 //Missing XML comment for publicly visible type or member
 
-        protected void LogData(ILogTarget target, LogCategory category, object data, bool shouldFilter, Color messageColor)
+        protected void LogData(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
         {
             EventArgs extraData = new ColorEventArgs(messageColor);
-            LogData(target, category, data, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
+            LogData(target, category, messageObj, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
         }
 
-        protected void LogData(CompositeLogTarget target, LogCategory category, object data, bool shouldFilter, Color messageColor)
+        protected void LogData(CompositeLogTarget target, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
         {
-            LogData(target.ToCollection(), category, data, shouldFilter, messageColor);
+            LogData(target.ToCollection(), category, messageObj, shouldFilter, messageColor);
         }
 
-        protected void LogData(LogTargetCollection targets, LogCategory category, object data, bool shouldFilter, Color messageColor)
+        protected void LogData(LogTargetCollection targets, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
         {
             EventArgs extraData = new ColorEventArgs(messageColor);
-            LogData(targets, category, data, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
+            LogData(targets, category, messageObj, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
         }
 
-        protected virtual void LogData(ILogTarget target, LogCategory category, object data, bool shouldFilter, CreateRequestCallback createRequest = null)
+        protected virtual void LogData(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
         {
             if (!AllowLogging || !target.IsEnabled) return;
 
             if (createRequest == null)
                 createRequest = LogRequest.Factory.Create;
 
-            LogRequest request = createRequest.Invoke(target.GetRequestType(this), target, category, data, shouldFilter);
+            LogRequest request = createRequest.Invoke(target.GetRequestType(this), target, category, messageObj, shouldFilter);
 
             if (request != null)
                 LogData(request);
         }
 
-        protected void LogData(CompositeLogTarget target, LogCategory category, object data, bool shouldFilter, CreateRequestCallback createRequest = null)
+        protected void LogData(CompositeLogTarget target, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
         {
-            LogData(target.ToCollection(), category, data, shouldFilter, createRequest);
+            LogData(target.ToCollection(), category, messageObj, shouldFilter, createRequest);
         }
 
-        protected virtual void LogData(LogTargetCollection targets, LogCategory category, object data, bool shouldFilter, CreateRequestCallback createRequest = null)
+        protected virtual void LogData(LogTargetCollection targets, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
         {
             if (!AllowLogging) return;
 
@@ -256,7 +256,7 @@ namespace LogUtils
             LogRequest lastRequest = null;
             foreach (LogID target in enabledTargets)
             {
-                LogRequest currentRequest = createRequest.Invoke(target.GetRequestType(this), target, category, data, shouldFilter);
+                LogRequest currentRequest = createRequest.Invoke(target.GetRequestType(this), target, category, messageObj, shouldFilter);
 
                 if (currentRequest != null)
                 {
@@ -281,7 +281,7 @@ namespace LogUtils
 
             foreach (ConsoleID target in enabledTargets)
             {
-                LogRequest currentRequest = createRequest.Invoke(RequestType.Console, target, category, data, shouldFilter);
+                LogRequest currentRequest = createRequest.Invoke(RequestType.Console, target, category, messageObj, shouldFilter);
 
                 if (currentRequest != null)
                 {

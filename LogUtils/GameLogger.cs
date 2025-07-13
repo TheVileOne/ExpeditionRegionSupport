@@ -123,13 +123,13 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(object)"/>
-        public void LogBepEx(object data)
+        public void LogBepEx(object messageObj)
         {
-            LogBepEx(null, LogLevel.Info, data);
+            LogBepEx(null, LogLevel.Info, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(ILogSource, BepInEx.Logging.LogLevel, object)"/>
-        public void LogBepEx(ILogSource source, LogLevel category, object data)
+        public void LogBepEx(ILogSource source, LogLevel category, object messageObj)
         {
             Process(LogID.BepInEx, processLog);
 
@@ -138,7 +138,7 @@ namespace LogUtils
                 if (source is ManualLogSource)
                 {
                     ManualLogSource sourceLogger = (ManualLogSource)source;
-                    sourceLogger.Log(category, data);
+                    sourceLogger.Log(category, messageObj);
                     return;
                 }
                 else
@@ -148,13 +148,13 @@ namespace LogUtils
                     if (sourceLogger == null)
                         sourceLogger = UtilityLogger.Logger;
 
-                    sourceLogger.Log(category, data);
+                    sourceLogger.Log(category, messageObj);
                 }
             }
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(ILogSource, BepInEx.Logging.LogLevel, object)"/>
-        public void LogBepEx(ILogSource source, LogCategory category, object data)
+        public void LogBepEx(ILogSource source, LogCategory category, object messageObj)
         {
             Process(LogID.BepInEx, processLog);
 
@@ -163,7 +163,7 @@ namespace LogUtils
                 if (source is ManualLogSource)
                 {
                     ManualLogSource sourceLogger = (ManualLogSource)source;
-                    sourceLogger.Log(category.BepInExCategory, data);
+                    sourceLogger.Log(category.BepInExCategory, messageObj);
                     return;
                 }
                 else
@@ -173,47 +173,47 @@ namespace LogUtils
                     if (sourceLogger == null)
                         sourceLogger = UtilityLogger.Logger;
 
-                    sourceLogger.Log(category.BepInExCategory, data);
+                    sourceLogger.Log(category.BepInExCategory, messageObj);
                 }
             }
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogUnity(object)"/>
-        public void LogUnity(object data)
+        public void LogUnity(object messageObj)
         {
-            LogUnity(LogCategory.Default, data);
+            LogUnity(LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, object)"/>
-        public void LogUnity(LogType category, object data)
+        public void LogUnity(LogType category, object messageObj)
         {
             Process(LogCategory.GetUnityLogID(category), processLog);
 
             void processLog()
             {
-                Debug.unityLogger.Log(category, data);
+                Debug.unityLogger.Log(category, messageObj);
             }
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, object)"/>
-        public void LogUnity(LogCategory category, object data)
+        public void LogUnity(LogCategory category, object messageObj)
         {
             Process(LogCategory.GetUnityLogID(category.UnityCategory), processLog);
 
             void processLog()
             {
-                Debug.unityLogger.Log(category.UnityCategory, data);
+                Debug.unityLogger.Log(category.UnityCategory, messageObj);
             }
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogExp(object)"/>
-        public void LogExp(object data)
+        public void LogExp(object messageObj)
         {
-            LogExp(LogCategory.Default, data);
+            LogExp(LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogExp(LogCategory, object)"/>
-        public void LogExp(LogCategory category, object data)
+        public void LogExp(LogCategory category, object messageObj)
         {
             Process(LogID.Expedition, processLog);
 
@@ -226,7 +226,7 @@ namespace LogUtils
                 string message = null;
                 if (request == null) //CurrentRequest has already passed preprocess validation checks if this is not null
                 {
-                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Expedition, data, category)), false);
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Expedition, messageObj, category)), false);
 
                     if (request.Status == RequestStatus.Rejected)
                         return;
@@ -235,20 +235,20 @@ namespace LogUtils
                 }
 
                 if (message == null)
-                    message = data?.ToString();
+                    message = messageObj?.ToString();
 
                 ExpLog.Log(message);
             }
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogJolly(object)"/>
-        public void LogJolly(object data)
+        public void LogJolly(object messageObj)
         {
-            LogJolly(LogCategory.Default, data);
+            LogJolly(LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogJolly(LogCategory, object)"/>
-        public void LogJolly(LogCategory category, object data)
+        public void LogJolly(LogCategory category, object messageObj)
         {
             Process(LogID.JollyCoop, processLog);
 
@@ -261,7 +261,7 @@ namespace LogUtils
                 string message = null;
                 if (request == null) //CurrentRequest has already passed preprocess validation checks if this is not null
                 {
-                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.JollyCoop, data, category)), false);
+                    request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.JollyCoop, messageObj, category)), false);
 
                     if (request.Status == RequestStatus.Rejected)
                         return;
@@ -270,7 +270,7 @@ namespace LogUtils
                 }
 
                 if (message == null)
-                    message = data?.ToString();
+                    message = messageObj?.ToString();
 
                 JollyCustom.Log(message);
             }

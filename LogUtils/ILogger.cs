@@ -13,40 +13,40 @@ namespace LogUtils
     public interface ILogger
     {
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object)"/>
-        void Log(object data);
+        void Log(object messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object)"/>
-        void LogDebug(object data);
+        void LogDebug(object messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object)"/>
-        void LogInfo(object data);
+        void LogInfo(object messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object)"/>
-        void LogImportant(object data);
+        void LogImportant(object messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object)"/>
-        void LogMessage(object data);
+        void LogMessage(object messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object)"/>
-        void LogWarning(object data);
+        void LogWarning(object messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(object)"/>
-        void LogError(object data);
+        void LogError(object messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object)"/>
-        void LogFatal(object data);
+        void LogFatal(object messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        void Log(LogType category, object data);
+        void Log(LogType category, object messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        void Log(LogLevel category, object data);
+        void Log(LogLevel category, object messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        void Log(string category, object data);
+        void Log(string category, object messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        void Log(LogCategory category, object data);
+        void Log(LogCategory category, object messageObj);
     }
 
     /// <summary>

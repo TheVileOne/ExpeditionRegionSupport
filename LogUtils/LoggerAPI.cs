@@ -13,417 +13,417 @@ namespace LogUtils
         #region Log Overloads (object)
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object)"/>
-        public void Log(object data)
+        public void Log(object messageObj)
         {
-            Log(LogCategory.Default, data);
+            Log(LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(object)"/>
-        public void LogOnce(object data)
+        public void LogOnce(object messageObj)
         {
-            LogOnce(LogCategory.Default, data);
+            LogOnce(LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object)"/>
-        public void LogDebug(object data)
+        public void LogDebug(object messageObj)
         {
-            Log(LogCategory.Debug, data);
+            Log(LogCategory.Debug, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object)"/>
-        public void LogInfo(object data)
+        public void LogInfo(object messageObj)
         {
-            Log(LogCategory.Info, data);
+            Log(LogCategory.Info, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object)"/>
-        public void LogImportant(object data)
+        public void LogImportant(object messageObj)
         {
-            Log(LogCategory.Important, data);
+            Log(LogCategory.Important, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object)"/>
-        public void LogMessage(object data)
+        public void LogMessage(object messageObj)
         {
-            Log(LogCategory.Message, data);
+            Log(LogCategory.Message, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object)"/>
-        public void LogWarning(object data)
+        public void LogWarning(object messageObj)
         {
-            Log(LogCategory.Warning, data);
+            Log(LogCategory.Warning, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(object)"/>
-        public void LogError(object data)
+        public void LogError(object messageObj)
         {
-            Log(LogCategory.Error, data);
+            Log(LogCategory.Error, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object)"/>
-        public void LogFatal(object data)
+        public void LogFatal(object messageObj)
         {
-            Log(LogCategory.Fatal, data);
+            Log(LogCategory.Fatal, messageObj);
         }
         #region Color Overloads
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object, Color)"/>
-        public void Log(object data, Color messageColor)
+        public void Log(object messageObj, Color messageColor)
         {
-            Log(LogCategory.Default, data, messageColor);
+            Log(LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(object, Color)"/>
-        public void LogOnce(object data, Color messageColor)
+        public void LogOnce(object messageObj, Color messageColor)
         {
-            LogOnce(LogCategory.Default, data, messageColor);
+            LogOnce(LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object, Color)"/>
-        public void LogDebug(object data, Color messageColor)
+        public void LogDebug(object messageObj, Color messageColor)
         {
-            Log(LogCategory.Debug, data, messageColor);
+            Log(LogCategory.Debug, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object, Color)"/>
-        public void LogInfo(object data, Color messageColor)
+        public void LogInfo(object messageObj, Color messageColor)
         {
-            Log(LogCategory.Info, data, messageColor);
+            Log(LogCategory.Info, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object, Color)"/>
-        public void LogImportant(object data, Color messageColor)
+        public void LogImportant(object messageObj, Color messageColor)
         {
-            Log(LogCategory.Important, data, messageColor);
+            Log(LogCategory.Important, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object, Color)"/>
-        public void LogMessage(object data, Color messageColor)
+        public void LogMessage(object messageObj, Color messageColor)
         {
-            Log(LogCategory.Message, data, messageColor);
+            Log(LogCategory.Message, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object, Color)"/>
-        public void LogWarning(object data, Color messageColor)
+        public void LogWarning(object messageObj, Color messageColor)
         {
-            Log(LogCategory.Warning, data, messageColor);
+            Log(LogCategory.Warning, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(object, Color)"/>
-        public void LogError(object data, Color messageColor)
+        public void LogError(object messageObj, Color messageColor)
         {
-            Log(LogCategory.Error, data, messageColor);
+            Log(LogCategory.Error, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object, Color)"/>
-        public void LogFatal(object data, Color messageColor)
+        public void LogFatal(object messageObj, Color messageColor)
         {
-            Log(LogCategory.Fatal, data, messageColor);
+            Log(LogCategory.Fatal, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object, Color)"/>
-        public void Log(object data, ConsoleColor messageColor)
+        public void Log(object messageObj, ConsoleColor messageColor)
         {
-            Log(LogCategory.Default, data, ConsoleColorMap.GetColor(messageColor));
+            Log(LogCategory.Default, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(object, Color)"/>
-        public void LogOnce(object data, ConsoleColor messageColor)
+        public void LogOnce(object messageObj, ConsoleColor messageColor)
         {
-            LogOnce(LogCategory.Default, data, ConsoleColorMap.GetColor(messageColor));
+            LogOnce(LogCategory.Default, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object, Color)"/>
-        public void LogDebug(object data, ConsoleColor messageColor)
+        public void LogDebug(object messageObj, ConsoleColor messageColor)
         {
-            Log(LogCategory.Debug, data, ConsoleColorMap.GetColor(messageColor));
+            Log(LogCategory.Debug, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object, Color)"/>
-        public void LogInfo(object data, ConsoleColor messageColor)
+        public void LogInfo(object messageObj, ConsoleColor messageColor)
         {
-            Log(LogCategory.Info, data, ConsoleColorMap.GetColor(messageColor));
+            Log(LogCategory.Info, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object, Color)"/>
-        public void LogImportant(object data, ConsoleColor messageColor)
+        public void LogImportant(object messageObj, ConsoleColor messageColor)
         {
-            Log(LogCategory.Important, data, ConsoleColorMap.GetColor(messageColor));
+            Log(LogCategory.Important, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object, Color)"/>
-        public void LogMessage(object data, ConsoleColor messageColor)
+        public void LogMessage(object messageObj, ConsoleColor messageColor)
         {
-            Log(LogCategory.Message, data, ConsoleColorMap.GetColor(messageColor));
+            Log(LogCategory.Message, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object, Color)"/>
-        public void LogWarning(object data, ConsoleColor messageColor)
+        public void LogWarning(object messageObj, ConsoleColor messageColor)
         {
-            Log(LogCategory.Warning, data, ConsoleColorMap.GetColor(messageColor));
+            Log(LogCategory.Warning, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(object, Color)"/>
-        public void LogError(object data, ConsoleColor messageColor)
+        public void LogError(object messageObj, ConsoleColor messageColor)
         {
-            Log(LogCategory.Error, data, ConsoleColorMap.GetColor(messageColor));
+            Log(LogCategory.Error, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object, Color)"/>
-        public void LogFatal(object data, ConsoleColor messageColor)
+        public void LogFatal(object messageObj, ConsoleColor messageColor)
         {
-            Log(LogCategory.Fatal, data, ConsoleColorMap.GetColor(messageColor));
+            Log(LogCategory.Fatal, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
         #endregion
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        public void Log(LogType category, object data)
+        public void Log(LogType category, object messageObj)
         {
-            Log(LogCategory.ToCategory(category), data);
+            Log(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        public void Log(LogLevel category, object data)
+        public void Log(LogLevel category, object messageObj)
         {
-            Log(LogCategory.ToCategory(category), data);
+            Log(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        public void Log(string category, object data)
+        public void Log(string category, object messageObj)
         {
-            Log(LogCategory.ToCategory(category), data);
+            Log(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        public void Log(LogCategory category, object data)
+        public void Log(LogCategory category, object messageObj)
         {
-            LogData(Targets, category, data, false);
+            LogData(Targets, category, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
-        public void LogOnce(LogType category, object data)
+        public void LogOnce(LogType category, object messageObj)
         {
-            LogOnce(LogCategory.ToCategory(category), data);
+            LogOnce(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
-        public void LogOnce(LogLevel category, object data)
+        public void LogOnce(LogLevel category, object messageObj)
         {
-            LogOnce(LogCategory.ToCategory(category), data);
+            LogOnce(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
-        public void LogOnce(string category, object data)
+        public void LogOnce(string category, object messageObj)
         {
-            LogOnce(LogCategory.ToCategory(category), data);
+            LogOnce(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
-        public void LogOnce(LogCategory category, object data)
+        public void LogOnce(LogCategory category, object messageObj)
         {
-            LogData(Targets, category, data, true);
+            LogData(Targets, category, messageObj, true);
         }
         #region Color Overloads
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
-        public void Log(LogType category, object data, Color messageColor)
+        public void Log(LogType category, object messageObj, Color messageColor)
         {
-            Log(LogCategory.ToCategory(category), data, messageColor);
+            Log(LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
-        public void Log(LogLevel category, object data, Color messageColor)
+        public void Log(LogLevel category, object messageObj, Color messageColor)
         {
-            Log(LogCategory.ToCategory(category), data, messageColor);
+            Log(LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
-        public void Log(string category, object data, Color messageColor)
+        public void Log(string category, object messageObj, Color messageColor)
         {
-            Log(LogCategory.ToCategory(category), data, messageColor);
+            Log(LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
-        public void Log(LogCategory category, object data, Color messageColor)
+        public void Log(LogCategory category, object messageObj, Color messageColor)
         {
-            LogData(Targets, category, data, false, messageColor);
+            LogData(Targets, category, messageObj, false, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
-        public void LogOnce(LogType category, object data, Color messageColor)
+        public void LogOnce(LogType category, object messageObj, Color messageColor)
         {
-            LogOnce(LogCategory.ToCategory(category), data, messageColor);
+            LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
-        public void LogOnce(LogLevel category, object data, Color messageColor)
+        public void LogOnce(LogLevel category, object messageObj, Color messageColor)
         {
-            LogOnce(LogCategory.ToCategory(category), data, messageColor);
+            LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
-        public void LogOnce(string category, object data, Color messageColor)
+        public void LogOnce(string category, object messageObj, Color messageColor)
         {
-            LogOnce(LogCategory.ToCategory(category), data, messageColor);
+            LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
-        public void LogOnce(LogCategory category, object data, Color messageColor)
+        public void LogOnce(LogCategory category, object messageObj, Color messageColor)
         {
-            LogData(Targets, category, data, true, messageColor);
+            LogData(Targets, category, messageObj, true, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
-        public void Log(LogType category, object data, ConsoleColor messageColor)
+        public void Log(LogType category, object messageObj, ConsoleColor messageColor)
         {
-            Log(LogCategory.ToCategory(category), data, ConsoleColorMap.GetColor(messageColor));
+            Log(LogCategory.ToCategory(category), messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
-        public void Log(LogLevel category, object data, ConsoleColor messageColor)
+        public void Log(LogLevel category, object messageObj, ConsoleColor messageColor)
         {
-            Log(LogCategory.ToCategory(category), data, messageColor);
+            Log(LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
-        public void Log(string category, object data, ConsoleColor messageColor)
+        public void Log(string category, object messageObj, ConsoleColor messageColor)
         {
-            Log(LogCategory.ToCategory(category), data, messageColor);
+            Log(LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
-        public void Log(LogCategory category, object data, ConsoleColor messageColor)
+        public void Log(LogCategory category, object messageObj, ConsoleColor messageColor)
         {
-            LogData(Targets, category, data, false, ConsoleColorMap.GetColor(messageColor));
+            LogData(Targets, category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
-        public void LogOnce(LogType category, object data, ConsoleColor messageColor)
+        public void LogOnce(LogType category, object messageObj, ConsoleColor messageColor)
         {
-            LogOnce(LogCategory.ToCategory(category), data, messageColor);
+            LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
-        public void LogOnce(LogLevel category, object data, ConsoleColor messageColor)
+        public void LogOnce(LogLevel category, object messageObj, ConsoleColor messageColor)
         {
-            LogOnce(LogCategory.ToCategory(category), data, messageColor);
+            LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
-        public void LogOnce(string category, object data, ConsoleColor messageColor)
+        public void LogOnce(string category, object messageObj, ConsoleColor messageColor)
         {
-            LogOnce(LogCategory.ToCategory(category), data, messageColor);
+            LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
-        public void LogOnce(LogCategory category, object data, ConsoleColor messageColor)
+        public void LogOnce(LogCategory category, object messageObj, ConsoleColor messageColor)
         {
-            LogData(Targets, category, data, true, ConsoleColorMap.GetColor(messageColor));
+            LogData(Targets, category, messageObj, true, ConsoleColorMap.GetColor(messageColor));
         }
         #endregion
         #region Rain World Overloads
         #region BepInEx
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(object)"/>
-        public void LogBepEx(object data)
+        public void LogBepEx(object messageObj)
         {
-            LogData(LogID.BepInEx, LogCategory.Default, data, false);
+            LogData(LogID.BepInEx, LogCategory.Default, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object)"/>
-        public void LogBepEx(LogLevel category, object data)
+        public void LogBepEx(LogLevel category, object messageObj)
         {
-            LogData(LogID.BepInEx, LogCategory.ToCategory(category), data, false);
+            LogData(LogID.BepInEx, LogCategory.ToCategory(category), messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object)"/>
-        public void LogBepEx(LogCategory category, object data)
+        public void LogBepEx(LogCategory category, object messageObj)
         {
-            LogData(LogID.BepInEx, category, data, false);
+            LogData(LogID.BepInEx, category, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
-        public void LogBepEx(object data, Color messageColor)
+        public void LogBepEx(object messageObj, Color messageColor)
         {
-            LogData(LogID.BepInEx, LogCategory.Default, data, false, messageColor);
+            LogData(LogID.BepInEx, LogCategory.Default, messageObj, false, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
-        public void LogBepEx(LogLevel category, object data, Color messageColor)
+        public void LogBepEx(LogLevel category, object messageObj, Color messageColor)
         {
-            LogData(LogID.BepInEx, LogCategory.ToCategory(category), data, false, messageColor);
+            LogData(LogID.BepInEx, LogCategory.ToCategory(category), messageObj, false, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
-        public void LogBepEx(LogCategory category, object data, Color messageColor)
+        public void LogBepEx(LogCategory category, object messageObj, Color messageColor)
         {
-            LogData(LogID.BepInEx, category, data, false, messageColor);
+            LogData(LogID.BepInEx, category, messageObj, false, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
-        public void LogBepEx(object data, ConsoleColor messageColor)
+        public void LogBepEx(object messageObj, ConsoleColor messageColor)
         {
-            LogData(LogID.BepInEx, LogCategory.Default, data, false, ConsoleColorMap.GetColor(messageColor));
+            LogData(LogID.BepInEx, LogCategory.Default, messageObj, false, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
-        public void LogBepEx(LogLevel category, object data, ConsoleColor messageColor)
+        public void LogBepEx(LogLevel category, object messageObj, ConsoleColor messageColor)
         {
-            LogData(LogID.BepInEx, LogCategory.ToCategory(category), data, false, ConsoleColorMap.GetColor(messageColor));
+            LogData(LogID.BepInEx, LogCategory.ToCategory(category), messageObj, false, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
-        public void LogBepEx(LogCategory category, object data, ConsoleColor messageColor)
+        public void LogBepEx(LogCategory category, object messageObj, ConsoleColor messageColor)
         {
-            LogData(LogID.BepInEx, category, data, false, ConsoleColorMap.GetColor(messageColor));
+            LogData(LogID.BepInEx, category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
         }
         #endregion
         #region Unity
 
         /// <inheritdoc cref="LoggerDocs.Game.LogUnity(object)"/>
-        public void LogUnity(object data)
+        public void LogUnity(object messageObj)
         {
-            LogData(LogID.Unity, LogCategory.Default, data, false);
+            LogData(LogID.Unity, LogCategory.Default, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, object)"/>
-        public void LogUnity(LogType category, object data)
+        public void LogUnity(LogType category, object messageObj)
         {
-            LogData(LogCategory.GetUnityLogID(category), LogCategory.ToCategory(category), data, false);
+            LogData(LogCategory.GetUnityLogID(category), LogCategory.ToCategory(category), messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, object)"/>
-        public void LogUnity(LogCategory category, object data)
+        public void LogUnity(LogCategory category, object messageObj)
         {
-            LogData(LogCategory.GetUnityLogID(category.UnityCategory), category, data, false);
+            LogData(LogCategory.GetUnityLogID(category.UnityCategory), category, messageObj, false);
         }
         #endregion
         #region Expedition
 
         /// <inheritdoc cref="LoggerDocs.Game.LogExp(object)"/>
-        public void LogExp(object data)
+        public void LogExp(object messageObj)
         {
-            LogData(LogID.Expedition, LogCategory.Default, data, false);
+            LogData(LogID.Expedition, LogCategory.Default, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogExp(LogCategory, object)"/>
-        public void LogExp(LogCategory category, object data)
+        public void LogExp(LogCategory category, object messageObj)
         {
-            LogData(LogID.Expedition, category, data, false);
+            LogData(LogID.Expedition, category, messageObj, false);
         }
         #endregion
         #region JollyCoop
 
         /// <inheritdoc cref="LoggerDocs.Game.LogJolly(object)"/>
-        public void LogJolly(object data)
+        public void LogJolly(object messageObj)
         {
-            LogData(LogID.JollyCoop, LogCategory.Default, data, false);
+            LogData(LogID.JollyCoop, LogCategory.Default, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogJolly(LogCategory, object)"/>
-        public void LogJolly(LogCategory category, object data)
+        public void LogJolly(LogCategory category, object messageObj)
         {
-            LogData(LogID.JollyCoop, category, data, false);
+            LogData(LogID.JollyCoop, category, messageObj, false);
         }
         #endregion
         #endregion
@@ -431,476 +431,476 @@ namespace LogUtils
         #region  Log Overloads (ILogTarget, object)
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, object)"/>
-        public void Log(ILogTarget target, object data)
+        public void Log(ILogTarget target, object messageObj)
         {
-            Log(target, LogCategory.Default, data);
+            Log(target, LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, object)"/>
-        public void LogOnce(ILogTarget target, object data)
+        public void LogOnce(ILogTarget target, object messageObj)
         {
-            Log(target, LogCategory.Default, data);
+            Log(target, LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(ILogTarget, object)"/>
-        public void LogDebug(ILogTarget target, object data)
+        public void LogDebug(ILogTarget target, object messageObj)
         {
-            Log(target, LogCategory.Debug, data);
+            Log(target, LogCategory.Debug, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(ILogTarget, object)"/>
-        public void LogInfo(ILogTarget target, object data)
+        public void LogInfo(ILogTarget target, object messageObj)
         {
-            Log(target, LogCategory.Info, data);
+            Log(target, LogCategory.Info, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(ILogTarget, object)"/>
-        public void LogImportant(ILogTarget target, object data)
+        public void LogImportant(ILogTarget target, object messageObj)
         {
-            Log(target, LogCategory.Important, data);
+            Log(target, LogCategory.Important, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(ILogTarget, object)"/>
-        public void LogMessage(ILogTarget target, object data)
+        public void LogMessage(ILogTarget target, object messageObj)
         {
-            Log(target, LogCategory.Message, data);
+            Log(target, LogCategory.Message, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(ILogTarget, object)"/>
-        public void LogWarning(ILogTarget target, object data)
+        public void LogWarning(ILogTarget target, object messageObj)
         {
-            Log(target, LogCategory.Warning, data);
+            Log(target, LogCategory.Warning, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(ILogTarget, object)"/>
-        public void LogError(ILogTarget target, object data)
+        public void LogError(ILogTarget target, object messageObj)
         {
-            Log(target, LogCategory.Error, data);
+            Log(target, LogCategory.Error, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(ILogTarget, object)"/>
-        public void LogFatal(ILogTarget target, object data)
+        public void LogFatal(ILogTarget target, object messageObj)
         {
-            Log(target, LogCategory.Fatal, data);
+            Log(target, LogCategory.Fatal, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object)"/>
-        public void Log(ILogTarget target, LogLevel category, object data)
+        public void Log(ILogTarget target, LogLevel category, object messageObj)
         {
-            Log(target, LogCategory.ToCategory(category), data);
+            Log(target, LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object)"/>
-        public void Log(ILogTarget target, string category, object data)
+        public void Log(ILogTarget target, string category, object messageObj)
         {
-            Log(target, LogCategory.ToCategory(category), data);
+            Log(target, LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object)"/>
-        public void Log(ILogTarget target, LogCategory category, object data)
+        public void Log(ILogTarget target, LogCategory category, object messageObj)
         {
-            LogData(target, category, data, false);
+            LogData(target, category, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, object)"/>
-        public void LogOnce(ILogTarget target, LogCategory category, object data)
+        public void LogOnce(ILogTarget target, LogCategory category, object messageObj)
         {
-            LogData(target, category, data, true);
+            LogData(target, category, messageObj, true);
         }
         #region Color Overloads
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, object, Color)"/>
-        public void Log(ILogTarget target, object data, Color messageColor)
+        public void Log(ILogTarget target, object messageObj, Color messageColor)
         {
-            Log(target, LogCategory.Default, data, messageColor);
+            Log(target, LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, object, Color)"/>
-        public void LogOnce(ILogTarget target, object data, Color messageColor)
+        public void LogOnce(ILogTarget target, object messageObj, Color messageColor)
         {
-            Log(target, LogCategory.Default, data, messageColor);
+            Log(target, LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(ILogTarget, object, Color)"/>
-        public void LogDebug(ILogTarget target, object data, Color messageColor)
+        public void LogDebug(ILogTarget target, object messageObj, Color messageColor)
         {
-            Log(target, LogCategory.Debug, data, messageColor);
+            Log(target, LogCategory.Debug, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(ILogTarget, object, Color)"/>
-        public void LogInfo(ILogTarget target, object data, Color messageColor)
+        public void LogInfo(ILogTarget target, object messageObj, Color messageColor)
         {
-            Log(target, LogCategory.Info, data, messageColor);
+            Log(target, LogCategory.Info, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(ILogTarget, object, Color)"/>
-        public void LogImportant(ILogTarget target, object data, Color messageColor)
+        public void LogImportant(ILogTarget target, object messageObj, Color messageColor)
         {
-            Log(target, LogCategory.Important, data, messageColor);
+            Log(target, LogCategory.Important, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(ILogTarget, object, Color)"/>
-        public void LogMessage(ILogTarget target, object data, Color messageColor)
+        public void LogMessage(ILogTarget target, object messageObj, Color messageColor)
         {
-            Log(target, LogCategory.Message, data, messageColor);
+            Log(target, LogCategory.Message, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(ILogTarget, object, Color)"/>
-        public void LogWarning(ILogTarget target, object data, Color messageColor)
+        public void LogWarning(ILogTarget target, object messageObj, Color messageColor)
         {
-            Log(target, LogCategory.Warning, data, messageColor);
+            Log(target, LogCategory.Warning, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(ILogTarget, object, Color)"/>
-        public void LogError(ILogTarget target, object data, Color messageColor)
+        public void LogError(ILogTarget target, object messageObj, Color messageColor)
         {
-            Log(target, LogCategory.Error, data, messageColor);
+            Log(target, LogCategory.Error, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(ILogTarget, object, Color)"/>
-        public void LogFatal(ILogTarget target, object data, Color messageColor)
+        public void LogFatal(ILogTarget target, object messageObj, Color messageColor)
         {
-            Log(target, LogCategory.Fatal, data, messageColor);
+            Log(target, LogCategory.Fatal, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
-        public void Log(ILogTarget target, LogLevel category, object data, Color messageColor)
+        public void Log(ILogTarget target, LogLevel category, object messageObj, Color messageColor)
         {
-            Log(target, LogCategory.ToCategory(category), data, messageColor);
+            Log(target, LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
-        public void Log(ILogTarget target, string category, object data, Color messageColor)
+        public void Log(ILogTarget target, string category, object messageObj, Color messageColor)
         {
-            Log(target, LogCategory.ToCategory(category), data, messageColor);
+            Log(target, LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
-        public void Log(ILogTarget target, LogCategory category, object data, Color messageColor)
+        public void Log(ILogTarget target, LogCategory category, object messageObj, Color messageColor)
         {
-            LogData(target, category, data, false, messageColor);
+            LogData(target, category, messageObj, false, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, object, Color)"/>
-        public void LogOnce(ILogTarget target, LogCategory category, object data, Color messageColor)
+        public void LogOnce(ILogTarget target, LogCategory category, object messageObj, Color messageColor)
         {
-            LogData(target, category, data, true, messageColor);
+            LogData(target, category, messageObj, true, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, object, Color)"/>
-        public void Log(ILogTarget target, object data, ConsoleColor messageColor)
+        public void Log(ILogTarget target, object messageObj, ConsoleColor messageColor)
         {
-            Log(target, LogCategory.Default, data, ConsoleColorMap.GetColor(messageColor));
+            Log(target, LogCategory.Default, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, object, Color)"/>
-        public void LogOnce(ILogTarget target, object data, ConsoleColor messageColor)
+        public void LogOnce(ILogTarget target, object messageObj, ConsoleColor messageColor)
         {
-            Log(target, LogCategory.Default, data, ConsoleColorMap.GetColor(messageColor));
+            Log(target, LogCategory.Default, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(ILogTarget, object, Color)"/>
-        public void LogDebug(ILogTarget target, object data, ConsoleColor messageColor)
+        public void LogDebug(ILogTarget target, object messageObj, ConsoleColor messageColor)
         {
-            Log(target, LogCategory.Debug, data, ConsoleColorMap.GetColor(messageColor));
+            Log(target, LogCategory.Debug, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(ILogTarget, object, Color)"/>
-        public void LogInfo(ILogTarget target, object data, ConsoleColor messageColor)
+        public void LogInfo(ILogTarget target, object messageObj, ConsoleColor messageColor)
         {
-            Log(target, LogCategory.Info, data, ConsoleColorMap.GetColor(messageColor));
+            Log(target, LogCategory.Info, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(ILogTarget, object, Color)"/>
-        public void LogImportant(ILogTarget target, object data, ConsoleColor messageColor)
+        public void LogImportant(ILogTarget target, object messageObj, ConsoleColor messageColor)
         {
-            Log(target, LogCategory.Important, data, ConsoleColorMap.GetColor(messageColor));
+            Log(target, LogCategory.Important, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(ILogTarget, object, Color)"/>
-        public void LogMessage(ILogTarget target, object data, ConsoleColor messageColor)
+        public void LogMessage(ILogTarget target, object messageObj, ConsoleColor messageColor)
         {
-            Log(target, LogCategory.Message, data, ConsoleColorMap.GetColor(messageColor));
+            Log(target, LogCategory.Message, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(ILogTarget, object, Color)"/>
-        public void LogWarning(ILogTarget target, object data, ConsoleColor messageColor)
+        public void LogWarning(ILogTarget target, object messageObj, ConsoleColor messageColor)
         {
-            Log(target, LogCategory.Warning, data, ConsoleColorMap.GetColor(messageColor));
+            Log(target, LogCategory.Warning, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(ILogTarget, object, Color)"/>
-        public void LogError(ILogTarget target, object data, ConsoleColor messageColor)
+        public void LogError(ILogTarget target, object messageObj, ConsoleColor messageColor)
         {
-            Log(target, LogCategory.Error, data, ConsoleColorMap.GetColor(messageColor));
+            Log(target, LogCategory.Error, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(ILogTarget, object, Color)"/>
-        public void LogFatal(ILogTarget target, object data, ConsoleColor messageColor)
+        public void LogFatal(ILogTarget target, object messageObj, ConsoleColor messageColor)
         {
-            Log(target, LogCategory.Fatal, data, ConsoleColorMap.GetColor(messageColor));
+            Log(target, LogCategory.Fatal, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
-        public void Log(ILogTarget target, LogLevel category, object data, ConsoleColor messageColor)
+        public void Log(ILogTarget target, LogLevel category, object messageObj, ConsoleColor messageColor)
         {
-            Log(target, LogCategory.ToCategory(category), data, ConsoleColorMap.GetColor(messageColor));
+            Log(target, LogCategory.ToCategory(category), messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
-        public void Log(ILogTarget target, string category, object data, ConsoleColor messageColor)
+        public void Log(ILogTarget target, string category, object messageObj, ConsoleColor messageColor)
         {
-            Log(target, LogCategory.ToCategory(category), data, ConsoleColorMap.GetColor(messageColor));
+            Log(target, LogCategory.ToCategory(category), messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
-        public void Log(ILogTarget target, LogCategory category, object data, ConsoleColor messageColor)
+        public void Log(ILogTarget target, LogCategory category, object messageObj, ConsoleColor messageColor)
         {
-            LogData(target, category, data, false, ConsoleColorMap.GetColor(messageColor));
+            LogData(target, category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, object, Color)"/>
-        public void LogOnce(ILogTarget target, LogCategory category, object data, ConsoleColor messageColor)
+        public void LogOnce(ILogTarget target, LogCategory category, object messageObj, ConsoleColor messageColor)
         {
-            LogData(target, category, data, true, ConsoleColorMap.GetColor(messageColor));
+            LogData(target, category, messageObj, true, ConsoleColorMap.GetColor(messageColor));
         }
         #endregion
         #endregion
         #region  Log Overloads (IEnumerable<ILogTarget>, object)
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, object)"/>
-        public void Log(IEnumerable<ILogTarget> targets, object data)
+        public void Log(IEnumerable<ILogTarget> targets, object messageObj)
         {
-            Log(targets, LogCategory.Default, data);
+            Log(targets, LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, object)"/>
-        public void LogOnce(IEnumerable<ILogTarget> targets, object data)
+        public void LogOnce(IEnumerable<ILogTarget> targets, object messageObj)
         {
-            Log(targets, LogCategory.Default, data);
+            Log(targets, LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(IEnumerable{ILogTarget}, object)"/>
-        public void LogDebug(IEnumerable<ILogTarget> targets, object data)
+        public void LogDebug(IEnumerable<ILogTarget> targets, object messageObj)
         {
-            Log(targets, LogCategory.Debug, data);
+            Log(targets, LogCategory.Debug, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(IEnumerable{ILogTarget}, object)"/>
-        public void LogInfo(IEnumerable<ILogTarget> targets, object data)
+        public void LogInfo(IEnumerable<ILogTarget> targets, object messageObj)
         {
-            Log(targets, LogCategory.Info, data);
+            Log(targets, LogCategory.Info, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(IEnumerable{ILogTarget}, object)"/>
-        public void LogImportant(IEnumerable<ILogTarget> targets, object data)
+        public void LogImportant(IEnumerable<ILogTarget> targets, object messageObj)
         {
-            Log(targets, LogCategory.Important, data);
+            Log(targets, LogCategory.Important, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(IEnumerable{ILogTarget}, object)"/>
-        public void LogMessage(IEnumerable<ILogTarget> targets, object data)
+        public void LogMessage(IEnumerable<ILogTarget> targets, object messageObj)
         {
-            Log(targets, LogCategory.Message, data);
+            Log(targets, LogCategory.Message, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(IEnumerable{ILogTarget}, object)"/>
-        public void LogWarning(IEnumerable<ILogTarget> targets, object data)
+        public void LogWarning(IEnumerable<ILogTarget> targets, object messageObj)
         {
-            Log(targets, LogCategory.Warning, data);
+            Log(targets, LogCategory.Warning, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(IEnumerable{ILogTarget}, object)"/>
-        public void LogError(IEnumerable<ILogTarget> targets, object data)
+        public void LogError(IEnumerable<ILogTarget> targets, object messageObj)
         {
-            Log(targets, LogCategory.Error, data);
+            Log(targets, LogCategory.Error, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(IEnumerable{ILogTarget}, object)"/>
-        public void LogFatal(IEnumerable<ILogTarget> targets, object data)
+        public void LogFatal(IEnumerable<ILogTarget> targets, object messageObj)
         {
-            Log(targets, LogCategory.Fatal, data);
+            Log(targets, LogCategory.Fatal, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object)"/>
-        public void Log(IEnumerable<ILogTarget> targets, LogLevel category, object data)
+        public void Log(IEnumerable<ILogTarget> targets, LogLevel category, object messageObj)
         {
-            Log(targets, LogCategory.ToCategory(category), data);
+            Log(targets, LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object)"/>
-        public void Log(IEnumerable<ILogTarget> targets, string category, object data)
+        public void Log(IEnumerable<ILogTarget> targets, string category, object messageObj)
         {
-            Log(targets, LogCategory.ToCategory(category), data);
+            Log(targets, LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object)"/>
-        public void Log(IEnumerable<ILogTarget> targets, LogCategory category, object data)
+        public void Log(IEnumerable<ILogTarget> targets, LogCategory category, object messageObj)
         {
-            LogData(new LogTargetCollection(targets), category, data, false);
+            LogData(new LogTargetCollection(targets), category, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, LogCategory, object)"/>
-        public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, object data)
+        public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, object messageObj)
         {
-            LogData(new LogTargetCollection(targets), category, data, true);
+            LogData(new LogTargetCollection(targets), category, messageObj, true);
         }
         #region Color Overloads
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, object, Color)"/>
-        public void Log(IEnumerable<ILogTarget> targets, object data, Color messageColor)
+        public void Log(IEnumerable<ILogTarget> targets, object messageObj, Color messageColor)
         {
-            Log(targets, LogCategory.Default, data, messageColor);
+            Log(targets, LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, object, Color)"/>
-        public void LogOnce(IEnumerable<ILogTarget> targets, object data, Color messageColor)
+        public void LogOnce(IEnumerable<ILogTarget> targets, object messageObj, Color messageColor)
         {
-            Log(targets, LogCategory.Default, data, messageColor);
+            Log(targets, LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(IEnumerable{ILogTarget}, object, Color)"/>
-        public void LogDebug(IEnumerable<ILogTarget> targets, object data, Color messageColor)
+        public void LogDebug(IEnumerable<ILogTarget> targets, object messageObj, Color messageColor)
         {
-            Log(targets, LogCategory.Debug, data, messageColor);
+            Log(targets, LogCategory.Debug, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(IEnumerable{ILogTarget}, object, Color)"/>
-        public void LogInfo(IEnumerable<ILogTarget> targets, object data, Color messageColor)
+        public void LogInfo(IEnumerable<ILogTarget> targets, object messageObj, Color messageColor)
         {
-            Log(targets, LogCategory.Info, data, messageColor);
+            Log(targets, LogCategory.Info, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(IEnumerable{ILogTarget}, object, Color)"/>
-        public void LogImportant(IEnumerable<ILogTarget> targets, object data, Color messageColor)
+        public void LogImportant(IEnumerable<ILogTarget> targets, object messageObj, Color messageColor)
         {
-            Log(targets, LogCategory.Important, data, messageColor);
+            Log(targets, LogCategory.Important, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(IEnumerable{ILogTarget}, object, Color)"/>
-        public void LogMessage(IEnumerable<ILogTarget> targets, object data, Color messageColor)
+        public void LogMessage(IEnumerable<ILogTarget> targets, object messageObj, Color messageColor)
         {
-            Log(targets, LogCategory.Message, data, messageColor);
+            Log(targets, LogCategory.Message, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(IEnumerable{ILogTarget}, object, Color)"/>
-        public void LogWarning(IEnumerable<ILogTarget> targets, object data, Color messageColor)
+        public void LogWarning(IEnumerable<ILogTarget> targets, object messageObj, Color messageColor)
         {
-            Log(targets, LogCategory.Warning, data, messageColor);
+            Log(targets, LogCategory.Warning, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(IEnumerable{ILogTarget}, object, Color)"/>
-        public void LogError(IEnumerable<ILogTarget> targets, object data, Color messageColor)
+        public void LogError(IEnumerable<ILogTarget> targets, object messageObj, Color messageColor)
         {
-            Log(targets, LogCategory.Error, data, messageColor);
+            Log(targets, LogCategory.Error, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(IEnumerable{ILogTarget}, object, Color)"/>
-        public void LogFatal(IEnumerable<ILogTarget> targets, object data, Color messageColor)
+        public void LogFatal(IEnumerable<ILogTarget> targets, object messageObj, Color messageColor)
         {
-            Log(targets, LogCategory.Fatal, data, messageColor);
+            Log(targets, LogCategory.Fatal, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
-        public void Log(IEnumerable<ILogTarget> targets, LogLevel category, object data, Color messageColor)
+        public void Log(IEnumerable<ILogTarget> targets, LogLevel category, object messageObj, Color messageColor)
         {
-            Log(targets, LogCategory.ToCategory(category), data, messageColor);
+            Log(targets, LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
-        public void Log(IEnumerable<ILogTarget> targets, string category, object data, Color messageColor)
+        public void Log(IEnumerable<ILogTarget> targets, string category, object messageObj, Color messageColor)
         {
-            Log(targets, LogCategory.ToCategory(category), data, messageColor);
+            Log(targets, LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
-        public void Log(IEnumerable<ILogTarget> targets, LogCategory category, object data, Color messageColor)
+        public void Log(IEnumerable<ILogTarget> targets, LogCategory category, object messageObj, Color messageColor)
         {
-            LogData(new LogTargetCollection(targets), category, data, false, messageColor);
+            LogData(new LogTargetCollection(targets), category, messageObj, false, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
-        public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, object data, Color messageColor)
+        public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, object messageObj, Color messageColor)
         {
-            LogData(new LogTargetCollection(targets), category, data, true, messageColor);
+            LogData(new LogTargetCollection(targets), category, messageObj, true, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, object, Color)"/>
-        public void Log(IEnumerable<ILogTarget> targets, object data, ConsoleColor messageColor)
+        public void Log(IEnumerable<ILogTarget> targets, object messageObj, ConsoleColor messageColor)
         {
-            Log(targets, LogCategory.Default, data, messageColor);
+            Log(targets, LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, object, Color)"/>
-        public void LogOnce(IEnumerable<ILogTarget> targets, object data, ConsoleColor messageColor)
+        public void LogOnce(IEnumerable<ILogTarget> targets, object messageObj, ConsoleColor messageColor)
         {
-            Log(targets, LogCategory.Default, data, messageColor);
+            Log(targets, LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(IEnumerable{ILogTarget}, object, Color)"/>
-        public void LogDebug(IEnumerable<ILogTarget> targets, object data, ConsoleColor messageColor)
+        public void LogDebug(IEnumerable<ILogTarget> targets, object messageObj, ConsoleColor messageColor)
         {
-            Log(targets, LogCategory.Debug, data, messageColor);
+            Log(targets, LogCategory.Debug, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(IEnumerable{ILogTarget}, object, Color)"/>
-        public void LogInfo(IEnumerable<ILogTarget> targets, object data, ConsoleColor messageColor)
+        public void LogInfo(IEnumerable<ILogTarget> targets, object messageObj, ConsoleColor messageColor)
         {
-            Log(targets, LogCategory.Info, data, messageColor);
+            Log(targets, LogCategory.Info, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(IEnumerable{ILogTarget}, object, Color)"/>
-        public void LogImportant(IEnumerable<ILogTarget> targets, object data, ConsoleColor messageColor)
+        public void LogImportant(IEnumerable<ILogTarget> targets, object messageObj, ConsoleColor messageColor)
         {
-            Log(targets, LogCategory.Important, data, messageColor);
+            Log(targets, LogCategory.Important, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(IEnumerable{ILogTarget}, object, Color)"/>
-        public void LogMessage(IEnumerable<ILogTarget> targets, object data, ConsoleColor messageColor)
+        public void LogMessage(IEnumerable<ILogTarget> targets, object messageObj, ConsoleColor messageColor)
         {
-            Log(targets, LogCategory.Message, data, messageColor);
+            Log(targets, LogCategory.Message, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(IEnumerable{ILogTarget}, object, Color)"/>
-        public void LogWarning(IEnumerable<ILogTarget> targets, object data, ConsoleColor messageColor)
+        public void LogWarning(IEnumerable<ILogTarget> targets, object messageObj, ConsoleColor messageColor)
         {
-            Log(targets, LogCategory.Warning, data, messageColor);
+            Log(targets, LogCategory.Warning, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(IEnumerable{ILogTarget}, object, Color)"/>
-        public void LogError(IEnumerable<ILogTarget> targets, object data, ConsoleColor messageColor)
+        public void LogError(IEnumerable<ILogTarget> targets, object messageObj, ConsoleColor messageColor)
         {
-            Log(targets, LogCategory.Error, data, messageColor);
+            Log(targets, LogCategory.Error, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(IEnumerable{ILogTarget}, object, Color)"/>
-        public void LogFatal(IEnumerable<ILogTarget> targets, object data, ConsoleColor messageColor)
+        public void LogFatal(IEnumerable<ILogTarget> targets, object messageObj, ConsoleColor messageColor)
         {
-            Log(targets, LogCategory.Fatal, data, messageColor);
+            Log(targets, LogCategory.Fatal, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
-        public void Log(IEnumerable<ILogTarget> targets, LogLevel category, object data, ConsoleColor messageColor)
+        public void Log(IEnumerable<ILogTarget> targets, LogLevel category, object messageObj, ConsoleColor messageColor)
         {
-            Log(targets, LogCategory.ToCategory(category), data, messageColor);
+            Log(targets, LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
-        public void Log(IEnumerable<ILogTarget> targets, string category, object data, ConsoleColor messageColor)
+        public void Log(IEnumerable<ILogTarget> targets, string category, object messageObj, ConsoleColor messageColor)
         {
-            Log(targets, LogCategory.ToCategory(category), data, messageColor);
+            Log(targets, LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
-        public void Log(IEnumerable<ILogTarget> targets, LogCategory category, object data, ConsoleColor messageColor)
+        public void Log(IEnumerable<ILogTarget> targets, LogCategory category, object messageObj, ConsoleColor messageColor)
         {
-            LogData(new LogTargetCollection(targets), category, data, false, ConsoleColorMap.GetColor(messageColor));
+            LogData(new LogTargetCollection(targets), category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
-        public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, object data, ConsoleColor messageColor)
+        public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, object messageObj, ConsoleColor messageColor)
         {
-            LogData(new LogTargetCollection(targets), category, data, true, ConsoleColorMap.GetColor(messageColor));
+            LogData(new LogTargetCollection(targets), category, messageObj, true, ConsoleColorMap.GetColor(messageColor));
         }
         #endregion
         #endregion

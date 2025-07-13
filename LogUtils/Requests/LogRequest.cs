@@ -353,7 +353,7 @@ namespace LogUtils.Requests
                     return null;
                 }
 
-                LogRequestEventArgs requestData = null;
+                LogRequestEventArgs requestData;
 
                 if (requestType == RequestType.Console)
                 {
@@ -379,9 +379,9 @@ namespace LogUtils.Requests
             /// </summary>
             public static Callback CreateDataCallback(EventArgs extraData)
             {
-                LogRequest addDataToRequest(RequestType type, ILogTarget target, LogCategory category, object data, bool shouldFilter)
+                LogRequest addDataToRequest(RequestType type, ILogTarget target, LogCategory category, object messageObj, bool shouldFilter)
                 {
-                    LogRequest request = Factory.Create(type, target, category, data, shouldFilter);
+                    LogRequest request = Factory.Create(type, target, category, messageObj, shouldFilter);
 
                     if (request != null)
                         request.Data.ExtraArgs.Add(extraData);
