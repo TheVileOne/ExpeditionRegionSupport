@@ -5,6 +5,7 @@ namespace LogUtils.Enums
 {
     public class CompositeLogTarget : ILogTarget
     {
+        /// <inheritdoc/>
         public string Value => string.Empty;
 
         /// <inheritdoc/>
@@ -28,6 +29,7 @@ namespace LogUtils.Enums
                 Set = elements;
         }
 
+        /// <inheritdoc/>
         public RequestType GetRequestType(ILogHandler handler)
         {
             return RequestType.Invalid; //Request system is not designed to handle composite targets

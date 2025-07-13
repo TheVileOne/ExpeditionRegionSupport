@@ -17,6 +17,7 @@ using UnityEngine;
 
 namespace LogUtils
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Hooks should ignore capitalization rules")]
     public static class GameHooks
     {
         private static List<IDetour> managedHooks = new List<IDetour>();

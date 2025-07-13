@@ -170,26 +170,14 @@ namespace LogUtils.Events
             MessageObject = messageData ?? string.Empty;
         }
 
-        /// <summary>
-        /// Creates a new data storage instance for a LogRequest event
-        /// </summary>
-        /// <param name="logID">The targeted log file ID</param>
-        /// <param name="messageData">The message to log</param>
-        /// <param name="category">The category associated with the message</param>
-        /// <exception cref="NullReferenceException">The LogID, or its properties field is null</exception>
+        /// <inheritdoc cref="LogRequestEventArgs(LogID, object, LogCategory)"/>
         public LogRequestEventArgs(LogID logID, object messageData, LogLevel category) : base(logID)
         {
             BepInExCategory = category;
             MessageObject = messageData ?? string.Empty;
         }
 
-        /// <summary>
-        /// Creates a new data storage instance for a LogRequest event
-        /// </summary>
-        /// <param name="logID">The targeted log file ID</param>
-        /// <param name="messageData">The message to log</param>
-        /// <param name="category">The category associated with the message</param>
-        /// <exception cref="NullReferenceException">The LogID, or its properties field is null</exception>
+        /// <inheritdoc cref="LogRequestEventArgs(LogID, object, LogCategory)"/>
         public LogRequestEventArgs(LogID logID, object messageData, LogType category) : base(logID)
         {
             UnityCategory = category;
@@ -212,23 +200,13 @@ namespace LogUtils.Events
             ExtraArgs.Add(new ConsoleRequestEventArgs(consoleID));
         }
 
-        /// <summary>
-        /// Creates a new data storage instance for a LogRequest event
-        /// </summary>
-        /// <param name="consoleID">The targeted console ID</param>
-        /// <param name="messageData">The message to log</param>
-        /// <param name="category">The category associated with the message</param>
+        /// <inheritdoc cref="LogRequestEventArgs(ConsoleID, object, LogCategory)"/>
         public LogRequestEventArgs(ConsoleID consoleID, object messageData, LogLevel category) : this(LogID.NotUsed, messageData, category)
         {
             ExtraArgs.Add(new ConsoleRequestEventArgs(consoleID));
         }
 
-        /// <summary>
-        /// Creates a new data storage instance for a LogRequest event
-        /// </summary>
-        /// <param name="consoleID">The targeted console ID</param>
-        /// <param name="messageData">The message to log</param>
-        /// <param name="category">The category associated with the message</param>
+        /// <inheritdoc cref="LogRequestEventArgs(ConsoleID, object, LogCategory)"/>
         public LogRequestEventArgs(ConsoleID consoleID, object messageData, LogType category) : this(LogID.NotUsed, messageData, category)
         {
             ExtraArgs.Add(new ConsoleRequestEventArgs(consoleID));

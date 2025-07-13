@@ -267,15 +267,13 @@ namespace LogUtils
                 return;
             }
 
-            string newPath = properties.FolderPath;
-
             //When moving a file out of this folder, we should rename it to what it was before it was moved into the folder
             LogFilename filename = properties.ReserveFilename ?? properties.Filename;
 
             if (!properties.CurrentFilename.Equals(filename))
                 UtilityLogger.Log($"Renaming file to {filename}");
 
-            newPath = System.IO.Path.Combine(properties.FolderPath, filename.WithExtension());
+            string newPath = System.IO.Path.Combine(properties.FolderPath, filename.WithExtension());
 
             if (!properties.FileExists)
             {

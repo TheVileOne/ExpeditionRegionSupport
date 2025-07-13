@@ -10,6 +10,7 @@ using static LogUtils.Formatting.FormatDataAccess;
 
 namespace LogUtils.Formatting
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Hooks should ignore capitalization rules")]
     internal static class FormatHook
     {
         internal static IDetour[] Create()

@@ -51,14 +51,14 @@ namespace LogUtils
 
             NotifyOnInterrupt();
             Stream?.Close();
-            return new StreamResumer(PersistentFileHandle_OnResume);
-        }
 
-        private void PersistentFileHandle_OnResume()
-        {
-            resumeHandle = null; //Must be set to null before CreateFileStream is invoked
-            NotifyOnResume();
-            CreateFileStream();
+            void onResume()
+            {
+                resumeHandle = null; //Must be set to null before CreateFileStream is invoked
+                NotifyOnResume();
+                CreateFileStream();
+            }
+            return new StreamResumer(onResume);
         }
 
         protected virtual void NotifyOnInterrupt()

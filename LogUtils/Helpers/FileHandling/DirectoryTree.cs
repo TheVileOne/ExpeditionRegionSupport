@@ -66,6 +66,7 @@ namespace LogUtils.Helpers.FileHandling
             public DirectoryTreeNode(DirectoryTree source, string dirName)
             {
                 DirName = dirName;
+                Source = source;
                 Children = new List<DirectoryTreeNode>();
             }
 

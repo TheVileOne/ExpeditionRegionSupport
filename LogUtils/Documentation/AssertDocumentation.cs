@@ -6,6 +6,7 @@ using static LogUtils.Diagnostics.Assert;
 
 namespace LogUtils.Documentation
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Interfaces are used for documentation purposes only")]
     internal static class AssertDocumentation
     {
         internal interface GeneralAssert

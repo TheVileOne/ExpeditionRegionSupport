@@ -32,7 +32,7 @@ namespace LogUtils.Diagnostics.Tools
         /// </summary>
         /// <param name="obj">Object to evaluate</param>
         /// <param name="callerArgumentName">The name of the reference. Leave blank to autocapture argument</param>
-        public void Check(object obj, [CallerArgumentExpression("obj")] string callerArgumentName = "")
+        public void Check(object obj, [CallerArgumentExpression(nameof(obj))] string callerArgumentName = "")
         {
             if (DetectionThreshold > 0 && TotalNullsFound >= DetectionThreshold)
                 return;

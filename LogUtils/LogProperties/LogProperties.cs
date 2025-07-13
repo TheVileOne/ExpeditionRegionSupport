@@ -382,8 +382,8 @@ namespace LogUtils.Properties
                 };
             }
 
-            OnLogSessionStart += LogProperties_OnLogSessionStart;
-            OnLogSessionFinish += LogProperties_OnLogSessionFinish;
+            OnLogSessionStart += onLogSessionStart;
+            OnLogSessionFinish += onLogSessionFinish;
         }
 
         private void onCustomPropertyAdded(CustomLogProperty property)
@@ -399,7 +399,7 @@ namespace LogUtils.Properties
                 Rules.Remove(property.Name);
         }
 
-        private void LogProperties_OnLogSessionStart(LogStreamEventArgs e)
+        private void onLogSessionStart(LogStreamEventArgs e)
         {
             if (IsWriteRestricted) return;
 
@@ -412,7 +412,7 @@ namespace LogUtils.Properties
             Profiler.Start();
         }
 
-        private void LogProperties_OnLogSessionFinish(LogStreamEventArgs e)
+        private void onLogSessionFinish(LogStreamEventArgs e)
         {
             if (IsWriteRestricted) return;
 

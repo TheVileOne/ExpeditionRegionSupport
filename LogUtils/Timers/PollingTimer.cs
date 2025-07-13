@@ -49,7 +49,7 @@ namespace LogUtils.Timers
         public PollingTimer(double checkInterval) : base(checkInterval)
         {
             lastPollTime = -1;
-            Elapsed += Timer_Elapsed;
+            Elapsed += onIntervalElapsed;
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace LogUtils.Timers
             base.Stop();
         }
 
-        private void Timer_Elapsed(object sender, ElapsedEventArgs e)
+        private void onIntervalElapsed(object sender, ElapsedEventArgs e)
         {
             if (!PollFlagged)
                 OnTimeout?.Invoke(this, e);

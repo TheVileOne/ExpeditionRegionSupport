@@ -86,7 +86,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             logger.Dispose();
         }
 
-        public void testLogRequestsObeyEnabledState()
+        private void testLogRequestsObeyEnabledState()
         {
             TestLogID testLogID = new TestLogID();
 
@@ -105,7 +105,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         /// <summary>
         /// Tests related to ensuring that LogIDs with equivalent filename, but different paths make it to the correct Logger instances
         /// </summary>
-        public void testConflictResolution()
+        private void testConflictResolution()
         {
             //Represent two log files with the same filename, but different paths
             TestLogID targetA = TestLogID.FromPath(UtilityConsts.PathKeywords.ROOT),

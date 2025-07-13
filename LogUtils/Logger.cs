@@ -197,7 +197,6 @@ namespace LogUtils
             Targets.Clear();
             Targets.AddRange(RestorePoint.LogTargets);
         }
-
         #endregion
 
         #region Logging
@@ -254,7 +253,7 @@ namespace LogUtils
             IEnumerable<ILogTarget> enabledTargets = targets.LogIDs.Where(t => t.IsEnabled);
 
             LogRequest lastRequest = null;
-            foreach (LogID target in enabledTargets)
+            foreach (LogID target in enabledTargets.Cast<LogID>())
             {
                 LogRequest currentRequest = createRequest.Invoke(target.GetRequestType(this), target, category, messageObj, shouldFilter);
 
@@ -279,7 +278,7 @@ namespace LogUtils
                     enabledTargets = enabledTargets.Except(consoleMessageData.Handled);
             }
 
-            foreach (ConsoleID target in enabledTargets)
+            foreach (ConsoleID target in enabledTargets.Cast<ConsoleID>())
             {
                 LogRequest currentRequest = createRequest.Invoke(RequestType.Console, target, category, messageObj, shouldFilter);
 
@@ -342,9 +341,6 @@ namespace LogUtils
             return requestType == RequestType.Local || loggerID.Access != LogAccess.Private;
         }
 
-        /// <summary>
-        /// Retrieves all log files accessible by the logger
-        /// </summary>
         IEnumerable<LogID> ILogFileHandler.GetAccessibleTargets()
         {
             return LogTargets.Where(log => !log.IsGameControlled && log.Access != LogAccess.RemoteAccessOnly);
