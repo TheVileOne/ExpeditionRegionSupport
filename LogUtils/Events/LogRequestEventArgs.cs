@@ -88,6 +88,23 @@ namespace LogUtils.Events
         public string Message => MessageObject.ToString();
 
         /// <summary>
+        /// The color to be used by default for a message
+        /// </summary>
+        public Color MessageColor
+        {
+            get
+            {
+                //Color may be inherited through the request, or the associated log category
+                var colorData = FindData<ColorEventArgs>();
+
+                if (colorData != null)
+                    return colorData.Color;
+
+                return Category.ConsoleColor;
+            }
+        }
+
+        /// <summary>
         /// The message format rules associated with this message data
         /// </summary>
         public LogRuleCollection Rules

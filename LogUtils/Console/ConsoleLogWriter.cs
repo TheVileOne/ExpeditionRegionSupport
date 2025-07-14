@@ -68,34 +68,35 @@ namespace LogUtils.Console
             throw new NotImplementedException();
         }
 
-        protected void SendToConsole(LogRequestEventArgs messageData)
+        protected virtual void SendToConsole(LogRequestEventArgs messageData)
         {
-            SendToConsole(messageData, messageData.Category.ConsoleColor);
-        }
+            IColorFormatProvider colorProvider = Formatter.ColorFormatter;
 
-        protected virtual void SendToConsole(LogRequestEventArgs messageData, Color messageColor)
-        {
-            Color lastDefaultColor = Formatter.ColorFormatter.DefaultMessageColor;
+            Color lastDefaultColor = colorProvider.MessageColor ?? ConsoleColorMap.DefaultColor; ;
             try
             {
-                Formatter.ColorFormatter.DefaultMessageColor = messageColor;
+                Color messageColor = messageData.MessageColor;
+                colorProvider.MessageColor = messageColor;
                 string message = ApplyRules(messageData);
 
                 if (LogConsole.ANSIColorSupport)
                 {
                     message = Formatter.ApplyColor(message, messageColor);
                     Stream.WriteLine(message);
+                    Stream.Write(AnsiColorConverter.AnsiToForeground(lastDefaultColor));
                 }
                 else
                 {
                     LogConsole.SetConsoleColor(ConsoleColorMap.ClosestConsoleColor(messageColor));
                     Stream.WriteLine(message);
-                    LogConsole.SetConsoleColor(ConsoleColorMap.DefaultConsoleColor);
+                    LogConsole.SetConsoleColor(ConsoleColorMap.ClosestConsoleColor(lastDefaultColor));
                 }
             }
             finally
             {
-                Formatter.ColorFormatter.DefaultMessageColor = lastDefaultColor;
+                //Maintain a null default instead of inheriting the default console color. That way in the future if the default console color changes, the provider
+                //wont remain at the old default color
+                colorProvider.MessageColor = lastDefaultColor != ConsoleColorMap.DefaultColor ? lastDefaultColor : null;
             }
         }
 

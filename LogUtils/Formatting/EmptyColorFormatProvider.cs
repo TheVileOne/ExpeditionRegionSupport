@@ -10,7 +10,7 @@ namespace LogUtils.Formatting
     public class EmptyColorFormatProvider : IColorFormatProvider
     {
         /// <inheritdoc/>
-        public Color DefaultMessageColor { get; set; }
+        public Color? MessageColor { get; set; }
 
         /// <inheritdoc/>
         public string ApplyFormat(string message, Color messageColor)

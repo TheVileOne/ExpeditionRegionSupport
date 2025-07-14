@@ -46,8 +46,7 @@ namespace LogUtils.Formatting
 
             string message = formattable != null ? formattable.ToString(null, ColorFormatter)
                                                  : messageData.Message;
-
-            message = ApplyColor(message, messageData.Category.ConsoleColor); //Message inherits the color associated with its category
+            message = ApplyColor(message, messageData.MessageColor);
 
             var activeRules = messageData.Rules.Where(r => r.IsEnabled);
 

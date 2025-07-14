@@ -22,6 +22,6 @@ namespace LogUtils.Formatting
         /// <summary>
         /// The color that will be used as the default text color for handled messages
         /// </summary>
-        Color DefaultMessageColor { get; set; }
+        Color? MessageColor { get; set; }
     }
 }
