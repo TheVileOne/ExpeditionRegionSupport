@@ -261,7 +261,7 @@ namespace LogUtils.Enums
             CompositeLogCategory composite = Empty;
             for (int i = 1; i < flags.Length; i++)
             {
-                if (composite == null)
+                if (composite == Empty)
                 {
                     composite = GetEquivalent(flags[i - 1]) | GetEquivalent(flags[i]);
                     continue;
@@ -293,7 +293,7 @@ namespace LogUtils.Enums
             CompositeLogCategory composite = Empty;
             for (int i = 1; i < flags.Length; i++)
             {
-                if (composite == null)
+                if (composite == Empty)
                 {
                     composite = GetEquivalent(flags[i - 1]) | GetEquivalent(flags[i]);
                     continue;
