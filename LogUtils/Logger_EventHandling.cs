@@ -1,7 +1,6 @@
 ﻿using LogUtils.Events;
 using LogUtils.Requests;
 using System;
-using System.Threading;
 
 namespace LogUtils
 {

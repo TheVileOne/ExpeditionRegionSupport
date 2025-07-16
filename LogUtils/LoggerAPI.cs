@@ -3,8 +3,8 @@ using LogUtils.Enums;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using LogLevel = BepInEx.Logging.LogLevel;
 using LoggerDocs = LogUtils.Documentation.LoggerDocumentation;
+using LogLevel = BepInEx.Logging.LogLevel;
 
 namespace LogUtils
 {

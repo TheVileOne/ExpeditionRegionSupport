@@ -5,15 +5,20 @@ using LogUtils.Diagnostics.Tools;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.IPC;
+using LogUtils.Policy;
 using LogUtils.Properties;
 using LogUtils.Requests;
 using LogUtils.Threading;
 using LogUtils.Timers;
 using Menu;
 using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Resources;
+using BepInExPath = LogUtils.Helpers.Paths.BepInEx;
 using Debug = LogUtils.Diagnostics.Debug;
+using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
 
 namespace LogUtils
 {
@@ -136,6 +141,11 @@ namespace LogUtils
 
                         //TODO: Read LogUtils policies from config file
                         AnnounceBuild();
+
+                        if (PatcherPolicy.ShouldDeploy)
+                            DeployPatcher();
+                        else
+                            RemovePatcher();
 
                         DeadlockTester.Run();
 
@@ -313,6 +323,71 @@ namespace LogUtils
                 return;
             }
             UtilityEvents.OnProcessSwitch.Invoke();
+        }
+
+        internal static void DeployPatcher()
+        {
+            string patcherPath = Path.Combine(BepInExPath.PatcherPath, "LogUtils.VersionLoader.dll");
+
+            if (File.Exists(patcherPath)) //Already deployed
+                return;
+
+            string[] resourceNames = Assembly.GetManifestResourceNames();
+
+            ResourceSet set = new ResourceSet(Assembly.GetManifestResourceStream(resourceNames[0]));
+
+            byte[] byteStream = (byte[])set.GetObject(UtilityConsts.ResourceNames.PATCHER);
+
+            try
+            {
+                string allowListPath = Path.Combine(RainWorldPath.StreamingAssetsPath, "whitelist.txt");
+                string allowListEntry = "LogUtils.VersionLoader.dll".ToLower(); //Lowercase to be consistent with other entries in this txt file
+
+                File.WriteAllBytes(patcherPath, byteStream);
+
+                string[] lines = File.ReadAllLines(allowListPath);
+
+                if (lines.Contains(allowListEntry))
+                    return;
+
+                using (StreamWriter writer = File.AppendText(allowListPath))
+                {
+                    writer.WriteLine(allowListEntry);
+                }
+            }
+            catch (IOException ex)
+            {
+                UtilityLogger.LogError("Unable to deploy patcher", ex);
+            }
+        }
+
+        internal static void RemovePatcher()
+        {
+            string patcherPath = Path.Combine(BepInExPath.PatcherPath, "LogUtils.VersionLoader.dll");
+
+            if (!File.Exists(patcherPath)) //Patcher not available
+                return;
+
+            try
+            {
+                string allowListPath = Path.Combine(RainWorldPath.StreamingAssetsPath, "whitelist.txt");
+                string allowListEntry = "LogUtils.VersionLoader.dll".ToLower();
+
+                string[] lines = File.ReadAllLines(allowListPath);
+
+                using (StreamWriter writer = File.CreateText(allowListPath))
+                {
+                    foreach (string line in lines)
+                    {
+                        if (line != allowListEntry) //Write all lines except the line that identifies the patcher
+                            writer.WriteLine(line);
+                    }
+                }
+            }
+            catch (IOException ex)
+            {
+                UtilityLogger.LogError("Unable to remove patcher", ex);
+            }
         }
 
         internal static void OnProcessSwitch()

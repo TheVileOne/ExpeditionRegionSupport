@@ -141,6 +141,11 @@ namespace LogUtils
             }
         }
 
+        public static class ResourceNames
+        {
+            public const string PATCHER = "LogUtils.Patcher";
+        }
+
         public static class FilterKeywords
         {
             public const string KEYWORD_PREFIX = "fk:"; //Used by the parser
