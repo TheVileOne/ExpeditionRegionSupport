@@ -328,6 +328,7 @@ namespace LogUtils
         internal static void DeployPatcher()
         {
             string patcherPath = Path.Combine(BepInExPath.PatcherPath, "LogUtils.VersionLoader.dll");
+            string patcherBackupPath = Path.Combine(BepInExPath.BackupPath, "LogUtils.VersionLoader.dll");
 
             if (File.Exists(patcherPath)) //Already deployed
                 return;
@@ -340,6 +341,8 @@ namespace LogUtils
 
             try
             {
+                File.Delete(patcherBackupPath); //Patcher should never exist in both patchers, and backup directories at the same time
+
                 string allowListPath = Path.Combine(RainWorldPath.StreamingAssetsPath, "whitelist.txt");
                 string allowListEntry = "LogUtils.VersionLoader.dll".ToLower(); //Lowercase to be consistent with other entries in this txt file
 

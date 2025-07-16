@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.IO;
+using UnityEngine;
 using BepInExPath = BepInEx.Paths;
 
 namespace LogUtils.Helpers
@@ -7,6 +8,7 @@ namespace LogUtils.Helpers
     {
         internal static class BepInEx
         {
+            public static string BackupPath = Path.Combine(RootPath, "backup");
             public static string RootPath => BepInExPath.BepInExRootPath;
             public static string PatcherPath => BepInExPath.PatcherPluginPath;
         }
