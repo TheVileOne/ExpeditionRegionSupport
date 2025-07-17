@@ -1,9 +1,11 @@
-﻿using Mono.Cecil;
+﻿using BepInEx.MultiFolderLoader;
+using Mono.Cecil;
+using MonoMod.RuntimeDetour;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
+using AssemblyCandidate = (System.Version Version, string Path);
 
 namespace LogUtils.Patcher;
 
@@ -11,74 +13,82 @@ public static class Patcher
 {
     private static readonly string LogFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "patcher.log");
 
-    private static readonly string ModsRootPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RainWorld_Data", "StreamingAssets", "mods");
-
     public static IEnumerable<string> TargetDLLs => GetDLLs();
+
+    /// <summary>
+    /// The latest version of LogUtils will be stored in this field
+    /// </summary>
+    internal static AssemblyCandidate Target;
 
     public static IEnumerable<string> GetDLLs()
     {
         if (File.Exists(LogFilePath)) File.Delete(LogFilePath);
         Log("=== Patcher.GetDLLs() start ===");
 
-        var latest = FindLatestLogUtilsDll(ModsRootPath);
-        if (latest != null)
-        {
-            Log("Loading latest LogUtils DLL: " + latest);
-            Assembly.LoadFrom(latest);
-            yield return latest;
-        }
-        else
-        {
-            Log("No LogUtils plugin found; falling back.");
-        }
-
+        applyHooks();
         yield return "Assembly-CSharp.dll";
     }
 
-    private static string FindLatestLogUtilsDll(string rootPath)
+    private static void applyHooks()
     {
-        if (!Directory.Exists(rootPath))
+        new Hook(typeof(ModManager).GetMethod("InitInternal", BindingFlags.Static | BindingFlags.NonPublic), onModsCollected).Apply();
+        new Hook(typeof(ModManager).GetMethod("AddMod", BindingFlags.Static | BindingFlags.NonPublic), onEnabledMod).Apply();
+    }
+
+    private static void onEnabledMod(Action<string> orig, string path)
+    {
+        int lastModCount = ModManager.Mods.Count;
+
+        orig(path);
+
+        if (lastModCount != ModManager.Mods.Count) //Has orig added a new mod entry
         {
-            Log("Mods root not found: " + rootPath);
-            return null;
-        }
+            Mod currentMod = ModManager.Mods[ModManager.Mods.Count - 1];
 
-        var dllFiles = Directory
-          .EnumerateFiles(rootPath, "LogUtils.dll", SearchOption.AllDirectories)
-          .Where(path => path.Split(Path.DirectorySeparatorChar)
-          .Any(segment => segment.Equals("plugins", StringComparison.OrdinalIgnoreCase)));
-
-        if (!dllFiles.Any())
-        {
-            Log("No LogUtils DLLs detected under mods root.");
-            return null;
-        }
-
-        string latestVersionPath = null;
-        var latestVersion = new Version(0, 0, 0, 0);
-
-        foreach (var file in dllFiles)
-        {
+            string targetPath = null;
             try
             {
-                var version = AssemblyName.GetAssemblyName(file).Version;
-                Log($"Found candidate {file} v{version}");
-                if (version > latestVersion)
+                targetPath = AssemblyUtils.FindAssembly(currentMod.PluginsPath, "LogUtils.dll");
+
+                if (targetPath != null)
                 {
-                    latestVersion = version;
-                    latestVersionPath = file;
+                    var version = AssemblyName.GetAssemblyName(targetPath).Version;
+                    Log($"Found candidate {targetPath} v{version}");
+
+                    if (Target.Path == null || Target.Version < version)
+                        Target = new AssemblyCandidate(version, targetPath);
                 }
+            }
+            catch (IOException ex)
+            {
+                Log($"Error trying to access {currentMod.PluginsPath}: {ex.Message}");
             }
             catch (Exception ex)
             {
-                Log($"Error reading version from {file}: {ex.Message}");
+                Log($"Error reading version from {targetPath}: {ex.Message}");
             }
         }
+    }
 
-        if (latestVersionPath != null)
-            Log($"Selected latest: {latestVersionPath} v{latestVersion}");
+    private static void onModsCollected(Action orig)
+    {
+        orig();
 
-        return latestVersionPath;
+        if (Target.Path == null)
+        {
+            Log("No LogUtils DLLs associated with enabled mods detected.");
+            return;
+        }
+
+        if (Target.Path != null)
+        {
+            Log("Loading latest LogUtils DLL: " + Target.Path);
+            Assembly.LoadFrom(Target.Path);
+        }
+        else
+        {
+            Log("No LogUtils assembly found.");
+        }
     }
 
     public static void Patch(AssemblyDefinition assembly)
@@ -95,7 +105,7 @@ public static class Patcher
         }
     }
 
-    private static void Log(string message)
+    internal static void Log(string message)
     {
         try
         {

@@ -7,6 +7,9 @@
     </PropertyGroup>
 
 	<ItemGroup>
+		<Reference Include="BepInEx.MultiFolderLoader">
+		  <HintPath>..\lib\BepInEx.MultiFolderLoader.dll</HintPath>
+		</Reference>
 		<Reference Include="Microsoft.CSharp" Version="4.7.0">
 			<Private>false</Private>
 		</Reference>
