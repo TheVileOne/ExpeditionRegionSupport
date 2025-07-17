@@ -5,46 +5,45 @@ using System.Linq;
 using System.Reflection;
 using AssemblyCandidate = (System.Version Version, string Path);
 
-namespace LogUtils.Patcher
+namespace LogUtils.Patcher;
+
+internal static class AssemblyUtils
 {
-    internal static class AssemblyUtils
+    /// <summary>
+    /// Searches the specified directory path (and any subdirectories) for an assembly, and returns the first match
+    /// </summary>
+    public static string FindAssembly(string searchPath, string assemblyName)
     {
-        /// <summary>
-        /// Searches the specified directory path (and any subdirectories) for an assembly, and returns the first match
-        /// </summary>
-        public static string FindAssembly(string searchPath, string assemblyName)
-        {
-            return Directory.EnumerateFiles(searchPath, assemblyName, SearchOption.AllDirectories).FirstOrDefault();
-        }
+        return Directory.EnumerateFiles(searchPath, assemblyName, SearchOption.AllDirectories).FirstOrDefault();
+    }
 
-        public static AssemblyCandidate FindLatestAssembly(IEnumerable<string> searchTargets, string assemblyName)
+    public static AssemblyCandidate FindLatestAssembly(IEnumerable<string> searchTargets, string assemblyName)
+    {
+        AssemblyCandidate target = default;
+        foreach (string searchPath in searchTargets)
         {
-            AssemblyCandidate target = default;
-            foreach (string searchPath in searchTargets)
+            try
             {
-                try
-                {
-                    string targetPath = FindAssembly(searchPath, assemblyName);
+                string targetPath = FindAssembly(searchPath, assemblyName);
 
-                    if (targetPath != null)
-                    {
-                        var version = AssemblyName.GetAssemblyName(targetPath).Version;
-                        Patcher.Log($"Found candidate {targetPath} v{version}");
+                if (targetPath != null)
+                {
+                    var version = AssemblyName.GetAssemblyName(targetPath).Version;
+                    Patcher.Logger.LogInfo($"Found candidate {targetPath} v{version}");
 
-                        if (target.Path == null || target.Version < version)
-                            target = new AssemblyCandidate(version, targetPath);
-                    }
-                }
-                catch (IOException ex)
-                {
-                    Patcher.Log($"Error trying to access {searchPath}: {ex.Message}");
-                }
-                catch (Exception ex)
-                {
-                    Patcher.Log($"Error reading version from {searchPath}: {ex.Message}");
+                    if (target.Path == null || target.Version < version)
+                        target = new AssemblyCandidate(version, targetPath);
                 }
             }
-            return target;
+            catch (IOException ex)
+            {
+                Patcher.Logger.LogError($"Error trying to access {searchPath}: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Patcher.Logger.LogError($"Error reading version from {searchPath}: {ex.Message}");
+            }
         }
+        return target;
     }
 }

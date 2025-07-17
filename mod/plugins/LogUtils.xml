@@ -438,6 +438,18 @@
             Converts a LogLevel enum to its LogCategory equivalent value
             </summary>
         </member>
+        <member name="M:LogUtils.Compatibility.Unity.UnityDoorstop.AddToWhitelist(System.String)">
+            <summary>
+            Adds a filename entry to whitelist.txt
+            </summary>
+            <exception cref="T:System.IO.FileNotFoundException"></exception>
+        </member>
+        <member name="M:LogUtils.Compatibility.Unity.UnityDoorstop.RemoveFromWhitelist(System.String)">
+            <summary>
+            Removes a filename entry to whitelist.txt
+            </summary>
+            <exception cref="T:System.IO.FileNotFoundException"></exception>
+        </member>
         <member name="P:LogUtils.Compatibility.Unity.UnityLogEventArgs.Context">
             <summary>
             Unity object - typically given to provide context to the log message
@@ -5670,7 +5682,7 @@
               resource lookups using this strongly typed resource class.
             </summary>
         </member>
-        <member name="P:LogUtils.Properties.Resources.LogUtils_Patcher">
+        <member name="P:LogUtils.Properties.Resources.LogUtils_VersionLoader">
             <summary>
               Looks up a localized resource of type System.Byte[].
             </summary>
