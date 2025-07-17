@@ -18,5 +18,10 @@ namespace LogUtils.Helpers
             public static string RootPath => BepInExPath.GameRootPath;
             public static string StreamingAssetsPath => Application.streamingAssetsPath;
         }
+
+        internal static class Unity
+        {
+            public static string DoorstopIniPath = Path.Combine(RainWorld.RootPath, "doorstop_config.ini");
+        }
     }
 }

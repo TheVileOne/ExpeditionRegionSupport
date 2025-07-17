@@ -18,7 +18,6 @@ using System.Reflection;
 using System.Resources;
 using BepInExPath = LogUtils.Helpers.Paths.BepInEx;
 using Debug = LogUtils.Diagnostics.Debug;
-using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
 
 namespace LogUtils
 {
@@ -343,20 +342,12 @@ namespace LogUtils
             {
                 File.Delete(patcherBackupPath); //Patcher should never exist in both patchers, and backup directories at the same time
 
-                string allowListPath = Path.Combine(RainWorldPath.StreamingAssetsPath, "whitelist.txt");
-                string allowListEntry = "LogUtils.VersionLoader.dll".ToLower(); //Lowercase to be consistent with other entries in this txt file
-
                 File.WriteAllBytes(patcherPath, byteStream);
-
-                string[] lines = File.ReadAllLines(allowListPath);
-
-                if (lines.Contains(allowListEntry))
-                    return;
-
-                using (StreamWriter writer = File.AppendText(allowListPath))
-                {
-                    writer.WriteLine(allowListEntry);
-                }
+                UnityDoorstop.AddToWhitelist("LogUtils.VersionLoader.dll");
+            }
+            catch (FileNotFoundException)
+            {
+                //Do nothing
             }
             catch (IOException ex)
             {
@@ -373,19 +364,11 @@ namespace LogUtils
 
             try
             {
-                string allowListPath = Path.Combine(RainWorldPath.StreamingAssetsPath, "whitelist.txt");
-                string allowListEntry = "LogUtils.VersionLoader.dll".ToLower();
-
-                string[] lines = File.ReadAllLines(allowListPath);
-
-                using (StreamWriter writer = File.CreateText(allowListPath))
-                {
-                    foreach (string line in lines)
-                    {
-                        if (line != allowListEntry) //Write all lines except the line that identifies the patcher
-                            writer.WriteLine(line);
-                    }
-                }
+                UnityDoorstop.RemoveFromWhitelist("LogUtils.VersionLoader.dll");
+            }
+            catch (FileNotFoundException)
+            {
+                //Do nothing
             }
             catch (IOException ex)
             {
