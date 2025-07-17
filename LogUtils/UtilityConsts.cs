@@ -143,7 +143,7 @@ namespace LogUtils
 
         public static class ResourceNames
         {
-            public const string PATCHER = "LogUtils.Patcher";
+            public const string PATCHER = "LogUtils.VersionLoader";
         }
 
         public static class FilterKeywords

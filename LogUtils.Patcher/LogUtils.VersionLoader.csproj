@@ -25,7 +25,7 @@
 
 	<Target Name="GenerateMod" AfterTargets="PostBuildEvent">
 		<ItemGroup>
-			<RemovePlugins Include="../mod/patchers/LogUtils.Patcher.dll" />
+			<RemovePlugins Include="../mod/patchers/LogUtils.VersionLoader.dll" />
 			<RemovePDBs Include="$(OutDir)*.pdb" />
 		</ItemGroup>
 		<ItemGroup>

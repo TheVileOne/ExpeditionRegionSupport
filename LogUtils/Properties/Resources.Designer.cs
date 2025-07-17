@@ -63,9 +63,9 @@ namespace LogUtils.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] LogUtils_Patcher {
+        internal static byte[] LogUtils_VersionLoader {
             get {
-                object obj = ResourceManager.GetObject("LogUtils.Patcher", resourceCulture);
+                object obj = ResourceManager.GetObject("LogUtils.VersionLoader", resourceCulture);
                 return ((byte[])(obj));
             }
         }
