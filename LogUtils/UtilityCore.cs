@@ -4,6 +4,7 @@ using LogUtils.Console;
 using LogUtils.Diagnostics.Tools;
 using LogUtils.Enums;
 using LogUtils.Events;
+using LogUtils.Helpers.FileHandling;
 using LogUtils.IPC;
 using LogUtils.Policy;
 using LogUtils.Properties;
@@ -340,7 +341,7 @@ namespace LogUtils
 
             try
             {
-                File.Delete(patcherBackupPath); //Patcher should never exist in both patchers, and backup directories at the same time
+                FileUtils.SafeDelete(patcherBackupPath); //Patcher should never exist in both patchers, and backup directories at the same time
 
                 File.WriteAllBytes(patcherPath, byteStream);
                 UnityDoorstop.AddToWhitelist("LogUtils.VersionLoader.dll");
