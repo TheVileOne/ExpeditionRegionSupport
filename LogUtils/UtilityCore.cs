@@ -327,12 +327,18 @@ namespace LogUtils
 
         internal static void DeployPatcher()
         {
+            UtilityLogger.Log("Checking patcher status");
+
             string patcherPath = Path.Combine(BepInExPath.PatcherPath, "LogUtils.VersionLoader.dll");
             string patcherBackupPath = Path.Combine(BepInExPath.BackupPath, "LogUtils.VersionLoader.dll");
 
             if (File.Exists(patcherPath)) //Already deployed
+            {
+                UtilityLogger.Log("Patcher found");
                 return;
+            }
 
+            UtilityLogger.Log("Deploying patcher");
             string[] resourceNames = Assembly.GetManifestResourceNames();
 
             ResourceSet set = new ResourceSet(Assembly.GetManifestResourceStream(resourceNames[0]));
@@ -348,7 +354,7 @@ namespace LogUtils
             }
             catch (FileNotFoundException)
             {
-                //Do nothing
+                UtilityLogger.LogWarning("whitelist.txt is unavailable");
             }
             catch (IOException ex)
             {
@@ -358,18 +364,24 @@ namespace LogUtils
 
         internal static void RemovePatcher()
         {
+            UtilityLogger.Log("Checking patcher status");
+
             string patcherPath = Path.Combine(BepInExPath.PatcherPath, "LogUtils.VersionLoader.dll");
 
             if (!File.Exists(patcherPath)) //Patcher not available
+            {
+                UtilityLogger.Log("Patcher not found");
                 return;
+            }
 
+            UtilityLogger.Log("Removing patcher");
             try
             {
                 UnityDoorstop.RemoveFromWhitelist("LogUtils.VersionLoader.dll");
             }
             catch (FileNotFoundException)
             {
-                //Do nothing
+                UtilityLogger.LogWarning("whitelist.txt is unavailable");
             }
             catch (IOException ex)
             {

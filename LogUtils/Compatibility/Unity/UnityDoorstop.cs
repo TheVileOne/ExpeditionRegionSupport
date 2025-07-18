@@ -18,9 +18,14 @@ namespace LogUtils.Compatibility.Unity
             Dictionary<string, GhettoIni.Section> doorstopSections = ReadIni();
 
             string allowListPath = null;
-            bool hasAllowList = doorstopSections.TryGetValue("MultiFolderLoader", out GhettoIni.Section section)
-                              && section.Entries.TryGetValue("whiteListPath", out allowListPath)
-                              && File.Exists(allowListPath);
+            bool hasAllowList = false;
+
+            if (doorstopSections.TryGetValue("MultiFolderLoader", out GhettoIni.Section section)
+              && section.Entries.TryGetValue("whiteListPath", out allowListPath))
+            {
+                allowListPath = Path.Combine(allowListPath, "whitelist.txt");
+                hasAllowList = File.Exists(allowListPath);
+            }
 
             if (!hasAllowList)
                 throw new FileNotFoundException(); //Expected to be handled by the caller
@@ -34,14 +39,20 @@ namespace LogUtils.Compatibility.Unity
         /// <exception cref="FileNotFoundException"></exception>
         public static void AddToWhitelist(string filename)
         {
+            UtilityLogger.Log("Updating whitelist.txt");
+
             string allowListPath = getWhitelistPath();
             string allowListEntry = filename.ToLower(); //Lowercase to be consistent with other entries in this txt file
 
             string[] lines = File.ReadAllLines(allowListPath);
 
             if (lines.Contains(allowListEntry))
+            {
+                UtilityLogger.Log("Entry found");
                 return;
+            }
 
+            UtilityLogger.Log("Adding patcher entry");
             using (StreamWriter writer = File.AppendText(allowListPath))
             {
                 writer.WriteLine(allowListEntry);
@@ -54,6 +65,8 @@ namespace LogUtils.Compatibility.Unity
         /// <exception cref="FileNotFoundException"></exception>
         public static void RemoveFromWhitelist(string filename)
         {
+            UtilityLogger.Log("Updating whitelist.txt");
+
             string allowListPath = getWhitelistPath();
             string allowListEntry = filename.ToLower();
 
@@ -61,11 +74,18 @@ namespace LogUtils.Compatibility.Unity
 
             using (StreamWriter writer = File.CreateText(allowListPath))
             {
+                int entryCount = 0;
                 foreach (string line in lines)
                 {
                     if (line != allowListEntry) //Write all lines except the line that identifies the patcher
+                    {
+                        entryCount++;
                         writer.WriteLine(line);
+                    }
                 }
+
+                if (entryCount != lines.Length)
+                    UtilityLogger.Log("Patcher entry removed");
             }
         }
     }
