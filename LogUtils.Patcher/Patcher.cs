@@ -1,6 +1,8 @@
-﻿using BepInEx.MultiFolderLoader;
+﻿using BepInEx;
+using BepInEx.MultiFolderLoader;
 using Mono.Cecil;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using AssemblyCandidate = (System.Version Version, string Path);
@@ -15,20 +17,25 @@ public static class Patcher
 
     public static IEnumerable<string> GetDLLs()
     {
-        Logger.LogMessage("=== Patcher.GetDLLs() start ===");
-
         yield return "BepInEx.MultiFolderLoader.dll"; //Our patcher code needs to run after this patcher runs
 
-        AssemblyCandidate target = AssemblyUtils.FindLatestAssembly(getSearchPaths(), "LogUtils.dll");
+        string patcherPath = Path.Combine(Paths.PatcherPluginPath, "LogUtils.VersionLoader.dll");
 
-        if (target.Path != null)
+        if (File.Exists(patcherPath)) //The file may have been moved by the MultiFolderLoader
         {
-            Logger.LogMessage("Loading latest LogUtils DLL: " + target.Path);
-            Assembly.LoadFrom(target.Path);
-        }
-        else
-        {
-            Logger.LogInfo("No LogUtils assembly found.");
+            Logger.LogMessage("=== Patcher.GetDLLs() start ===");
+
+            AssemblyCandidate target = AssemblyUtils.FindLatestAssembly(getSearchPaths(), "LogUtils.dll");
+
+            if (target.Path != null)
+            {
+                Logger.LogMessage("Loading latest LogUtils DLL: " + target.Path);
+                Assembly.LoadFrom(target.Path);
+            }
+            else
+            {
+                Logger.LogInfo("No LogUtils assembly found.");
+            }
         }
     }
 
