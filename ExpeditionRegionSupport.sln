@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExpeditionRegionSupport", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogUtils", "LogUtils\LogUtils.csproj", "{DCCF69C7-9139-4A9B-9F14-C137451B38F4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogUtils.Patcher", "LogUtils.Patcher\LogUtils.Patcher.csproj", "{ED874BC5-D3CD-4294-B08D-F77099249A3B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogUtils.VersionLoader", "LogUtils.Patcher\LogUtils.VersionLoader.csproj", "{ED874BC5-D3CD-4294-B08D-F77099249A3B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
