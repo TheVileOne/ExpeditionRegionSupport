@@ -16,7 +16,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Resources;
 using BepInExPath = LogUtils.Helpers.Paths.BepInEx;
 using Debug = LogUtils.Diagnostics.Debug;
 
@@ -339,12 +338,8 @@ namespace LogUtils
             }
 
             UtilityLogger.Log("Deploying patcher");
-            string[] resourceNames = Assembly.GetManifestResourceNames();
 
-            ResourceSet set = new ResourceSet(Assembly.GetManifestResourceStream(resourceNames[0]));
-
-            byte[] byteStream = (byte[])set.GetObject(UtilityConsts.ResourceNames.PATCHER);
-
+            byte[] byteStream = (byte[])Resources.ResourceManager.GetObject(UtilityConsts.ResourceNames.PATCHER);
             try
             {
                 FileUtils.SafeDelete(patcherBackupPath); //Patcher should never exist in both patchers, and backup directories at the same time
