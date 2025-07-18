@@ -328,18 +328,36 @@ namespace LogUtils
         {
             UtilityLogger.Log("Checking patcher status");
 
+            byte[] byteStream = (byte[])Resources.ResourceManager.GetObject(UtilityConsts.ResourceNames.PATCHER);
+
+            Version resourceVersion = Assembly.ReflectionOnlyLoad(byteStream).GetName().Version;
+            UtilityLogger.Log("Patcher resource version: " + resourceVersion);
+
             string patcherPath = Path.Combine(BepInExPath.PatcherPath, "LogUtils.VersionLoader.dll");
             string patcherBackupPath = Path.Combine(BepInExPath.BackupPath, "LogUtils.VersionLoader.dll");
 
             if (File.Exists(patcherPath)) //Already deployed
             {
-                UtilityLogger.Log("Patcher found");
+                Version activeVersion = AssemblyName.GetAssemblyName(patcherPath).Version;
+
+                if (activeVersion == resourceVersion)
+                {
+                    UtilityLogger.Log("Patcher found");
+                }
+                else
+                {
+                    UtilityLogger.Log($"Current patcher version doesn't match resource - (Current {activeVersion})");
+                    if (activeVersion < resourceVersion)
+                    {
+                        //Patcher will be replaced the next time Rain World starts
+                        UtilityLogger.Log($"Replacing patcher with new version");
+                        RemovePatcher();
+                    }
+                }
                 return;
             }
 
             UtilityLogger.Log("Deploying patcher");
-
-            byte[] byteStream = (byte[])Resources.ResourceManager.GetObject(UtilityConsts.ResourceNames.PATCHER);
             try
             {
                 FileUtils.SafeDelete(patcherBackupPath); //Patcher should never exist in both patchers, and backup directories at the same time
