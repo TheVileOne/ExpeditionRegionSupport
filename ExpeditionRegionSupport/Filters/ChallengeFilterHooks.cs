@@ -247,7 +247,7 @@ namespace ExpeditionRegionSupport.Filters
 
                 if (!regionFilter.HasItemsRemoved) //Indicates that a new filter was created for this challenge
                 {
-                    regionFilter.ItemsToRemove.AddRange(ChallengeTools.PearlRegionBlackList);
+                    regionFilter.ItemsToRemove.AddRange(ChallengeTools.PearlRegionBlackList());
                     regionFilter.Apply();
                 }
 
