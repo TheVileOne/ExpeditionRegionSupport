@@ -1,12 +1,8 @@
 ﻿using Expedition;
-using ExpeditionRegionSupport.Filters.Utils;
 using Extensions;
 using Menu;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ExpeditionRegionSupport.Filters
 {
@@ -218,7 +214,7 @@ namespace ExpeditionRegionSupport.Filters
                     AdjustAbortedSlots(slotCountDelta * -1); //There is an inverse relation between the overall slot change delta and the aborted one
                 }
                 else if (slotCountDelta < 0) //Behavior for minus button. Do not leave an open gap.
-                {                  
+                {
                     //AdjustAbortedSlots(Math.Abs(slotCountDelta));
                     ClearAbortedSlots();
                 }
@@ -297,10 +293,10 @@ namespace ExpeditionRegionSupport.Filters
 
                 if (SlotChanges.Removed.Count > 0)
                     logInfo("Removed", SlotChanges.Removed.Count);
-                
+
                 if (SlotChanges.HiddenReveal.Count > 0)
                     logInfo("Revealed", SlotChanges.HiddenReveal.Count);
-                
+
                 if (SlotChanges.Replaced.Count > 0)
                     logInfo("Replaced", SlotChanges.Replaced.Count);
 

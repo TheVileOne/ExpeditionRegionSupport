@@ -1,12 +1,8 @@
 ﻿using BepInEx.Logging;
-using ExpeditionRegionSupport;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ExpeditionRegionSupport.HookUtils
 {
@@ -87,9 +83,7 @@ namespace ExpeditionRegionSupport.HookUtils
 
         public static ILCursor EmitLog(this ILCursor cursor, string message, LogLevel logLevel = LogLevel.Info)
         {
-            cursor.EmitReference(message);
-            cursor.EmitReference(logLevel);
-            cursor.EmitDelegate<Action<string, LogLevel>>(Plugin.Logger.Log);
+            cursor.EmitDelegate(() => Plugin.Logger.Log(logLevel, message));
             return cursor;
         }
 

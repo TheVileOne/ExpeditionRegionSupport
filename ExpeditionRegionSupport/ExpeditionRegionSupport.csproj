@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
 	<PropertyGroup>
 		<TargetFramework>net48</TargetFramework>
 		<LangVersion>11</LangVersion>
@@ -10,11 +9,15 @@
 		<Reference Include="../lib/*.dll">
 			<Private>false</Private>
 		</Reference>
+		<ProjectReference Include="..\LogUtils\LogUtils.csproj" />
+		<Reference Include="Microsoft.CSharp" Version="4.7.0">
+			<Private>false</Private>
+		</Reference>
 	</ItemGroup>
 
 	<Target Name="GenerateMod" AfterTargets="PostBuildEvent">
 		<ItemGroup>
-			<RemovePlugins Include="../mod/plugins/*.dll" />
+			<RemovePlugins Include="../mod/plugins/ExpeditionRegionSupport.dll" />
 			<RemovePDBs Include="$(OutDir)*.pdb" />
 		</ItemGroup>
 		<ItemGroup>

@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Vector2 = UnityEngine.Vector2;
 
-namespace ExpeditionRegionSupport.Interface
+namespace ExpeditionRegionSupport.Interface.Components
 {
     public class PositionSpacer
     {

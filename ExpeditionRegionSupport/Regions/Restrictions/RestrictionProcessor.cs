@@ -1,22 +1,20 @@
-﻿using System;
+﻿using LogUtils.Enums;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using ExpeditionRegionSupport.Regions;
 
 namespace ExpeditionRegionSupport.Regions.Restrictions
 {
     public static class RestrictionProcessor
     {
-        public const string HEADER_WORLDSTATE = @"WORLDSTATE";
-        public const string HEADER_SLUGCATS = @"SLUGCATS";
-        public const string HEADER_ALLOW = @"ALLOW";
-        public const string HEADER_NOTALLOW = @"NOTALLOW";
-        public const string HEADER_ROOMS = @"ROOMS";
-        public const string HEADER_PROGRESSION = @"ProgressionRestriction";
+        public const string HEADER_WORLDSTATE = "WORLDSTATE";
+        public const string HEADER_SLUGCATS = "SLUGCATS";
+        public const string HEADER_ALLOW = "ALLOW";
+        public const string HEADER_NOTALLOW = "NOTALLOW";
+        public const string HEADER_ROOMS = "ROOMS";
+        public const string HEADER_PROGRESSION = "ProgressionRestriction";
 
         private static RegionList regionsRestricted;
 
@@ -128,11 +126,11 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                     //Create folder for logging
                     Directory.CreateDirectory(resultFolder);
 
-                    Plugin.Logger.LogHeadersEnabled = false;
                     Plugin.Logger.LogDebug("LOGGING RESTRICTION TEST CASES");
 
                     foreach (string testCase in testCases)
                     {
+                        LogID testCaseID = null;
                         string testCaseName = Path.GetFileNameWithoutExtension(testCase);
 
                         Plugin.Logger.LogInfo("Test Case: " + testCaseName);
@@ -142,20 +140,24 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                             processFile(testCase);
 
                             //Log test case results
-                            Plugin.Logger.AttachLogger(testCaseName.Replace("test", "result"), resultFolder);
+                            testCaseID = LogID.CreateTemporaryID(testCaseName.Replace("test", "result"), resultFolder);
+
+                            Plugin.Logger.LogTargets.Add(testCaseID);
+
                             Plugin.Logger.LogInfo("Case Results: " + testCaseName);
-                            LogRestrictions();
+                            logRestrictions();
                             Plugin.Logger.LogInfo("Case Results: END");
                         }
                         catch (Exception ex)
                         {
                             Plugin.Logger.LogError(ex);
                         }
-
-                        Plugin.Logger.DetachLogger();
+                        finally
+                        {
+                            if (testCaseID != null)
+                                Plugin.Logger.LogTargets.Remove(testCaseID);
+                        }
                     }
-
-                    Plugin.Logger.LogHeadersEnabled = true;
                 }
             }
         }
@@ -794,7 +796,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                 slugcatHandler.Invoke(data);
         }
 
-        private static void LogRestrictions()
+        private static void logRestrictions()
         {
             foreach (RegionKey region in regionsRestricted)
             {

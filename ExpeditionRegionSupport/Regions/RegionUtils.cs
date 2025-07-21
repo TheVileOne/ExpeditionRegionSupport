@@ -1,16 +1,16 @@
-﻿using System;
+﻿using Expedition;
+using ExpeditionRegionSupport.Diagnostics;
+using ExpeditionRegionSupport.Filters.Settings;
+using ExpeditionRegionSupport.Filters.Utils;
+using ExpeditionRegionSupport.Regions.Data;
+using ExpeditionRegionSupport.Regions.Restrictions;
+using RWCustom;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using Expedition;
-using ExpeditionRegionSupport.Filters.Settings;
-using ExpeditionRegionSupport.Filters.Utils;
-using ExpeditionRegionSupport.Regions.Data;
-using ExpeditionRegionSupport.Regions.Restrictions;
-using ExpeditionRegionSupport.Tools;
-using RWCustom;
 
 namespace ExpeditionRegionSupport.Regions
 {
@@ -125,7 +125,7 @@ namespace ExpeditionRegionSupport.Regions
                 regionCache.LastAccessed = slugcat;
             }
 
-            regionCache.Regions.Add(slugcatEquivalentRegion);
+            regionCache.Store(slugcatEquivalentRegion);
             FindAllConnectingRegionsRecursive(regionCache.Regions, slugcatEquivalentRegion, slugcat);
 
             RegionAccessibilityCache = regionCache;
@@ -147,14 +147,16 @@ namespace ExpeditionRegionSupport.Regions
             //Get all region codes that connect with this region, and are accessible for the given slugcat
             foreach (string connectedRegion in GetConnectingRegions(regionCode, slugcat, !firstPass))
             {
-                //No connecting region will have been comapred against the slugcat at this stage
+                //No connecting region will have been compared against the slugcat at this stage
                 string slugcatEquivalentRegion = GetSlugcatEquivalentRegion(connectedRegion, slugcat); //The region this slugcat will load from a region gate
                 if (!connectedRegions.Contains(slugcatEquivalentRegion))
                 {
                     //Add the equivalent region, and then check its connecting regions
                     connectedRegions.Add(slugcatEquivalentRegion);
                     FindAllConnectingRegionsRecursive(connectedRegions, slugcatEquivalentRegion, slugcat, false);
-                    processTimer.ReportTime("Getting connecting regions for " + slugcatEquivalentRegion);
+
+                    if (Plugin.DebugMode)
+                        processTimer.ReportTime("Getting connecting regions for " + slugcatEquivalentRegion);
                 }
             }
 
@@ -177,7 +179,15 @@ namespace ExpeditionRegionSupport.Regions
                 processTimer.Start();
             }
 
-            string slugcatEquivalentRegion = GetSlugcatEquivalentRegion(regionCode, slugcat, adjustForSlugcatEquivalences, out string regionBaseEquivalent);
+            string slugcatEquivalentRegion, regionBaseEquivalent;
+
+            //This adjust parameter was originally included to reduce equivalency checks. With the cache, this optimisation is probably not necessary.
+            //Functionally, this only skips the equivalency check on the first call of this method from FindAllConnectingRegionsRecursive, which already
+            //has the equivalency check applied
+            if (adjustForSlugcatEquivalences)
+                slugcatEquivalentRegion = GetSlugcatEquivalentRegion(regionCode, slugcat, out regionBaseEquivalent);
+            else
+                slugcatEquivalentRegion = regionBaseEquivalent = regionCode;
 
             /*
             string reportString = $"Getting connecting regions for {slugcatEquivalentRegion}";
@@ -212,35 +222,10 @@ namespace ExpeditionRegionSupport.Regions
         /// <summary>
         /// Gets the proper region equivalent of the region code for a particular slugcat
         /// </summary>
-        /// <param name="adjustForSlugcatEquivalences">A flag to control the slugcat equivalence check</param>
-        /// <param name="regionBaseEquivalent">The slugcat independent region code equivalent</param>
-        public static string GetSlugcatEquivalentRegion(string regionCode, SlugcatStats.Name slugcat, bool adjustForSlugcatEquivalences, out string regionBaseEquivalent)
-        {
-            if (!adjustForSlugcatEquivalences)
-            {
-                regionBaseEquivalent = regionCode;
-                return regionCode;
-            }
-            return GetSlugcatEquivalentRegion(regionCode, slugcat, out regionBaseEquivalent);
-        }
-
-        /// <summary>
-        /// Gets the proper region equivalent of the region code for a particular slugcat
-        /// </summary>
         /// <param name="regionBaseEquivalent">The slugcat independent region code equivalent</param>
         public static string GetSlugcatEquivalentRegion(string regionCode, SlugcatStats.Name slugcat, out string regionBaseEquivalent)
         {
-            RegionProfile regionProfile = FindEquivalencyProfile(regionCode);
-
-            if (!regionProfile.IsDefault)
-            {
-                RegionProfile baseProfile = regionProfile.GetEquivalentBaseRegion(slugcat);
-
-                regionBaseEquivalent = baseProfile.RegionCode;
-                return baseProfile.GetSlugcatEquivalentRegion(slugcat).RegionCode;
-            }
-            regionBaseEquivalent = regionCode;
-            return regionCode;
+            return EquivalentRegionCache.GetSlugcatEquivalentRegion(regionCode, slugcat, out regionBaseEquivalent);
         }
 
         /// <summary>
@@ -248,34 +233,7 @@ namespace ExpeditionRegionSupport.Regions
         /// </summary>
         public static string GetSlugcatEquivalentRegion(string regionCode, SlugcatStats.Name slugcat)
         {
-            /*
-            DebugTimer processTimer = null;
-            if (Plugin.DebugMode)
-            {
-                processTimer = DebugMode.CreateTimer(DebugMode.RunningDebugProcess, false);
-                processTimer.Start();
-            }
-            */
-
-            try
-            {
-                RegionProfile regionProfile = FindEquivalencyProfile(regionCode);
-
-                if (!regionProfile.IsDefault)
-                    return regionProfile.GetSlugcatEquivalentRegion(slugcat).RegionCode;
-
-                return regionCode;
-            }
-            finally
-            {
-                /*
-                if (Plugin.DebugMode)
-                {
-                    processTimer.ReportTime("Equivalent region check for " + regionCode);
-                    processTimer.Stop();
-                }
-                */
-            }
+            return EquivalentRegionCache.GetSlugcatEquivalentRegion(regionCode, slugcat);
         }
 
         public static List<string> GetVisitedRegions(SlugcatStats.Name slugcat)
@@ -309,45 +267,64 @@ namespace ExpeditionRegionSupport.Regions
             return visitedRegions;
         }
 
-        public static AbstractRoom GetEquivalentGateRoom(World world, string roomName, bool fallbackCheck)
+        /// <summary>
+        /// A flag that can toggle between the vanilla behavior of having the gate room connecting two regions be the same,
+        /// and having all equivalent combinations of the gate being checked. This flag is added for convenience.
+        /// Disclaimer: Equivalent gate combination code creates false matches with other gates, and may take a considerable change to this logic to fix
+        /// </summary>
+        private static bool checkEquivalentGateCombinations = false;
+
+        /// <summary>
+        /// Gets the proper region to load from a specific gate
+        /// </summary>
+        public static (string DestinationRegion, string DestinationRoomCode) GetProperLoadRegion(string destinationRegion, SlugcatStats.Name slugcat, string gateRoomCode)
         {
-            if (!fallbackCheck)
+            if (string.IsNullOrWhiteSpace(destinationRegion)) return default;
+
+            List<string> roomCombinations = checkEquivalentGateCombinations
+                ? GateCodeCombiner.GetEquivalentCombinations(gateRoomCode)
+                : new List<string> { gateRoomCode };
+
+            var results = findCompatibleLoadRegion(destinationRegion, roomCombinations); //Check the most likely to find a match region first
+
+            if (results.DestinationRegion == null)
             {
-                AbstractRoom room = world.GetAbstractRoom(roomName);
+                RegionProfile regionProfile = EquivalentRegionCache.FindProfile(destinationRegion);
 
-                if (room != null)
-                    return room;
+                if (regionProfile.IsDefault) //The region doesn't exist, probably part of an unloaded mod
+                    return results;
+
+                //If we can't find a compatible gate room at the destination, check all regions equivalent to the destination
+                foreach (RegionProfile equivalentRegion in regionProfile.ListEquivalences(false))
+                {
+                    var tempResults = findCompatibleLoadRegion(equivalentRegion.RegionCode, roomCombinations);
+
+                    if (tempResults.DestinationRegion != null)
+                    {
+                        results = tempResults;
+                        if (equivalentRegion.IsSlugcatAllowedHere(slugcat))
+                            break;
+                    }
+                }
             }
+            return results;
 
-            Plugin.Logger.LogInfo($"Gate room {roomName} has not been found. Checking for equivalent rooms");
-
-            if (!HasGatePrefix(roomName))
+            (string DestinationRegion, string DestinationRoomCode) findCompatibleLoadRegion(string regionCode, List<string> roomCombinations)
             {
-                Plugin.Logger.LogInfo("Room is not a gate room");
-                return null;
+                List<GateInfo> destinationGates = GetRegionGates(regionCode);
+
+                GateInfo gateInfo = destinationGates.Find(gate => roomCombinations.Contains(gate.RoomCode));
+
+                if (gateInfo != null)
+                    return (regionCode, gateInfo.RoomCode);
+
+                return default;
             }
-
-            string[] roomInfo = ParseRoomName(roomName, out string regionCodeA, out string regionCodeB);
-
-            IEnumerable<string> equivalentRegionCombinationsA, equivalentRegionCombinationsB;
-
-            equivalentRegionCombinationsA = GetAllEquivalentRegions(regionCodeA, true);
-            equivalentRegionCombinationsB = GetAllEquivalentRegions(regionCodeB, true);
-
-            IEnumerable<string> roomCombinations = GetEquivalentGateRoomCombinations(equivalentRegionCombinationsA, equivalentRegionCombinationsB);
-
-            //Plugin.Logger.LogInfo("ROOM COMBINATIONS: " + roomCombinations.FormatToString(','));
-            
-            return world.GetAbstractRoomFrom(roomCombinations);
         }
 
         public static IEnumerable<string> GetAllEquivalentRegions(string regionCode, bool includeSelf)
         {
-            RegionProfile regionProfile = FindEquivalencyProfile(regionCode);
-
-            if (regionProfile.IsDefault)
-                return includeSelf ? new string[] { regionCode } : new string[] { };
-            return regionProfile.ListEquivalences(includeSelf).Select(rp => rp.RegionCode);
+            return EquivalentRegionCache.GetAllEquivalentRegions(regionCode, includeSelf);
         }
 
         public static List<ShelterInfo> GetAllShelters()
@@ -365,105 +342,10 @@ namespace ExpeditionRegionSupport.Regions
                 return shelterCache;
 
             RegionDataMiner regionMiner = new RegionDataMiner();
+            EnumeratedWorldData worldData = regionMiner.GetRoomLines(regionCode);
 
-            IEnumerable<string> roomData = regionMiner.GetRoomLines(regionCode);
-
-            if (roomData == null)
-                return new List<ShelterInfo>();
-
-            List<ShelterInfo> shelters = new List<ShelterInfo>();
-
-            Shelters[regionCode] = shelters;
-
-            //TODO: Need to detect non-broken conditional shelters
-            foreach (string roomLine in roomData)
-            {
-                string shelterCode = GetShelterCodeWithValidation(roomLine);
-
-                if (shelterCode != null)
-                    shelters.Add(new ShelterInfo(shelterCode));
-            }
-
-            string regionFile = GetWorldFilePath(regionCode);
-            string propertiesFile = GetFilePath(regionCode, "properties.txt");
-
-            //Look for broken shelter info
-            if (shelters.Count > 0 && File.Exists(propertiesFile))
-            {
-                List<string> brokenShelterData = new List<string>();
-                using (TextReader stream = new StreamReader(propertiesFile))
-                {
-                    string line;
-                    while ((line = stream.ReadLine()) != null)
-                    {
-                        if (line.StartsWith("Broken Shelters"))
-                        {
-                            int sepIndex = line.IndexOf(':');
-
-                            if (sepIndex != -1 && sepIndex != line.Length - 1) //Format is okay, and there is data on this line
-                                brokenShelterData.Add(line.Substring(sepIndex + 1)); //Whole line is stored, will be processed later
-                        }
-                    }
-                }
-
-                if (brokenShelterData.Count > 0)
-                {
-                    Plugin.Logger.LogInfo("Broken shelter data found for region " + regionCode);
-
-                    ShelterInfo lastShelterProcessed = default;
-                    foreach (string shelterDataRaw in brokenShelterData)
-                    {
-                        string[] shelterData = shelterDataRaw.Split(':'); //Expects " White: SL_S11" (whitespace is expected)
-
-                        if (shelterData.Length >= 2) //Expected length - Something is unusual is there if it is anything else
-                        {
-                            string[] roomCodes = shelterData[1].Split(',');
-
-                            for (int i = 0; i < roomCodes.Length; i++)
-                            {
-                                string roomCode = roomCodes[i].Trim();
-
-                                bool isNewShelter = lastShelterProcessed.RoomCode != roomCode;
-
-                                //It is common to have the same shelter being targeted across multiple lines
-                                ShelterInfo shelter = isNewShelter ?
-                                    shelters.Find(s => string.Equals(s.RoomCode, roomCode, StringComparison.InvariantCultureIgnoreCase))
-                                  : lastShelterProcessed;
-
-                                if (shelter.RoomCode == roomCode) //ShelterInfo is a struct, checking for this lets us know if we found a match
-                                {
-                                    lastShelterProcessed = shelter;
-
-                                    string[] slugcats = shelterData[0].Split(',');
-
-                                    foreach (string slugcat in slugcats)
-                                    {
-                                        //Slugcat may not be available if this fails, which should be fine.
-                                        if (SlugcatUtils.TryParse(slugcat, out SlugcatStats.Name found))
-                                            shelter.BrokenForTheseSlugcats.Add(found);
-                                    }
-
-                                    //This shelter is likely registered as broken, but unsure how the game handles it without slugcat info
-                                    if (shelter.BrokenForTheseSlugcats.Count == 0)
-                                        Plugin.Logger.LogInfo($"Line 'Broken Shelters: {shelterDataRaw}' has no recognizable slugcat info");
-                                }
-                                else //Stray property line doesn't match any shelter data processed
-                                {
-                                    Plugin.Logger.LogInfo("Broken shelter references a room that cannot be found");
-                                    Plugin.Logger.LogInfo($"Shelter room [{shelter.RoomCode}]");
-                                    Plugin.Logger.LogInfo($"Room [{roomCode}]");
-                                }
-                            }
-                        }
-                        else
-                        {
-                            Plugin.Logger.LogInfo($"Line 'Broken Shelters: {shelterDataRaw}' is invalid");
-                        }
-                    }
-                }
-            }
-
-            return shelters;
+            Shelters[regionCode] = worldData.Shelters;
+            return worldData.Shelters;
         }
 
         public static List<GateInfo> GetRegionGates(string regionCode)
@@ -475,59 +357,15 @@ namespace ExpeditionRegionSupport.Regions
                 processTimer.Start();
             }
 
-            RegionDataMiner regionMiner = new RegionDataMiner()
-            {
-                KeepStreamOpen = true
-            };
+            RegionDataMiner regionMiner = new RegionDataMiner();
+            EnumeratedWorldData worldData = regionMiner.GetLines(regionCode, RegionDataMiner.SECTION_CONDITIONAL_LINKS, RegionDataMiner.SECTION_ROOMS);
 
-            IEnumerable<string> conditionalLinkData = regionMiner.GetConditionalLinkLines(regionCode);
-            IEnumerable<string> roomData = regionMiner.GetRoomLines(regionCode);
-
-            if (Plugin.DebugMode)
-            {
-                processTimer.ReportTime("File read time for " + regionCode);
-                processTimer.Reset();
-            }
-
-            if (roomData == null)
-                return new List<GateInfo>();
-
-            if (Plugin.DebugMode)
-                processTimer.Start();
-
-            List<GateInfo> gates = new List<GateInfo>();
-
-            foreach (string roomLine in roomData)
-            {
-                string gateCode = GetGateCodeWithValidation(roomLine);
-
-                if (gateCode != null)
-                {
-                    GateInfo gate = new GateInfo(gateCode);
-
-                    //Handle conditional link information
-                    foreach (string conditionalLink in conditionalLinkData.Where(r => r.Contains("EXCLUSIVEROOM") && r.TrimEnd().EndsWith(gate.RoomCode)))
-                        gate.ConditionalAccess.Add(SlugcatUtils.GetOrCreate(conditionalLink.Substring(0, conditionalLink.IndexOf(':')))); //The first section is the slugcat
-
-                    /*
-                    if (gate.ConditionalAccess.Count > 0)
-                    {
-                        Plugin.Logger.LogInfo("CONDITIONAL INFO");
-                        foreach (SlugcatStats.Name slugcat in gate.ConditionalAccess)
-                            Plugin.Logger.LogInfo(slugcat);
-                    }
-                    */
-                    gates.Add(gate);
-                }
-            }
-
+            List<GateInfo> gates = worldData.Gates;
             if (Plugin.DebugMode)
             {
                 processTimer.ReportTime("Gate process time for " + regionCode);
                 processTimer.Stop();
             }
-
-            regionMiner.KeepStreamOpen = false;
             return gates;
         }
 
@@ -627,7 +465,7 @@ namespace ExpeditionRegionSupport.Regions
             RegionFilterCache.Clear();
         }
 
-        public static RegionProfile[] EquivalentRegions;
+        public static EquivalencyCache EquivalentRegionCache;
 
         /// <summary>
         /// Reads all equivalences.txt files and compiles lines into a dictionary for quick access
@@ -645,38 +483,40 @@ namespace ExpeditionRegionSupport.Regions
             profile_DS = profile_SH = profile_SL = profile_SS = default;
             profile_UG = profile_CL = profile_LM = profile_RM = default;
 
-            EquivalentRegions = new RegionProfile[regions.Length];
-            for (int i = 0; i < regions.Length; i++)
+            EquivalentRegionCache = new EquivalencyCache();
+
+            //Store a RegionProfile object for each region
+            foreach (string regionCode in regions)
             {
-                EquivalentRegions[i] = new RegionProfile(regions[i]);
+                RegionProfile currentProfile = EquivalentRegionCache.Store(regionCode);
 
                 if (ModManager.MSC)
                 {
-                    switch (regions[i])
+                    switch (regionCode)
                     {
                         case "DS":
-                            profile_DS = EquivalentRegions[i];
+                            profile_DS = currentProfile;
                             break;
                         case "SH":
-                            profile_SH = EquivalentRegions[i];
+                            profile_SH = currentProfile;
                             break;
                         case "SL":
-                            profile_SL = EquivalentRegions[i];
+                            profile_SL = currentProfile;
                             break;
                         case "SS":
-                            profile_SS = EquivalentRegions[i];
+                            profile_SS = currentProfile;
                             break;
                         case "UG":
-                            profile_UG = EquivalentRegions[i];
+                            profile_UG = currentProfile;
                             break;
                         case "CL":
-                            profile_CL = EquivalentRegions[i];
+                            profile_CL = currentProfile;
                             break;
                         case "LM":
-                            profile_LM = EquivalentRegions[i];
+                            profile_LM = currentProfile;
                             break;
                         case "RM":
-                            profile_RM = EquivalentRegions[i];
+                            profile_RM = currentProfile;
                             break;
                     }
                 }
@@ -696,8 +536,8 @@ namespace ExpeditionRegionSupport.Regions
 
                 profile_SL.RegisterEquivalency(technomancer, profile_LM);
 
-                RegionProfile profile_SB = FindEquivalencyProfile("SB");
-                profile_SB.RegisterEquivalency(technomancer, FindEquivalencyProfile("TL"));
+                RegionProfile profile_SB = EquivalentRegionCache.FindProfile("SB");
+                profile_SB.RegisterEquivalency(technomancer, EquivalentRegionCache.FindProfile("TL"));
             }
 
             foreach (string path in GetFilePathFromAllSources("equivalences.txt"))
@@ -707,10 +547,9 @@ namespace ExpeditionRegionSupport.Regions
                 //The region code stored here replaces any region mentioned in the equivalences.txt file
                 string regionCodeFromDirectory = Path.GetFileName(Path.GetDirectoryName(path)).ToUpper(); //Get region code from containing directory
 
-                //Find its profile. All loaded regions will have one.
-                RegionProfile equivalentRegionCandidate = FindEquivalencyProfile(regionCodeFromDirectory);
+                RegionProfile targetRegion = EquivalentRegionCache.FindProfile(regionCodeFromDirectory);
 
-                if (equivalentRegionCandidate .IsDefault)
+                if (targetRegion.IsDefault)
                 {
                     Plugin.Logger.LogInfo($"Aborting equivalency check for region '{regionCodeFromDirectory}'. Region code is unrecognized");
                     continue;
@@ -757,14 +596,14 @@ namespace ExpeditionRegionSupport.Regions
 
                         if (registerTarget == null) continue; //The region is likely part of an unloaded mod
 
-                        RegionProfile targetRegion = FindEquivalencyProfile(registerTarget);
-                        targetRegion.RegisterEquivalency(slugcat, equivalentRegionCandidate);
+                        RegionProfile slugcatEquivalentRegion = EquivalentRegionCache.FindProfile(registerTarget);
+                        targetRegion.RegisterEquivalency(slugcat, slugcatEquivalentRegion);
                     }
                 }
             }
 
             if (Plugin.DebugMode)
-                RegionProfile.LogEquivalencyRelationships();
+                EquivalentRegionCache.LogEquivalencyRelationships();
         }
 
         private static SlugcatStats.Name equivalentRegionsCacheHelper(string[] regions, string valueA, string valueB, out string regionCode)
@@ -782,11 +621,6 @@ namespace ExpeditionRegionSupport.Regions
                     slugcat = SlugcatUtils.GetOrCreate(valueA);
             }
             return slugcat;
-        }
-
-        public static RegionProfile FindEquivalencyProfile(string regionCode)
-        {
-            return Array.Find(EquivalentRegions, r => r.RegionCode == regionCode);
         }
 
         public static bool IsVanillaRegion(string regionCode)
@@ -826,6 +660,8 @@ namespace ExpeditionRegionSupport.Regions
             return !IsVanillaRegion(regionCode) && !IsDownpourRegion(regionCode);
         }
 
+        #region File Handling
+
         /// <summary>
         /// Gets full path to the world file for a specified region
         /// </summary>
@@ -860,6 +696,9 @@ namespace ExpeditionRegionSupport.Regions
         {
             return string.Format("world_{0}.txt", regionCode.ToLower());
         }
+
+        #endregion
+        #region Room Parsing
 
         /// <summary>
         /// Gets the region part of a room name
@@ -897,7 +736,7 @@ namespace ExpeditionRegionSupport.Regions
             }
             catch (IndexOutOfRangeException)
             {
-                Plugin.Logger.LogWarning($"Room name {roomName} is malformated");
+                Plugin.Logger.LogWarning($"Room name {roomName} is malformatted");
             }
             return roomInfo;
         }
@@ -970,6 +809,8 @@ namespace ExpeditionRegionSupport.Regions
             return null;
         }
 
+        #region Gate Parsing
+
         public static string GetGateCodeWithValidation(string data)
         {
             if (HasGatePrefix(data))
@@ -986,40 +827,6 @@ namespace ExpeditionRegionSupport.Regions
             return null;
         }
 
-        /// <summary>
-        /// Formats all possible gate room combinations formed between two collections of strings
-        /// </summary>
-        public static IEnumerable<string> GetEquivalentGateRoomCombinations(IEnumerable<string> codePartsA, IEnumerable<string> codePartsB)
-        {
-            string[] roomInfo = new string[3];
-
-            roomInfo[0] = "GATE";
-
-            //Check every combination beginning with entries in the first collection in the first index, and then later as the second index
-            foreach (string roomName in gateRoomCombinationHelper(roomInfo, codePartsA, codePartsB))
-            {
-                yield return roomName;
-            }
-
-            foreach (string roomName in gateRoomCombinationHelper(roomInfo, codePartsB, codePartsA))
-            {
-                yield return roomName;
-            }
-        }
-
-        private static IEnumerable<string> gateRoomCombinationHelper(string[] roomInfo, IEnumerable<string> regionParts, IEnumerable<string> roomParts)
-        {
-            foreach (string roomCode in roomParts)
-            {
-                roomInfo[2] = roomCode; //Assign room code part
-                foreach (string regionCode in regionParts)
-                {
-                    roomInfo[1] = regionCode; //Assign region code part
-                    yield return FormatRoomName(roomInfo);
-                }
-            }
-        }
-
         public static bool ContainsGateData(string[] data)
         {
             return HasRoomKeyword(data, "GATE", false); //Gate must have a name, at least one valid connection, and end with GATE
@@ -1029,6 +836,8 @@ namespace ExpeditionRegionSupport.Regions
         {
             return roomName.StartsWith("GATE");
         }
+
+        #endregion
 
         public static bool HasRoomKeyword(string[] data, string keyword, bool isConditionalLink)
         {
@@ -1045,16 +854,6 @@ namespace ExpeditionRegionSupport.Regions
             return false;
         }
 
-        public static AbstractRoom GetAbstractRoomFrom(this World world, IEnumerable<string> roomNames)
-        {
-            foreach (string roomName in roomNames)
-            {
-                AbstractRoom room = world.GetAbstractRoom(roomName);
-
-                if (room != null)
-                    return room;
-            }
-            return null;
-        }
+        #endregion
     }
 }

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ExpeditionRegionSupport.Regions.Restrictions
 {
@@ -23,7 +21,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
 
         public bool HasEntries => !NoRestrictedFields || HasRoomEntries;
 
-        public bool NoRestrictedFields => 
+        public bool NoRestrictedFields =>
                     WorldState == WorldState.Any &&
                     ProgressionRestriction == ProgressionRequirements.None &&
                     Slugcats.IsEmpty;
@@ -135,7 +133,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                 }
                 else
                     Plugin.Logger.LogDebug("NONE");
-            }        
+            }
         }
 
         public override string ToString()
@@ -149,7 +147,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
               .Append(Slugcats.ToString())
               .Append("Progression Restrictions: ")
               .Append(ProgressionRestriction);
-            
+
             return sb.ToString();
         }
     }
@@ -466,11 +464,13 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
 
         public override int GetHashCode()
         {
+            var comparer = EqualityComparer<List<SlugcatStats.Name>>.Default;
+
             int hashCode = 1549165079;
-            hashCode = hashCode * -1521134295 + IsEmpty.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<List<SlugcatStats.Name>>.Default.GetHashCode(Allowed);
-            hashCode = hashCode * -1521134295 + EqualityComparer<List<SlugcatStats.Name>>.Default.GetHashCode(NotAllowed);
-            hashCode = hashCode * -1521134295 + EqualityComparer<List<SlugcatStats.Name>>.Default.GetHashCode(UnlockRequired);
+            hashCode = (hashCode * -1521134295) + IsEmpty.GetHashCode();
+            hashCode = (hashCode * -1521134295) + comparer.GetHashCode(Allowed);
+            hashCode = (hashCode * -1521134295) + comparer.GetHashCode(NotAllowed);
+            hashCode = (hashCode * -1521134295) + comparer.GetHashCode(UnlockRequired);
             return hashCode;
         }
     }

@@ -2,11 +2,7 @@
 using Extensions;
 using Menu;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ExpeditionRegionSupport.Interface
 {
@@ -42,6 +38,8 @@ namespace ExpeditionRegionSupport.Interface
 
             if (self is ExpeditionSettingsDialog)
                 cwt.Options.MaxDividers = 3; //Only the first checkbox grouping should have dividers
+            else
+                cwt.Options.MaxDividers = 10;
 
             cwt.Page.AddSubObject(cwt.Options);
 

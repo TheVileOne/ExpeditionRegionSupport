@@ -7,11 +7,7 @@ using Menu;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using FilterOptions = ExpeditionRegionSupport.Interface.Components.FilterOptions;
 using Vector2 = UnityEngine.Vector2;
 
@@ -111,7 +107,7 @@ namespace ExpeditionRegionSupport.Interface
 
                 hasErrors = true;
             }
-            
+
             cwt.InitSuccess = !hasErrors;
         }
 
@@ -216,8 +212,9 @@ namespace ExpeditionRegionSupport.Interface
                 self.menu = menu;
                 self.owner = owner;
 
-                if (menu is FilterDialog && !(self is FilterCheckBox))
+                if (menu is FilterDialog && self is not FilterCheckBox)
                     self.Container = new FContainer();
+
                 orig(self, menu, owner, reportTo, pos, textWidth, displayText, IDString, textOnRight);
             }
             catch (Exception ex)
@@ -264,7 +261,7 @@ namespace ExpeditionRegionSupport.Interface
 
                 dialog.OpenFilterDialog();
 
-                if (!(dialog is ExpeditionSettingsDialog))
+                if (dialog is not ExpeditionSettingsDialog)
                 {
                     cwt.Options.OnFilterChanged -= onFilterChanged;
 
@@ -323,7 +320,7 @@ namespace ExpeditionRegionSupport.Interface
 
                                 FilterCheckBox filterOption = replaceCheckBox(filterBox, filterLabel);
                             }
-                        };
+                        }
                     };
                 }
             }
@@ -336,7 +333,7 @@ namespace ExpeditionRegionSupport.Interface
         private static void onFilterChanged(FilterCheckBox box, bool checkState)
         {
             bool filterApplied = !checkState; //Checked means option is not filtered. A filter is applied when option is unchecked.
-            
+
             Plugin.Logger.LogDebug("Filter set: " + box.label.text + " " + checkState);
 
             if (filterApplied && !ChallengeOrganizer.filterChallengeTypes.Contains(box.IDString))
@@ -491,7 +488,6 @@ namespace ExpeditionRegionSupport.Interface
 
         private static void FilterDialog_SetChecked(On.Menu.FilterDialog.orig_SetChecked orig, FilterDialog self, CheckBox box, bool c)
         {
-
         }
 
         private static void SimpleButton_SetSize(On.Menu.SimpleButton.orig_SetSize orig, SimpleButton self, Vector2 newSize)

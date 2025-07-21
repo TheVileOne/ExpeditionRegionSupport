@@ -5,68 +5,124 @@ using System.IO;
 
 namespace ExpeditionRegionSupport.Regions.Data
 {
-    public class RegionDataMiner
+    public class RegionDataMiner : IDisposable
     {
-        private TextStream _activeStream;
-        protected TextStream ActiveStream
-        {
-            get => _activeStream;
-            private set
-            {
-                if (_activeStream == value) return;
-
-                //Close old stream - once we lose the reference, the stream wont be disposed
-                if (/*!KeepStreamOpen && */_activeStream != null)
-                {
-                    //if (KeepStreamOpen)
-                    //    Plugin.Logger.LogDebug("Stream is being closed that should be kept open");
-
-                    CloseStream();
-                }
-                
-                _activeStream = value;
-
-                if (_activeStream != null)
-                    _activeStream.OnDisposed += onStreamDisposed;
-            }
-        }
-
-        private void onStreamDisposed(TextStream stream)
-        {
-            if (_activeStream == stream)
-            {
-                _activeStream.OnDisposed -= onStreamDisposed;
-                _activeStream = null;
-            }
-        }
-
-        private bool _keepStreamOpen;
+        /// <summary>
+        /// A dictionary that manages the file stream readers of all RegionDataMiner instances organized by world file path
+        /// </summary>
+        public static Dictionary<string, List<TextStream>> ManagedStreams = new Dictionary<string, List<TextStream>>();
 
         /// <summary>
-        /// The stream wont be closed when a read process finished. Stream will be disposed when RegionDataMiner is destroyed.
-        /// NOTE: This currently does not work correctly when set to true. Reusing the StreamReader for multiple reads is currently not supported.
+        /// A list of specific streams controlled by the class
         /// </summary>
-        public bool KeepStreamOpen
-        {
-            get => _keepStreamOpen;
-            set
-            {
-                if (ActiveStream != null)
-                    ActiveStream.DisposeOnStreamEnd = !value;
-                _keepStreamOpen = value;
-            }
-        }
+        public List<TextStream> ActiveStreams = new List<TextStream>();
+
+        /// <summary>
+        /// A flag that enables extra debug functionality such as extra data logging
+        /// </summary>
+        public bool DebugMode;
 
         public const string SECTION_BAT_MIGRATION_BLOCKAGES = "BAT MIGRATION BLOCKAGES";
         public const string SECTION_CONDITIONAL_LINKS = "CONDITIONAL LINKS";
         public const string SECTION_CREATURES = "CREATURES";
         public const string SECTION_ROOMS = "ROOMS";
 
+        /// <summary>
+        /// Each world file will contains these sections by default
+        /// </summary>
+        public static List<string> WORLD_FILE_SECTIONS = new List<string>()
+        {
+            SECTION_CONDITIONAL_LINKS,
+            SECTION_ROOMS,
+            SECTION_CREATURES,
+            SECTION_BAT_MIGRATION_BLOCKAGES
+        };
+        private bool isDisposed;
+
+        public DataMinerPresets DataPresets;
+
         public RegionDataMiner()
         {
         }
 
-        public TextStream GetStreamReader(string regionCode)
+        public RegionDataMiner(string regionCode, params string[] sectionNames)
+        {
+            DataPresets = new DataMinerPresets()
+            {
+                RegionCode = regionCode,
+                SectionsWanted = sectionNames
+            };
+        }
+
+        public RegionDataMiner(string regionCode, params WorldSection[] sections) : this(regionCode, ConvertToNames(sections))
+        {
+        }
+
+        public EnumeratedWorldData GetBatMigrationLines(string regionCode)
+        {
+            return GetLines(regionCode, SECTION_BAT_MIGRATION_BLOCKAGES);
+        }
+
+        public EnumeratedWorldData GetConditionalLinkLines(string regionCode)
+        {
+            return GetLines(regionCode, SECTION_CONDITIONAL_LINKS);
+        }
+
+        public EnumeratedWorldData GetCreatureLines(string regionCode)
+        {
+            return GetLines(regionCode, SECTION_CREATURES);
+        }
+
+        public EnumeratedWorldData GetRoomLines(string regionCode)
+        {
+            return GetLines(regionCode, SECTION_ROOMS);
+        }
+
+        public EnumeratedWorldData LinesFromPresets()
+        {
+            if (DataPresets == null)
+                throw new NullReferenceException("Data presets are undefined");
+
+            return GetLines(DataPresets.RegionCode, DataPresets.SectionsWanted);
+        }
+
+        internal EnumeratedWorldData GetLines(string regionCode, params string[] sectionNames)
+        {
+            if (regionCode == null)
+                throw new NullReferenceException("Region code must be defined");
+
+            TextStream activeStream = CreateStreamReader(regionCode);
+
+            ActiveStreams.Add(activeStream);
+            return new EnumeratedWorldData(new ReadLinesIterator(activeStream, sectionNames), regionCode);
+        }
+
+        /// <summary>
+        /// Translates an array of WorldSection enum values into their corresponding section names
+        /// </summary>
+        public static string[] ConvertToNames(WorldSection[] sections)
+        {
+            string[] sectionNames = new string[sections.Length];
+            foreach (WorldSection section in sections)
+            {
+                switch (section)
+                {
+                    case WorldSection.Any: //This overrides any other data in the array
+                        return new string[]
+                        {
+                            "ANY"
+                        };
+                    default:
+                        sectionNames[(int)section] = WORLD_FILE_SECTIONS[(int)section];
+                        break;
+                }
+            }
+            return sectionNames;
+        }
+
+        #region Stream Handling
+
+        internal static TextStream CreateStreamReader(string regionCode)
         {
             string regionFile = RegionUtils.GetWorldFilePath(regionCode);
 
@@ -79,12 +135,17 @@ namespace ExpeditionRegionSupport.Regions.Data
 
             try
             {
-                //TODO: StreamReaders must be able to be reused, or KeepStreamOpen will not work properly, firing a Sharing violation
-                //if another StreamReader is created for the same file
-                return new TextStream(regionFile)
-                {
-                    DisposeOnStreamEnd = !KeepStreamOpen
-                };
+                TextStream stream = new TextStream(regionFile, false);
+
+                stream.OnStreamEnd += onStreamFinished;
+
+                //Register the stream reference to control how it is disposed
+                if (ManagedStreams.ContainsKey(stream.Filepath))
+                    ManagedStreams[stream.Filepath].Add(stream);
+                else
+                    ManagedStreams[stream.Filepath] = new List<TextStream> { stream };
+
+                return stream;
             }
             catch (IOException)
             {
@@ -93,78 +154,223 @@ namespace ExpeditionRegionSupport.Regions.Data
             }
         }
 
-        public IEnumerable<string> GetBatMigrationLines(string regionCode)
+        private static void onStreamFinished(TextStream stream)
         {
-            return GetLines(regionCode, SECTION_BAT_MIGRATION_BLOCKAGES);
-        }
+            stream.AllowStreamDisposal = true;
 
-        public IEnumerable<string> GetConditionalLinkLines(string regionCode)
-        {
-            return GetLines(regionCode, SECTION_CONDITIONAL_LINKS);
-        }
-
-        public IEnumerable<string> GetCreatureLines(string regionCode)
-        {
-            return GetLines(regionCode, SECTION_CREATURES);
-        }
-
-        public IEnumerable<string> GetRoomLines(string regionCode)
-        {
-            return GetLines(regionCode, SECTION_ROOMS);
-        }
-
-        internal IEnumerable<string> GetLines(string regionCode, string sectionName)
-        {
-            try
+            //Properly handle managed resources
+            List<TextStream> managedStreams = ManagedStreams[stream.Filepath];
+            if (managedStreams.TrueForAll(s => s.AllowStreamDisposal)) //Only dispose if every reference is allowed to dispose
             {
-                TextStream stream = GetStreamReader(regionCode);
+                managedStreams.ForEach(stream => stream.Close());
+                managedStreams.Clear();
+            }
+            else
+            {
+                int waitingOnStreamCount = managedStreams.FindAll(s => !s.AllowStreamDisposal).Count;
+                Plugin.Logger.LogInfo($"Data stream could not be disposed - Waiting on {waitingOnStreamCount} references");
+            }
+        }
 
-                ActiveStream = stream;
+        #endregion
+        #region Dispose Pattern
 
-                if (stream != null)
+        ~RegionDataMiner()
+        {
+            Dispose();
+        }
+
+        public void Dispose()
+        {
+            if (isDisposed) return;
+
+            if (DebugMode)
+                Plugin.Logger.LogInfo("Data Miner - Allowing data streams to close");
+
+            ActiveStreams.ForEach(stream => stream.AllowStreamDisposal = true);
+
+            //Properly handle managed resources
+            foreach (List<TextStream> list in ManagedStreams.Values)
+            {
+                if (list.TrueForAll(s => s.AllowStreamDisposal))
+                {
+                    list.ForEach(stream => stream.Close());
+                    list.Clear();
+                }
+            }
+
+            ActiveStreams.Clear();
+
+            if (DebugMode)
+            {
+                int undisposedStreamCount = 0;
+                foreach (List<TextStream> list in ManagedStreams.Values)
+                    undisposedStreamCount += list.Count;
+
+                Plugin.Logger.LogInfo("Undisposed streams: " + undisposedStreamCount);
+            }
+            isDisposed = true;
+        }
+
+        #endregion
+
+        public class ReadLinesIterator : IDisposable
+        {
+            protected TextStream Stream;
+
+            /// <summary>
+            /// The collection of section headers to look for during enumeration
+            /// </summary>
+            private List<string> _sectionsWanted;
+
+            private bool enumerateAllSections;
+
+            public SectionEventHandler OnSectionStart;
+            public SectionEventHandler OnSectionEnd;
+
+            private bool isDisposed;
+
+            public ReadLinesIterator(TextStream stream, params string[] regionSections)
+            {
+                Stream = stream;
+
+                enumerateAllSections = Array.Exists(regionSections, section => section.Equals("ANY"));
+
+                //Either we are looking for a specific set of sections, or every identifiable section
+                _sectionsWanted = new List<string>(enumerateAllSections ? WORLD_FILE_SECTIONS : regionSections);
+            }
+
+            public IEnumerable<string> GetEnumerable()
+            {
+                if (Stream == null) yield break; //Nothing to process
+                try
                 {
                     string line;
-                    bool sectionHeaderFound = false;
+                    string activeSection = null;
+                    bool skipThisSection = false;
                     do
                     {
-                        line = stream.ReadLine();
+                        line = Stream.ReadLine();
 
                         if (line == null) //End of file has been reached
                             yield break;
 
-                        if (sectionHeaderFound)
+                        if (line.StartsWith("//") || line == string.Empty) //Empty or commented out lines
+                            continue;
+
+                        //All section lines are handled within this code block
+                        if (activeSection != null)
                         {
-                            if (line.StartsWith("//") || line == string.Empty) //Empty or commented out lines
+                            if (line.StartsWith("END ")) //Sections must end with an end statement for file to process correctly
+                            {
+                                OnSectionEnd?.Invoke(activeSection, !skipThisSection);
+                                //Prepare local variables values for searching for the next section
+                                activeSection = null;
+                                skipThisSection = false;
+
+                                if (_sectionsWanted.Count == 0)
+                                {
+                                    Stream.OnStreamEnd?.Invoke(Stream);
+                                    yield break;
+                                }
                                 continue;
-                            if (line.StartsWith("END ")) //I hope all world files end their blocks with an end line
-                                yield break;
+                            }
+
+                            if (skipThisSection) continue;
 
                             yield return line;
                         }
-                        else if (line.StartsWith(sectionName))
-                            sectionHeaderFound = true; //The header doesn't need to be yielded
+                        else
+                        {
+                            activeSection = getSectionHeader(line, out bool isSectionWanted);
+
+                            /*
+                             * When a wanted section header is detected, the section can be removed from the wanted list
+                             * Unwanted sections will be skipped completely
+                             */
+                            if (activeSection != null)
+                            {
+                                //string statusString;
+                                if (isSectionWanted)
+                                {
+                                    //statusString = "READING";
+                                    _sectionsWanted.Remove(activeSection);
+                                }
+                                else
+                                {
+                                    //statusString = "SKIPPED";
+                                    skipThisSection = true;
+                                }
+
+                                //Plugin.Logger.LogInfo($"Section header '{line}' ({statusString})");
+                                OnSectionStart?.Invoke(activeSection, isSectionWanted);
+                            }
+                            else
+                            {
+                                Plugin.Logger.LogInfo($"Unknown line detected between sections '{line}'");
+                            }
+                        }
                     }
                     while (line != null);
                 }
+                finally
+                {
+                    Stream.Close();
+                }
             }
-            finally
+
+            /// <summary>
+            /// Compares line with list of known section headers, returning first match it finds, or null otherwise
+            /// </summary>
+            /// <param name="line">The string to check</param>
+            /// <param name="isWanted">Whether section header is associated with a wanted section</param>
+            private string getSectionHeader(string line, out bool isWanted)
             {
-                if (!KeepStreamOpen)
-                    CloseStream();
+                string header = _sectionsWanted.Find(line.StartsWith);
+
+                isWanted = header != null;
+                return header ?? WORLD_FILE_SECTIONS.Find(line.StartsWith);
             }
-        }
 
-        public void CloseStream()
-        {
-            KeepStreamOpen = false;
+            #region Dispose Handlers
+            protected virtual void Dispose(bool disposing)
+            {
+                if (!isDisposed)
+                {
+                    if (disposing)
+                    {
+                        Stream = null;
+                        OnSectionStart = null;
+                        OnSectionEnd = null;
+                    }
+                    isDisposed = true;
+                }
+            }
 
-            if (_activeStream != null)
-                _activeStream.Close();
-        }
+            ~ReadLinesIterator()
+            {
+                // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+                Dispose(disposing: false);
+            }
 
-        ~RegionDataMiner()
-        {
-            CloseStream();
+            public void Dispose()
+            {
+                // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+                Dispose(disposing: true);
+                GC.SuppressFinalize(this);
+            }
+            #endregion
         }
+    }
+
+    public delegate void SectionEventHandler(string sectionName, bool isSectionWanted);
+
+    public enum WorldSection
+    {
+        Any = -1,
+        ConditionalLinks = 0,
+        Rooms = 1,
+        Creatures = 2,
+        BatMigrationBlockages = 3
     }
 }

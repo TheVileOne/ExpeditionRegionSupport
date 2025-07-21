@@ -3,15 +3,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace ExpeditionRegionSupport.Filters.Settings
 {
     public static class RegionFilterSettings
     {
-        public static readonly string SETTINGS_PATH; 
+        public static readonly string SETTINGS_PATH;
 
         public static readonly SimpleToggle RememberSettings;
 
@@ -117,23 +115,16 @@ namespace ExpeditionRegionSupport.Filters.Settings
         {
             TextWriter writer = File.AppendText(settingsPath);
 
-            int totalLinesWritten = 0;
             for (int i = 0; i < Settings.Count; i++)
             {
                 FilterToggle setting = Settings[i];
 
                 //Only non-default values are saved to file
                 if (setting.IsChanged)
-                {
                     writer.WriteLine(string.Format("{0}, {1}, {2}", setting.OptionID, i, setting.Value));
-                    totalLinesWritten++;
-                }
             }
 
             UnrecognizedSettingStrings.ForEach(writer.WriteLine);
-            totalLinesWritten += UnrecognizedSettingStrings.Count;
-
-            Plugin.Logger.LogInfo("Line Written " + totalLinesWritten);
             writer.Close();
         }
 
@@ -141,7 +132,7 @@ namespace ExpeditionRegionSupport.Filters.Settings
         {
             UnrecognizedSettingStrings.Clear(); //We are retrieving the strings from file. Nothing should be lost here.
 
-            TextStream stream = new TextStream(settingsPath);
+            TextStream stream = new TextStream(settingsPath, true);
 
             foreach (string line in stream.ReadLines())
             {

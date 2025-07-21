@@ -1,17 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ExpeditionRegionSupport.Data
 {
     /// <summary>
-    /// This custom class includes a flag indicated when it has been disposed
+    /// This custom StreamReader class implementes common line format processing and validation, and provides a way for custom handling of line data
     /// </summary>
     public class TextStream : StreamReader, IDisposable
     {
+        /// <summary>
+        /// The file stream source
+        /// </summary>
+        public string Filepath { get; }
+
         /// <summary>
         /// Apply modifications to the text data as it is read from file
         /// </summary>
@@ -23,16 +25,20 @@ namespace ExpeditionRegionSupport.Data
         public List<StringDelegates.Validate> SkipConditions = new List<StringDelegates.Validate>();
 
         /// <summary>
-        /// When set to true, stream will close when end of file is reached. Instance will need to be disposed externally if this is set to false
+        /// When set to true, stream will not close on disposal. Instance will need to be disposed externally if this is set to false
         /// </summary>
-        public bool DisposeOnStreamEnd = true;
+        public bool AllowStreamDisposal;
 
         public bool IsDisposed { get; private set; }
 
         public event Action<TextStream> OnDisposed;
 
-        public TextStream(string file) : base(file)
+        public Action<TextStream> OnStreamEnd;
+
+        public TextStream(string file, bool allowDisposal) : base(file)
         {
+            Filepath = file;
+            AllowStreamDisposal = allowDisposal;
             LineFormatter = new StringDelegates.Format(s => s.Trim());
             SkipConditions.Add(new StringDelegates.Validate(s => s == string.Empty || s.StartsWith("//")));
         }
@@ -45,8 +51,8 @@ namespace ExpeditionRegionSupport.Data
 
             if (line == null)
             {
-                if (DisposeOnStreamEnd)
-                    Close();
+                OnStreamEnd?.Invoke(this);
+                Close();
                 return null;
             }
             return LineFormatter.Invoke(line);
@@ -55,22 +61,9 @@ namespace ExpeditionRegionSupport.Data
         /// <summary>
         /// Reads from file one line at a time
         /// </summary>
-        public IEnumerable<string> ReadLines()
+        public CachedEnumerable<string> ReadLines()
         {
-            string line;
-            do
-            {
-                line = ReadLine();
-
-                if (line == null)
-                    yield break;
-
-                if (SkipConditions.Exists(hasFailedCheck => hasFailedCheck(line))) //Checks that line conforms with all given skip conditions
-                    continue;
-
-                yield return line;
-            }
-            while (line != null);
+            return new CachedEnumerable<string>(ReadLinesIterator());
         }
 
         /// <summary>
@@ -92,21 +85,46 @@ namespace ExpeditionRegionSupport.Data
             return fileData.ToArray();
         }
 
-        protected override void Dispose(bool disposing)
+        internal IEnumerable<string> ReadLinesIterator()
         {
-            base.Dispose(disposing);
-
-            if (!IsDisposed)
+            string line;
+            do
             {
-                IsDisposed = true;
-                OnDisposed?.Invoke(this);
+                line = ReadLine();
+
+                if (line == null)
+                    yield break;
+
+                if (SkipConditions.Exists(hasFailedCheck => hasFailedCheck(line))) //Checks that line conforms with all given skip conditions
+                    continue;
+
+                yield return line;
             }
+            while (line != null);
         }
 
-        public override void Close()
+        protected override void Dispose(bool disposing)
         {
-            if (!IsDisposed)
-                base.Close();
+            if (!AllowStreamDisposal) return;
+
+            try
+            {
+                base.Dispose(disposing);
+
+                if (!IsDisposed)
+                {
+                    IsDisposed = true;
+                    OnDisposed?.Invoke(this);
+                }
+            }
+            catch (IOException ex)
+            {
+                if (Plugin.DebugMode)
+                {
+                    Plugin.Logger.LogError(ex);
+                    Plugin.Logger.LogError(ex.StackTrace);
+                }
+            }
         }
     }
 }

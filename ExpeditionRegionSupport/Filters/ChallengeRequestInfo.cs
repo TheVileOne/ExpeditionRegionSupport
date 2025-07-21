@@ -1,9 +1,5 @@
 ﻿using Expedition;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ExpeditionRegionSupport.Filters
 {
@@ -18,7 +14,7 @@ namespace ExpeditionRegionSupport.Filters
         public int FailedAttempts;
 
         public bool Success => Challenge != null;
-        
+
         public Challenge Challenge;
 
         public override string ToString()

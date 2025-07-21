@@ -1,22 +1,26 @@
 ﻿using BepInEx;
-using BepInEx.Logging;
-using DependencyFlags = BepInEx.BepInDependency.DependencyFlags;
-using Mono.Cecil.Cil;
-using MonoMod.Cil;
-using System;
 using Expedition;
+using ExpeditionRegionSupport.Data;
 using ExpeditionRegionSupport.Filters;
 using ExpeditionRegionSupport.Filters.Settings;
 using ExpeditionRegionSupport.HookUtils;
 using ExpeditionRegionSupport.Interface;
 using ExpeditionRegionSupport.Regions;
+using ExpeditionRegionSupport.Regions.Data;
 using ExpeditionRegionSupport.Regions.Restrictions;
 using Extensions;
+using LogUtils;
 using Menu;
 using Menu.Remix.MixedUI;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
 using MoreSlugcats;
 using RWCustom;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using DependencyFlags = BepInEx.BepInDependency.DependencyFlags;
 
 namespace ExpeditionRegionSupport
 {
@@ -30,11 +34,11 @@ namespace ExpeditionRegionSupport
 
         public static bool DebugMode
         {
-            get => ExpeditionData.devMode && !ExpeditionRegionSupport.DebugMode.EmulateReleaseConditions;
+            get => ExpeditionData.devMode && !Diagnostics.DebugMode.EmulateReleaseConditions;
             set => ExpeditionData.devMode = value;
         }
 
-        public static new Data.Logging.Logger Logger;
+        public static new LogUtils.Logger Logger;
 
         public static bool SlugBaseEnabled;
         public static WorldState ActiveWorldState;
@@ -48,7 +52,10 @@ namespace ExpeditionRegionSupport
 
         public void OnEnable()
         {
-            Logger = new Data.Logging.Logger(base.Logger);
+            Logger = new LogUtils.Logger(ModEnums.LogID.ErsLog)
+            {
+                LogSource = base.Logger
+            };
 
             try
             {
@@ -93,24 +100,107 @@ namespace ExpeditionRegionSupport
                 On.ModManager.ModMerger.PendingApply.CollectModifications += PendingApply_CollectModifications;
                 IL.ModManager.ModMerger.PendingApply.CollectModifications += PendingApply_CollectModifications;
 
+                //RegionDataMiner (Dispose file streams hook)
+                On.ModManager.GenerateMergedMods += ModManager_GenerateMergedMods;
+
                 //Equivalency Cache
                 On.ModManager.RefreshModsLists += ModManager_RefreshModsLists;
                 On.MoreSlugcats.MoreSlugcats.OnInit += MoreSlugcats_OnInit;
                 On.PlayerProgression.ReloadRegionsList += PlayerProgression_ReloadRegionsList;
                 IL.Region.GetProperRegionAcronym += Region_GetProperRegionAcronym;
 
+                //Region Loading patch
+                IL.OverWorld.GateRequestsSwitchInitiation += OverWorld_GateRequestsSwitchInitiation;
+                On.OverWorld.WorldLoaded += OverWorld_WorldLoaded;
+                On.World.GetAbstractRoom_string += World_GetAbstractRoom_string;
+
                 //Misc.
                 On.HardmodeStart.SinglePlayerUpdate += HardmodeStart_SinglePlayerUpdate;
                 On.Room.Loaded += Room_Loaded;
                 On.RegionGate.customOEGateRequirements += RegionGate_customOEGateRequirements;
-
-                //Allow communication with Log Manager
-                Data.Logging.Logger.ApplyHooks();
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex);
             }
+        }
+
+        #region Region Loading
+
+        private static string gateTransitionRoomResults;
+
+        private void OverWorld_WorldLoaded(On.OverWorld.orig_WorldLoaded orig, OverWorld self)
+        {
+            ExtensionMethods.WorldCWT cwt = null;
+
+            if (self.reportBackToGate != null) //Indicates a gate transition
+            {
+                World incomingWorld = self.worldLoader.ReturnWorld();
+
+                cwt = incomingWorld.GetCWT();
+
+                cwt.LoadedFromGateTransition = true;
+                cwt.LoadRoomTarget = gateTransitionRoomResults;
+                cwt.LoadRoomTargetExpected = self.reportBackToGate.room.abstractRoom.name;
+
+                gateTransitionRoomResults = null;
+            }
+
+            try
+            {
+                orig(self);
+            }
+            finally
+            {
+                //Change CWT fields back to default values
+                if (cwt != null)
+                {
+                    cwt.LoadedFromGateTransition = false;
+                    cwt.LoadRoomTarget = null;
+                    cwt.LoadRoomTargetExpected = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// This hook intercepts the target region data to make sure the region is loadable on the other side of the gate
+        /// </summary>
+        private void OverWorld_GateRequestsSwitchInitiation(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(Region).GetMethod("GetProperRegionAcronym"))); //Get string return
+            cursor.Emit(OpCodes.Ldarg_0); //Get OverWorld reference
+            cursor.EmitDelegate((string destinationRegion, OverWorld overworld) => //Send them both to this method for extra processing
+            {
+                AbstractRoom currentGateRoom = overworld.reportBackToGate.room.abstractRoom;
+
+                var regionResults = RegionUtils.GetProperLoadRegion(destinationRegion, overworld.game.StoryCharacter, currentGateRoom.name);
+
+                if (regionResults.DestinationRegion != null)
+                {
+                    gateTransitionRoomResults = regionResults.DestinationRoomCode;
+                    return regionResults.DestinationRegion;
+                }
+
+                Logger.LogInfo("Unable to find loadable region");
+                //Returning ERROR! will trigger an early return in the hooked method, effectively cancelling the gate transition
+                return "ERROR!";
+            });
+        }
+
+        private AbstractRoom World_GetAbstractRoom_string(On.World.orig_GetAbstractRoom_string orig, World self, string roomCode)
+        {
+            var cwt = self.GetCWT();
+
+            //This behavior should only be handled for gate transitions. It is only relevant for gate rooms
+            if (cwt.LoadedFromGateTransition && roomCode.Equals(cwt.LoadRoomTargetExpected))
+            {
+                //Replace gate transition target room with load-compatible version 
+                roomCode = cwt.LoadRoomTarget;
+                Logger.LogInfo($"Retrieving room {roomCode} from world {self.name}");
+            }
+            return orig(self, roomCode);
         }
 
         private void ModManager_RefreshModsLists(On.ModManager.orig_RefreshModsLists orig, RainWorld rainWorld)
@@ -154,10 +244,10 @@ namespace ExpeditionRegionSupport
             cursor.Emit(OpCodes.Ret); //Return the result
         }
 
+        #endregion
+
         private void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)
         {
-            Logger = new Data.Logging.Logger("ErsLog", true); //Override BepInEx logger
-
             orig(self);
 
             ChallengeFilterHooks.ApplyHooks(); //This needs to be handled in PostModsInIt or Expedition.ChallengeTools breaks
@@ -222,6 +312,26 @@ namespace ExpeditionRegionSupport
             //Add modifications can be processed without an [ADD] tag once per file, and before any other tags are processed
             if (restrictionFileMergePending && !hasDetectedModMergerTag && !pendingApplyLine.StartsWith("//") && !string.IsNullOrWhiteSpace(pendingApplyLine))
                 pendingApplyLine = "[ADD]" + pendingApplyLine;
+        }
+
+        private void ModManager_GenerateMergedMods(On.ModManager.orig_GenerateMergedMods orig, ModManager.ModApplyer applyer, List<bool> pendingEnabled, bool hasRegionMods)
+        {
+            //Make sure no stream is allowed to stay open. Open world files interfere with the merging process
+            int closedStreams = 0;
+            foreach (List<TextStream> list in RegionDataMiner.ManagedStreams.Values)
+            {
+                foreach (TextStream stream in list.Where(s => !s.IsDisposed))
+                {
+                    closedStreams++;
+                    stream.AllowStreamDisposal = true;
+                    stream.Close();
+                }
+            }
+
+            if (closedStreams > 0)
+                Logger.LogInfo($"Closing {closedStreams} filestreams before merge process starts");
+
+            orig(applyer, pendingEnabled, hasRegionMods);
         }
 
         private HSLColor Menu_MenuColor(On.Menu.Menu.orig_MenuColor orig, Menu.Menu.MenuColors color)
@@ -435,9 +545,7 @@ namespace ExpeditionRegionSupport
                 self.abstractRoom.AddEntity(abstractCell);
                 abstractCell.Realize();
 
-                EnergyCell realizedCell;
-
-                realizedCell = abstractCell.realizedObject as EnergyCell;
+                EnergyCell realizedCell = abstractCell.realizedObject as EnergyCell;
 
                 if (realizedCell != null)
                 {
@@ -604,7 +712,7 @@ namespace ExpeditionRegionSupport
                         Logger.LogWarning($"Room {spawnLocation} does not exist");
 
                     attemptsToFindDenSpawn++; //Tracks all attempts, not just reattempts
-                    if (spawnLocation == string.Empty || attemptsToFindDenSpawn >= max_attempts_allowed) //These is no hope for finding a new room
+                    if (spawnLocation == string.Empty || attemptsToFindDenSpawn >= max_attempts_allowed) //There is no hope for finding a new room
                     {
                         Logger.LogInfo("Using fallback player spawn");
                         return SaveState.GetStoryDenPosition(activeMenuSlugcat, out _);

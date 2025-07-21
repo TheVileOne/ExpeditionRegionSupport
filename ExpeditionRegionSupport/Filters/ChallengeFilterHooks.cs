@@ -1,5 +1,6 @@
 ﻿using Expedition;
 using ExpeditionRegionSupport.ExceptionHandling;
+using ExpeditionRegionSupport.Filters.Settings;
 using ExpeditionRegionSupport.Filters.Utils;
 using ExpeditionRegionSupport.HookUtils;
 using ExpeditionRegionSupport.Regions;
@@ -12,6 +13,7 @@ using System.Linq;
 
 namespace ExpeditionRegionSupport.Filters
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Hooks should ignore capitalization rules")]
     public static class ChallengeFilterHooks
     {
         private static ChallengeFilterExceptionHandler exceptionHandler = new ChallengeFilterExceptionHandler();

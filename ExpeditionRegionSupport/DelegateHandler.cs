@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ExpeditionRegionSupport
 {
@@ -110,47 +108,6 @@ namespace ExpeditionRegionSupport
         {
             return handlerMethods.Where(m => m.Name == handlerName);
         }
-
-        /*
-        public MethodInfo GetActionSignature<T>(T arg)
-        {
-        }
-        */
-            /*
-        public static MethodInfo GetActionSignature(bool hasArgs)
-        {
-            MethodInfo[] handlerMethods = typeof(InvokeOnceHandler).GetMethods();
-
-            IEnumerable<MethodInfo> actionHandlers = GetHandlers(handlerMethods, "InvokeAction");
-
-            var enumerator = actionHandlers.GetEnumerator();
-
-            while (enumerator.MoveNext())
-            {
-                int paramAmount = enumerator.Current.GetParameters().Length;
-
-                if (hasArgs)
-                {
-                    if (paramAmount > 0)
-                        return enumerator.Current;
-                }
-                else
-                {
-                    if (paramAmount == 0)
-                        return enumerator.Current;
-                }
-            }
-
-            return null; //Shouldn't run
-            
-            MethodInfo info = .Where(m => m.Name == "Invoke" && m.GetParameters().Length!= typeof(void) == hasReturn).First();
-
-            Plugin.Logger.LogInfo(info);
-            Plugin.Logger.LogInfo(info.Name);
-            Plugin.Logger.LogInfo(info.IsGenericMethod);
-
-            return info;
-        }*/
 
         public static MethodInfo GetInvokeSignature(bool hasReturn)
         {

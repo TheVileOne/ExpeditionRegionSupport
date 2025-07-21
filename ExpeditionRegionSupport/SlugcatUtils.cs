@@ -1,8 +1,6 @@
 ﻿using MoreSlugcats;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace ExpeditionRegionSupport
 {
@@ -70,27 +68,30 @@ namespace ExpeditionRegionSupport
         /// </summary>
         public static string NameFromAlias(string name)
         {
-            if (name.Equals(@"Monk", StringComparison.InvariantCultureIgnoreCase))
+            StringComparison ignoreCase = StringComparison.InvariantCultureIgnoreCase;
+
+            if (name.Equals("Monk", ignoreCase))
             {
                 return "Yellow";
             }
-            else if (name.Equals(@"Survivor", StringComparison.InvariantCultureIgnoreCase))
+            else if (name.Equals("Survivor", ignoreCase))
             {
                 return "White";
             }
-            else if (name.Equals(@"Hunter", StringComparison.InvariantCultureIgnoreCase))
+            else if (name.Equals("Hunter", ignoreCase))
             {
                 return "Red";
             }
-            else if (name.Equals(@"Spearmaster", StringComparison.InvariantCultureIgnoreCase))
+            else if (name.Equals("Spearmaster", ignoreCase))
             {
                 return "Spear";
             }
-            else if (name.Equals(@"Sophaniel", StringComparison.InvariantCultureIgnoreCase)
-                  || name.Equals(@"Sophanthiel", StringComparison.InvariantCultureIgnoreCase)
-                  || name.Equals(@"Sofaniel", StringComparison.InvariantCultureIgnoreCase)) //Inv is a valid name 
+            else if (name.Equals("Sofanthiel", ignoreCase)
+                  || name.Equals("Sophaniel", ignoreCase)
+                  || name.Equals("Sophanthiel", ignoreCase)
+                  || name.Equals("Sofaniel", ignoreCase))
             {
-                return "Sofanthiel";
+                return "Inv";
             }
 
             return name;

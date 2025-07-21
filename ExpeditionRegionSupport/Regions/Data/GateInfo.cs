@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ExpeditionRegionSupport.Regions.Data
 {
@@ -54,6 +51,11 @@ namespace ExpeditionRegionSupport.Regions.Data
                 return ConnectingRegions.Item1;
 
             return null;
+        }
+
+        public override string ToString()
+        {
+            return RoomCode;
         }
     }
 }

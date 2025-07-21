@@ -4,9 +4,6 @@ using Menu;
 using Menu.Remix.MixedUI;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Vector2 = UnityEngine.Vector2;
 
 namespace ExpeditionRegionSupport.Interface.Components
@@ -76,15 +73,10 @@ namespace ExpeditionRegionSupport.Interface.Components
 
         public SimpleButton Create(string buttonTextRaw, string signalText)
         {
-            return _Create(buttonTextRaw, signalText, GetNewPosition());
+            return Create(buttonTextRaw, signalText, GetNewPosition());
         }
 
         public SimpleButton Create(string buttonTextRaw, string signalText, Vector2 pos)
-        {
-            return _Create(buttonTextRaw, signalText, pos);
-        }
-
-        protected SimpleButton _Create(string buttonTextRaw, string signalText, Vector2 pos)
         {
             string buttonTextTranslated = Menu.Translate(buttonTextRaw);
 
@@ -108,17 +100,12 @@ namespace ExpeditionRegionSupport.Interface.Components
         {
         }
 
-        public FilterCheckBox Create(string labelText, SimpleToggle optionState, string IDString, Vector2 pos)
-        {
-            return _Create(labelText, optionState, IDString, pos);
-        }
-
         public FilterCheckBox Create(string labelText, SimpleToggle optionState, string IDString)
         {
-            return _Create(labelText, optionState, IDString, GetNewPosition());
+            return Create(labelText, optionState, IDString, GetNewPosition());
         }
 
-        protected FilterCheckBox _Create(string labelText, SimpleToggle optionState, string IDString, Vector2 pos)
+        public FilterCheckBox Create(string labelText, SimpleToggle optionState, string IDString, Vector2 pos)
         {
             FilterCheckBox checkBox = new FilterCheckBox(Menu, (FilterOptions)Owner, optionState, pos, 0f, labelText, IDString);
 

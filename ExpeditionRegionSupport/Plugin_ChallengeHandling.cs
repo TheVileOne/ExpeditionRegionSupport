@@ -7,12 +7,10 @@ using MonoMod.Cil;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ExpeditionRegionSupport
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Hooks should ignore capitalization rules")]
     public partial class Plugin
     {
         private void ChallengeSelectPage_Singal(On.Menu.ChallengeSelectPage.orig_Singal orig, ChallengeSelectPage self, MenuObject sender, string signalText)
@@ -35,8 +33,7 @@ namespace ExpeditionRegionSupport
                         return;
                     }
 
-                    int slotIndex; //Not zero-based
-                    int.TryParse(signalText.Remove(0, 3), NumberStyles.Any, CultureInfo.InvariantCulture, out slotIndex);
+                    int.TryParse(signalText.Remove(0, 3), NumberStyles.Any, CultureInfo.InvariantCulture, out int slotIndex); //Not zero-based
 
                     Logger.LogInfo($"Slot {slotIndex} targeted");
 
@@ -57,7 +54,7 @@ namespace ExpeditionRegionSupport
                         {
                             if (DebugMode)
                                 Logger.LogDebug("SELECTED ABORTED SLOT");
-                            
+
                             int challengeCount = ChallengeSlot.SlotChallenges.Count; //Challenge count may change during assignment
                             int slotsToUnlock = slotIndex - challengeCount;
 
