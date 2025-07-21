@@ -1,8 +1,10 @@
 ﻿using BepInEx;
 using Expedition;
 using ExpeditionRegionSupport.Data;
+using ExpeditionRegionSupport.ExceptionHandling;
 using ExpeditionRegionSupport.Filters;
 using ExpeditionRegionSupport.Filters.Settings;
+using ExpeditionRegionSupport.Filters.Utils;
 using ExpeditionRegionSupport.HookUtils;
 using ExpeditionRegionSupport.Interface;
 using ExpeditionRegionSupport.Regions;
@@ -14,11 +16,13 @@ using Menu;
 using Menu.Remix.MixedUI;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
 using MoreSlugcats;
 using RWCustom;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using DependencyFlags = BepInEx.BepInDependency.DependencyFlags;
 
@@ -30,7 +34,7 @@ namespace ExpeditionRegionSupport
     {
         public const string PLUGIN_GUID = "fluffball.expeditionregionsupport";
         public const string PLUGIN_NAME = "Expedition Region Support";
-        public const string PLUGIN_VERSION = "0.9.83";
+        public const string PLUGIN_VERSION = "0.9.9";
 
         public static bool DebugMode
         {
@@ -49,6 +53,8 @@ namespace ExpeditionRegionSupport
         private bool expeditionGameStarting;
 
         private SimpleButton settingsButton;
+
+        private static List<Hook> manualChallengeHooks = new List<Hook>();
 
         public void OnEnable()
         {
@@ -221,9 +227,101 @@ namespace ExpeditionRegionSupport
 
         private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
         {
+            On.Expedition.Expedition.OnInit += Expedition_OnInit;
             orig(self);
             if (!SlugcatUtils.SlugcatsInitialized)
                 RegionUtils.CacheEquivalentRegions();
+        }
+
+        private void Expedition_OnInit(On.Expedition.Expedition.orig_OnInit orig, RainWorld rainWorld)
+        {
+            //If this hook doesn't break Expedition.ChallengeTools, other hooks could be invoked here as well
+            On.Expedition.ChallengeOrganizer.SetupChallengeTypes += ChallengeOrganizer_SetupChallengeTypes;
+            orig(rainWorld);
+        }
+
+        private void ChallengeOrganizer_SetupChallengeTypes(On.Expedition.ChallengeOrganizer.orig_SetupChallengeTypes orig)
+        {
+            bool initializingChallenges = ChallengeOrganizer.availableChallengeTypes == null;
+            orig();
+
+            if (initializingChallenges)
+            {
+                Logger.LogInfo("Applying Expedition Challenge hooks");
+
+                Type baseType = typeof(Challenge);
+
+                List<Type> hookGenerateRecord = new List<Type>();
+                foreach (Challenge challenge in ChallengeOrganizer.availableChallengeTypes)
+                {
+                    Type type = challenge.GetType();
+
+                    if (hookGenerateRecord.Contains(type)) continue; //Make sure hooks are only applied once per class type
+
+                    generateChallengeHooks(type);
+                    hookGenerateRecord.Add(type);
+
+                    while (type.BaseType != baseType && hookGenerateRecord.Contains(type.BaseType)) //This class is inheriting from a class that isn't the one packaged in Expedition
+                    {
+                        generateChallengeHooks(type.BaseType);
+                        type = type.BaseType; //Allow all inherited classes to have hooks
+                        hookGenerateRecord.Add(type);
+                    }
+                }
+
+                manualChallengeHooks.ForEach(hook => hook.Apply());
+            }
+        }
+
+        private static void generateChallengeHooks(Type challengeType)
+        {
+            MethodInfo method = null;
+            string hookTarget = nameof(Challenge.Generate);
+
+            try
+            {
+                method = challengeType.GetMethod(hookTarget);
+            }
+            catch (AmbiguousMatchException)
+            {
+                Logger.LogInfo("Overloaded method handled");
+                method = Array.Find(challengeType.GetMethods(), m => m.Name == hookTarget && m.GetParameters().Length == 0); //Find the version without parameters
+            }
+
+            if (method != null)
+                manualChallengeHooks.Add(new Hook(method, challengeGenerateHook));
+        }
+
+        private static Challenge challengeGenerateHook(Func<Challenge, Challenge> orig, Challenge self)
+        {
+            ChallengeFilterSettings.FilterTarget = self;
+
+            IRegionChallenge customRegionChallenge = self as IRegionChallenge;
+
+            if (customRegionChallenge != null)
+            {
+                try
+                {
+                    CachedFilterApplicator<string> currentFilter = RegionUtils.CurrentFilter;
+                    FilterApplicator<string> customChallengeFilter = new FilterApplicator<string>(customRegionChallenge.ApplicableRegions);
+
+                    if (currentFilter != null)
+                    {
+                        //TODO: This filter needs to be removed at the end of the process
+                        //Remove all applicable regions that are not also part of the active filter cache
+                        customChallengeFilter.ItemsToRemove.AddRange(customRegionChallenge.ApplicableRegions.Except(currentFilter.Cache));
+                        customChallengeFilter.Apply();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ChallengeFilterExceptionHandler exceptionHandler = new ChallengeFilterExceptionHandler();
+                    exceptionHandler.HandleException(ChallengeFilterSettings.FilterTarget, ex);
+                    return null; //Return null to indicate that no challenges of the current type can be chosen
+                }
+            }
+
+            return orig(self);
         }
 
         private void PlayerProgression_ReloadRegionsList(On.PlayerProgression.orig_ReloadRegionsList orig, PlayerProgression self)

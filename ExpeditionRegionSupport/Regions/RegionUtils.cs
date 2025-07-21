@@ -551,7 +551,7 @@ namespace ExpeditionRegionSupport.Regions
 
                 if (targetRegion.IsDefault)
                 {
-                    Plugin.Logger.LogInfo("Region code is unrecognized");
+                    Plugin.Logger.LogInfo($"Aborting equivalency check for region '{regionCodeFromDirectory}'. Region code is unrecognized");
                     continue;
                 }
 

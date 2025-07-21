@@ -25,5 +25,10 @@ namespace ExpeditionRegionSupport.Filters.Utils
         {
             return self.GetType().Name;
         }
+
+        public static List<Challenge> GetCustomRegionChallenges()
+        {
+            return ChallengeOrganizer.availableChallengeTypes.FindAll(c => c is IRegionChallenge);
+        }
     }
 }
