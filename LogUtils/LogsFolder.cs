@@ -218,17 +218,8 @@ namespace LogUtils
                 return;
             }
 
-            string newPath = Path;
-
-            LogFilename filename = logFile.Properties.AltFilename;
-
-            if (filename != null)
-            {
-                if (!logFile.Properties.CurrentFilename.Equals(filename))
-                    UtilityLogger.Log($"Renaming file to {filename}");
-
-                newPath = System.IO.Path.Combine(Path, filename.WithExtension());
-            }
+            //When moving a file into this folder, we should rename it to its alternate filename if it has one set
+            string newPath = getMovePath(properties.CurrentFilename, properties.AltFilename, Path);
 
             if (!properties.FileExists)
             {
@@ -268,12 +259,7 @@ namespace LogUtils
             }
 
             //When moving a file out of this folder, we should rename it to what it was before it was moved into the folder
-            LogFilename filename = properties.ReserveFilename ?? properties.Filename;
-
-            if (!properties.CurrentFilename.Equals(filename))
-                UtilityLogger.Log($"Renaming file to {filename}");
-
-            string newPath = System.IO.Path.Combine(properties.FolderPath, filename.WithExtension());
+            string newPath = getMovePath(properties.CurrentFilename, properties.ReserveFilename ?? properties.Filename, properties.FolderPath);
 
             if (!properties.FileExists)
             {
@@ -283,6 +269,17 @@ namespace LogUtils
 
             UtilityLogger.Log($"Moving {logFile} out of Logs folder");
             LogFile.Move(logFile, newPath);
+        }
+
+        private static string getMovePath(LogFilename currentFilename, LogFilename preferredFilename, string logPath)
+        {
+            //The only time we want to use the preferred option is if we can construct a valid filename with it
+            if (preferredFilename == null || !preferredFilename.IsValid)
+                return System.IO.Path.Combine(logPath, currentFilename.WithExtension());
+
+            if (!currentFilename.Equals(preferredFilename))
+                UtilityLogger.Log($"Renaming file to {preferredFilename}");
+            return System.IO.Path.Combine(logPath, preferredFilename.WithExtension());
         }
 
         public static bool TryMove(LogsFolderAccessToken accessToken, string path)

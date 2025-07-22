@@ -139,8 +139,6 @@ namespace LogUtils.Helpers
             using (fileLock.Acquire())
             {
                 fileLock.SetActivity(logFile, FileAction.Open);
-
-                string writePath = logFile.Properties.CurrentFilePath;
                 bool retryAttempt = false;
 
             retry:
