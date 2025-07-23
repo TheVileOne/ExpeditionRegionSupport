@@ -18,7 +18,7 @@ namespace ExpeditionRegionSupport.Regions.Data
         public ValueTuple<string, string> KarmaRequirement;
 
         /// <summary>
-        /// A list of slugcats that have access to this gate. Empty means any slugcat has access 
+        /// A list of slugcat timelines that have access to this gate. Empty means any slugcat has access 
         /// </summary>
         public List<SlugcatStats.Name> ConditionalAccess = new List<SlugcatStats.Name>();
 
