@@ -51,16 +51,16 @@ namespace ExpeditionRegionSupport.Diagnostics
             RegisteredTimers.Clear();
         }
 
-        public static void ProcessAllAccessibleRegionsAllSlugcats()
+        public static void ProcessAccessibleRegionsAllSlugcats()
         {
-            foreach (SlugcatStats.Name slugcat in ExtEnumBase.GetNames(typeof(SlugcatStats.Name)).Select(s => new SlugcatStats.Name(s)))
+            foreach (SlugcatStats.Name slugcat in SlugcatUtils.AllSlugcats)
             {
-                Plugin.Logger.LogDebug("Processing accessible regions for " + slugcat.value);
-                ProcessAllAccessibleRegions(slugcat);
+                Plugin.Logger.LogDebug("Processing accessible regions for " + slugcat);
+                ProcessAccessibleRegions(slugcat);
             }
         }
 
-        public static void ProcessAllAccessibleRegions(SlugcatStats.Name slugcat)
+        public static void ProcessAccessibleRegions(SlugcatStats.Name slugcat)
         {
             StartDebugProcess();
 

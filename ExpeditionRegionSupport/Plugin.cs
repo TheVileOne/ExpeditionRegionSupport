@@ -113,7 +113,7 @@ namespace ExpeditionRegionSupport
                 On.ModManager.RefreshModsLists += ModManager_RefreshModsLists;
                 On.MoreSlugcats.MoreSlugcats.OnInit += MoreSlugcats_OnInit;
                 On.PlayerProgression.ReloadRegionsList += PlayerProgression_ReloadRegionsList;
-                IL.Region.GetProperRegionAcronym += Region_GetProperRegionAcronym;
+                IL.Region.GetProperRegionAcronym_Timeline_string += Region_GetProperRegionAcronym;
 
                 //Region Loading patch
                 IL.OverWorld.GateRequestsSwitchInitiation += OverWorld_GateRequestsSwitchInitiation;
@@ -135,7 +135,7 @@ namespace ExpeditionRegionSupport
 
         private static string gateTransitionRoomResults;
 
-        private void OverWorld_WorldLoaded(On.OverWorld.orig_WorldLoaded orig, OverWorld self)
+        private void OverWorld_WorldLoaded(On.OverWorld.orig_WorldLoaded orig, OverWorld self, bool warpUsed)
         {
             ExtensionMethods.WorldCWT cwt = null;
 
@@ -154,7 +154,7 @@ namespace ExpeditionRegionSupport
 
             try
             {
-                orig(self);
+                orig(self, warpUsed);
             }
             finally
             {
@@ -175,7 +175,9 @@ namespace ExpeditionRegionSupport
         {
             ILCursor cursor = new ILCursor(il);
 
-            cursor.GotoNext(MoveType.After, x => x.MatchCall(typeof(Region).GetMethod("GetProperRegionAcronym"))); //Get string return
+            MethodInfo methodInfo = typeof(Region).GetMethod("GetProperRegionAcronym", new Type[] { typeof(SlugcatStats.Timeline), typeof(string) });
+
+            cursor.GotoNext(MoveType.After, x => x.MatchCall(methodInfo)); //Get string return
             cursor.Emit(OpCodes.Ldarg_0); //Get OverWorld reference
             cursor.EmitDelegate((string destinationRegion, OverWorld overworld) => //Send them both to this method for extra processing
             {
@@ -337,8 +339,8 @@ namespace ExpeditionRegionSupport
 
             cursor.GotoNext(MoveType.AfterLabel, x => x.MatchLdstr("World")); //Go to before Equivalences.txt examples are going to be fetched
             cursor.Emit(OpCodes.Ldloc_0); //Push Region code onto stack
-            cursor.Emit(OpCodes.Ldarg_0); //Push slugcat parameter onto stack
-            cursor.EmitDelegate<Func<string, SlugcatStats.Name, string>>(RegionUtils.GetSlugcatEquivalentRegion); //Send then to custom method for equivalency checking
+            cursor.Emit(OpCodes.Ldarg_0); //Push slugcat timeline parameter onto stack
+            cursor.EmitDelegate<Func<string, SlugcatStats.Timeline, string>>(RegionUtils.GetEquivalentRegion); //Send to custom method for equivalency checking
             cursor.Emit(OpCodes.Ret); //Return the result
         }
 
@@ -365,42 +367,37 @@ namespace ExpeditionRegionSupport
         /// </summary>
         private static bool hasDetectedModMergerTag;
 
-        private void PendingApply_CollectModifications(On.ModManager.ModMerger.PendingApply.orig_CollectModifications orig, ModManager.ModMerger.PendingApply self)
+        private void PendingApply_CollectModifications(On.ModManager.ModMerger.PendingApply.orig_CollectModifications orig, ModManager.ModMerger.PendingApply self, string[] modifyFileLines)
         {
             restrictionFileMergePending = self.filePath.EndsWith("restricted-regions.txt"); //Check that we are handling the right file
             try
             {
-                orig(self);
+                orig(self, modifyFileLines);
             }
-            catch (Exception ex)
+            finally
             {
-                Logger.LogError(ex);
-                Logger.LogError(ex.StackTrace);
+                hasDetectedModMergerTag = false;
+                restrictionFileMergePending = false;
             }
-            hasDetectedModMergerTag = false;
-            restrictionFileMergePending = false;
         }
 
         private void PendingApply_CollectModifications(ILContext il)
         {
-            try
-            {
-                ILCursor cursor = new ILCursor(il);
+            ILCursor cursor = new ILCursor(il);
 
-                //First, we need to establish a way of checking each line handled by ModMerger
-                cursor.GotoNext(MoveType.AfterLabel, x => x.MatchLdloc(7)); //This is a flag, and we need the first time it is loaded onto the stack
-                cursor.Emit(OpCodes.Ldloc, 6); //Push array containing file data onto stack
-                cursor.Emit(OpCodes.Ldloc, 8); //Push current index in array onto stack
-                cursor.EmitDelegate<Action<string[], int>>((fileDataArray, fileDataArrayIndex) =>
-                {
-                    processModMergerLine(ref fileDataArray[fileDataArrayIndex]);
-                });
-            }
-            catch (Exception ex)
+            int localID = 0;
+            cursor.GotoNext(MoveType.After, x => x.MatchNewobj<List<string>>()); //Go to after merge collection list instantiation
+            cursor.GotoNext(MoveType.After,
+                x => x.MatchLdcI4(1),
+                x => x.MatchAdd(),
+                x => x.MatchStloc(out localID)); //Get indexer id
+            cursor.Emit(OpCodes.Ldarg_1);        //Push file lines array to stack
+            cursor.Emit(OpCodes.Ldloc, localID); //Push current index in array to stack
+            cursor.EmitDelegate((string[] fileLines, int lineIndex) =>
             {
-                Logger.LogError(ex);
-                Logger.LogError(ex.StackTrace);
-            }
+                //Instead of skipping over lines without an [ADD] header, this will inject one into the file line array if it is missing
+                processModMergerLine(ref fileLines[lineIndex]);
+            });
         }
 
         private static void processModMergerLine(ref string pendingApplyLine)

@@ -113,10 +113,10 @@ namespace ExpeditionRegionSupport.Regions
         {
             RegionsCache regionCache = RegionsCache.GetOrCreate(RegionAccessibilityCache, slugcat);
 
-            string slugcatEquivalentRegion = GetSlugcatEquivalentRegion(regionCode, slugcat); //Checking incompatible world state is not yet supported
+            string timelineEquivalentRegion = GetEquivalentRegion(regionCode, SlugcatStats.SlugcatToTimeline(slugcat));
 
             //The region will either exist in the cache, or belong to an entirely new series of regions
-            if (regionCache.Regions.Contains(slugcatEquivalentRegion))
+            if (regionCache.Regions.Contains(timelineEquivalentRegion))
                 return regionCache.Regions;
 
             if (regionCache.Regions.Count > 0) //Do not clear old cache data here - Allow cache to be stored and compared by reference
@@ -125,8 +125,8 @@ namespace ExpeditionRegionSupport.Regions
                 regionCache.LastAccessed = slugcat;
             }
 
-            regionCache.Store(slugcatEquivalentRegion);
-            FindAllConnectingRegionsRecursive(regionCache.Regions, slugcatEquivalentRegion, slugcat);
+            regionCache.Store(timelineEquivalentRegion);
+            FindAllConnectingRegionsRecursive(regionCache.Regions, timelineEquivalentRegion, slugcat);
 
             RegionAccessibilityCache = regionCache;
             return regionCache.Regions;
@@ -148,15 +148,15 @@ namespace ExpeditionRegionSupport.Regions
             foreach (string connectedRegion in GetConnectingRegions(regionCode, slugcat, !firstPass))
             {
                 //No connecting region will have been compared against the slugcat at this stage
-                string slugcatEquivalentRegion = GetSlugcatEquivalentRegion(connectedRegion, slugcat); //The region this slugcat will load from a region gate
-                if (!connectedRegions.Contains(slugcatEquivalentRegion))
+                string timelineEquivalentRegion = GetEquivalentRegion(connectedRegion, SlugcatStats.SlugcatToTimeline(slugcat)); //The region this slugcat will load from a region gate
+                if (!connectedRegions.Contains(timelineEquivalentRegion))
                 {
                     //Add the equivalent region, and then check its connecting regions
-                    connectedRegions.Add(slugcatEquivalentRegion);
-                    FindAllConnectingRegionsRecursive(connectedRegions, slugcatEquivalentRegion, slugcat, false);
+                    connectedRegions.Add(timelineEquivalentRegion);
+                    FindAllConnectingRegionsRecursive(connectedRegions, timelineEquivalentRegion, slugcat, false);
 
                     if (Plugin.DebugMode)
-                        processTimer.ReportTime("Getting connecting regions for " + slugcatEquivalentRegion);
+                        processTimer.ReportTime("Getting connecting regions for " + timelineEquivalentRegion);
                 }
             }
 
@@ -169,8 +169,8 @@ namespace ExpeditionRegionSupport.Regions
         /// </summary>
         /// <param name="regionCode">The region to check</param>
         /// <param name="slugcat">The slugcat to check (in the case of conditional links)</param>
-        /// <param name="adjustForSlugcatEquivalences">The proper region code will be used instead of the default when this is true</param>
-        public static List<string> GetConnectingRegions(string regionCode, SlugcatStats.Name slugcat, bool adjustForSlugcatEquivalences)
+        /// <param name="adjustForEquivalences">The proper region code will be used instead of the default when this is true</param>
+        public static List<string> GetConnectingRegions(string regionCode, SlugcatStats.Name slugcat, bool adjustForEquivalences)
         {
             DebugTimer processTimer = null;
             if (Plugin.DebugMode)
@@ -179,31 +179,31 @@ namespace ExpeditionRegionSupport.Regions
                 processTimer.Start();
             }
 
-            string slugcatEquivalentRegion, regionBaseEquivalent;
+            string timelineEquivalentRegion, regionBaseEquivalent;
 
             //This adjust parameter was originally included to reduce equivalency checks. With the cache, this optimisation is probably not necessary.
             //Functionally, this only skips the equivalency check on the first call of this method from FindAllConnectingRegionsRecursive, which already
             //has the equivalency check applied
-            if (adjustForSlugcatEquivalences)
-                slugcatEquivalentRegion = GetSlugcatEquivalentRegion(regionCode, slugcat, out regionBaseEquivalent);
+            if (adjustForEquivalences)
+                timelineEquivalentRegion = GetEquivalentRegion(regionCode, SlugcatStats.SlugcatToTimeline(slugcat), out regionBaseEquivalent);
             else
-                slugcatEquivalentRegion = regionBaseEquivalent = regionCode;
+                timelineEquivalentRegion = regionBaseEquivalent = regionCode;
 
             /*
-            string reportString = $"Getting connecting regions for {slugcatEquivalentRegion}";
+            string reportString = $"Getting connecting regions for {timelineEquivalentRegion}";
 
-            if (adjustForSlugcatEquivalences && regionCode != slugcatEquivalentRegion)
+            if (adjustForEquivalences && regionCode != timelineEquivalentRegion)
                 reportString += $" (Changed from {regionCode})";
 
             Plugin.Logger.LogInfo(reportString);
             */
 
             List<string> connectedRegions = new List<string>();
-            foreach (GateInfo gate in GetRegionGates(slugcatEquivalentRegion))
+            foreach (GateInfo gate in GetRegionGates(timelineEquivalentRegion))
             {
                 if (!gate.IsActiveFor(slugcat)) continue;
 
-                string connectedRegion = gate.OtherConnection(regionBaseEquivalent, slugcatEquivalentRegion);
+                string connectedRegion = gate.OtherConnection(regionBaseEquivalent, timelineEquivalentRegion);
 
                 if (connectedRegion != null) //Null indicates that gate region codes do not match region code parameters
                     connectedRegions.Add(connectedRegion);
@@ -220,20 +220,20 @@ namespace ExpeditionRegionSupport.Regions
         }
 
         /// <summary>
-        /// Gets the proper region equivalent of the region code for a particular slugcat
+        /// Gets the proper region equivalent of the region code for a particular slugcat timeline
         /// </summary>
         /// <param name="regionBaseEquivalent">The slugcat independent region code equivalent</param>
-        public static string GetSlugcatEquivalentRegion(string regionCode, SlugcatStats.Name slugcat, out string regionBaseEquivalent)
+        public static string GetEquivalentRegion(string regionCode, SlugcatStats.Timeline timeline, out string regionBaseEquivalent)
         {
-            return EquivalentRegionCache.GetSlugcatEquivalentRegion(regionCode, slugcat, out regionBaseEquivalent);
+            return EquivalentRegionCache.GetEquivalentRegion(regionCode, timeline, out regionBaseEquivalent);
         }
 
         /// <summary>
-        /// Gets the proper region equivalent of the region code for a particular slugcat
+        /// Gets the proper region equivalent of the region code for a particular slugcat timeline
         /// </summary>
-        public static string GetSlugcatEquivalentRegion(string regionCode, SlugcatStats.Name slugcat)
+        public static string GetEquivalentRegion(string regionCode, SlugcatStats.Timeline timeline)
         {
-            return EquivalentRegionCache.GetSlugcatEquivalentRegion(regionCode, slugcat);
+            return EquivalentRegionCache.GetEquivalentRegion(regionCode, timeline);
         }
 
         public static List<string> GetVisitedRegions(SlugcatStats.Name slugcat)
@@ -525,19 +525,19 @@ namespace ExpeditionRegionSupport.Regions
             //Apply known MSC equivalencies here
             if (ModManager.MSC)
             {
-                profile_DS.RegisterEquivalency(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Saint, profile_UG);
-                profile_SH.RegisterEquivalency(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Saint, profile_CL);
-                profile_SL.RegisterEquivalency(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Spear, profile_LM);
-                profile_SL.RegisterEquivalency(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Artificer, profile_LM);
-                profile_SS.RegisterEquivalency(MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Rivulet, profile_RM);
+                profile_DS.RegisterEquivalency(SlugcatStats.Timeline.Saint, profile_UG);
+                profile_SH.RegisterEquivalency(SlugcatStats.Timeline.Saint, profile_CL);
+                profile_SL.RegisterEquivalency(SlugcatStats.Timeline.Spear, profile_LM);
+                profile_SL.RegisterEquivalency(SlugcatStats.Timeline.Artificer, profile_LM);
+                profile_SS.RegisterEquivalency(SlugcatStats.Timeline.Rivulet, profile_RM);
 
                 //This slugcat has hooked their equivalent region checks. Until that changes, hardcode these equivalencies.
-                SlugcatStats.Name technomancer = new SlugcatStats.Name("technomancer");
+                SlugcatStats.Timeline technomancerTimeline = SlugcatStats.SlugcatToTimeline(new SlugcatStats.Name("technomancer"));
 
-                profile_SL.RegisterEquivalency(technomancer, profile_LM);
+                profile_SL.RegisterEquivalency(technomancerTimeline, profile_LM);
 
                 RegionProfile profile_SB = EquivalentRegionCache.FindProfile("SB");
-                profile_SB.RegisterEquivalency(technomancer, EquivalentRegionCache.FindProfile("TL"));
+                profile_SB.RegisterEquivalency(technomancerTimeline, EquivalentRegionCache.FindProfile("TL"));
             }
 
             foreach (string path in GetFilePathFromAllSources("equivalences.txt"))
@@ -568,11 +568,11 @@ namespace ExpeditionRegionSupport.Regions
                         bool appliesToAllSlugcats = sepIndex == -1; //This will get overwritten by any conflicting values
 
                         string registerTarget;
-                        SlugcatStats.Name slugcat;
+                        SlugcatStats.Timeline timeline;
                         if (appliesToAllSlugcats)
                         {
                             registerTarget = equivalencyEntry.Trim().ToUpper();
-                            slugcat = SlugcatUtils.AnySlugcat;
+                            timeline = SlugcatUtils.AnyTimeline;
                         }
                         else
                         {
@@ -580,6 +580,7 @@ namespace ExpeditionRegionSupport.Regions
                             string valueA = equivalencyEntry.Substring(0, sepIndex).Trim();
                             string valueB = equivalencyEntry.Substring(sepIndex + 1).Trim();
 
+                            SlugcatStats.Name slugcat;
                             if (valueA.Length <= 2)
                             {
                                 slugcat = equivalentRegionsCacheHelper(regions, valueA, valueB, out registerTarget);
@@ -592,12 +593,13 @@ namespace ExpeditionRegionSupport.Regions
                             {
                                 slugcat = equivalentRegionsCacheHelper(regions, valueA, valueB, out registerTarget);
                             }
+                            timeline = SlugcatStats.SlugcatToTimeline(slugcat);
                         }
 
                         if (registerTarget == null) continue; //The region is likely part of an unloaded mod
 
-                        RegionProfile slugcatEquivalentRegion = EquivalentRegionCache.FindProfile(registerTarget);
-                        targetRegion.RegisterEquivalency(slugcat, slugcatEquivalentRegion);
+                        RegionProfile timelineEquivalentRegion = EquivalentRegionCache.FindProfile(registerTarget);
+                        targetRegion.RegisterEquivalency(timeline, timelineEquivalentRegion);
                     }
                 }
             }

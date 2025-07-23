@@ -21,9 +21,9 @@ namespace ExpeditionRegionSupport.Regions.Data
 
         /// <summary>
         /// Contains regions considered equivalent replacements for this region under one or more conditions.
-        /// Conditions are organized by the slugcat name
+        /// Conditions are organized by slugcat timeline
         /// </summary>
-        public readonly Dictionary<SlugcatStats.Name, RegionProfile> EquivalentRegions = new Dictionary<SlugcatStats.Name, RegionProfile>();
+        public readonly Dictionary<SlugcatStats.Timeline, RegionProfile> EquivalentRegions = new Dictionary<SlugcatStats.Timeline, RegionProfile>();
 
         /// <summary>
         /// This region does not replace any other equivalent regions
@@ -68,10 +68,10 @@ namespace ExpeditionRegionSupport.Regions.Data
                                  || RegionCode == "OE" || RegionCode == "VS" || RegionCode == "HR" || RegionCode == "MS" || RegionCode == "LC";
         }
 
-        public bool HasEquivalencyEntry(SlugcatStats.Name slugcat, RegionProfile regionProfile)
+        public bool HasEquivalencyEntry(SlugcatStats.Timeline timeline, RegionProfile regionProfile)
         {
             bool entryFound = false;
-            if (EquivalentRegions.TryGetValue(slugcat, out RegionProfile foundProfile))
+            if (EquivalentRegions.TryGetValue(timeline, out RegionProfile foundProfile))
                 entryFound = foundProfile.RegionCode == regionProfile.RegionCode;
 
             return entryFound;
@@ -80,19 +80,21 @@ namespace ExpeditionRegionSupport.Regions.Data
         public bool IsSlugcatAllowedHere(SlugcatStats.Name slugcat)
         {
             if (IsDefault) return false;
-            if (IsBaseRegion) return true; //Base regions cannot have slugcat restrictions
+            if (IsBaseRegion) return true; //Base regions cannot have slugcat timeline restrictions
 
-            ///Checks whether the base equivalent relationships with this profile would allow this slugcat to enter this region from a gate
+            SlugcatStats.Timeline timeline = SlugcatStats.SlugcatToTimeline(slugcat);
+
+            ///Checks whether the base equivalent relationships with this profile would allow this a slugcat from this timeline to enter this region from a gate
             RegionProfile thisProfile = this;
-            return EquivalentBaseRegions.Any(p => p.HasEquivalencyEntry(slugcat, thisProfile) || p.HasEquivalencyEntry(SlugcatUtils.AnySlugcat, thisProfile));
+            return EquivalentBaseRegions.Any(p => p.HasEquivalencyEntry(timeline, thisProfile) || p.HasEquivalencyEntry(SlugcatUtils.AnyTimeline, thisProfile));
         }
 
         /// <summary>
         /// Establish an equivalent relationship with another RegionProfile
         /// </summary>
-        /// <param name="slugcat">The slugcat conditions for loading a specific equivalent region</param>
-        /// <param name="region">The equivalent region that will be loaded based on a specific slugcat</param>
-        public void RegisterEquivalency(SlugcatStats.Name slugcat, RegionProfile region)
+        /// <param name="timeline">The slugcat timeline conditions for loading a specific equivalent region</param>
+        /// <param name="region">The equivalent region that will be loaded based on a specific slugcat timeline</param>
+        public void RegisterEquivalency(SlugcatStats.Timeline timeline, RegionProfile region)
         {
             if (IsDefault)
             {
@@ -103,13 +105,13 @@ namespace ExpeditionRegionSupport.Regions.Data
                 return;
             }
 
-            if (slugcat == null)
-                throw new ArgumentNullException(nameof(slugcat), nameof(RegisterEquivalency) + " encountered an exception: Slugcat cannot be null");
+            if (timeline == null)
+                throw new ArgumentNullException(nameof(timeline), nameof(RegisterEquivalency) + " encountered an exception: Timeline cannot be null");
 
             if (region.Equals(this) || region.IsDefault || EquivalentBaseRegions.Contains(region)) return;
 
             //Check that this region already has an equivalent region assigned to this slugcat
-            if (EquivalentRegions.TryGetValue(slugcat, out RegionProfile existingProfile))
+            if (EquivalentRegions.TryGetValue(timeline, out RegionProfile existingProfile))
             {
                 //Don't process if region has already been assigned for this slugcat
                 if (!existingProfile.IsDefault)
@@ -121,22 +123,22 @@ namespace ExpeditionRegionSupport.Regions.Data
                 }
 
                 Plugin.Logger.LogWarning("EquivalentRegions should not have empty values");
-                EquivalentRegions.Remove(slugcat);
+                EquivalentRegions.Remove(timeline);
             }
 
             if (Plugin.DebugMode)
             {
                 Plugin.Logger.LogInfo("Registration");
-                Plugin.Logger.LogInfo("Slugcat: " + slugcat);
+                Plugin.Logger.LogInfo("Timeline: " + timeline);
                 Plugin.Logger.LogInfo("Region targeted: " + region.RegionCode);
             }
 
             PendingEquivalency.Value = region;
 
-            if (!HasIllegalRelationships(region, slugcat))
+            if (!HasIllegalRelationships(region, timeline))
             {
                 Plugin.Logger.LogInfo("Applying equivalency relationship targeting " + RegionCode);
-                EquivalentRegions[slugcat] = region;
+                EquivalentRegions[timeline] = region;
 
                 if (!region.IsPermanentBaseRegion && !region.EquivalentBaseRegions.Contains(this)) //Prevent certain regions from having base equivalencies
                     region.EquivalentBaseRegions.Add(this);
@@ -148,22 +150,22 @@ namespace ExpeditionRegionSupport.Regions.Data
         /// <summary>
         /// Check for situations that would make an equivalency relationship with this region redundant, or incompatible 
         /// </summary>
-        public bool HasIllegalRelationships(RegionProfile region, SlugcatStats.Name slugcat)
+        public bool HasIllegalRelationships(RegionProfile region, SlugcatStats.Timeline timeline)
         {
             if (IsDefault) return true; //Default profile does not have established relationships
 
             //This is stored in the registering RegionProfile (the callback region), and is required to ensure complicated, but possible loop relationships are detected
-            if (!region.PendingEquivalency.Value.IsDefault && (slugcat == SlugcatUtils.AnySlugcat || !EquivalentRegions.ContainsKey(slugcat)))
+            if (!region.PendingEquivalency.Value.IsDefault && (timeline == SlugcatUtils.AnyTimeline || !EquivalentRegions.ContainsKey(timeline)))
                 region = region.PendingEquivalency.Value;
 
             //The AnySlugcat specification requires all slugcat relationships to be checked for illegal relationships
-            if (slugcat == SlugcatUtils.AnySlugcat)
+            if (timeline == SlugcatUtils.AnyTimeline)
             {
                 try
                 {
                     /* 
-                     * Encountering this flag already set to true indicates that this RegionProfile has already had its AnySlugcat relationship check earlier in the recursive process
-                     * This situation is always invalid as this indicates there is an illegal loop formed by AnySlugcat equivalency relationships. It will also cause this algorithm to
+                     * Encountering this flag already set to true indicates that this RegionProfile has already had its AnyTimeline relationship check earlier in the recursive process
+                     * This situation is always invalid as this indicates there is an illegal loop formed by AnyTimeline equivalency relationships. It will also cause this algorithm to
                      * endlessly check the same regions if we don't return here.
                      */
                     if (ValidationInProgress.Value)
@@ -187,9 +189,9 @@ namespace ExpeditionRegionSupport.Regions.Data
             bool hasIllegalRelationships = false;
             do
             {
-                RegionProfile regionCheck = region.GetRegionCandidate(slugcat);
+                RegionProfile regionCheck = region.GetRegionCandidate(timeline);
 
-                if (regionCheck.IsDefault) //The slugcat is not associated with any additional equivalent regions
+                if (regionCheck.IsDefault) //The slugcat timeline is not associated with any additional equivalent regions
                 {
                     continueLoop = false;
                 }
@@ -207,24 +209,24 @@ namespace ExpeditionRegionSupport.Regions.Data
         }
 
         /// <summary>
-        /// Gets the region profile of the region considered equivalent to this profile for a specific slugcat
+        /// Gets the region profile of the region considered equivalent to this profile for a specific slugcat timeline
         /// </summary>
-        public RegionProfile GetSlugcatEquivalentRegion(SlugcatStats.Name slugcat)
+        public RegionProfile GetEquivalentRegion(SlugcatStats.Timeline timeline)
         {
             if (IsDefault) return this;
 
-            slugcat = NormalizeSlugcatInput(slugcat);
+            timeline = NormalizeInput(timeline);
 
-            if (slugcat == SlugcatUtils.AnySlugcat) //There is no practical way of determining which region should be returned in this circumstance
+            if (timeline == SlugcatUtils.AnyTimeline) //There is no practical way of determining which region should be returned in this circumstance
                 return this;
 
-            return InternalGetSlugcatEquivalentRegion(slugcat, out _);
+            return InternalGetEquivalentRegion(timeline, out _);
         }
 
         /// <summary>
-        /// Gets the region profile of the region considered equivalent to this profile for a specific slugcat
+        /// Gets the region profile of the region considered equivalent to this profile for a specific slugcat timeline
         /// </summary>
-        public RegionProfile GetSlugcatEquivalentRegion(SlugcatStats.Name slugcat, out RegionProfile regionBaseEquivalent)
+        public RegionProfile GetEquivalentRegion(SlugcatStats.Timeline timeline, out RegionProfile regionBaseEquivalent)
         {
             if (IsDefault)
             {
@@ -232,15 +234,15 @@ namespace ExpeditionRegionSupport.Regions.Data
                 return this;
             }
 
-            slugcat = NormalizeSlugcatInput(slugcat);
+            timeline = NormalizeInput(timeline);
 
-            if (slugcat == SlugcatUtils.AnySlugcat) //There is no practical way of determining which region should be returned in this circumstance
+            if (timeline == SlugcatUtils.AnyTimeline) //There is no practical way of determining which region should be returned in this circumstance
             {
                 regionBaseEquivalent = GetEquivalentBaseRegion();
                 return this;
             }
 
-            return InternalGetSlugcatEquivalentRegion(slugcat, out regionBaseEquivalent);
+            return InternalGetEquivalentRegion(timeline, out regionBaseEquivalent);
         }
 
         /// <summary>
@@ -255,16 +257,16 @@ namespace ExpeditionRegionSupport.Regions.Data
             {
                 Plugin.Logger.LogInfo($"Multiple base regions for {RegionCode} detected. Choosing one");
 
-                //Regions with more lenient restrictions should be prioritized over regions with only slugcat-specific restrictions
+                //Regions with more lenient restrictions should be prioritized over regions with only timeline-specific restrictions
                 RegionProfile thisProfile = this;
                 RegionProfile baseProfile = EquivalentBaseRegions.Find(r => r.EquivalentRegions.Exists(checkEntry));
 
                 if (!baseProfile.IsDefault)
                     return baseProfile;
 
-                bool checkEntry(KeyValuePair<SlugcatStats.Name, RegionProfile> equivalencyEntry)
+                bool checkEntry(KeyValuePair<SlugcatStats.Timeline, RegionProfile> equivalencyEntry)
                 {
-                    return equivalencyEntry.Key == SlugcatUtils.AnySlugcat && equivalencyEntry.Value.Equals(thisProfile);
+                    return equivalencyEntry.Key == SlugcatUtils.AnyTimeline && equivalencyEntry.Value.Equals(thisProfile);
                 }
             }
 
@@ -287,29 +289,28 @@ namespace ExpeditionRegionSupport.Regions.Data
         }
 
         /// <summary>
-        /// Gets the base equivalent region that most closely associated with a vanilla/downpour region for a specified slugcat.
-        /// This will probably return the same result in most cases. The main difference is that this method prioritizes base regions
-        /// that target a specific slugcat.
+        /// Gets the base equivalent region that most closely associates with a vanilla/downpour region for a specified slugcat timeline.
         /// </summary>
-        public RegionProfile GetEquivalentBaseRegion(SlugcatStats.Name slugcat)
+        /// <remarks>This will probably return the same result in most cases. The main difference is that this method prioritizes base regions that target a specific timeline</remarks>
+        public RegionProfile GetEquivalentBaseRegion(SlugcatStats.Timeline timeline)
         {
-            slugcat = NormalizeSlugcatInput(slugcat);
+            timeline = NormalizeInput(timeline);
 
-            if (slugcat == SlugcatUtils.AnySlugcat)
+            if (timeline == SlugcatUtils.AnyTimeline)
                 return GetEquivalentBaseRegion();
 
-            return InternalGetEquivalentBaseRegion(slugcat);
+            return InternalGetEquivalentBaseRegion(timeline);
         }
 
         #region Internal Methods
 
-        internal RegionProfile InternalGetSlugcatEquivalentRegion(SlugcatStats.Name slugcat, out RegionProfile baseEquivalentRegion)
+        internal RegionProfile InternalGetEquivalentRegion(SlugcatStats.Timeline timeline, out RegionProfile baseEquivalentRegion)
         {
-            baseEquivalentRegion = InternalGetEquivalentBaseRegion(slugcat); //Region candidacy checking should start at a base equivalent region
-            return baseEquivalentRegion.GetRegionCandidateRecursive(slugcat);
+            baseEquivalentRegion = InternalGetEquivalentBaseRegion(timeline); //Region candidacy checking should start at a base equivalent region
+            return baseEquivalentRegion.GetRegionCandidateRecursive(timeline);
         }
 
-        internal RegionProfile InternalGetEquivalentBaseRegion(SlugcatStats.Name slugcat)
+        internal RegionProfile InternalGetEquivalentBaseRegion(SlugcatStats.Timeline timeline)
         {
             if (IsBaseRegion || IsDefault)
                 return this;
@@ -318,57 +319,57 @@ namespace ExpeditionRegionSupport.Regions.Data
             {
                 Plugin.Logger.LogInfo($"Multiple base regions for {RegionCode} detected. Choosing one");
 
-                RegionProfile mostRelevantBaseRegion = EquivalentBaseRegions.Find(r => r.EquivalentRegions.ContainsKey(slugcat));
+                RegionProfile mostRelevantBaseRegion = EquivalentBaseRegions.Find(r => r.EquivalentRegions.ContainsKey(timeline));
 
                 if (!mostRelevantBaseRegion.IsDefault)
                     return mostRelevantBaseRegion;
             }
 
-            return EquivalentBaseRegions[0].InternalGetEquivalentBaseRegion(slugcat); //Default to the first registered base
+            return EquivalentBaseRegions[0].InternalGetEquivalentBaseRegion(timeline); //Default to the first registered base
         }
 
         /// <summary>
-        /// Gets the most relevant equivalent region that is compatible with a specified slugcat
+        /// Gets the most relevant equivalent region that is compatible with a specified slugcat timeline
         /// </summary>
-        internal RegionProfile GetRegionCandidate(SlugcatStats.Name slugcat)
+        internal RegionProfile GetRegionCandidate(SlugcatStats.Timeline timeline)
         {
-            if (slugcat == SlugcatUtils.AnySlugcat)
+            if (timeline == SlugcatUtils.AnyTimeline)
             {
                 if (Plugin.DebugMode)
-                    throw new NotSupportedException("A slugcat must be specified for this operation");
+                    throw new NotSupportedException("A slugcat timeline must be specified for this operation");
 
-                Plugin.Logger.LogWarning("Returning a region candidate for any slugcat. Is this intentional?");
+                Plugin.Logger.LogWarning("Returning a region candidate without a specified slugcat timeline. Is this intentional?");
                 return EquivalentRegions.FirstOrDefault().Value;
             }
 
-            //Check that there is an equivalent region specific to this slugcat
-            EquivalentRegions.TryGetValue(slugcat, out RegionProfile equivalentRegion);
+            //Check that there is an equivalent region specific to this slugcat timeline
+            EquivalentRegions.TryGetValue(timeline, out RegionProfile equivalentRegion);
 
-            //If there are no slugcat specific equivalent regions, check for any unspecific equivalent regions
+            //If there are no timeline-specific equivalent regions, check for any unspecific equivalent regions
             if (equivalentRegion.IsDefault)
-                EquivalentRegions.TryGetValue(SlugcatUtils.AnySlugcat, out equivalentRegion);
+                EquivalentRegions.TryGetValue(SlugcatUtils.AnyTimeline, out equivalentRegion);
 
             return equivalentRegion;
         }
 
-        internal RegionProfile GetRegionCandidateRecursive(SlugcatStats.Name slugcat)
+        internal RegionProfile GetRegionCandidateRecursive(SlugcatStats.Timeline timeline)
         {
-            RegionProfile equivalentRegion = GetRegionCandidate(slugcat);
+            RegionProfile equivalentRegion = GetRegionCandidate(timeline);
 
             if (!equivalentRegion.IsDefault)
             {
                 //We found a valid equivalent region, but we're not finished. Check if that equivalent region has equivalent regions
-                return equivalentRegion.GetRegionCandidateRecursive(slugcat);
+                return equivalentRegion.GetRegionCandidateRecursive(timeline);
             }
             return this; //Return this when this is the most valid equivalent region
         }
 
         /// <summary>
-        /// Changes slugcat data into an expected format
+        /// Changes slugcat timeline data into an expected format
         /// </summary>
-        internal static SlugcatStats.Name NormalizeSlugcatInput(SlugcatStats.Name slugcat)
+        internal static SlugcatStats.Timeline NormalizeInput(SlugcatStats.Timeline timeline)
         {
-            return slugcat ?? SlugcatUtils.AnySlugcat; //Convert null value into another form
+            return timeline ?? SlugcatUtils.AnyTimeline; //Convert null value into another form
         }
 
         #endregion
@@ -431,7 +432,7 @@ namespace ExpeditionRegionSupport.Regions.Data
             IEnumerable<RegionProfile> nextNodeTier;
 
             if (NodeTreeForward)
-                nextNodeTier = EquivalentRegions.Values; //Ignore slugcat restrictions here
+                nextNodeTier = EquivalentRegions.Values; //Ignore timeline restrictions here
             else
                 nextNodeTier = EquivalentBaseRegions;
             return nextNodeTier.Select(node => node as ITreeNode);
@@ -444,7 +445,7 @@ namespace ExpeditionRegionSupport.Regions.Data
             int nodeCount = nodesAtThisDepth.Count();
             foreach (RegionProfile node in nodesAtThisDepth.OfType<RegionProfile>())
             {
-                string conditionsHeader = nodeCount == 1 ? "Slugcat Conditions" : $"Slugcat Conditions ({node.RegionCode})";
+                string conditionsHeader = nodeCount == 1 ? "Timeline Conditions" : $"Timeline Conditions ({node.RegionCode})";
 
                 Plugin.Logger.LogInfo(conditionsHeader);
                 Plugin.Logger.LogInfo(node.EquivalentRegions.Select(r => r.Key).FormatToString(','));
