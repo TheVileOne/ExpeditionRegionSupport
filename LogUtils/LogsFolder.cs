@@ -1,7 +1,6 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
-using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.Extensions;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties;
@@ -17,151 +16,170 @@ namespace LogUtils
     public static class LogsFolder
     {
         /// <summary>
-        /// The folder that will store log files
+        /// Event signals that the log directory is about to be moved, or renamed
+        /// </summary>
+        public static event Action OnMovePending;
+
+        /// <summary>
+        /// Event signals that the log directory was unable to be moved, or renamed
+        /// </summary>
+        public static event Action OnMoveAborted;
+
+        /// <summary>
+        /// Event signals that the log directory has successfully been moved, or renamed
+        /// </summary>
+        public static event Action OnMoveComplete;
+
+        /// <summary>
+        /// The default directory name
         /// </summary>
         public const string LOGS_FOLDER_NAME = "Logs";
 
         /// <summary>
-        /// StreamingAssets folder
+        /// A list of valid paths that may contain the log directory
         /// </summary>
-        public static readonly string AlternativePath = System.IO.Path.Combine(RainWorldPath.StreamingAssetsPath, LOGS_FOLDER_NAME);
+        public static readonly List<string> AvailablePaths = new List<string>();
 
         /// <summary>
-        /// Rain World root folder
+        /// The currently selected path (including directory name) of the log directory (whether it exists or not)
         /// </summary>
-        public static readonly string DefaultPath = System.IO.Path.Combine(RainWorldPath.RootPath, LOGS_FOLDER_NAME);
+        public static string CurrentPath { get; private set; }
 
         /// <summary>
-        /// The path to the Logs directory if it exists, otherwise null
+        /// The currently selected directory name
         /// </summary>
-        public static string Path { get; private set; }
-
-        public static string InitialPath { get; private set; }
-
-        public static string CustomPath { get; private set; }
+        public static string Name = LOGS_FOLDER_NAME;
 
         /// <summary>
-        /// PathCycler is responsible for moving forward, or backward through a collection of valid paths
+        /// Checks that log directory exists at its currently set path
         /// </summary>
-        public static PathCycler PathCycler;
+        public static bool Exists => Directory.Exists(CurrentPath);
 
-        public static bool HasInitialized;
+        /// <summary>
+        /// Checks a path against the current log directory path
+        /// </summary>
+        public static bool IsCurrentPath(string path) => PathUtils.PathsAreEqual(CurrentPath, path);
 
-        public static bool IsEnabled { get; private set; }
+        /// <summary>
+        /// A flag that indicates whether the log directory contains eligible log files
+        /// </summary>
+        public static bool IsManagingFiles { get; private set; }
 
+        /// <summary>
+        /// Moves eligible log files to current log directory
+        /// </summary>
         public static void Enable()
         {
-            if (!IsEnabled)
-                MoveFilesToFolder();
+            ProcessEligibleLogFiles();
         }
 
+        /// <summary>
+        /// Restores log files that are part of the current log directory to their original folder paths
+        /// </summary>
         public static void Disable()
         {
-            if (IsEnabled)
+            if (IsManagingFiles)
                 RestoreFiles();
         }
 
         /// <summary>
-        /// Checks a path against the current Logs directory path
+        /// Attempts to create a new log directory at the currently set path
         /// </summary>
-        public static bool IsCurrentPath(string path)
+        /// <remarks>This method does nothing when the folder already exists</remarks>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="IOException"></exception>
+        /// <exception cref="UnauthorizedAccessException"></exception>
+        public static void Create()
         {
-            if (path == null)
-                return false;
+            //The containing directory must exist to create this directory
+            if (!PathUtils.PathRootExists(CurrentPath, 1))
+                throw new DirectoryNotFoundException("Cannot create log directory. Current path does not exist");
 
-            UpdatePath();
-
-            string basePath = Path;
-            return PathUtils.PathsAreEqual(path, basePath);
+            //May throw UnauthroizedAccessException, or IOException, leave responsibility of caller to handle
+            UtilityLogger.Log("Creating log directory: " + CurrentPath);
+            Directory.CreateDirectory(CurrentPath);
         }
 
         /// <summary>
-        /// Check that a path matches one of the two supported Logs directories
+        /// Initializes the log directory path
         /// </summary>
-        public static bool IsLogsFolderPath(string path)
-        {
-            return PathUtils.PathsAreEqual(path, DefaultPath) || PathUtils.PathsAreEqual(path, AlternativePath);
-        }
-
-        /// <summary>
-        /// Establishes the path for the Logs directory, creating it if it doesn't exist. This is not called by LogUtils directly
-        /// </summary>
+        /// <remarks>LogUtils does not create this directory by default</remarks>
         public static void Initialize()
         {
-            if (HasInitialized) return;
+            AvailablePaths.Add(RainWorldPath.RootPath);            //Default path
+            AvailablePaths.Add(RainWorldPath.StreamingAssetsPath); //Alternate path
 
-            string errorMsg = null;
-            try
+            PathResult result = FindLogsDirectory();
+
+            string targetPath = result.Target;
+
+            if (targetPath == null)
             {
-                //SetPath creates the directory for us
-                SetPath(FindLogsDirectory());
-
-                if (IsLogsFolderPath(Path))
-                {
-                    //The alternative log path needs to be removed if it exists
-                    string alternativeLogPath = IsCurrentPath(DefaultPath) ? AlternativePath : DefaultPath;
-
-                    try
-                    {
-                        if (Directory.Exists(alternativeLogPath))
-                        {
-                            UtilityLogger.Log("Removing directory: " + alternativeLogPath);
-                            Directory.Delete(alternativeLogPath, true);
-                        }
-                    }
-                    catch
-                    {
-                        errorMsg = "Unable to delete log directory";
-                        throw;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                UtilityLogger.LogError(errorMsg ?? "Unable to create log directory", ex);
+                CurrentPath = Path.Combine(AvailablePaths[0], Name);
+                return;
             }
 
-            HasInitialized = true;
+            CurrentPath = targetPath;
+
+            if (result.IsResultFromPathHistory)
+                PathHistory.Update();
         }
 
         /// <summary>
-        /// Finds the full path to the Logs directory if it exists, checking the default path first, otherwise returns null
+        /// Checks existing path history, and available paths, and returns the first existing directory, or null if no directories exist
         /// </summary>
-        public static string FindExistingLogsDirectory()
+        public static PathResult FindLogsDirectory()
         {
-            if (Directory.Exists(DefaultPath))
-                return DefaultPath;
+            string[] pathHistory = PathHistory.ReadFromFile();
 
-            if (Directory.Exists(AlternativePath))
-                return AlternativePath;
+            //Find the last history entry that contains path info, and parse the path info from the string
+            string targetPath = null;
+            for (int i = pathHistory.Length; i >= 0; i--)
+            {
+                string entry = pathHistory[i];
+                int pathStart = entry.IndexOf("path:");
 
-            return null;
+                if (pathStart == -1) continue;
+
+                targetPath = entry.Substring(pathStart + 5); //Accounts for length of prefix
+                break;
+            }
+
+            if (targetPath != null && !Directory.Exists(targetPath))
+            {
+                UtilityLogger.Log("Could not find previous logs folder path - it may have been moved, or belongs to a temporary directory");
+                targetPath = null;
+            }
+
+            bool entryFound = targetPath != null; //The file contained a path to an existing log directory
+
+            if (!entryFound)
+            {
+                //Since we could not find this data in path history, we need to check if any of the available paths exist
+                targetPath = AvailablePaths.Find(root => Directory.Exists(Path.Combine(root, Name)));
+            }
+
+            PathResult result = new PathResult()
+            {
+                Target = targetPath,
+                IsResultFromPathHistory = entryFound
+            };
+            return result;
         }
 
         /// <summary>
-        /// Finds the full path to the Logs directory if it exists, otherwise returns the default path
-        /// </summary>
-        public static string FindLogsDirectory()
-        {
-            return FindExistingLogsDirectory() ?? DefaultPath;
-        }
-
-        /// <summary>
-        /// Returns log file IDs that have the Logs folder as a current folder path
+        /// Returns all registered LogIDs representing log files within the current log directory or otherwise target it as a write path
         /// </summary>
         public static IEnumerable<LogID> GetContainedLogFiles()
         {
-            if (Path == null)
-                return Array.Empty<LogID>();
-
-            return LogID.FindAll(properties => PathUtils.PathsAreEqual(properties.CurrentFolderPath, Path));
+            return LogID.FindAll(properties => PathUtils.PathsAreEqual(properties.CurrentFolderPath, CurrentPath));
         }
 
         public static void OnEligibilityChanged(LogEventArgs e)
         {
             LogProperties properties = e.Properties;
 
-            if (!properties.IsNewInstance) return; //Eligibility only applies to newly created log properties
+            if (!properties.IsNewInstance || !Exists) return; //Eligibility only applies to newly created log properties
 
             if (properties.LogsFolderEligible && properties.LogsFolderAware)
                 AddToFolder(properties);
@@ -169,36 +187,38 @@ namespace LogUtils
                 RemoveFromFolder(properties); //TODO: Need a way to ignore this when LogsFolderAware is set to false
         }
 
-        internal static void OnPathChanged(PathChangedEventArgs e)
+        internal static void ProcessEligibleLogFiles()
         {
-            //TODO: Finish event handler
-            string newPath = e.NewPath;
-            string oldPath = e.OldPath;
-
-            if (!Directory.Exists(newPath))
+            if (IsManagingFiles)
             {
-                UtilityLogger.Log("Creating directory: " + newPath);
-                Directory.CreateDirectory(newPath);
+                UtilityLogger.Log("Log directory already contains eligible log files");
+                return;
             }
-
-            //Searches all LogProperties that contain the old path, and migrate them to the new path
-            foreach (LogID logFile in LogID.FindAll(p => PathUtils.PathsAreEqual(p.CurrentFolderPath, Path)))
-            {
-                if (LogFile.Move(logFile, newPath) != FileStatus.MoveComplete)
-                    UtilityLogger.LogWarning("Unable to move log file");
-            }
+            MoveFilesToFolder();
         }
 
-        public static void MoveFilesToFolder()
+        internal static void MoveFilesToFolder()
         {
-            IsEnabled = Path != null;
+            if (!Exists)
+            {
+                UtilityLogger.Log("Unable to move files to log directory");
+                return;
+            }
+
+            IsManagingFiles = true;
             foreach (LogProperties properties in LogProperties.PropertyManager.Properties)
                 AddToFolder(properties);
         }
 
         public static void RestoreFiles()
         {
-            IsEnabled = false;
+            if (!Exists)
+            {
+                UtilityLogger.Log("No log files to restore");
+                return;
+            }
+
+            IsManagingFiles = false;
             foreach (LogProperties properties in LogProperties.PropertyManager.Properties)
                 RemoveFromFolder(properties);
         }
@@ -206,9 +226,9 @@ namespace LogUtils
         /// <summary>
         /// Transfers a log file to the Logs folder (when it exists)
         /// </summary>
-        public static void AddToFolder(LogProperties properties)
+        internal static void AddToFolder(LogProperties properties)
         {
-            if (Path == null || !UtilityCore.IsControllingAssembly) return;
+            if (!UtilityCore.IsControllingAssembly) return;
 
             LogID logFile = properties.ID;
 
@@ -218,7 +238,7 @@ namespace LogUtils
                 return;
             }
 
-            string newPath = Path;
+            string newPath = CurrentPath;
 
             LogFilename filename = logFile.Properties.AltFilename;
 
@@ -227,7 +247,7 @@ namespace LogUtils
                 if (!logFile.Properties.CurrentFilename.Equals(filename))
                     UtilityLogger.Log($"Renaming file to {filename}");
 
-                newPath = System.IO.Path.Combine(Path, filename.WithExtension());
+                newPath = Path.Combine(CurrentPath, filename.WithExtension());
             }
 
             if (!properties.FileExists)
@@ -248,9 +268,9 @@ namespace LogUtils
         /// <summary>
         /// Transfers a log file from the Logs folder (when it exists)
         /// </summary>
-        public static void RemoveFromFolder(LogProperties properties)
+        internal static void RemoveFromFolder(LogProperties properties)
         {
-            if (Path == null || !UtilityCore.IsControllingAssembly) return;
+            if (!UtilityCore.IsControllingAssembly) return;
 
             LogID logFile = properties.ID;
 
@@ -273,7 +293,7 @@ namespace LogUtils
             if (!properties.CurrentFilename.Equals(filename))
                 UtilityLogger.Log($"Renaming file to {filename}");
 
-            string newPath = System.IO.Path.Combine(properties.FolderPath, filename.WithExtension());
+            string newPath = Path.Combine(properties.FolderPath, filename.WithExtension());
 
             if (!properties.FileExists)
             {
@@ -285,36 +305,27 @@ namespace LogUtils
             LogFile.Move(logFile, newPath);
         }
 
-        public static bool TryMove(LogsFolderAccessToken accessToken, string path)
+        internal static bool TryMove(string path)
         {
             try
             {
-                Move(accessToken, path);
+                OnMovePending?.Invoke();
+                Move(path);
+
+                OnMoveComplete?.Invoke();
                 return true;
             }
-            catch (Exception ex)
+            catch
             {
-                UtilityLogger.LogError("Unable to move logs directory", ex);
-
-                foreach (LogID logFile in GetContainedLogFiles())
-                    logFile.Properties.NotifyPendingMoveAborted();
+                OnMoveAborted?.Invoke();
                 return false;
             }
         }
 
-        public static void Move(LogsFolderAccessToken accessToken, string path)
+        internal static void Move(string path)
         {
             if (path == null)
                 throw new ArgumentNullException("Path argument cannot be null");
-
-            string basePath = Path;
-            if (PathUtils.PathsAreEqual(path, basePath))
-                return;
-
-            bool canProceed = RequestAccess(accessToken, path);
-
-            if (!canProceed)
-                throw new InvalidOperationException("Unable to change path. Access is denied");
 
             var logFilesInFolder = GetContainedLogFiles();
 
@@ -336,7 +347,7 @@ namespace LogUtils
                             streamsToResume.AddRange(logFile.Properties.PersistentStreamHandles.InterruptAll());
                         }
                     }
-                    Directory.Move(basePath, path);
+                    Directory.Move(CurrentPath, path);
 
                     //Update path info for affected log files
                     foreach (LogID logFile in logFilesInFolder)
@@ -350,137 +361,87 @@ namespace LogUtils
             });
         }
 
-        public static bool TryCycle(LogsFolderAccessToken accessToken, bool cycleForward = true)
+        /// <summary>
+        /// Targets a directory path to contain a logs folder
+        /// </summary>
+        /// <param name="path">A valid directory path</param>
+        public static void SetContainingPath(string path)
         {
-            try
-            {
-                Cycle(accessToken, cycleForward);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                UtilityLogger.LogError("Unable to cycle logs directory", ex);
-
-                foreach (LogID logFile in GetContainedLogFiles())
-                    logFile.Properties.NotifyPendingMoveAborted();
-                return false;
-            }
-        }
-
-        public static void Cycle(LogsFolderAccessToken accessToken, bool cycleForward = true)
-        {
-            if (cycleForward)
-                PathCycler.CycleNext(accessToken);
-            else
-                PathCycler.CyclePrev(accessToken);
-
-            try
-            {
-                Move(accessToken, PathCycler.Result);
-            }
-            finally
-            {
-                PathCycler.Result = null;
-            }
-        }
-
-        internal static bool RequestAccess(LogsFolderAccessToken accessToken, string requestPath)
-        {
-            if (accessToken.Access == FolderAccess.Unrestricted)
-                return true;
-
-            bool hasPermission = false;
-            string basePath = Path;
-
-            //We need to check access permissions before we can touch any folders
-            FolderRelationship currentRelationship = GetAccessRelationship(accessToken, basePath);
-            FolderRelationship incomingRelationship = GetAccessRelationship(accessToken, requestPath);
-
-            if (currentRelationship != FolderRelationship.None)
-            {
-                switch (currentRelationship)
-                {
-                    case FolderRelationship.Familiar:
-                        hasPermission = true;
-                        break;
-                    case FolderRelationship.Base:
-                        hasPermission = accessToken.Access != FolderAccess.Strict;
-                        break;
-                    case FolderRelationship.Foreign:
-                        hasPermission = false;
-                        break;
-                }
-
-                if (hasPermission)
-                {
-                    switch (incomingRelationship)
-                    {
-                        case FolderRelationship.Familiar:
-                            hasPermission = true;
-                            break;
-                        case FolderRelationship.Base:
-                            hasPermission = accessToken.Access != FolderAccess.Strict;
-                            break;
-                        case FolderRelationship.Foreign:
-                            hasPermission = false;
-                            break;
-                    }
-                }
-            }
-            return hasPermission;
-        }
-
-        public static FolderRelationship GetAccessRelationship(LogsFolderAccessToken accessToken, string path)
-        {
-            if (path == null)
-                return FolderRelationship.None;
-
-            bool pathAllowed = Path.MatchAny(ComparerUtils.PathComparer, accessToken.AllowedPaths);
-
-            if (pathAllowed)
-                return FolderRelationship.Familiar;
-
-            if (IsLogsFolderPath(path))
-                return FolderRelationship.Base;
-
-            return FolderRelationship.Foreign;
+            string targetPath = Path.Combine(path, Name);
+            SetPath(targetPath);
         }
 
         /// <summary>
-        /// Sets the logs folder path to that of an existing directory
+        /// Targets a directory path to become the new logs folder
         /// </summary>
         /// <remarks>DO NOT set to any directory you don't want moved around</remarks>
         /// <param name="path">A valid directory path</param>
         public static void SetPath(string path)
         {
-            //Mods are responsible for creating directory, if the utility is unable to do so
-            if (!Directory.Exists(path))
-                throw new DirectoryNotFoundException(path);
+            if (IsCurrentPath(path))
+                return;
 
-            string currentPath = Path;
-            if (IsLogsFolderPath(path) && !IsCurrentPath(path))
+            string dirName = Path.GetFileName(path);
+
+            bool didMove = false;
+            if (!Exists || (didMove = TryMove(path))) //Path data must remain the same if the existing directory cannot be moved
             {
-                if (CustomPath == null) //Prioritize any custom paths over the initial path
-                    OnPathChanged(new PathChangedEventArgs(path, currentPath));
-
-                Path = InitialPath = path;
+                Name = dirName;
+                CurrentPath = Path.GetDirectoryName(path);
             }
-            else if (!PathUtils.PathsAreEqual(CustomPath, path))
-            {
-                if (path != null || InitialPath != null)
-                    OnPathChanged(new PathChangedEventArgs(path, currentPath));
 
-                CustomPath = path;
-                Path = CustomPath ?? InitialPath;
+            if (didMove) //Only record a path history event when the directory is moved, or renamed
+                PathHistory.Update();
+        }
+
+        internal static class PathHistory
+        {
+            public readonly static string FilePath = Path.Combine(RainWorldPath.StreamingAssetsPath, "logsfolder.history");
+
+            public static string[] ReadFromFile()
+            {
+                try
+                {
+                    if (File.Exists(FilePath))
+                        return File.ReadAllLines(FilePath);
+                }
+                catch
+                {
+                    UtilityLogger.LogWarning("Unable to read log folder history");
+                }
+                return [];
+            }
+
+            /// <summary>
+            /// Appends a new path entry into the path history file
+            /// </summary>
+            public static void Update()
+            {
+                try
+                {
+                    File.AppendAllText(FilePath, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - path:{CurrentPath}{Environment.NewLine}");
+                }
+                catch (Exception ex)
+                {
+                    UtilityLogger.LogError("Unable to update path history", ex);
+                }
             }
         }
 
         /// <summary>
-        /// Gets, and stores the full path to the Logs directory if it exists, otherwise sets Path to null if it doesn't exist
+        /// The result of a Logs folder path search
         /// </summary>
-        public static void UpdatePath()
+        public struct PathResult
         {
-            Path ??= FindExistingLogsDirectory();
+            /// <summary>
+            /// The result of a the path search
+            /// </summary>
+            public string Target;
+
+            /// <summary>
+            /// The result is associated with an accurate path record
+            /// </summary>
+            public bool IsResultFromPathHistory;
         }
     }
 }
