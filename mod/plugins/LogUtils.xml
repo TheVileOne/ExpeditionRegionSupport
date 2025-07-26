@@ -5743,16 +5743,6 @@
             A flag that indicates whether the log directory contains eligible log files
             </summary>
         </member>
-        <member name="M:LogUtils.LogsFolder.Enable">
-            <summary>
-            Moves eligible log files to current log directory
-            </summary>
-        </member>
-        <member name="M:LogUtils.LogsFolder.Disable">
-            <summary>
-            Restores log files that are part of the current log directory to their original folder paths
-            </summary>
-        </member>
         <member name="M:LogUtils.LogsFolder.Create">
             <summary>
             Attempts to create a new log directory at the currently set path
@@ -5776,6 +5766,16 @@
         <member name="M:LogUtils.LogsFolder.GetContainedLogFiles">
             <summary>
             Returns all registered LogIDs representing log files within the current log directory or otherwise target it as a write path
+            </summary>
+        </member>
+        <member name="M:LogUtils.LogsFolder.MoveFilesToFolder">
+            <summary>
+            Moves eligible log files to current log directory
+            </summary>
+        </member>
+        <member name="M:LogUtils.LogsFolder.RestoreFiles">
+            <summary>
+            Restores log files that are part of the current log directory to their original folder paths
             </summary>
         </member>
         <member name="M:LogUtils.LogsFolder.AddToFolder(LogUtils.Properties.LogProperties)">

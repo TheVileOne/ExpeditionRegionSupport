@@ -94,12 +94,12 @@ namespace LogUtils.Diagnostics
                     if (!LogsFolder.IsManagingFiles)
                     {
                         UtilityLogger.DebugLog("Enabled");
-                        LogsFolder.Enable();
+                        LogsFolder.MoveFilesToFolder();
                     }
                     else
                     {
                         UtilityLogger.DebugLog("Disabled");
-                        LogsFolder.Disable();
+                        LogsFolder.RestoreFiles();
                     }
                 }
                 catch (Exception ex)

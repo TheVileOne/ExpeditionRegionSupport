@@ -66,23 +66,6 @@ namespace LogUtils
         public static bool IsManagingFiles { get; private set; }
 
         /// <summary>
-        /// Moves eligible log files to current log directory
-        /// </summary>
-        public static void Enable()
-        {
-            ProcessEligibleLogFiles();
-        }
-
-        /// <summary>
-        /// Restores log files that are part of the current log directory to their original folder paths
-        /// </summary>
-        public static void Disable()
-        {
-            if (IsManagingFiles)
-                RestoreFiles();
-        }
-
-        /// <summary>
         /// Attempts to create a new log directory at the currently set path
         /// </summary>
         /// <remarks>This method does nothing when the folder already exists</remarks>
@@ -187,37 +170,43 @@ namespace LogUtils
                 RemoveFromFolder(properties); //TODO: Need a way to ignore this when LogsFolderAware is set to false
         }
 
-        internal static void ProcessEligibleLogFiles()
+        /// <summary>
+        /// Moves eligible log files to current log directory
+        /// </summary>
+        public static void MoveFilesToFolder()
         {
-            if (IsManagingFiles)
+            if (IsManagingFiles || !Exists)
             {
-                UtilityLogger.Log("Log directory already contains eligible log files");
+                string reportMessage;
+                if (IsManagingFiles)
+                    reportMessage = "Log files already moved";
+                else
+                    reportMessage = "Unable to move files to log directory";
+
+                UtilityLogger.Log(reportMessage);
                 return;
             }
-            MoveFilesToFolder();
-        }
-
-        internal static void MoveFilesToFolder()
-        {
-            if (!Exists)
-            {
-                UtilityLogger.Log("Unable to move files to log directory");
-                return;
-            }
-
             IsManagingFiles = true;
             foreach (LogProperties properties in LogProperties.PropertyManager.Properties)
                 AddToFolder(properties);
         }
 
+        /// <summary>
+        /// Restores log files that are part of the current log directory to their original folder paths
+        /// </summary>
         public static void RestoreFiles()
         {
-            if (!Exists)
+            if (!IsManagingFiles || !Exists)
             {
-                UtilityLogger.Log("No log files to restore");
+                string reportMessage;
+                if (!IsManagingFiles)
+                    reportMessage = "Log files already restored";
+                else
+                    reportMessage = "No log files to restore";
+
+                UtilityLogger.Log(reportMessage);
                 return;
             }
-
             IsManagingFiles = false;
             foreach (LogProperties properties in LogProperties.PropertyManager.Properties)
                 RemoveFromFolder(properties);
