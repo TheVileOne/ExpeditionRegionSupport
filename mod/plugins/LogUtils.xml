@@ -4599,6 +4599,11 @@
             Find an immediate child node with a given value, otherwise null
             </summary>
         </member>
+        <member name="M:LogUtils.Helpers.FileHandling.DirectoryUtils.ParentExists(System.String)">
+            <summary>
+            Determines if the given path has an existing parent directory
+            </summary>
+        </member>
         <member name="F:LogUtils.Helpers.FileHandling.FileUtils.BRACKET_FORMAT">
             <summary>
             Used to attach information to a filename
@@ -4656,6 +4661,11 @@
             <param name="path">The path to check</param>
             <param name="dirName">The directory name to search for</param>
             <param name="dirLevelsToCheck">The number of directory separators to check starting from the right</param>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.ContainsOtherPath(System.String,System.String)">
+            <summary>
+            Checks the second path is contained with the first path
+            </summary>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.FindCommonRoot(System.String,System.String)">
             <summary>
@@ -5718,12 +5728,17 @@
             A list of valid paths that may contain the log directory
             </summary>
         </member>
+        <member name="P:LogUtils.LogsFolder.ContainingPath">
+            <summary>
+            The path containing, or selected to contain the log directory
+            </summary>
+        </member>
         <member name="P:LogUtils.LogsFolder.CurrentPath">
             <summary>
             The currently selected path (including directory name) of the log directory (whether it exists or not)
             </summary>
         </member>
-        <member name="F:LogUtils.LogsFolder.Name">
+        <member name="P:LogUtils.LogsFolder.Name">
             <summary>
             The currently selected directory name
             </summary>
@@ -5760,7 +5775,7 @@
         </member>
         <member name="M:LogUtils.LogsFolder.FindLogsDirectory">
             <summary>
-            Checks existing path history, and available paths, and returns the first existing directory, or null if no directories exist
+            Checks existing path history, and available paths, and returns the first existing directory, or null if none of the directory candidates exist
             </summary>
         </member>
         <member name="M:LogUtils.LogsFolder.GetContainedLogFiles">

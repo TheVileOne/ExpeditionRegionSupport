@@ -70,6 +70,11 @@ namespace LogUtils
         /// </summary>
         public static bool IsManagingFiles { get; private set; }
 
+        static LogsFolder()
+        {
+            UtilityCore.EnsureInitializedState();
+        }
+
         /// <summary>
         /// Attempts to create a new log directory at the currently set path
         /// </summary>
@@ -80,8 +85,8 @@ namespace LogUtils
         public static void Create()
         {
             //The containing directory must exist to create this directory
-            if (!PathUtils.PathRootExists(CurrentPath, 1))
-                throw new DirectoryNotFoundException("Cannot create log directory. Current path does not exist");
+            if (!Directory.Exists(ContainingPath))
+                throw new DirectoryNotFoundException("Cannot create log directory - Containing path does not exist");
 
             //May throw UnauthroizedAccessException, or IOException, leave responsibility of caller to handle
             UtilityLogger.Log("Creating log directory: " + CurrentPath);
@@ -190,17 +195,21 @@ namespace LogUtils
         {
             if (!UtilityCore.IsControllingAssembly) return;
 
-            if (IsManagingFiles || !Exists)
+            if (!Exists)
             {
-                string reportMessage;
-                if (IsManagingFiles)
-                    reportMessage = "Log files already moved";
-                else
-                    reportMessage = "Unable to move files to log directory";
-
-                UtilityLogger.Log(reportMessage);
+                UtilityLogger.Log("Logs folder unavailable - Files not moved");
                 return;
             }
+
+            UtilityLogger.Log("Logs folder available");
+
+            if (IsManagingFiles)
+            {
+                UtilityLogger.Log("Log files already in folder");
+                return;
+            }
+
+            UtilityLogger.Log("Moving eligible log files");
             IsManagingFiles = true;
             foreach (LogProperties properties in LogProperties.PropertyManager.Properties)
                 AddToFolder(properties);
