@@ -41,6 +41,17 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <summary>
+        /// Checks the second path is contained with the first path
+        /// </summary>
+        public static bool ContainsOtherPath(string path, string pathOther)
+        {
+            path = Path.GetFullPath(path);
+            pathOther = Path.GetFullPath(pathOther);
+
+            return path.StartsWith(pathOther, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        /// <summary>
         /// Finds a path string that two provided paths have in common
         /// </summary>
         public static string FindCommonRoot(string path, string pathOther)

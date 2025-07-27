@@ -41,14 +41,19 @@ namespace LogUtils
         public static readonly List<string> AvailablePaths = new List<string>();
 
         /// <summary>
+        /// The path containing, or selected to contain the log directory
+        /// </summary>
+        public static string ContainingPath { get; private set; }
+
+        /// <summary>
         /// The currently selected path (including directory name) of the log directory (whether it exists or not)
         /// </summary>
-        public static string CurrentPath { get; private set; }
+        public static string CurrentPath => Path.Combine(ContainingPath, Name);
 
         /// <summary>
         /// The currently selected directory name
         /// </summary>
-        public static string Name = LOGS_FOLDER_NAME;
+        public static string Name { get; private set; }
 
         /// <summary>
         /// Checks that log directory exists at its currently set path
@@ -92,24 +97,27 @@ namespace LogUtils
             AvailablePaths.Add(RainWorldPath.RootPath);            //Default path
             AvailablePaths.Add(RainWorldPath.StreamingAssetsPath); //Alternate path
 
+            Name = LOGS_FOLDER_NAME;
+
             PathResult result = FindLogsDirectory();
 
             string targetPath = result.Target;
 
             if (targetPath == null)
             {
-                CurrentPath = Path.Combine(AvailablePaths[0], Name);
+                ContainingPath = AvailablePaths[0];
                 return;
             }
 
-            CurrentPath = targetPath;
+            ContainingPath = Path.GetDirectoryName(targetPath);
+            Name = Path.GetFileName(targetPath);
 
             if (!result.IsResultFromPathHistory)
                 PathHistory.Update();
         }
 
         /// <summary>
-        /// Checks existing path history, and available paths, and returns the first existing directory, or null if no directories exist
+        /// Checks existing path history, and available paths, and returns the first existing directory, or null if none of the directory candidates exist
         /// </summary>
         public static PathResult FindLogsDirectory()
         {
@@ -117,7 +125,7 @@ namespace LogUtils
 
             //Find the last history entry that contains path info, and parse the path info from the string
             string targetPath = null;
-            for (int i = pathHistory.Length - 1; i > 0; i--)
+            for (int i = pathHistory.Length - 1; i >= 0; i--)
             {
                 string entry = pathHistory[i];
                 int pathStart = entry.IndexOf("path:");
@@ -305,16 +313,21 @@ namespace LogUtils
 
         internal static bool TryMove(string path)
         {
+            if (!UtilityCore.IsControllingAssembly || !Exists || !DirectoryUtils.ParentExists(path) || PathUtils.ContainsOtherPath(CurrentPath, path))
+                return false;
             try
             {
+                UtilityLogger.Log($"Attempting to move log directory");
                 OnMovePending?.Invoke();
                 Move(path);
 
+                UtilityLogger.Log($"Move successful");
                 OnMoveComplete?.Invoke();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                UtilityLogger.LogError(ex);
                 OnMoveAborted?.Invoke();
                 return false;
             }
@@ -322,12 +335,6 @@ namespace LogUtils
 
         internal static void Move(string path)
         {
-            if (path == null)
-                throw new ArgumentNullException("Path argument cannot be null");
-
-            if (!UtilityCore.IsControllingAssembly)
-                throw new InvalidOperationException("Unable to move log directory from an alternate Rain World process");
-
             var logFilesInFolder = GetContainedLogFiles();
 
             ThreadSafeWorker worker = new ThreadSafeWorker(logFilesInFolder.Select(logFile => logFile.Properties.FileLock));
@@ -379,16 +386,13 @@ namespace LogUtils
         /// <param name="path">A valid directory path</param>
         public static void SetPath(string path)
         {
-            if (IsCurrentPath(path))
-                return;
-
-            string dirName = Path.GetFileName(path);
+            if (IsCurrentPath(path)) return;
 
             bool didMove = false;
             if (!Exists || (didMove = TryMove(path))) //Path data must remain the same if the existing directory cannot be moved
             {
-                Name = dirName;
-                CurrentPath = Path.GetDirectoryName(path);
+                ContainingPath = Path.GetDirectoryName(path);
+                Name = Path.GetFileName(path);
             }
 
             if (didMove) //Only record a path history event when the directory is moved, or renamed
