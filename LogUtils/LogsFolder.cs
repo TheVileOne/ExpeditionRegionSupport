@@ -104,7 +104,7 @@ namespace LogUtils
 
             CurrentPath = targetPath;
 
-            if (result.IsResultFromPathHistory)
+            if (!result.IsResultFromPathHistory)
                 PathHistory.Update();
         }
 
@@ -117,7 +117,7 @@ namespace LogUtils
 
             //Find the last history entry that contains path info, and parse the path info from the string
             string targetPath = null;
-            for (int i = pathHistory.Length; i >= 0; i--)
+            for (int i = pathHistory.Length - 1; i > 0; i--)
             {
                 string entry = pathHistory[i];
                 int pathStart = entry.IndexOf("path:");
@@ -139,7 +139,12 @@ namespace LogUtils
             if (!entryFound)
             {
                 //Since we could not find this data in path history, we need to check if any of the available paths exist
-                targetPath = AvailablePaths.Find(root => Directory.Exists(Path.Combine(root, Name)));
+                foreach (string path in AvailablePaths)
+                {
+                    if (Directory.Exists(targetPath = Path.Combine(path, Name)))
+                        break;
+                    targetPath = null; //We need to reset if we don't find the correct path
+                }
             }
 
             PathResult result = new PathResult()
@@ -406,6 +411,7 @@ namespace LogUtils
             /// </summary>
             public static void Update()
             {
+                UtilityLogger.Log("Updating path history");
                 try
                 {
                     File.AppendAllText(FilePath, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - path:{CurrentPath}{Environment.NewLine}");
