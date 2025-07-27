@@ -180,6 +180,8 @@ namespace LogUtils
         /// </summary>
         public static void MoveFilesToFolder()
         {
+            if (!UtilityCore.IsControllingAssembly) return;
+
             if (IsManagingFiles || !Exists)
             {
                 string reportMessage;
@@ -201,6 +203,8 @@ namespace LogUtils
         /// </summary>
         public static void RestoreFiles()
         {
+            if (!UtilityCore.IsControllingAssembly) return;
+
             if (!IsManagingFiles || !Exists)
             {
                 string reportMessage;
@@ -320,6 +324,9 @@ namespace LogUtils
         {
             if (path == null)
                 throw new ArgumentNullException("Path argument cannot be null");
+
+            if (!UtilityCore.IsControllingAssembly)
+                throw new InvalidOperationException("Unable to move log directory from an alternate Rain World process");
 
             var logFilesInFolder = GetContainedLogFiles();
 
