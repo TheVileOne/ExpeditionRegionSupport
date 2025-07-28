@@ -326,16 +326,19 @@ namespace LogUtils
                 return false;
             try
             {
-                UtilityLogger.Log($"Attempting to move log directory");
+                UtilityLogger.Log("Attempting to move log directory");
+                UtilityLogger.DebugLog("Attempting to move log directory");
                 OnMovePending?.Invoke();
                 Move(path);
 
-                UtilityLogger.Log($"Move successful");
+                UtilityLogger.Log("Move successful");
+                UtilityLogger.DebugLog("Move successful");
                 OnMoveComplete?.Invoke();
                 return true;
             }
             catch (Exception ex)
             {
+                UtilityLogger.DebugLog(ex);
                 UtilityLogger.LogError(ex);
                 OnMoveAborted?.Invoke();
                 return false;
@@ -350,19 +353,23 @@ namespace LogUtils
 
             worker.DoWork(() =>
             {
-                var streamsToResume = new List<StreamResumer>();
+                List<MessageBuffer> activeBuffers = new List<MessageBuffer>();
+                List<StreamResumer> streamsToResume = new List<StreamResumer>();
                 try
                 {
-                    using (UtilityCore.RequestHandler.BeginCriticalSection())
+                    UtilityCore.RequestHandler.BeginCriticalSection();
+                    foreach (LogID logFile in logFilesInFolder)
                     {
-                        foreach (LogID logFile in logFilesInFolder)
-                        {
-                            logFile.Properties.FileLock.SetActivity(logFile, FileAction.Move); //Lock activated by ThreadSafeWorker
-                            logFile.Properties.NotifyPendingMove(path);
+                        MessageBuffer writeBuffer = logFile.Properties.WriteBuffer;
 
-                            //The move operation requires that all persistent file activity be closed until move is complete
-                            streamsToResume.AddRange(logFile.Properties.PersistentStreamHandles.InterruptAll());
-                        }
+                        writeBuffer.SetState(true, BufferContext.CriticalArea);
+                        activeBuffers.Add(writeBuffer);
+
+                        logFile.Properties.FileLock.SetActivity(logFile, FileAction.Move); //Lock activated by ThreadSafeWorker
+                        logFile.Properties.NotifyPendingMove(path);
+
+                        //The move operation requires that all persistent file activity be closed until move is complete
+                        streamsToResume.AddRange(logFile.Properties.PersistentStreamHandles.InterruptAll());
                     }
                     Directory.Move(CurrentPath, path);
 
@@ -374,6 +381,8 @@ namespace LogUtils
                 {
                     //Reopen the streams
                     streamsToResume.ResumeAll();
+                    activeBuffers.ForEach(buffer => buffer.SetState(false, BufferContext.CriticalArea));
+                    UtilityCore.RequestHandler.EndCriticalSection();
                 }
             });
         }
