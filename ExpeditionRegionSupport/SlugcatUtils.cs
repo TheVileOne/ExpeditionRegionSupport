@@ -1,5 +1,6 @@
 ﻿using MoreSlugcats;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace ExpeditionRegionSupport
@@ -9,7 +10,9 @@ namespace ExpeditionRegionSupport
         /// <summary>
         /// Represents a group inclusive SlugcatStats.Name instance 
         /// </summary>
-        public static SlugcatStats.Name AnySlugcat = new SlugcatStats.Name("ANY");
+        public static SlugcatStats.Timeline AnyTimeline = new SlugcatStats.Timeline("ANY");
+
+        public static IEnumerable<SlugcatStats.Name> AllSlugcats => ExtEnumBase.GetNames(typeof(SlugcatStats.Name)).Select(s => new SlugcatStats.Name(s));
 
         public static readonly SlugcatStats.Name[] VanillaSlugcats =
         {

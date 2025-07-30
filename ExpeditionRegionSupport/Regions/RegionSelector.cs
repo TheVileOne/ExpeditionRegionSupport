@@ -285,7 +285,7 @@ namespace ExpeditionRegionSupport.Regions
                 if (shouldEnforceRegionEquivalencies)
                 {
                     //Disallows slugcats from spawning in alternate versions of regions unless they are allowed to spawn in that region
-                    regionExcluded = regionCode != RegionUtils.GetSlugcatEquivalentRegion(regionCode, ActiveSlugcat);
+                    regionExcluded = regionCode != RegionUtils.GetEquivalentRegion(regionCode, SlugcatStats.SlugcatToTimeline(ActiveSlugcat));
                 }
             }
 

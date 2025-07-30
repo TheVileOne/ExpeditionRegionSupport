@@ -121,24 +121,30 @@ namespace ExpeditionRegionSupport.Interface
         {
             ILCursor cursor = new ILCursor(il);
 
-            cursor.GotoNext(MoveType.After, x => x.MatchStloc(3));
+            //There is a list of availableChallengeTypes that gets processed. Find an injection point to branch over that process
+            cursor.GotoNext(MoveType.After, x => x.MatchStfld<FilterDialog>(nameof(FilterDialog.checkBoxes)));
+            cursor.GotoNext(MoveType.After, x => x.MatchStloc(out _));
             cursor.Emit(OpCodes.Ldarg_0);
             cursor.EmitDelegate<Func<FilterDialog, bool>>(d => d is ExpeditionSettingsDialog);
 
-            //Branch to cancel button logic 
+            //Branch to cancel button selectable logic
             cursor.BranchTo(OpCodes.Brtrue, MoveType.Before,
                 x => x.MatchLdarg(0),
                 x => x.MatchLdfld<FilterDialog>(nameof(FilterDialog.cancelButton)));
 
             //Go to before loop processing Challenge filters. ExpeditionSettingsDialog doesn't need any of this logic in the loop to run
-            cursor.GotoNext(MoveType.Before,
+            for (int i = 0; i < 2; i++)
+            {
+                cursor.GotoNext(MoveType.After, //Go past two local integers before the loop indexer
                 x => x.MatchLdcI4(0),
-                x => x.MatchStloc(6));
+                x => x.MatchStloc(out _));
+            }
 
             cursor.Emit(OpCodes.Ldarg_0);
-            cursor.EmitDelegate<Func<FilterDialog, bool>>(d =>
+
+            static bool initializeSettingsDialog(FilterDialog dialog)
             {
-                ExpeditionSettingsDialog settingsDialog = d as ExpeditionSettingsDialog;
+                ExpeditionSettingsDialog settingsDialog = dialog as ExpeditionSettingsDialog;
 
                 if (settingsDialog != null)
                 {
@@ -146,7 +152,8 @@ namespace ExpeditionRegionSupport.Interface
                     return true;
                 }
                 return false;
-            });
+            }
+            cursor.EmitDelegate(initializeSettingsDialog);
 
             //Branch over loop
             cursor.BranchTo(OpCodes.Brtrue, MoveType.Before,
@@ -163,20 +170,29 @@ namespace ExpeditionRegionSupport.Interface
         {
             ILCursor cursor = new ILCursor(il);
 
-            cursor.GotoNext(MoveType.After, //This is just after label is added to this.challengeTypes
-                x => x.MatchLdloc(7),
-                x => x.Match(OpCodes.Callvirt));
+            int localMenuLabelID = 0,
+                localCheckBoxID = 0,
+                localSpriteID = 0;
+
+            cursor.GotoNext(MoveType.After,
+                x => x.MatchLdfld<FilterDialog>(nameof(FilterDialog.challengeTypes)),
+                x => x.MatchLdloc(out localMenuLabelID)); //Get local id for created MenuLabel
+
+            //Jump to first branch over position
+
+            cursor.GotoNext(MoveType.After, x => x.Match(OpCodes.Callvirt)); //This Callvirt adds a MenuLabel to challengeTypes
 
             //First subObjects branch over
 
             cursor.BranchTo( //Branch past second reference to label
-                x => x.MatchLdloc(7),
+                x => x.MatchLdloc(localMenuLabelID),
                 x => x.Match(OpCodes.Callvirt));
 
             //Replace CheckBox
 
-            cursor.GotoNext(MoveType.After, x => x.MatchNewobj(typeof(CheckBox))); //Go to CheckBox instantiation
-            cursor.Emit(OpCodes.Ldloc, 7); //Get MenuLabel
+            cursor.GotoNext(MoveType.After, x => x.MatchNewobj<CheckBox>()); //Go to CheckBox instantiation
+            cursor.GotoNext(MoveType.Before, x => x.MatchStloc(out localCheckBoxID)); //Get local id for created CheckBox
+            cursor.Emit(OpCodes.Ldloc, localMenuLabelID);
             cursor.EmitDelegate(replaceCheckBox); //Takes a CheckBox, and MenuLabel as arguments
 
             //Second subObjects branch over
@@ -186,10 +202,14 @@ namespace ExpeditionRegionSupport.Interface
                 x => x.MatchLdfld<Menu.Menu>(nameof(Menu.Menu.pages)));
 
             cursor.BranchTo(
-                x => x.MatchLdloc(8),
+                x => x.MatchLdloc(localCheckBoxID),
                 x => x.Match(OpCodes.Callvirt));
 
             //Branch over divider handling
+
+            cursor.GotoNext(MoveType.After,
+                x => x.MatchNewobj<FSprite>(), //Go to FSprite instantiation
+                x => x.MatchStloc(out localSpriteID)); //Get local id for created FSprite
 
             cursor.GotoNext(MoveType.Before,
                 x => x.MatchLdarg(0),
@@ -197,7 +217,7 @@ namespace ExpeditionRegionSupport.Interface
 
             cursor.BranchTo(
                 x => x.MatchLdfld<FilterDialog>(nameof(FilterDialog.dividers)),
-                x => x.MatchLdloc(9),
+                x => x.MatchLdloc(localSpriteID),
                 x => x.Match(OpCodes.Callvirt));
         }
 

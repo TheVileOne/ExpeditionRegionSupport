@@ -5,7 +5,7 @@ namespace ExpeditionRegionSupport.Regions
     public class RegionsCache : SimpleListCache<string>
     {
         /// <summary>
-        /// The current/last active slugcat to be associated with cached region data
+        /// The slugcat associated with cached region data
         /// </summary>
         public SlugcatStats.Name LastAccessed;
         public string RegionCode;

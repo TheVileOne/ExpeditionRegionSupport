@@ -51,16 +51,16 @@ namespace ExpeditionRegionSupport.Regions
         }
 
         /// <summary>
-        /// Gets the proper region equivalent of the region code for a particular slugcat
+        /// Gets the proper region equivalent of the region code for a particular slugcat timeline
         /// </summary>
         /// <param name="regionBaseEquivalent">The slugcat independent region code equivalent</param>
-        public string GetSlugcatEquivalentRegion(string regionCode, SlugcatStats.Name slugcat, out string regionBaseEquivalent)
+        public string GetEquivalentRegion(string regionCode, SlugcatStats.Timeline timeline, out string regionBaseEquivalent)
         {
             RegionProfile regionProfile = FindProfile(regionCode);
 
             if (!regionProfile.IsDefault)
             {
-                regionProfile = regionProfile.GetSlugcatEquivalentRegion(slugcat, out RegionProfile baseProfile);
+                regionProfile = regionProfile.GetEquivalentRegion(timeline, out RegionProfile baseProfile);
 
                 regionBaseEquivalent = baseProfile.RegionCode;
                 return regionProfile.RegionCode;
@@ -71,14 +71,14 @@ namespace ExpeditionRegionSupport.Regions
         }
 
         /// <summary>
-        /// Gets the proper region equivalent of the region code for a particular slugcat
+        /// Gets the proper region equivalent of the region code for a particular slugcat timeline
         /// </summary>
-        public string GetSlugcatEquivalentRegion(string regionCode, SlugcatStats.Name slugcat)
+        public string GetEquivalentRegion(string regionCode, SlugcatStats.Timeline timeline)
         {
             RegionProfile regionProfile = FindProfile(regionCode);
 
             if (!regionProfile.IsDefault)
-                return regionProfile.GetSlugcatEquivalentRegion(slugcat).RegionCode;
+                return regionProfile.GetEquivalentRegion(timeline).RegionCode;
 
             return regionCode;
         }
