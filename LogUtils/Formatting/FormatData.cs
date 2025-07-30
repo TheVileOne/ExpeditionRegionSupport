@@ -150,7 +150,7 @@ namespace LogUtils.Formatting
                     {
                         string unprocessedBuildString = currentBuilder.ToString().Substring(currentBuilder.Length - numCharsSinceLastArgument);
 
-                        UtilityLogger.DebugLog($"'{unprocessedBuildString}' will remain at the last assigned color");
+                        //UtilityLogger.DebugLog($"'{unprocessedBuildString}' will remain at the last assigned color");
                     }
                     currentBuildEntry.LastCheckedBuildLength = currentBuilder.Length;
                     return false;
