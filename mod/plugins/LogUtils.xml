@@ -4984,6 +4984,11 @@
             The value of the filename without extension
             </summary>
         </member>
+        <member name="F:LogUtils.LogFilename.IsValid">
+            <summary>
+            Does the value represent a valid filename
+            </summary>
+        </member>
         <member name="M:LogUtils.LogFilename.#ctor(System.String)">
             <summary>
             Constructs a LogFilename instance
