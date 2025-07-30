@@ -91,15 +91,15 @@ namespace LogUtils.Diagnostics
                 try
                 {
                     //Alternate between having log files in the Logs folder, and having them at their original location
-                    if (!LogsFolder.IsEnabled)
+                    if (!LogsFolder.IsManagingFiles)
                     {
                         UtilityLogger.DebugLog("Enabled");
-                        LogsFolder.Enable();
+                        LogsFolder.MoveFilesToFolder();
                     }
                     else
                     {
                         UtilityLogger.DebugLog("Disabled");
-                        LogsFolder.Disable();
+                        LogsFolder.RestoreFiles();
                     }
                 }
                 catch (Exception ex)

@@ -7,6 +7,22 @@ namespace LogUtils.Helpers.FileHandling
 {
     public static class DirectoryUtils
     {
+        /// <summary>
+        /// Determines if the given path has an existing parent directory
+        /// </summary>
+        public static bool ParentExists(string path)
+        {
+            if (PathUtils.IsEmpty(path) || path.Length <= 2) return false;
+
+            return Directory.Exists(Path.GetDirectoryName(path));
+
+            //if (Path.IsPathRooted(path))
+            //{
+            //    if (path[1] != Path.VolumeSeparatorChar) //This is not a full path
+            //        path = Path.GetFullPath(path);
+            //}
+        }
+
         public static void SafeDelete(string path, bool deleteOnlyIfEmpty, string customErrorMsg = null)
         {
             try
