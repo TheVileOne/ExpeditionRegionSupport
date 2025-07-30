@@ -17,6 +17,11 @@ namespace LogUtils
         internal readonly string Value;
 
         /// <summary>
+        /// Does the value represent a valid filename
+        /// </summary>
+        public readonly bool IsValid;
+
+        /// <summary>
         /// Constructs a LogFilename instance
         /// </summary>
         /// <param name="value">A filename string without path information</param>
@@ -36,7 +41,8 @@ namespace LogUtils
             if (value == null)
                 throw new ArgumentNullException(nameof(value));
 
-            Value = value;
+            Value = value.Trim();
+            IsValid = Value != string.Empty;
 
             if (fileExt != null && !FileUtils.IsSupportedExtension(fileExt))
             {
@@ -104,10 +110,7 @@ namespace LogUtils
         /// <inheritdoc/>
         public bool Equals(LogFilename filenameOther)
         {
-            if (filenameOther == null)
-                return false;
-
-            return Equals(filenameOther.Value);
+            return ReferenceEquals(this, filenameOther) || Equals(filenameOther.Value);
         }
 
         /// <inheritdoc/>
