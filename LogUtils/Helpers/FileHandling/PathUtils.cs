@@ -41,6 +41,17 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <summary>
+        /// Checks the second path is contained with the first path
+        /// </summary>
+        public static bool ContainsOtherPath(string path, string pathOther)
+        {
+            path = Path.GetFullPath(path);
+            pathOther = Path.GetFullPath(pathOther);
+
+            return path.StartsWith(pathOther, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        /// <summary>
         /// Finds a path string that two provided paths have in common
         /// </summary>
         public static string FindCommonRoot(string path, string pathOther)
@@ -100,22 +111,38 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <summary>
-        /// Checks that some portion of a path exists
+        /// Checks the path directory and parents of that directory for an existing directory
         /// </summary>
-        public static bool PathRootExists(string path)
+        public static bool PathRootExists(string path, int parentDirChecksAllowed = 3)
         {
-            if (IsEmpty(path)) return false;
+            if (IsEmpty(path))
+                return false;
 
-            path = PathWithoutFilename(path);
+            path = FindExistingPathRootRecursive(PathWithoutFilename(path), parentDirChecksAllowed);
+            return path != null;
+        }
 
-            short maxPathChecksAllowed = 3; //The maximum number of containing paths to check
-            for (int i = 0; i < maxPathChecksAllowed; i++)
-            {
-                if (Directory.Exists(path))
-                    return true;
-                path = Path.GetDirectoryName(path);
-            }
-            return false;
+        /// <summary>
+        /// Checks the path directory and parents of that directory for an existing directory
+        /// </summary>
+        /// <returns>The portion of the path that exists</returns>
+        public static string FindExistingPathRoot(string path, int parentDirChecksAllowed = 3)
+        {
+            if (IsEmpty(path))
+                return null;
+
+            path = FindExistingPathRootRecursive(PathWithoutFilename(path), parentDirChecksAllowed);
+            return path;
+        }
+
+        internal static string FindExistingPathRootRecursive(string path, int parentDirChecksAllowed)
+        {
+            if (path == null || Directory.Exists(path))
+                return path;
+
+            if (parentDirChecksAllowed > 1)
+                return FindExistingPathRootRecursive(Path.GetDirectoryName(path), parentDirChecksAllowed - 1);
+            return null;
         }
 
         /// <summary>

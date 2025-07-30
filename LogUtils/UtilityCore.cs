@@ -182,6 +182,8 @@ namespace LogUtils
                     }
                 case UtilitySetup.InitializationStep.INITIALIZE_ENUMS:
                     {
+                        LogsFolder.Initialize();
+
                         //These are initialized after components, because they internally depend on SharedDataHandler
                         ConsoleID.InitializeEnums();
                         LogCategory.InitializeEnums();

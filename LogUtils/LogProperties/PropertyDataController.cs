@@ -56,8 +56,6 @@ namespace LogUtils.Properties
 
         internal void ProcessLogFiles()
         {
-            LogsFolder.UpdatePath();
-
             bool shouldRunStartupRoutine = UtilityCore.IsControllingAssembly && RWInfo.LatestSetupPeriodReached < RWInfo.STARTUP_CUTOFF_PERIOD;
 
             if (shouldRunStartupRoutine)
@@ -146,6 +144,8 @@ namespace LogUtils.Properties
 
         internal void BeginStartupRoutine()
         {
+            bool logsFolderExists = LogsFolder.Exists;
+
             StartupRoutineActive = true;
             foreach (LogProperties properties in Properties)
             {
@@ -153,7 +153,7 @@ namespace LogUtils.Properties
                     properties.CreateTempFile();
 
                 //When the Logs folder is available, favor that path over the original path to the log file
-                if (properties.LogsFolderAware)
+                if (logsFolderExists && properties.LogsFolderAware)
                     LogsFolder.AddToFolder(properties);
             }
         }

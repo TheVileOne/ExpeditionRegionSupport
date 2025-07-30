@@ -4599,6 +4599,11 @@
             Find an immediate child node with a given value, otherwise null
             </summary>
         </member>
+        <member name="M:LogUtils.Helpers.FileHandling.DirectoryUtils.ParentExists(System.String)">
+            <summary>
+            Determines if the given path has an existing parent directory
+            </summary>
+        </member>
         <member name="F:LogUtils.Helpers.FileHandling.FileUtils.BRACKET_FORMAT">
             <summary>
             Used to attach information to a filename
@@ -4657,6 +4662,11 @@
             <param name="dirName">The directory name to search for</param>
             <param name="dirLevelsToCheck">The number of directory separators to check starting from the right</param>
         </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.ContainsOtherPath(System.String,System.String)">
+            <summary>
+            Checks the second path is contained with the first path
+            </summary>
+        </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.FindCommonRoot(System.String,System.String)">
             <summary>
             Finds a path string that two provided paths have in common
@@ -4667,10 +4677,16 @@
             Replace all directory separator characters with the default platform-specific directory separator character 
             </summary>
         </member>
-        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.PathRootExists(System.String)">
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.PathRootExists(System.String,System.Int32)">
             <summary>
-            Checks that some portion of a path exists
+            Checks the path directory and parents of that directory for an existing directory
             </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.FindExistingPathRoot(System.String,System.Int32)">
+            <summary>
+            Checks the path directory and parents of that directory for an existing directory
+            </summary>
+            <returns>The portion of the path that exists</returns>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.PathWithoutFilename(System.String)">
             <summary>
@@ -5692,59 +5708,94 @@
               Looks up a localized resource of type System.Byte[].
             </summary>
         </member>
+        <member name="E:LogUtils.LogsFolder.OnMovePending">
+            <summary>
+            Event signals that the log directory is about to be moved, or renamed
+            </summary>
+        </member>
+        <member name="E:LogUtils.LogsFolder.OnMoveAborted">
+            <summary>
+            Event signals that the log directory was unable to be moved, or renamed
+            </summary>
+        </member>
+        <member name="E:LogUtils.LogsFolder.OnMoveComplete">
+            <summary>
+            Event signals that the log directory has successfully been moved, or renamed
+            </summary>
+        </member>
         <member name="F:LogUtils.LogsFolder.LOGS_FOLDER_NAME">
             <summary>
-            The folder that will store log files
+            The default directory name
             </summary>
         </member>
-        <member name="F:LogUtils.LogsFolder.AlternativePath">
+        <member name="F:LogUtils.LogsFolder.AvailablePaths">
             <summary>
-            StreamingAssets folder
+            A list of valid paths that may contain the log directory
             </summary>
         </member>
-        <member name="F:LogUtils.LogsFolder.DefaultPath">
+        <member name="P:LogUtils.LogsFolder.ContainingPath">
             <summary>
-            Rain World root folder
+            The path containing, or selected to contain the log directory
             </summary>
         </member>
-        <member name="P:LogUtils.LogsFolder.Path">
+        <member name="P:LogUtils.LogsFolder.CurrentPath">
             <summary>
-            The path to the Logs directory if it exists, otherwise null
+            The currently selected path (including directory name) of the log directory (whether it exists or not)
             </summary>
         </member>
-        <member name="F:LogUtils.LogsFolder.PathCycler">
+        <member name="P:LogUtils.LogsFolder.Name">
             <summary>
-            PathCycler is responsible for moving forward, or backward through a collection of valid paths
+            The currently selected directory name
+            </summary>
+        </member>
+        <member name="P:LogUtils.LogsFolder.Exists">
+            <summary>
+            Checks that log directory exists at its currently set path
             </summary>
         </member>
         <member name="M:LogUtils.LogsFolder.IsCurrentPath(System.String)">
             <summary>
-            Checks a path against the current Logs directory path
+            Checks a path against the current log directory path
             </summary>
         </member>
-        <member name="M:LogUtils.LogsFolder.IsLogsFolderPath(System.String)">
+        <member name="P:LogUtils.LogsFolder.IsManagingFiles">
             <summary>
-            Check that a path matches one of the two supported Logs directories
+            A flag that indicates whether the log directory contains eligible log files
             </summary>
+        </member>
+        <member name="M:LogUtils.LogsFolder.Create">
+            <summary>
+            Attempts to create a new log directory at the currently set path
+            </summary>
+            <remarks>This method does nothing when the folder already exists</remarks>
+            <exception cref="T:System.IO.DirectoryNotFoundException"></exception>
+            <exception cref="T:System.IO.IOException"></exception>
+            <exception cref="T:System.UnauthorizedAccessException"></exception>
         </member>
         <member name="M:LogUtils.LogsFolder.Initialize">
             <summary>
-            Establishes the path for the Logs directory, creating it if it doesn't exist. This is not called by LogUtils directly
+            Initializes the log directory path
             </summary>
-        </member>
-        <member name="M:LogUtils.LogsFolder.FindExistingLogsDirectory">
-            <summary>
-            Finds the full path to the Logs directory if it exists, checking the default path first, otherwise returns null
-            </summary>
+            <remarks>LogUtils does not create this directory by default</remarks>
         </member>
         <member name="M:LogUtils.LogsFolder.FindLogsDirectory">
             <summary>
-            Finds the full path to the Logs directory if it exists, otherwise returns the default path
+            Checks existing path history, and available paths, and returns the first existing directory, or null if none of the directory candidates exist
             </summary>
         </member>
         <member name="M:LogUtils.LogsFolder.GetContainedLogFiles">
             <summary>
-            Returns log file IDs that have the Logs folder as a current folder path
+            Returns all registered LogIDs representing log files within the current log directory or otherwise target it as a write path
+            </summary>
+        </member>
+        <member name="M:LogUtils.LogsFolder.MoveFilesToFolder">
+            <summary>
+            Moves eligible log files to current log directory
+            </summary>
+        </member>
+        <member name="M:LogUtils.LogsFolder.RestoreFiles">
+            <summary>
+            Restores log files that are part of the current log directory to their original folder paths
             </summary>
         </member>
         <member name="M:LogUtils.LogsFolder.AddToFolder(LogUtils.Properties.LogProperties)">
@@ -5757,56 +5808,37 @@
             Transfers a log file from the Logs folder (when it exists)
             </summary>
         </member>
+        <member name="M:LogUtils.LogsFolder.SetContainingPath(System.String)">
+            <summary>
+            Targets a directory path to contain a logs folder
+            </summary>
+            <param name="path">A valid directory path</param>
+        </member>
         <member name="M:LogUtils.LogsFolder.SetPath(System.String)">
             <summary>
-            Sets the logs folder path to that of an existing directory
+            Targets a directory path to become the new logs folder
             </summary>
             <remarks>DO NOT set to any directory you don't want moved around</remarks>
             <param name="path">A valid directory path</param>
         </member>
-        <member name="M:LogUtils.LogsFolder.UpdatePath">
+        <member name="M:LogUtils.LogsFolder.PathHistory.Update">
             <summary>
-            Gets, and stores the full path to the Logs directory if it exists, otherwise sets Path to null if it doesn't exist
+            Appends a new path entry into the path history file
             </summary>
         </member>
-        <member name="F:LogUtils.LogsFolderAccessToken.AllowedPaths">
+        <member name="T:LogUtils.LogsFolder.PathResult">
             <summary>
-            Contains folder paths considered as familiar to the access token provider (mod)
+            The result of a Logs folder path search
             </summary>
         </member>
-        <member name="F:LogUtils.FolderAccess.Unrestricted">
+        <member name="F:LogUtils.LogsFolder.PathResult.Target">
             <summary>
-            Folder path changes permitted for any path
+            The result of a the path search
             </summary>
         </member>
-        <member name="F:LogUtils.FolderAccess.Normal">
+        <member name="F:LogUtils.LogsFolder.PathResult.IsResultFromPathHistory">
             <summary>
-            Folder path changes for familiar paths, base paths, but not foreign paths
-            </summary>
-        </member>
-        <member name="F:LogUtils.FolderAccess.Strict">
-            <summary>
-            Folder path changes for familiar paths only
-            </summary>
-        </member>
-        <member name="F:LogUtils.FolderRelationship.None">
-            <summary>
-            Represents a null, or invalid path
-            </summary>
-        </member>
-        <member name="F:LogUtils.FolderRelationship.Base">
-            <summary>
-            Represents a utility defined LogsFolder path
-            </summary>
-        </member>
-        <member name="F:LogUtils.FolderRelationship.Familiar">
-            <summary>
-            Represents a folder path recognized by an access token (overwrites Base relationship)
-            </summary>
-        </member>
-        <member name="F:LogUtils.FolderRelationship.Foreign">
-            <summary>
-            Represents a folder path that is unrecognized by an access token, and is not a utility defined LogsFolder path
+            The result is associated with an accurate path record
             </summary>
         </member>
         <member name="F:LogUtils.LogWriter.Writer">

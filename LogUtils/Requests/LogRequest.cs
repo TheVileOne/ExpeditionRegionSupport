@@ -213,13 +213,19 @@ namespace LogUtils.Requests
 
             bool showLogsActive = RainWorld.ShowLogs || RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD;
 
-            if (LogRequestPolicy.ShowRejectionReasons && !UtilityLogger.PerformanceMode && showLogsActive && reason != RejectionReason.WaitingOnOtherRequests) //This reason can get spammy - ignore it
+            if (LogRequestPolicy.ShowRejectionReasons && !UtilityLogger.PerformanceMode && showLogsActive && shouldBeReported(reason))
             {
                 UtilityLogger.DebugLog("Log request was rejected REASON: " + reason);
                 UtilityLogger.Log("Log request was rejected REASON: " + reason);
 
                 if (context != null)
                     UtilityLogger.Log("CONTEXT: " + context);
+            }
+
+            bool shouldBeReported(RejectionReason reason)
+            {
+                //These conditions can get spammy
+                return reason != RejectionReason.WaitingOnOtherRequests && (reason != RejectionReason.LogUnavailable || context is not ConsoleID);
             }
         }
 
