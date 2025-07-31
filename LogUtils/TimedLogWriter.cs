@@ -1,4 +1,5 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Helpers;
 using LogUtils.Helpers.Extensions;
 using LogUtils.Requests;
 using LogUtils.Threading;
@@ -79,6 +80,7 @@ namespace LogUtils
             }
             catch (Exception ex)
             {
+                UtilityLogger.DebugLog(ex);
                 UtilityLogger.LogError(ex);
             }
         }
@@ -263,22 +265,34 @@ namespace LogUtils
                         }
                     }
                 }
-                catch (TimeoutException)
-                {
-                    UtilityLogger.DebugLog("Task took too long to complete");
-                }
                 catch (Exception ex)
                 {
-                    logError("Task attempt did not finish - cancelling task");
-                    logError(ex);
-                    WriteTask.Cancel();
+                    ICollection<Exception> exceptions = ExceptionUtils.ExtractAggregate(ex);
 
-                    static void logError(object messageObj)
+                    if (exceptions.Count == 0) //Exception is not an aggregate
+                        exceptions.Add(ex);
+
+                    if (exceptions.ContainsType<TimeoutException>())
+                        logError("Task took too long to complete");
+                    else
+                        logError("Task attempt did not finish - cancelling task");
+                    logError(ex);
+
+                    try
                     {
-                        Debug.LogError(messageObj);
-                        UtilityLogger.LogError(messageObj);
-                        UtilityLogger.DebugLog(messageObj);
+                        WriteTask.Cancel();
                     }
+                    catch (AggregateException ex2)
+                    {
+                        logError("Task failed to end");
+                        logError(ex2);
+                    }
+                }
+
+                static void logError(object messageObj)
+                {
+                    UtilityLogger.DebugLog(messageObj);
+                    Debug.LogError(messageObj);
                 }
             }
             else
