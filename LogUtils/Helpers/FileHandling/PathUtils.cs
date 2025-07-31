@@ -61,7 +61,11 @@ namespace LogUtils.Helpers.FileHandling
 
             if (!Path.IsPathRooted(pathOther))
                 pathOther = Path.GetFullPath(pathOther);
+            return FindCommonRootNoChecks(path, pathOther);
+        }
 
+        internal static string FindCommonRootNoChecks(string path, string pathOther)
+        {
             int charsMatched = 0;
             int charsMatchedThisDir = 0;
             for (charsMatched = 0; charsMatched < Math.Min(path.Length, pathOther.Length); charsMatched++)
@@ -99,6 +103,45 @@ namespace LogUtils.Helpers.FileHandling
         {
             string filename = Path.GetRandomFileName();
             return Path.ChangeExtension(filename, fileExt);
+        }
+
+        /// <summary>
+        /// Takes two paths and determines how one of the paths relates to the other path
+        /// </summary>
+        /// <param name="targetPath">The path to evaluate</param>
+        /// <param name="relativeTo">The path to check against</param>
+        /// <param name="includeCommonDirectoryInResult">A flag indicating whether to include the most relevant directory in common between the given paths</param>
+        public static string GetRelativePath(string targetPath, string relativeTo, bool includeCommonDirectoryInResult)
+        {
+            //Convert to a common comparable format
+            string absolutePathBase = Path.GetFullPath(relativeTo); //Path we want to associate with
+            string absolutePathTarget = Path.GetFullPath(targetPath); //Path we want to associate relative to a base path
+
+            string commonRoot = FindCommonRootNoChecks(absolutePathBase, absolutePathTarget);
+
+            if (commonRoot.Length == absolutePathBase.Length) //The two paths share the base path as a common root
+            {
+                if (commonRoot.Length == absolutePathTarget.Length) //Same path
+                {
+                    if (includeCommonDirectoryInResult)
+                        return Path.DirectorySeparatorChar + Path.GetFileName(absolutePathTarget);
+                    return string.Empty;
+                }
+
+                if (includeCommonDirectoryInResult) //Take last directory out of the common root, so that it will be included in the result
+                    commonRoot = Path.GetDirectoryName(commonRoot);
+                return absolutePathTarget.Remove(0, commonRoot.Length); //Remove the root from the target path
+            }
+
+            if (commonRoot.Length > 0 || IsAbsolute(targetPath)) //The two paths are incompatible
+                return targetPath;
+
+            //Non-absolute paths can be combined with the base path
+            if (includeCommonDirectoryInResult)
+                targetPath = Path.Combine(Path.GetFileName(absolutePathBase), targetPath);
+
+            targetPath = Normalize(targetPath);
+            return PrependWithSeparator(targetPath);
         }
 
         /// <summary>
@@ -168,6 +211,16 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <summary>
+        /// Prepends a single directory separator character to a given path string
+        /// </summary>
+        /// <remarks>This method will remove any existing separator characters at the start of the path</remarks>
+        public static string PrependWithSeparator(string path)
+        {
+            //Remove any existing separators, so that we don't have more than one
+            return Path.DirectorySeparatorChar + path.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        }
+
+        /// <summary>
         /// Separates a path into its directory and/or file components
         /// </summary>
         public static string[] Separate(string path)
@@ -194,6 +247,14 @@ namespace LogUtils.Helpers.FileHandling
                 return path.Substring(1);
             }
             return path;
+        }
+
+        /// <summary>
+        /// Checks that the path given is an absolute path
+        /// </summary>
+        public static bool IsAbsolute(string path)
+        {
+            return Path.IsPathRooted(path) && !(path[0] == Path.DirectorySeparatorChar || path[0] == Path.AltDirectorySeparatorChar);
         }
 
         public static bool IsEmpty(string path)
