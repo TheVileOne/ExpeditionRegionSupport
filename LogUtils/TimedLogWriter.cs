@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEngine;
 using DotNetTask = System.Threading.Tasks.Task;
 
 namespace LogUtils
@@ -248,30 +249,35 @@ namespace LogUtils
 
             if (LogTasker.IsRunning)
             {
-                //Get a handle to the active task, so we can await it later
-                using (TaskHandle waitHandle = WriteTask.GetAsyncHandle())
+                try
                 {
                     if (WriteTask.PossibleToRun)
                     {
-                        try
+                        //Get a handle to the active task, so we can await it later
+                        using (TaskHandle waitHandle = WriteTask.GetAsyncHandle())
                         {
                             WriteTask.RunOnceAndEnd(true);
-                        }
-                        catch
-                        {
-                            UtilityLogger.DebugLog("Task attempt did not finish - cancelling task");
-                            WriteTask.Cancel();
-                        }
-                    }
 
-                    try
-                    {
-                        //If we don't block here, flush operation will happen too late, and the dispose state will forbid it
-                        waitHandle.BlockUntilTaskEnds(frequency: 5, timeout: 50);
+                            //If we don't block here, flush operation will happen too late, and the dispose state will forbid it
+                            waitHandle.BlockUntilTaskEnds(frequency: 5, timeout: 50);
+                        }
                     }
-                    catch (TimeoutException)
+                }
+                catch (TimeoutException)
+                {
+                    UtilityLogger.DebugLog("Task took too long to complete");
+                }
+                catch (Exception ex)
+                {
+                    logError("Task attempt did not finish - cancelling task");
+                    logError(ex);
+                    WriteTask.Cancel();
+
+                    static void logError(object messageObj)
                     {
-                        UtilityLogger.DebugLog("Task took too long to complete");
+                        Debug.LogError(messageObj);
+                        UtilityLogger.LogError(messageObj);
+                        UtilityLogger.DebugLog(messageObj);
                     }
                 }
             }
