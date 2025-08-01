@@ -56,42 +56,55 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Writes the log buffer to file for managed log files
+        /// Flushes the stream buffer to file
         /// </summary>
+        /// <exception cref="ObjectDisposedException">The writer has been disposed</exception>
         public void Flush()
         {
+            if (IsDisposed)
+                throw new ObjectDisposedException(nameof(TimedLogWriter));
+
+            var activeWriters = LogWriters.Where(w => w.CanWrite).ToArray();
+
+            foreach (var writer in activeWriters)
+            {
+                LogID handleID = writer.Handle.FileID;
+                var fileLock = handleID.Properties.FileLock;
+
+                using (fileLock.Acquire())
+                {
+                    writer.Flush();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Attempts to flush the stream buffer to file on a .NET task thread
+        /// </summary>
+        public DotNetTask ScheduleFlush()
+        {
+            return DotNetTask.Run(TryFlush);
+        }
+
+        /// <summary>
+        /// Attempts to flush the stream buffer to file
+        /// </summary>
+        public bool TryFlush()
+        {
+            if (IsDisposed)
+                return false;
+
             try
             {
-                if (IsDisposed)
-                    throw new ObjectDisposedException(nameof(TimedLogWriter));
-
-                var activeWriters = LogWriters.Where(w => w.CanWrite);
-
-                foreach (var writer in activeWriters)
-                {
-                    LogID handleID = writer.Handle.FileID;
-                    var fileLock = handleID.Properties.FileLock;
-
-                    using (fileLock.Acquire())
-                    {
-                        writer.Flush();
-                    }
-                }
+                Flush();
+                return true;
             }
             catch (Exception ex)
             {
                 UtilityLogger.DebugLog(ex);
                 UtilityLogger.LogError(ex);
             }
-        }
-
-        public DotNetTask ScheduleFlush()
-        {
-            return DotNetTask.Run(() =>
-            {
-                if (!IsDisposed)
-                    Flush();
-            });
+            return false;
         }
 
         /// <inheritdoc/>
@@ -297,7 +310,7 @@ namespace LogUtils
             }
             else
             {
-                Flush();
+                TryFlush();
             }
 
             if (disposing)

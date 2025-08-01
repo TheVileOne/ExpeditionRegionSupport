@@ -30,7 +30,7 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Writes the log buffer to file
+        /// Flushes the stream buffer to file
         /// </summary>
         /// <exception cref="ObjectDisposedException">The underlying stream element for this instance has been disposed of</exception>
         public override void Flush()
