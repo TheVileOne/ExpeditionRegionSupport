@@ -214,23 +214,20 @@ namespace LogUtils.Threading
         /// <summary>
         /// Runs the task a single time before terminating
         /// </summary>
-        /// <param name="force">Should this task bypass the scheduling process</param>
+        /// <param name="force">Should this task bypass the scheduling process (in the case of an unsubmitted task)</param>
         /// <exception cref="InvalidOperationException">The task is already completed, or canceled OR the task is running on another thread, and task concurrency is not allowed</exception>
         /// <exception cref="InvalidStateException">The state has failed, or has been marked as complete</exception>
         public void RunOnceAndEnd(bool force)
         {
             IsContinuous = false;
 
-            if (force)
+            if (force || State != TaskState.NotSubmitted)
             {
                 RunOnce();
                 Complete();
                 return;
             }
-
-            //Unforced runs should be scheduled
-            if (State == TaskState.NotSubmitted)
-                LogTasker.Schedule(this);
+            LogTasker.Schedule(this);
         }
 
         /// <summary>
