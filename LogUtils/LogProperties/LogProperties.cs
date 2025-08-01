@@ -40,7 +40,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// Ensures thread safety while accessing the log file
         /// </summary>
-        public FileLock FileLock = new FileLock();
+        public FileLock FileLock;
 
         /// <summary>
         /// This field contains the last known LogRequest handle state for this LogID, particularly the rejection status, and the reason for rejection of the request
@@ -332,6 +332,8 @@ namespace LogUtils.Properties
 
         internal LogProperties(string propertyID, string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS)
         {
+            FileLock = new FileLock(new Lock.ContextProvider(() => ID));
+
             UtilityLogger.DebugLog("Generating properties for " + propertyID);
             UtilityLogger.Log("Generating properties for " + propertyID);
             _idValue = propertyID;
@@ -467,12 +469,12 @@ namespace LogUtils.Properties
                 FileStatus status;
                 if (copyOnly)
                 {
-                    FileLock.SetActivity(ID, FileAction.Copy);
+                    FileLock.SetActivity(FileAction.Copy);
                     status = LogFile.Copy(LastKnownFilePath, ReplacementFilePath, true);
                 }
                 else
                 {
-                    FileLock.SetActivity(ID, FileAction.Move);
+                    FileLock.SetActivity(FileAction.Move);
                     status = LogFile.Move(LastKnownFilePath, ReplacementFilePath, true);
                 }
 
@@ -502,7 +504,7 @@ namespace LogUtils.Properties
             {
                 using (FileLock.Acquire())
                 {
-                    FileLock.SetActivity(logID, FileAction.SessionStart);
+                    FileLock.SetActivity(FileAction.SessionStart);
 
                     using (FileStream stream = LogFile.Create(logID))
                     {
@@ -565,7 +567,7 @@ namespace LogUtils.Properties
             {
                 using (FileLock.Acquire())
                 {
-                    FileLock.SetActivity(logID, FileAction.SessionEnd);
+                    FileLock.SetActivity(FileAction.SessionEnd);
 
                     using (FileStream stream = LogFile.OpenNoCreate(logID))
                     {

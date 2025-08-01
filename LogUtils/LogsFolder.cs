@@ -362,7 +362,7 @@ namespace LogUtils
                         writeBuffer.SetState(true, BufferContext.CriticalArea);
                         activeBuffers.Add(writeBuffer);
 
-                        logFile.Properties.FileLock.SetActivity(logFile, FileAction.Move); //Lock activated by ThreadSafeWorker
+                        logFile.Properties.FileLock.SetActivity(FileAction.Move); //Lock activated by ThreadSafeWorker
                         logFile.Properties.NotifyPendingMove(path);
 
                         //The move operation requires that all persistent file activity be closed until move is complete

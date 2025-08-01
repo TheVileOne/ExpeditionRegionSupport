@@ -1,4 +1,5 @@
-﻿using LogUtils.Events;
+﻿using LogUtils.Enums;
+using LogUtils.Events;
 using System;
 using System.Threading;
 
@@ -13,6 +14,22 @@ namespace LogUtils.Threading
         /// The number of acquired locks yet to be released
         /// </summary>
         public int ActiveCount;
+
+        private object _context;
+        private ContextProvider _contextProvider;
+
+        /// <summary>
+        /// Information assigned to identify the lock instance
+        /// </summary>
+        public object Context
+        {
+            get
+            {
+                if (_context == null)
+                    _context = _contextProvider?.Invoke();
+                return _context;
+            }
+        }
 
         /// <summary>
         /// Suppresses the next Release attempt made on this lock 
@@ -33,6 +50,16 @@ namespace LogUtils.Threading
         {
             lockScope = new Scope(this);
             lockEvent.Raise(this, EventID.LockCreated);
+        }
+
+        public Lock(object context) : this()
+        {
+            _context = context;
+        }
+
+        public Lock(ContextProvider contextProvider) : this()
+        {
+            _contextProvider = contextProvider;
         }
 
         public Scope Acquire()
@@ -94,5 +121,10 @@ namespace LogUtils.Threading
             LockAcquired,
             WaitingToAcquire
         }
+
+        /// <summary>
+        /// A provided delegate used to provide a context on demand
+        /// </summary>
+        public delegate object ContextProvider();
     }
 }

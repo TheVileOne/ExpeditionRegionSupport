@@ -234,7 +234,7 @@ namespace LogUtils
                     return false;
 
                 fileLock.Acquire();
-                fileLock.SetActivity(logFile, FileAction.Write);
+                fileLock.SetActivity(FileAction.Write);
 
                 ProcessResult result = TryAssignWriter(logFile, out StreamWriter writer);
 
@@ -292,7 +292,7 @@ namespace LogUtils
             var fileLock = logFile.Properties.FileLock;
 
             fileLock.Acquire();
-            fileLock.SetActivity(logFile, FileAction.Write);
+            fileLock.SetActivity(FileAction.Write);
 
             ProcessResult streamResult = TryAssignWriter(logFile, out StreamWriter writer);
 
@@ -423,7 +423,7 @@ namespace LogUtils
 
             using (fileLock.Acquire())
             {
-                fileLock.SetActivity(logFile, FileAction.Buffering);
+                fileLock.SetActivity(FileAction.Buffering);
 
                 messageData.CacheMessageTotal();
 

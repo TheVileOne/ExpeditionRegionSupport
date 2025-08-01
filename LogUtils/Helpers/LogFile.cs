@@ -64,7 +64,7 @@ namespace LogUtils.Helpers
                     return FileStatus.NoActionRequired;
                 }
 
-                fileLock.SetActivity(logFile, FileAction.Move);
+                fileLock.SetActivity(FileAction.Move);
 
                 //The move operation requires that all persistent file activity be closed until move is complete
                 var streamsToResume = logFile.Properties.PersistentStreamHandles.InterruptAll();
@@ -138,7 +138,7 @@ namespace LogUtils.Helpers
 
             using (fileLock.Acquire())
             {
-                fileLock.SetActivity(logFile, FileAction.Open);
+                fileLock.SetActivity(FileAction.Open);
                 bool retryAttempt = false;
 
             retry:
@@ -217,7 +217,7 @@ namespace LogUtils.Helpers
 
             using (fileLock.Acquire())
             {
-                fileLock.SetActivity(logFile, FileAction.Delete);
+                fileLock.SetActivity(FileAction.Delete);
 
                 if (logFile.Properties.FileExists)
                 {

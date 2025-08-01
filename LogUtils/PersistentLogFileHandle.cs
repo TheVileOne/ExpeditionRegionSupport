@@ -29,7 +29,7 @@ namespace LogUtils
             using (fileLock.Acquire())
             {
                 if (!WaitingToResume)
-                    fileLock.SetActivity(FileID, FileAction.StreamDisposal);
+                    fileLock.SetActivity(FileAction.StreamDisposal);
                 return base.InterruptStream();
             }
         }
@@ -87,7 +87,7 @@ namespace LogUtils
                 if (disposing)
                     OnDispose();
 
-                fileLock.SetActivity(FileID, FileAction.StreamDisposal);
+                fileLock.SetActivity(FileAction.StreamDisposal);
                 base.Dispose(disposing);
 
                 if (disposing)
