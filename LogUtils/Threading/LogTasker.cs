@@ -11,6 +11,11 @@ namespace LogUtils.Threading
 
         private static Thread _thread;
 
+        /// <summary>
+        /// The managed thread ID of the LogTasker thread
+        /// </summary>
+        public static int ThreadID => _thread.ManagedThreadId;
+
         internal static CrawlMark CurrentCrawlMark = CrawlMark.None;
 
         public static CrawlMark WaitOnCrawlMark = CrawlMark.None;
