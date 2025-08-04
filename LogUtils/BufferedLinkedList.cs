@@ -300,7 +300,9 @@ namespace LogUtils
                 items = list ?? throw new ArgumentNullException(nameof(list));
             }
 
-            /// <inheritdoc/>
+            /// <summary>
+            /// Resets enumerator to a default state
+            /// </summary>
             public void Dispose()
             {
                 Reset();
@@ -399,7 +401,9 @@ namespace LogUtils
                 innerEnumerator = enumerator ?? throw new ArgumentNullException(nameof(enumerator));
             }
 
-            /// <inheritdoc/>
+            /// <summary>
+            /// Resets enumerator to a default state
+            /// </summary>
             public void Dispose()
             {
                 Reset();
@@ -493,7 +497,9 @@ namespace LogUtils
                 this.predicate = predicate;
             }
 
-            /// <inheritdoc/>
+            /// <summary>
+            /// Resets enumerator to a default state
+            /// </summary>
             public void Dispose()
             {
                 Reset();

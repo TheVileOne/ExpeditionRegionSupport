@@ -14,8 +14,6 @@ namespace LogUtils
 {
     public class TimedLogWriter : LogWriter, IDisposable
     {
-        protected bool IsDisposed;
-
         protected List<PersistentLogFileWriter> LogWriters = new List<PersistentLogFileWriter>();
 
         /// <summary>
@@ -258,6 +256,15 @@ namespace LogUtils
             handle.Lifetime.SetDuration(disposalDelay);
         }
 
+        #region Dispose handling
+
+        /// <summary/>
+        protected bool IsDisposed;
+
+        /// <summary>
+        /// Performs tasks for disposing a <see cref="TimedLogWriter"/>
+        /// </summary>
+        /// <param name="disposing">Whether or not the dispose request is invoked by the application (true), or invoked by the destructor (false)</param>
         protected virtual void Dispose(bool disposing)
         {
             if (IsDisposed) return;
@@ -324,14 +331,14 @@ namespace LogUtils
             IsDisposed = true;
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="Dispose(bool)"/>
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary/>
         ~TimedLogWriter()
         {
             Dispose(disposing: false);
@@ -345,5 +352,6 @@ namespace LogUtils
             if (handleIndex != -1)
                 LogWriters.RemoveAt(handleIndex);
         }
+        #endregion
     }
 }

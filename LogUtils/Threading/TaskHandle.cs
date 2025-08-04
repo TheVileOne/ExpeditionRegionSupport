@@ -63,7 +63,9 @@ namespace LogUtils.Threading
             Threading.Task.WaitUntil(() => task.Status >= TaskStatus.RanToCompletion, frequency, timeout).Wait();
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Performs tasks for disposing a <see cref="TaskHandle"/>
+        /// </summary>
         public void Dispose()
         {
             RevokeAccess();

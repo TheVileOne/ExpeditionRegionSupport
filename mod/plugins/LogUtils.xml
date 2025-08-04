@@ -150,7 +150,9 @@
             </summary>
         </member>
         <member name="M:LogUtils.BufferedLinkedList`1.Enumerator.Dispose">
-            <inheritdoc/>
+            <summary>
+            Resets enumerator to a default state
+            </summary>
         </member>
         <member name="M:LogUtils.BufferedLinkedList`1.Enumerator.MoveNext">
             <summary>
@@ -182,7 +184,9 @@
             <exception cref="T:System.ArgumentNullException">Enumerator is null</exception>
         </member>
         <member name="M:LogUtils.BufferedLinkedList`1.EnumeratorWrapper.Dispose">
-            <inheritdoc/>
+            <summary>
+            Resets enumerator to a default state
+            </summary>
         </member>
         <member name="M:LogUtils.BufferedLinkedList`1.EnumeratorWrapper.MoveNext">
             <summary>
@@ -209,7 +213,9 @@
             <inheritdoc/>
         </member>
         <member name="M:LogUtils.BufferedLinkedList`1.WhereEnumerator.Dispose">
-            <inheritdoc/>
+            <summary>
+            Resets enumerator to a default state
+            </summary>
         </member>
         <member name="M:LogUtils.BufferedLinkedList`1.WhereEnumerator.MoveNext">
             <summary>
@@ -397,8 +403,17 @@
             Stores LogUtils requests until they are able to be handled
             </summary>
         </member>
+        <member name="M:LogUtils.Compatibility.BepInEx.Listeners.DiskLogListener.Dispose(System.Boolean)">
+            <summary>
+            Performs tasks for disposing a <see cref="T:LogUtils.Compatibility.BepInEx.Listeners.DiskLogListener"/>
+            </summary>
+            <param name="disposing">Whether or not the dispose request is invoked by the application (true), or invoked by the destructor (false)</param>
+        </member>
         <member name="M:LogUtils.Compatibility.BepInEx.Listeners.DiskLogListener.Dispose">
-            <inheritdoc/>
+            <inheritdoc cref="M:LogUtils.Compatibility.BepInEx.Listeners.DiskLogListener.Dispose(System.Boolean)"/>
+        </member>
+        <member name="M:LogUtils.Compatibility.BepInEx.Listeners.DiskLogListener.Finalize">
+            <summary/>
         </member>
         <member name="T:LogUtils.Compatibility.BepInEx.ManualLogSourceWrapper">
             <summary>
@@ -634,8 +649,20 @@
         <member name="M:LogUtils.Logger.HandleRequest(LogUtils.Requests.LogRequest)">
             <inheritdoc/>
         </member>
+        <member name="F:LogUtils.Logger.IsDisposed">
+            <summary/>
+        </member>
+        <member name="M:LogUtils.Logger.Dispose(System.Boolean)">
+            <summary>
+            Performs tasks for disposing a <see cref="T:LogUtils.Logger"/>
+            </summary>
+            <param name="disposing">Whether or not the dispose request is invoked by the application (true), or invoked by the destructor (false)</param>
+        </member>
         <member name="M:LogUtils.Logger.Dispose">
-            <inheritdoc/>
+            <inheritdoc cref="M:LogUtils.Logger.Dispose(System.Boolean)"/>
+        </member>
+        <member name="M:LogUtils.Logger.Finalize">
+            <summary/>
         </member>
         <member name="T:LogUtils.Logger.LogRestorePoint">
             <summary>
@@ -2510,6 +2537,11 @@
             Moves to next provided string, and attempts to log it
             </summary>
         </member>
+        <member name="M:LogUtils.Diagnostics.DebugLogger.Dispose">
+            <summary>
+            Resets enumerator to a default state
+            </summary>
+        </member>
         <member name="P:LogUtils.Diagnostics.DeferredAssertHandler.Current">
             <summary>
             Peeks at the current result in the result queue
@@ -2569,7 +2601,9 @@
             <param name="register">Whether or not instance should be added to the PropertyDataController</param>
         </member>
         <member name="M:LogUtils.Diagnostics.Tests.Components.LogPropertyFactory.Dispose">
-            <inheritdoc/>
+            <summary>
+            Performs tasks for disposing a <see cref="T:LogUtils.Diagnostics.Tests.Components.LogPropertyFactory"/>
+            </summary>
         </member>
         <member name="T:LogUtils.Diagnostics.Tests.Components.TestEnum">
             <summary>
@@ -2628,6 +2662,11 @@
             </summary>
             <param name="value">Value to be used as an assert target</param>
         </member>
+        <member name="M:LogUtils.Diagnostics.Tests.TestCase.Dispose">
+            <summary>
+            Selects a new test case from the parent group
+            </summary>
+        </member>
         <member name="M:LogUtils.Diagnostics.Tests.TestCase.HasFailed">
             <summary>
             Checks that the test case has a failed outcome
@@ -2652,6 +2691,12 @@
             <summary>
             Gets the test results for the test case and any children cases starting with the test group
             </summary>
+        </member>
+        <member name="P:LogUtils.Diagnostics.Tests.TestCaseGroup.Count">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.Tests.TestCaseGroup.GetEnumerator">
+            <inheritdoc/>
         </member>
         <member name="M:LogUtils.Diagnostics.Tests.TestCaseGroup.HasFailed">
             <summary>
@@ -4473,9 +4518,19 @@
             Returns an integer representation of the better candidate for remote logging
             </summary>
         </member>
+        <member name="M:LogUtils.Helpers.ExceptionUtils.ExtractAggregate(System.Exception)">
+            <summary>
+            Takes an exception as input, and returns all InnerExceptions from it when it is an AggregateException, otherwise returns empty set
+            </summary>
+        </member>
         <member name="T:LogUtils.Helpers.Extensions.ExtensionMethods">
             <summary>
             Class for miscellaneous extension methods
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.Extensions.ExtensionMethods.ContainsType``1(System.Collections.IEnumerable)">
+            <summary>
+            Extension method that checks if an enumerable contains an item of a specified type
             </summary>
         </member>
         <member name="M:LogUtils.Helpers.Extensions.ExtensionMethods.Normalize(System.Collections.Generic.HashSet{LogUtils.Enums.LogCategory})">
@@ -4672,6 +4727,14 @@
             Finds a path string that two provided paths have in common
             </summary>
         </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.GetRelativePath(System.String,System.String,System.Boolean)">
+            <summary>
+            Takes two paths and determines how one of the paths relates to the other path
+            </summary>
+            <param name="targetPath">The path to evaluate</param>
+            <param name="relativeTo">The path to check against</param>
+            <param name="includeCommonDirectoryInResult">A flag indicating whether to include the most relevant directory in common between the given paths</param>
+        </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.Normalize(System.String)">
             <summary>
             Replace all directory separator characters with the default platform-specific directory separator character 
@@ -4698,6 +4761,12 @@
             Returns a path string without the filename (filename must have an extension)
             </summary>
         </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.PrependWithSeparator(System.String)">
+            <summary>
+            Prepends a single directory separator character to a given path string
+            </summary>
+            <remarks>This method will remove any existing separator characters at the start of the path</remarks>
+        </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.Separate(System.String)">
             <summary>
             Separates a path into its directory and/or file components
@@ -4706,6 +4775,11 @@
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.Unroot(System.String)">
             <summary>
             Check for a path root, and strip it from the path
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.IsAbsolute(System.String)">
+            <summary>
+            Checks that the path given is an absolute path
             </summary>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.PathsAreEqual(System.String,System.String)">
@@ -5965,17 +6039,42 @@
             Closes the stream. Mod should resume stream when file operations are finished
             </summary>
         </member>
+        <member name="F:LogUtils.PersistentFileHandle.IsDisposed">
+            <summary/>
+        </member>
+        <member name="M:LogUtils.PersistentFileHandle.Dispose(System.Boolean)">
+            <summary>
+            Performs tasks for disposing a <see cref="T:LogUtils.PersistentFileHandle"/>
+            </summary>
+            <param name="disposeState">Whether or not the dispose request is invoked by the application (true), or invoked by the destructor (false)</param>
+        </member>
+        <member name="M:LogUtils.PersistentFileHandle.BeginDispose(System.Boolean)">
+            <summary>
+            Dispose logic that must run at the start of a dispose request
+            </summary>
+            <inheritdoc cref="M:LogUtils.PersistentFileHandle.Dispose(System.Boolean)" select="param"/>
+        </member>
+        <member name="M:LogUtils.PersistentFileHandle.EndDispose(System.Boolean)">
+            <summary>
+            Dispose logic that must run at the end of a dispose request
+            </summary>
+            <inheritdoc cref="M:LogUtils.PersistentFileHandle.Dispose(System.Boolean)" select="param"/>
+        </member>
         <member name="M:LogUtils.PersistentFileHandle.Dispose">
+            <inheritdoc cref="M:LogUtils.PersistentFileHandle.Dispose(System.Boolean)"/>
+        </member>
+        <member name="M:LogUtils.PersistentFileHandle.Finalize">
+            <summary/>
+        </member>
+        <member name="M:LogUtils.PersistentLogFileHandle.BeginDispose(System.Boolean)">
             <inheritdoc/>
         </member>
-        <member name="M:LogUtils.PersistentFileHandle.OnDispose">
-            <summary>
-            Runs logic that should happen at the very start of a dispose request
-            </summary>
+        <member name="M:LogUtils.PersistentLogFileHandle.EndDispose(System.Boolean)">
+            <inheritdoc/>
         </member>
         <member name="M:LogUtils.PersistentLogFileWriter.Flush">
             <summary>
-            Writes the log buffer to file
+            Flushes the stream buffer to file
             </summary>
             <exception cref="T:System.ObjectDisposedException">The underlying stream element for this instance has been disposed of</exception>
         </member>
@@ -5983,6 +6082,18 @@
             <summary>
             Injects file handle stream into the base StreamWriter
             </summary>
+        </member>
+        <member name="F:LogUtils.PersistentLogFileWriter.IsDisposed">
+            <summary/>
+        </member>
+        <member name="M:LogUtils.PersistentLogFileWriter.Dispose(System.Boolean)">
+            <summary>
+            Performs tasks for disposing a <see cref="T:LogUtils.PersistentLogFileWriter"/>
+            </summary>
+            <param name="disposing">Whether or not the dispose request is invoked by the application (true), or invoked by the destructor (false)</param>
+        </member>
+        <member name="M:LogUtils.PersistentLogFileWriter.Finalize">
+            <summary/>
         </member>
         <member name="P:LogUtils.Policy.DebugPolicy.DebugMode">
             <summary>
@@ -6583,6 +6694,11 @@
             Interface provides a safe boundary with and a compatible interface for a LogUtils logger instance
             </summary>
         </member>
+        <member name="P:LogUtils.Threading.FileLock.FileContext">
+            <summary>
+            The associated log file context
+            </summary>
+        </member>
         <member name="P:LogUtils.Threading.FileLock.LastActivity">
             <summary>
             The last known file change/access activity that resulted in acquiring the file lock  
@@ -6598,6 +6714,11 @@
             The number of acquired locks yet to be released
             </summary>
         </member>
+        <member name="P:LogUtils.Threading.Lock.Context">
+            <summary>
+            Information assigned to identify the lock instance
+            </summary>
+        </member>
         <member name="F:LogUtils.Threading.Lock.SuppressNextRelease">
             <summary>
             Suppresses the next Release attempt made on this lock 
@@ -6608,6 +6729,16 @@
             Releases a lock acquired by the calling thread
             </summary>
             <exception cref="T:System.Threading.SynchronizationLockException">The calling thread does not have any active locks to release</exception>
+        </member>
+        <member name="T:LogUtils.Threading.Lock.ContextProvider">
+            <summary>
+            A provided delegate used to provide a context on demand
+            </summary>
+        </member>
+        <member name="P:LogUtils.Threading.LogTasker.ThreadID">
+            <summary>
+            The managed thread ID of the LogTasker thread
+            </summary>
         </member>
         <member name="P:LogUtils.Threading.LogTasker.WaitingOnSignal">
             <summary>
@@ -6701,7 +6832,7 @@
             <summary>
             Runs the task a single time before terminating
             </summary>
-            <param name="force">Should this task bypass the scheduling process</param>
+            <param name="force">Should this task bypass the scheduling process (in the case of an unsubmitted task)</param>
             <exception cref="T:System.InvalidOperationException">The task is already completed, or canceled OR the task is running on another thread, and task concurrency is not allowed</exception>
             <exception cref="T:LogUtils.Threading.InvalidStateException">The state has failed, or has been marked as complete</exception>
         </member>
@@ -6766,7 +6897,9 @@
             </summary>
         </member>
         <member name="M:LogUtils.Threading.TaskHandle.Dispose">
-            <inheritdoc/>
+            <summary>
+            Performs tasks for disposing a <see cref="T:LogUtils.Threading.TaskHandle"/>
+            </summary>
         </member>
         <member name="T:LogUtils.Threading.TaskNotFoundException">
             <summary>
@@ -6798,7 +6931,18 @@
         </member>
         <member name="M:LogUtils.TimedLogWriter.Flush">
             <summary>
-            Writes the log buffer to file for managed log files
+            Flushes the stream buffer to file
+            </summary>
+            <exception cref="T:System.ObjectDisposedException">The writer has been disposed</exception>
+        </member>
+        <member name="M:LogUtils.TimedLogWriter.ScheduleFlush">
+            <summary>
+            Attempts to flush the stream buffer to file on a .NET task thread
+            </summary>
+        </member>
+        <member name="M:LogUtils.TimedLogWriter.TryFlush">
+            <summary>
+            Attempts to flush the stream buffer to file
             </summary>
         </member>
         <member name="M:LogUtils.TimedLogWriter.WriteToFile(LogUtils.Requests.LogRequest)">
@@ -6807,8 +6951,20 @@
         <member name="M:LogUtils.TimedLogWriter.AssignWriter(LogUtils.Enums.LogID,System.IO.StreamWriter@)">
             <inheritdoc/>
         </member>
+        <member name="F:LogUtils.TimedLogWriter.IsDisposed">
+            <summary/>
+        </member>
+        <member name="M:LogUtils.TimedLogWriter.Dispose(System.Boolean)">
+            <summary>
+            Performs tasks for disposing a <see cref="T:LogUtils.TimedLogWriter"/>
+            </summary>
+            <param name="disposing">Whether or not the dispose request is invoked by the application (true), or invoked by the destructor (false)</param>
+        </member>
         <member name="M:LogUtils.TimedLogWriter.Dispose">
-            <inheritdoc/>
+            <inheritdoc cref="M:LogUtils.TimedLogWriter.Dispose(System.Boolean)"/>
+        </member>
+        <member name="M:LogUtils.TimedLogWriter.Finalize">
+            <summary/>
         </member>
         <member name="F:LogUtils.Timers.EventScheduler.scheduledEvents">
             <summary>
@@ -6849,8 +7005,17 @@
             <returns>An object containing the event state</returns>
             <exception cref="T:System.ArgumentOutOfRangeException">The frame interval is an invalid value</exception>
         </member>
+        <member name="F:LogUtils.Timers.EventScheduler.IsDisposed">
+            <summary/>
+        </member>
+        <member name="M:LogUtils.Timers.EventScheduler.Dispose(System.Boolean)">
+            <summary>
+            Performs tasks for disposing an <see cref="T:LogUtils.Timers.EventScheduler"/>
+            </summary>
+            <param name="disposing">Whether or not the dispose request is invoked by the application (true), or invoked by the destructor (false)</param>
+        </member>
         <member name="M:LogUtils.Timers.EventScheduler.Dispose">
-            <inheritdoc/>
+            <inheritdoc cref="M:LogUtils.Timers.EventScheduler.Dispose(System.Boolean)"/>
         </member>
         <member name="P:LogUtils.Timers.ScheduledEvent.InvokeCount">
             <summary>
@@ -7050,6 +7215,11 @@
         <member name="M:LogUtils.UtilityLogger.CreateLogger(System.String,LogUtils.Formatting.StringProvider)">
             <summary>
             Creates a logger that LogUtils can use to log to files directly (without using LogIDs, or the log request system) - not intended for users of LogUtils
+            </summary>
+        </member>
+        <member name="M:LogUtils.UtilityLogSource.Dispose">
+            <summary>
+            Performs tasks for disposing a <see cref="T:LogUtils.UtilityLogSource"/>
             </summary>
         </member>
         <member name="M:LogUtils.WeakReferenceCollection`1.GetEnumerator">

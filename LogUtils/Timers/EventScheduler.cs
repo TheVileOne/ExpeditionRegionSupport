@@ -119,26 +119,30 @@ namespace LogUtils.Timers
             }
         }
 
-        #region Dispose pattern
+        #region Dispose handling
 
-        private bool isDisposed;
+        /// <summary/>
+        protected bool IsDisposed;
 
+        /// <summary>
+        /// Performs tasks for disposing an <see cref="EventScheduler"/>
+        /// </summary>
+        /// <param name="disposing">Whether or not the dispose request is invoked by the application (true), or invoked by the destructor (false)</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (!isDisposed)
+            if (IsDisposed) return;
+
+            if (disposing)
             {
-                if (disposing)
-                {
-                    //Release any remaining timers
-                    foreach (FrameTimer timer in Timers)
-                        timer.Release();
-                    FrameTimer.OnRelease -= onTimerReleased;
-                }
-                isDisposed = true;
+                //Release any remaining timers
+                foreach (FrameTimer timer in Timers)
+                    timer.Release();
+                FrameTimer.OnRelease -= onTimerReleased;
             }
+            IsDisposed = true;
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="Dispose(bool)"/>
         public void Dispose()
         {
             Dispose(disposing: true);

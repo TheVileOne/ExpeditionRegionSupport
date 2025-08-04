@@ -118,6 +118,10 @@ namespace LogUtils.Compatibility.BepInEx.Listeners
 
         internal bool IsDisposed;
 
+        /// <summary>
+        /// Performs tasks for disposing a <see cref="DiskLogListener"/>
+        /// </summary>
+        /// <param name="disposing">Whether or not the dispose request is invoked by the application (true), or invoked by the destructor (false)</param>
         internal void Dispose(bool disposing)
         {
             if (IsDisposed) return;
@@ -128,14 +132,14 @@ namespace LogUtils.Compatibility.BepInEx.Listeners
             IsDisposed = true;
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="Dispose(bool)"/>
         public void Dispose()
         {
-            //Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary/>
         ~DiskLogListener()
         {
             Dispose(disposing: false);

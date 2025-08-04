@@ -50,13 +50,17 @@ namespace LogUtils
             typeof(StreamWriter).GetField("stream", searchFlags).SetValue(this, Handle.Stream);
         }
 
-        protected bool IsDisposed;
-        protected bool IsDisposing;
+        #region Dispose handling
 
+        /// <summary/>
+        protected bool IsDisposed;
+
+        /// <summary>
+        /// Performs tasks for disposing a <see cref="PersistentLogFileWriter"/>
+        /// </summary>
+        /// <param name="disposing">Whether or not the dispose request is invoked by the application (true), or invoked by the destructor (false)</param>
         protected override void Dispose(bool disposing)
         {
-            IsDisposing = true;
-
             try
             {
                 Flush();
@@ -71,13 +75,14 @@ namespace LogUtils
             finally
             {
                 IsDisposed = true;
-                IsDisposing = false;
             }
         }
 
+        /// <summary/>
         ~PersistentLogFileWriter()
         {
-            Dispose(false);
+            Dispose(disposing: false);
         }
+        #endregion
     }
 }

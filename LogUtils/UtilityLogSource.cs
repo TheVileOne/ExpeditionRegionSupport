@@ -101,6 +101,9 @@ namespace LogUtils
         }
         #endregion
 
+        /// <summary>
+        /// Performs tasks for disposing a <see cref="UtilityLogSource"/>
+        /// </summary>
         public void Dispose()
         {
             BepInEx.Logging.Logger.Sources.Remove(this);

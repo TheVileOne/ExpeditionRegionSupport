@@ -120,6 +120,9 @@ namespace LogUtils.Diagnostics
         }
         #endregion
 
+        /// <summary>
+        /// Resets enumerator to a default state
+        /// </summary>
         public void Dispose()
         {
             ResetState();

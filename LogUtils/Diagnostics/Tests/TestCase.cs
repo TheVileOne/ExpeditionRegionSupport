@@ -117,6 +117,9 @@ namespace LogUtils.Diagnostics.Tests
             return condition;
         }
 
+        /// <summary>
+        /// Selects a new test case from the parent group
+        /// </summary>
         public void Dispose()
         {
             //Alert the case group that this case is finished handling cases, and the next test can take over

@@ -66,6 +66,7 @@ namespace LogUtils.Diagnostics.Tests
 
         protected List<TestCase> Cases = new List<TestCase>();
 
+        /// <inheritdoc/>
         public int Count => Cases.Count;
 
         public TestCase SelectedCase;
@@ -95,6 +96,7 @@ namespace LogUtils.Diagnostics.Tests
             return Cases.Contains(test);
         }
 
+        /// <inheritdoc/>
         public IEnumerator<TestCase> GetEnumerator()
         {
             return Cases.GetEnumerator();

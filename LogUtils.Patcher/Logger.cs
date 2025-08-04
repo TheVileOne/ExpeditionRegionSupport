@@ -9,8 +9,6 @@ internal sealed class Logger : IDisposable
     private static readonly string _logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logutils.versionloader.log");
     private static readonly ManualLogSource _logSource = new ManualLogSource("LogUtils.VersionLoader");
 
-    private bool isDisposed;
-
     public Logger()
     {
         if (File.Exists(_logPath))
@@ -65,24 +63,34 @@ internal sealed class Logger : IDisposable
         }
     }
 
-    #region Dispose pattern
+    #region Dispose handling
+
+    /// <summary/>
+    internal bool IsDisposed;
+
+    /// <summary>
+    /// Performs tasks for disposing a <see cref="Patcher.Logger"/>
+    /// </summary>
+    /// <param name="disposing">Whether or not the dispose request is invoked by the application (true), or invoked by the destructor (false)</param>
     internal void Dispose(bool disposing)
     {
-        if (isDisposed) return;
+        if (IsDisposed) return;
 
-        isDisposed = true;
+        IsDisposed = true;
         BepInEx.Logging.Logger.Sources.Remove(_logSource);
     }
 
-    ~Logger()
-    {
-        Dispose(disposing: false);
-    }
-
+    /// <inheritdoc cref="Dispose(bool)"/>
     public void Dispose()
     {
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
+    }
+
+    /// <summary/>
+    ~Logger()
+    {
+        Dispose(disposing: false);
     }
     #endregion
 }
