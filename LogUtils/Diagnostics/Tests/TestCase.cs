@@ -1,4 +1,5 @@
 ﻿using LogUtils.Helpers.Extensions;
+using LogUtils.Policy;
 using System;
 using System.Collections.Generic;
 using MessageFormatter = LogUtils.Diagnostics.AssertHandler.MessageFormatter;
@@ -69,7 +70,8 @@ namespace LogUtils.Diagnostics.Tests
 
         public IReadOnlyList<IConditionHandler> ApplicableHandlers => GroupState.GetApplicableHandlers(this);
 
-        public virtual bool IsEnabled => Debug.AssertsEnabled;
+        /// <summary/>
+        public virtual bool IsEnabled => DebugPolicy.AssertsEnabled;
 
         public string Name { get; }
 

@@ -53,6 +53,9 @@ namespace LogUtils
         /// </summary>
         private static bool initializingInProgress;
 
+        /// <inheritdoc cref="UtilityConfig"/>
+        public static UtilityConfig Config;
+
         /// <summary>
         /// Handles cross-mod data storage for the utility
         /// </summary>
@@ -138,7 +141,7 @@ namespace LogUtils
                         UnityLogger.EnsureLogTypeCapacity(UtilityConsts.CUSTOM_LOGTYPE_LIMIT);
                         UtilityLogger.Initialize();
 
-                        //TODO: Read LogUtils policies from config file
+                        UtilityConfig.Initialize();
                         AnnounceBuild();
 
                         if (PatcherPolicy.ShouldDeploy)

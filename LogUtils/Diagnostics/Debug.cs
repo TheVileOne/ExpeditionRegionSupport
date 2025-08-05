@@ -13,8 +13,6 @@ namespace LogUtils.Diagnostics
 {
     public static class Debug
     {
-        public static bool AssertsEnabled = true;
-
         /// <summary>
         /// The maximum amount of time (in milliseconds) that a logging thread update can experience without triggering a slow update report message
         /// Set to 25 by default (time windows shorter than this will be subject to context switching delays)

@@ -1,5 +1,6 @@
 ﻿using LogUtils.Compatibility.Unity;
 using LogUtils.Enums;
+using LogUtils.Policy;
 using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
@@ -56,7 +57,8 @@ namespace LogUtils.Diagnostics
         public MessageFormatter Formatter = new MessageFormatter();
         public ILogger Logger;
 
-        public virtual bool IsEnabled => Debug.AssertsEnabled;
+        /// <summary/>
+        public virtual bool IsEnabled => DebugPolicy.AssertsEnabled;
 
         public AssertHandler(ILogger logger)
         {

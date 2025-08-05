@@ -1,5 +1,6 @@
 ﻿using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.Extensions;
+using LogUtils.Policy;
 
 #pragma warning disable CS1591 //Missing XML comment for publicly visible type or member
 namespace LogUtils
@@ -115,6 +116,46 @@ namespace LogUtils
             public const string REQUEST_DATA = "RequestData";
             public const string SCHEDULER = "Scheduler";
             public const string SHARED_DATA = "SharedData";
+        }
+
+        public static class ConfigCategory
+        {
+            public const string Debug = "Debug";
+            public const string Logging = "Logging";
+            public const string LogRequests = "Logging.Requests";
+            public const string Patcher = "Patcher";
+            public const string Testing = "Testing";
+            public const string Asserts = "Testing.Asserts";
+        }
+
+        public static class PolicyNames
+        {
+            public static class Debug
+            {
+                public const string Mode = nameof(DebugPolicy.DebugMode);
+                public const string ShowDebugLog = nameof(DebugPolicy.ShowDebugLog);
+                public const string ShowActivityLog = nameof(DebugPolicy.ShowActivityLog);
+            }
+
+            public static class Patcher
+            {
+                public const string HasAskedForPermission = nameof(PatcherPolicy.HasAskedForPermission);
+                public const string ShouldDeploy = nameof(PatcherPolicy.ShouldDeploy);
+                public const string ShowPatcherLog = nameof(PatcherPolicy.ShowPatcherLog);
+            }
+
+            public static class Testing
+            {
+                public const string PreferExpectationsAsFailures = nameof(TestCasePolicy.PreferExpectationsAsFailures);
+                public const string FailuresAreAlwaysReported = nameof(TestCasePolicy.FailuresAreAlwaysReported);
+                public const string ReportVerbosity = nameof(TestCasePolicy.ReportVerbosity);
+                public const string AssertsEnabled = "Enabled";
+            }
+
+            public static class LogRequests
+            {
+                public const string ShowRejectionReasons = nameof(LogRequestPolicy.ShowRejectionReasons);
+            }
         }
 
         public static class LogNames

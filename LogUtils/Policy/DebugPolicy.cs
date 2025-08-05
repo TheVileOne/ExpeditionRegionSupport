@@ -47,6 +47,11 @@ namespace LogUtils.Policy
         }
 
         /// <summary>
+        /// Affects whether test cases apply, or LogUtils based assert statements have an effect
+        /// </summary>
+        public static bool AssertsEnabled = true;
+
+        /// <summary>
         /// Activate, or deactivate development build specific log files based on several criteria
         /// </summary>
         internal static void UpdateAllowConditions()
