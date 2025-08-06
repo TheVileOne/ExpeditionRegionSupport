@@ -117,29 +117,58 @@ namespace LogUtils.Policy
         /// <summary>
         /// Resolves entry data differences between cached config entries and the config file
         /// </summary>
-        /// <param name="force">Forces a save, or reload</param>
-        public void SyncData(bool force = false)
+        public void SyncData()
         {
-            if (!force && NewEntries.Count == 0) return;
+            //TODO: Need a process for handling marked entries for saving on game close
+            if (NewEntries.Count == 0) return;
 
+            if (UtilityCore.IsControllingAssembly)
+                TrySave();
+
+            NewEntries.Clear(); //Entries will be saved from a different process
+        }
+
+        /// <summary>
+        /// Process safe method of saving entry values to the config file
+        /// </summary>
+        public bool TrySave()
+        {
+            if (TryInvoke(Save))
+            {
+                UtilityLogger.Log("Config data saved");
+                return true;
+            }
+            UtilityLogger.LogWarning("Unable to save config");
+            return false;
+        }
+
+        /// <summary>
+        /// Process safe method of reading entry values from the config file
+        /// </summary>
+        public bool TryReload()
+        {
+            if (TryInvoke(Reload))
+            {
+                UtilityLogger.Log("Config data read from file");
+                return true;
+            }
+            UtilityLogger.LogWarning("Unable to read config");
+            return false;
+        }
+
+        internal static bool TryInvoke(Action action)
+        {
             /*
              * Read/Write operation may fail due to differing FileShare permissions when this file is accessed from multiple processes.
-             * Give a few attempts to retry to improve the chance that data sync will be successful
+             * Give a few attempts to retry to improve the chance that save operation will be successful
              */
             int retryCount = 3;
-            bool syncCompleted = false;
             do
             {
                 try
                 {
-                    if (UtilityCore.IsControllingAssembly)
-                        Save();
-                    else
-                        Reload();
-
-                    NewEntries.Clear();
-                    retryCount = 0;
-                    syncCompleted = true;
+                    action.Invoke();
+                    return true;
                 }
                 catch (IOException)
                 {
@@ -148,10 +177,7 @@ namespace LogUtils.Policy
                 }
             }
             while (retryCount > 0);
-
-            if (!syncCompleted)
-                UtilityLogger.LogWarning("Unable to sync config data");
-            UtilityLogger.Log("Config data synced with file");
+            return false;
         }
     }
 }
