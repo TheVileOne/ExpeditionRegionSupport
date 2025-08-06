@@ -1,7 +1,11 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using LogUtils.Enums;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
+using System.Threading;
 using ConfigCategory = LogUtils.UtilityConsts.ConfigCategory;
 using PolicyNames = LogUtils.UtilityConsts.PolicyNames;
 
@@ -10,15 +14,25 @@ namespace LogUtils.Policy
     /// <summary>
     /// A container for utility settings, and user preferences
     /// </summary>
-    public class UtilityConfig : ConfigFile
+    public sealed class UtilityConfig : ConfigFile
     {
         /// <summary>
         /// Path to the LogUtils core config file
         /// </summary>
         public static readonly string CONFIG_PATH = Path.Combine(Paths.ConfigPath, "LogUtils.cfg");
 
+        internal Dictionary<ConfigDefinition, string> OrphanedEntries;
+
+        internal List<ConfigEntryBase> NewEntries = new List<ConfigEntryBase>();
+
         private UtilityConfig() : base(CONFIG_PATH, true)
         {
+            SaveOnConfigSet = false; //Saving on set causes too many issues
+
+            BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
+            Type baseType = GetType().BaseType;
+            OrphanedEntries = (Dictionary<ConfigDefinition, string>)baseType.GetProperty(nameof(OrphanedEntries), flags).GetValue(this);
+
             BindEntries();
             ReloadValues();
         }
@@ -87,6 +101,57 @@ namespace LogUtils.Policy
             //Logging.Requests
             Bind(new ConfigDefinition(ConfigCategory.LogRequests, PolicyNames.LogRequests.ShowRejectionReasons), defaultValue: false,
                      new ConfigDescription("Log the specific reason a logged message could not be handled."));
+        }
+
+        public new ConfigEntry<T> Bind<T>(ConfigDefinition definition, T defaultValue, ConfigDescription description = null)
+        {
+            bool hasDefinition = OrphanedEntries.ContainsKey(definition);
+
+            ConfigEntry<T> entry = base.Bind(definition, defaultValue, description);
+
+            if (!hasDefinition)
+                NewEntries.Add(entry);
+            return entry;
+        }
+
+        /// <summary>
+        /// Resolves entry data differences between cached config entries and the config file
+        /// </summary>
+        /// <param name="force">Forces a save, or reload</param>
+        public void SyncData(bool force = false)
+        {
+            if (!force && NewEntries.Count == 0) return;
+
+            /*
+             * Read/Write operation may fail due to differing FileShare permissions when this file is accessed from multiple processes.
+             * Give a few attempts to retry to improve the chance that data sync will be successful
+             */
+            int retryCount = 3;
+            bool syncCompleted = false;
+            do
+            {
+                try
+                {
+                    if (UtilityCore.IsControllingAssembly)
+                        Save();
+                    else
+                        Reload();
+
+                    NewEntries.Clear();
+                    retryCount = 0;
+                    syncCompleted = true;
+                }
+                catch (IOException)
+                {
+                    Thread.Sleep(25);
+                    retryCount--;
+                }
+            }
+            while (retryCount > 0);
+
+            if (!syncCompleted)
+                UtilityLogger.LogWarning("Unable to sync config data");
+            UtilityLogger.Log("Config data synced with file");
         }
     }
 }

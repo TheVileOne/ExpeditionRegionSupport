@@ -178,6 +178,10 @@ namespace LogUtils
                     }
                 case UtilitySetup.InitializationStep.INITIALIZE_COMPONENTS:
                     {
+                        ProcessMonitor.WaitOnConnectionStatus();
+                        UtilityLogger.Log("IsControllingAssembly: " + IsControllingAssembly);
+
+                        Config.SyncData();
                         LoadComponents();
 
                         nextStep = UtilitySetup.InitializationStep.INITIALIZE_ENUMS;
@@ -279,9 +283,6 @@ namespace LogUtils
         /// </summary>
         internal static void LoadComponents()
         {
-            ProcessMonitor.WaitOnConnectionStatus();
-            UtilityLogger.Log("IsControllingAssembly: " + IsControllingAssembly);
-
             Scheduler = UtilityComponent.Create<EventScheduler>();
             PersistenceManager = UtilityComponent.Create<PersistenceManager>();
             DataHandler = UtilityComponent.Create<SharedDataHandler>();
