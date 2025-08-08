@@ -4,7 +4,6 @@ using LogUtils.Enums;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Threading;
 using ConfigCategory = LogUtils.UtilityConsts.ConfigCategory;
 using PolicyNames = LogUtils.UtilityConsts.PolicyNames;
@@ -21,17 +20,12 @@ namespace LogUtils.Policy
         /// </summary>
         public static readonly string CONFIG_PATH = Path.Combine(Paths.ConfigPath, "LogUtils.cfg");
 
-        internal Dictionary<ConfigDefinition, string> OrphanedEntries;
 
         internal List<ConfigEntryBase> NewEntries = new List<ConfigEntryBase>();
 
         private UtilityConfig() : base(CONFIG_PATH, true)
         {
             SaveOnConfigSet = false; //Saving on set causes too many issues
-
-            BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
-            Type baseType = GetType().BaseType;
-            OrphanedEntries = (Dictionary<ConfigDefinition, string>)baseType.GetProperty(nameof(OrphanedEntries), flags).GetValue(this);
 
             BindEntries();
             ReloadValues();
