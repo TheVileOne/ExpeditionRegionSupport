@@ -10,13 +10,16 @@ namespace LogUtils.Policy
     /// <summary>
     /// A container for utility settings, and user preferences
     /// </summary>
-    public sealed class UtilityConfig : ConfigFile
+    public sealed class UtilityConfig
     {
         /// <summary>
         /// Path to the LogUtils core config file
         /// </summary>
         public static readonly string CONFIG_PATH = Path.Combine(Paths.ConfigPath, "LogUtils.cfg");
 
+        internal ConfigFile ConfigFile;
+
+        internal object ConfigLock;
 
         internal Dictionary<ConfigDefinition, IConfigEntry> CachedEntries = new Dictionary<ConfigDefinition, IConfigEntry>();
 
@@ -25,21 +28,25 @@ namespace LogUtils.Policy
         /// <summary>
         /// Retrieves a cached config entry
         /// </summary>
-        public new IConfigEntry this[ConfigDefinition key]
+        public IConfigEntry this[ConfigDefinition key]
         {
             get
             {
-                lock (_ioLock)
+                lock (ConfigLock)
                     return CachedEntries[key];
             }
         }
 
         /// <inheritdoc cref="this[ConfigDefinition]"/>
-        public new IConfigEntry this[string section, string key] => this[new ConfigDefinition(section, key)];
+        public IConfigEntry this[string section, string key] => this[new ConfigDefinition(section, key)];
 
-        private UtilityConfig() : base(CONFIG_PATH, true)
+        private UtilityConfig()
         {
-            SaveOnConfigSet = false; //Saving on set causes too many issues
+            ConfigFile = new ConfigFile(CONFIG_PATH, true)
+            {
+                SaveOnConfigSet = false //Saving on set causes too many issues
+            };
+            ConfigLock = ConfigFile._ioLock;
         }
 
         internal static void Initialize()
@@ -63,18 +70,18 @@ namespace LogUtils.Policy
         {
             var entries = CachedEntries.Values;
 
-            lock (_ioLock)
+            lock (ConfigLock)
             {
                 foreach (IConfigEntry entry in entries)
                     entry.SetValueFromBase();
             }
         }
 
-        public new CachedConfigEntry<T> Bind<T>(ConfigDefinition definition, T defaultValue, ConfigDescription description = null)
+        public CachedConfigEntry<T> Bind<T>(ConfigDefinition definition, T defaultValue, ConfigDescription description = null)
         {
-            bool hasDefinition = OrphanedEntries.ContainsKey(definition);
+            bool hasDefinition = ConfigFile.OrphanedEntries.ContainsKey(definition);
 
-            var entry = new CachedConfigEntry<T>(base.Bind(definition, defaultValue, description));
+            var entry = new CachedConfigEntry<T>(ConfigFile.Bind(definition, defaultValue, description));
 
             CachedEntries[definition] = entry;
 
@@ -102,7 +109,7 @@ namespace LogUtils.Policy
         /// </summary>
         public bool TrySave()
         {
-            if (TryInvoke(Save))
+            if (TryInvoke(ConfigFile.Save))
             {
                 UtilityLogger.Log("Config data saved");
                 return true;
@@ -116,7 +123,7 @@ namespace LogUtils.Policy
         /// </summary>
         public bool TryReload()
         {
-            if (TryInvoke(Reload))
+            if (TryInvoke(ConfigFile.Reload))
             {
                 UtilityLogger.Log("Config data read from file");
                 return true;
