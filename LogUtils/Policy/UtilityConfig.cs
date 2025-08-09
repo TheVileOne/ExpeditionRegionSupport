@@ -1,12 +1,9 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
-using LogUtils.Enums;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using ConfigCategory = LogUtils.UtilityConsts.ConfigCategory;
-using PolicyNames = LogUtils.UtilityConsts.PolicyNames;
 
 namespace LogUtils.Policy
 {
@@ -21,24 +18,42 @@ namespace LogUtils.Policy
         public static readonly string CONFIG_PATH = Path.Combine(Paths.ConfigPath, "LogUtils.cfg");
 
 
+        internal Dictionary<ConfigDefinition, IConfigEntry> CachedEntries = new Dictionary<ConfigDefinition, IConfigEntry>();
+
         internal List<ConfigEntryBase> NewEntries = new List<ConfigEntryBase>();
+
+        /// <summary>
+        /// Retrieves a cached config entry
+        /// </summary>
+        public new IConfigEntry this[ConfigDefinition key]
+        {
+            get
+            {
+                lock (_ioLock)
+                    return CachedEntries[key];
+            }
+        }
+
+        /// <inheritdoc cref="this[ConfigDefinition]"/>
+        public new IConfigEntry this[string section, string key] => this[new ConfigDefinition(section, key)];
 
         private UtilityConfig() : base(CONFIG_PATH, true)
         {
             SaveOnConfigSet = false; //Saving on set causes too many issues
-
-            BindEntries();
-            ReloadValues();
         }
 
         internal static void Initialize()
         {
             UtilityCore.Config = new UtilityConfig();
+            InitializeEntries();
         }
 
-        public ConfigEntry<T> GetEntry<T>(string section, string key)
+        internal static void InitializeEntries()
         {
-            return (ConfigEntry<T>)this[section, key];
+            DebugPolicy.InitializeEntries();
+            PatcherPolicy.InitializeEntries();
+            TestCasePolicy.InitializeEntries();
+            LogRequestPolicy.InitializeEntries();
         }
 
         /// <summary>
@@ -46,62 +61,22 @@ namespace LogUtils.Policy
         /// </summary>
         public void ReloadValues()
         {
-            DebugPolicy.DebugMode = GetEntry<bool>(ConfigCategory.Debug, PolicyNames.Debug.Mode).Value;
-            DebugPolicy.ShowDebugLog = GetEntry<bool>(ConfigCategory.Debug, PolicyNames.Debug.ShowDebugLog).Value;
-            DebugPolicy.ShowActivityLog = GetEntry<bool>(ConfigCategory.Debug, PolicyNames.Debug.ShowActivityLog).Value;
+            var entries = CachedEntries.Values;
 
-            PatcherPolicy.HasAskedForPermission = GetEntry<bool>(ConfigCategory.Patcher, PolicyNames.Patcher.HasAskedForPermission).Value;
-            PatcherPolicy.ShouldDeploy = GetEntry<bool>(ConfigCategory.Patcher, PolicyNames.Patcher.ShouldDeploy).Value;
-            PatcherPolicy.ShowPatcherLog = GetEntry<bool>(ConfigCategory.Patcher, PolicyNames.Patcher.ShowPatcherLog).Value;
-
-            TestCasePolicy.PreferExpectationsAsFailures = GetEntry<bool>(ConfigCategory.Testing, PolicyNames.Testing.PreferExpectationsAsFailures).Value;
-            TestCasePolicy.FailuresAreAlwaysReported = GetEntry<bool>(ConfigCategory.Testing, PolicyNames.Testing.FailuresAreAlwaysReported).Value;
-            TestCasePolicy.ReportVerbosity = GetEntry<FormatEnums.FormatVerbosity>(ConfigCategory.Testing, PolicyNames.Testing.ReportVerbosity).Value;
-
-            DebugPolicy.AssertsEnabled = GetEntry<bool>(ConfigCategory.Asserts, PolicyNames.Testing.AssertsEnabled).Value;
-            LogRequestPolicy.ShowRejectionReasons = GetEntry<bool>(ConfigCategory.LogRequests, PolicyNames.LogRequests.ShowRejectionReasons).Value;
+            lock (_ioLock)
+            {
+                foreach (IConfigEntry entry in entries)
+                    entry.SetValueFromBase();
+            }
         }
 
-        internal void BindEntries()
-        {
-            //Debug
-            Bind(new ConfigDefinition(ConfigCategory.Debug, PolicyNames.Debug.Mode), defaultValue: false,
-                     new ConfigDescription("Enables development build."));
-            Bind(new ConfigDefinition(ConfigCategory.Debug, PolicyNames.Debug.ShowDebugLog), defaultValue: false,
-                     new ConfigDescription("Activates LogUtils debugging log file. (This file shows additional log information often too sensitive to be handled through a typical log file)."));
-            Bind(new ConfigDefinition(ConfigCategory.Debug, PolicyNames.Debug.ShowActivityLog), defaultValue: false,
-                     new ConfigDescription("Activates LogUtils logging activity log file. (This file shows a record of log file operations)."));
-
-            //Patcher
-            Bind(new ConfigDefinition(ConfigCategory.Patcher, PolicyNames.Patcher.HasAskedForPermission), defaultValue: false,
-                     new ConfigDescription("Indicates whether user was notified about deploying the VersionLoader."));
-            Bind(new ConfigDefinition(ConfigCategory.Patcher, PolicyNames.Patcher.ShouldDeploy), defaultValue: false,
-                     new ConfigDescription("Indicates whether user has given permission to deploy the VersionLoader. The VersionLoader cannot be used if this is not true."));
-            Bind(new ConfigDefinition(ConfigCategory.Patcher, PolicyNames.Patcher.ShowPatcherLog), defaultValue: true,
-                     new ConfigDescription("Indicates whether VersionLoader should maintain a separate dedicated status log file"));
-
-            //Testing
-            Bind(new ConfigDefinition(ConfigCategory.Testing, PolicyNames.Testing.PreferExpectationsAsFailures), defaultValue: true,
-                     new ConfigDescription("When a test case has explicitly given expectation conditions, this affects whether expectation conditions can apply as a failed test condition."));
-            Bind(new ConfigDefinition(ConfigCategory.Testing, PolicyNames.Testing.FailuresAreAlwaysReported), defaultValue: false,
-                     new ConfigDescription("Affects whether all failed results are reported, or only the unexpected ones."));
-            Bind(new ConfigDefinition(ConfigCategory.Testing, PolicyNames.Testing.ReportVerbosity), defaultValue: FormatEnums.FormatVerbosity.Standard,
-                     new ConfigDescription("Affects the level of detail revealed in the test case report."));
-
-            //Testing.Asserts
-            Bind(new ConfigDefinition(ConfigCategory.Asserts, PolicyNames.Testing.AssertsEnabled), defaultValue: true,
-                     new ConfigDescription("Affects whether test cases apply, or LogUtils based assert statements have an effect."));
-
-            //Logging.Requests
-            Bind(new ConfigDefinition(ConfigCategory.LogRequests, PolicyNames.LogRequests.ShowRejectionReasons), defaultValue: false,
-                     new ConfigDescription("Log the specific reason a logged message could not be handled."));
-        }
-
-        public new ConfigEntry<T> Bind<T>(ConfigDefinition definition, T defaultValue, ConfigDescription description = null)
+        public new CachedConfigEntry<T> Bind<T>(ConfigDefinition definition, T defaultValue, ConfigDescription description = null)
         {
             bool hasDefinition = OrphanedEntries.ContainsKey(definition);
 
-            ConfigEntry<T> entry = base.Bind(definition, defaultValue, description);
+            var entry = new CachedConfigEntry<T>(base.Bind(definition, defaultValue, description));
+
+            CachedEntries[definition] = entry;
 
             if (!hasDefinition)
                 NewEntries.Add(entry);
