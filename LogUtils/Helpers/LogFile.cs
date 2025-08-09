@@ -172,8 +172,15 @@ namespace LogUtils.Helpers
         {
             try
             {
+                FileAccess access = FileAccess.ReadWrite;
+                if (!UtilityCore.IsControllingAssembly)
+                {
+                    mode = FileMode.Open;
+                    access = FileAccess.Read;
+                }
+
                 //Open filestream using maximal FileShare privileges
-                FileStream stream = File.Open(logFile.Properties.CurrentFilePath, mode, FileAccess.ReadWrite, FileShare.ReadWrite);
+                FileStream stream = File.Open(logFile.Properties.CurrentFilePath, mode, access, FileShare.ReadWrite);
 
                 //Seeks to the end of the file - I don't know of a better way of handling this. Other methods that append to the file also create the file
                 //for us. It is important for the utility to handle creating the file using its own process
@@ -210,6 +217,12 @@ namespace LogUtils.Helpers
         /// </summary>
         public static void StartNewSession(LogID logFile)
         {
+            if (!UtilityCore.IsControllingAssembly)
+            {
+                UtilityLogger.DebugLog("Replacing log file from alternate Rain World processes is unsupported");
+                return;
+            }
+
             logFile.Properties.EndLogSession();
 
             var streamsToResume = logFile.Properties.PersistentStreamHandles.InterruptAll();

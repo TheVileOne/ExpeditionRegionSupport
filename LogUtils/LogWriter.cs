@@ -187,6 +187,9 @@ namespace LogUtils
         /// <returns>A handle to the scheduled write task</returns>
         public Task WriteFromBuffer(LogID logFile, TimeSpan waitTime, bool respectBufferState = true)
         {
+            if (!UtilityCore.IsControllingAssembly)
+                return null;
+
             MessageBuffer writeBuffer = logFile.Properties.WriteBuffer;
             FileLock fileLock = logFile.Properties.FileLock;
 

@@ -510,7 +510,7 @@ namespace LogUtils.Properties
                     {
                         FileExists = stream != null;
 
-                        if (FileExists)
+                        if (FileExists && stream.CanWrite)
                         {
                             StreamWriter writer = new StreamWriter(stream);
 
@@ -573,7 +573,7 @@ namespace LogUtils.Properties
                     {
                         FileExists = stream != null;
 
-                        if (FileExists)
+                        if (FileExists && stream.CanWrite)
                         {
                             using (StreamWriter writer = new StreamWriter(stream))
                             {
