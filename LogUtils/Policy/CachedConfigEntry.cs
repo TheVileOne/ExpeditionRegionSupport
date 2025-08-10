@@ -20,7 +20,6 @@ namespace LogUtils.Policy
         /// </summary>
         public event ValueChangedEventHandler ValueChanged;
 
-
         /// <inheritdoc/>
         public T Value { get; private set; }
 
@@ -54,6 +53,12 @@ namespace LogUtils.Policy
         public void Unmark()
         {
             IsMarked = false;
+        }
+
+        /// <inheritdoc/>
+        public void ResetToDefault(SaveOption saveOption = SaveOption.DontSave)
+        {
+            SetValue((T)DefaultValue, saveOption);
         }
 
         /// <inheritdoc/>

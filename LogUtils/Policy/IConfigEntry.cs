@@ -21,6 +21,11 @@
         void Unmark();
 
         /// <summary>
+        /// Assigns the default value to the value cache
+        /// </summary>
+        void ResetToDefault(SaveOption saveOption = SaveOption.DontSave);
+
+        /// <summary>
         /// Assigns value stored in the base config entry in the value cache
         /// </summary>
         void SetValueFromBase();

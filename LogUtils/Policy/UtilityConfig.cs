@@ -92,6 +92,23 @@ namespace LogUtils.Policy
         }
 
         /// <summary>
+        /// Assigns the default value for all config entries
+        /// </summary>
+        public void ResetToDefaults(SaveOption saveOption = SaveOption.DontSave)
+        {
+            bool saveAfterProcessing = saveOption == SaveOption.SaveImmediately;
+
+            if (saveAfterProcessing)
+                saveOption = SaveOption.SaveLater; //Mark entries instead to avoid extra file operations
+
+            foreach (var entry in CachedEntries.Values)
+                entry.ResetToDefault(saveOption);
+
+            if (saveAfterProcessing)
+                TrySave();
+        }
+
+        /// <summary>
         /// Process safe method of saving entry values to the config file
         /// </summary>
         public bool TrySave()
