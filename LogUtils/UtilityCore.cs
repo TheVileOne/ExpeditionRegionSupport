@@ -409,7 +409,7 @@ namespace LogUtils
 
         internal static void OnProcessSwitch()
         {
-            if (LogConsole.FindWriter(ConsoleID.BepInEx, false) != null)
+            if (LogConsole.HasCompatibleWriter())
                 LogConsole.SetEnabledState(true);
 
             PropertyManager.ReloadFromProcessSwitch();

@@ -54,6 +54,13 @@ namespace LogUtils.Console
             return Writers.FindAll(console => targets.Contains(console.ID) && (!enabledOnly || console.IsEnabled)).ToArray();
         }
 
+        internal static bool HasCompatibleWriter()
+        {
+            //Users should not be tampering with ConsoleID.BepInEx. This should be a reliable way of telling if console state should be active
+            var writer = FindWriter(ConsoleID.BepInEx, enabledOnly: false);
+            return writer != null;
+        }
+
         internal static void HandleRequest(LogRequest request)
         {
             try
@@ -193,29 +200,12 @@ namespace LogUtils.Console
             WriteLine(LogCategory.Info, message);
         }
 
-        internal static void WriteLineTest()
-        {
-            ConsoleLogWriter console = FindWriter(ConsoleID.BepInEx, enabledOnly: true);
-
-            foreach (ConsoleColor colorValue in Enum.GetValues(typeof(ConsoleColor)))
-            {
-                //Show that color helpers return correct values, and the console produces the correct color
-                SetConsoleColor(colorValue);
-                console.Stream.WriteLine(colorValue);
-
-                var unityColor = ConsoleColorMap.GetColor(colorValue);
-                SetConsoleColor(ConsoleColorMap.ClosestConsoleColor(unityColor));
-                console.Stream.WriteLine("Unity Color");
-                console.Stream.WriteLine(AnsiColorConverter.ApplyFormat("ANSI Color", unityColor));
-            }
-            SetConsoleColor(ConsoleColorMap.DefaultConsoleColor);
-        }
-
         public static void WriteLine(ILogSource source, LogCategory category, string message)
         {
             ConsoleLogWriter console = FindWriter(ConsoleID.BepInEx, enabledOnly: true);
 
-            if (console == null) return;
+            if (console == null)
+                return;
 
             LogRequest request = new LogRequest(RequestType.Console, new LogRequestEventArgs(ConsoleID.BepInEx, message, category)
             {
