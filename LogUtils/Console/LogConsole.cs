@@ -20,6 +20,7 @@ namespace LogUtils.Console
         /// Indicates whether the host machine supports ANSI color codes
         /// </summary>
         public static bool ANSIColorSupport;
+
         public static bool IsEnabled { get; private set; }
 
         /// <summary>
@@ -28,6 +29,14 @@ namespace LogUtils.Console
         public static readonly Lock WriteLock = new Lock();
 
         public static readonly List<ConsoleLogWriter> Writers = new List<ConsoleLogWriter>();
+
+        internal static void EnableAnsiSupport()
+        {
+            ANSIColorSupport = ConsoleVirtualization.TryEnableVirtualTerminal(out int errorCode);
+
+            if (!ANSIColorSupport)
+                UtilityLogger.LogWarning($"[ERROR CODE {errorCode}] ANSI color codes are unsupported");
+        }
 
         /// <summary>
         /// Finds the writer associated with a given ConsoleID
@@ -86,20 +95,11 @@ namespace LogUtils.Console
         {
             UtilityLogger.Log("Checking for console availability");
 
-            ConsoleLogWriter writer = null;
+            TextWriter consoleStream = null;
             if (BepInEx.ConsoleManager.ConsoleActive)
             {
-                if (ConsoleVirtualization.TryEnableVirtualTerminal(out int errorCode))
-                {
-                    ANSIColorSupport = true;
-                }
-                else
-                {
-                    UtilityLogger.LogWarning($"[ERROR CODE {errorCode}] ANSI color codes are unsupported - using fallback method");
-                }
-
-                TextWriter consoleStream = BepInEx.ConsoleManager.ConsoleStream;
-
+                EnableAnsiSupport();
+                consoleStream = BepInEx.ConsoleManager.ConsoleStream;
                 if (consoleStream != null) //I don't know if it is possible for the stream to be null here
                 {
                     //TODO: Override BepInEx console config setting
@@ -108,16 +108,12 @@ namespace LogUtils.Console
             }
 
             //Console is considered in a functional state when the log writer could be instantiated successfully
-            if (writer == null)
-            {
-                UtilityLogger.Log("Console is disabled");
-                IsEnabled = false;
-            }
-            else
-            {
+            IsEnabled = consoleStream != null;
+
+            if (IsEnabled)
                 UtilityLogger.Log("Console stream started");
-                IsEnabled = true;
-            }
+            else
+                UtilityLogger.Log("Console is disabled");
         }
 
         /// <summary>
@@ -153,6 +149,8 @@ namespace LogUtils.Console
                 if (state)
                 {
                     BepInEx.ConsoleManager.CreateConsole();
+
+                    EnableAnsiSupport();
                     foreach (var console in consoleWriters)
                         console.ReloadStream();
 
