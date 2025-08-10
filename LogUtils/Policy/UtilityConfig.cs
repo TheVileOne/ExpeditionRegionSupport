@@ -24,8 +24,6 @@ namespace LogUtils.Policy
 
         internal Dictionary<ConfigDefinition, IConfigEntry> CachedEntries = new Dictionary<ConfigDefinition, IConfigEntry>();
 
-        internal List<ConfigEntryBase> NewEntries = new List<ConfigEntryBase>();
-
         /// <summary>
         /// Retrieves a cached config entry
         /// </summary>
