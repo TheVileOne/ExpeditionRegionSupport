@@ -11,6 +11,11 @@ namespace LogUtils.Policy
         internal readonly ConfigEntry<T> BaseEntry;
 
         /// <summary>
+        /// The config instance that contains this entry
+        /// </summary>
+        public ConfigFile Config => BaseEntry.ConfigFile;
+
+        /// <summary>
         /// Event invoked when value has changed from its last set value
         /// </summary>
         public event ValueChangedEventHandler ValueChanged;
@@ -26,6 +31,9 @@ namespace LogUtils.Policy
             set => Value = (T)value;
         }
 
+        /// <inheritdoc/>
+        public bool IsMarked { get; private set; }
+
         /// <summary>
         /// Creates a new <see cref="CachedConfigEntry{T}"/> instance
         /// </summary>
@@ -37,7 +45,19 @@ namespace LogUtils.Policy
         }
 
         /// <inheritdoc/>
-        public void SetValue(T newValue)
+        public void Mark()
+        {
+            IsMarked = true;
+        }
+
+        /// <inheritdoc/>
+        public void Unmark()
+        {
+            IsMarked = false;
+        }
+
+        /// <inheritdoc/>
+        public void SetValue(T newValue, SaveOption saveOption = SaveOption.DontSave)
         {
             T oldValue = Value;
             bool valueChanged = !Equals(oldValue, newValue);
@@ -45,6 +65,7 @@ namespace LogUtils.Policy
             Value = newValue;
             if (valueChanged)
                 ValueChanged?.Invoke(this, oldValue);
+            HandleSave(saveOption);
         }
 
         /// <inheritdoc/>
@@ -54,9 +75,31 @@ namespace LogUtils.Policy
         }
 
         /// <inheritdoc/>
-        public void SetValueSilently(T newValue)
+        public void SetValueSilently(T newValue, SaveOption saveOption = SaveOption.DontSave)
         {
             Value = newValue;
+            HandleSave(saveOption);
+        }
+
+        internal void HandleSave(SaveOption saveOption)
+        {
+            switch (saveOption)
+            {
+                case SaveOption.SaveImmediately:
+                    UpdateBaseEntry();
+                    if (UtilityCore.IsControllingAssembly)
+                    {
+                        Config.Save(); //This wont save any entries that have been marked
+                        Unmark();
+                    }
+                    break;
+                case SaveOption.SaveLater:
+                    Mark();
+                    break;
+                case SaveOption.DontSave:
+                default:
+                    break;
+            }
         }
 
         /// <inheritdoc/>

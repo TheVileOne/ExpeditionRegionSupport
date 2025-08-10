@@ -6,6 +6,21 @@
     public interface IConfigEntry
     {
         /// <summary>
+        /// Indicates that an entry has been marked for special handling (such as during save operations)
+        /// </summary>
+        bool IsMarked { get; }
+
+        /// <summary>
+        /// Marks an entry for special handling (such as during save operations)
+        /// </summary>
+        void Mark();
+
+        /// <summary>
+        /// Unmarks an entry for special handling (such as during save operations)
+        /// </summary>
+        void Unmark();
+
+        /// <summary>
         /// Assigns value stored in the base config entry in the value cache
         /// </summary>
         void SetValueFromBase();
@@ -27,11 +42,11 @@
         /// <summary>
         /// Assigns a new value to value cache
         /// </summary>
-        void SetValue(T newValue);
+        void SetValue(T newValue, SaveOption saveOption = SaveOption.DontSave);
 
         /// <summary>
         /// Assigns a new value to value cache without throwing a value changed event
         /// </summary>
-        void SetValueSilently(T newValue);
+        void SetValueSilently(T newValue, SaveOption saveOption = SaveOption.DontSave);
     }
 }

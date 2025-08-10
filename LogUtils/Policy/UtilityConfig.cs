@@ -3,6 +3,7 @@ using BepInEx.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 
 namespace LogUtils.Policy
@@ -83,25 +84,11 @@ namespace LogUtils.Policy
 
             var entry = new CachedConfigEntry<T>(ConfigFile.Bind(definition, defaultValue, description));
 
-            CachedEntries[definition] = entry;
-
             if (!hasDefinition)
-                NewEntries.Add(entry);
+                entry.Mark();
+
+            CachedEntries[definition] = entry;
             return entry;
-        }
-
-        /// <summary>
-        /// Resolves entry data differences between cached config entries and the config file
-        /// </summary>
-        public void SyncData()
-        {
-            //TODO: Need a process for handling marked entries for saving on game close
-            if (NewEntries.Count == 0) return;
-
-            if (UtilityCore.IsControllingAssembly)
-                TrySave();
-
-            NewEntries.Clear(); //Entries will be saved from a different process
         }
 
         /// <summary>
@@ -109,8 +96,19 @@ namespace LogUtils.Policy
         /// </summary>
         public bool TrySave()
         {
+            if (!UtilityCore.IsControllingAssembly)
+                return false;
+
+            var markedEntries = CachedEntries.Values.Where(e => e.IsMarked).ToArray();
+
+            foreach (IConfigEntry entry in markedEntries)
+                entry.UpdateBaseEntry();
+
             if (TryInvoke(ConfigFile.Save))
             {
+                foreach (IConfigEntry entry in markedEntries)
+                    entry.Unmark();
+
                 UtilityLogger.Log("Config data saved");
                 return true;
             }
@@ -155,5 +153,15 @@ namespace LogUtils.Policy
             while (retryCount > 0);
             return false;
         }
+    }
+
+    /// <summary>
+    /// Represents options for saving config entries to file
+    /// </summary>
+    public enum SaveOption
+    {
+        DontSave,
+        SaveImmediately,
+        SaveLater
     }
 }

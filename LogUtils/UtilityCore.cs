@@ -181,7 +181,6 @@ namespace LogUtils
                         ProcessMonitor.WaitOnConnectionStatus();
                         UtilityLogger.Log("IsControllingAssembly: " + IsControllingAssembly);
 
-                        Config.SyncData();
                         LoadComponents();
 
                         nextStep = UtilitySetup.InitializationStep.INITIALIZE_ENUMS;
@@ -423,6 +422,7 @@ namespace LogUtils
         {
             LogProperties.PropertyManager.SaveToFile();
 
+            Config.TrySave();
             UtilityLogger.Log("Disabling log files");
 
             //End all active log sessions
