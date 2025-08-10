@@ -4,6 +4,7 @@ using LogUtils.Formatting;
 using LogUtils.Properties.Formatting;
 using LogUtils.Requests;
 using LogUtils.Requests.Validation;
+using LogUtils.Threading;
 using System;
 using System.IO;
 using System.Linq;
@@ -38,14 +39,17 @@ namespace LogUtils.Console
         /// <summary>
         /// The active write stream for writers that use one
         /// </summary>
-        public readonly TextWriter Stream;
+        public StreamWriter Stream { get; protected set; }
 
         public uint TotalMessagesLogged;
 
-        public ConsoleLogWriter(ConsoleID consoleID, TextWriter stream)
+        public Lock WriteLock;
+
+        public ConsoleLogWriter(ConsoleID consoleID)
         {
             ID = consoleID;
-            Stream = stream;
+            Stream = AssignStreamWriter();
+            WriteLock = LogConsole.WriteLock;
 
             if (ID == ConsoleID.BepInEx)
             {
@@ -60,6 +64,19 @@ namespace LogUtils.Console
         public string ApplyRules(LogRequestEventArgs messageData)
         {
             return Formatter.Format(messageData);
+        }
+
+        /// <summary>
+        /// Gets a valid stream writer instance
+        /// </summary>
+        protected virtual StreamWriter AssignStreamWriter()
+        {
+            return BepInEx.ConsoleManager.ConsoleStream as StreamWriter;
+        }
+
+        public virtual void ReloadStream()
+        {
+            Stream = AssignStreamWriter();
         }
 
         /// <inheritdoc/>
@@ -79,17 +96,20 @@ namespace LogUtils.Console
                 colorProvider.MessageColor = messageColor;
                 string message = ApplyRules(messageData);
 
-                if (LogConsole.ANSIColorSupport)
+                using (WriteLock.Acquire())
                 {
-                    message = Formatter.ApplyColor(message, messageColor);
-                    Stream.WriteLine(message);
-                    Stream.Write(AnsiColorConverter.AnsiToForeground(lastDefaultColor));
-                }
-                else
-                {
-                    LogConsole.SetConsoleColor(ConsoleColorMap.ClosestConsoleColor(messageColor));
-                    Stream.WriteLine(message);
-                    LogConsole.SetConsoleColor(ConsoleColorMap.ClosestConsoleColor(lastDefaultColor));
+                    if (LogConsole.ANSIColorSupport)
+                    {
+                        message = Formatter.ApplyColor(message, messageColor);
+                        Stream.WriteLine(message);
+                        Stream.Write(AnsiColorConverter.AnsiToForeground(lastDefaultColor));
+                    }
+                    else
+                    {
+                        LogConsole.SetConsoleColor(ConsoleColorMap.ClosestConsoleColor(messageColor));
+                        Stream.WriteLine(message);
+                        LogConsole.SetConsoleColor(ConsoleColorMap.ClosestConsoleColor(lastDefaultColor));
+                    }
                 }
             }
             finally
@@ -104,26 +124,39 @@ namespace LogUtils.Console
         public void WriteFrom(LogRequest request)
         {
             ConsoleRequestEventArgs consoleMessageData = null;
+            if (!IsEnabled)
+            {
+                request.Reject(RejectionReason.LogDisabled, ID);
+                return;
+            }
 
+            if (ShowLogsAware && !RainWorld.ShowLogs)
+            {
+                request.Reject(RequestValidator.ShowLogsViolation(), ID);
+                return;
+            }
+
+            request.TargetConsole();
+            consoleMessageData = request.SetDataFromWriter(this);
+
+        retry:
+            bool retryAttempt = false;
             try
             {
-                if (!IsEnabled)
-                {
-                    request.Reject(RejectionReason.LogDisabled, ID);
-                    return;
-                }
-
-                if (ShowLogsAware && !RainWorld.ShowLogs)
-                {
-                    request.Reject(RequestValidator.ShowLogsViolation(), ID);
-                    return;
-                }
-
-                request.TargetConsole();
-                consoleMessageData = request.SetDataFromWriter(this);
-
                 SendToConsole(request.Data);
                 TotalMessagesLogged++;
+            }
+            catch (ObjectDisposedException)
+            {
+                if (retryAttempt)
+                {
+                    request.Reject(RejectionReason.FailedToWrite);
+                    return;
+                }
+
+                retryAttempt = true;
+                ReloadStream();
+                goto retry;
             }
             catch (Exception ex)
             {

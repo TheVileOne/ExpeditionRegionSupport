@@ -3,6 +3,7 @@ using LogUtils.Diagnostics;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Requests;
+using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,6 +21,11 @@ namespace LogUtils.Console
         /// </summary>
         public static bool ANSIColorSupport;
         public static bool IsEnabled { get; private set; }
+
+        /// <summary>
+        /// This lock is used for interacting with BepInEx log console
+        /// </summary>
+        public static readonly Lock WriteLock = new Lock();
 
         public static readonly List<ConsoleLogWriter> Writers = new List<ConsoleLogWriter>();
 
@@ -96,9 +102,8 @@ namespace LogUtils.Console
 
                 if (consoleStream != null) //I don't know if it is possible for the stream to be null here
                 {
-                    //TODO: Writer may need to be included at a later time (Override BepInEx console config setting) 
-                    Writers.RemoveAll(console => console.ID == ConsoleID.BepInEx);
-                    Writers.Add(writer = new ConsoleLogWriter(ConsoleID.BepInEx, TextWriter.Synchronized(consoleStream)));
+                    //TODO: Override BepInEx console config setting
+                    AddWriter(new ConsoleLogWriter(ConsoleID.BepInEx));
                 }
             }
 
@@ -113,6 +118,15 @@ namespace LogUtils.Console
                 UtilityLogger.Log("Console stream started");
                 IsEnabled = true;
             }
+        }
+
+        /// <summary>
+        /// Registers a <see cref="ConsoleLogWriter"/> instance
+        /// </summary>
+        public static void AddWriter(ConsoleLogWriter writer)
+        {
+            Writers.RemoveAll(console => console.ID == writer.ID); //Ensure only one instance is active per ID
+            Writers.Add(writer);
         }
 
         /// <summary>
@@ -132,9 +146,16 @@ namespace LogUtils.Console
 
             try
             {
+                WriteLock.Acquire();
+
+                var consoleStream = BepInEx.ConsoleManager.ConsoleStream;
+                var consoleWriters = Writers.FindAll(console => console.ID == ConsoleID.BepInEx || console.Stream == consoleStream).ToArray();
                 if (state)
                 {
                     BepInEx.ConsoleManager.CreateConsole();
+                    foreach (var console in consoleWriters)
+                        console.ReloadStream();
+
                     UtilityLogger.Log("Creating console window"); //Needs to log after console construction to show up in the console
                 }
                 else
@@ -143,12 +164,18 @@ namespace LogUtils.Console
                     BepInEx.ConsoleManager.DetachConsole();
                 }
 
-                //TODO: Confirm that console will always show, or not be shown if execution makes it to this point
+                //TODO: Can this be implemented?
+                //foreach (var writer in consoleWriters)
+                //    writer.IsEnabled = state;
                 IsEnabled = state;
             }
             catch (Exception ex)
             {
                 UtilityLogger.LogError(ex);
+            }
+            finally
+            {
+                WriteLock.Release();
             }
         }
 
