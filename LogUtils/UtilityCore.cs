@@ -412,6 +412,7 @@ namespace LogUtils
             if (LogConsole.HasCompatibleWriter())
                 LogConsole.SetEnabledState(true);
 
+            Config.ReloadFromProcessSwitch();
             PropertyManager.ReloadFromProcessSwitch();
 
             //Refresh PropertyFile stream - It is currently has read only permissions

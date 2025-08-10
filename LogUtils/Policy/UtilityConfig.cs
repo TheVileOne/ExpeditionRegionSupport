@@ -62,10 +62,29 @@ namespace LogUtils.Policy
             LogRequestPolicy.InitializeEntries();
         }
 
+        internal void ReloadFromProcessSwitch()
+        {
+            lock (ConfigLock)
+            {
+                ConfigFile.SettingChanged += detectChanges;
+
+                bool hasChanges = false;
+                if (TryReload() && hasChanges)
+                    ReloadCache(); //Any entry changes made by this process will be overwritten when this is called
+                ConfigFile.SettingChanged -= detectChanges;
+
+                //We want to know if at least one setting has changed during the reload
+                void detectChanges(object config, SettingChangedEventArgs ignored)
+                {
+                    hasChanges = true;
+                }
+            }
+        }
+
         /// <summary>
         /// Assigns values stored in the config to their associated policy
         /// </summary>
-        public void ReloadValues()
+        public void ReloadCache()
         {
             var entries = CachedEntries.Values;
 
@@ -111,38 +130,41 @@ namespace LogUtils.Policy
         /// </summary>
         public bool TrySave()
         {
-            if (!UtilityCore.IsControllingAssembly)
-                return false;
-
             var markedEntries = CachedEntries.Values.Where(e => e.IsMarked).ToArray();
 
+            //Entries that are updated here will get overwritten on a process switch. Behavior may be changed at a later point which allows
+            //marked entries to be handled on a case by case basis
             foreach (IConfigEntry entry in markedEntries)
-                entry.UpdateBaseEntry();
-
-            if (TryInvoke(ConfigFile.Save))
             {
-                foreach (IConfigEntry entry in markedEntries)
-                    entry.Unmark();
-
-                UtilityLogger.Log("Config data saved");
-                return true;
+                entry.UpdateBaseEntry();
+                entry.Unmark();
             }
-            UtilityLogger.LogWarning("Unable to save config");
-            return false;
+
+            if (!UtilityCore.IsControllingAssembly) //Avoid possible unwanted overwrites from alternate processes
+                return false;
+
+            bool configSaved = TryInvoke(ConfigFile.Save);
+
+            if (configSaved)
+                UtilityLogger.Log("Config data saved");
+            else
+                UtilityLogger.LogWarning("Unable to save config");
+            return configSaved;
         }
 
         /// <summary>
         /// Process safe method of reading entry values from the config file
         /// </summary>
+        /// <remarks>This method does not affect the value cache. To assign values to cache, also invoke <see cref="ReloadCache"/>.</remarks>
         public bool TryReload()
         {
-            if (TryInvoke(ConfigFile.Reload))
-            {
+            bool configRead = TryInvoke(ConfigFile.Reload);
+
+            if (configRead)
                 UtilityLogger.Log("Config data read from file");
-                return true;
-            }
-            UtilityLogger.LogWarning("Unable to read config");
-            return false;
+            else
+                UtilityLogger.LogWarning("Unable to read config");
+            return configRead;
         }
 
         internal static bool TryInvoke(Action action)
