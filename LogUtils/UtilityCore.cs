@@ -4,7 +4,6 @@ using LogUtils.Console;
 using LogUtils.Diagnostics.Tools;
 using LogUtils.Enums;
 using LogUtils.Events;
-using LogUtils.Helpers.FileHandling;
 using LogUtils.IPC;
 using LogUtils.Policy;
 using LogUtils.Properties;
@@ -13,10 +12,8 @@ using LogUtils.Threading;
 using LogUtils.Timers;
 using Menu;
 using System;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using BepInExPath = LogUtils.Helpers.Paths.BepInEx;
 using Debug = LogUtils.Diagnostics.Debug;
 
 namespace LogUtils
@@ -144,11 +141,6 @@ namespace LogUtils
                         UtilityConfig.Initialize();
                         AnnounceBuild();
 
-                        if (PatcherPolicy.ShouldDeploy)
-                            DeployPatcher();
-                        else
-                            RemovePatcher();
-
                         DeadlockTester.Run();
 
                         nextStep = UtilitySetup.InitializationStep.START_SCHEDULER;
@@ -182,6 +174,13 @@ namespace LogUtils
                         UtilityLogger.Log("IsControllingAssembly: " + IsControllingAssembly);
 
                         LoadComponents();
+
+                        nextStep = UtilitySetup.InitializationStep.INITIALIZE_PATCHER;
+                        break;
+                    }
+                case UtilitySetup.InitializationStep.INITIALIZE_PATCHER:
+                    {
+                        PatcherController.Initialize();
 
                         nextStep = UtilitySetup.InitializationStep.INITIALIZE_ENUMS;
                         break;
@@ -327,84 +326,6 @@ namespace LogUtils
                 return;
             }
             UtilityEvents.OnProcessSwitch.Invoke();
-        }
-
-        internal static void DeployPatcher()
-        {
-            UtilityLogger.Log("Checking patcher status");
-
-            byte[] byteStream = (byte[])Resources.ResourceManager.GetObject(UtilityConsts.ResourceNames.PATCHER);
-
-            Version resourceVersion = Assembly.ReflectionOnlyLoad(byteStream).GetName().Version;
-            UtilityLogger.Log("Patcher resource version: " + resourceVersion);
-
-            string patcherPath = Path.Combine(BepInExPath.PatcherPath, "LogUtils.VersionLoader.dll");
-            string patcherBackupPath = Path.Combine(BepInExPath.BackupPath, "LogUtils.VersionLoader.dll");
-
-            if (File.Exists(patcherPath)) //Already deployed
-            {
-                Version activeVersion = AssemblyName.GetAssemblyName(patcherPath).Version;
-
-                if (activeVersion == resourceVersion)
-                {
-                    UtilityLogger.Log("Patcher found");
-                }
-                else
-                {
-                    UtilityLogger.Log($"Current patcher version doesn't match resource - (Current {activeVersion})");
-                    if (activeVersion < resourceVersion)
-                    {
-                        //Patcher will be replaced the next time Rain World starts
-                        UtilityLogger.Log($"Replacing patcher with new version");
-                        RemovePatcher();
-                    }
-                }
-                return;
-            }
-
-            UtilityLogger.Log("Deploying patcher");
-            try
-            {
-                FileUtils.SafeDelete(patcherBackupPath); //Patcher should never exist in both patchers, and backup directories at the same time
-
-                File.WriteAllBytes(patcherPath, byteStream);
-                UnityDoorstop.AddToWhitelist("LogUtils.VersionLoader.dll");
-            }
-            catch (FileNotFoundException)
-            {
-                UtilityLogger.LogWarning("whitelist.txt is unavailable");
-            }
-            catch (IOException ex)
-            {
-                UtilityLogger.LogError("Unable to deploy patcher", ex);
-            }
-        }
-
-        internal static void RemovePatcher()
-        {
-            UtilityLogger.Log("Checking patcher status");
-
-            string patcherPath = Path.Combine(BepInExPath.PatcherPath, "LogUtils.VersionLoader.dll");
-
-            if (!File.Exists(patcherPath)) //Patcher not available
-            {
-                UtilityLogger.Log("Patcher not found");
-                return;
-            }
-
-            UtilityLogger.Log("Removing patcher");
-            try
-            {
-                UnityDoorstop.RemoveFromWhitelist("LogUtils.VersionLoader.dll");
-            }
-            catch (FileNotFoundException)
-            {
-                UtilityLogger.LogWarning("whitelist.txt is unavailable");
-            }
-            catch (IOException ex)
-            {
-                UtilityLogger.LogError("Unable to remove patcher", ex);
-            }
         }
 
         internal static void OnProcessSwitch()
