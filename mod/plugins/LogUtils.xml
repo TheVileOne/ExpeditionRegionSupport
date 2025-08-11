@@ -1154,11 +1154,6 @@
             ANSI reset code to restore default console color.
             </summary>
         </member>
-        <member name="M:LogUtils.Console.AnsiColorConverter.TestColors">
-            <summary>
-            Sends color debug information to the console
-            </summary>
-        </member>
         <member name="T:LogUtils.Console.ConsoleColorMap">
             <summary>
             This class provides helper methods for converting ConsoleColor enums to their corresponding Unity color, and vice versa
@@ -1217,13 +1212,18 @@
             Collection of associated message format rules
             </summary>
         </member>
-        <member name="F:LogUtils.Console.ConsoleLogWriter.Stream">
+        <member name="P:LogUtils.Console.ConsoleLogWriter.Stream">
             <summary>
             The active write stream for writers that use one
             </summary>
         </member>
         <member name="M:LogUtils.Console.ConsoleLogWriter.ApplyRules(LogUtils.Events.LogRequestEventArgs)">
             <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Console.ConsoleLogWriter.AssignStreamWriter">
+            <summary>
+            Gets a valid stream writer instance
+            </summary>
         </member>
         <member name="M:LogUtils.Console.ConsoleLogWriter.SendToBuffer(LogUtils.Events.LogRequestEventArgs)">
             <inheritdoc/>
@@ -1244,9 +1244,9 @@
             Indicates whether the host machine supports ANSI color codes
             </summary>
         </member>
-        <member name="P:LogUtils.Console.LogConsole.InitializedWithErrors">
+        <member name="F:LogUtils.Console.LogConsole.WriteLock">
             <summary>
-            Initialization process was unable to complete. This is an indication that the state is invalid
+            This lock is used for interacting with BepInEx log console
             </summary>
         </member>
         <member name="M:LogUtils.Console.LogConsole.FindWriter(LogUtils.Enums.ConsoleID,System.Boolean)">
@@ -1259,6 +1259,11 @@
             Finds all writers associated with the given ConsoleIDs
             </summary>
         </member>
+        <member name="M:LogUtils.Console.LogConsole.AddWriter(LogUtils.Console.ConsoleLogWriter)">
+            <summary>
+            Registers a <see cref="T:LogUtils.Console.ConsoleLogWriter"/> instance
+            </summary>
+        </member>
         <member name="M:LogUtils.Console.LogConsole.SetConsoleColor(System.ConsoleColor)">
             <summary>
             Fallback method for adjusting text color in the console
@@ -1266,7 +1271,7 @@
         </member>
         <member name="M:LogUtils.Console.LogConsole.SetEnabledState(System.Boolean)">
             <summary>
-            Sets the enabled state for the BepInEx console (when it supported) 
+            Sets the enabled state for the BepInEx console (when it is supported) 
             </summary>
         </member>
         <member name="M:LogUtils.Console.LogConsole.WriteLine(LogUtils.Enums.LogCategory,System.String)">
@@ -1279,22 +1284,6 @@
         <member name="M:LogUtils.Console.LogConsole.WriteLine(System.String)">
             <inheritdoc cref="M:LogUtils.Console.LogConsole.WriteLine(LogUtils.Enums.LogCategory,System.String)"/>
         </member>
-        <member name="T:LogUtils.Console.ConsoleLoadException">
-            <summary>
-            Represents errors that occur while initializing the console
-            </summary>
-        </member>
-        <member name="M:LogUtils.Console.ConsoleLoadException.#ctor">
-            <summary>
-            Construct a new ConsoleLoadException instance
-            </summary>
-        </member>
-        <member name="M:LogUtils.Console.ConsoleLoadException.#ctor(System.String)">
-            <inheritdoc cref="M:LogUtils.Console.ConsoleLoadException.#ctor"/>
-        </member>
-        <member name="M:LogUtils.Console.ConsoleLoadException.#ctor(System.String,System.Exception)">
-            <inheritdoc cref="M:LogUtils.Console.ConsoleLoadException.#ctor"/>
-        </member>
         <member name="T:LogUtils.Diagnostics.AssertHandler">
             <summary>
             This type defines behavior for handling assert results 
@@ -1305,6 +1294,9 @@
             Default assert handling implementation
             </summary>
             <remarks>Possible to customize</remarks>
+        </member>
+        <member name="P:LogUtils.Diagnostics.AssertHandler.IsEnabled">
+            <summary/>
         </member>
         <member name="M:LogUtils.Diagnostics.AssertHandler.Handle(LogUtils.Diagnostics.Condition.Result)">
             <summary>
@@ -2650,6 +2642,9 @@
             A shared state that applies to the top level test case and all of its children
             </summary>
         </member>
+        <member name="P:LogUtils.Diagnostics.Tests.TestCase.IsEnabled">
+            <summary/>
+        </member>
         <member name="M:LogUtils.Diagnostics.Tests.TestCase.AssertThat``1(``0)">
             <summary>
             Creates a structure for asserting the state of a specified value
@@ -2800,6 +2795,11 @@
         <member name="T:LogUtils.Diagnostics.Tests.Utility.LogCategoryTests.TransferMode">
             <summary>
             TransferMode is primarily useful for checking that registration status propagates correctly to all instances
+            </summary>
+        </member>
+        <member name="M:LogUtils.Diagnostics.Tests.Utility.LogConsoleTests.TestColors">
+            <summary>
+            Sends color debug information to the console
             </summary>
         </member>
         <member name="M:LogUtils.Diagnostics.Tests.Utility.LoggerTests.testConflictResolution">
@@ -5761,6 +5761,9 @@
             Returns an array of property instances that have data that needs to be written to file
             </summary>
         </member>
+        <member name="M:LogUtils.Properties.PropertyDataController.GetFields">
+            <inheritdoc/>
+        </member>
         <member name="T:LogUtils.Properties.Resources">
             <summary>
               A strongly-typed resource class, for looking up localized strings, etc.
@@ -6095,6 +6098,65 @@
         <member name="M:LogUtils.PersistentLogFileWriter.Finalize">
             <summary/>
         </member>
+        <member name="T:LogUtils.Policy.CachedConfigEntry`1">
+            <summary>
+            ConfigEntry wrapper class
+            </summary>
+            <remarks>Provides an extra class controlled place to store data values that wont be accessed, or modified upon a config save, or reload operation</remarks>
+        </member>
+        <member name="P:LogUtils.Policy.CachedConfigEntry`1.Config">
+            <summary>
+            The config instance that contains this entry
+            </summary>
+        </member>
+        <member name="E:LogUtils.Policy.CachedConfigEntry`1.ValueChanged">
+            <summary>
+            Event invoked when value has changed from its last set value
+            </summary>
+        </member>
+        <member name="P:LogUtils.Policy.CachedConfigEntry`1.Value">
+            <inheritdoc/>
+        </member>
+        <member name="P:LogUtils.Policy.CachedConfigEntry`1.BoxedValue">
+            <inheritdoc/>
+        </member>
+        <member name="P:LogUtils.Policy.CachedConfigEntry`1.IsMarked">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Policy.CachedConfigEntry`1.#ctor(BepInEx.Configuration.ConfigEntry{`0})">
+            <summary>
+            Creates a new <see cref="T:LogUtils.Policy.CachedConfigEntry`1"/> instance
+            </summary>
+            <param name="baseEntry">The config entry to wrap around</param>
+        </member>
+        <member name="M:LogUtils.Policy.CachedConfigEntry`1.Mark">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Policy.CachedConfigEntry`1.Unmark">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Policy.CachedConfigEntry`1.ResetToDefault(LogUtils.Policy.SaveOption)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Policy.CachedConfigEntry`1.SetValue(`0,LogUtils.Policy.SaveOption)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Policy.CachedConfigEntry`1.SetValueFromBase">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Policy.CachedConfigEntry`1.SetValueSilently(`0,LogUtils.Policy.SaveOption)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Policy.CachedConfigEntry`1.UpdateBaseEntry">
+            <inheritdoc/>
+        </member>
+        <member name="T:LogUtils.Policy.CachedConfigEntry`1.ValueChangedEventHandler">
+            <summary>
+            Method signature for ValueChanged event
+            </summary>
+            <param name="entry">The changed entry</param>
+            <param name="oldValue">The last value of the entry</param>
+        </member>
         <member name="P:LogUtils.Policy.DebugPolicy.DebugMode">
             <summary>
             Enables, or disables LogUtils development build
@@ -6110,12 +6172,70 @@
             Enables, or disables the LogUtils activity log file
             </summary>
         </member>
+        <member name="P:LogUtils.Policy.DebugPolicy.AssertsEnabled">
+            <summary>
+            Affects whether test cases apply, or LogUtils based assert statements have an effect
+            </summary>
+        </member>
         <member name="M:LogUtils.Policy.DebugPolicy.UpdateAllowConditions">
             <summary>
             Activate, or deactivate development build specific log files based on several criteria
             </summary>
         </member>
-        <member name="F:LogUtils.Policy.LogRequestPolicy.ShowRejectionReasons">
+        <member name="T:LogUtils.Policy.IConfigEntry">
+            <summary>
+            Exposes members for setting, or updating a config value
+            </summary>
+        </member>
+        <member name="P:LogUtils.Policy.IConfigEntry.IsMarked">
+            <summary>
+            Indicates that an entry has been marked for special handling (such as during save operations)
+            </summary>
+        </member>
+        <member name="M:LogUtils.Policy.IConfigEntry.Mark">
+            <summary>
+            Marks an entry for special handling (such as during save operations)
+            </summary>
+        </member>
+        <member name="M:LogUtils.Policy.IConfigEntry.Unmark">
+            <summary>
+            Unmarks an entry for special handling (such as during save operations)
+            </summary>
+        </member>
+        <member name="M:LogUtils.Policy.IConfigEntry.ResetToDefault(LogUtils.Policy.SaveOption)">
+            <summary>
+            Assigns the default value to the value cache
+            </summary>
+        </member>
+        <member name="M:LogUtils.Policy.IConfigEntry.SetValueFromBase">
+            <summary>
+            Assigns value stored in the base config entry in the value cache
+            </summary>
+        </member>
+        <member name="M:LogUtils.Policy.IConfigEntry.UpdateBaseEntry">
+            <summary>
+            Updates config entry with cached data
+            </summary>
+        </member>
+        <member name="T:LogUtils.Policy.IConfigEntry`1">
+            <inheritdoc cref="T:LogUtils.Policy.IConfigEntry"/>
+        </member>
+        <member name="P:LogUtils.Policy.IConfigEntry`1.Value">
+            <summary>
+            The current config value
+            </summary>
+        </member>
+        <member name="M:LogUtils.Policy.IConfigEntry`1.SetValue(`0,LogUtils.Policy.SaveOption)">
+            <summary>
+            Assigns a new value to value cache
+            </summary>
+        </member>
+        <member name="M:LogUtils.Policy.IConfigEntry`1.SetValueSilently(`0,LogUtils.Policy.SaveOption)">
+            <summary>
+            Assigns a new value to value cache without throwing a value changed event
+            </summary>
+        </member>
+        <member name="P:LogUtils.Policy.LogRequestPolicy.ShowRejectionReasons">
             <summary>
             A flag that affects whether RejectionReasons are logged to file when they occur
             </summary>
@@ -6125,37 +6245,78 @@
             Global LogUtils related setting flags pertaining to Patcher behavior
             </summary>
         </member>
-        <member name="F:LogUtils.Policy.PatcherPolicy.HasAskedForPermission">
+        <member name="P:LogUtils.Policy.PatcherPolicy.HasAskedForPermission">
             <summary>
             Indicates whether the user should be prompted for permission to deploy the patcher
             </summary>
         </member>
-        <member name="F:LogUtils.Policy.PatcherPolicy.ShouldDeploy">
+        <member name="P:LogUtils.Policy.PatcherPolicy.ShouldDeploy">
             <summary>
             Indicates that the patcher is able to be deployed
             </summary>
         </member>
-        <member name="F:LogUtils.Policy.PatcherPolicy.ShowPatcherLog">
+        <member name="P:LogUtils.Policy.PatcherPolicy.ShowPatcherLog">
             <summary>
             Indicates that extra information should be provided in a separate log file
             </summary>
         </member>
-        <member name="F:LogUtils.Policy.TestCasePolicy.PreferExpectationsAsFailures">
+        <member name="P:LogUtils.Policy.TestCasePolicy.PreferExpectationsAsFailures">
             <summary>
             A flag that affects whether failed expectations qualify as a failure result
-            Default: true
             </summary>
         </member>
-        <member name="F:LogUtils.Policy.TestCasePolicy.FailuresAreAlwaysReported">
+        <member name="P:LogUtils.Policy.TestCasePolicy.FailuresAreAlwaysReported">
             <summary>
             A flag that affects whether all failure results are reported, or only the unexpected ones
-            Default: false
             </summary>
         </member>
-        <member name="F:LogUtils.Policy.TestCasePolicy.ReportVerbosity">
+        <member name="P:LogUtils.Policy.TestCasePolicy.ReportVerbosity">
             <summary>
             This field affects the level of detail revealed in the test case report
-            Default: Standard
+            </summary>
+        </member>
+        <member name="T:LogUtils.Policy.UtilityConfig">
+            <summary>
+            A container for utility settings, and user preferences
+            </summary>
+        </member>
+        <member name="F:LogUtils.Policy.UtilityConfig.CONFIG_PATH">
+            <summary>
+            Path to the LogUtils core config file
+            </summary>
+        </member>
+        <member name="P:LogUtils.Policy.UtilityConfig.Item(BepInEx.Configuration.ConfigDefinition)">
+            <summary>
+            Retrieves a cached config entry
+            </summary>
+        </member>
+        <member name="P:LogUtils.Policy.UtilityConfig.Item(System.String,System.String)">
+            <inheritdoc cref="P:LogUtils.Policy.UtilityConfig.Item(BepInEx.Configuration.ConfigDefinition)"/>
+        </member>
+        <member name="M:LogUtils.Policy.UtilityConfig.ReloadCache">
+            <summary>
+            Assigns values stored in the config to their associated policy
+            </summary>
+        </member>
+        <member name="M:LogUtils.Policy.UtilityConfig.ResetToDefaults(LogUtils.Policy.SaveOption)">
+            <summary>
+            Assigns the default value for all config entries
+            </summary>
+        </member>
+        <member name="M:LogUtils.Policy.UtilityConfig.TrySave">
+            <summary>
+            Process safe method of saving entry values to the config file
+            </summary>
+        </member>
+        <member name="M:LogUtils.Policy.UtilityConfig.TryReload">
+            <summary>
+            Process safe method of reading entry values from the config file
+            </summary>
+            <remarks>This method does not affect the value cache. To assign values to cache, also invoke <see cref="M:LogUtils.Policy.UtilityConfig.ReloadCache"/>.</remarks>
+        </member>
+        <member name="T:LogUtils.Policy.SaveOption">
+            <summary>
+            Represents options for saving config entries to file
             </summary>
         </member>
         <member name="T:LogUtils.QueueLogWriter">
@@ -6642,6 +6803,9 @@
             </summary>
             <param name="data">The data to check for, or retrieve</param>
             <returns>The associated shared data object</returns>
+        </member>
+        <member name="M:LogUtils.SharedDataHandler.GetFields">
+            <inheritdoc/>
         </member>
         <member name="P:LogUtils.SharedField`1.Tag">
             <inheritdoc/>
@@ -7176,6 +7340,9 @@
             <summary>
             The initialization process is in progress for the current assembly
             </summary>
+        </member>
+        <member name="F:LogUtils.UtilityCore.Config">
+            <inheritdoc cref="T:LogUtils.Policy.UtilityConfig"/>
         </member>
         <member name="F:LogUtils.UtilityCore.DataHandler">
             <summary>

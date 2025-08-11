@@ -357,6 +357,7 @@ namespace LogUtils.Properties
             return Properties.Where(p => p.ProcessedWithErrors || p.HasModifiedData()).ToArray();
         }
 
+        /// <inheritdoc/>
         public override Dictionary<string, object> GetFields()
         {
             Dictionary<string, object> fields = base.GetFields();
