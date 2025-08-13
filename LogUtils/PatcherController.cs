@@ -65,8 +65,10 @@ namespace LogUtils
 
         internal static void PermissionGranted()
         {
-            //If we don't stop this process here, Rain World will back screen when the next dialog activates
+            //If we don't stop this process here, Rain World will black screen when the next dialog activates
             currentProcess.StopSideProcess(currentDialog);
+            currentDialog = null;
+
             OnPermissionResult(true);
             Deploy();
 
@@ -75,7 +77,6 @@ namespace LogUtils
                     HasDeployed ? "Version loader has successfully been deployed. It will activate the next time Rain World starts."
                                 : "Version loader encountered an issue during deployment.", new Vector2(dialogWidth, 175), currentProcess, Dismiss);
             currentProcess.ShowDialog(currentDialog);
-            currentDialog = null;
         }
 
         internal static void PermissionDenied()
@@ -85,15 +86,15 @@ namespace LogUtils
             currentDialog = null;
         }
 
+        internal static void Dismiss()
+        {
+            currentDialog = null;
+        }
+
         internal static void OnPermissionResult(bool result)
         {
             PatcherPolicy.Config.HasAskedForPermission.SetValue(true, SaveOption.SaveLater);
             PatcherPolicy.Config.ShouldDeploy.SetValue(result, SaveOption.SaveLater);
-        }
-
-        internal static void Dismiss()
-        {
-            //Do nothing
         }
 
         public static void Deploy()
@@ -122,9 +123,21 @@ namespace LogUtils
                     UtilityLogger.Log($"Current patcher version doesn't match resource - (Current {activeVersion})");
                     if (activeVersion < resourceVersion)
                     {
-                        //Patcher will be replaced the next time Rain World starts
-                        UtilityLogger.Log($"Replacing patcher with new version");
-                        Remove();
+                        if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.PreMods) //Late enough into init process to not have to schedule
+                            ReplaceWithNewVersion();
+                        else
+                        {
+                            UtilityEvents.OnSetupPeriodReached += replaceWithNewVersionEvent;
+
+                            static void replaceWithNewVersionEvent(SetupPeriodEventArgs e)
+                            {
+                                if (e.CurrentPeriod < SetupPeriod.PreMods)
+                                    return;
+
+                                ReplaceWithNewVersion();
+                                UtilityEvents.OnSetupPeriodReached -= replaceWithNewVersionEvent;
+                            }
+                        }
                     }
                 }
                 return;
@@ -175,6 +188,22 @@ namespace LogUtils
             {
                 UtilityLogger.LogError("Unable to remove patcher", ex);
             }
+        }
+
+        public static void ReplaceWithNewVersion()
+        {
+            //If we don't stop this process here, Rain World will black screen when the next dialog activates
+            if (currentDialog != null)
+                currentProcess.StopSideProcess(currentDialog);
+
+            currentDialog = new DialogNotify("A new version for LogUtils.VersionLoader is available.", new Vector2(450, 175), currentProcess, () =>
+            {
+                //Patcher will be replaced the next time Rain World starts
+                UtilityLogger.Log($"Replacing patcher with new version");
+                Remove();
+                currentDialog = null;
+            });
+            currentProcess.ShowDialog(currentDialog);
         }
     }
 }
