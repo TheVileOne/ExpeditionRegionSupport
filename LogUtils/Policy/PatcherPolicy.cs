@@ -31,7 +31,7 @@ namespace LogUtils.Policy
         /// </summary>
         public static bool ShowPatcherLog
         {
-            get => Config.ShowPatcherLog.Value;
+            get => UtilityCore.IsControllingAssembly && PatcherLogEventProcessor.HasResults && Config.ShowPatcherLog.Value;
             set => Config.ShowPatcherLog.SetValueSilently(value);
         }
 

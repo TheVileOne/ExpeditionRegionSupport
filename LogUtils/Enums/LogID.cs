@@ -21,7 +21,7 @@ namespace LogUtils.Enums
         public LogProperties Properties { get; protected set; }
 
         /// <summary>
-        /// Controls the handle limitations of this LogID for the local mod
+        /// Acts as a permission flag that affects the behavior of loggers, and the handling of logging requests targeting this LogID
         /// </summary>
         public LogAccess Access;
 
@@ -41,7 +41,7 @@ namespace LogUtils.Enums
         public bool IsInstanceEnabled = true;
 
         /// <summary>
-        /// A flag that indicates that this represents a log file managed by the game
+        /// A flag that indicates that this represents an existing game-controlled log file
         /// </summary>
         public bool IsGameControlled;
 
@@ -272,6 +272,19 @@ namespace LogUtils.Enums
             Unity      = new LogID(null, UtilityConsts.LogNames.Unity,      FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
 #pragma warning restore IDE0055 //Fix formatting
 
+            //This log file should only be activated when there is data to log to it
+            if (PatcherPolicy.ShowPatcherLog)
+            {
+                Patcher = new LogID("LogUtils.VersionLoader.log", UtilityConsts.PathKeywords.ROOT, LogAccess.Private, true);
+                Patcher.Properties.AccessPeriod = SetupPeriod.Pregame;
+                //Patcher.Properties.Rules.Add(new DelegatedLogRule("LogUtils.VersionLoader", applyMessageHeader, true));
+
+                //static string applyMessageHeader(LogMessageFormatter formatter, string message, LogRequestEventArgs data)
+                //{
+                //    return $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}";
+                //}
+            }
+
             //Throwaway LogID
             NotUsed = new LogID("NotUsed", UtilityConsts.PathKeywords.ROOT, LogAccess.Private, false);
 
@@ -349,6 +362,8 @@ namespace LogUtils.Enums
 
         //LogUtils LogIDs
         internal static LogID FileActivity;
+        internal static LogID Patcher;
+
         /// <summary>An unregistered LogID designed to be used as a throwaway parameter</summary>
         public static LogID NotUsed;
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Logging;
 using BepInEx.MultiFolderLoader;
 using Mono.Cecil;
 using System.Collections.Generic;
@@ -11,7 +12,10 @@ namespace LogUtils.Patcher;
 
 public static class Patcher
 {
-    internal static Logger Logger = new Logger();
+    /// <summary>
+    /// Primary logger for patcher service
+    /// </summary>
+    internal static ManualLogSource Logger = BepInEx.Logging.Logger.CreateLogSource("LogUtils.VersionLoader");
 
     public static IEnumerable<string> TargetDLLs => GetDLLs();
 
@@ -23,6 +27,7 @@ public static class Patcher
 
         if (File.Exists(patcherPath)) //The file may have been moved by the MultiFolderLoader
         {
+            BepInEx.Logging.Logger.Listeners.Add(new LogEventCache());
             Logger.LogMessage("=== Patcher.GetDLLs() start ===");
 
             AssemblyCandidate target = AssemblyUtils.FindLatestAssembly(getSearchPaths(), "LogUtils.dll");

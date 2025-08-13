@@ -1,4 +1,5 @@
-﻿using LogUtils.Compatibility.BepInEx;
+﻿using BepInEx.Logging;
+using LogUtils.Compatibility.BepInEx;
 using LogUtils.Compatibility.Unity;
 using LogUtils.Console;
 using LogUtils.Diagnostics.Tools;
@@ -123,6 +124,15 @@ namespace LogUtils
                 Debug.RunTests();
             }
 
+            //Patcher log processing cleanup
+            ILogListener eventListener = PatcherLogEventProcessor.GetEventListener();
+
+            if (eventListener != null)
+            {
+                PatcherLogEventProcessor.Results.Clear(); //Results have no purpose beyond this point - clear to free up memory
+                eventListener.Dispose(); //This event listener removes itself from the Listeners collection when disposed
+            }
+
             initializingInProgress = false;
             IsInitialized = true;
         }
@@ -180,6 +190,7 @@ namespace LogUtils
                     }
                 case UtilitySetup.InitializationStep.INITIALIZE_PATCHER:
                     {
+                        PatcherLogEventProcessor.ProcessLogEvents();
                         PatcherController.Initialize();
 
                         nextStep = UtilitySetup.InitializationStep.INITIALIZE_ENUMS;
@@ -224,6 +235,9 @@ namespace LogUtils
                     }
                 case UtilitySetup.InitializationStep.POST_LOGID_PROCESSING:
                     {
+                        if (PatcherPolicy.ShowPatcherLog)
+                            PatcherLogEventProcessor.LogResults();
+
                         PropertyManager.ProcessLogFiles();
 
                         //Listen for Unity log requests while the log file is unavailable
