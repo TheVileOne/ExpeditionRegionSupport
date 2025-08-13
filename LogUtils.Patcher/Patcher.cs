@@ -27,7 +27,9 @@ public static class Patcher
 
         if (File.Exists(patcherPath)) //The file may have been moved by the MultiFolderLoader
         {
-            BepInEx.Logging.Logger.Listeners.Add(new LogEventCache());
+            LogEventCache eventCache = new LogEventCache();
+
+            BepInEx.Logging.Logger.Listeners.Add(eventCache);
             Logger.LogMessage("=== Patcher.GetDLLs() start ===");
 
             AssemblyCandidate target = AssemblyUtils.FindLatestAssembly(getSearchPaths(), "LogUtils.dll");
@@ -41,6 +43,7 @@ public static class Patcher
             {
                 Logger.LogInfo("No LogUtils assembly found.");
             }
+            eventCache.IsEnabled = false; //For some reason events will be handled twice if we keep event listening enabled
         }
     }
 

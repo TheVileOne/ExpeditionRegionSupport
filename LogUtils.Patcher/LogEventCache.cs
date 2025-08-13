@@ -9,10 +9,14 @@ internal class LogEventCache : ILogListener
 {
     public List<LogEventData> Cache = new List<LogEventData>();
 
+    public bool IsEnabled = true;
+
     public void LogEvent(object sender, LogEventArgs eventArgs)
     {
-        if (eventArgs.Source == Patcher.Logger)
-            Cache.Add(new LogEventData(eventArgs, DateTime.Now));
+        if (!IsEnabled || eventArgs.Source != Patcher.Logger)
+            return;
+
+        Cache.Add(new LogEventData(eventArgs, DateTime.Now));
     }
 
     public void Dispose()
