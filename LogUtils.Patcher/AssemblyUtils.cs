@@ -9,12 +9,14 @@ namespace LogUtils.Patcher;
 
 internal static class AssemblyUtils
 {
+    public static AssemblyCandidate LastFoundAssembly;
+
     /// <summary>
     /// Searches the specified directory path (and any subdirectories) for an assembly, and returns the first match
     /// </summary>
     public static string FindAssembly(string searchPath, string assemblyName)
     {
-        return Directory.EnumerateFiles(searchPath, assemblyName, SearchOption.AllDirectories).FirstOrDefault();
+        return Directory.EnumerateFiles(searchPath, assemblyName, SearchOption.TopDirectoryOnly).FirstOrDefault();
     }
 
     public static AssemblyCandidate FindLatestAssembly(IEnumerable<string> searchTargets, string assemblyName)
@@ -31,8 +33,10 @@ internal static class AssemblyUtils
                     var version = AssemblyName.GetAssemblyName(targetPath).Version;
                     Patcher.Logger.LogInfo($"Found candidate {targetPath} v{version}");
 
+                    LastFoundAssembly = new AssemblyCandidate(version, targetPath);
+
                     if (target.Path == null || target.Version < version)
-                        target = new AssemblyCandidate(version, targetPath);
+                        target = LastFoundAssembly;
                 }
             }
             catch (IOException ex)
@@ -45,5 +49,12 @@ internal static class AssemblyUtils
             }
         }
         return target;
+    }
+
+    public static bool HasPath(this AssemblyCandidate candidate, string path)
+    {
+        if (candidate.Path == null)
+            return false;
+        return candidate.Path.StartsWith(path);
     }
 }

@@ -49,7 +49,14 @@ public static class Patcher
 
     private static IEnumerable<string> getSearchPaths()
     {
-        return ModManager.Mods.Select(mod => mod.PluginsPath);
+        foreach (Mod mod in ModManager.Mods)
+        {
+            yield return mod.PluginsPath;
+
+            //Check the mod's root directory only if we did not find results in the current plugin directory
+            if (!AssemblyUtils.LastFoundAssembly.HasPath(mod.PluginsPath))
+                yield return mod.ModDir;
+        }
     }
 
     public static void Patch(AssemblyDefinition assembly)
