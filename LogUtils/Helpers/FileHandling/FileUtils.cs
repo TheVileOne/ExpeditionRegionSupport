@@ -29,40 +29,51 @@ namespace LogUtils.Helpers.FileHandling
         /// <summary>
         /// Extracts the file extension from the filename. If there is no extension, this method returns null
         /// </summary>
-        public static string GetExtension(string filename, bool normalize = true)
+        public static FileExtensionInfo GetExtensionInfo(string filename)
         {
-            if (!Path.HasExtension(filename))
-                return null;
-
-            string extInfo = Path.GetExtension(filename);
-
-            return !normalize ? extInfo : extInfo.ToLower();
+            return new FileExtensionInfo(filename);
         }
 
-        public static string RemoveExtension(string filename)
+        public static string RemoveExtension(string filename, bool supportLongExtensions = false)
         {
+            FileExtensionInfo extInfo = GetExtensionInfo(filename);
+
+            if (!supportLongExtensions && extInfo.IsLong)
+                return filename;
+
             return Path.ChangeExtension(filename, null);
         }
 
-        public static string RemoveExtension(string filename, out string fileExt)
+        public static string RemoveExtension(string filename, out string fileExt, bool supportLongExtensions = false)
         {
-            fileExt = null;
-            if (filename != null)
-            {
-                int extIndex = filename.LastIndexOf('.');
+            FileExtensionInfo extInfo = new FileExtensionInfo(filename);
 
-                if (extIndex != -1)
-                {
-                    fileExt = filename.Substring(extIndex);
-                    return filename.Substring(0, extIndex);
-                }
-            }
-            return filename;
+            fileExt = extInfo.Extension;
+
+            if (!supportLongExtensions && extInfo.IsLong)
+                fileExt = string.Empty;
+
+            if (fileExt == string.Empty)
+                return filename;
+
+            filename = filename.TrimEnd(); //Account for trailing whitespace
+            return filename.Substring(0, filename.Length - fileExt.Length);
         }
 
-        public static string TransferExtension(string transferFrom, string transferTo)
+        public static string TransferExtension(string transferFrom, string transferTo, bool supportLongExtensions = false)
         {
-            return Path.ChangeExtension(transferTo, GetExtension(transferFrom));
+            FileExtensionInfo extInfoFrom = new FileExtensionInfo(transferFrom),
+                              extInfoTo = new FileExtensionInfo(transferTo);
+
+            if (!supportLongExtensions && (extInfoFrom.IsLong || extInfoTo.IsLong))
+            {
+                if (!extInfoFrom.IsLong) //extInfoTo must be long
+                    return transferTo + extInfoFrom.Extension;
+
+                //In any other situation, we cannot support the transfer of a new extension
+                return transferTo;
+            }
+            return Path.ChangeExtension(transferTo, extInfoFrom.Extension);
         }
 
         /// <summary>
@@ -70,15 +81,14 @@ namespace LogUtils.Helpers.FileHandling
         /// </summary>
         public static bool IsSupportedExtension(string filename)
         {
-            return SupportedExtensions.Contains(GetExtension(filename));
+            return GetExtensionInfo(filename).IsSupported;
         }
 
-        public static bool ExtensionsMatch(string filename, string filename2)
+        public static bool ExtensionsMatch(string filename, string filenameOther)
         {
-            string fileExt = GetExtension(filename);
-            string fileExt2 = GetExtension(filename2);
-
-            return fileExt == fileExt2;
+            FileExtensionInfo extInfo = GetExtensionInfo(filename),
+                              extInfoOther = GetExtensionInfo(filenameOther);
+            return extInfo.Equals(extInfoOther);
         }
 
         public static string ApplyBracketInfo(string filename, string info)
@@ -105,10 +115,10 @@ namespace LogUtils.Helpers.FileHandling
             if (bracketIndex == -1)
                 return filename;
 
-            string extInfo = GetExtension(filename, false);
+            FileExtensionInfo extInfo = GetExtensionInfo(filename);
 
             //Strips the bracket info at the end, while retaining the file extension
-            return filename.Substring(0, bracketIndex) + extInfo;
+            return filename.Substring(0, bracketIndex) + (!extInfo.IsLong ? extInfo.Extension : string.Empty);
         }
 
         public static bool SafeDelete(string path, string customErrorMsg = null)

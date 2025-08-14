@@ -790,7 +790,7 @@ namespace LogUtils.Properties
         {
             if (filename != null)
             {
-                filename = Path.GetFileNameWithoutExtension(filename);
+                filename = FileUtils.RemoveExtension(filename);
                 return filename.MatchAny(ComparerUtils.StringComparerIgnoreCase, GetFilenamesToCompare(compareOptions));
             }
             return false;

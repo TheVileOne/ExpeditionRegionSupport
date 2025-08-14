@@ -1,0 +1,72 @@
+﻿using LogUtils.Helpers.FileHandling;
+using System;
+using System.IO;
+using System.Linq;
+
+namespace LogUtils
+{
+    public readonly struct FileExtensionInfo : IEquatable<FileExtensionInfo>
+    {
+        /// <summary>
+        /// The minimum amount of characters (including the period) to satisfy the long file extension property
+        /// </summary>
+        public const short MIN_LONG_EXTENSION_LENGTH = 6;
+
+        /// <summary>
+        /// Is the file extension null, or empty
+        /// </summary>
+        public readonly bool IsEmpty;
+
+        /// <summary>
+        /// Is the file extension in a comparison neutral format (i.e. all lowercase)
+        /// </summary>
+        public readonly bool IsNormalized;
+
+        /// <summary>
+        /// Is the file extension supported by LogUtils
+        /// </summary>
+        public bool IsSupported => FileUtils.SupportedExtensions.Contains(Normalize());
+
+        /// <summary>
+        /// Does the file extension exceed a set amount of characters determined by the utility
+        /// </summary>
+        public readonly bool IsLong => Extension.Length >= MIN_LONG_EXTENSION_LENGTH;
+
+        /// <summary>
+        /// The value of the file extension
+        /// </summary>
+        public readonly string Extension;
+
+        /// <summary>
+        /// Creates a new <see cref="FileExtensionInfo" object/>
+        /// </summary>
+        /// <param name="filename">A filename, or filepath to extract a file extension from</param>
+        /// <exception cref="ArgumentException">The provided filename contains invalid path characters</exception>
+        public FileExtensionInfo(string filename)
+        {
+            string fileExt = Path.GetExtension(filename)?.TrimEnd();
+
+            IsEmpty = string.IsNullOrEmpty(fileExt);
+
+            if (IsEmpty)
+            {
+                IsNormalized = true;
+                Extension = string.Empty;
+                return;
+            }
+            Extension = fileExt;
+            IsNormalized = Extension == Extension.ToLower();
+        }
+
+        /// <summary>
+        /// Converts the file extension into a comparison neutral format (i.e. all lowercase)
+        /// </summary>
+        public string Normalize() => IsNormalized ? Extension : Extension.ToLower();
+
+        /// <inheritdoc/>
+        public bool Equals(FileExtensionInfo other) => Normalize() == other.Normalize();
+
+        /// <inheritdoc/>
+        public override string ToString() => Extension;
+    }
+}
