@@ -69,4 +69,20 @@ namespace LogUtils
         /// <inheritdoc/>
         public override string ToString() => Extension;
     }
+
+    public enum LongExtensionSupport
+    {
+        /// <summary>
+        /// Long file extensions of any form should be ignored
+        /// </summary>
+        Ignore,
+        /// <summary>
+        /// Long file extensions that are not listed as a supported file extension are ignored
+        /// </summary>
+        SupportedOnly,
+        /// <summary>
+        /// Long file extensions of any form are allowed
+        /// </summary>
+        Full
+    }
 }

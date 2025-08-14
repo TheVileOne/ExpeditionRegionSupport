@@ -18,6 +18,11 @@ namespace LogUtils.Helpers.FileHandling
         /// </summary>
         public static string[] SupportedExtensions = { FileExt.LOG, FileExt.TEXT, FileExt.TEMP };
 
+        /// <summary>
+        /// The current standard applied to long file extension handling
+        /// </summary>
+        private static readonly LongExtensionSupport longExtensionSupport = LongExtensionSupport.Ignore; 
+
         public static void CreateTextFile(string filepath)
         {
             var stream = File.CreateText(filepath);
@@ -34,46 +39,68 @@ namespace LogUtils.Helpers.FileHandling
             return new FileExtensionInfo(filename);
         }
 
-        public static string RemoveExtension(string filename, bool supportLongExtensions = false)
+        public static string RemoveExtension(string filename)
         {
-            FileExtensionInfo extInfo = GetExtensionInfo(filename);
-
-            if (!supportLongExtensions && extInfo.IsLong)
-                return filename;
-
-            return Path.ChangeExtension(filename, null);
+            return RemoveExtension(filename, out _);
         }
 
-        public static string RemoveExtension(string filename, out string fileExt, bool supportLongExtensions = false)
+        public static string RemoveExtension(string filename, out string fileExt)
         {
-            FileExtensionInfo extInfo = new FileExtensionInfo(filename);
-
-            fileExt = extInfo.Extension;
-
-            if (!supportLongExtensions && extInfo.IsLong)
-                fileExt = string.Empty;
-
-            if (fileExt == string.Empty)
-                return filename;
-
-            filename = filename.TrimEnd(); //Account for trailing whitespace
-            return filename.Substring(0, filename.Length - fileExt.Length);
-        }
-
-        public static string TransferExtension(string transferFrom, string transferTo, bool supportLongExtensions = false)
-        {
-            FileExtensionInfo extInfoFrom = new FileExtensionInfo(transferFrom),
-                              extInfoTo = new FileExtensionInfo(transferTo);
-
-            if (!supportLongExtensions && (extInfoFrom.IsLong || extInfoTo.IsLong))
+            if (filename == null)
             {
-                if (!extInfoFrom.IsLong) //extInfoTo must be long
-                    return transferTo + extInfoFrom.Extension;
-
-                //In any other situation, we cannot support the transfer of a new extension
-                return transferTo;
+                fileExt = string.Empty;
+                return null;
             }
-            return Path.ChangeExtension(transferTo, extInfoFrom.Extension);
+
+            string result;
+            switch (longExtensionSupport)
+            {
+                case LongExtensionSupport.SupportedOnly:
+                    result = LongFileExtensionUtils.RemoveSupportedOnly(filename, out fileExt);
+                    break;
+                case LongExtensionSupport.Ignore:
+                    result = LongFileExtensionUtils.RemoveIgnore(filename, out fileExt);
+                    break;
+                default:
+                case LongExtensionSupport.Full:
+                    //result = LongFileExtensionUtils.RemoveNoRestrictions(filename, out fileExt);
+                    int extIndex = filename.LastIndexOf('.');
+
+                    if (extIndex >= 0)
+                    {
+                        fileExt = filename.Substring(extIndex);
+                        result = filename.Substring(0, extIndex);
+                    }
+                    else
+                    {
+                        fileExt = string.Empty;
+                        result = filename;
+                    }
+                    break;
+            }
+            return result;
+        }
+
+        public static string TransferExtension(string transferFrom, string transferTo)
+        {
+            string result;
+            switch (longExtensionSupport)
+            {
+                case LongExtensionSupport.SupportedOnly:
+                    result = LongFileExtensionUtils.TransferSupportedOnly(transferFrom, transferTo);
+                    break;
+                case LongExtensionSupport.Ignore:
+                    result = LongFileExtensionUtils.TransferIgnore(transferFrom, transferTo);
+                    break;
+                case LongExtensionSupport.Full:
+                    //result = LongFileExtensionUtils.TransferNoRestrictions(transferFrom, transferTo);
+                    result = Path.ChangeExtension(transferTo, Path.GetExtension(transferFrom));
+                    break;
+                default:
+                    result = transferTo;
+                    break;
+            }
+            return result;
         }
 
         /// <summary>
@@ -117,8 +144,23 @@ namespace LogUtils.Helpers.FileHandling
 
             FileExtensionInfo extInfo = GetExtensionInfo(filename);
 
+            bool useExtension;
+            switch (longExtensionSupport)
+            {
+                case LongExtensionSupport.SupportedOnly:
+                    useExtension = !extInfo.IsLong || extInfo.IsSupported;
+                    break;
+                case LongExtensionSupport.Ignore:
+                    useExtension = !extInfo.IsLong;
+                    break;
+                default:
+                case LongExtensionSupport.Full:
+                    useExtension = true;
+                    break;
+            }
+
             //Strips the bracket info at the end, while retaining the file extension
-            return filename.Substring(0, bracketIndex) + (!extInfo.IsLong ? extInfo.Extension : string.Empty);
+            return filename.Substring(0, bracketIndex) + (useExtension ? extInfo.Extension : string.Empty);
         }
 
         public static bool SafeDelete(string path, string customErrorMsg = null)
@@ -330,5 +372,88 @@ namespace LogUtils.Helpers.FileHandling
         public const string TEMP = ".tmp";
 
         public const string DEFAULT = LOG;
+    }
+
+    internal static class LongFileExtensionUtils
+    {
+        internal static string RemoveIgnore(string target, out string fileExt)
+        {
+            FileExtensionInfo extInfo = new FileExtensionInfo(target);
+
+            bool extensionCanBeRemoved = !extInfo.IsEmpty && !extInfo.IsLong;
+
+            if (!extensionCanBeRemoved)
+            {
+                //Since we cannot extract file extension info, we will default to an empty string
+                fileExt = string.Empty;
+                return target;
+            }
+
+            //Assign the correct file extension, and return the target substring without the extension
+            fileExt = extInfo.Extension;
+            target = target.TrimEnd(); //Account for trailing whitespace
+
+            int newTargetLength = target.Length - fileExt.Length;
+            return target.Substring(0, newTargetLength);
+        }
+
+        internal static string RemoveSupportedOnly(string target, out string fileExt)
+        {
+            FileExtensionInfo extInfo = new FileExtensionInfo(target);
+
+            bool extensionCanBeRemoved = !extInfo.IsEmpty && (!extInfo.IsLong || extInfo.IsSupported);
+
+            if (!extensionCanBeRemoved)
+            {
+                //Since we cannot extract file extension info, we will default to an empty string
+                fileExt = string.Empty;
+                return target;
+            }
+
+            //Assign the correct file extension, and return the target substring without the extension
+            fileExt = extInfo.Extension;
+            target = target.TrimEnd(); //Account for trailing whitespace
+
+            int newTargetLength = target.Length - fileExt.Length;
+            return target.Substring(0, newTargetLength);
+        }
+
+        internal static string TransferIgnore(string transferFrom, string transferTo)
+        {
+            FileExtensionInfo extensionFrom = new FileExtensionInfo(transferFrom),
+                              extensionTo = new FileExtensionInfo(transferTo);
+
+            bool extensionCanBeProvided = !extensionFrom.IsLong;
+            bool extensionCanBeReplaced = !extensionTo.IsLong;
+
+            if (extensionCanBeProvided)
+            {
+                if (extensionCanBeReplaced)
+                    return Path.ChangeExtension(transferTo, extensionFrom.Extension);
+                return transferTo + extensionFrom.Extension;
+            }
+            return transferTo;
+        }
+
+        internal static string TransferSupportedOnly(string transferFrom, string transferTo)
+        {
+            FileExtensionInfo extensionFrom = new FileExtensionInfo(transferFrom),
+                              extensionTo = new FileExtensionInfo(transferTo);
+            /*
+             * A file extension must satisfy one of these conditions to be provided, or replaced
+             * I.  The file extension is not a long file extension
+             * II. The file extension is a supported extension (i.e. LogUtils recognizes and supports the extension)
+             */
+            bool extensionCanBeProvided = !extensionFrom.IsLong || extensionFrom.IsSupported;
+            bool extensionCanBeReplaced = !extensionTo.IsLong || extensionTo.IsSupported;
+
+            if (extensionCanBeProvided)
+            {
+                if (extensionCanBeReplaced)
+                    return Path.ChangeExtension(transferTo, extensionFrom.Extension);
+                return transferTo + extensionFrom.Extension;
+            }
+            return transferTo;
+        }
     }
 }
