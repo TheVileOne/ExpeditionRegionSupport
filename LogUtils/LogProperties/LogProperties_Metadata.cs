@@ -268,7 +268,7 @@ namespace LogUtils.Properties
         /// <exception cref="ArgumentException">The filename is null, empty, or contains invalid characters</exception>
         public void ChangeFilename(string newFilename)
         {
-            if (PathUtils.IsEmpty(FileUtils.RemoveExtension(newFilename)))
+            if (PathUtils.IsEmpty(FileExtension.Remove(newFilename)))
                 throw new ArgumentException("Filename cannot be null, or empty");
 
             UpdateCurrentPath(CurrentFolderPath, new LogFilename(newFilename));

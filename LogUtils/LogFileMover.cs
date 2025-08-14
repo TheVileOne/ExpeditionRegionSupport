@@ -126,7 +126,7 @@ namespace LogUtils
                 string sourceFilename = sourceFilePath.Name;
                 string destFilename = destFilePath.Name;
 
-                if (FileUtils.ExtensionsMatch(sourceFilename, destFilename) && sourceFilename == destFilename)
+                if (FileExtension.Match(sourceFilename, destFilename) && sourceFilename == destFilename)
                     return FileStatus.NoActionRequired; //Same file, no copy necessary
 
                 if (!ReplaceExistingFile && destFilePath.Exists)

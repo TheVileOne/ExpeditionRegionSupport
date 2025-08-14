@@ -272,7 +272,7 @@ namespace LogUtils.Helpers
 
         public static string FindPathWithoutFileExtension(string searchPath, string filename)
         {
-            return FileUtils.SupportedExtensions.Select(fileExt => Path.Combine(searchPath, filename + fileExt)).FirstOrDefault(File.Exists);
+            return FileExtension.SupportedExtensions.Select(fileExt => Path.Combine(searchPath, filename + fileExt)).FirstOrDefault(File.Exists);
         }
 
         public static ILogWriter FindWriter(LogID logFile)

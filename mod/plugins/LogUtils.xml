@@ -4160,6 +4160,78 @@
         <member name="M:LogUtils.ExceptionInfo.ToString">
             <inheritdoc/>
         </member>
+        <member name="F:LogUtils.FileExtensionInfo.MIN_LONG_EXTENSION_LENGTH">
+            <summary>
+            The minimum amount of characters (including the period) to satisfy the long file extension property
+            </summary>
+        </member>
+        <member name="F:LogUtils.FileExtensionInfo.IsEmpty">
+            <summary>
+            Is the file extension null, or empty
+            </summary>
+        </member>
+        <member name="F:LogUtils.FileExtensionInfo.IsNormalized">
+            <summary>
+            Is the file extension in a comparison neutral format (i.e. all lowercase)
+            </summary>
+        </member>
+        <member name="P:LogUtils.FileExtensionInfo.IsSupported">
+            <summary>
+            Is the file extension supported by LogUtils
+            </summary>
+        </member>
+        <member name="P:LogUtils.FileExtensionInfo.IsLong">
+            <summary>
+            Does the file extension exceed a set amount of characters determined by the utility
+            </summary>
+        </member>
+        <member name="F:LogUtils.FileExtensionInfo.Extension">
+            <summary>
+            The value of the file extension
+            </summary>
+        </member>
+        <member name="M:LogUtils.FileExtensionInfo.#ctor">
+            <summary>
+            Creates a new <see cref="T:LogUtils.FileExtensionInfo"/> object with no extension information
+            </summary>
+        </member>
+        <member name="M:LogUtils.FileExtensionInfo.Normalize">
+            <summary>
+            Converts the file extension into a comparison neutral format (i.e. all lowercase)
+            </summary>
+        </member>
+        <member name="M:LogUtils.FileExtensionInfo.Equals(LogUtils.FileExtensionInfo)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.FileExtensionInfo.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.FileExtensionInfo.FromFilename(System.String)">
+            <summary>
+            Creates a new <see cref="T:LogUtils.FileExtensionInfo"/> object from a filename or path containing a filename 
+            </summary>
+            <exception cref="T:System.ArgumentException">The provided filename contains invalid path characters</exception>
+        </member>
+        <member name="M:LogUtils.FileExtensionInfo.FromExtension(System.String)">
+            <summary>
+            Creates a new <see cref="T:LogUtils.FileExtensionInfo"/> object from a filename extension 
+            </summary>
+        </member>
+        <member name="F:LogUtils.LongExtensionSupport.Ignore">
+            <summary>
+            Long file extensions of any form should be ignored
+            </summary>
+        </member>
+        <member name="F:LogUtils.LongExtensionSupport.SupportedOnly">
+            <summary>
+            Long file extensions that are not listed as a supported file extension are ignored
+            </summary>
+        </member>
+        <member name="F:LogUtils.LongExtensionSupport.Full">
+            <summary>
+            Long file extensions of any form are allowed
+            </summary>
+        </member>
         <member name="M:LogUtils.FilteredStringEntry.CheckValidation">
             <summary>
             Checks whether the filter is currently applicable
@@ -4659,24 +4731,64 @@
             Determines if the given path has an existing parent directory
             </summary>
         </member>
-        <member name="F:LogUtils.Helpers.FileHandling.FileUtils.BRACKET_FORMAT">
+        <member name="T:LogUtils.Helpers.FileHandling.FileExtension">
             <summary>
-            Used to attach information to a filename
+            A helper class for manipulating file extension information
             </summary>
         </member>
-        <member name="F:LogUtils.Helpers.FileHandling.FileUtils.SupportedExtensions">
+        <member name="F:LogUtils.Helpers.FileHandling.FileExtension.SupportedExtensions">
             <summary>
             Case insensitive file extensions that are supports by LogUtils for use in log filenames, or log backup filenames
             </summary>
         </member>
-        <member name="M:LogUtils.Helpers.FileHandling.FileUtils.GetExtension(System.String,System.Boolean)">
+        <member name="F:LogUtils.Helpers.FileHandling.FileExtension.LongExtensionSupport">
             <summary>
-            Extracts the file extension from the filename. If there is no extension, this method returns null
+            The current standard applied to long file extension handling
             </summary>
         </member>
-        <member name="M:LogUtils.Helpers.FileHandling.FileUtils.IsSupportedExtension(System.String)">
+        <member name="M:LogUtils.Helpers.FileHandling.FileExtension.IsSupported(System.String)">
             <summary>
             Returns true if string contains a file extension listed as a supported extension for the utility
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.FileExtension.Match(System.String,System.String)">
+            <summary>
+            Case insensitive comparison of the file extensions of two filenames
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.FileExtension.Remove(System.String)">
+            <inheritdoc cref="M:LogUtils.Helpers.FileHandling.FileExtension.Remove(System.String,System.String@)"/>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.FileExtension.Remove(System.String,System.String@)">
+            <summary>
+            Removes the file extension from the provided filename
+            </summary>
+            <param name="filename">The provided filename</param>
+            <param name="fileExt">File extension information (including the period), stores an empty string if filename is null, or does not contain a file extension</param>
+            <returns>The filename (or path) without the file extension</returns>
+            <remarks>Filenames with long extensions may be unaffected by this operation</remarks>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.FileExtension.Replace(System.String,System.String)">
+            <summary>
+            Replace the file extension of the provided filename with a provided file extension
+            </summary>
+            <param name="target">The provided filename</param>
+            <param name="fileExt">The file extension to use</param>
+            <returns>The filename (or path) with the provided file extension</returns>
+            <remarks>Filenames with long extensions may be unaffected by this operation</remarks>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.FileExtension.Transfer(System.String,System.String)">
+            <summary>
+            Takes the file extension from one filename and applies it to another filename
+            </summary>
+            <param name="transferFrom">The file extension source</param>
+            <param name="transferTo">The file extension replace target</param>
+            <returns>The filename (or path) with the applied file extension</returns>
+            <remarks>Filenames with long extensions may be unaffected by this operation</remarks>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.FileUtils.BRACKET_FORMAT">
+            <summary>
+            Used to attach information to a filename
             </summary>
         </member>
         <member name="T:LogUtils.Helpers.FileHandling.PathResolution">

@@ -326,7 +326,7 @@ namespace LogUtils.Properties
         public LogRule ShowLineCount => Rules.FindByType<ShowLineCountRule>();
         #endregion
 
-        public LogProperties(string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS) : this(FileUtils.RemoveExtension(filename), filename, relativePathNoFile)
+        public LogProperties(string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS) : this(FileExtension.Remove(filename), filename, relativePathNoFile)
         {
         }
 
@@ -790,7 +790,7 @@ namespace LogUtils.Properties
         {
             if (filename != null)
             {
-                filename = FileUtils.RemoveExtension(filename);
+                filename = FileExtension.Remove(filename);
                 return filename.MatchAny(ComparerUtils.StringComparerIgnoreCase, GetFilenamesToCompare(compareOptions));
             }
             return false;

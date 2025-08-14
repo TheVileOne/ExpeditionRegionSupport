@@ -1,11 +1,10 @@
 ﻿using LogUtils.Helpers.FileHandling;
 using System;
-using System.IO;
 using System.Linq;
 
 namespace LogUtils
 {
-    public readonly struct FileExtensionInfo : IEquatable<FileExtensionInfo>
+    public readonly partial struct FileExtensionInfo : IEquatable<FileExtensionInfo>
     {
         /// <summary>
         /// The minimum amount of characters (including the period) to satisfy the long file extension property
@@ -25,7 +24,7 @@ namespace LogUtils
         /// <summary>
         /// Is the file extension supported by LogUtils
         /// </summary>
-        public bool IsSupported => FileUtils.SupportedExtensions.Contains(Normalize());
+        public bool IsSupported => FileExtension.SupportedExtensions.Contains(Normalize());
 
         /// <summary>
         /// Does the file extension exceed a set amount of characters determined by the utility
@@ -38,13 +37,18 @@ namespace LogUtils
         public readonly string Extension;
 
         /// <summary>
-        /// Creates a new <see cref="FileExtensionInfo" object/>
+        /// Creates a new <see cref="FileExtensionInfo"/> object with no extension information
         /// </summary>
-        /// <param name="filename">A filename, or filepath to extract a file extension from</param>
-        /// <exception cref="ArgumentException">The provided filename contains invalid path characters</exception>
-        public FileExtensionInfo(string filename)
+        public FileExtensionInfo()
         {
-            string fileExt = Path.GetExtension(filename)?.TrimEnd();
+            IsEmpty = true;
+            IsNormalized = true;
+            Extension = string.Empty;
+        }
+
+        private FileExtensionInfo(string extension)
+        {
+            string fileExt = extension?.TrimEnd();
 
             IsEmpty = string.IsNullOrEmpty(fileExt);
 

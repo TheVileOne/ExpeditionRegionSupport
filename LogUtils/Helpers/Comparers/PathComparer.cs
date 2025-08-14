@@ -27,8 +27,8 @@ public class PathComparer : ComparerBase<string>
 
         if (ignoreExtensions)
         {
-            path = FileUtils.RemoveExtension(path);
-            pathOther = FileUtils.RemoveExtension(pathOther);
+            path = FileExtension.Remove(path);
+            pathOther = FileExtension.Remove(pathOther);
         }
 
         return InternalCompare(path, pathOther);

@@ -26,7 +26,7 @@ namespace LogUtils
         /// </summary>
         /// <param name="value">A filename string without path information</param>
         /// <exception cref="ArgumentNullException">Value provided is null</exception>
-        public LogFilename(string value) : this(FileUtils.RemoveExtension(value, out string fileExt), fileExt)
+        public LogFilename(string value) : this(FileExtension.Remove(value, out string fileExt), fileExt)
         {
         }
 
@@ -44,7 +44,7 @@ namespace LogUtils
             Value = value.Trim();
             IsValid = Value != string.Empty;
 
-            if (fileExt != null && !FileUtils.IsSupportedExtension(fileExt))
+            if (fileExt != null && !FileExtension.IsSupported(fileExt))
             {
                 fileExt = null;
                 UtilityLogger.LogWarning("File extension is unsupported");
