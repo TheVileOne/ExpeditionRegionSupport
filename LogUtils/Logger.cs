@@ -202,24 +202,40 @@ namespace LogUtils
         #region Logging
 #pragma warning disable CS1591 //Missing XML comment for publicly visible type or member
 
-        protected void LogData(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
+        protected internal void LogInternal(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
+        {
+            if (target is CompositeLogTarget compositeTarget)
+            {
+                LogBase(compositeTarget.ToCollection(), category, messageObj, shouldFilter, createRequest);
+                return;
+            }
+            LogBase(target, category, messageObj, shouldFilter, createRequest);
+        }
+
+        protected internal void LogInternal(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
         {
             EventArgs extraData = new ColorEventArgs(messageColor);
-            LogData(target, category, messageObj, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
+            if (target is CompositeLogTarget compositeTarget)
+            {
+                LogBase(compositeTarget.ToCollection(), category, messageObj, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
+                return;
+            }
+            LogBase(target, category, messageObj, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
         }
 
-        protected void LogData(CompositeLogTarget target, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
-        {
-            LogData(target.ToCollection(), category, messageObj, shouldFilter, messageColor);
-        }
-
-        protected void LogData(LogTargetCollection targets, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
+        protected void LogBase(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
         {
             EventArgs extraData = new ColorEventArgs(messageColor);
-            LogData(targets, category, messageObj, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
+            LogBase(target, category, messageObj, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
         }
 
-        protected virtual void LogData(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
+        protected void LogBase(LogTargetCollection targets, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
+        {
+            EventArgs extraData = new ColorEventArgs(messageColor);
+            LogBase(targets, category, messageObj, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
+        }
+
+        protected virtual void LogBase(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
         {
             if (!AllowLogging || !target.IsEnabled) return;
 
@@ -229,15 +245,10 @@ namespace LogUtils
             LogRequest request = createRequest.Invoke(target.GetRequestType(this), target, category, messageObj, shouldFilter);
 
             if (request != null)
-                LogData(request);
+                LogBase(request);
         }
 
-        protected void LogData(CompositeLogTarget target, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
-        {
-            LogData(target.ToCollection(), category, messageObj, shouldFilter, createRequest);
-        }
-
-        protected virtual void LogData(LogTargetCollection targets, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
+        protected virtual void LogBase(LogTargetCollection targets, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
         {
             if (!AllowLogging) return;
 
@@ -263,7 +274,7 @@ namespace LogUtils
                     currentRequest.InheritHandledConsoleTargets(lastRequest);
 
                     lastRequest = currentRequest;
-                    LogData(currentRequest);
+                    LogBase(currentRequest);
                 }
             }
 
@@ -288,12 +299,12 @@ namespace LogUtils
                     currentRequest.InheritHandledConsoleTargets(lastRequest);
 
                     lastRequest = currentRequest;
-                    LogData(currentRequest);
+                    LogBase(currentRequest);
                 }
             }
         }
 
-        protected virtual void LogData(LogRequest request)
+        protected virtual void LogBase(LogRequest request)
         {
             try
             {

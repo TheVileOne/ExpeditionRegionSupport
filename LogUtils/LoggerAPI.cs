@@ -197,7 +197,7 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(LogCategory category, object messageObj)
         {
-            LogData(Targets, category, messageObj, false);
+            LogBase(Targets, category, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
@@ -221,7 +221,7 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
         public void LogOnce(LogCategory category, object messageObj)
         {
-            LogData(Targets, category, messageObj, true);
+            LogBase(Targets, category, messageObj, true);
         }
         #region Color Overloads
 
@@ -246,7 +246,7 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         public void Log(LogCategory category, object messageObj, Color messageColor)
         {
-            LogData(Targets, category, messageObj, false, messageColor);
+            LogBase(Targets, category, messageObj, false, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
@@ -270,7 +270,7 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
         public void LogOnce(LogCategory category, object messageObj, Color messageColor)
         {
-            LogData(Targets, category, messageObj, true, messageColor);
+            LogBase(Targets, category, messageObj, true, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
@@ -294,7 +294,7 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         public void Log(LogCategory category, object messageObj, ConsoleColor messageColor)
         {
-            LogData(Targets, category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
+            LogBase(Targets, category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
@@ -318,7 +318,7 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
         public void LogOnce(LogCategory category, object messageObj, ConsoleColor messageColor)
         {
-            LogData(Targets, category, messageObj, true, ConsoleColorMap.GetColor(messageColor));
+            LogBase(Targets, category, messageObj, true, ConsoleColorMap.GetColor(messageColor));
         }
         #endregion
         #region Rain World Overloads
@@ -327,55 +327,55 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(object)"/>
         public void LogBepEx(object messageObj)
         {
-            LogData(LogID.BepInEx, LogCategory.Default, messageObj, false);
+            LogBase(LogID.BepInEx, LogCategory.Default, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object)"/>
         public void LogBepEx(LogLevel category, object messageObj)
         {
-            LogData(LogID.BepInEx, LogCategory.ToCategory(category), messageObj, false);
+            LogBase(LogID.BepInEx, LogCategory.ToCategory(category), messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object)"/>
         public void LogBepEx(LogCategory category, object messageObj)
         {
-            LogData(LogID.BepInEx, category, messageObj, false);
+            LogBase(LogID.BepInEx, category, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
         public void LogBepEx(object messageObj, Color messageColor)
         {
-            LogData(LogID.BepInEx, LogCategory.Default, messageObj, false, messageColor);
+            LogBase(LogID.BepInEx, LogCategory.Default, messageObj, false, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
         public void LogBepEx(LogLevel category, object messageObj, Color messageColor)
         {
-            LogData(LogID.BepInEx, LogCategory.ToCategory(category), messageObj, false, messageColor);
+            LogBase(LogID.BepInEx, LogCategory.ToCategory(category), messageObj, false, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
         public void LogBepEx(LogCategory category, object messageObj, Color messageColor)
         {
-            LogData(LogID.BepInEx, category, messageObj, false, messageColor);
+            LogBase(LogID.BepInEx, category, messageObj, false, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
         public void LogBepEx(object messageObj, ConsoleColor messageColor)
         {
-            LogData(LogID.BepInEx, LogCategory.Default, messageObj, false, ConsoleColorMap.GetColor(messageColor));
+            LogBase(LogID.BepInEx, LogCategory.Default, messageObj, false, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
         public void LogBepEx(LogLevel category, object messageObj, ConsoleColor messageColor)
         {
-            LogData(LogID.BepInEx, LogCategory.ToCategory(category), messageObj, false, ConsoleColorMap.GetColor(messageColor));
+            LogBase(LogID.BepInEx, LogCategory.ToCategory(category), messageObj, false, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
         public void LogBepEx(LogCategory category, object messageObj, ConsoleColor messageColor)
         {
-            LogData(LogID.BepInEx, category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
+            LogBase(LogID.BepInEx, category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
         }
         #endregion
         #region Unity
@@ -383,19 +383,19 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Game.LogUnity(object)"/>
         public void LogUnity(object messageObj)
         {
-            LogData(LogID.Unity, LogCategory.Default, messageObj, false);
+            LogBase(LogID.Unity, LogCategory.Default, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, object)"/>
         public void LogUnity(LogType category, object messageObj)
         {
-            LogData(LogCategory.GetUnityLogID(category), LogCategory.ToCategory(category), messageObj, false);
+            LogBase(LogCategory.GetUnityLogID(category), LogCategory.ToCategory(category), messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, object)"/>
         public void LogUnity(LogCategory category, object messageObj)
         {
-            LogData(LogCategory.GetUnityLogID(category.UnityCategory), category, messageObj, false);
+            LogBase(LogCategory.GetUnityLogID(category.UnityCategory), category, messageObj, false);
         }
         #endregion
         #region Expedition
@@ -403,13 +403,13 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Game.LogExp(object)"/>
         public void LogExp(object messageObj)
         {
-            LogData(LogID.Expedition, LogCategory.Default, messageObj, false);
+            LogBase(LogID.Expedition, LogCategory.Default, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogExp(LogCategory, object)"/>
         public void LogExp(LogCategory category, object messageObj)
         {
-            LogData(LogID.Expedition, category, messageObj, false);
+            LogBase(LogID.Expedition, category, messageObj, false);
         }
         #endregion
         #region JollyCoop
@@ -417,13 +417,13 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Game.LogJolly(object)"/>
         public void LogJolly(object messageObj)
         {
-            LogData(LogID.JollyCoop, LogCategory.Default, messageObj, false);
+            LogBase(LogID.JollyCoop, LogCategory.Default, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogJolly(LogCategory, object)"/>
         public void LogJolly(LogCategory category, object messageObj)
         {
-            LogData(LogID.JollyCoop, category, messageObj, false);
+            LogBase(LogID.JollyCoop, category, messageObj, false);
         }
         #endregion
         #endregion
@@ -499,13 +499,13 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object)"/>
         public void Log(ILogTarget target, LogCategory category, object messageObj)
         {
-            LogData(target, category, messageObj, false);
+            LogInternal(target, category, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, object)"/>
         public void LogOnce(ILogTarget target, LogCategory category, object messageObj)
         {
-            LogData(target, category, messageObj, true);
+            LogInternal(target, category, messageObj, true);
         }
         #region Color Overloads
 
@@ -578,13 +578,13 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
         public void Log(ILogTarget target, LogCategory category, object messageObj, Color messageColor)
         {
-            LogData(target, category, messageObj, false, messageColor);
+            LogInternal(target, category, messageObj, false, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, object, Color)"/>
         public void LogOnce(ILogTarget target, LogCategory category, object messageObj, Color messageColor)
         {
-            LogData(target, category, messageObj, true, messageColor);
+            LogInternal(target, category, messageObj, true, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, object, Color)"/>
@@ -656,13 +656,13 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
         public void Log(ILogTarget target, LogCategory category, object messageObj, ConsoleColor messageColor)
         {
-            LogData(target, category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
+            LogInternal(target, category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, object, Color)"/>
         public void LogOnce(ILogTarget target, LogCategory category, object messageObj, ConsoleColor messageColor)
         {
-            LogData(target, category, messageObj, true, ConsoleColorMap.GetColor(messageColor));
+            LogInternal(target, category, messageObj, true, ConsoleColorMap.GetColor(messageColor));
         }
         #endregion
         #endregion
@@ -737,13 +737,13 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object)"/>
         public void Log(IEnumerable<ILogTarget> targets, LogCategory category, object messageObj)
         {
-            LogData(new LogTargetCollection(targets), category, messageObj, false);
+            LogBase(new LogTargetCollection(targets), category, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, LogCategory, object)"/>
         public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, object messageObj)
         {
-            LogData(new LogTargetCollection(targets), category, messageObj, true);
+            LogBase(new LogTargetCollection(targets), category, messageObj, true);
         }
         #region Color Overloads
 
@@ -816,13 +816,13 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         public void Log(IEnumerable<ILogTarget> targets, LogCategory category, object messageObj, Color messageColor)
         {
-            LogData(new LogTargetCollection(targets), category, messageObj, false, messageColor);
+            LogBase(new LogTargetCollection(targets), category, messageObj, false, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, object messageObj, Color messageColor)
         {
-            LogData(new LogTargetCollection(targets), category, messageObj, true, messageColor);
+            LogBase(new LogTargetCollection(targets), category, messageObj, true, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, object, Color)"/>
@@ -894,13 +894,13 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         public void Log(IEnumerable<ILogTarget> targets, LogCategory category, object messageObj, ConsoleColor messageColor)
         {
-            LogData(new LogTargetCollection(targets), category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
+            LogBase(new LogTargetCollection(targets), category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, object messageObj, ConsoleColor messageColor)
         {
-            LogData(new LogTargetCollection(targets), category, messageObj, true, ConsoleColorMap.GetColor(messageColor));
+            LogBase(new LogTargetCollection(targets), category, messageObj, true, ConsoleColorMap.GetColor(messageColor));
         }
         #endregion
         #endregion

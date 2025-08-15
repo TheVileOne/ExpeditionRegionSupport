@@ -4,11 +4,11 @@
 		<LangVersion>12</LangVersion>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<Title>Rain World Log Utility</Title>
-		<AssemblyVersion>0.9.5.3</AssemblyVersion>
+		<AssemblyVersion>0.9.5.5</AssemblyVersion>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
 		<WarningsAsErrors>CS1574</WarningsAsErrors>
-		<FileVersion>0.9.5.3</FileVersion>
+		<FileVersion>0.9.5.5</FileVersion>
 	</PropertyGroup>
 
 	<ItemGroup>

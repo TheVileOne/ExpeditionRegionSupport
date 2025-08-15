@@ -539,7 +539,7 @@
             Allows you to log messages to file, or a console using the write implementation of your choosing
             </summary>
         </member>
-        <member name="M:LogUtils.Logger.LogData(UnityEngine.LogType,System.String,System.Object,UnityEngine.Object)">
+        <member name="M:LogUtils.Logger.LogBase(UnityEngine.LogType,System.String,System.Object,UnityEngine.Object)">
             <summary>
             This method receives all log API calls that make use of Unity specific logging arguments for this logger
             </summary>
