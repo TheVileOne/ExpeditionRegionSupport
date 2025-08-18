@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LogUtils
+namespace LogUtils.Collections
 {
     public class BufferedLinkedList<T> : ICollection<T>, ILinkedListEnumerable<T> where T : class
     {
@@ -319,9 +319,7 @@ namespace LogUtils
                 {
                     //checkForOverflowConditions();
                     if (refNode == null)
-                    {
                         refNode = items.First;
-                    }
                     else //Transition from first to second element needs only the flag changed, leaving refNode unchanged
                     {
                         firstProcess = false;
@@ -493,7 +491,7 @@ namespace LogUtils
 
             public WhereEnumerator(ILinkedListEnumerator<T> enumerator, Func<T, bool> predicate)
             {
-                this.innerEnumerator = enumerator ?? throw new ArgumentNullException(nameof(enumerator));
+                innerEnumerator = enumerator ?? throw new ArgumentNullException(nameof(enumerator));
                 this.predicate = predicate;
             }
 

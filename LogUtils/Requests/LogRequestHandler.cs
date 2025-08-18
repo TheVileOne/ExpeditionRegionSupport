@@ -1,4 +1,5 @@
-﻿using LogUtils.Console;
+﻿using LogUtils.Collections;
+using LogUtils.Console;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;

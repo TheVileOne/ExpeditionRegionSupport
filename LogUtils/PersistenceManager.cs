@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogUtils.Collections;
+using System;
 using System.Linq;
 
 namespace LogUtils

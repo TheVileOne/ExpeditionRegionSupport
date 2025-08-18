@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LogUtils
+namespace LogUtils.Collections
 {
     public class WeakReferenceCollection<T> : IEnumerable<T> where T : class
     {

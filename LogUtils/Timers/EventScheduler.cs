@@ -1,4 +1,5 @@
-﻿using LogUtils.Events;
+﻿using LogUtils.Collections;
+using LogUtils.Events;
 using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
