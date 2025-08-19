@@ -197,7 +197,8 @@ namespace LogUtils.Requests
                 if (UnhandledReason != RejectionReason.None)
                     UtilityLogger.Logger.LogDebug("Unhandled reason already exists");
 
-                if (reason != RejectionReason.ExceptionAlreadyReported && reason != RejectionReason.FilterMatch) //Temporary conditions should not be recorded
+                if (Type != RequestType.Batch && //Batch requests do not have their own properties 
+                    reason != RejectionReason.ExceptionAlreadyReported && reason != RejectionReason.FilterMatch) //Temporary conditions should not be recorded
                     Data.Properties.HandleRecord.SetReason(reason);
 
                 if (UnhandledReason != reason)
@@ -424,7 +425,8 @@ namespace LogUtils.Requests
         Local,
         Remote,
         Game,
-        Console
+        Console,
+        Batch
     }
 
     /// <summary>

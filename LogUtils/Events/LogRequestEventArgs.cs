@@ -228,6 +228,11 @@ namespace LogUtils.Events
         {
             ExtraArgs.Add(new ConsoleRequestEventArgs(consoleID));
         }
+
+        public LogRequestEventArgs(Logger.LogProcessorArgs batchArgs, object messageData, LogCategory category = null) : this(LogID.NotUsed, messageData, category)
+        {
+            ExtraArgs.Add(batchArgs);
+        }
         #endregion
 
         /// <summary>

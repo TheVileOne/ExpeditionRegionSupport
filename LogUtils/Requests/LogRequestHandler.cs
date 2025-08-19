@@ -204,6 +204,9 @@ namespace LogUtils.Requests
 
                 request.OnSubmit();
 
+                if (request.Type == RequestType.Batch) //Batch requests only need to be submitted
+                    return request;
+
                 if (request.Type == RequestType.Console)
                 {
                     if (handleSubmission)
@@ -299,6 +302,22 @@ namespace LogUtils.Requests
 
             UtilityEvents.OnRegistrationChanged?.Invoke(logger, new RegistrationChangedEventArgs(status: true));
             availableLoggers.Add(logger);
+
+            IEnumerable<FileLock> acquiredLocks =
+                logger.GetAccessibleTargets()
+                      .Select(logFile => logFile.Properties.FileLock)
+                      .Where(fileLock => fileLock.IsAcquiredByCurrentThread);
+
+            //Avoiding potential deadlocks necessitates that we avoid acquiring a file lock before acquiring the request processing lock
+            if (acquiredLocks.Any())
+            {
+                //By scheduling this process event, we ensure that any request processing is handled by a thread that can safely acquire the request processing lock
+                LogTasker.Schedule(new Task(() =>
+                {
+                    ProcessRequests(logger);
+                }, 1));
+                return;
+            }
             ProcessRequests(logger);
         }
 

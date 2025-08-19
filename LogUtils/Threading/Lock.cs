@@ -30,6 +30,9 @@ namespace LogUtils.Threading
             }
         }
 
+        /// <summary/>
+        public bool IsAcquiredByCurrentThread => ActiveCount > 0 && Monitor.IsEntered(lockScope);
+
         /// <summary>
         /// Suppresses the next Release attempt made on this lock 
         /// </summary>

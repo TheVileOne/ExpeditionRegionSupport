@@ -53,6 +53,11 @@ namespace LogUtils
         public ILogSource LogSource { get; set; }
 
         /// <summary>
+        /// When true, all log requests made through this logger will be forced to run on main thread 
+        /// </summary>
+        public bool MustRunOnMainThread;
+
+        /// <summary>
         /// Contains a record of logger field values that can be restored on demand
         /// </summary>
         public LogRestorePoint RestorePoint;
@@ -143,6 +148,7 @@ namespace LogUtils
             if (UtilitySetup.CurrentStep < UtilitySetup.InitializationStep.INITIALIZE_ENUMS)
                 throw new EarlyInitializationException("Logger created too early");
 
+            Processor = new LogProcessor(this);
             AllowLogging = allowLogging;
 
             Targets.AddRange(presets);
@@ -245,63 +251,39 @@ namespace LogUtils
             LogRequest request = createRequest.Invoke(target.GetRequestType(this), target, category, messageObj, shouldFilter);
 
             if (request != null)
+            {
+                if (MustRunOnMainThread)
+                {
+                    UtilityCore.RequestHandler.HandleOnNextAvailableFrame.Enqueue(request);
+                    return;
+                }
                 LogBase(request);
+            }
         }
 
         protected virtual void LogBase(LogTargetCollection targets, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
         {
             if (!AllowLogging) return;
 
-            if (targets.Count == 0)
+            if (Targets.Count == 0)
             {
                 UtilityLogger.LogWarning("Attempted to log message with no available log targets");
                 return;
             }
 
-            if (createRequest == null)
-                createRequest = LogRequest.Factory.Create;
 
-            IEnumerable<ILogTarget> enabledTargets = targets.LogIDs.Where(t => t.IsEnabled);
-
-            LogRequest lastRequest = null;
-            foreach (LogID target in enabledTargets.Cast<LogID>())
+            LogRequestEventArgs batchRequestArgs = new LogRequestEventArgs(new LogProcessorArgs(targets, createRequest), messageObj, category);
+            LogRequest batchRequest = new LogRequest(RequestType.Batch, batchRequestArgs)
             {
-                LogRequest currentRequest = createRequest.Invoke(target.GetRequestType(this), target, category, messageObj, shouldFilter);
+                Sender = this
+            };
 
-                if (currentRequest != null)
-                {
-                    //Avoids the possibility of messages being processed by the console more than once
-                    currentRequest.InheritHandledConsoleTargets(lastRequest);
-
-                    lastRequest = currentRequest;
-                    LogBase(currentRequest);
-                }
-            }
-
-            enabledTargets = targets.ConsoleIDs.Where(t => t.IsEnabled);
-
-            if (lastRequest != null) //Possible to be null if all of the requests were rejected
+            if (MustRunOnMainThread)
             {
-                var consoleMessageData = lastRequest.Data.GetConsoleData();
-
-                //Exclude any ConsoleIDs that were already handled when the LogIDs were processed
-                if (consoleMessageData != null)
-                    enabledTargets = enabledTargets.Except(consoleMessageData.Handled);
+                UtilityCore.RequestHandler.HandleOnNextAvailableFrame.Enqueue(batchRequest);
+                return;
             }
-
-            foreach (ConsoleID target in enabledTargets.Cast<ConsoleID>())
-            {
-                LogRequest currentRequest = createRequest.Invoke(RequestType.Console, target, category, messageObj, shouldFilter);
-
-                if (currentRequest != null)
-                {
-                    //Avoids the possibility of messages being processed by the console more than once
-                    currentRequest.InheritHandledConsoleTargets(lastRequest);
-
-                    lastRequest = currentRequest;
-                    LogBase(currentRequest);
-                }
-            }
+            UtilityCore.RequestHandler.Submit(batchRequest, true);
         }
 
         protected virtual void LogBase(LogRequest request)
