@@ -17,12 +17,16 @@ namespace LogUtils.Formatting
 
             List<string> strings = new List<string>();
 
-            int lineStart = 0, lineEnd;
+            int lineStart = 0, lineEnd = -1;
             while (strings.Count < maxEntries && (lineEnd = str.IndexOf('\n', lineStart)) >= 0)
             {
                 strings.Add(str.Substring(lineStart, lineEnd - lineStart).TrimEnd('\r'));
                 lineStart = lineEnd + 1;
             }
+
+            //Line end index can only be negative here when we have the capacity to accept more entries
+            if (lineEnd == -1)
+                strings.Add(str.Substring(lineStart).TrimEnd('\r'));
 
             return strings.ToArray();
         }
