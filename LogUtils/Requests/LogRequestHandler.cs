@@ -607,8 +607,8 @@ namespace LogUtils.Requests
             {
                 if (status == DiscardStatus.Hard)
                 {
-                    if (UnhandledRequests.Remove(request))
-                        request.Submitted = false;
+                    request.Submitted = false;
+                    UnhandledRequests.Remove(request);
                 }
 
                 if (CurrentRequest == request)
