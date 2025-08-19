@@ -305,14 +305,10 @@ namespace LogUtils.Requests
         /// <summary>
         /// Disables log handler communication with the log request system
         /// </summary>
-        /// <exception cref="InvalidOperationException">The logger is not allowed to be registered</exception>
         public void Unregister(ILogHandler logger)
         {
-            if (!logger.AllowRegistration)
-                throw new InvalidOperationException("Log handler does not allow registration");
-
-            UtilityEvents.OnRegistrationChanged?.Invoke(logger, new RegistrationChangedEventArgs(status: false));
-            availableLoggers.Remove(logger);
+            if (availableLoggers.Remove(logger))
+                UtilityEvents.OnRegistrationChanged?.Invoke(logger, new RegistrationChangedEventArgs(status: false));
         }
 
         protected bool PrepareRequest(LogRequest request, long processTimestamp = -1)
