@@ -1,5 +1,4 @@
-﻿using LogUtils.Enums;
-using LogUtils.Events;
+﻿using LogUtils.Events;
 using System;
 using System.Threading;
 
@@ -93,6 +92,11 @@ namespace LogUtils.Threading
             ActiveCount--;
             Monitor.Exit(lockScope);
             lockEvent.Raise(this, EventID.LockReleased);
+        }
+
+        internal void BindToRainWorld()
+        {
+            RainWorld._loggingLock = lockScope;
         }
 
         public sealed class Scope : IDisposable
