@@ -55,7 +55,7 @@ namespace LogUtils
         /// <summary>
         /// A flag that indicates whether this logger should take a conservative approach to thread safety when handling new log requests
         /// </summary>
-        public bool IsThreadSafe;
+        public bool IsThreadSafe = true;
 
         /// <summary>
         /// Contains a record of logger field values that can be restored on demand
