@@ -113,7 +113,7 @@ namespace LogUtils
 
                 activityLogger = new Logger(LogID.FileActivity)
                 {
-                    MustRunOnMainThread = true //This logger is used in very sensitive areas, and cannot be safe logging from other threads
+                    IsThreadSafe = false //This logger is used in very sensitive areas, and cannot be safe logging from other threads
                 };
             }
             activityLogger.Log(message);

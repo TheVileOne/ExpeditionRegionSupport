@@ -12,6 +12,29 @@ namespace LogUtils
     {
         protected LogProcessor Processor;
 
+        /// <summary>
+        /// Processes and logs a previously initiated batch of log reqeusts
+        /// </summary>
+        protected void ProcessBatch(LogRequest request)
+        {
+            try
+            {
+                LogRequest lastRequest = null;
+                foreach (LogRequest currentRequest in Processor.GenerateRequests(request.Data))
+                {
+                    //Avoids the possibility of messages being processed by the console more than once
+                    currentRequest.InheritHandledConsoleTargets(lastRequest);
+
+                    LogBase(request);
+                    lastRequest = currentRequest;
+                }
+            }
+            finally
+            {
+                request.Complete(); //Batch requests are submitted, but not stored by LogRequestHandler. No cleanup required here.
+            }
+        }
+
         protected readonly struct LogProcessor
         {
             /// <summary>

@@ -59,25 +59,14 @@ namespace LogUtils
         /// </summary>
         protected virtual void OnNewRequest(LogRequest request)
         {
-            if (request.Type == RequestType.Batch)
+            if (!AllowRegistration && request.Type == RequestType.Local)
             {
-                try
-                {
-                    LogRequest lastRequest = null;
-                    foreach (LogRequest currentRequest in Processor.GenerateRequests(request.Data))
-                    {
-                        //Avoids the possibility of messages being processed by the console more than once
-                        currentRequest.InheritHandledConsoleTargets(lastRequest);
-
-                        LogBase(request);
-                        lastRequest = currentRequest;
-                    }
-                }
-                finally
-                {
-                    request.Complete(); //Batch requests are submitted, but not stored by LogRequestHandler. No cleanup required here.
-                }
+                request.LogCallback = LogBase;
+                return;
             }
+
+            if (request.Type == RequestType.Batch)
+                request.LogCallback = ProcessBatch;
         }
     }
 }

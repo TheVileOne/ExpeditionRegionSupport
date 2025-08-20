@@ -204,15 +204,10 @@ namespace LogUtils.Requests
 
                 request.OnSubmit();
 
-                if (request.Type == RequestType.Batch) //Batch requests only need to be submitted
-                    return request;
-
-                if (request.Type == RequestType.Console)
+                if (!request.IsFileRequest)
                 {
                     if (handleSubmission)
-                        LogConsole.HandleRequest(request);
-
-                    //Console only requests do not support log file processing, and are not treated as a pending request
+                        ProcessRequest(request);
                     return request;
                 }
 
@@ -330,7 +325,7 @@ namespace LogUtils.Requests
                 UtilityEvents.OnRegistrationChanged?.Invoke(logger, new RegistrationChangedEventArgs(status: false));
         }
 
-        protected bool PrepareRequest(LogRequest request, long processTimestamp = -1)
+        internal bool PrepareRequest(LogRequest request, long processTimestamp = -1)
         {
             if (request == null)
             {
@@ -340,6 +335,9 @@ namespace LogUtils.Requests
 
             //Before a request can be handled properly, we need to treat it as if it is an unprocessed request
             request.ResetStatus();
+
+            if (!request.IsFileRequest) //Currently only log file requests support waiting on other requests
+                return true;
 
             //The HandleRecord needs to conditionally be reset here for WaitingOnOtherRequests to produce an accurate result
             if (processTimestamp < 0 || request.Data.Properties.HandleRecord.LastUpdated < processTimestamp)
@@ -353,7 +351,7 @@ namespace LogUtils.Requests
             return true;
         }
 
-        protected bool PrepareRequestNoReset(LogRequest request)
+        internal bool PrepareRequestNoReset(LogRequest request)
         {
             if (request == null)
             {
@@ -549,13 +547,32 @@ namespace LogUtils.Requests
 
             if (!shouldHandle) return;
 
-            LogID logFile = request.Data.ID;
+            if (request.LogCallback != null)
+            {
+                request.LogCallback.Invoke(request);
 
-            //Beyond this point, we can assume that there are no preexisting unhandled requests for this log file
-            ILogHandler selectedLogger = !logFile.IsGameControlled
-                ? availableLoggers.FindCompatible(logFile, request.Type) : GameLogger;
+                //Check that request was handled through the callback 
+                if (request.IsCompleteOrRejected)
+                {
+                    RequestMayBeCompleteOrInvalid(request);
+                    return;
+                }
+            }
 
-            HandleRequest(request, selectedLogger);
+            if (request.IsFileRequest)
+            {
+                LogID logFile = request.Data.ID;
+
+                //Beyond this point, we can assume that there are no preexisting unhandled requests for this log file
+                ILogHandler selectedLogger = !logFile.IsGameControlled
+                    ? availableLoggers.FindCompatible(logFile, request.Type) : GameLogger;
+
+                HandleRequest(request, selectedLogger);
+            }
+            else if (request.Type == RequestType.Console)
+            {
+                LogConsole.HandleRequest(request);
+            }
         }
 
         internal void HandleRequest(LogRequest request, ILogHandler logger)

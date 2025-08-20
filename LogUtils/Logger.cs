@@ -53,9 +53,9 @@ namespace LogUtils
         public ILogSource LogSource { get; set; }
 
         /// <summary>
-        /// When true, all log requests made through this logger will be forced to run on main thread 
+        /// A flag that indicates whether this logger should take a conservative approach to thread safety when handling new log requests
         /// </summary>
-        public bool MustRunOnMainThread;
+        public bool IsThreadSafe;
 
         /// <summary>
         /// Contains a record of logger field values that can be restored on demand
@@ -252,8 +252,9 @@ namespace LogUtils
 
             if (request != null)
             {
-                if (MustRunOnMainThread)
+                if (!IsThreadSafe)
                 {
+                    request.Sender = this;
                     UtilityCore.RequestHandler.HandleOnNextAvailableFrame.Enqueue(request);
                     return;
                 }
@@ -278,7 +279,7 @@ namespace LogUtils
                 Sender = this
             };
 
-            if (MustRunOnMainThread)
+            if (!IsThreadSafe)
             {
                 UtilityCore.RequestHandler.HandleOnNextAvailableFrame.Enqueue(batchRequest);
                 return;
@@ -286,6 +287,10 @@ namespace LogUtils
             UtilityCore.RequestHandler.Submit(batchRequest, true);
         }
 
+        /// <summary>
+        /// Passes a log request to a writer, or request handler
+        /// </summary>
+        /// <remarks>Through normal code paths, this code may receive already submitted requests, but these requests should always be local</remarks>
         protected virtual void LogBase(LogRequest request)
         {
             try
@@ -299,16 +304,16 @@ namespace LogUtils
                 if (request.Type != RequestType.Local)
                 {
                     UtilityCore.RequestHandler.Submit(request, true);
+                    return;
                 }
-                else
+
+                using (UtilityCore.RequestHandler.BeginCriticalSection())
                 {
-                    using (UtilityCore.RequestHandler.BeginCriticalSection())
-                    {
+                    if (!request.Submitted)
                         UtilityCore.RequestHandler.Submit(request, false);
 
-                        if (request.Status != RequestStatus.Rejected)
-                            SendToWriter(request);
-                    }
+                    if (request.Status != RequestStatus.Rejected)
+                        SendToWriter(request);
                 }
             }
             finally
