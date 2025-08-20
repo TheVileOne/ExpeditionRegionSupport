@@ -48,7 +48,7 @@ namespace LogUtils.Compatibility.DotNet
             object messageObj = formatter != null ? formatter.Invoke(state, exception) : state;
 
             EventArgs extraData = new DotNetLoggerEventArgs(eventID);
-            LogBase(Targets, LoggerUtils.GetEquivalentCategory(logLevel), messageObj, false, LogRequest.Factory.CreateDataCallback(extraData));
+            LogBase(LoggerUtils.GetEquivalentCategory(logLevel), messageObj, false, LogRequest.Factory.CreateDataCallback(extraData));
         }
     }
 }

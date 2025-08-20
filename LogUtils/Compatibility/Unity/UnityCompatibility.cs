@@ -112,7 +112,7 @@ namespace LogUtils
                 EventArgs extraData = new UnityLogEventArgs(context, tag);
                 dataCallback = LogRequest.Factory.CreateDataCallback(extraData);
             }
-            LogBase(Targets, LogCategory.ToCategory(logType), message, false, dataCallback);
+            LogBase(LogCategory.ToCategory(logType), message, false, dataCallback);
         }
     }
 }

@@ -197,7 +197,7 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(LogCategory category, object messageObj)
         {
-            LogBase(Targets, category, messageObj, false);
+            LogBase(category, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
@@ -221,7 +221,7 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
         public void LogOnce(LogCategory category, object messageObj)
         {
-            LogBase(Targets, category, messageObj, true);
+            LogBase(category, messageObj, true);
         }
         #region Color Overloads
 
@@ -246,7 +246,7 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         public void Log(LogCategory category, object messageObj, Color messageColor)
         {
-            LogBase(Targets, category, messageObj, false, messageColor);
+            LogBase(category, messageObj, false, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
@@ -270,7 +270,7 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
         public void LogOnce(LogCategory category, object messageObj, Color messageColor)
         {
-            LogBase(Targets, category, messageObj, true, messageColor);
+            LogBase(category, messageObj, true, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
@@ -294,7 +294,7 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         public void Log(LogCategory category, object messageObj, ConsoleColor messageColor)
         {
-            LogBase(Targets, category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
+            LogBase(category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
@@ -318,7 +318,7 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
         public void LogOnce(LogCategory category, object messageObj, ConsoleColor messageColor)
         {
-            LogBase(Targets, category, messageObj, true, ConsoleColorMap.GetColor(messageColor));
+            LogBase(category, messageObj, true, ConsoleColorMap.GetColor(messageColor));
         }
         #endregion
         #region Rain World Overloads

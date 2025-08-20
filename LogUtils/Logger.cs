@@ -241,6 +241,23 @@ namespace LogUtils
             LogBase(targets, category, messageObj, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
         }
 
+        protected void LogBase(LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
+        {
+            EventArgs extraData = new ColorEventArgs(messageColor);
+            LogBase(category, messageObj, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
+        }
+
+        protected void LogBase(LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
+        {
+            if (Targets.Count == 1)
+            {
+                ILogTarget target = Targets.LogIDs.Count > 0 ? Targets.LogIDs[0] : Targets.ConsoleIDs[0];
+                LogBase(target, category, messageObj, false, createRequest);
+                return;
+            }
+            LogBase(Targets, category, messageObj, false, createRequest);
+        }
+
         protected virtual void LogBase(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
         {
             if (!AllowLogging || !target.IsEnabled) return;
