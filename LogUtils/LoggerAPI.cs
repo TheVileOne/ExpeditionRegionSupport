@@ -499,13 +499,13 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object)"/>
         public void Log(ILogTarget target, LogCategory category, object messageObj)
         {
-            LogInternal(target, category, messageObj, false);
+            LogUnresolvedTarget(target, category, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, object)"/>
         public void LogOnce(ILogTarget target, LogCategory category, object messageObj)
         {
-            LogInternal(target, category, messageObj, true);
+            LogUnresolvedTarget(target, category, messageObj, true);
         }
         #region Color Overloads
 
@@ -578,13 +578,13 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
         public void Log(ILogTarget target, LogCategory category, object messageObj, Color messageColor)
         {
-            LogInternal(target, category, messageObj, false, messageColor);
+            LogUnresolvedTarget(target, category, messageObj, false, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, object, Color)"/>
         public void LogOnce(ILogTarget target, LogCategory category, object messageObj, Color messageColor)
         {
-            LogInternal(target, category, messageObj, true, messageColor);
+            LogUnresolvedTarget(target, category, messageObj, true, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, object, Color)"/>
@@ -656,13 +656,13 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
         public void Log(ILogTarget target, LogCategory category, object messageObj, ConsoleColor messageColor)
         {
-            LogInternal(target, category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
+            LogUnresolvedTarget(target, category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, object, Color)"/>
         public void LogOnce(ILogTarget target, LogCategory category, object messageObj, ConsoleColor messageColor)
         {
-            LogInternal(target, category, messageObj, true, ConsoleColorMap.GetColor(messageColor));
+            LogUnresolvedTarget(target, category, messageObj, true, ConsoleColorMap.GetColor(messageColor));
         }
         #endregion
         #endregion

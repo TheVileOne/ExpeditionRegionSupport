@@ -208,7 +208,10 @@ namespace LogUtils
         #region Logging
 #pragma warning disable CS1591 //Missing XML comment for publicly visible type or member
 
-        protected internal void LogInternal(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
+        /// <summary>
+        /// Log targets that may be composite need to be resolved before logging can occur
+        /// </summary>
+        protected void LogUnresolvedTarget(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
         {
             if (target is CompositeLogTarget compositeTarget)
             {
@@ -218,7 +221,8 @@ namespace LogUtils
             LogBase(target, category, messageObj, shouldFilter, createRequest);
         }
 
-        protected internal void LogInternal(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
+        /// <inheritdoc cref="LogUnresolvedTarget(ILogTarget, LogCategory, object, bool, CreateRequestCallback)"/>
+        protected void LogUnresolvedTarget(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
         {
             EventArgs extraData = new ColorEventArgs(messageColor);
             if (target is CompositeLogTarget compositeTarget)
