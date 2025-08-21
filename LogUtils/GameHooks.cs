@@ -266,6 +266,13 @@ namespace LogUtils
                     orig(self, logString, stackTrace, category);
                     processFinished = true;
                 }
+                catch (Exception ex)
+                {
+                    if (logFile != LogID.Exception)
+                        Debug.LogException(ex); //Attempt to log to exceptionLog
+                    else
+                        UtilityLogger.LogError(ex); //Fallback in case logging to exception log fails
+                }
                 finally
                 {
                     finishProcessing();
