@@ -99,7 +99,7 @@ namespace LogUtils.Threading
 
         internal void BindToRainWorld()
         {
-            RainWorld._loggingLock = lockScope;
+            //RainWorld._loggingLock = lockScope;
         }
 
         public sealed class Scope : IDisposable
