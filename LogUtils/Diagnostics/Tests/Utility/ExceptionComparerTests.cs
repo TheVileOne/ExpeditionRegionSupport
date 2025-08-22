@@ -1,4 +1,5 @@
 ﻿using LogUtils.Helpers.Comparers;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -39,7 +40,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             ExceptionComparer comparer = new ExceptionComparer(0, 0);
 
-            var compareData = createTestData();
+            var compareData = TestData.Create(TestDataOption.LongString);
             createAndAssertResults(comparer, compareData, true);
         }
 
@@ -47,7 +48,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             ExceptionComparer comparer = new ExceptionComparer(0, TEST_CHAR_LIMIT);
 
-            var compareData = createTestData(TEST_INSERT_POSITION_MATCH);
+            var compareData = TestData.Create(TestDataOption.LongString, TEST_INSERT_POSITION_MATCH);
             createAndAssertResults(comparer, compareData, true);
         }
 
@@ -55,7 +56,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             ExceptionComparer comparer = new ExceptionComparer(TEST_LINE_LIMIT, 0);
 
-            var compareData = createTestData(TEST_INSERT_POSITION_MATCH);
+            var compareData = TestData.Create(TestDataOption.LongString, TEST_INSERT_POSITION_MATCH);
             createAndAssertResults(comparer, compareData, true);
         }
 
@@ -63,7 +64,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             ExceptionComparer comparer = new ExceptionComparer(TEST_LINE_LIMIT, TEST_CHAR_LIMIT);
 
-            var compareData = createTestData(TEST_INSERT_POSITION_MATCH);
+            var compareData = TestData.Create(TestDataOption.LongString, TEST_INSERT_POSITION_MATCH);
             createAndAssertResults(comparer, compareData, true);
         }
 
@@ -71,7 +72,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             ExceptionComparer comparer = new ExceptionComparer(0, 0);
 
-            var compareData = createTestData(TEST_INSERT_POSITION_NO_MATCH);
+            var compareData = TestData.Create(TestDataOption.LongString, TEST_INSERT_POSITION_NO_MATCH);
             createAndAssertResults(comparer, compareData, false);
         }
 
@@ -79,7 +80,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             ExceptionComparer comparer = new ExceptionComparer(0, TEST_CHAR_LIMIT);
 
-            var compareData = createTestData(TEST_INSERT_POSITION_NO_MATCH);
+            var compareData = TestData.Create(TestDataOption.LongString, TEST_INSERT_POSITION_NO_MATCH);
             createAndAssertResults(comparer, compareData, false);
         }
 
@@ -87,7 +88,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             ExceptionComparer comparer = new ExceptionComparer(TEST_LINE_LIMIT, 0);
 
-            var compareData = createTestData(TEST_INSERT_POSITION_NO_MATCH);
+            var compareData = TestData.Create(TestDataOption.LongString, TEST_INSERT_POSITION_NO_MATCH);
             createAndAssertResults(comparer, compareData, false);
         }
 
@@ -95,7 +96,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             ExceptionComparer comparer = new ExceptionComparer(TEST_LINE_LIMIT, TEST_CHAR_LIMIT);
 
-            var compareData = createTestData(TEST_INSERT_POSITION_NO_MATCH);
+            var compareData = TestData.Create(TestDataOption.LongString, TEST_INSERT_POSITION_NO_MATCH);
             createAndAssertResults(comparer, compareData, false);
         }
 
@@ -117,59 +118,84 @@ namespace LogUtils.Diagnostics.Tests.Utility
             AssertThat(hashCodesEqual).IsEqualTo(assertExpectation);
         }
 
-        private ExceptionInfo[] createTestData(int insertPosition = -1)
+        private static class TestData
         {
-            string valueA, valueB;
+            internal static ExceptionInfo[] Create(TestDataOption stringType, int insertPosition = -1)
+            {
+                string valueA, valueB;
 
-            valueA = createLongString();
-            valueB = insertPosition < 0 ? valueA : valueA.Insert(insertPosition, "TEST");
+                switch (stringType)
+                {
+                    case TestDataOption.SingleLine:
+                        valueA = createSingleLineString();
+                        break;
+                    case TestDataOption.LongString:
+                        valueA = createLongString();
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
 
-            ExceptionInfo[] testData = new ExceptionInfo[2];
+                valueB = insertPosition < 0 ? valueA : valueA.Insert(insertPosition, "TEST");
 
-            testData[0] = new ExceptionInfo(valueA, valueA);
-            testData[1] = new ExceptionInfo(valueB, valueB);
-            return testData;
+                ExceptionInfo[] testData = new ExceptionInfo[2];
+
+                testData[0] = new ExceptionInfo(valueA, valueA);
+                testData[1] = new ExceptionInfo(valueB, valueB);
+                return testData;
+            }
+
+            private static string createSingleLineString()
+            {
+                return "-------------------------------------------------------------------------LONG------------------------------";
+            }
+
+            private static string createLongString()
+            {
+                StringBuilder sb = new StringBuilder(1000);
+
+                sb.AppendLine("------------------------LONG-----")
+                  .AppendLine("--------------------LONG------------------------------")
+                  .AppendLine("-----LONG----")
+                  .AppendLine("--------------------LONG-----------------")
+                  .AppendLine("------------------------LONG-----")
+                  .AppendLine("-------------------------------------------LONG------------------------")
+                  .AppendLine("--------------------------------LONG----------------------------")
+                  .AppendLine("------------------------LONG-----")
+                  .AppendLine("--------------------LONG------------------------------")
+                  .AppendLine("-----LONG----")
+                  .AppendLine("------------------------LONG-----")
+                  .AppendLine("--------------------LONG------------------------------")
+                  .AppendLine("-------------------------------------LONG----")
+                  .AppendLine("------------------------LONG-------------------")
+                  .AppendLine("--------------------LONG------------------------------")
+                  .AppendLine("-----LONG-----------------------")
+                  .AppendLine("------------------------LONG-----")
+                  .AppendLine("--------------------LONG----------------------------------------")
+                  .AppendLine("-----LONG------")
+                  .AppendLine("------------------------LONG-----")
+                  .AppendLine("--------------------LONG------------------------------")
+                  .AppendLine("-------------------------------------LONG----")
+                  .AppendLine("------------------------LONG-------------------")
+                  .AppendLine("--------------------LONG------------------------------")
+                  .AppendLine("------------------------LONG-----")
+                  .AppendLine("-------LONG------------------------------")
+                  .AppendLine("-------------------------------------LONG----")
+                  .AppendLine("-------------------LONG-------------------")
+                  .AppendLine("--------------------LONG------------------------------")
+                  .AppendLine("------------------------LONG-----")
+                  .AppendLine("---------LONG---------------------")
+                  .AppendLine("-------------------------------------LONG----")
+                  .AppendLine("------------------------LONG-------------------")
+                  .AppendLine("-----------LONG-----------------");
+                return sb.ToString();
+            }
         }
 
-        private string createLongString()
+        private enum TestDataOption
         {
-            StringBuilder sb = new StringBuilder(1000);
-
-            sb.AppendLine("------------------------LONG-----")
-              .AppendLine("--------------------LONG------------------------------")
-              .AppendLine("-----LONG----")
-              .AppendLine("--------------------LONG-----------------")
-              .AppendLine("------------------------LONG-----")
-              .AppendLine("-------------------------------------------LONG------------------------")
-              .AppendLine("--------------------------------LONG----------------------------")
-              .AppendLine("------------------------LONG-----")
-              .AppendLine("--------------------LONG------------------------------")
-              .AppendLine("-----LONG----")
-              .AppendLine("------------------------LONG-----")
-              .AppendLine("--------------------LONG------------------------------")
-              .AppendLine("-------------------------------------LONG----")
-              .AppendLine("------------------------LONG-------------------")
-              .AppendLine("--------------------LONG------------------------------")
-              .AppendLine("-----LONG-----------------------")
-              .AppendLine("------------------------LONG-----")
-              .AppendLine("--------------------LONG----------------------------------------")
-              .AppendLine("-----LONG------")
-              .AppendLine("------------------------LONG-----")
-              .AppendLine("--------------------LONG------------------------------")
-              .AppendLine("-------------------------------------LONG----")
-              .AppendLine("------------------------LONG-------------------")
-              .AppendLine("--------------------LONG------------------------------")
-              .AppendLine("------------------------LONG-----")
-              .AppendLine("-------LONG------------------------------")
-              .AppendLine("-------------------------------------LONG----")
-              .AppendLine("-------------------LONG-------------------")
-              .AppendLine("--------------------LONG------------------------------")
-              .AppendLine("------------------------LONG-----")
-              .AppendLine("---------LONG---------------------")
-              .AppendLine("-------------------------------------LONG----")
-              .AppendLine("------------------------LONG-------------------")
-              .AppendLine("-----------LONG-----------------");
-            return sb.ToString();
+            SingleLine,
+            LongString
         }
     }
 }
