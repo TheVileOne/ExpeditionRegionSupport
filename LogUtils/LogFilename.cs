@@ -44,10 +44,11 @@ namespace LogUtils
             Value = value.Trim();
             IsValid = Value != string.Empty;
 
-            if (fileExt != null && !FileExtension.IsSupported(fileExt))
+            if (fileExt != null && (fileExt == string.Empty || !FileExtension.IsSupported(fileExt)))
             {
+                if (fileExt != string.Empty)
+                    UtilityLogger.LogWarning("File extension is unsupported");
                 fileExt = null;
-                UtilityLogger.LogWarning("File extension is unsupported");
             }
 
             Extension = fileExt ?? FileExt.DEFAULT; //Treat no extension as the default
