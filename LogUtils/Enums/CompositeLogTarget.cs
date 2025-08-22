@@ -30,7 +30,7 @@ namespace LogUtils.Enums
         }
 
         /// <inheritdoc/>
-        public RequestType GetRequestType(ILogHandler handler)
+        public RequestType GetRequestType(ILogFileHandler handler)
         {
             return RequestType.Invalid; //Request system is not designed to handle composite targets
         }

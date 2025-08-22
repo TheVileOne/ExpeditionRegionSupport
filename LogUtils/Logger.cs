@@ -15,7 +15,7 @@ namespace LogUtils
     /// <summary>
     /// Allows you to log messages to file, or a console using the write implementation of your choosing
     /// </summary>
-    public partial class Logger : ILogger, ILogHandler, ILogSourceProvider, ILogWriterProvider, IDisposable
+    public partial class Logger : ILogger, ILogFileHandler, ILogSourceProvider, ILogWriterProvider, IDisposable
     {
         /// <summary>
         /// A flag that allows/disallows handling of log requests (local and remote) through this logger 

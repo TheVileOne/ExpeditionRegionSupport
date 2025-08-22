@@ -40,9 +40,9 @@ namespace LogUtils
             /// <summary>
             /// The handler that is responsible for handling processed log requests
             /// </summary>
-            private readonly ILogHandler _logHandler;
+            private readonly ILogFileHandler _logHandler;
 
-            public LogProcessor(ILogHandler handler)
+            public LogProcessor(ILogFileHandler handler)
             {
                 _logHandler = handler;
             }

@@ -25,6 +25,6 @@ namespace LogUtils.Enums
         /// <summary>
         /// The RequestType that should be assigned when this target is ready to be handled
         /// </summary>
-        RequestType GetRequestType(ILogHandler handler);
+        RequestType GetRequestType(ILogFileHandler handler);
     }
 }

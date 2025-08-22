@@ -52,7 +52,7 @@ namespace LogUtils
     /// <summary>
     /// Represents a type used to process logging requests
     /// </summary>
-    public interface ILogHandler : ILogFileHandler
+    public interface ILogHandler
     {
         /// <summary>
         /// Does this handler accept logging requests (local or remote)
@@ -80,7 +80,7 @@ namespace LogUtils
         void HandleRequest(LogRequest request);
     }
 
-    public interface ILogFileHandler
+    public interface ILogFileHandler : ILogHandler
     {
         /// <summary>
         /// Log files available for use by the handler

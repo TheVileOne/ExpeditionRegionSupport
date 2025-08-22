@@ -290,7 +290,7 @@ namespace LogUtils.Requests
         /// </summary>
         /// <remarks>Registration is required to use the log request system for both local and remote requests</remarks>
         /// <exception cref="InvalidOperationException">The logger is not allowed to be registered</exception>
-        public void Register(ILogHandler logger)
+        public void Register(ILogFileHandler logger)
         {
             if (!logger.AllowRegistration)
                 throw new InvalidOperationException("Log handler does not allow registration");
@@ -429,7 +429,7 @@ namespace LogUtils.Requests
             }
         }
 
-        public void ProcessRequests(ILogHandler logger)
+        public void ProcessRequests(ILogFileHandler logger)
         {
             using (BeginCriticalSection())
             {

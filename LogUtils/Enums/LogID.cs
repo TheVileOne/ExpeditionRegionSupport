@@ -331,7 +331,7 @@ namespace LogUtils.Enums
                 UtilityCore.RequestHandler.GameLogger.ExpectedRequestCounter[gameID] = 0;
         }
 
-        public RequestType GetRequestType(ILogHandler handler)
+        public RequestType GetRequestType(ILogFileHandler handler)
         {
             if (Properties == null)
                 return RequestType.Invalid;

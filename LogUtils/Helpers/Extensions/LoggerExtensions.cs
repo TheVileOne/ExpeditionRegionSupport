@@ -162,7 +162,7 @@ namespace LogUtils.Helpers.Extensions
             bool hasFilenameAndPathMatch(LogID log) => log.Equals(logFile);
         }
 
-        public static LogID FindEquivalentTarget(this ILogHandler handler, LogID logFile)
+        public static LogID FindEquivalentTarget(this ILogFileHandler handler, LogID logFile)
         {
             LogID target = handler.AvailableTargets.NearestEquivalent(logFile);
 
@@ -207,7 +207,7 @@ namespace LogUtils.Helpers.Extensions
             writer.WriteFromBuffer(logFile, TimeSpan.Zero, respectBufferState);
         }
 
-        internal static IEnumerable<PersistentLogFileHandle> GetUnusedHandles(this ILogHandler logger, IEnumerable<PersistentLogFileHandle> handlePool)
+        internal static IEnumerable<PersistentLogFileHandle> GetUnusedHandles(this ILogFileHandler logger, IEnumerable<PersistentLogFileHandle> handlePool)
         {
             var localTargets = logger.AvailableTargets.Where(target => target.HasLocalAccess).ToArray();
 

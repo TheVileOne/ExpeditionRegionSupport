@@ -5,15 +5,21 @@ namespace LogUtils.Requests.Validation
 {
     public class RequestValidator : IRequestValidator
     {
-        public ILogHandler Handler;
+        public ILogFileHandler Handler;
 
-        public RequestValidator(ILogHandler handler)
+        public RequestValidator(ILogFileHandler handler)
         {
             Handler = handler;
         }
 
         public RejectionReason GetResult(LogRequest request)
         {
+            if (!request.IsFileRequest)
+            {
+                UtilityLogger.LogWarning("Validation for this request tpye is not supported");
+                return RejectionReason.None;
+            }
+
             LogID targetID = Handler.FindEquivalentTarget(request.Data.ID);
 
             //There are no suitable targets

@@ -3641,7 +3641,7 @@
             Contains the flags that represent the composite instance
             </summary>
         </member>
-        <member name="M:LogUtils.Enums.CompositeLogTarget.GetRequestType(LogUtils.ILogHandler)">
+        <member name="M:LogUtils.Enums.CompositeLogTarget.GetRequestType(LogUtils.ILogFileHandler)">
             <inheritdoc/>
         </member>
         <member name="P:LogUtils.Enums.ConsoleID.IsEnabled">
@@ -3934,7 +3934,7 @@
             Indicates whether this target is available to be handled
             </summary>
         </member>
-        <member name="M:LogUtils.Enums.ILogTarget.GetRequestType(LogUtils.ILogHandler)">
+        <member name="M:LogUtils.Enums.ILogTarget.GetRequestType(LogUtils.ILogFileHandler)">
             <summary>
             The RequestType that should be assigned when this target is ready to be handled
             </summary>
@@ -6795,7 +6795,7 @@
             <param name="handleSubmission">Whether a log attempt should be made on the request</param>
             <returns>This method returns the same request given to it under any condition. The return value is more reliable than checking CurrentRequest, which may be null</returns>
         </member>
-        <member name="M:LogUtils.Requests.LogRequestHandler.Register(LogUtils.ILogHandler)">
+        <member name="M:LogUtils.Requests.LogRequestHandler.Register(LogUtils.ILogFileHandler)">
             <summary>
             Enables log handler communication with the log request system
             </summary>

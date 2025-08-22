@@ -22,7 +22,7 @@ namespace LogUtils.Enums
             RainWorld = new ConsoleID("RainWorld", true);
         }
 
-        public RequestType GetRequestType(ILogHandler handler)
+        public RequestType GetRequestType(ILogFileHandler handler)
         {
             return RequestType.Console;
         }

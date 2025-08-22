@@ -111,9 +111,9 @@ namespace LogUtils
             LogID logFile = request.Data.ID;
 
             //Get locally controlled LogIDs from the logger, and compare against the persistent file handles managed by the LogWriter
-            if (request.Host != null)
+            if (request.Host is ILogFileHandler fileHandler)
             {
-                IEnumerable<PersistentLogFileHandle> handlesToRelease = request.Host.GetUnusedHandles(LogWriters.Select(writer => writer.Handle));
+                IEnumerable<PersistentLogFileHandle> handlesToRelease = fileHandler.GetUnusedHandles(LogWriters.Select(writer => writer.Handle));
 
                 foreach (PersistentLogFileHandle handle in handlesToRelease)
                     ReleaseHandle(handle, false);
