@@ -36,8 +36,18 @@ namespace LogUtils
                 }
             });
 
-            UtilityEvents.OnRegistrationChanged += registrationChangedHandler;
+            if (AllowRegistration)
+                UtilityEvents.OnRegistrationChanged += registrationChangedHandler;
             LogRequestEvents.OnSubmit += newRequestHandler;
+        }
+
+        internal void RemoveEvents()
+        {
+            if (AllowRegistration)
+                UtilityEvents.OnRegistrationChanged -= registrationChangedHandler;
+
+            //TODO: Without a solution for async logging, this will prevent DiscreteLoggers from being able to handle requests post disposal
+            //LogRequestEvents.OnSubmit -= newRequestHandler;
         }
 
         /// <summary>

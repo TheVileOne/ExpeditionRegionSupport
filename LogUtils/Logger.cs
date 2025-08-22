@@ -421,11 +421,9 @@ namespace LogUtils
             LogWriter.TryDispose(Writer);
 
             if (AllowRegistration)
-            {
                 UtilityCore.RequestHandler.Unregister(this);
-                UtilityEvents.OnRegistrationChanged -= registrationChangedHandler;
-            }
 
+            RemoveEvents();
             Writer = null;
             IsDisposed = true;
         }
