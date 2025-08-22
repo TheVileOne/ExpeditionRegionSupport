@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using ReportVerbosity = LogUtils.Enums.FormatEnums.FormatVerbosity;
 
 namespace LogUtils.Diagnostics
@@ -30,7 +31,7 @@ namespace LogUtils.Diagnostics
         internal static void RunTests()
         {
             UtilityTests.RunAllTests();
-            //StressTests.TestMultithreadedLogging();
+            //Task.Run(StressTests.TestMultithreadedLogging);
             //StressTests.TestLoggerDisposal();
             //StressTests.LogEveryFrame(LogID.Unity, messageFrequency: 1, logUntilThisFrame: 100000, messagesPerFrame: 100);
             //TestLogsFolder();

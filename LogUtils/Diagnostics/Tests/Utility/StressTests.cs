@@ -12,7 +12,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             UtilityLogger.PerformanceMode = true;
 
-            DiscreteLogger logger = new DiscreteLogger(logFile);
+            Logger logger = new DiscreteLogger(logFile);
 
             Stopwatch sw = new Stopwatch();
             int messageCount = 0;
@@ -68,46 +68,45 @@ namespace LogUtils.Diagnostics.Tests.Utility
             loggers = null;
         }
 
-        public static void TestMultithreadedLogging()
+        public static async Task TestMultithreadedLogging()
         {
             const int MESSAGE_COUNT = 250;
 
             LogID testLogID = new LogID("test.log", UtilityConsts.PathKeywords.ROOT, LogAccess.Private, false);
 
-            Task.Run(() =>
+            //TODO: Queued messages before Rain World can update don't get processed
+            try
             {
-                //TODO: Testing this behavior frequently triggers game lockups. Need to investigate
-                //TODO: Queued messages before Rain World can update don't get processed
-                try
-                {
-                    TestMultithreadedLogging(testLogID, LoggingMode.Normal, MESSAGE_COUNT).Wait();
-                    TestMultithreadedLogging(testLogID, LoggingMode.Timed, MESSAGE_COUNT).Wait();
-                    TestMultithreadedLogging(testLogID, LoggingMode.Queue, MESSAGE_COUNT).Wait();
-                }
-                catch (Exception ex)
-                {
-                    UtilityLogger.LogError(ex);
-                }
-            });
+                await TestMultithreadedLogging(testLogID, LoggingMode.Normal, MESSAGE_COUNT);
+                await TestMultithreadedLogging(testLogID, LoggingMode.Timed, MESSAGE_COUNT);
+                //await TestMultithreadedLogging(testLogID, LoggingMode.Queue, MESSAGE_COUNT);
+            }
+            catch (Exception ex)
+            {
+                UtilityLogger.LogError(ex);
+            }
         }
 
         internal static async Task TestMultithreadedLogging(LogID target, LoggingMode mode, int messageCount)
         {
-            Logger testLogger = new Logger(mode, target);
+            //TODO: This needs to be changed into an async implementation. Currently the logger ends up disposing before all requests are processed.
+            //For context, log requests run from other threads may end up triggering a recursion flag on submission, pushing the request to be logged on the next frame.
+            //This scheduling of requests doesn't work well with the async test code below. 
+            Logger logger = new DiscreteLogger(mode, target);
 
-            testLogger.LogDebug($"Logging mode {mode}");
-            testLogger.LogDebug($"Logging {messageCount} messages");
+            logger.LogDebug($"Logging mode {mode}");
+            logger.LogDebug($"Logging {messageCount} messages");
             Task[] tasks = new Task[messageCount];
 
             //Schedule a lot of scheduled log requests to ensure messages log properly to file in a multithreaded environment
             for (int i = 0; i < messageCount; i++)
             {
                 int tIndex = i;
-                tasks[tIndex] = Task.Run(() => testLogger.LogDebug($"Log #[{tIndex}]"));
+                tasks[tIndex] = Task.Run(() => logger.LogDebug($"Log #[{tIndex}]"));
             }
             await Task.WhenAll(tasks);
-
-            testLogger.Dispose();
+            logger.LogDebug("TEST COMPLETE");
+            logger.Dispose();
         }
     }
 }
