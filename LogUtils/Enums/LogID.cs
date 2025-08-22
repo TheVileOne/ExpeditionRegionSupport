@@ -61,6 +61,7 @@ namespace LogUtils.Enums
         /// An unregistered LogID will still get its own properties, those properties, and changes to those properties wont be saved to file
         /// DO NOT register a LogID that is temporary, and your mod is designated for public release
         /// </param>
+        /// <exception cref="ArgumentNullException">Filename provided is null</exception>
         public LogID(string filename, LogAccess access, bool register = false) : this(new PathWrapper(filename), access, register)
         {
         }
@@ -68,7 +69,7 @@ namespace LogUtils.Enums
         /// <summary>
         /// Creates a new LogID instance without attempting to create a LogProperties instance
         /// </summary>
-        internal LogID(string filename) : base(FileExtension.Remove(filename), false) //Used by ComparisonLogID to bypass LogProperties creation
+        internal LogID(string filename) : base(Sanitize(filename), false) //Used by ComparisonLogID to bypass LogProperties creation
         {
             InitializeFields();
         }
@@ -89,7 +90,7 @@ namespace LogUtils.Enums
         {
         }
 
-        internal LogID(LogProperties properties, string filename, string path, bool register) : base(FileExtension.Remove(filename), register)
+        internal LogID(LogProperties properties, string filename, string path, bool register) : base(Sanitize(filename), register)
         {
             Access = LogAccess.RemoteAccessOnly;
             InitializeFields();
@@ -116,7 +117,7 @@ namespace LogUtils.Enums
         /// An unregistered LogID will still get its own properties, those properties, and changes to those properties wont be saved to file
         /// DO NOT register a LogID that is temporary, and your mod is designated for public release
         /// </param>
-        public LogID(string filename, string relativePathNoFile, LogAccess access, bool register = false) : base(FileExtension.Remove(filename), register)
+        public LogID(string filename, string relativePathNoFile, LogAccess access, bool register = false) : base(Sanitize(filename), register)
         {
             Access = access;
 
@@ -329,6 +330,18 @@ namespace LogUtils.Enums
             //Initializes part of the recursion detection system that cannot be initialized before LogIDs
             foreach (LogID gameID in GameLogger.LogTargets)
                 UtilityCore.RequestHandler.GameLogger.ExpectedRequestCounter[gameID] = 0;
+        }
+
+        /// <summary>
+        /// Converts a filename input into a LogUtils supported filename
+        /// </summary>
+        /// <exception cref="ArgumentNullException">Filename provided is null</exception>
+        internal static string Sanitize(string filename)
+        {
+            if (filename == null)
+                throw new ArgumentNullException(filename);
+
+            return FileExtension.Remove(filename).Trim();
         }
 
         public RequestType GetRequestType(ILogHandler handler)
