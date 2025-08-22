@@ -29,216 +29,235 @@
             A list of source paths for log backups created by other mods (use in case the file is no longer at the primary source path)
             </summary>
         </member>
-        <member name="P:LogUtils.BufferedLinkedList`1.Capacity">
+        <member name="F:LogUtils.ChangeState.FieldState">
+            <summary>
+            The value of the field when the state was created
+            </summary>
+        </member>
+        <member name="P:LogUtils.Collections.BufferedLinkedList`1.Capacity">
             <summary>
             The amount of nodes managed by the node leaser
             </summary>
         </member>
-        <member name="P:LogUtils.BufferedLinkedList`1.Count">
+        <member name="P:LogUtils.Collections.BufferedLinkedList`1.Count">
             <inheritdoc/>
         </member>
-        <member name="P:LogUtils.BufferedLinkedList`1.First">
+        <member name="P:LogUtils.Collections.BufferedLinkedList`1.First">
             <inheritdoc cref="P:System.Collections.Generic.LinkedList`1.First"/>
         </member>
-        <member name="P:LogUtils.BufferedLinkedList`1.Last">
+        <member name="P:LogUtils.Collections.BufferedLinkedList`1.Last">
             <inheritdoc cref="P:System.Collections.Generic.LinkedList`1.Last"/>
         </member>
-        <member name="F:LogUtils.BufferedLinkedList`1.AllowModificationsDuringIteration">
+        <member name="F:LogUtils.Collections.BufferedLinkedList`1.AllowModificationsDuringIteration">
             <summary>
             Enable or disable collection modification protection
             </summary>
             <remarks>This is essentially deprecated</remarks>
         </member>
-        <member name="P:LogUtils.BufferedLinkedList`1.IsReadOnly">
+        <member name="P:LogUtils.Collections.BufferedLinkedList`1.IsReadOnly">
             <inheritdoc/>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.#ctor(System.Int32)">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.#ctor(System.Int32)">
             <summary>
             Construct a BufferedLinkedList object
             </summary>
             <param name="capacity">The amount of nodes to maintain in the leaser by default</param>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.EnsureCapacity">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.EnsureCapacity">
             <summary>
             Ensure that there are always nodes available in the node leaser
             </summary>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.Add(`0)">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.Add(`0)">
             <inheritdoc/>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.AddFirst(`0)">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.AddFirst(`0)">
             <inheritdoc cref="M:System.Collections.Generic.LinkedList`1.AddFirst(`0)"/>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.AddLast(`0)">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.AddLast(`0)">
             <inheritdoc cref="M:System.Collections.Generic.LinkedList`1.AddLast(`0)"/>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.AddBefore(System.Collections.Generic.LinkedListNode{`0},`0)">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.AddBefore(System.Collections.Generic.LinkedListNode{`0},`0)">
             <summary>
             Adds the specified value to a new node before the specified existing node
             </summary>
             <returns>The node storing the specified value</returns>
             <exception cref="T:System.ArgumentNullException"></exception>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.AddAfter(System.Collections.Generic.LinkedListNode{`0},`0)">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.AddAfter(System.Collections.Generic.LinkedListNode{`0},`0)">
             <summary>
             Adds the specified value to a new node after the specified existing node
             </summary>
             <returns>The node storing the specified value</returns>
             <exception cref="T:System.ArgumentNullException"></exception>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.Contains(`0)">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.Contains(`0)">
             <inheritdoc/>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.CopyTo(`0[],System.Int32)">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.CopyTo(`0[],System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.Find(`0)">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.Find(`0)">
             <inheritdoc cref="M:System.Collections.Generic.LinkedList`1.Find(`0)"/>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.FindLast(`0)">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.FindLast(`0)">
             <inheritdoc cref="M:System.Collections.Generic.LinkedList`1.FindLast(`0)"/>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.Remove(`0)">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.Remove(`0)">
             <inheritdoc/>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.Remove(System.Collections.Generic.LinkedListNode{`0})">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.Remove(System.Collections.Generic.LinkedListNode{`0})">
             <inheritdoc cref="M:System.Collections.Generic.LinkedList`1.Remove(System.Collections.Generic.LinkedListNode{`0})"/>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.RemoveFirst">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.RemoveFirst">
             <inheritdoc cref="M:System.Collections.Generic.LinkedList`1.RemoveFirst"/>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.RemoveLast">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.RemoveLast">
             <inheritdoc cref="M:System.Collections.Generic.LinkedList`1.RemoveLast"/>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.Clear">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.Clear">
             <inheritdoc/>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.Where(System.Func{`0,System.Boolean})">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.Where(System.Func{`0,System.Boolean})">
             <summary>
             Performs a Where query using the given predicate
             </summary>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.GetEnumerator">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.GetEnumerator">
             <inheritdoc/>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.GetLinkedListEnumerator">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.GetLinkedListEnumerator">
             <summary>
             Returns an enumerator specially designed to enumerate through this collection
             </summary>
         </member>
-        <member name="T:LogUtils.BufferedLinkedList`1.Enumerator">
+        <member name="T:LogUtils.Collections.BufferedLinkedList`1.Enumerator">
             <summary>
             The specialized enumerator for BufferedLinkedList
             </summary>
         </member>
-        <member name="F:LogUtils.BufferedLinkedList`1.Enumerator.refNode">
+        <member name="F:LogUtils.Collections.BufferedLinkedList`1.Enumerator.refNode">
             <summary>
             This is the node that controls the reference to the Current node
             </summary>
         </member>
-        <member name="P:LogUtils.BufferedLinkedList`1.Enumerator.CurrentNode">
+        <member name="P:LogUtils.Collections.BufferedLinkedList`1.Enumerator.CurrentNode">
             <summary>
             The LinkedListNode associated with Current
             </summary>
         </member>
-        <member name="P:LogUtils.BufferedLinkedList`1.Enumerator.Current">
+        <member name="P:LogUtils.Collections.BufferedLinkedList`1.Enumerator.Current">
             <inheritdoc/>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.Enumerator.#ctor(LogUtils.BufferedLinkedList{`0})">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.Enumerator.#ctor(LogUtils.Collections.BufferedLinkedList{`0})">
             <summary>
             Constructs an Enumerator struct
             </summary>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.Enumerator.Dispose">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.Enumerator.Dispose">
             <summary>
             Resets enumerator to a default state
             </summary>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.Enumerator.MoveNext">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.Enumerator.MoveNext">
             <summary>
             Advances the enumerator to the next element of the collection
             </summary>
             <returns>true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the collection.</returns>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.Enumerator.Reset">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.Enumerator.Reset">
             <inheritdoc/>
         </member>
-        <member name="T:LogUtils.BufferedLinkedList`1.EnumeratorWrapper">
+        <member name="T:LogUtils.Collections.BufferedLinkedList`1.EnumeratorWrapper">
             <summary>
             A simple wrapper for handling an IEnumerable similarly to an ILinkedListEnumerable despite not having the same functionality as one
             </summary>
         </member>
-        <member name="P:LogUtils.BufferedLinkedList`1.EnumeratorWrapper.CurrentNode">
+        <member name="P:LogUtils.Collections.BufferedLinkedList`1.EnumeratorWrapper.CurrentNode">
             <summary>
             Not implemented by design - data is unavailable
             </summary>
         </member>
-        <member name="P:LogUtils.BufferedLinkedList`1.EnumeratorWrapper.Current">
+        <member name="P:LogUtils.Collections.BufferedLinkedList`1.EnumeratorWrapper.Current">
             <inheritdoc/>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.EnumeratorWrapper.#ctor(System.Collections.Generic.IEnumerator{`0})">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.EnumeratorWrapper.#ctor(System.Collections.Generic.IEnumerator{`0})">
             <summary>
             Constructs an EnumeratorWrapper struct
             </summary>
             <param name="enumerator">The enumerator that is intended to be wrapped</param>
             <exception cref="T:System.ArgumentNullException">Enumerator is null</exception>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.EnumeratorWrapper.Dispose">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.EnumeratorWrapper.Dispose">
             <summary>
             Resets enumerator to a default state
             </summary>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.EnumeratorWrapper.MoveNext">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.EnumeratorWrapper.MoveNext">
             <summary>
             Advances the enumerator to the next element of the collection
             </summary>
             <returns>true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the collection.</returns>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.EnumeratorWrapper.Reset">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.EnumeratorWrapper.Reset">
             <inheritdoc/>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.WhereEnumerableWrapper.GetEnumerator">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.WhereEnumerableWrapper.GetEnumerator">
             <inheritdoc/>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.WhereEnumerable.GetEnumerator">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.WhereEnumerable.GetEnumerator">
             <inheritdoc/>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.WhereEnumerable.GetLinkedListEnumerator">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.WhereEnumerable.GetLinkedListEnumerator">
             <inheritdoc/>
         </member>
-        <member name="P:LogUtils.BufferedLinkedList`1.WhereEnumerator.CurrentNode">
+        <member name="P:LogUtils.Collections.BufferedLinkedList`1.WhereEnumerator.CurrentNode">
             <inheritdoc/>
         </member>
-        <member name="P:LogUtils.BufferedLinkedList`1.WhereEnumerator.Current">
+        <member name="P:LogUtils.Collections.BufferedLinkedList`1.WhereEnumerator.Current">
             <inheritdoc/>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.WhereEnumerator.Dispose">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.WhereEnumerator.Dispose">
             <summary>
             Resets enumerator to a default state
             </summary>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.WhereEnumerator.MoveNext">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.WhereEnumerator.MoveNext">
             <summary>
             Advances the enumerator to the next element of the collection
             </summary>
             <returns>true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the collection.</returns>
         </member>
-        <member name="M:LogUtils.BufferedLinkedList`1.WhereEnumerator.Reset">
+        <member name="M:LogUtils.Collections.BufferedLinkedList`1.WhereEnumerator.Reset">
             <inheritdoc/>
         </member>
-        <member name="M:LogUtils.ILinkedListEnumerable`1.GetLinkedListEnumerator">
+        <member name="M:LogUtils.Collections.ILinkedListEnumerable`1.GetLinkedListEnumerator">
             <summary>
             Returns an enumerator designed to iterate through a LinkedList
             </summary>
         </member>
-        <member name="P:LogUtils.ILinkedListEnumerator`1.CurrentNode">
+        <member name="P:LogUtils.Collections.ILinkedListEnumerator`1.CurrentNode">
             <summary>
             The LinkedListNode associated with Current
             </summary>
         </member>
-        <member name="F:LogUtils.ChangeState.FieldState">
+        <member name="M:LogUtils.Collections.WeakReferenceCollection`1.GetEnumerator">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Collections.WeakReferenceCollection`1.Add(`0)">
+            <inheritdoc cref="M:System.Collections.Generic.ICollection`1.Add(`0)"/>
+        </member>
+        <member name="M:LogUtils.Collections.WeakReferenceCollection`1.Remove(`0)">
+            <inheritdoc cref="M:System.Collections.Generic.ICollection`1.Remove(`0)"/>
+        </member>
+        <member name="M:LogUtils.Collections.WeakReferenceCollection`1.RemoveCollectedEntries">
             <summary>
-            The value of the field when the state was created
+            Remove entries that have been collected by the Garbage Collector
+            </summary>
+        </member>
+        <member name="M:LogUtils.Collections.WeakReferenceCollection`1.UnsafeCount">
+            <summary>
+            Returns the count of all entries in the collection, reference collected, or otherwise
             </summary>
         </member>
         <member name="M:LogUtils.Compatibility.AdapterServices.Convert(BepInEx.Logging.ManualLogSource)">
@@ -577,6 +596,11 @@
             A log source that will be applied by default to log requests that require such information
             </summary>
         </member>
+        <member name="F:LogUtils.Logger.IsThreadSafe">
+            <summary>
+            A flag that indicates whether this logger should take a conservative approach to thread safety when handling new log requests
+            </summary>
+        </member>
         <member name="F:LogUtils.Logger.RestorePoint">
             <summary>
             Contains a record of logger field values that can be restored on demand
@@ -640,6 +664,20 @@
             <param name="mode">Changes the technique used to write messages to file</param>
             <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
             <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
+        </member>
+        <member name="M:LogUtils.Logger.LogUnresolvedTarget(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,System.Object,System.Boolean,LogUtils.Requests.LogRequest.Factory.Callback)">
+            <summary>
+            Log targets that may be composite need to be resolved before logging can occur
+            </summary>
+        </member>
+        <member name="M:LogUtils.Logger.LogUnresolvedTarget(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,System.Object,System.Boolean,UnityEngine.Color)">
+            <inheritdoc cref="M:LogUtils.Logger.LogUnresolvedTarget(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,System.Object,System.Boolean,LogUtils.Requests.LogRequest.Factory.Callback)"/>
+        </member>
+        <member name="M:LogUtils.Logger.LogBase(LogUtils.Requests.LogRequest)">
+            <summary>
+            Passes a log request to a writer, or request handler
+            </summary>
+            <remarks>Through normal code paths, this code may receive already submitted requests, but these requests should always be local</remarks>
         </member>
         <member name="M:LogUtils.Logger.CanHandle(LogUtils.Enums.LogID,LogUtils.Requests.RequestType)">
             <summary>
@@ -1103,6 +1141,16 @@
         </member>
         <member name="M:LogUtils.Logger.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,System.Object,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
+        </member>
+        <member name="M:LogUtils.Logger.ProcessBatch(LogUtils.Requests.LogRequest)">
+            <summary>
+            Processes and logs a previously initiated batch of log reqeusts
+            </summary>
+        </member>
+        <member name="F:LogUtils.Logger.LogProcessor._logHandler">
+            <summary>
+            The handler that is responsible for handling processed log requests
+            </summary>
         </member>
         <member name="M:LogUtils.Logger.OnRegister">
             <summary>
@@ -6529,14 +6577,24 @@
             Request has been handled, and no more attempts to process the request should be made
             </summary>
         </member>
+        <member name="F:LogUtils.Requests.LogRequest.LogCallback">
+            <summary>
+            This field is primarily used by <see cref="T:LogUtils.Requests.LogRequestHandler"/> to communicate with unregistered loggers 
+            </summary>
+        </member>
         <member name="F:LogUtils.Requests.LogRequest.Sender">
             <summary>
-            The logger instance (if any) that was responsible for submitting the request
+            The log handler that was responsible for submitting the request
             </summary>
         </member>
         <member name="F:LogUtils.Requests.LogRequest.Submitted">
             <summary>
             Whether this request has once been submitted through the log request system
+            </summary>
+        </member>
+        <member name="P:LogUtils.Requests.LogRequest.IsFileRequest">
+            <summary>
+            A flag indicating whether the request targets a log file
             </summary>
         </member>
         <member name="P:LogUtils.Requests.LogRequest.IsTargetingConsole">
@@ -6748,7 +6806,6 @@
             <summary>
             Disables log handler communication with the log request system
             </summary>
-            <exception cref="T:System.InvalidOperationException">The logger is not allowed to be registered</exception>
         </member>
         <member name="M:LogUtils.Requests.LogRequestHandler.ProcessRequests(LogUtils.Enums.LogID)">
             <summary>
@@ -7010,6 +7067,9 @@
             <summary>
             Information assigned to identify the lock instance
             </summary>
+        </member>
+        <member name="P:LogUtils.Threading.Lock.IsAcquiredByCurrentThread">
+            <summary/>
         </member>
         <member name="F:LogUtils.Threading.Lock.SuppressNextRelease">
             <summary>
@@ -7515,25 +7575,6 @@
         <member name="M:LogUtils.UtilityLogSource.Dispose">
             <summary>
             Performs tasks for disposing a <see cref="T:LogUtils.UtilityLogSource"/>
-            </summary>
-        </member>
-        <member name="M:LogUtils.WeakReferenceCollection`1.GetEnumerator">
-            <inheritdoc/>
-        </member>
-        <member name="M:LogUtils.WeakReferenceCollection`1.Add(`0)">
-            <inheritdoc cref="M:System.Collections.Generic.ICollection`1.Add(`0)"/>
-        </member>
-        <member name="M:LogUtils.WeakReferenceCollection`1.Remove(`0)">
-            <inheritdoc cref="M:System.Collections.Generic.ICollection`1.Remove(`0)"/>
-        </member>
-        <member name="M:LogUtils.WeakReferenceCollection`1.RemoveCollectedEntries">
-            <summary>
-            Remove entries that have been collected by the Garbage Collector
-            </summary>
-        </member>
-        <member name="M:LogUtils.WeakReferenceCollection`1.UnsafeCount">
-            <summary>
-            Returns the count of all entries in the collection, reference collected, or otherwise
             </summary>
         </member>
         <member name="M:PathComparer.CompareFilenameAndPath(System.String,System.String,System.Boolean)">

@@ -16,7 +16,7 @@ namespace LogUtils.Formatting
         internal static IDetour[] Create()
         {
             MethodInfo appendFormatHelper = typeof(StringBuilder).GetMethod("AppendFormatHelper", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            MethodInfo hookMethod = typeof(FormatHook).GetMethod("StringBuilder_AppendFormatHelper", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+            MethodInfo hookMethod = typeof(FormatHook).GetMethod(nameof(StringBuilder_AppendFormatHelper), BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
 
             //This is required, because this method involves an internal class that cannot be referenced through the IDE
             var args = appendFormatHelper.GetParameters();

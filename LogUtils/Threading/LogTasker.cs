@@ -251,7 +251,7 @@ namespace LogUtils.Threading
             }
         }
 
-        private static bool timerStarted = timerUpdate != null;
+        private static bool timerStarted => timerUpdate != null;
         private static Action timerUpdate;
 
         public static void StartTimingFrames()
@@ -362,6 +362,10 @@ namespace LogUtils.Threading
                     crawlMarkReached(CrawlMark.EndUpdate);
                 }
             }
+            //catch (Exception ex)
+            //{
+            //    UtilityLogger.DebugLog(ex);
+            //}
             finally
             {
                 UtilityLogger.DebugLog("Task thread terminating" + (IsRunning ? " unexpectedly" : string.Empty));
