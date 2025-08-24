@@ -293,7 +293,6 @@ namespace LogUtils
                 return;
             }
 
-
             LogRequestEventArgs batchRequestArgs = new LogRequestEventArgs(new LogProcessorArgs(targets, createRequest), messageObj, category);
             LogRequest batchRequest = new LogRequest(RequestType.Batch, batchRequestArgs)
             {

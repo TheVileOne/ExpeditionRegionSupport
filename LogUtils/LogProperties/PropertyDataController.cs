@@ -98,7 +98,7 @@ namespace LogUtils.Properties
                 if (!UtilityCore.IsControllingAssembly)
                 {
                     if (logFile != LogID.BepInEx && moveFileFromOriginalPath) //This file would already have been moved by the controlling process - this original file is likely a duplicate
-                        originalFileDeleted = FileUtils.SafeDelete(originalFilePath);
+                        originalFileDeleted = FileUtils.TryDelete(originalFilePath);
 
                     //Moving files on other processes is not supported
                     moveFileFromOriginalPath = false;

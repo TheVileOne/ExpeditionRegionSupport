@@ -6,20 +6,15 @@ using System.Linq;
 
 namespace LogUtils.Helpers.FileHandling
 {
+    /// <summary>
+    /// Helper class for interacting with the file system that is safe and supported by LogUtils
+    /// </summary>
     public static class FileUtils
     {
         /// <summary>
         /// Used to attach information to a filename
         /// </summary>
         public const string BRACKET_FORMAT = "{0}[{1}]{2}";
-
-        public static void CreateTextFile(string filepath)
-        {
-            var stream = File.CreateText(filepath);
-
-            stream.Close();
-            stream = null;
-        }
 
         public static string ApplyBracketInfo(string filename, string info)
         {
@@ -66,7 +61,10 @@ namespace LogUtils.Helpers.FileHandling
             return filename.Substring(0, bracketIndex) + (useExtension ? extInfo.Extension : string.Empty);
         }
 
-        public static bool SafeDelete(string path, string customErrorMsg = null)
+        /// <summary>
+        /// Attempts to delete a file at the specified path
+        /// </summary>
+        public static bool TryDelete(string path, string customErrorMsg = null)
         {
             try
             {
@@ -77,11 +75,15 @@ namespace LogUtils.Helpers.FileHandling
             catch (Exception ex)
             {
                 UtilityLogger.LogError(customErrorMsg ?? "Unable to delete file", ex);
-                return false;
             }
+            return false;
         }
 
-        public static bool SafeCopy(string sourcePath, string destPath, int attemptsAllowed = 1)
+        /// <summary>
+        /// Attempts to copy a file to a specified path 
+        /// </summary>
+        /// <remarks>Any file at the destination path will be overwritten</remarks>
+        public static bool TryCopy(string sourcePath, string destPath, int attemptsAllowed = 1)
         {
             string sourceFilename = Path.GetFileName(sourcePath);
             string destFilename = Path.GetFileName(destPath);
@@ -94,25 +96,11 @@ namespace LogUtils.Helpers.FileHandling
                 return false;
             }
 
-            bool destEmpty = !File.Exists(destPath);
             bool exceptionLogged = false;
             while (attemptsAllowed > 0)
             {
                 try
                 {
-                    //Make sure destination is clear
-                    /*if (!destEmpty)
-                    {
-                        SafeDeleteFile(destPath);
-
-                        if (File.Exists(destPath)) //File removal failed
-                        {
-                            attemptsAllowed--;
-                            continue;
-                        }
-                        destEmpty = true;
-                    }*/
-
                     File.Copy(sourcePath, destPath, true);
                     return true;
                 }
@@ -142,11 +130,14 @@ namespace LogUtils.Helpers.FileHandling
                     exceptionLogged = true;
                 }
             }
-
             return false;
         }
 
-        public static bool SafeMove(string sourcePath, string destPath, int attemptsAllowed = 1)
+        /// <summary>
+        /// Attempts to move a file to a specified path
+        /// </summary>
+        /// <remarks>Any file at the destination path will be overwritten</remarks>
+        public static bool TryMove(string sourcePath, string destPath, int attemptsAllowed = 1)
         {
             string sourceFilename = Path.GetFileName(sourcePath);
             string destFilename = Path.GetFileName(destPath);
@@ -168,9 +159,7 @@ namespace LogUtils.Helpers.FileHandling
                     //Make sure destination is clear
                     if (!destEmpty)
                     {
-                        SafeDelete(destPath);
-
-                        if (File.Exists(destPath)) //File removal failed
+                        if (!TryDelete(destPath))
                         {
                             attemptsAllowed--;
                             continue;
@@ -207,48 +196,50 @@ namespace LogUtils.Helpers.FileHandling
                     exceptionLogged = true;
                 }
             }
-
             return false;
         }
 
-        public static void SafeWriteToFile(string filePath, params string[] values)
+        /// <summary>
+        /// Attempts to write one or more strings to file
+        /// </summary>
+        /// <remarks>File is created, its contents are overwritten if it already exists</remarks>
+        public static bool TryWrite(string filePath, params string[] values)
         {
-            bool fileWriteSuccess = false;
-            Exception fileWriteError = null;
-
             try
             {
-                using (TextWriter writer = File.CreateText(filePath))
-                {
-                    foreach (string entry in values)
-                        writer.WriteLine(entry);
-                    writer.Close();
-                }
-
-                fileWriteSuccess = File.Exists(filePath);
+                File.WriteAllLines(filePath, values);
+                return true;
             }
             catch (Exception ex)
             {
-                fileWriteError = ex;
+                UtilityLogger.LogError("Unable to write to file " + filePath, ex);
             }
-
-            if (!fileWriteSuccess)
-            {
-                UtilityLogger.LogError("Unable to write to file " + filePath);
-
-                if (fileWriteError != null)
-                    UtilityLogger.LogError(fileWriteError);
-            }
+            return false;
         }
 
-        public static void SafeWriteToFile(string filePath, IEnumerable<string> values)
+        /// <inheritdoc cref="TryWrite(string, string[])"/>
+        public static bool TryWrite(string filePath, IEnumerable<string> values)
         {
-            SafeWriteToFile(filePath, values.ToArray());
+            return TryWrite(filePath, values.ToArray());
         }
 
         private static readonly object writeLock = new object();
 
-        public static void WriteLine(string path, string message)
+        /// <inheritdoc cref="File.AppendAllText(string, string)"/>
+        /// <remarks>
+        /// - Appends a new line after specified string.<br/>
+        /// - Write lock is applied internally for thread safety, but is not safe to run from multiple processes.
+        /// </remarks>
+        public static void AppendLine(string path, string contents)
+        {
+            AppendText(path, contents + Environment.NewLine);
+        }
+
+        /// <inheritdoc cref="File.AppendAllText(string, string)"/>
+        /// <remarks>
+        /// - Write lock is applied internally for thread safety, but is not safe to run from multiple processes.
+        /// </remarks>
+        public static void AppendText(string path, string contents)
         {
             /*
             using (FileStream stream = File.Open(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
@@ -258,12 +249,11 @@ namespace LogUtils.Helpers.FileHandling
                 {
                     writer.Write(message);
                 }
-            } 
+            }
             */
-
             lock (writeLock)
             {
-                File.AppendAllText(path, message + Environment.NewLine);
+                File.AppendAllText(path, contents);
             }
         }
     }

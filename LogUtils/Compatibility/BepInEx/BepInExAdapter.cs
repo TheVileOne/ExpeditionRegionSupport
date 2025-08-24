@@ -61,7 +61,7 @@ namespace LogUtils.Compatibility.BepInEx
                     UtilityLogger.DebugLog("Applying log rules retroactively");
                     try
                     {
-                        FileUtils.SafeWriteToFile(bepInExLogPath, RetroactivelyApplyRules(bepInExLogPath));
+                        FileUtils.TryWrite(bepInExLogPath, RetroactivelyApplyRules(bepInExLogPath));
                     }
                     catch (IOException)
                     {

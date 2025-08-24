@@ -66,8 +66,7 @@ namespace LogUtils.Helpers.FileHandling
 
         internal static string FindCommonRootNoChecks(string path, string pathOther)
         {
-            int charsMatched = 0;
-            int charsMatchedThisDir = 0;
+            int charsMatched, charsMatchedThisDir = 0;
             for (charsMatched = 0; charsMatched < Math.Min(path.Length, pathOther.Length); charsMatched++)
             {
                 char pathChar = path[charsMatched];

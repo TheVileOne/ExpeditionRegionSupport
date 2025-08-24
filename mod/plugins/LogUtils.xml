@@ -3823,6 +3823,7 @@
             An unregistered LogID will still get its own properties, those properties, and changes to those properties wont be saved to file
             DO NOT register a LogID that is temporary, and your mod is designated for public release
             </param>
+            <exception cref="T:System.ArgumentNullException">Filename provided is null</exception>
         </member>
         <member name="M:LogUtils.Enums.LogID.#ctor(System.String)">
             <summary>
@@ -3895,6 +3896,12 @@
         </member>
         <member name="M:LogUtils.Enums.LogID.GetHashCode">
             <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.Sanitize(System.String)">
+            <summary>
+            Converts a filename input into a LogUtils supported filename
+            </summary>
+            <exception cref="T:System.ArgumentNullException">Filename provided is null</exception>
         </member>
         <member name="F:LogUtils.Enums.LogID.NotUsed">
             <summary>An unregistered LogID designed to be used as a throwaway parameter</summary>
@@ -4762,10 +4769,54 @@
             <returns>The filename (or path) with the applied file extension</returns>
             <remarks>Filenames with long extensions may be unaffected by this operation</remarks>
         </member>
+        <member name="T:LogUtils.Helpers.FileHandling.FileUtils">
+            <summary>
+            Helper class for interacting with the file system that is safe and supported by LogUtils
+            </summary>
+        </member>
         <member name="F:LogUtils.Helpers.FileHandling.FileUtils.BRACKET_FORMAT">
             <summary>
             Used to attach information to a filename
             </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.FileUtils.TryDelete(System.String,System.String)">
+            <summary>
+            Attempts to delete a file at the specified path
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.FileUtils.TryCopy(System.String,System.String,System.Int32)">
+            <summary>
+            Attempts to copy a file to a specified path 
+            </summary>
+            <remarks>Any file at the destination path will be overwritten</remarks>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.FileUtils.TryMove(System.String,System.String,System.Int32)">
+            <summary>
+            Attempts to move a file to a specified path
+            </summary>
+            <remarks>Any file at the destination path will be overwritten</remarks>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.FileUtils.TryWrite(System.String,System.String[])">
+            <summary>
+            Attempts to write one or more strings to file
+            </summary>
+            <remarks>File is created, its contents are overwritten if it already exists</remarks>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.FileUtils.TryWrite(System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <inheritdoc cref="M:LogUtils.Helpers.FileHandling.FileUtils.TryWrite(System.String,System.String[])"/>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.FileUtils.AppendLine(System.String,System.String)">
+            <inheritdoc cref="M:System.IO.File.AppendAllText(System.String,System.String)"/>
+            <remarks>
+            - Appends a new line after specified string.<br/>
+            - Write lock is applied internally for thread safety, but is not safe to run from multiple processes.
+            </remarks>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.FileUtils.AppendText(System.String,System.String)">
+            <inheritdoc cref="M:System.IO.File.AppendAllText(System.String,System.String)"/>
+            <remarks>
+            - Write lock is applied internally for thread safety, but is not safe to run from multiple processes.
+            </remarks>
         </member>
         <member name="T:LogUtils.Helpers.FileHandling.PathResolution">
             <summary>

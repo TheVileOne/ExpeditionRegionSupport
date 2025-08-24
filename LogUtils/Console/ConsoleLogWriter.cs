@@ -123,7 +123,6 @@ namespace LogUtils.Console
         /// <inheritdoc/>
         public void WriteFrom(LogRequest request)
         {
-            ConsoleRequestEventArgs consoleMessageData = null;
             if (!IsEnabled)
             {
                 request.Reject(RejectionReason.LogDisabled, ID);
@@ -137,7 +136,7 @@ namespace LogUtils.Console
             }
 
             request.TargetConsole();
-            consoleMessageData = request.SetDataFromWriter(this);
+            var consoleMessageData = request.SetDataFromWriter(this);
 
         retry:
             bool retryAttempt = false;

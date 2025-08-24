@@ -487,7 +487,7 @@ namespace LogUtils.Properties
 
         public void RemoveTempFile()
         {
-            FileUtils.SafeDelete(ReplacementFilePath, "Unable to delete temporary file");
+            FileUtils.TryDelete(ReplacementFilePath, "Unable to delete temporary file");
         }
 
         /// <summary>

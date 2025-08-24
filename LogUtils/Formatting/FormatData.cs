@@ -146,12 +146,12 @@ namespace LogUtils.Formatting
                 //We are not expecting there to be format information in the string here
                 if (!ExpectAnsiCode && (RangeCounter == 0 || numCharsSinceLastArgument == 0))
                 {
-                    if (numCharsSinceLastArgument > 0)
-                    {
-                        string unprocessedBuildString = currentBuilder.ToString().Substring(currentBuilder.Length - numCharsSinceLastArgument);
+                    //if (numCharsSinceLastArgument > 0)
+                    //{
+                    //    string unprocessedBuildString = currentBuilder.ToString().Substring(currentBuilder.Length - numCharsSinceLastArgument);
 
-                        //UtilityLogger.DebugLog($"'{unprocessedBuildString}' will remain at the last assigned color");
-                    }
+                    //    UtilityLogger.DebugLog($"'{unprocessedBuildString}' will remain at the last assigned color");
+                    //}
                     currentBuildEntry.LastCheckedBuildLength = currentBuilder.Length;
                     return false;
                 }

@@ -41,7 +41,7 @@ namespace LogUtils
         /// </summary>
         internal void Delete()
         {
-            FileUtils.SafeDelete(LogPath);
+            FileUtils.TryDelete(LogPath);
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace LogUtils
         internal void DeleteAll()
         {
             foreach (string file in Directory.GetFiles(RainWorldPath.RootPath, Name + "[*", SearchOption.TopDirectoryOnly))
-                FileUtils.SafeDelete(file);
+                FileUtils.TryDelete(file);
         }
 
         public bool TryFlush()
@@ -74,7 +74,7 @@ namespace LogUtils
             //Always handle buffered write data first
             if (WriteBuffer.HasContent)
             {
-                FileUtils.WriteLine(LogPath, WriteBuffer.ToString());
+                FileUtils.AppendLine(LogPath, WriteBuffer.ToString());
                 WriteBuffer.Clear();
             }
         }
@@ -95,7 +95,7 @@ namespace LogUtils
             try
             {
                 Flush();
-                FileUtils.WriteLine(LogPath, message);
+                FileUtils.AppendLine(LogPath, message);
             }
             catch
             {

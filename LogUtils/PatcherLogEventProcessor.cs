@@ -56,7 +56,7 @@ namespace LogUtils
 
                     if (messageObj is Exception)
                         messageObj = "!!!Exception: " + messageObj;
-                    
+
                     messageObj = $"{logEvent.Timestamp:yyyy-MM-dd HH:mm:ss} - {messageObj}";
                     logger.Log(category, messageObj);
                 }

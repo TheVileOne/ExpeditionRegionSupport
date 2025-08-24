@@ -28,7 +28,7 @@ namespace LogUtils.Diagnostics.Tests.Components
             //Does nothing
         }
 
-        void IBufferHandler.WriteFromBuffer(LogID logFile, TimeSpan waitTime, bool respectBufferState = true)
+        void IBufferHandler.WriteFromBuffer(LogID logFile, TimeSpan waitTime, bool respectBufferState)
         {
             //Does nothing
         }

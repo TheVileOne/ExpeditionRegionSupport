@@ -234,7 +234,7 @@ namespace LogUtils.Helpers
 
                 if (logFile.Properties.FileExists)
                 {
-                    bool fileRemoved = FileUtils.SafeDelete(logFile.Properties.CurrentFilePath, "Unable to delete log file");
+                    bool fileRemoved = FileUtils.TryDelete(logFile.Properties.CurrentFilePath, "Unable to delete log file");
 
                     if (fileRemoved)
                         logFile.Properties.FileExists = false;

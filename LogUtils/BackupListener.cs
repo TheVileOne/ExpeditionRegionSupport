@@ -22,7 +22,7 @@ namespace LogUtils
             {
                 if (value != null)
                 {
-                    records.ForEach(r => value.Invoke(r));
+                    records.ForEach(value.Invoke);
                     eventHandle += value;
                 }
             }
@@ -35,7 +35,7 @@ namespace LogUtils
         internal static void OnTempFileCreated(LogID logFile)
         {
             //Check for an existing backup record - only one record should be stored per log file
-            int index = records.FindIndex(r => r.LogFile.Equals(logFile));
+            int index = records.FindIndex(record => record.LogFile.Equals(logFile));
 
             if (index != -1)
                 records.RemoveAt(index);

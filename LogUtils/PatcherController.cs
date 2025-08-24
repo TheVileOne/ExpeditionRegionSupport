@@ -146,7 +146,7 @@ namespace LogUtils
             UtilityLogger.Log("Deploying patcher");
             try
             {
-                FileUtils.SafeDelete(patcherBackupPath); //Patcher should never exist in both patchers, and backup directories at the same time
+                FileUtils.TryDelete(patcherBackupPath); //Patcher should never exist in both patchers, and backup directories at the same time
 
                 File.WriteAllBytes(patcherPath, byteStream);
                 HasDeployed = true;

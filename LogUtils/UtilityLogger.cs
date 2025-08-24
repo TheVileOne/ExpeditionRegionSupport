@@ -80,7 +80,7 @@ namespace LogUtils
 
         internal static void DeleteInternalLogs()
         {
-            FileUtils.SafeDelete("LogActivity.log");
+            FileUtils.TryDelete("LogActivity.log");
             DebugLogger.DeleteAll();
         }
 
