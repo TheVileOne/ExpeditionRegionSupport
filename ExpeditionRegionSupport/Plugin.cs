@@ -559,11 +559,6 @@ namespace ExpeditionRegionSupport
                 //The RegionSelector uses several of these settings to choose the spawn location
                 if (RegionSelector.Instance != null)
                     RegionSelector.Instance.ShouldBuildRegionList = true;
-
-                ChallengeFilterSettings.CurrentFilter = FilterOption.None;
-
-                if (RegionFilterSettings.IsFilterActive(FilterOption.VisitedRegionsOnly))
-                    ChallengeFilterSettings.CurrentFilter = FilterOption.VisitedRegionsOnly;
             }
 
             sender.OnDialogClosed -= SettingsDialog_OnDialogClosed;

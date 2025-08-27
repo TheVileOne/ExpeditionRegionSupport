@@ -8,8 +8,6 @@ namespace ExpeditionRegionSupport.Filters.Utils
     {
         public FilterOption FilterID;
 
-        public override bool Enabled => ChallengeFilterSettings.CurrentFilter == FilterID;
-
         public ChallengeFilter(FilterOption filterID) : base(PrepareFilter(filterID))
         {
             FilterID = filterID;

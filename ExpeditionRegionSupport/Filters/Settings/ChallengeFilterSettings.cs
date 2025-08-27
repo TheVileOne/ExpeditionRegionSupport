@@ -4,11 +4,9 @@ using System.Collections.Generic;
 
 namespace ExpeditionRegionSupport.Filters.Settings
 {
-    public static partial class ChallengeFilterSettings
+    public static class ChallengeFilterSettings
     {
         public static Dictionary<string, List<ChallengeFilter>> Filters;
-
-        public static FilterOption CurrentFilter;
 
         /// <summary>
         /// The Expedition challenge that the filter is handling, or is about to handle
