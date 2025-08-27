@@ -103,8 +103,8 @@ namespace ExpeditionRegionSupport
                 IL.SaveState.setDenPosition += SaveState_setDenPosition;
 
                 //ModMerger
-                On.ModManager.ModMerger.PendingApply.CollectModifications += PendingApply_CollectModifications;
-                IL.ModManager.ModMerger.PendingApply.CollectModifications += PendingApply_CollectModifications;
+                //On.ModManager.ModMerger.PendingApply.CollectModifications += PendingApply_CollectModifications;
+                //IL.ModManager.ModMerger.PendingApply.CollectModifications += PendingApply_CollectModifications;
 
                 //RegionDataMiner (Dispose file streams hook)
                 On.ModManager.GenerateMergedMods += ModManager_GenerateMergedMods;
