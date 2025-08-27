@@ -67,6 +67,9 @@ namespace ExpeditionRegionSupport
                 LogSource = base.Logger
             };
 
+#if DEBUG
+            DebugMode = true;
+#endif
             try
             {
                 On.RainWorld.OnDestroy += RainWorld_OnDestroy;
