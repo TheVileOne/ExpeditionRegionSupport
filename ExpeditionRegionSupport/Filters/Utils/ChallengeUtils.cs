@@ -1,4 +1,5 @@
 ﻿using Expedition;
+using MoreSlugcats;
 using System.Collections.Generic;
 
 namespace ExpeditionRegionSupport.Filters.Utils
@@ -29,6 +30,23 @@ namespace ExpeditionRegionSupport.Filters.Utils
         public static List<Challenge> GetCustomRegionChallenges()
         {
             return ChallengeOrganizer.availableChallengeTypes.FindAll(c => c is IRegionChallenge);
+        }
+
+        public static List<string> GetApplicableEchoRegions(SlugcatStats.Name slugcat)
+        {
+            List<string> applicableRegions = new List<string>(ExtEnum<GhostWorldPresence.GhostID>.values.entries);
+
+            applicableRegions.Remove("NoGhost"); //Not a region
+
+            if (ModManager.MSC)
+            {
+                applicableRegions.Remove("MS"); //This echo cannot be chosen for echo challenges
+
+                //Remove echoes that only apply to Saint
+                if (slugcat != MoreSlugcatsEnums.SlugcatStatsName.Saint)
+                    applicableRegions.Remove("SL");
+            }
+            return applicableRegions;
         }
     }
 }

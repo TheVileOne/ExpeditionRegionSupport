@@ -6,7 +6,6 @@ using ExpeditionRegionSupport.HookUtils;
 using ExpeditionRegionSupport.Regions;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using MoreSlugcats;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -213,25 +212,10 @@ namespace ExpeditionRegionSupport.Filters
 
         private static List<string> processFilterEcho()
         {
-            CachedFilterApplicator<string> echoFilter = new CachedFilterApplicator<string>(ExtEnum<GhostWorldPresence.GhostID>.values.entries);
-
-            echoFilter.ItemsToRemove.Add("NoGhost");
-
-            if (ModManager.MSC)
-            {
-                echoFilter.ItemsToRemove.Add("MS");
-
-                //Remove echoes that only apply to Saint
-                if (ExpeditionData.slugcatPlayer != MoreSlugcatsEnums.SlugcatStatsName.Saint)
-                    echoFilter.ItemsToRemove.Add("SL");
-            }
-
-            echoFilter.Apply();
-
             List<string> availableRegions = RegionUtils.GetAvailableRegions(ExpeditionData.slugcatPlayer);
+            List<string> availableEchoRegions = ChallengeUtils.GetApplicableEchoRegions(ExpeditionData.slugcatPlayer);
 
-            //Returns echoes that have valid assigned regions
-            return echoFilter.Cache.Intersect(availableRegions).ToList();
+            return Filter.GetMatches(availableEchoRegions, availableRegions).ToList();
         }
 
         #endregion
@@ -243,16 +227,6 @@ namespace ExpeditionRegionSupport.Filters
 
             try
             {
-                RegionUtils.AssignFilter(ChallengeFilterSettings.FilterTarget);
-
-                var regionFilter = RegionUtils.AppliedFilters.Pop();
-
-                if (!regionFilter.HasItemsRemoved) //Indicates that a new filter was created for this challenge
-                {
-                    regionFilter.ItemsToRemove.AddRange(ChallengeTools.PearlRegionBlackList());
-                    regionFilter.Apply();
-                }
-
                 return orig(self);
             }
             catch (Exception ex)
@@ -267,8 +241,10 @@ namespace ExpeditionRegionSupport.Filters
             ILCursor cursor = new ILCursor(il);
 
             cursor.GotoNext(MoveType.After, x => x.MatchStloc(1)); //Go to after list is instantiated
-            cursor.EmitReference(ExpeditionData.slugcatPlayer);
-            cursor.EmitDelegate(RegionUtils.GetAvailableRegions); //Get regions and store them directly into the list
+            cursor.EmitDelegate(() => //Replace reference with mod managed regions list
+            {
+                return RegionUtils.GetAvailableRegions(ExpeditionData.slugcatPlayer);
+            });
             cursor.Emit(OpCodes.Stloc_1);
 
             cursor.BranchStart(OpCodes.Br); //The filter logic in the loop is no longer necessary

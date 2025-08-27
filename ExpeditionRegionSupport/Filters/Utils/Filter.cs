@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ExpeditionRegionSupport.Filters.Utils
 {
@@ -41,6 +42,11 @@ namespace ExpeditionRegionSupport.Filters.Utils
         public static bool IsFiltered<T>(Predicate<T> filter, T value)
         {
             return filter.Invoke(value);
+        }
+
+        public static IEnumerable<T> GetMatches<T>(IEnumerable<T> matchTargets, IEnumerable<T> searchEntries)
+        {
+            return matchTargets.Intersect(searchEntries);
         }
     }
 

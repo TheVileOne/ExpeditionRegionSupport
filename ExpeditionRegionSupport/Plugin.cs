@@ -1,7 +1,6 @@
 ﻿using BepInEx;
 using Expedition;
 using ExpeditionRegionSupport.Data;
-using ExpeditionRegionSupport.ExceptionHandling;
 using ExpeditionRegionSupport.Filters;
 using ExpeditionRegionSupport.Filters.Settings;
 using ExpeditionRegionSupport.Filters.Utils;
@@ -51,6 +50,11 @@ namespace ExpeditionRegionSupport
         /// A flag indicating that an Expedition game process is initiating
         /// </summary>
         private bool expeditionGameStarting;
+
+        /// <summary>
+        /// A flag indicating whether the slugcat selection has changed, or is in need of processing
+        /// </summary>
+        private static bool slugcatDirty;
 
         private SimpleButton settingsButton;
 
@@ -455,8 +459,13 @@ namespace ExpeditionRegionSupport
             SlugcatStats.Name lastSelected = ExpeditionData.slugcatPlayer;
             orig(self, slugcatIndex);
 
-            if (lastSelected != ExpeditionData.slugcatPlayer)
+            if (slugcatDirty || lastSelected != ExpeditionData.slugcatPlayer)
+            {
+                slugcatDirty = false;
                 ActiveWorldState = RegionUtils.GetWorldStateFromStoryRegions(ExpeditionData.slugcatPlayer);
+                RegionUtils.AvailableRegionCache = null;
+                RegionFilter.UpdateFilter();
+            }
         }
 
         private void ExpeditionMenu_UpdatePage(On.Menu.ExpeditionMenu.orig_UpdatePage orig, ExpeditionMenu self, int pageIndex)
@@ -473,6 +482,7 @@ namespace ExpeditionRegionSupport
         /// </summary>
         private void ExpeditionMenu_ctor(On.Menu.ExpeditionMenu.orig_ctor orig, ExpeditionMenu self, ProcessManager manager)
         {
+            slugcatDirty = true; //We don't know if this is the first time, the menu was opened. Process slugcat data each time to be sure it stays accurate
             ProgressionData.PlayerData = new ProgressionData(manager.rainWorld.progression); //This data is going to be overwritten in the constructor, but this mod still needs access to it.
 
             orig(self, manager);

@@ -1,6 +1,4 @@
-﻿using Expedition;
-using ExpeditionRegionSupport.Diagnostics;
-using ExpeditionRegionSupport.Filters.Settings;
+﻿using ExpeditionRegionSupport.Diagnostics;
 using ExpeditionRegionSupport.Filters.Utils;
 using ExpeditionRegionSupport.Regions.Data;
 using ExpeditionRegionSupport.Regions.Restrictions;
@@ -17,15 +15,6 @@ namespace ExpeditionRegionSupport.Regions
     public static class RegionUtils
     {
         public static readonly List<RestrictionCheck> RestrictionChecks = new List<RestrictionCheck>();
-
-        public static Dictionary<Challenge, FilterApplicator<string>> RegionFilterCache = new Dictionary<Challenge, FilterApplicator<string>>();
-
-        public static CachedFilterStack<string> AppliedFilters = new CachedFilterStack<string>();
-
-        /// <summary>
-        /// The most recent region filter assigned 
-        /// </summary>
-        public static CachedFilterApplicator<string> CurrentFilter => AppliedFilters.CurrentFilter;
 
         /// <summary>
         /// A flag that indicates that regions should be stored in a mod managed list upon retrieval
@@ -90,15 +79,9 @@ namespace ExpeditionRegionSupport.Regions
                 return SlugcatStats.SlugcatStoryRegions(slugcat);
             }
 
-            //Applied filters take priority over the standard cache
-            if (AppliedFilters.BaseFilter != null)
-                return CurrentFilter.Cache;
-
-            //Make sure cache is applied
             if (AvailableRegionCache == null)
-                AvailableRegionCache = SlugcatStats.SlugcatStoryRegions(slugcat);
-
-            return AvailableRegionCache;
+                AvailableRegionCache = RegionFilter.Apply();
+            return AvailableRegionCache.ToList(); //A new collection must be returned here to avoid the cache being modified
         }
 
         /// <summary>
@@ -421,48 +404,6 @@ namespace ExpeditionRegionSupport.Regions
         public static void AssignRestriction(RestrictionCheck restriction)
         {
             RestrictionChecks.Add(restriction);
-        }
-
-        /// <summary>
-        /// Assigns the VisitedRegion filter as the BaseFilter to a list of currently available region codes and applies the filter
-        /// </summary>
-        /// <param name="name">The slugcat name used to retrieve visited region data</param>
-        public static void AssignFilter(SlugcatStats.Name name)
-        {
-            Plugin.Logger.LogInfo("Applying region filter");
-            AppliedFilters.AssignBase(new CachedFilterApplicator<string>(GetAvailableRegions(name)));
-
-            //The filter is not yet applied, lets handle that logic here
-            if (RegionFilterSettings.IsFilterActive(FilterOption.VisitedRegionsOnly))
-            {
-                List<string> visitedRegions = GetVisitedRegions(name);
-                CurrentFilter.Apply(visitedRegions.Contains); //Filters all unvisited regions and stores it in a list cache
-            }
-        }
-
-        /// <summary>
-        /// Retrieves a filter from the filter cache if one exists. Creates a new filter if it doesn't exist.
-        /// </summary>
-        public static void AssignFilter(Challenge challenge)
-        {
-            Challenge challengeType = ChallengeUtils.GetChallengeType(challenge);
-
-            if (RegionFilterCache.TryGetValue(challenge, out FilterApplicator<string> challengeFilter))
-            {
-                AppliedFilters.Assign((CachedFilterApplicator<string>)challengeFilter);
-            }
-            else if (AppliedFilters.BaseFilter != null)
-            {
-                //AssignNew automatically inherits from the previous filter
-                RegionFilterCache.Add(challengeType, AppliedFilters.AssignNew());
-            }
-        }
-
-        public static void ClearFilters()
-        {
-            Plugin.Logger.LogInfo("Clearing filters");
-            AppliedFilters.Clear();
-            RegionFilterCache.Clear();
         }
 
         public static EquivalencyCache EquivalentRegionCache;

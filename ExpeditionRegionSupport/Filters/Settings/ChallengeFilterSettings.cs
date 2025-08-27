@@ -1,5 +1,6 @@
 ﻿using Expedition;
 using ExpeditionRegionSupport.Filters.Utils;
+using ExpeditionRegionSupport.Regions;
 using System.Collections.Generic;
 
 namespace ExpeditionRegionSupport.Filters.Settings
@@ -62,6 +63,9 @@ namespace ExpeditionRegionSupport.Filters.Settings
 
         public static void ApplyFilter(List<string> allowedRegions)
         {
+            if (allowedRegions == RegionUtils.AvailableRegionCache)
+                Plugin.Logger.LogWarning("Region cache used as filter reference");
+
             //Get the filters that apply to the target
             List<ChallengeFilter> availableFilters = GetFilters();
 

@@ -6,6 +6,7 @@ using ExpeditionRegionSupport.Regions;
 using LogUtils.Enums;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace ExpeditionRegionSupport.Filters
@@ -195,10 +196,8 @@ namespace ExpeditionRegionSupport.Filters
 
             ChallengeRemover.ValidateTarget(ChallengeOrganizer.availableChallengeTypes);
 
-            //Enable caching and create the primary region filter
+            RegionUtils.AvailableRegionCache = null;
             RegionUtils.CacheAvailableRegions = true;
-            RegionUtils.AssignFilter(ExpeditionData.slugcatPlayer);
-
             ChallengeSlot.Info.NewProcess();
 
             ChallengesRequested = requestAmount;
@@ -238,8 +237,6 @@ namespace ExpeditionRegionSupport.Filters
 
             //Restores many things back to default values
             RegionUtils.CacheAvailableRegions = false;
-            RegionUtils.ClearFilters();
-
             ChallengeFilterSettings.FilterTarget = null;
 
             ChallengeRemover.Restore();
@@ -351,15 +348,21 @@ namespace ExpeditionRegionSupport.Filters
                     ChallengeRemover.ItemsToRemove.Add(challengeType);
                     break;
                 case ExpeditionConsts.ChallengeNames.ECHO:
-                    List<string> availableRegions = RegionUtils.CurrentFilter.ApplyTemp(ExpeditionData.challengeList,
-                        challenge => challenge is EchoChallenge,
-                        challenge =>
-                        {
-                            EchoChallenge echoChallenge = (EchoChallenge)challenge;
-                            return echoChallenge.ghost.value;
-                        });
+                    IEnumerable<string> availableRegions = RegionUtils.GetAvailableRegions(ExpeditionData.slugcatPlayer);
 
-                    if (availableRegions.Count == 0)
+                    StringFilter regionFilter = new StringFilter(availableRegions);
+
+                    //Filters out echo regions associated with already selected challenges
+                    regionFilter.Criteria += regions =>
+                    {
+                        var echoChallenges = ExpeditionData.challengeList.OfType<EchoChallenge>();
+                        return regions.Except(echoChallenges.Select(challenge => challenge.ghost.value));
+                    };
+
+                    availableRegions = regionFilter.Apply();
+                    bool allRegionsFiltered = !availableRegions.Any();
+
+                    if (allRegionsFiltered)
                         ChallengeRemover.ItemsToRemove.Add(challengeType);
                     break;
             }
