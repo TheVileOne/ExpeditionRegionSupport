@@ -379,16 +379,6 @@ namespace ExpeditionRegionSupport.Filters
             cursor.GotoNext(x => x.MatchLeaveS(out leaveTarget)); //The break target of a foreach loop
             cursor.GotoLabel(leaveTarget);
 
-            //Old IL code that no longer works
-            /*
-            cursor.GotoNext(MoveType.After, x => x.MatchEndfinally()); //This should be at the end of the loops in this method
-            cursor.GotoNext(MoveType.After, x => x.MatchLdloc(3)); //Get closer to where we want to assign cache. Do so after log statement
-
-            cursor.GotoNext(MoveType.Before,
-                x => x.MatchLdloc(3),
-                x => x.MatchLdcI4(0));
-            */
-
             //This emit will set the new leave target
             cursor.Emit(OpCodes.Ldloc_3); //Push list of vista locations available for selection onto stack
             cursor.EmitDelegate(assignCache);
@@ -425,37 +415,6 @@ namespace ExpeditionRegionSupport.Filters
             Plugin.Logger.LogInfo("Clearing vista locations");
             allowedVistasCache = null;
         }
-
-        /*
-        private static List<string> processFilterVista()
-        {
-            if (vistaLocationsCache == null)
-            {
-                vistaLocationsCache = ChallengeTools.VistaLocations.Keys.ToList();
-                FilterApplicator<string> vistaFilter = new CachedFilterApplicator<string>(vistaLocationsCache);
-
-                List<string> availableRegions = RegionUtils.GetAvailableRegions(ExpeditionData.slugcatPlayer);
-
-                //Check each vista against available regions
-                vistaFilter.Apply((vista) =>
-                {
-                    string regionCode = Regex.Split(vista, "_")[0];
-
-                    return !availableRegions.Contains(regionCode);
-                });
-
-                ChallengeAssignment.HandleOnProcessComplete += clearVistaCache;
-            }
-
-            void clearVistaCache()
-            {
-                vistaLocationsCache = null;
-                ChallengeAssignment.HandleOnProcessComplete -= clearVistaCache;
-            }
-
-            return vistaLocationsCache;
-        }
-        */
         #endregion
 
         private static void applyEmptyListHandling<T>(ILCursor cursor)
