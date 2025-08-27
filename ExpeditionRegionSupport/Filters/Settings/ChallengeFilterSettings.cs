@@ -30,27 +30,15 @@ namespace ExpeditionRegionSupport.Filters.Settings
             }
         }
 
-        private static ChallengeFilter processFilter(string name)
+        private static ChallengeFilter processFilter(string challengeName)
         {
-            FilterOption filterType = FilterOption.VisitedRegionsOnly; //The only type managed by default
-
-            ChallengeFilter filter;
-            switch (name)
+            Plugin.Logger.LogInfo($"Processing filter for {challengeName}");
+            ChallengeFilter filter = challengeName switch
             {
-                case ExpeditionConsts.ChallengeNames.ECHO:
-                case ExpeditionConsts.ChallengeNames.PEARL_HOARD:
-                    filter = new ChallengeFilter(filterType);
-                    break;
-                case ExpeditionConsts.ChallengeNames.PEARL_DELIVERY:
-                    filter = new PearlDeliveryChallengeFilter(filterType);
-                    break;
-                case ExpeditionConsts.ChallengeNames.NEURON_DELIVERY:
-                    filter = new NeuronDeliveryChallengeFilter(filterType);
-                    break;
-                default:
-                    filter = null;
-                    break;
-            }
+                ExpeditionConsts.ChallengeNames.PEARL_DELIVERY => new PearlDeliveryChallengeFilter(),
+                ExpeditionConsts.ChallengeNames.NEURON_DELIVERY => new NeuronDeliveryChallengeFilter(),
+                _ => null,
+            };
             return filter;
         }
 

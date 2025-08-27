@@ -46,8 +46,13 @@ namespace ExpeditionRegionSupport.Filters.Utils
 
     public class ListFilter<T> : Filter
     {
-        public List<T> CompareValues;
+        public virtual List<T> CompareValues { get; }
         public Func<T, T> ValueModifier;
+
+        public ListFilter(FilterCriteria criteria = FilterCriteria.MustInclude)
+        {
+            Criteria = criteria;
+        }
 
         public ListFilter(List<T> compareValues, FilterCriteria criteria = FilterCriteria.MustInclude)
         {
@@ -59,7 +64,6 @@ namespace ExpeditionRegionSupport.Filters.Utils
         /// Checks a list against a criteria, and removes items that don't meet that criteria/>
         /// </summary>
         /// <param name="allowedItems">The list to check</param>
-        /// <param name="valueModifier">A function used to apply formatting to a value</param>
         public virtual void Apply(List<T> allowedItems)
         {
             if (!Enabled) return;

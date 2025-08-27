@@ -1,4 +1,4 @@
-﻿using ExpeditionRegionSupport.Filters.Settings;
+﻿using Expedition;
 using ExpeditionRegionSupport.Regions;
 using System.Collections.Generic;
 
@@ -6,19 +6,13 @@ namespace ExpeditionRegionSupport.Filters.Utils
 {
     public class ChallengeFilter : ListFilter<string>
     {
-        public FilterOption FilterID;
+        /// <summary>
+        /// Contains a list of regions that must contain any valid filter entry
+        /// </summary>
+        public override List<string> CompareValues => RegionUtils.GetAvailableRegions(ExpeditionData.slugcatPlayer);
 
-        public ChallengeFilter(FilterOption filterID) : base(PrepareFilter(filterID))
+        public ChallengeFilter() : base()
         {
-            FilterID = filterID;
-        }
-
-        protected static List<string> PrepareFilter(FilterOption filterID)
-        {
-            if (filterID == FilterOption.VisitedRegionsOnly)
-                return RegionUtils.RegionsVisitedCache.Regions;
-
-            return new List<string>();
         }
     }
 
@@ -26,7 +20,7 @@ namespace ExpeditionRegionSupport.Filters.Utils
     {
         private bool deliveryRegionFiltered;
 
-        public PearlDeliveryChallengeFilter(FilterOption filterID) : base(filterID)
+        public PearlDeliveryChallengeFilter() : base()
         {
         }
 
@@ -38,7 +32,6 @@ namespace ExpeditionRegionSupport.Filters.Utils
 
             string deliveryRegion = RegionUtils.GetPearlDeliveryRegion(Plugin.ActiveWorldState);
 
-            //We cannot choose this challenge type if we haven't visited the delivery region yet
             if (!allowedRegions.Contains(deliveryRegion) || !Evaluate(deliveryRegion, true))
             {
                 deliveryRegionFiltered = true;
@@ -61,7 +54,7 @@ namespace ExpeditionRegionSupport.Filters.Utils
 
     public class NeuronDeliveryChallengeFilter : ChallengeFilter
     {
-        public NeuronDeliveryChallengeFilter(FilterOption filterID) : base(filterID)
+        public NeuronDeliveryChallengeFilter() : base()
         {
         }
 
@@ -71,7 +64,6 @@ namespace ExpeditionRegionSupport.Filters.Utils
         /// <returns>Filter state (true means not filtered)</returns>
         public override bool ConditionMet()
         {
-            //If player has not visited Shoreline, or Five Pebbles, this challenge type cannot be chosen
             return !Enabled || Evaluate("SL", true) && Evaluate("SS", true);
         }
     }
