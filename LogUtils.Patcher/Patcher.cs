@@ -4,7 +4,6 @@ using BepInEx.MultiFolderLoader;
 using Mono.Cecil;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using AssemblyCandidate = (System.Version Version, string Path);
 
