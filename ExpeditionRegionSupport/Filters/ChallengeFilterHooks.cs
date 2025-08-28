@@ -6,16 +6,20 @@ using ExpeditionRegionSupport.HookUtils;
 using ExpeditionRegionSupport.Regions;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace ExpeditionRegionSupport.Filters
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Hooks should ignore capitalization rules")]
     public static class ChallengeFilterHooks
     {
-        private static ChallengeFilterExceptionHandler exceptionHandler = new ChallengeFilterExceptionHandler();
+        private static readonly ChallengeFilterExceptionHandler exceptionHandler = new ChallengeFilterExceptionHandler();
+
+        private static readonly List<Hook> manualChallengeHooks = new List<Hook>();
 
         public static void ApplyHooks()
         {
@@ -45,6 +49,91 @@ namespace ExpeditionRegionSupport.Filters
             {
                 Plugin.Logger.LogError(ex);
             }
+        }
+
+        internal static void ApplyCustomChallengeHooks()
+        {
+#if RELEASE
+            //Custom challenge support is not ready for release
+            return;
+#elif DEBUG
+            Plugin.Logger.LogInfo("Applying Expedition Challenge hooks");
+
+            Type baseType = typeof(Challenge);
+
+            List<Type> hookGenerateRecord = new List<Type>();
+            foreach (Challenge challenge in ChallengeOrganizer.availableChallengeTypes)
+            {
+                Type type = challenge.GetType();
+
+                if (hookGenerateRecord.Contains(type)) continue; //Make sure hooks are only applied once per class type
+
+                generateChallengeHooks(type);
+                hookGenerateRecord.Add(type);
+
+                while (type.BaseType != baseType && hookGenerateRecord.Contains(type.BaseType)) //This class is inheriting from a class that isn't the one packaged in Expedition
+                {
+                    generateChallengeHooks(type.BaseType);
+                    type = type.BaseType; //Allow all inherited classes to have hooks
+                    hookGenerateRecord.Add(type);
+                }
+            }
+
+            manualChallengeHooks.ForEach(hook => hook.Apply());
+#endif
+        }
+
+        private static void generateChallengeHooks(Type challengeType)
+        {
+            MethodInfo method = null;
+            string hookTarget = nameof(Challenge.Generate);
+
+            try
+            {
+                method = challengeType.GetMethod(hookTarget);
+            }
+            catch (AmbiguousMatchException)
+            {
+                Plugin.Logger.LogInfo("Overloaded method handled");
+                method = Array.Find(challengeType.GetMethods(), m => m.Name == hookTarget && m.GetParameters().Length == 0); //Find the version without parameters
+            }
+
+            if (method != null)
+                manualChallengeHooks.Add(new Hook(method, challengeGenerateHook));
+        }
+
+        private static Challenge challengeGenerateHook(Func<Challenge, Challenge> orig, Challenge self)
+        {
+            ChallengeFilterSettings.FilterTarget = self;
+
+            //TODO: This interface is broken. We need a reflection solution instead
+            IRegionChallenge customRegionChallenge = self as IRegionChallenge;
+
+            if (customRegionChallenge != null)
+            {
+                try
+                {
+                    applyCustomFilter(customRegionChallenge);
+                }
+                catch (Exception ex)
+                {
+                    exceptionHandler.HandleException(ChallengeFilterSettings.FilterTarget, ex);
+                    return null; //Return null to indicate that no challenges of the current type can be chosen
+                }
+            }
+            return orig(self);
+        }
+
+        private static void applyCustomFilter(IRegionChallenge customChallenge)
+        {
+            FilterApplicator<string> customChallengeFilter = new FilterApplicator<string>(customChallenge.ApplicableRegions);
+
+            List<string> availableRegions = RegionUtils.GetAvailableRegions(ExpeditionData.slugcatPlayer);
+
+            //TODO: This filter needs to be removed at the end of the process
+            //Remove all applicable regions that are not also part of the active filter cache
+            customChallengeFilter.ItemsToRemove.AddRange(customChallenge.ApplicableRegions.Except(availableRegions));
+            customChallengeFilter.Apply();
         }
 
         private static void ChallengeOrganizer_AssignChallenge(On.Expedition.ChallengeOrganizer.orig_AssignChallenge orig, int slot, bool hidden)
