@@ -49,14 +49,16 @@ namespace ExpeditionRegionSupport
         /// <summary>
         /// A flag indicating that an Expedition game process is initiating
         /// </summary>
-        private bool expeditionGameStarting;
+        private static bool expeditionGameStarting;
+
+        private static bool hasInitialized;
 
         /// <summary>
         /// A flag indicating whether the slugcat selection has changed, or is in need of processing
         /// </summary>
         private static bool slugcatDirty;
 
-        private SimpleButton settingsButton;
+        private static SimpleButton settingsButton;
 
         private static List<Hook> manualChallengeHooks = new List<Hook>();
 
@@ -70,6 +72,11 @@ namespace ExpeditionRegionSupport
 #if DEBUG
             DebugMode = true;
 #endif
+            ApplyHooks();
+        }
+
+        internal void ApplyHooks()
+        {
             try
             {
                 On.RainWorld.OnDestroy += RainWorld_OnDestroy;
@@ -218,6 +225,26 @@ namespace ExpeditionRegionSupport
             return orig(self, roomCode);
         }
 
+        private void Region_GetProperRegionAcronym(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            cursor.GotoNext(MoveType.AfterLabel, x => x.MatchLdstr("World")); //Go to before Equivalences.txt examples are going to be fetched
+            cursor.Emit(OpCodes.Ldloc_0); //Push Region code onto stack
+            cursor.Emit(OpCodes.Ldarg_0); //Push slugcat timeline parameter onto stack
+            cursor.EmitDelegate<Func<string, SlugcatStats.Timeline, string>>(RegionUtils.GetEquivalentRegion); //Send to custom method for equivalency checking
+            cursor.Emit(OpCodes.Ret); //Return the result
+        }
+
+        #endregion
+
+        private void PlayerProgression_ReloadRegionsList(On.PlayerProgression.orig_ReloadRegionsList orig, PlayerProgression self)
+        {
+            orig(self);
+            if (SlugcatUtils.SlugcatsInitialized)
+                RegionUtils.CacheEquivalentRegions();
+        }
+
         private void ModManager_RefreshModsLists(On.ModManager.orig_RefreshModsLists orig, RainWorld rainWorld)
         {
             SlugcatUtils.SlugcatsInitialized = false;
@@ -236,7 +263,12 @@ namespace ExpeditionRegionSupport
 
         private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
         {
-            On.Expedition.Expedition.OnInit += Expedition_OnInit;
+            if (!hasInitialized)
+            {
+                On.Expedition.Expedition.OnInit += Expedition_OnInit;
+                hasInitialized = true;
+            }
+
             orig(self);
             if (!SlugcatUtils.SlugcatsInitialized)
                 RegionUtils.CacheEquivalentRegions();
@@ -244,8 +276,8 @@ namespace ExpeditionRegionSupport
 
         private void Expedition_OnInit(On.Expedition.Expedition.orig_OnInit orig, RainWorld rainWorld)
         {
-            //If this hook doesn't break Expedition.ChallengeTools, other hooks could be invoked here as well
             On.Expedition.ChallengeOrganizer.SetupChallengeTypes += ChallengeOrganizer_SetupChallengeTypes;
+            On.Expedition.Expedition.OnInit -= Expedition_OnInit; //Hook only needs to apply once
             orig(rainWorld);
         }
 
@@ -333,32 +365,13 @@ namespace ExpeditionRegionSupport
             return orig(self);
         }
 
-        private void PlayerProgression_ReloadRegionsList(On.PlayerProgression.orig_ReloadRegionsList orig, PlayerProgression self)
-        {
-            orig(self);
-            if (SlugcatUtils.SlugcatsInitialized)
-                RegionUtils.CacheEquivalentRegions();
-        }
-
-        private void Region_GetProperRegionAcronym(ILContext il)
-        {
-            ILCursor cursor = new ILCursor(il);
-
-            cursor.GotoNext(MoveType.AfterLabel, x => x.MatchLdstr("World")); //Go to before Equivalences.txt examples are going to be fetched
-            cursor.Emit(OpCodes.Ldloc_0); //Push Region code onto stack
-            cursor.Emit(OpCodes.Ldarg_0); //Push slugcat timeline parameter onto stack
-            cursor.EmitDelegate<Func<string, SlugcatStats.Timeline, string>>(RegionUtils.GetEquivalentRegion); //Send to custom method for equivalency checking
-            cursor.Emit(OpCodes.Ret); //Return the result
-        }
-
-        #endregion
-
         private void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)
         {
             orig(self);
+            SlugBaseEnabled = ModManager.ActiveMods.Exists(m => m.id == "slime-cubed.slugbase");
 
             ChallengeFilterHooks.ApplyHooks(); //This needs to be handled in PostModsInIt or Expedition.ChallengeTools breaks
-            SlugBaseEnabled = ModManager.ActiveMods.Exists(m => m.id == "slime-cubed.slugbase");
+            On.RainWorld.PostModsInit -= RainWorld_PostModsInit; //Hook only needs to be applied once
         }
 
         private void RainWorld_OnDestroy(On.RainWorld.orig_OnDestroy orig, RainWorld self)
