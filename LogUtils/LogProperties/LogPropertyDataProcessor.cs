@@ -91,7 +91,7 @@ namespace LogUtils.Properties
                 {
                     setDataField(); //Apply the action that was stored earlier
                 }
-                catch (Exception ex) when (ex is ArgumentNullException || ex is NullReferenceException)
+                catch (Exception ex) when (ex is ArgumentNullException || ex is NullReferenceException || ex is FormatException)
                 {
                     if (dataField == DataFields.TAGS)
                         properties.Tags = Array.Empty<string>();
