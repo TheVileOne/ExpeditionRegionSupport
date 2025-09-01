@@ -1,19 +1,16 @@
-﻿using LogUtils.Helpers.Comparers;
+﻿using LogUtils.Collections;
+using LogUtils.Helpers.Comparers;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace LogUtils.Properties.Formatting
 {
-    public class LogRuleCollection : IOrderedEnumerable<LogRule>
+    public class LogRuleCollection : ValueSet<LogRule>, IOrderedEnumerable<LogRule>
     {
-        public bool ReadOnly;
+        internal IOrderedEnumerable<LogRule> Enumerable => Values.OrderBy(r => r.Priority);
 
-        protected List<LogRule> InnerList = new List<LogRule>();
-        protected IOrderedEnumerable<LogRule> InnerEnumerable => InnerList.OrderBy(r => r.Priority);
-
-        private static readonly StringComparer nameComparer = ComparerUtils.StringComparerIgnoreCase;
+        private static readonly NameComparer nameComparer = new NameComparer();
 
         /// <summary>
         /// Tracks LogRule state changes
@@ -40,13 +37,29 @@ namespace LogUtils.Properties.Formatting
             }
         }
 
+        /// <inheritdoc/>
+        public override bool IsReadOnly => false; //The collection itself is never ReadOnly, only its contained rules may be
+
         /// <summary>
-        /// An indicator that a LogRule field is about to be changed
+        /// Gets a value indicating whether rules belonging to this collection should protect their persistent state
+        /// </summary>
+        internal bool AllowRuleChanges => !base.IsReadOnly;
+
+        /// <summary>
+        /// Creates a new <see cref="LogRuleCollection"/> instance
+        /// </summary>
+        /// <param name="logRuleReadOnlySource">The binding source for determining the ReadOnly state of  a <see cref="LogRule"/> that belongs to this collection</param>
+        public LogRuleCollection(ReadOnlyProvider logRuleReadOnlySource = null) : base(logRuleReadOnlySource)
+        {
+        }
+
+        /// <summary>
+        /// Notify that <see cref="LogRule"/> changes are ready to be tracked
         /// </summary>
         public void ChangeAlert()
         {
             //Rule changes should be tracked when the initialization period has ended
-            if (!ReadOnly)
+            if (AllowRuleChanges)
             {
                 UtilityLogger.Log("LogRule change in progress");
                 TrackChanges = true;
@@ -79,63 +92,67 @@ namespace LogUtils.Properties.Formatting
 
         /// <summary>
         /// Adds a LogRule instance to the collection of Rules
-        /// Do not use this for temporary rule changes, use SetTemporaryRule instead 
         /// </summary>
-        public void Add(LogRule rule)
+        /// <remarks>Do not use this for temporary rule changes, use <see cref="SetTemporaryRule"/> instead</remarks>
+        public override bool Add(LogRule rule)
         {
-            if (InnerList.Exists(r => nameComparer.Equals(r.Name, rule.Name))) //Don't allow more than one rule concept to be added with the same name
-                return;
+            bool ruleAdded = base.Add(rule);
 
-            rule.Owner = this;
-            InnerList.Add(rule);
+            if (ruleAdded)
+                rule.Owner = this;
+            return ruleAdded;
         }
 
         /// <summary>
         /// Replaces an existing rule with another instance
-        /// Be warned, running this each time your mod runs will overwrite data being saved, and read from file
-        /// Do not replace existing property data values in a way that might break the parse logic
-        /// Consider using temporary rules instead, and handle saving of the property values through your mod
-        /// In either case, you may want to inherit from the existing property in case a user has changed the property through the file
         /// </summary>
-        public void Replace(LogRule rule)
+        /// <remarks>
+        /// <para>Be warned, running this each time your mod runs will overwrite data being saved, and read from file</para>
+        /// <para>Do not replace existing property data values in a way that might break the parse logic</para>
+        /// <para>Consider using temporary rules instead, and handle saving of the property values through your mod</para>
+        /// <para>In either case, you may want to inherit from the existing property in case a user has changed the property through the file</para>
+        /// </remarks>
+        public bool Replace(LogRule rule)
         {
-            int ruleIndex = InnerList.FindIndex(r => nameComparer.Equals(r.Name, rule.Name));
+            LogRule existingRule = FindByName(rule.Name);
 
-            if (ruleIndex != -1)
+            if (existingRule != null)
             {
-                LogRule replacedRule = InnerList[ruleIndex];
-
                 //Transfer over temporary rules as long as replacement rule doesn't have one already
                 if (rule.TemporaryOverride == null)
-                    rule.TemporaryOverride = replacedRule.TemporaryOverride;
+                    rule.TemporaryOverride = existingRule.TemporaryOverride;
 
-                replacedRule.Owner = null;
-                InnerList.RemoveAt(ruleIndex);
+                existingRule.Owner = null;
+                Remove(existingRule);
             }
-            Add(rule); //Add rule when there is no existing rule match
+            return Add(rule); //Add rule when there is no existing rule match
         }
 
-        public bool Remove(LogRule rule)
+        /// <inheritdoc cref="ICollection{LogRule}.Remove(LogRule)"/>
+        public override bool Remove(LogRule rule)
         {
-            if (InnerList.Remove(rule))
-            {
+            bool ruleRemoved = base.Remove(rule);
+
+            if (ruleRemoved)
                 rule.Owner = null;
-                return true;
-            }
-            return false;
+            return ruleRemoved;
         }
 
         public bool Remove(string name)
         {
-            int ruleIndex = InnerList.FindIndex(r => nameComparer.Equals(r.Name, name));
+            LogRule existingRule = FindByName(name);
+            return Remove(existingRule);
+        }
 
-            if (ruleIndex != -1)
+        /// <inheritdoc/>
+        protected override void Reset()
+        {
+            if (Values != null)
             {
-                InnerList[ruleIndex].Owner = null;
-                InnerList.RemoveAt(ruleIndex);
-                return true;
+                Values.Clear();
+                return;
             }
-            return false;
+            Values = new HashSet<LogRule>(nameComparer);
         }
 
         public void SetTemporaryRule(LogRule rule)
@@ -153,7 +170,7 @@ namespace LogUtils.Properties.Formatting
 
         public void RemoveTemporaryRule(LogRule rule)
         {
-            LogRule targetRule = InnerList.Find(r => r.TemporaryOverride == rule || r == rule);
+            LogRule targetRule = Find(r => r.TemporaryOverride == rule || r == rule);
 
             if (targetRule != null)
             {
@@ -164,12 +181,12 @@ namespace LogUtils.Properties.Formatting
 
         public LogRule Find(Predicate<LogRule> match)
         {
-            return InnerList.Find(match);
+            return this.FirstOrDefault(match.Invoke);
         }
 
         public LogRule FindByName(string name)
         {
-            return Find(r => nameComparer.Equals(r.Name, name));
+            return Find(r => nameComparer.Equals(r, name));
         }
 
         public LogRule FindByType<T>() where T : LogRule
@@ -182,29 +199,38 @@ namespace LogUtils.Properties.Formatting
             return Find(r => r.GetType() == type);
         }
 
-        /// <summary>
-        /// Determines whether the rule is part of the collection
-        /// </summary>
-        public bool Contains(LogRule rule)
-        {
-            return InnerList.Contains(rule);
-        }
-
         /// <inheritdoc/>
         public IOrderedEnumerable<LogRule> CreateOrderedEnumerable<TKey>(Func<LogRule, TKey> keySelector, IComparer<TKey> comparer, bool descending)
         {
-            return InnerEnumerable;
+            return Enumerable;
         }
 
         /// <inheritdoc/>
-        public IEnumerator<LogRule> GetEnumerator()
+        public override IEnumerator<LogRule> GetEnumerator()
         {
-            return InnerEnumerable.GetEnumerator();
+            return Enumerable.GetEnumerator();
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
+        private class NameComparer : IEqualityComparer<LogRule>
         {
-            return InnerEnumerable.GetEnumerator();
+            public bool Equals(LogRule logRule, LogRule logRuleOther)
+            {
+                if (logRule == null || logRuleOther == null)
+                    return logRule == logRuleOther;
+                return ComparerUtils.StringComparerIgnoreCase.Equals(logRule.Name, logRuleOther.Name);
+            }
+
+            public bool Equals(LogRule logRule, string name)
+            {
+                if (logRule == null)
+                    return false; //Do not equate null values if the types are different
+                return ComparerUtils.StringComparerIgnoreCase.Equals(logRule.Name, name);
+            }
+
+            public int GetHashCode(LogRule logRule)
+            {
+                return logRule?.Name != null ? logRule.Name.GetHashCode() : 0;
+            }
         }
     }
 }

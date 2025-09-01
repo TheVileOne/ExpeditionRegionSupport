@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Collections;
 using LogUtils.Diagnostics.Tools;
 using LogUtils.Enums;
 using LogUtils.Events;
@@ -30,7 +31,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// A prioritized order of process actions that must be applied to a message string before logging it to file 
         /// </summary>
-        public LogRuleCollection Rules = new LogRuleCollection();
+        public LogRuleCollection Rules;
 
         /// <summary>
         /// Events triggers at the start, or the end of a log session
@@ -106,7 +107,7 @@ namespace LogUtils.Properties
                     readOnlyRestoreEvent?.Cancel();
                     readOnlyRestoreEvent = null;
                 }
-                _readOnly = Rules.ReadOnly = value;
+                _readOnly = value;
             }
         }
 
@@ -333,6 +334,7 @@ namespace LogUtils.Properties
         internal LogProperties(string propertyID, string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS)
         {
             FileLock = new FileLock(new Lock.ContextProvider(() => ID));
+            Rules = new LogRuleCollection(new ReadOnlyProvider(() => ReadOnly));
 
             UtilityLogger.DebugLog("Generating properties for " + propertyID);
             UtilityLogger.Log("Generating properties for " + propertyID);

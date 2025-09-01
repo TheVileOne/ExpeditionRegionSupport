@@ -14,6 +14,9 @@ namespace LogUtils.Properties.Formatting
         /// </summary>
         public LogRuleCollection Owner;
 
+        /// <summary>
+        /// Is persistent state protected from modifications
+        /// </summary>
         public bool ReadOnly
         {
             get
@@ -21,7 +24,8 @@ namespace LogUtils.Properties.Formatting
                 //Temporary rules can always be changed, because the utility wont write this data to file, unlike a non-temporary rule
                 if (IsTemporary)
                     return false;
-                return Owner?.ReadOnly == true;
+
+                return Owner != null && !Owner.AllowRuleChanges;
             }
         }
 
