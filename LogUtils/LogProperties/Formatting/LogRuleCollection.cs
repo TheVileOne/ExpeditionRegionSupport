@@ -8,7 +8,7 @@ namespace LogUtils.Properties.Formatting
 {
     public class LogRuleCollection : ValueSet<LogRule>, IOrderedEnumerable<LogRule>
     {
-        internal IOrderedEnumerable<LogRule> Enumerable => Values.OrderBy(r => r.Priority);
+        internal IOrderedEnumerable<LogRule> PriorityOrder => Values.OrderBy(r => r.Priority);
 
         private static readonly NameComparer nameComparer = new NameComparer();
 
@@ -202,13 +202,13 @@ namespace LogUtils.Properties.Formatting
         /// <inheritdoc/>
         public IOrderedEnumerable<LogRule> CreateOrderedEnumerable<TKey>(Func<LogRule, TKey> keySelector, IComparer<TKey> comparer, bool descending)
         {
-            return Enumerable;
+            return PriorityOrder.CreateOrderedEnumerable(keySelector, comparer, descending);
         }
 
         /// <inheritdoc/>
         public override IEnumerator<LogRule> GetEnumerator()
         {
-            return Enumerable.GetEnumerator();
+            return PriorityOrder.GetEnumerator();
         }
 
         private class NameComparer : IEqualityComparer<LogRule>
