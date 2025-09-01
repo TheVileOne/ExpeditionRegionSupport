@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace LogUtils.Properties.Formatting
 {
-    public abstract class LogRule
+    public abstract class LogRule : ICloneable
     {
         /// <summary>
         /// The containing collection instance of a LogRule. Only one collection allowed per instance
@@ -122,11 +122,9 @@ namespace LogUtils.Properties.Formatting
                 Owner?.ResetRecord(); //Clear any past changes before operation runs
 
                 if (TemporaryOverride == null)
-                    TemporaryOverride = (LogRule)Activator.CreateInstance(GetType(), new object[] { true });
-                else
-                {
-                    TemporaryOverride.Enable();
-                }
+                    TemporaryOverride = (LogRule)Clone();
+
+                TemporaryOverride.Enable();
             }
             else //Temporary rules are free to be modified directly
             {
@@ -144,11 +142,9 @@ namespace LogUtils.Properties.Formatting
                 Owner?.ResetRecord(); //Clear any past changes before operation runs
 
                 if (TemporaryOverride == null)
-                    TemporaryOverride = (LogRule)Activator.CreateInstance(GetType(), new object[] { false });
-                else
-                {
-                    TemporaryOverride.Disable();
-                }
+                    TemporaryOverride = (LogRule)Clone();
+
+                TemporaryOverride.Disable();
             }
             else //Temporary rules are free to be modified directly
             {
@@ -217,6 +213,12 @@ namespace LogUtils.Properties.Formatting
         public override string ToString()
         {
             return ToPropertyString();
+        }
+
+        /// <inheritdoc/>
+        public virtual object Clone()
+        {
+            return MemberwiseClone();
         }
 
         /// <summary>
