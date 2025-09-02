@@ -94,10 +94,7 @@ namespace LogUtils.Properties
                         {
                             commentEntries = new List<CommentEntry>();
 
-                            LogPropertyData data = new LogPropertyData(lastProcessed, lastComments)
-                            {
-                                FieldOrderMismatch = !expectedFieldsMatch
-                            };
+                            LogPropertyData data = new LogPropertyData(lastProcessed, lastComments, !expectedFieldsMatch);
                             yield return data; //Data collection has finished for the last entry - return the data
                         }
 
@@ -126,10 +123,7 @@ namespace LogUtils.Properties
                 if (commentEntries.Count > 0 && commentEntries[commentEntries.Count - 1].Owner == null)
                     UtilityLogger.LogWarning("End of file comments are unsupported");
 
-                LogPropertyData data = new LogPropertyData(propertyInFile, commentEntries)
-                {
-                    FieldOrderMismatch = !expectedFieldsMatch
-                };
+                LogPropertyData data = new LogPropertyData(propertyInFile, commentEntries, !expectedFieldsMatch);
                 yield return data;
             }
         }

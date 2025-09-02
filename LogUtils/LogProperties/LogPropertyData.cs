@@ -22,8 +22,10 @@ namespace LogUtils.Properties
         /// </summary>
         internal bool FieldOrderMismatch;
 
-        public LogPropertyData(LogPropertyStringDictionary dataFields, List<CommentEntry> comments)
+        public LogPropertyData(LogPropertyStringDictionary dataFields, List<CommentEntry> comments, bool fieldOrderMismatch = false)
         {
+            FieldOrderMismatch = fieldOrderMismatch; //Must be set before unrecognized fields are checked
+
             Comments = comments;
             Fields = dataFields;
             UnrecognizedFields = GetUnrecognizedFields();
@@ -45,16 +47,19 @@ namespace LogUtils.Properties
         {
             var unrecognizedFields = new LogPropertyStringDictionary();
 
-            int unknownFieldTotal = Fields.Count - DataFields.EXPECTED_FIELD_COUNT;
+            int unknownFieldTotal = getFieldCheckTotal();
 
             if (unknownFieldTotal > 0)
             {
                 //Handle unrecognized, and custom fields by storing them in a list that other mods will be able to access
                 IDictionaryEnumerator fieldEnumerator = (IDictionaryEnumerator)Fields.GetEnumerator();
-
                 while (unknownFieldTotal > 0)
                 {
-                    fieldEnumerator.MoveNext();
+                    if (!fieldEnumerator.MoveNext())
+                    {
+                        UtilityLogger.LogWarning("Unexpected end of field enumeration");
+                        break;
+                    }
 
                     string fieldName = (string)fieldEnumerator.Key;
                     string fieldValue = (string)fieldEnumerator.Value;
@@ -65,9 +70,22 @@ namespace LogUtils.Properties
                             unrecognizedFields[fieldName] = fieldValue;
 
                         unknownFieldTotal--;
+                        continue;
                     }
+
+                    if (FieldOrderMismatch) //We have to check all fields when true
+                        unknownFieldTotal--;
                 }
             }
+
+            int getFieldCheckTotal()
+            {
+
+                if (FieldOrderMismatch) //We can't know how many unrecognized fields there are. We must check every field.
+                    return Fields.Count;
+                return Fields.Count - DataFields.EXPECTED_FIELD_COUNT;
+            }
+
             return unrecognizedFields;
         }
 
