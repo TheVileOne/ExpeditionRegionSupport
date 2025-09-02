@@ -61,7 +61,7 @@ namespace LogUtils.Properties
             //Property setters are inaccesible. Define delegate wrappers for each one, and store in a dictionary
             OrderedDictionary fieldAssignments = new OrderedDictionary
             {
-                [DataFields.VERSION]              = new Action(() => properties.Version            = dataFields[DataFields.VERSION]),
+                [DataFields.VERSION]              = new Action(() => properties.Version            = Version.Parse(dataFields[DataFields.VERSION])),
                 [DataFields.ALTFILENAME]          = new Action(() => properties.AltFilename        = (LogFilename)dataFields[DataFields.ALTFILENAME]),
                 [DataFields.ORIGINAL_PATH]        = new Action(() => properties.OriginalFolderPath = dataFields[DataFields.ORIGINAL_PATH]),
                 [DataFields.LAST_KNOWN_PATH]      = new Action(() => properties.LastKnownFilePath  = dataFields[DataFields.LAST_KNOWN_PATH]),

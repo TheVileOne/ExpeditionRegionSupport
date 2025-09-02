@@ -147,7 +147,7 @@ namespace LogUtils.Properties
         private string _idValue;
         private ManualLogSource _logSource;
         private bool _readOnly;
-        private string _version = "0.5.0";
+        private Version _version = new Version(0, 5, 0);
         private bool _logsFolderAware;
         private bool _logsFolderEligible = true;
 
@@ -197,7 +197,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// A string representation of the content state. This is useful for preventing user sourced changes from being overwritten by mods
         /// </summary>
-        public string Version
+        public Version Version
         {
             get => _version;
             set
@@ -681,26 +681,28 @@ namespace LogUtils.Properties
             string[] dataTags = Tags;
             Tags = oldTags;
 
+            #pragma warning disable IDE0055 //Fix formatting
             var fields = new LogPropertyStringDictionary
             {
-                [DataFields.LOGID] = ID.Value,
-                [DataFields.FILENAME] = Filename.WithExtension(),
-                [DataFields.ALTFILENAME] = AltFilename?.WithExtension(),
-                [DataFields.VERSION] = Version,
-                [DataFields.TAGS] = dataTags != null ? string.Join(",", dataTags) : string.Empty,
-                [DataFields.LOGS_FOLDER_AWARE] = LogsFolderAware.ToString(),
+                [DataFields.LOGID]                = ID.Value,
+                [DataFields.FILENAME]             = Filename.WithExtension(),
+                [DataFields.ALTFILENAME]          = AltFilename?.WithExtension(),
+                [DataFields.VERSION]              = Version.ToString(),
+                [DataFields.TAGS]                 = dataTags != null ? string.Join(",", dataTags) : string.Empty,
+                [DataFields.LOGS_FOLDER_AWARE]    = LogsFolderAware.ToString(),
                 [DataFields.LOGS_FOLDER_ELIGIBLE] = LogsFolderEligible.ToString(),
-                [DataFields.SHOW_LOGS_AWARE] = ShowLogsAware.ToString(),
-                [DataFields.PATH] = PathUtils.GetPathKeyword(FolderPath) ?? FolderPath,
-                [DataFields.ORIGINAL_PATH] = PathUtils.GetPathKeyword(OriginalFolderPath) ?? OriginalFolderPath,
-                [DataFields.LAST_KNOWN_PATH] = LastKnownFilePath,
-                [DataFields.Intro.MESSAGE] = IntroMessage,
-                [DataFields.Intro.TIMESTAMP] = ShowIntroTimestamp.ToString(),
-                [DataFields.Outro.MESSAGE] = OutroMessage,
-                [DataFields.Outro.TIMESTAMP] = ShowOutroTimestamp.ToString(),
+                [DataFields.SHOW_LOGS_AWARE]      = ShowLogsAware.ToString(),
+                [DataFields.PATH]                 = PathUtils.GetPathKeyword(FolderPath) ?? FolderPath,
+                [DataFields.ORIGINAL_PATH]        = PathUtils.GetPathKeyword(OriginalFolderPath) ?? OriginalFolderPath,
+                [DataFields.LAST_KNOWN_PATH]      = LastKnownFilePath,
+                [DataFields.Intro.MESSAGE]        = IntroMessage,
+                [DataFields.Intro.TIMESTAMP]      = ShowIntroTimestamp.ToString(),
+                [DataFields.Outro.MESSAGE]        = OutroMessage,
+                [DataFields.Outro.TIMESTAMP]      = ShowOutroTimestamp.ToString(),
 
                 [DataFields.Rules.HEADER] = string.Empty //Not an actual property field
             };
+            #pragma warning restore IDE0055 //Fix formatting
 
             fields.Add(ShowLineCount.PropertyString);
             fields.Add(ShowCategories.PropertyString);
