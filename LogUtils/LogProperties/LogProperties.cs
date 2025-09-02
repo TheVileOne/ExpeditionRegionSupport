@@ -618,7 +618,7 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
-        /// Triggers the UtilityEvents.OnMovePending event for this instance
+        /// Triggers the <see cref="UtilityEvents.OnMovePending"/> event
         /// </summary>
         /// <param name="movePath">The pending log path for this instance (include filename with extension if filename has changed)</param>
         public void NotifyPendingMove(string movePath)
@@ -627,6 +627,9 @@ namespace LogUtils.Properties
             UtilityEvents.OnMovePending?.Invoke(new LogMovePendingEventArgs(this, movePath, filename));
         }
 
+        /// <summary>
+        /// Triggers the <see cref="UtilityEvents.OnMoveAborted"/> event
+        /// </summary>
         public void NotifyPendingMoveAborted()
         {
             UtilityEvents.OnMoveAborted?.Invoke(new Events.LogEventArgs(this));
@@ -674,6 +677,7 @@ namespace LogUtils.Properties
             return other != null && IDHash.Equals(other.IDHash);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             return IDHash;
@@ -854,6 +858,9 @@ namespace LogUtils.Properties
             return hashString.GetHashCode();
         }
 
+        /// <summary>
+        /// Resolves a path, or path keyword into a usable log path
+        /// </summary>
         public static string GetContainingPath(string relativePath)
         {
             if (relativePath == null)

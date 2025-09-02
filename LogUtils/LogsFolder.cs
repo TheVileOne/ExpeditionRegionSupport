@@ -350,6 +350,8 @@ namespace LogUtils
 
             worker.DoWork(() =>
             {
+                bool moveCompleted = false;
+
                 List<MessageBuffer> activeBuffers = new List<MessageBuffer>();
                 List<StreamResumer> streamsToResume = new List<StreamResumer>();
                 try
@@ -369,6 +371,7 @@ namespace LogUtils
                         streamsToResume.AddRange(logFile.Properties.PersistentStreamHandles.InterruptAll());
                     }
                     Directory.Move(CurrentPath, path);
+                    moveCompleted = true;
 
                     //Update path info for affected log files
                     foreach (LogID logFile in logFilesInFolder)
@@ -376,6 +379,12 @@ namespace LogUtils
                 }
                 finally
                 {
+                    if (!moveCompleted)
+                    {
+                        foreach (LogID logFile in logFilesInFolder)
+                            logFile.Properties.NotifyPendingMoveAborted();
+                    }
+
                     //Reopen the streams
                     streamsToResume.ResumeAll();
                     activeBuffers.ForEach(buffer => buffer.SetState(false, BufferContext.CriticalArea));
