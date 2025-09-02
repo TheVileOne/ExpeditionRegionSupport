@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 
 namespace LogUtils.Collections
@@ -8,7 +7,7 @@ namespace LogUtils.Collections
     /// A hashset wrapper class with built-in ReadOnly support from a bindable source
     /// </summary>
     /// <remarks>Class is mainly designed to keep user changes to LogProperties safe from modification </remarks>
-    public class ValueSet<T> : ISet<T>
+    public class ValueCollection<T> : ISet<T>
     {
         private ReadOnlyProvider _readOnlySource;
 
@@ -24,10 +23,10 @@ namespace LogUtils.Collections
         protected ISet<T> Values;
 
         /// <summary>
-        /// Creates a new <see cref="ValueSet{T}"/> instance
+        /// Creates a new <see cref="ValueCollection{T}"/> instance
         /// </summary>
         /// <param name="readOnlySource">The binding source for determining the ReadOnly state of the collection</param>
-        public ValueSet(ReadOnlyProvider readOnlySource = null)
+        public ValueCollection(ReadOnlyProvider readOnlySource = null)
         {
             _readOnlySource = readOnlySource;
             Reset();

@@ -176,7 +176,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// List of targeted ConsoleIDs to send requests to when logging to file
         /// </summary>
-        public List<ConsoleID> ConsoleIDs = new List<ConsoleID>();
+        public ValueCollection<ConsoleID> ConsoleIDs;
 
         public ManualLogSource LogSource
         {
@@ -334,7 +334,11 @@ namespace LogUtils.Properties
         internal LogProperties(string propertyID, string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS)
         {
             FileLock = new FileLock(new Lock.ContextProvider(() => ID));
-            Rules = new LogRuleCollection(new ReadOnlyProvider(() => ReadOnly));
+
+            ReadOnlyProvider readOnlyProvider = new ReadOnlyProvider(() => ReadOnly);
+
+            Rules = new LogRuleCollection(readOnlyProvider);
+            ConsoleIDs = new ValueCollection<ConsoleID>(readOnlyProvider);
 
             UtilityLogger.DebugLog("Generating properties for " + propertyID);
             UtilityLogger.Log("Generating properties for " + propertyID);
@@ -688,6 +692,7 @@ namespace LogUtils.Properties
                 [DataFields.FILENAME]             = Filename.WithExtension(),
                 [DataFields.ALTFILENAME]          = AltFilename?.WithExtension(),
                 [DataFields.VERSION]              = Version.ToString(),
+                [DataFields.CONSOLEIDS]           = string.Join(",", ConsoleIDs),
                 [DataFields.TAGS]                 = dataTags != null ? string.Join(",", dataTags) : string.Empty,
                 [DataFields.LOGS_FOLDER_AWARE]    = LogsFolderAware.ToString(),
                 [DataFields.LOGS_FOLDER_ELIGIBLE] = LogsFolderEligible.ToString(),

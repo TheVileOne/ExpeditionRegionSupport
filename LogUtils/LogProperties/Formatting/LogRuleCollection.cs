@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace LogUtils.Properties.Formatting
 {
-    public class LogRuleCollection : ValueSet<LogRule>, IOrderedEnumerable<LogRule>
+    public class LogRuleCollection : ValueCollection<LogRule>, IOrderedEnumerable<LogRule>
     {
         internal IOrderedEnumerable<LogRule> PriorityOrder => Values.OrderBy(r => r.Priority);
 

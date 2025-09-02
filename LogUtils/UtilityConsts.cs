@@ -12,13 +12,14 @@ namespace LogUtils
 
         public static class DataFields
         {
-            public const int EXPECTED_FIELD_COUNT = 18;
+            public const int EXPECTED_FIELD_COUNT = 19;
 
             public readonly static string[] OrderedFields;
 
             public const string LOGID = "logid";
             public const string FILENAME = "filename";
             public const string ALTFILENAME = "altfilename";
+            public const string CONSOLEIDS = "consoletargets"; 
             public const string TAGS = "tags";
             public const string VERSION = "version";
             public const string PATH = "path";
@@ -44,7 +45,6 @@ namespace LogUtils
             public static class Rules
             {
                 public const string HEADER = "logrules";
-                public const string LOG_DUMP = "logdump";
                 public const string SHOW_CATEGORIES = "showcategories";
                 public const string SHOW_LINE_COUNT = "showlinecount";
             }
@@ -61,6 +61,7 @@ namespace LogUtils
                     case LOGID:
                     case FILENAME:
                     case ALTFILENAME:
+                    case CONSOLEIDS:
                     case TAGS:
                     case VERSION:
                     case PATH:
@@ -89,6 +90,7 @@ namespace LogUtils
                     LOGID,
                     FILENAME,
                     ALTFILENAME,
+                    CONSOLEIDS,
                     TAGS,
                     VERSION,
                     PATH,
