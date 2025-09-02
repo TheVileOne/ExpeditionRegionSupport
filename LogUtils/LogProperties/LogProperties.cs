@@ -24,6 +24,12 @@ namespace LogUtils.Properties
 {
     public partial class LogProperties : IEquatable<LogProperties>
     {
+        /// <summary>
+        /// The latest properties version recognized by LogUtils
+        /// </summary>
+        /// <remarks>Major&lt;Reserved for LogUtils&gt; Minor (or less)&lt;Reserved for mod usage&gt;</remarks>
+        public static readonly Version LatestVersion = new Version(0, 5, 0);
+
         public static PropertyDataController PropertyManager => UtilityCore.PropertyManager;
 
         public CustomLogPropertyCollection CustomProperties = new CustomLogPropertyCollection();
@@ -147,7 +153,7 @@ namespace LogUtils.Properties
         private string _idValue;
         private ManualLogSource _logSource;
         private bool _readOnly;
-        private Version _version = new Version(0, 5, 0);
+        private Version _version = LatestVersion;
         private bool _logsFolderAware;
         private bool _logsFolderEligible = true;
 
@@ -206,6 +212,10 @@ namespace LogUtils.Properties
 
                 if (value == null)
                     throw new ArgumentNullException(nameof(Version));
+
+                //Detect outdated versions, updating to the latest major revision
+                if (LatestVersion.Major > value.Major)
+                    value = value.Bump(VersionCode.Major, LatestVersion.Major - value.Major);
 
                 ReadOnly = false; //Updating the version exposes LogProperties to changes
                 _version = value;
