@@ -241,6 +241,79 @@
             The LinkedListNode associated with Current
             </summary>
         </member>
+        <member name="T:LogUtils.Collections.ValueCollection`1">
+            <summary>
+            A hashset wrapper class with built-in ReadOnly support from a bindable source
+            </summary>
+            <remarks>Class is mainly designed to keep user changes to LogProperties safe from modification </remarks>
+        </member>
+        <member name="P:LogUtils.Collections.ValueCollection`1.Count">
+            <inheritdoc/>
+        </member>
+        <member name="P:LogUtils.Collections.ValueCollection`1.IsReadOnly">
+            <inheritdoc/>
+        </member>
+        <member name="F:LogUtils.Collections.ValueCollection`1.Values">
+            <summary>
+            The underlying dataset
+            </summary>
+        </member>
+        <member name="M:LogUtils.Collections.ValueCollection`1.#ctor(LogUtils.Collections.ReadOnlyProvider)">
+            <summary>
+            Creates a new <see cref="T:LogUtils.Collections.ValueCollection`1"/> instance
+            </summary>
+            <param name="readOnlySource">The binding source for determining the ReadOnly state of the collection</param>
+        </member>
+        <member name="M:LogUtils.Collections.ValueCollection`1.Add(`0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Collections.ValueCollection`1.Remove(`0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Collections.ValueCollection`1.Contains(`0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Collections.ValueCollection`1.CopyTo(`0[],System.Int32)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Collections.ValueCollection`1.Reset">
+            <summary>
+            Changes collection back to its initial state
+            </summary>
+        </member>
+        <member name="M:LogUtils.Collections.ValueCollection`1.UnionWith(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Collections.ValueCollection`1.IntersectWith(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Collections.ValueCollection`1.ExceptWith(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Collections.ValueCollection`1.SymmetricExceptWith(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Collections.ValueCollection`1.IsSubsetOf(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Collections.ValueCollection`1.IsSupersetOf(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Collections.ValueCollection`1.IsProperSupersetOf(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Collections.ValueCollection`1.IsProperSubsetOf(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Collections.ValueCollection`1.Overlaps(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Collections.ValueCollection`1.SetEquals(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Collections.ValueCollection`1.GetEnumerator">
+            <inheritdoc/>
+        </member>
         <member name="M:LogUtils.Collections.WeakReferenceCollection`1.GetEnumerator">
             <inheritdoc/>
         </member>
@@ -4667,6 +4740,14 @@
             <param name="values">The values to compare the string against</param>
             <returns>Whether a match was found</returns>
         </member>
+        <member name="M:LogUtils.Helpers.Extensions.ExtensionMethods.Bump(System.Version,LogUtils.Helpers.Extensions.VersionCode,System.Int32)">
+            <summary>
+            Bumps provided version to a specified value
+            </summary>
+            <exception cref="T:System.ArgumentOutOfRangeException">Increment value is negative</exception>
+            <exception cref="T:System.NotImplementedException">VersionCode is invalid</exception>
+            <exception cref="T:System.NotSupportedException">The Version object doesn't provide the requested version value</exception>
+        </member>
         <member name="M:LogUtils.Helpers.Extensions.ExtensionMethods.Add``1(System.Collections.Generic.ICollection{System.WeakReference{``0}},``0)">
             <inheritdoc cref="M:System.Collections.Generic.ICollection`1.Add(`0)"/>
         </member>
@@ -5435,6 +5516,11 @@
             The containing collection instance of a LogRule. Only one collection allowed per instance
             </summary>
         </member>
+        <member name="P:LogUtils.Properties.Formatting.LogRule.ReadOnly">
+            <summary>
+            Is persistent state protected from modifications
+            </summary>
+        </member>
         <member name="F:LogUtils.Properties.Formatting.LogRule.Name">
             <summary>
             An unique string that identifies a particular LogRule. LogRules with the same value in this field will be treated as interchangable within the LogRuleCollection class
@@ -5480,6 +5566,9 @@
         <member name="M:LogUtils.Properties.Formatting.LogRule.ToString">
             <inheritdoc/>
         </member>
+        <member name="M:LogUtils.Properties.Formatting.LogRule.Clone">
+            <inheritdoc/>
+        </member>
         <member name="T:LogUtils.Properties.Formatting.LogRule.ApplyDelegate">
             <summary>
             Delegate signature for applying a LogRule
@@ -5506,6 +5595,63 @@
         <member name="M:LogUtils.Properties.Formatting.ShowLineCountRule.GetPriority">
             <inheritdoc/>
         </member>
+        <member name="T:LogUtils.Properties.Formatting.LogRuleAttribute">
+            <summary>
+            An attribute that contains data necessary for LogUtils to construct a LogRule instance.
+            </summary>
+            <remarks>Methods that use this attribute must have the same signature as <see cref="T:LogUtils.Properties.Formatting.LogRule.ApplyDelegate"/>.</remarks>
+            <param name="RuleName">The name of the LogRule represented by this attribute</param>
+            <param name="EnabledByDefault">Indicates that the LogRule should start in an active, or inactive state</param>
+            <param name="Priority">The process order priority of the LogRule</param>
+        </member>
+        <member name="M:LogUtils.Properties.Formatting.LogRuleAttribute.#ctor(System.String,System.Boolean,System.Single)">
+            <summary>
+            An attribute that contains data necessary for LogUtils to construct a LogRule instance.
+            </summary>
+            <remarks>Methods that use this attribute must have the same signature as <see cref="T:LogUtils.Properties.Formatting.LogRule.ApplyDelegate"/>.</remarks>
+            <param name="RuleName">The name of the LogRule represented by this attribute</param>
+            <param name="EnabledByDefault">Indicates that the LogRule should start in an active, or inactive state</param>
+            <param name="Priority">The process order priority of the LogRule</param>
+        </member>
+        <member name="F:LogUtils.Properties.Formatting.LogRuleAttribute.RuleName">
+            <summary>
+            The name of the LogRule represented by this attribute
+            </summary>
+        </member>
+        <member name="F:LogUtils.Properties.Formatting.LogRuleAttribute.EnabledByDefault">
+            <summary>
+            Indicates that the LogRule should start in an active, or inactive state
+            </summary>
+        </member>
+        <member name="F:LogUtils.Properties.Formatting.LogRuleAttribute.Priority">
+            <summary>
+            The process order priority of the LogRule
+            </summary>
+        </member>
+        <member name="T:LogUtils.Properties.Formatting.LogRuleAssemblyAttribute">
+            <summary>
+            Indicate that assembly contains LogRule definitionx. LogUtils will attempt to activate any reflection loaded LogRules from your assembly.
+            </summary>
+            <param name="TypeHints">The array of types containing all reflection loaded LogRule members. When left empty, all assembly types will be checked.</param>
+        </member>
+        <member name="M:LogUtils.Properties.Formatting.LogRuleAssemblyAttribute.#ctor(System.Type[])">
+            <summary>
+            Indicate that assembly contains LogRule definitionx. LogUtils will attempt to activate any reflection loaded LogRules from your assembly.
+            </summary>
+            <param name="TypeHints">The array of types containing all reflection loaded LogRule members. When left empty, all assembly types will be checked.</param>
+        </member>
+        <member name="T:LogUtils.Properties.Formatting.ReflectionLoadedAttribute">
+            <summary>
+            Indicate that LogUtils should try to activate a LogRule with this attribute through reflection
+            </summary>
+            <remarks>
+            <para>Incorrectly configured attributes may throw a <see cref="T:LogUtils.MissingAttributeException"/>.</para>
+            <para>Usage:</para>
+            <para>Classes that use this attribute must inherit from <see cref="T:LogUtils.Properties.Formatting.LogRule"/>.</para>
+            <para>Methods that use this attribute must have the same signature as <see cref="T:LogUtils.Properties.Formatting.LogRule.ApplyDelegate"/>.</para>
+            <para>Methods that use this attribute must also have the <see cref="T:LogUtils.Properties.Formatting.LogRuleAttribute"/>.</para>
+            <para>Attribute does nothing without applying the <see cref="T:LogUtils.Properties.Formatting.LogRuleAssemblyAttribute"/> to the executing assembly.</para></remarks>
+        </member>
         <member name="F:LogUtils.Properties.Formatting.LogRuleCollection.ChangeRecord">
             <summary>
             Tracks LogRule state changes
@@ -5516,36 +5662,59 @@
             Enables/disables change state system
             </summary>
         </member>
+        <member name="P:LogUtils.Properties.Formatting.LogRuleCollection.IsReadOnly">
+            <inheritdoc/>
+        </member>
+        <member name="P:LogUtils.Properties.Formatting.LogRuleCollection.AllowRuleChanges">
+            <summary>
+            Gets a value indicating whether rules belonging to this collection should protect their persistent state
+            </summary>
+        </member>
+        <member name="M:LogUtils.Properties.Formatting.LogRuleCollection.#ctor(LogUtils.Collections.ReadOnlyProvider)">
+            <summary>
+            Creates a new <see cref="T:LogUtils.Properties.Formatting.LogRuleCollection"/> instance
+            </summary>
+            <param name="logRuleReadOnlySource">The binding source for determining the ReadOnly state of  a <see cref="T:LogUtils.Properties.Formatting.LogRule"/> that belongs to this collection</param>
+        </member>
         <member name="M:LogUtils.Properties.Formatting.LogRuleCollection.ChangeAlert">
             <summary>
-            An indicator that a LogRule field is about to be changed
+            Notify that <see cref="T:LogUtils.Properties.Formatting.LogRule"/> changes are ready to be tracked
             </summary>
         </member>
         <member name="M:LogUtils.Properties.Formatting.LogRuleCollection.Add(LogUtils.Properties.Formatting.LogRule)">
             <summary>
             Adds a LogRule instance to the collection of Rules
-            Do not use this for temporary rule changes, use SetTemporaryRule instead 
             </summary>
+            <remarks>Do not use this for temporary rule changes, use <see cref="M:LogUtils.Properties.Formatting.LogRuleCollection.SetTemporaryRule(LogUtils.Properties.Formatting.LogRule)"/> instead</remarks>
         </member>
         <member name="M:LogUtils.Properties.Formatting.LogRuleCollection.Replace(LogUtils.Properties.Formatting.LogRule)">
             <summary>
             Replaces an existing rule with another instance
-            Be warned, running this each time your mod runs will overwrite data being saved, and read from file
-            Do not replace existing property data values in a way that might break the parse logic
-            Consider using temporary rules instead, and handle saving of the property values through your mod
-            In either case, you may want to inherit from the existing property in case a user has changed the property through the file
             </summary>
+            <remarks>
+            <para>Be warned, running this each time your mod runs will overwrite data being saved, and read from file</para>
+            <para>Do not replace existing property data values in a way that might break the parse logic</para>
+            <para>Consider using temporary rules instead, and handle saving of the property values through your mod</para>
+            <para>In either case, you may want to inherit from the existing property in case a user has changed the property through the file</para>
+            </remarks>
         </member>
-        <member name="M:LogUtils.Properties.Formatting.LogRuleCollection.Contains(LogUtils.Properties.Formatting.LogRule)">
-            <summary>
-            Determines whether the rule is part of the collection
-            </summary>
+        <member name="M:LogUtils.Properties.Formatting.LogRuleCollection.Remove(LogUtils.Properties.Formatting.LogRule)">
+            <inheritdoc cref="M:System.Collections.Generic.ICollection`1.Remove(`0)"/>
+        </member>
+        <member name="M:LogUtils.Properties.Formatting.LogRuleCollection.Reset">
+            <inheritdoc/>
         </member>
         <member name="M:LogUtils.Properties.Formatting.LogRuleCollection.CreateOrderedEnumerable``1(System.Func{LogUtils.Properties.Formatting.LogRule,``0},System.Collections.Generic.IComparer{``0},System.Boolean)">
             <inheritdoc/>
         </member>
         <member name="M:LogUtils.Properties.Formatting.LogRuleCollection.GetEnumerator">
             <inheritdoc/>
+        </member>
+        <member name="F:LogUtils.Properties.LogProperties.LatestVersion">
+            <summary>
+            The latest properties version recognized by LogUtils
+            </summary>
+            <remarks>Major&lt;Reserved for LogUtils&gt; Minor (or less)&lt;Reserved for mod usage&gt;</remarks>
         </member>
         <member name="F:LogUtils.Properties.LogProperties.Rules">
             <summary>
@@ -5705,9 +5874,14 @@
         </member>
         <member name="M:LogUtils.Properties.LogProperties.NotifyPendingMove(System.String)">
             <summary>
-            Triggers the UtilityEvents.OnMovePending event for this instance
+            Triggers the <see cref="F:LogUtils.Events.UtilityEvents.OnMovePending"/> event
             </summary>
             <param name="movePath">The pending log path for this instance (include filename with extension if filename has changed)</param>
+        </member>
+        <member name="M:LogUtils.Properties.LogProperties.NotifyPendingMoveAborted">
+            <summary>
+            Triggers the <see cref="F:LogUtils.Events.UtilityEvents.OnMoveAborted"/> event
+            </summary>
         </member>
         <member name="F:LogUtils.Properties.LogProperties.IDHash">
             <summary>
@@ -5727,6 +5901,9 @@
             </summary>
         </member>
         <member name="M:LogUtils.Properties.LogProperties.Equals(LogUtils.Properties.LogProperties)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Properties.LogProperties.GetHashCode">
             <inheritdoc/>
         </member>
         <member name="M:LogUtils.Properties.LogProperties.ToString">
@@ -5756,6 +5933,11 @@
         <member name="M:LogUtils.Properties.LogProperties.CreateIDHash(System.String,System.String)">
             <summary>
             Creates an identifiable hashcode representation of a filename, and path
+            </summary>
+        </member>
+        <member name="M:LogUtils.Properties.LogProperties.GetContainingPath(System.String)">
+            <summary>
+            Resolves a path, or path keyword into a usable log path
             </summary>
         </member>
         <member name="P:LogUtils.Properties.LogProperties.Filename">
@@ -6212,6 +6394,11 @@
         <member name="P:LogUtils.MessageBuffer.IsBuffering">
             <summary>
             When true, the buffer will be added to instead of writing to file on handling a write request
+            </summary>
+        </member>
+        <member name="T:LogUtils.MissingAttributeException">
+            <summary>
+            Exception is thrown when an required attribute is not found
             </summary>
         </member>
         <member name="T:LogUtils.PatcherLogEventProcessor">
