@@ -84,19 +84,19 @@ namespace LogUtils
             DebugLogger.DeleteAll();
         }
 
-        public static void DebugLog(object data)
+        public static void DebugLog(object messageObj)
         {
-            DebugLogger.Log(data);
+            DebugLogger.Log(messageObj);
         }
 
-        public static void Log(object data)
+        public static void Log(object messageObj)
         {
-            Logger.LogInfo(data);
+            Logger.LogInfo(messageObj);
         }
 
-        public static void Log(LogCategory category, object data)
+        public static void Log(LogCategory category, object messageObj)
         {
-            Logger.Log(category.BepInExCategory, data);
+            Logger.Log(category.BepInExCategory, messageObj);
         }
 
         public static void LogActivity(FormattableString message)
@@ -119,33 +119,33 @@ namespace LogUtils
             activityLogger.Log(message);
         }
 
-        public static void LogError(object data)
+        public static void LogError(object messageObj)
         {
-            Logger.LogError(data);
+            Logger.LogError(messageObj);
         }
 
-        public static void LogError(string errorMessage, Exception ex)
+        public static void LogError(string errorMessage, Exception error)
         {
             if (errorMessage != null)
                 Logger.LogError(errorMessage);
-            Logger.LogError(ex);
+            Logger.LogError(error);
         }
 
-        public static void LogFatal(object data)
+        public static void LogFatal(object messageObj)
         {
-            Logger.LogFatal(data);
+            Logger.LogFatal(messageObj);
         }
 
-        public static void LogFatal(string errorMessage, Exception ex)
+        public static void LogFatal(string errorMessage, Exception error)
         {
             if (errorMessage != null)
                 Logger.LogFatal(errorMessage);
-            Logger.LogFatal(ex);
+            Logger.LogFatal(error);
         }
 
-        public static void LogWarning(object data)
+        public static void LogWarning(object messageObj)
         {
-            Logger.LogWarning(data);
+            Logger.LogWarning(messageObj);
         }
 
         /// <summary>

@@ -4,23 +4,18 @@ using System;
 using UnityEngine;
 using LoggerDocs = LogUtils.Documentation.LoggerDocumentation;
 
-namespace LogUtils.Compatibility.BepInEx
+namespace LogUtils
 {
-    public class BepInExLogger : IFormattableLogger
+    public sealed class FormattableLogWrapper : IFormattableLogger, IEquatable<ILogger>
     {
-        /// <summary>
-        /// BepInEx derived logging interface
-        /// </summary>
-        internal readonly IExtendedLogSource Source;
+        public ILogger Value;
 
-        public BepInExLogger(ManualLogSource source)
+        public FormattableLogWrapper(ILogger logger)
         {
-            Source = AdapterServices.Convert(source);
-        }
+            if (logger == null)
+                throw new ArgumentNullException(nameof(logger));
 
-        public BepInExLogger(IExtendedLogSource source)
-        {
-            Source = source;
+            Value = logger;
         }
 
         #region ILogger members
@@ -28,147 +23,156 @@ namespace LogUtils.Compatibility.BepInEx
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object)"/>
         public void Log(object messageObj)
         {
-            Source.LogInfo(messageObj);
+            Value.Log(LogLevel.Info, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object)"/>
         public void LogDebug(object messageObj)
         {
-            Source.LogDebug(messageObj);
+            Value.Log(LogLevel.Debug, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object)"/>
         public void LogInfo(object messageObj)
         {
-            Source.LogInfo(messageObj);
+            Value.Log(LogLevel.Info, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object)"/>
         public void LogImportant(object messageObj)
         {
-            Log(LogCategory.Important, messageObj);
+            Value.Log(LogCategory.Important.BepInExCategory, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object)"/>
         public void LogMessage(object messageObj)
         {
-            Source.LogMessage(messageObj);
+            Value.Log(LogLevel.Message, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object)"/>
         public void LogWarning(object messageObj)
         {
-            Source.LogWarning(messageObj);
+            Value.Log(LogLevel.Warning, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(object)"/>
         public void LogError(object messageObj)
         {
-            Source.LogError(messageObj);
+            Value.Log(LogLevel.Error, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object)"/>
         public void LogFatal(object messageObj)
         {
-            Source.LogFatal(messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        public void Log(LogLevel category, object messageObj)
-        {
-            Source.Log(category, messageObj);
+            Value.Log(LogLevel.Fatal, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(LogType category, object messageObj)
         {
-            Log(LogCategory.ToCategory(category), messageObj);
+            Value.Log(LogCategory.ToCategory(category).BepInExCategory, messageObj);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
+        public void Log(LogLevel category, object messageObj)
+        {
+            Value.Log(category, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(string category, object messageObj)
         {
-            Log(LogCategory.ToCategory(category), messageObj);
+            Value.Log(LogCategory.ToCategory(category).BepInExCategory, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(LogCategory category, object messageObj)
         {
-            Source.Log(category.BepInExCategory, messageObj);
+            Value.Log(category.BepInExCategory, messageObj);
         }
         #endregion
-        #region IFormattableLogger implementation
+        #region IFormattableLogger members
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object)"/>
         public void Log(FormattableString messageObj)
         {
-            Source.LogInfo(messageObj);
+            Value.Log(LogLevel.Info, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object)"/>
         public void LogDebug(FormattableString messageObj)
         {
-            Source.LogDebug(messageObj);
+            Value.Log(LogLevel.Debug, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object)"/>
         public void LogInfo(FormattableString messageObj)
         {
-            Source.LogInfo(messageObj);
+            Value.Log(LogLevel.Info, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object)"/>
         public void LogImportant(FormattableString messageObj)
         {
-            Log(LogCategory.Important, messageObj);
+            Value.Log(LogCategory.Important.BepInExCategory, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object)"/>
         public void LogMessage(FormattableString messageObj)
         {
-            Source.LogMessage(messageObj);
+            Value.Log(LogLevel.Message, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object)"/>
         public void LogWarning(FormattableString messageObj)
         {
-            Source.LogWarning(messageObj);
+            Value.Log(LogLevel.Warning, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(object)"/>
         public void LogError(FormattableString messageObj)
         {
-            Source.LogError(messageObj);
+            Value.Log(LogLevel.Error, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object)"/>
         public void LogFatal(FormattableString messageObj)
         {
-            Source.LogFatal(messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        public void Log(LogLevel category, FormattableString messageObj)
-        {
-            Source.Log(category, messageObj);
+            Value.Log(LogLevel.Fatal, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(LogType category, FormattableString messageObj)
         {
-            Log(LogCategory.ToCategory(category), messageObj);
+            Value.Log(LogCategory.ToCategory(category).BepInExCategory, messageObj);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
+        public void Log(LogLevel category, FormattableString messageObj)
+        {
+            Value.Log(category, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(string category, FormattableString messageObj)
         {
-            Log(LogCategory.ToCategory(category), messageObj);
+            Value.Log(LogCategory.ToCategory(category).BepInExCategory, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(LogCategory category, FormattableString messageObj)
         {
-            Source.Log(category.BepInExCategory, messageObj);
+            Value.Log(category.BepInExCategory, messageObj);
+        }
+        #endregion
+        #region IEquality members
+
+        /// <inheritdoc/>
+        /// <remarks>Both instance, and value of instances are evaluated for equality</remarks>
+        public bool Equals(ILogger other)
+        {
+            return other != null && (Value.Equals(other) || this == other);
         }
         #endregion
     }

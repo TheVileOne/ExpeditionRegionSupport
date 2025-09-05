@@ -8,7 +8,7 @@ namespace LogUtils.Compatibility.BepInEx
     /// <summary>
     /// A class dedicated to translating a ManualLogSource to an IExtendedLogSource
     /// </summary>
-    internal sealed class ManualLogSourceWrapper : IExtendedLogSource
+    internal sealed class ManualLogSourceWrapper : IExtendedLogSource, IFormattableLogger
     {
         public readonly ManualLogSource Source;
 
@@ -25,65 +25,128 @@ namespace LogUtils.Compatibility.BepInEx
             Source = source;
         }
 
-        #region Implementation
-        public void Log(object data)
+        #region ILogger members
+
+        public void Log(object messageObj)
         {
-            Source.LogInfo(data);
+            Source.LogInfo(messageObj);
         }
 
-        public void LogDebug(object data)
+        public void LogDebug(object messageObj)
         {
-            Source.LogDebug(data);
+            Source.LogDebug(messageObj);
         }
 
-        public void LogInfo(object data)
+        public void LogInfo(object messageObj)
         {
-            Source.LogInfo(data);
+            Source.LogInfo(messageObj);
         }
 
-        public void LogImportant(object data)
+        public void LogImportant(object messageObj)
         {
-            Source.Log(LogCategory.Important.BepInExCategory, data);
+            Source.Log(LogCategory.Important.BepInExCategory, messageObj);
         }
 
-        public void LogMessage(object data)
+        public void LogMessage(object messageObj)
         {
-            Source.LogMessage(data);
+            Source.LogMessage(messageObj);
         }
 
-        public void LogWarning(object data)
+        public void LogWarning(object messageObj)
         {
-            Source.LogWarning(data);
+            Source.LogWarning(messageObj);
         }
 
-        public void LogError(object data)
+        public void LogError(object messageObj)
         {
-            Source.LogError(data);
+            Source.LogError(messageObj);
         }
 
-        public void LogFatal(object data)
+        public void LogFatal(object messageObj)
         {
-            Source.LogFatal(data);
+            Source.LogFatal(messageObj);
         }
 
-        public void Log(LogType category, object data)
+        public void Log(LogType category, object messageObj)
         {
-            Source.Log(LogCategory.ToCategory(category).BepInExCategory, data);
+            Source.Log(LogCategory.ToCategory(category).BepInExCategory, messageObj);
         }
 
-        public void Log(LogLevel category, object data)
+        public void Log(LogLevel category, object messageObj)
         {
-            Source.Log(category, data);
+            Source.Log(category, messageObj);
         }
 
-        public void Log(string category, object data)
+        public void Log(string category, object messageObj)
         {
-            Source.Log(LogCategory.ToCategory(category).BepInExCategory, data);
+            Source.Log(LogCategory.ToCategory(category).BepInExCategory, messageObj);
         }
 
-        public void Log(LogCategory category, object data)
+        public void Log(LogCategory category, object messageObj)
         {
-            Source.Log(category.BepInExCategory, data);
+            Source.Log(category.BepInExCategory, messageObj);
+        }
+        #endregion
+        #region IFormattableLogger members
+
+        public void Log(FormattableString messageObj)
+        {
+            Source.LogInfo(messageObj);
+        }
+
+        public void LogDebug(FormattableString messageObj)
+        {
+            Source.LogDebug(messageObj);
+        }
+
+        public void LogInfo(FormattableString messageObj)
+        {
+            Source.LogInfo(messageObj);
+        }
+
+        public void LogImportant(FormattableString messageObj)
+        {
+            Source.Log(LogCategory.Important.BepInExCategory, messageObj);
+        }
+
+        public void LogMessage(FormattableString messageObj)
+        {
+            Source.LogMessage(messageObj);
+        }
+
+        public void LogWarning(FormattableString messageObj)
+        {
+            Source.LogWarning(messageObj);
+        }
+
+        public void LogError(FormattableString messageObj)
+        {
+            Source.LogError(messageObj);
+        }
+
+        public void LogFatal(FormattableString messageObj)
+        {
+            Source.LogFatal(messageObj);
+        }
+
+        public void Log(LogType category, FormattableString messageObj)
+        {
+            Source.Log(LogCategory.ToCategory(category).BepInExCategory, messageObj);
+        }
+
+        public void Log(LogLevel category, FormattableString messageObj)
+        {
+            Source.Log(category, messageObj);
+        }
+
+        public void Log(string category, FormattableString messageObj)
+        {
+            Source.Log(LogCategory.ToCategory(category).BepInExCategory, messageObj);
+        }
+
+        public void Log(LogCategory category, FormattableString messageObj)
+        {
+            Source.Log(category.BepInExCategory, messageObj);
         }
         #endregion
 

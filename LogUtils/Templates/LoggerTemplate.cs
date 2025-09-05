@@ -9,11 +9,14 @@ namespace LogUtils.Templates
     /// <summary>
     /// Illustrates the standardized method order implementation of the ILogger interface
     /// </summary>
-    internal sealed class LoggerTemplate : ILogger
+    internal sealed class LoggerTemplate : ILogger, IFormattableLogger
     {
-        #region Implementation
+        /*
+         * IFormattableLogger is optional. Implement interface if you want to add support for color formatting features for your logger. Alternatively,
+         * your logger class can use the FormattableLogWrapper class to suppose these features without implementing the IFormattableLogger interface.
+         */
 
-        public List<LogID> LogTargets = new List<LogID>();
+        #region ILogger members
 
         public void Log(object messageObj)
         {
@@ -71,6 +74,68 @@ namespace LogUtils.Templates
         }
 
         public void Log(LogCategory category, object messageObj)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+        #region IFormattableLogger members
+
+        public void Log(FormattableString messageObj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void LogDebug(FormattableString messageObj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void LogInfo(FormattableString messageObj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void LogImportant(FormattableString messageObj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void LogMessage(FormattableString messageObj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void LogWarning(FormattableString messageObj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void LogError(FormattableString messageObj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void LogFatal(FormattableString messageObj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Log(LogType category, FormattableString messageObj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Log(LogLevel category, FormattableString messageObj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Log(string category, FormattableString messageObj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Log(LogCategory category, FormattableString messageObj)
         {
             throw new NotImplementedException();
         }

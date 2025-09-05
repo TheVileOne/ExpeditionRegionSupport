@@ -27,20 +27,22 @@ namespace LogUtils.Diagnostics
                 if (_customDefault != null)
                     return _customDefault;
 
+                bool utilityLoggerInUse = Equals(_default.Logger, UtilityLogger.Logger);
+
                 if (UtilitySetup.CurrentStep < UtilitySetup.InitializationStep.INITIALIZE_ENUMS)
                 {
-                    if (_default.Logger != UtilityLogger.Logger)
+                    if (!utilityLoggerInUse)
                     {
                         //Handle asserts using the UtilityLogger instance during this very early initialization period
                         UtilityLogger.Log("Assert system accessed before LogIDs have initialized");
                         UtilityLogger.Log("Deploying fallback logger");
-                        _default.Logger = UtilityLogger.Logger;
+                        _default.SetLogger(UtilityLogger.Logger);
                     }
                 }
-                else if (_default.Logger == UtilityLogger.Logger && (UnityLogger.ReceiveUnityLogEvents || (LogID.Unity != null && LogID.Unity.Properties.CanBeAccessed)))
+                else if (utilityLoggerInUse && (UnityLogger.ReceiveUnityLogEvents || (LogID.Unity != null && LogID.Unity.Properties.CanBeAccessed)))
                 {
                     UtilityLogger.Log("Fallback logger no longer necessary");
-                    _default.Logger = new UnityLogger();
+                    _default.SetLogger(new UnityLogger());
                 }
                 return _default;
             }
@@ -55,14 +57,29 @@ namespace LogUtils.Diagnostics
         }
 
         public MessageFormatter Formatter = new MessageFormatter();
-        public ILogger Logger;
+
+        private IFormattableLogger _logger;
+        public IFormattableLogger Logger => _logger;
 
         /// <summary/>
         public virtual bool IsEnabled => DebugPolicy.AssertsEnabled;
 
         public AssertHandler(ILogger logger)
         {
-            Logger = logger;
+            SetLogger(logger);
+        }
+
+        public void SetLogger(ILogger logger)
+        {
+            if (logger is IFormattableLogger value)
+                _logger = value;
+            else if (logger is null)
+            {
+                UtilityLogger.LogWarning(nameof(AssertHandler) + " instance was assigned a null logger");
+                _logger = null;
+            }
+            else
+                _logger = new FormattableLogWrapper(logger);
         }
 
         /// <summary>

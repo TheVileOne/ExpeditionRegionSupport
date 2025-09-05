@@ -1,6 +1,7 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
 using LogUtils.Requests;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using LoggerDocs = LogUtils.Documentation.LoggerDocumentation;
@@ -47,6 +48,48 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         void Log(LogCategory category, object messageObj);
+    }
+
+    /// <summary>
+    /// Represents a type used to perform logging that supports <see cref="FormattableString"/>
+    /// </summary>
+    public interface IFormattableLogger : ILogger
+    {
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(object)"/>
+        void Log(FormattableString messageObj);
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object)"/>
+        void LogDebug(FormattableString messageObj);
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object)"/>
+        void LogInfo(FormattableString messageObj);
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object)"/>
+        void LogImportant(FormattableString messageObj);
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object)"/>
+        void LogMessage(FormattableString messageObj);
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object)"/>
+        void LogWarning(FormattableString messageObj);
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogError(object)"/>
+        void LogError(FormattableString messageObj);
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object)"/>
+        void LogFatal(FormattableString messageObj);
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
+        void Log(LogType category, FormattableString messageObj);
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
+        void Log(LogLevel category, FormattableString messageObj);
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
+        void Log(string category, FormattableString messageObj);
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
+        void Log(LogCategory category, FormattableString messageObj);
     }
 
     /// <summary>
