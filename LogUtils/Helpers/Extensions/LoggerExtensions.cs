@@ -1,4 +1,5 @@
-﻿using LogUtils.Enums;
+﻿using LogUtils.Diagnostics;
+using LogUtils.Enums;
 using LogUtils.Helpers.Comparers;
 using LogUtils.Requests;
 using System;
@@ -9,6 +10,20 @@ namespace LogUtils
 {
     public static partial class ExtensionMethods
     {
+        /// <summary>
+        /// Converts instance into an <see cref="IFormattableLogger"/> object
+        /// </summary>
+        public static IFormattableLogger ToFormattableLogger(this ILogger logger)
+        {
+            if (logger is IFormattableLogger value)
+                return value;
+
+            if (logger == null)
+                return null;
+
+            return new FormattableLogWrapper(logger);
+        }
+
         /// <summary>
         /// Does this handler accept this LogRequest
         /// </summary>
