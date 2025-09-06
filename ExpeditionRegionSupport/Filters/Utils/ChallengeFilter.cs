@@ -1,5 +1,6 @@
 ﻿using Expedition;
 using ExpeditionRegionSupport.Regions;
+using System;
 using System.Collections.Generic;
 
 namespace ExpeditionRegionSupport.Filters.Utils
@@ -64,7 +65,17 @@ namespace ExpeditionRegionSupport.Filters.Utils
         /// <returns>Filter state (true means not filtered)</returns>
         public override bool ConditionMet()
         {
-            return !Enabled || Evaluate("SL", true) && Evaluate("SS", true);
+            if (!Enabled)
+                return true;
+
+            string[] requiredRegions = getRequiredRegions();
+            return Array.TrueForAll(requiredRegions, region => Evaluate(region, true));
+        }
+
+        private static string[] getRequiredRegions()
+        {
+            //Both the delivery region, and neuron source region are required regions
+            return new string[] { "SL", RegionUtils.GetNeuronSourceRegion(Plugin.ActiveWorldState) };
         }
     }
 }

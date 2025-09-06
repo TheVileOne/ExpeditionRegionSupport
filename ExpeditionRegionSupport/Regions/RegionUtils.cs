@@ -352,6 +352,11 @@ namespace ExpeditionRegionSupport.Regions
             return gates;
         }
 
+        public static string GetNeuronSourceRegion(WorldState state)
+        {
+            return state != WorldState.Rivulet ? "SS" : "RM";
+        }
+
         public static string GetPearlDeliveryRegion(WorldState state)
         {
             return state != WorldState.Artificer ? "SL" : "SS";
