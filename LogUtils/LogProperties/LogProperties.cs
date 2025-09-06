@@ -5,7 +5,6 @@ using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Helpers.Comparers;
-using LogUtils.Helpers.Extensions;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties.Custom;
 using LogUtils.Properties.Formatting;

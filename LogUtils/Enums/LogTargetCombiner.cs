@@ -1,5 +1,4 @@
-﻿using LogUtils.Helpers.Extensions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace LogUtils.Enums

@@ -1,6 +1,5 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Console;
-using LogUtils.Helpers.Extensions;
 using System;
 using System.Linq;
 using UnityEngine;

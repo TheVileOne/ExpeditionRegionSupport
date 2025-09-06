@@ -122,6 +122,7 @@ namespace LogUtils.Compatibility.BepInEx.Listeners
         /// Performs tasks for disposing a <see cref="DiskLogListener"/>
         /// </summary>
         /// <param name="disposing">Whether or not the dispose request is invoked by the application (true), or invoked by the destructor (false)</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Dispose pattern")]
         internal void Dispose(bool disposing)
         {
             if (IsDisposed) return;

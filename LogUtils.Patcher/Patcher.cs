@@ -58,6 +58,7 @@ public static class Patcher
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Method required for patcher detection")]
     public static void Patch(AssemblyDefinition assembly)
     {
     }

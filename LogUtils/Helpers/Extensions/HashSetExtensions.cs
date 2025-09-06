@@ -1,7 +1,7 @@
 ﻿using LogUtils.Enums;
 using System.Collections.Generic;
 
-namespace LogUtils.Helpers.Extensions
+namespace LogUtils
 {
     public static partial class ExtensionMethods
     {

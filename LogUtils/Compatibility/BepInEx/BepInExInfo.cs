@@ -1,7 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Bootstrap;
 using BepInEx.Logging;
-using LogUtils.Helpers.Extensions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;

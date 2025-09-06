@@ -1,5 +1,4 @@
 ﻿using LogUtils.Helpers.Comparers;
-using LogUtils.Helpers.Extensions;
 using LogUtils.Helpers.FileHandling;
 using System.IO;
 using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;

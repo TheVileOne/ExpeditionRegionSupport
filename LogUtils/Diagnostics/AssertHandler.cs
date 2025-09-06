@@ -69,17 +69,15 @@ namespace LogUtils.Diagnostics
             SetLogger(logger);
         }
 
+        /// <summary>
+        /// Assigns a logger instance to the current object
+        /// </summary>
         public void SetLogger(ILogger logger)
         {
-            if (logger is IFormattableLogger value)
-                _logger = value;
-            else if (logger is null)
-            {
+            _logger = logger.ToFormattableLogger();
+
+            if (_logger == null)
                 UtilityLogger.LogWarning(nameof(AssertHandler) + " instance was assigned a null logger");
-                _logger = null;
-            }
-            else
-                _logger = new FormattableLogWrapper(logger);
         }
 
         /// <summary>

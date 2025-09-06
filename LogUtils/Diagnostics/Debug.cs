@@ -1,7 +1,6 @@
 ﻿using LogUtils.Diagnostics.Tests;
 using LogUtils.Diagnostics.Tests.Utility;
 using LogUtils.Enums;
-using LogUtils.Helpers.Extensions;
 using LogUtils.Requests;
 using System;
 using System.Collections.Generic;

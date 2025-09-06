@@ -1,4 +1,4 @@
-﻿namespace LogUtils.Helpers.Extensions
+﻿namespace LogUtils
 {
     /// <summary>
     /// Class for miscellaneous extension methods

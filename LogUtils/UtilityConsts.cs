@@ -1,5 +1,4 @@
 ﻿using LogUtils.Helpers.Comparers;
-using LogUtils.Helpers.Extensions;
 using LogUtils.Policy;
 
 #pragma warning disable CS1591 //Missing XML comment for publicly visible type or member

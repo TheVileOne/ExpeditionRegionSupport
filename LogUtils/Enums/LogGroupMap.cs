@@ -1,6 +1,4 @@
 ﻿using BepInEx.Logging;
-using LogUtils.Helpers.Extensions;
-using System;
 
 namespace LogUtils.Enums
 {

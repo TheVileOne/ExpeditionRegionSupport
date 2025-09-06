@@ -6,7 +6,7 @@ using LoggerDocs = LogUtils.Documentation.LoggerDocumentation;
 
 namespace LogUtils
 {
-    public sealed class FormattableLogWrapper : IFormattableLogger, IEquatable<ILogger>
+    internal sealed class FormattableLogWrapper : IFormattableLogger, IEquatable<ILogger>
     {
         public ILogger Value;
 
