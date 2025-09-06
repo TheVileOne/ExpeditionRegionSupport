@@ -3121,6 +3121,42 @@
             Moves to next provided string, and attempts to log it
             </summary>
         </member>
+        <member name="M:LogUtils.Diagnostics.DebugLogger.Log(System.Object)">
+            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.Object)"/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.DebugLogger.LogDebug(System.Object)">
+            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogDebug(System.Object)"/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.DebugLogger.LogInfo(System.Object)">
+            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogInfo(System.Object)"/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.DebugLogger.LogImportant(System.Object)">
+            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogImportant(System.Object)"/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.DebugLogger.LogMessage(System.Object)">
+            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogMessage(System.Object)"/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.DebugLogger.LogWarning(System.Object)">
+            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogWarning(System.Object)"/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.DebugLogger.LogUtils#ILogger{System#Object}#LogError(System.Object)">
+            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogError(System.Object)"/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.DebugLogger.LogFatal(System.Object)">
+            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogFatal(System.Object)"/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.DebugLogger.Log(UnityEngine.LogType,System.Object)">
+            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.DebugLogger.Log(BepInEx.Logging.LogLevel,System.Object)">
+            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.DebugLogger.LogUtils#ILogger{System#Object}#Log(System.String,System.Object)">
+            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.DebugLogger.Log(LogUtils.Enums.LogCategory,System.Object)">
+            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
+        </member>
         <member name="M:LogUtils.Diagnostics.DebugLogger.Dispose">
             <summary>
             Resets enumerator to a default state
@@ -5704,81 +5740,51 @@
             Represents a type used to perform logging
             </summary>
         </member>
-        <member name="M:LogUtils.ILogger.Log(System.Object)">
-            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.Object)"/>
-        </member>
-        <member name="M:LogUtils.ILogger.LogDebug(System.Object)">
-            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogDebug(System.Object)"/>
-        </member>
-        <member name="M:LogUtils.ILogger.LogInfo(System.Object)">
-            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogInfo(System.Object)"/>
-        </member>
-        <member name="M:LogUtils.ILogger.LogImportant(System.Object)">
-            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogImportant(System.Object)"/>
-        </member>
-        <member name="M:LogUtils.ILogger.LogMessage(System.Object)">
-            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogMessage(System.Object)"/>
-        </member>
-        <member name="M:LogUtils.ILogger.LogWarning(System.Object)">
-            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogWarning(System.Object)"/>
-        </member>
-        <member name="M:LogUtils.ILogger.LogError(System.Object)">
-            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogError(System.Object)"/>
-        </member>
-        <member name="M:LogUtils.ILogger.LogFatal(System.Object)">
-            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogFatal(System.Object)"/>
-        </member>
-        <member name="M:LogUtils.ILogger.Log(UnityEngine.LogType,System.Object)">
-            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
-        </member>
-        <member name="M:LogUtils.ILogger.Log(BepInEx.Logging.LogLevel,System.Object)">
-            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
-        </member>
-        <member name="M:LogUtils.ILogger.Log(System.String,System.Object)">
-            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
-        </member>
-        <member name="M:LogUtils.ILogger.Log(LogUtils.Enums.LogCategory,System.Object)">
-            <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
-        </member>
         <member name="T:LogUtils.IFormattableLogger">
             <summary>
             Represents a type used to perform logging that supports <see cref="T:System.FormattableString"/>
             </summary>
         </member>
-        <member name="M:LogUtils.IFormattableLogger.Log(System.FormattableString)">
+        <member name="T:LogUtils.ILogger`1">
+            <summary>
+            Represents a type used to perform logging
+            </summary>
+            <typeparam name="T">The type accepted as the message argument</typeparam>
+        </member>
+        <member name="M:LogUtils.ILogger`1.Log(`0)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.Object)"/>
         </member>
-        <member name="M:LogUtils.IFormattableLogger.LogDebug(System.FormattableString)">
+        <member name="M:LogUtils.ILogger`1.LogDebug(`0)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogDebug(System.Object)"/>
         </member>
-        <member name="M:LogUtils.IFormattableLogger.LogInfo(System.FormattableString)">
+        <member name="M:LogUtils.ILogger`1.LogInfo(`0)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogInfo(System.Object)"/>
         </member>
-        <member name="M:LogUtils.IFormattableLogger.LogImportant(System.FormattableString)">
+        <member name="M:LogUtils.ILogger`1.LogImportant(`0)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogImportant(System.Object)"/>
         </member>
-        <member name="M:LogUtils.IFormattableLogger.LogMessage(System.FormattableString)">
+        <member name="M:LogUtils.ILogger`1.LogMessage(`0)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogMessage(System.Object)"/>
         </member>
-        <member name="M:LogUtils.IFormattableLogger.LogWarning(System.FormattableString)">
+        <member name="M:LogUtils.ILogger`1.LogWarning(`0)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogWarning(System.Object)"/>
         </member>
-        <member name="M:LogUtils.IFormattableLogger.LogError(System.FormattableString)">
+        <member name="M:LogUtils.ILogger`1.LogError(`0)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogError(System.Object)"/>
         </member>
-        <member name="M:LogUtils.IFormattableLogger.LogFatal(System.FormattableString)">
+        <member name="M:LogUtils.ILogger`1.LogFatal(`0)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogFatal(System.Object)"/>
         </member>
-        <member name="M:LogUtils.IFormattableLogger.Log(UnityEngine.LogType,System.FormattableString)">
+        <member name="M:LogUtils.ILogger`1.Log(UnityEngine.LogType,`0)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.IFormattableLogger.Log(BepInEx.Logging.LogLevel,System.FormattableString)">
+        <member name="M:LogUtils.ILogger`1.Log(BepInEx.Logging.LogLevel,`0)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.IFormattableLogger.Log(System.String,System.FormattableString)">
+        <member name="M:LogUtils.ILogger`1.Log(System.String,`0)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.IFormattableLogger.Log(LogUtils.Enums.LogCategory,System.FormattableString)">
+        <member name="M:LogUtils.ILogger`1.Log(LogUtils.Enums.LogCategory,`0)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
         <member name="T:LogUtils.ILogHandler">
