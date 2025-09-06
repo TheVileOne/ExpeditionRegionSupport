@@ -1,5 +1,4 @@
 ﻿using LogUtils.Enums;
-using LogUtils.Helpers.Extensions;
 
 namespace LogUtils.Requests.Validation
 {

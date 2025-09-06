@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LogUtils.Helpers.Extensions
+namespace LogUtils
 {
     public static partial class ExtensionMethods
     {

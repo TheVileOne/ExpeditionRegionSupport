@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace LogUtils.Helpers.Extensions
+namespace LogUtils
 {
     public static partial class ExtensionMethods
     {

@@ -3,7 +3,6 @@ using LogUtils.Console;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
-using LogUtils.Helpers.Extensions;
 using LogUtils.Requests.Validation;
 using LogUtils.Threading;
 using System;

@@ -1,7 +1,6 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
 using LogUtils.Events;
-using LogUtils.Helpers.Extensions;
 using LogUtils.Requests;
 using LogUtils.Requests.Validation;
 using System;

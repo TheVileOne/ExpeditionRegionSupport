@@ -1,5 +1,4 @@
-﻿using LogUtils.Helpers.Extensions;
-using LogUtils.Policy;
+﻿using LogUtils.Policy;
 using System;
 using System.Collections.Generic;
 using MessageFormatter = LogUtils.Diagnostics.AssertHandler.MessageFormatter;

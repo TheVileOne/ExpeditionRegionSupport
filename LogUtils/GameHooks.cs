@@ -3,7 +3,6 @@ using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Formatting;
 using LogUtils.Helpers;
-using LogUtils.Helpers.Extensions;
 using LogUtils.Properties;
 using LogUtils.Requests;
 using Mono.Cecil.Cil;
