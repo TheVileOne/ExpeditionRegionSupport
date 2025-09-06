@@ -255,10 +255,10 @@ namespace LogUtils
             if (Targets.Count == 1)
             {
                 ILogTarget target = Targets.LogIDs.Count > 0 ? Targets.LogIDs[0] : Targets.ConsoleIDs[0];
-                LogBase(target, category, messageObj, false, createRequest);
+                LogBase(target, category, messageObj, shouldFilter, createRequest);
                 return;
             }
-            LogBase(Targets, category, messageObj, false, createRequest);
+            LogBase(Targets, category, messageObj, shouldFilter, createRequest);
         }
 
         protected virtual void LogBase(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
