@@ -13,6 +13,7 @@ using Vector2 = UnityEngine.Vector2;
 
 namespace ExpeditionRegionSupport.Interface
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Hooks do not need to follow case guidelines")]
     public class FilterDialogHooks
     {
         public static void ApplyHooks()
