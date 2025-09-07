@@ -2283,7 +2283,7 @@ namespace LogUtils
         #endregion
     }
 
-    public static class LoggerExtensions
+    public static partial class LoggerExtensions
     {
         /// <inheritdoc cref="LoggerDocs.Standard.Log(string, object[])"/>
         public static void Log(this IFormattableLogger logger, string format, params object[] formatArgs)

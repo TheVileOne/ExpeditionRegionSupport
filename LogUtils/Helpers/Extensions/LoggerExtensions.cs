@@ -1,4 +1,5 @@
-﻿using LogUtils.Diagnostics;
+﻿using LogUtils.Compatibility.Unity;
+using LogUtils.Diagnostics;
 using LogUtils.Enums;
 using LogUtils.Helpers.Comparers;
 using LogUtils.Requests;
@@ -22,6 +23,20 @@ namespace LogUtils
                 return null;
 
             return new FormattableLogWrapper(logger);
+        }
+
+        /// <summary>
+        /// Converts instance into an <see cref="IUnityLogger"/> object. Instance returned will be able to process interpolated string objects
+        /// </summary>
+        public static IUnityLogger ToUnityLogger(ILogger logger)
+        {
+            if (logger is IUnityLogger value)
+                return value;
+
+            if (logger == null)
+                return null;
+
+            return new FormattableUnityLogWrapper(logger);
         }
 
         /// <summary>
