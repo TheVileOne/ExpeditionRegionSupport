@@ -2,6 +2,7 @@
 using LogUtils.Enums;
 using LogUtils.Requests;
 using System;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using CreateRequestCallback = LogUtils.Requests.LogRequest.Factory.Callback;
 
@@ -89,14 +90,14 @@ namespace LogUtils
             LogBase(LogType.Exception, null, exception, context);
         }
 
-        void UnityEngine.ILogger.LogFormat(LogType logType, string format, params object[] args)
+        void UnityEngine.ILogger.LogFormat(LogType logType, string format, params object[] formatArgs)
         {
-            Log(logType, string.Format(format, args));
+            Log(logType, FormattableStringFactory.Create(format, formatArgs));
         }
 
-        void UnityEngine.ILogHandler.LogFormat(LogType logType, UnityEngine.Object context, string format, params object[] args)
+        void UnityEngine.ILogHandler.LogFormat(LogType logType, UnityEngine.Object context, string format, params object[] formatArgs)
         {
-            LogBase(logType, null, string.Format(format, args), context);
+            LogBase(logType, null, FormattableStringFactory.Create(format, formatArgs), context);
         }
 
         /// <summary>
