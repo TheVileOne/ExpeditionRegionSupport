@@ -76,7 +76,7 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Constructs a logger instance
+        /// Constructs a new <see cref="Logger"/> instance
         /// </summary>
         /// <param name="logSource">The BepInEx log source (typically a ManualLogsource) to assign to this logger</param>
         public Logger(ILogSource logSource) : this(LoggingMode.Inherit, true, LogID.BepInEx)
@@ -84,61 +84,47 @@ namespace LogUtils
             LogSource = logSource;
         }
 
-        /// <summary>
-        /// Constructs a logger instance
-        /// </summary>
+        /// <inheritdoc cref="Logger(ILogSource)"/>
         /// <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
         public Logger(ILogTarget preset) : this(LoggingMode.Inherit, true, preset)
         {
         }
 
-        /// <summary>
-        /// Constructs a logger instance
-        /// </summary>
+        /// <inheritdoc cref="Logger(ILogSource)"/>
         /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
         /// <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
         public Logger(bool allowLogging, ILogTarget preset) : this(LoggingMode.Inherit, allowLogging, preset)
         {
         }
 
-        /// <summary>
-        /// Constructs a logger instance
-        /// </summary>
+        /// <inheritdoc cref="Logger(ILogSource)"/>
         /// <param name="mode">Changes the technique used to write messages to file</param>
         /// <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
         public Logger(LoggingMode mode, ILogTarget preset) : this(mode, true, preset)
         {
         }
 
-        /// <summary>
-        /// Constructs a logger instance
-        /// </summary>
+        /// <inheritdoc cref="Logger(ILogSource)"/>
         /// <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
         public Logger(params ILogTarget[] presets) : this(LoggingMode.Inherit, true, presets)
         {
         }
 
-        /// <summary>
-        /// Constructs a logger instance
-        /// </summary>
+        /// <inheritdoc cref="Logger(ILogSource)"/>
         /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
         /// <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
         public Logger(bool allowLogging, params ILogTarget[] presets) : this(LoggingMode.Inherit, allowLogging, presets)
         {
         }
 
-        /// <summary>
-        /// Constructs a logger instance
-        /// </summary>
+        /// <inheritdoc cref="Logger(ILogSource)"/>
         /// <param name="mode">Changes the technique used to write messages to file</param>
         /// <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
         public Logger(LoggingMode mode, params ILogTarget[] presets) : this(mode, true, presets)
         {
         }
 
-        /// <summary>
-        /// Constructs a logger instance
-        /// </summary>
+        /// <inheritdoc cref="Logger(ILogSource)"/>
         /// <param name="mode">Changes the technique used to write messages to file</param>
         /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
         /// <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
