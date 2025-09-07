@@ -32,7 +32,7 @@ namespace LogUtils.Formatting
             {
                 if (!LogConsole.ANSIColorSupport)
                     return string.Empty;
-                return AnsiColorConverter.AnsiToForeground((Color)formatData.Argument);
+                return AnsiColorConverter.AnsiToForeground(formatData.GetColor());
             }
 
             IFormattable formattableArg = arg as IFormattable;

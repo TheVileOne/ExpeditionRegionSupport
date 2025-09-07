@@ -1,4 +1,5 @@
 ﻿using LogUtils.Console;
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -19,7 +20,7 @@ namespace LogUtils.Formatting
         /// <summary>
         /// Checks that Argument is a UnityEngine.Color
         /// </summary>
-        public bool IsColorData => Argument is Color;
+        public bool IsColorData => Argument is Color || Argument is ConsoleColor;
 
         /// <summary>
         /// The positional offset between the local build position, and the actual position in the formatted string
@@ -40,6 +41,17 @@ namespace LogUtils.Formatting
         /// The number of valid chars to apply color formatting
         /// </summary>
         public int Range;
+
+        /// <summary>
+        /// Converts format argument into a <see cref="Color"/> value
+        /// </summary>
+        /// <exception cref="InvalidCastException">The format argument cannot be cast to a <see cref="Color"/> value</exception>
+        public Color GetColor()
+        {
+            if (Argument is ConsoleColor color)
+                return ConsoleColorMap.GetColor(color);
+            return (Color)Argument;
+        }
     }
 
     internal static class FormatDataAccess
