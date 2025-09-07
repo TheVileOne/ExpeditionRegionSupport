@@ -13,6 +13,7 @@ namespace LogUtils.Formatting
         /// <inheritdoc/>
         public Color? MessageColor { get; set; }
 
+        /// <inheritdoc/>
         public string ApplyFormat(string message, Color messageColor)
         {
             if (!LogConsole.ANSIColorSupport)
