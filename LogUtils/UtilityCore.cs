@@ -145,6 +145,7 @@ namespace LogUtils
             {
                 case UtilitySetup.InitializationStep.SETUP_ENVIRONMENT:
                     {
+                        //Utility logger cannot be used before it is initialized, and debug log cannot be used before config is read
                         UnityLogger.EnsureLogTypeCapacity(UtilityConsts.CUSTOM_LOGTYPE_LIMIT);
                         UtilityLogger.Initialize();
 

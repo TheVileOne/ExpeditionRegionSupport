@@ -20,9 +20,9 @@ namespace LogUtils
 
         public MessageBuffer WriteBuffer;
 
-        public DirectToFileLogger(string name) : base()
+        public DirectToFileLogger(string name, bool enabledByDefault) : base()
         {
-            AllowLogging = true;
+            AllowLogging = enabledByDefault;
             Name = name;
             LogPath = getLogPath();
             WriteBuffer = new MessageBuffer();

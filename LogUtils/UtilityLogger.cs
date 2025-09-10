@@ -5,13 +5,14 @@ using LogUtils.Helpers.FileHandling;
 using LogUtils.Policy;
 using LogUtils.Threading;
 using System;
+using System.IO;
 using System.Linq;
 
 namespace LogUtils
 {
     internal static class UtilityLogger
     {
-        internal static DirectToFileLogger DebugLogger = new DirectToFileLogger(DirectToFileLogger.DEFAULT_LOG_NAME);
+        internal static DirectToFileLogger DebugLogger = new DirectToFileLogger(DirectToFileLogger.DEFAULT_LOG_NAME, false);
 
         public static UtilityLogSource Logger;
 
@@ -153,14 +154,13 @@ namespace LogUtils
         /// </summary>
         internal static DebugLogger CreateLogger(string logName, StringProvider provider)
         {
-            var logger = logName == DirectToFileLogger.DEFAULT_LOG_NAME ? DebugLogger : new DirectToFileLogger(logName);
+            var logger = logName == DirectToFileLogger.DEFAULT_LOG_NAME ? DebugLogger : new DirectToFileLogger(logName, true);
 
             return new DebugLogger(logger, provider);
         }
 
         static UtilityLogger()
         {
-            DebugLogger.AllowLogging = DebugPolicy.ShowDebugLog;
             UtilityCore.EnsureInitializedState();
         }
     }
