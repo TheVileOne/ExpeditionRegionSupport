@@ -25,22 +25,60 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
         public void Test()
         {
+            ApplyHooks();
             TestSingleArgument();
+            RemoveHooks();
         }
 
         internal void TestSingleArgument()
         {
             string argument = "test";
 
-            Logger logger = new DiscreteLogger();
+            Logger logger = new DiscreteLogger(false);
 
             logger.Log(argument);
+            AssertResultAndClear([typeof(string)]);
+
             logger.Log((object)argument);
+            AssertResultAndClear([typeof(object)]);
+
             logger.Log($"{argument}");
+            AssertResultAndClear([typeof(FormattableString)]);
+
             logger.Log(LogCategory.Default);
+            AssertResultAndClear([typeof(object)]);
+
             logger.Log(LogID.NotUsed);
+            AssertResultAndClear([typeof(object)]);
+
             logger.Log(Color.red);
+            AssertResultAndClear([typeof(object)]);
+
             logger.Log(ConsoleColor.Red);
+            AssertResultAndClear([typeof(object)]);
+        }
+
+        internal void AssertResultAndClear(params object[] expectedParams)
+        {
+            if (methodCalled == null) //Fail and return instead of throwing a null reference
+            {
+                AssertThat(methodCalled).IsNotNull(); //This should not happen, and can be removed when tests are complete
+                return;
+            }
+
+            var parameters = methodCalled.GetParameters();
+
+            AssertThat(parameters.Length).IsEqualTo(expectedParams.Length); //Parameters must be exactly equal
+
+            UtilityLogger.Log("First arg type: " + parameters[0].ParameterType);
+            UtilityLogger.Log("First expected type: " + expectedParams[0]);
+
+            int checkCount = Math.Min(parameters.Length, expectedParams.Length);
+            for (int i = 0; i < checkCount; i++)
+                AssertThat(parameters[i].ParameterType).IsEqualTo(expectedParams[i].GetType()); //Each type must match in the exact same order
+
+            //Reset state for the next test
+            methodCalled = null;
         }
 
         internal void ApplyHooks()
@@ -76,6 +114,15 @@ namespace LogUtils.Diagnostics.Tests.Utility
                         testHooks.Add(hook);
                 }
             }
+
+            foreach (Hook h in testHooks)
+                h.Apply();
+        }
+
+        internal void RemoveHooks()
+        {
+            testHooks.ForEach(hook => hook.Free());
+            testHooks.Clear();
         }
 
         private bool tryCreateHook<TFirst>(MethodInfo method, ParameterInfo[] parameters, out Hook hook)
@@ -118,7 +165,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             return new Hook(method, (Action<Logger, TArg> orig, Logger self, TArg arg) =>
             {
-                if (methodCalled != null)
+                if (methodCalled == null)
                     methodCalled = method;
                 orig(self, arg);
             });
@@ -128,7 +175,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             return new Hook(method, (Action<Logger, TArg1, TArg2> orig, Logger self, TArg1 arg1, TArg2 arg2) =>
             {
-                if (methodCalled != null)
+                if (methodCalled == null)
                     methodCalled = method;
                 orig(self, arg1, arg2);
             });
@@ -138,7 +185,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             return new Hook(method, (Action<Logger, TArg1, TArg2, TArg3> orig, Logger self, TArg1 arg1, TArg2 arg2, TArg3 arg3) =>
             {
-                if (methodCalled != null)
+                if (methodCalled == null)
                     methodCalled = method;
                 orig(self, arg1, arg2, arg3);
             });
