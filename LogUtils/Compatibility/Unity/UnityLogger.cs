@@ -151,14 +151,20 @@ namespace LogUtils.Compatibility.Unity
                             if (!RWInfo.CheckExceptionMatch(LogID.Exception, exceptionInfo))
                             {
                                 RWInfo.ReportException(LogID.Exception, exceptionInfo);
-                                UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Exception, exceptionInfo, category)), false);
+                                request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Exception, exceptionInfo, category)), false);
                             }
                             return;
                         }
-                        UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Unity, message, category)), false);
+                        request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Unity, message, category)), false);
                     }
                     finally
                     {
+                        if (request != null && request.Status == RequestStatus.Rejected)
+                        {
+                            UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+                            UtilityLogger.DebugLog("Request after removal: " + UtilityCore.RequestHandler.CurrentRequest);
+                        }
+
                         UtilityCore.RequestHandler.RecursionCheckCounter--;
                     }
                 }

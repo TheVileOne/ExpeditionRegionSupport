@@ -39,19 +39,21 @@ namespace LogUtils.Compatibility.BepInEx.Listeners
 
             using (UtilityCore.RequestHandler.BeginCriticalSection())
             {
-                UtilityCore.RequestHandler.SanitizeCurrentRequest();
-
-                LogRequest request = UtilityCore.RequestHandler.GetRequestFromAPI(LogID.BepInEx);
-
+                LogRequest request;
                 //Utility log events are easy to trigger stack overflows through recursive access. For this reason we handle utility sourced requests
-                //differently than other requests. Requests that come through the LogRequestSystem that use the utility SourceName shouldn't be a risk for
-                //a stack overflow here
-                if (request == null && eventArgs.Source.SourceName == UtilityConsts.UTILITY_NAME)
+                //differently than other requests.
+                if (eventArgs.Source is UtilityLogSource)
                 {
                     request = new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.BepInEx, eventArgs));
                     logUtilityEvent(request);
                     return;
                 }
+
+                //No situation should require sanitization here. This is a safeguard protection used for stability purposes.
+                UtilityCore.RequestHandler.SanitizeCurrentRequest();
+
+                //BepInEx requests are handled through an external API. We make sure the recursive counter is updated to reflect that we receives a request.
+                request = UtilityCore.RequestHandler.GetRequestFromAPI(LogID.BepInEx);
 
                 //if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake)
                 //    ThreadUtils.AssertRunningOnMainThread(LogID.BepInEx);
