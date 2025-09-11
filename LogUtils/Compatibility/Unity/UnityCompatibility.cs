@@ -20,8 +20,8 @@ namespace LogUtils
 
         UnityEngine.ILogHandler UnityEngine.ILogger.logHandler
         {
-            get => this;
-            set => LogError(LogID.Exception, new NotSupportedException($"logHandler is readonly and cannot be changed"));
+            get => Handler;
+            set => Handler = value;
         }
 
         bool UnityEngine.ILogger.logEnabled
@@ -29,6 +29,25 @@ namespace LogUtils
             get => AllowLogging;
             set => AllowLogging = value;
         }
+
+        #region ILogHandler members
+
+        internal virtual UnityEngine.ILogHandler Handler
+        {
+            get => this;
+            set => LogError(LogID.Exception, new NotSupportedException($"logHandler is readonly and cannot be changed"));
+        }
+
+        internal virtual void LogException(Exception exception, UnityEngine.Object context)
+        {
+            LogBase(LogType.Exception, null, exception, context);
+        }
+
+        internal virtual void LogFormat(LogType logType, UnityEngine.Object context, string format, params object[] formatArgs)
+        {
+            LogBase(logType, null, FormattableStringFactory.Create(format, formatArgs), context);
+        }
+        #endregion
 
         bool UnityEngine.ILogger.IsLogTypeAllowed(LogType logType)
         {

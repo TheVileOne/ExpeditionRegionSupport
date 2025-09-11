@@ -12,8 +12,12 @@ namespace LogUtils.Compatibility.Unity
     /// </summary>
     public class UnityLogger : ILogger
     {
-        private static bool _receiveUnityLogEvents;
+        /// <summary>
+        /// Critical section flag for interacting with Unity's logging API
+        /// </summary>
+        internal static bool IsSafeToLogToUnity = true;
 
+        private static bool _receiveUnityLogEvents;
         internal static bool ReceiveUnityLogEvents
         {
             get => _receiveUnityLogEvents;
@@ -128,6 +132,7 @@ namespace LogUtils.Compatibility.Unity
 
         private static void logEvent(string message, string stackTrace, LogType category)
         {
+            IsSafeToLogToUnity = false;
             using (UtilityCore.RequestHandler.BeginCriticalSection())
             {
                 UtilityCore.RequestHandler.SanitizeCurrentRequest();
@@ -160,12 +165,10 @@ namespace LogUtils.Compatibility.Unity
                     finally
                     {
                         if (request != null && request.Status == RequestStatus.Rejected)
-                        {
                             UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
-                            UtilityLogger.DebugLog("Request after removal: " + UtilityCore.RequestHandler.CurrentRequest);
-                        }
 
                         UtilityCore.RequestHandler.RecursionCheckCounter--;
+                        IsSafeToLogToUnity = true;
                     }
                 }
             }

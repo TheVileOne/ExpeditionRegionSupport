@@ -370,6 +370,15 @@ namespace LogUtils.Requests
         }
 
         /// <summary>
+        /// Attempts to handle all unhandled log requests belonging to one, or more LogIDs in the order they were submitted
+        /// </summary>
+        public void ProcessRequests(CompositeLogTarget logFiles)
+        {
+            foreach (LogID logFile in logFiles.Set.OfType<LogID>())
+                ProcessRequests(logFile);
+        }
+
+        /// <summary>
         /// Attempts to handle all unhandled log requests belonging to a single LogID in the order they were submitted
         /// </summary>
         public void ProcessRequests(LogID logFile)

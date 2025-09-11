@@ -223,6 +223,7 @@ namespace LogUtils
                     {
                         //This must be run before late initialized log files are handled to allow BepInEx log file to be moved
                         BepInExAdapter.Run();
+                        UnityAdapter.Run();
                         LogConsole.Initialize();
 
                         if (!IsControllingAssembly)
