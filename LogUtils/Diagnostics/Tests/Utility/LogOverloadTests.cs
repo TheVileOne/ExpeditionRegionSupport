@@ -45,6 +45,9 @@ namespace LogUtils.Diagnostics.Tests.Utility
             logger.Log($"{argument}");
             AssertResultAndClear([typeof(InterpolatedStringHandler)]);
 
+            logger.Log(null);
+            AssertResultAndClear([typeof(string)]);
+
             logger.Log(LogCategory.Default);
             AssertResultAndClear([typeof(object)]);
 
@@ -58,7 +61,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             AssertResultAndClear([typeof(object)]);
         }
 
-        internal void AssertResultAndClear(params object[] expectedParams)
+        internal void AssertResultAndClear(params Type[] expectedTypes)
         {
             if (methodCalled == null) //Fail and return instead of throwing a null reference
             {
@@ -68,14 +71,18 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             var parameters = methodCalled.GetParameters();
 
-            AssertThat(parameters.Length).IsEqualTo(expectedParams.Length); //Parameters must be exactly equal
+            AssertThat(parameters.Length).IsEqualTo(expectedTypes.Length); //Parameters must be exactly equal
 
-            UtilityLogger.Log("First arg type: " + parameters[0].ParameterType);
-            UtilityLogger.Log("First expected type: " + expectedParams[0]);
-
-            int checkCount = Math.Min(parameters.Length, expectedParams.Length);
+            int checkCount = Math.Min(parameters.Length, expectedTypes.Length);
             for (int i = 0; i < checkCount; i++)
-                AssertThat(parameters[i].ParameterType).IsEqualTo(expectedParams[i].GetType()); //Each type must match in the exact same order
+            {
+                UtilityLogger.Log($"Arg {i} actual type: " + parameters[i].ParameterType);
+                UtilityLogger.Log($"Arg {i} expected type: " + expectedTypes[i]);
+
+                var condition = AssertThat(parameters[i].ParameterType).IsEqualTo(expectedTypes[i]); //Each type must match in the exact same order
+
+                UtilityLogger.Log("Condition passed: " + condition.Passed);
+            }
 
             //Reset state for the next test
             methodCalled = null;
