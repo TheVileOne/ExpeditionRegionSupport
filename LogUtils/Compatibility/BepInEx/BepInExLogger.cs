@@ -102,84 +102,84 @@ namespace LogUtils.Compatibility.BepInEx
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(FormattableString messageObj)
+        public void Log(InterpolatedStringHandler messageObj)
         {
             Source.LogInfo(messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogDebug(FormattableString messageObj)
+        public void LogDebug(InterpolatedStringHandler messageObj)
         {
             Source.LogDebug(messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogInfo(FormattableString messageObj)
+        public void LogInfo(InterpolatedStringHandler messageObj)
         {
             Source.LogInfo(messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogImportant(FormattableString messageObj)
+        public void LogImportant(InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.Important, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogMessage(FormattableString messageObj)
+        public void LogMessage(InterpolatedStringHandler messageObj)
         {
             Source.LogMessage(messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogWarning(FormattableString messageObj)
+        public void LogWarning(InterpolatedStringHandler messageObj)
         {
             Source.LogWarning(messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogError(FormattableString messageObj)
+        public void LogError(InterpolatedStringHandler messageObj)
         {
             Source.LogError(messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogFatal(FormattableString messageObj)
+        public void LogFatal(InterpolatedStringHandler messageObj)
         {
             Source.LogFatal(messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(LogLevel category, FormattableString messageObj)
+        public void Log(LogLevel category, InterpolatedStringHandler messageObj)
         {
             Source.Log(category, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(LogType category, FormattableString messageObj)
+        public void Log(LogType category, InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(string category, FormattableString messageObj)
+        public void Log(string category, InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(LogCategory category, FormattableString messageObj)
+        public void Log(LogCategory category, InterpolatedStringHandler messageObj)
         {
             Source.Log(category.BepInExCategory, messageObj);
         }

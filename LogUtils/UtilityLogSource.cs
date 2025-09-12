@@ -86,62 +86,62 @@ namespace LogUtils
         #endregion
         #region IFormattableLogger members
 
-        public void Log(FormattableString messageObj)
+        public void Log(InterpolatedStringHandler messageObj)
         {
             LogBase(LogLevel.Info, messageObj);
         }
 
-        public void LogDebug(FormattableString messageObj)
+        public void LogDebug(InterpolatedStringHandler messageObj)
         {
             LogBase(LogLevel.Debug, messageObj);
         }
 
-        public void LogInfo(FormattableString messageObj)
+        public void LogInfo(InterpolatedStringHandler messageObj)
         {
             LogBase(LogLevel.Info, messageObj);
         }
 
-        public void LogImportant(FormattableString messageObj)
+        public void LogImportant(InterpolatedStringHandler messageObj)
         {
             LogBase(LogCategory.Important.BepInExCategory, messageObj);
         }
 
-        public void LogMessage(FormattableString messageObj)
+        public void LogMessage(InterpolatedStringHandler messageObj)
         {
             LogBase(LogLevel.Message, messageObj);
         }
 
-        public void LogWarning(FormattableString messageObj)
+        public void LogWarning(InterpolatedStringHandler messageObj)
         {
             LogBase(LogLevel.Warning, messageObj);
         }
 
-        public void LogError(FormattableString messageObj)
+        public void LogError(InterpolatedStringHandler messageObj)
         {
             LogBase(LogLevel.Error, messageObj);
         }
 
-        public void LogFatal(FormattableString messageObj)
+        public void LogFatal(InterpolatedStringHandler messageObj)
         {
             LogBase(LogLevel.Fatal, messageObj);
         }
 
-        public void Log(LogType category, FormattableString messageObj)
+        public void Log(LogType category, InterpolatedStringHandler messageObj)
         {
             LogBase(LogCategory.ToCategory(category).BepInExCategory, messageObj);
         }
 
-        public void Log(LogLevel category, FormattableString messageObj)
+        public void Log(LogLevel category, InterpolatedStringHandler messageObj)
         {
             LogBase(category, messageObj);
         }
 
-        public void Log(string category, FormattableString messageObj)
+        public void Log(string category, InterpolatedStringHandler messageObj)
         {
             LogBase(LogCategory.ToCategory(category).BepInExCategory, messageObj);
         }
 
-        public void Log(LogCategory category, FormattableString messageObj)
+        public void Log(LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogBase(category.BepInExCategory, messageObj);
         }

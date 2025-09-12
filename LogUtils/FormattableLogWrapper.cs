@@ -95,73 +95,73 @@ namespace LogUtils
         #region IFormattableLogger members
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object)"/>
-        public void Log(FormattableString messageObj)
+        public void Log(InterpolatedStringHandler messageObj)
         {
             Value.Log(LogLevel.Info, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object)"/>
-        public void LogDebug(FormattableString messageObj)
+        public void LogDebug(InterpolatedStringHandler messageObj)
         {
             Value.Log(LogLevel.Debug, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object)"/>
-        public void LogInfo(FormattableString messageObj)
+        public void LogInfo(InterpolatedStringHandler messageObj)
         {
             Value.Log(LogLevel.Info, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object)"/>
-        public void LogImportant(FormattableString messageObj)
+        public void LogImportant(InterpolatedStringHandler messageObj)
         {
             Value.Log(LogCategory.Important.BepInExCategory, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object)"/>
-        public void LogMessage(FormattableString messageObj)
+        public void LogMessage(InterpolatedStringHandler messageObj)
         {
             Value.Log(LogLevel.Message, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object)"/>
-        public void LogWarning(FormattableString messageObj)
+        public void LogWarning(InterpolatedStringHandler messageObj)
         {
             Value.Log(LogLevel.Warning, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(object)"/>
-        public void LogError(FormattableString messageObj)
+        public void LogError(InterpolatedStringHandler messageObj)
         {
             Value.Log(LogLevel.Error, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object)"/>
-        public void LogFatal(FormattableString messageObj)
+        public void LogFatal(InterpolatedStringHandler messageObj)
         {
             Value.Log(LogLevel.Fatal, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        public void Log(LogType category, FormattableString messageObj)
+        public void Log(LogType category, InterpolatedStringHandler messageObj)
         {
             Value.Log(LogCategory.ToCategory(category).BepInExCategory, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        public void Log(LogLevel category, FormattableString messageObj)
+        public void Log(LogLevel category, InterpolatedStringHandler messageObj)
         {
             Value.Log(category, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        public void Log(string category, FormattableString messageObj)
+        public void Log(string category, InterpolatedStringHandler messageObj)
         {
             Value.Log(LogCategory.ToCategory(category).BepInExCategory, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        public void Log(LogCategory category, FormattableString messageObj)
+        public void Log(LogCategory category, InterpolatedStringHandler messageObj)
         {
             Value.Log(category.BepInExCategory, messageObj);
         }

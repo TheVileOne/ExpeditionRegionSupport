@@ -1802,67 +1802,68 @@ namespace LogUtils
         #endregion
         #endregion
 
-        #region Log Overloads (FormattableString)
+        #region Log Overloads (InterpolatedStringHandler)
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(FormattableString messageObj)
+        public void Log(InterpolatedStringHandler messageObj)
         {
+            UtilityLogger.Log("Formattable String overload");
             Log(LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(FormattableString messageObj)
+        public void LogOnce(InterpolatedStringHandler messageObj)
         {
             LogOnce(LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogDebug(FormattableString messageObj)
+        public void LogDebug(InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.Debug, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogInfo(FormattableString messageObj)
+        public void LogInfo(InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.Info, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogImportant(FormattableString messageObj)
+        public void LogImportant(InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.Important, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogMessage(FormattableString messageObj)
+        public void LogMessage(InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.Message, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogWarning(FormattableString messageObj)
+        public void LogWarning(InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.Warning, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogError(FormattableString messageObj)
+        public void LogError(InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.Error, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogFatal(FormattableString messageObj)
+        public void LogFatal(InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.Fatal, messageObj);
         }
@@ -1870,126 +1871,126 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(FormattableString messageObj, Color messageColor)
+        public void Log(InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(FormattableString messageObj, Color messageColor)
+        public void LogOnce(InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogOnce(LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogDebug(FormattableString messageObj, Color messageColor)
+        public void LogDebug(InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(LogCategory.Debug, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogInfo(FormattableString messageObj, Color messageColor)
+        public void LogInfo(InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(LogCategory.Info, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogImportant(FormattableString messageObj, Color messageColor)
+        public void LogImportant(InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(LogCategory.Important, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogMessage(FormattableString messageObj, Color messageColor)
+        public void LogMessage(InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(LogCategory.Message, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogWarning(FormattableString messageObj, Color messageColor)
+        public void LogWarning(InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(LogCategory.Warning, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogError(FormattableString messageObj, Color messageColor)
+        public void LogError(InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(LogCategory.Error, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogFatal(FormattableString messageObj, Color messageColor)
+        public void LogFatal(InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(LogCategory.Fatal, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(FormattableString messageObj, ConsoleColor messageColor)
+        public void Log(InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Default, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(FormattableString messageObj, ConsoleColor messageColor)
+        public void LogOnce(InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogOnce(LogCategory.Default, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogDebug(FormattableString messageObj, ConsoleColor messageColor)
+        public void LogDebug(InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Debug, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogInfo(FormattableString messageObj, ConsoleColor messageColor)
+        public void LogInfo(InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Info, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogImportant(FormattableString messageObj, ConsoleColor messageColor)
+        public void LogImportant(InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Important, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogMessage(FormattableString messageObj, ConsoleColor messageColor)
+        public void LogMessage(InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Message, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogWarning(FormattableString messageObj, ConsoleColor messageColor)
+        public void LogWarning(InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Warning, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogError(FormattableString messageObj, ConsoleColor messageColor)
+        public void LogError(InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Error, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogFatal(FormattableString messageObj, ConsoleColor messageColor)
+        public void LogFatal(InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Fatal, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
@@ -1997,56 +1998,56 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(LogType category, FormattableString messageObj)
+        public void Log(LogType category, InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(LogLevel category, FormattableString messageObj)
+        public void Log(LogLevel category, InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(string category, FormattableString messageObj)
+        public void Log(string category, InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(LogCategory category, FormattableString messageObj)
+        public void Log(LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogBase(category, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(LogType category, FormattableString messageObj)
+        public void LogOnce(LogType category, InterpolatedStringHandler messageObj)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(LogLevel category, FormattableString messageObj)
+        public void LogOnce(LogLevel category, InterpolatedStringHandler messageObj)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(string category, FormattableString messageObj)
+        public void LogOnce(string category, InterpolatedStringHandler messageObj)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(LogCategory category, FormattableString messageObj)
+        public void LogOnce(LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogBase(category, messageObj, true);
         }
@@ -2054,112 +2055,112 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(LogType category, FormattableString messageObj, Color messageColor)
+        public void Log(LogType category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(LogLevel category, FormattableString messageObj, Color messageColor)
+        public void Log(LogLevel category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(string category, FormattableString messageObj, Color messageColor)
+        public void Log(string category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(LogCategory category, FormattableString messageObj, Color messageColor)
+        public void Log(LogCategory category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogBase(category, messageObj, false, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(LogType category, FormattableString messageObj, Color messageColor)
+        public void LogOnce(LogType category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(LogLevel category, FormattableString messageObj, Color messageColor)
+        public void LogOnce(LogLevel category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(string category, FormattableString messageObj, Color messageColor)
+        public void LogOnce(string category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(LogCategory category, FormattableString messageObj, Color messageColor)
+        public void LogOnce(LogCategory category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogBase(category, messageObj, true, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(LogType category, FormattableString messageObj, ConsoleColor messageColor)
+        public void Log(LogType category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.ToCategory(category), messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(LogLevel category, FormattableString messageObj, ConsoleColor messageColor)
+        public void Log(LogLevel category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(string category, FormattableString messageObj, ConsoleColor messageColor)
+        public void Log(string category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(LogCategory category, FormattableString messageObj, ConsoleColor messageColor)
+        public void Log(LogCategory category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogBase(category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(LogType category, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogOnce(LogType category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(LogLevel category, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogOnce(LogLevel category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(string category, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogOnce(string category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(LogCategory category, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogOnce(LogCategory category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogBase(category, messageObj, true, ConsoleColorMap.GetColor(messageColor));
         }
@@ -2169,63 +2170,63 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogBepEx(FormattableString messageObj)
+        public void LogBepEx(InterpolatedStringHandler messageObj)
         {
             LogBase(LogID.BepInEx, LogCategory.Default, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogBepEx(LogLevel category, FormattableString messageObj)
+        public void LogBepEx(LogLevel category, InterpolatedStringHandler messageObj)
         {
             LogBase(LogID.BepInEx, LogCategory.ToCategory(category), messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogBepEx(LogCategory category, FormattableString messageObj)
+        public void LogBepEx(LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogBase(LogID.BepInEx, category, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogBepEx(FormattableString messageObj, Color messageColor)
+        public void LogBepEx(InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogBase(LogID.BepInEx, LogCategory.Default, messageObj, false, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogBepEx(LogLevel category, FormattableString messageObj, Color messageColor)
+        public void LogBepEx(LogLevel category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogBase(LogID.BepInEx, LogCategory.ToCategory(category), messageObj, false, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogBepEx(LogCategory category, FormattableString messageObj, Color messageColor)
+        public void LogBepEx(LogCategory category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogBase(LogID.BepInEx, category, messageObj, false, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogBepEx(FormattableString messageObj, ConsoleColor messageColor)
+        public void LogBepEx(InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogBase(LogID.BepInEx, LogCategory.Default, messageObj, false, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogBepEx(LogLevel category, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogBepEx(LogLevel category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogBase(LogID.BepInEx, LogCategory.ToCategory(category), messageObj, false, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogBepEx(LogCategory category, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogBepEx(LogCategory category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogBase(LogID.BepInEx, category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
         }
@@ -2234,21 +2235,21 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Game.LogUnity(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogUnity(FormattableString messageObj)
+        public void LogUnity(InterpolatedStringHandler messageObj)
         {
             LogBase(LogID.Unity, LogCategory.Default, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogUnity(LogType category, FormattableString messageObj)
+        public void LogUnity(LogType category, InterpolatedStringHandler messageObj)
         {
             LogBase(LogCategory.GetUnityLogID(category), LogCategory.ToCategory(category), messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogUnity(LogCategory category, FormattableString messageObj)
+        public void LogUnity(LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogBase(LogCategory.GetUnityLogID(category.UnityCategory), category, messageObj, false);
         }
@@ -2257,14 +2258,14 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Game.LogExp(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogExp(FormattableString messageObj)
+        public void LogExp(InterpolatedStringHandler messageObj)
         {
             LogBase(LogID.Expedition, LogCategory.Default, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogExp(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogExp(LogCategory category, FormattableString messageObj)
+        public void LogExp(LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogBase(LogID.Expedition, category, messageObj, false);
         }
@@ -2273,109 +2274,109 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Game.LogJolly(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogJolly(FormattableString messageObj)
+        public void LogJolly(InterpolatedStringHandler messageObj)
         {
             LogBase(LogID.JollyCoop, LogCategory.Default, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogJolly(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogJolly(LogCategory category, FormattableString messageObj)
+        public void LogJolly(LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogBase(LogID.JollyCoop, category, messageObj, false);
         }
         #endregion
         #endregion
         #endregion
-        #region  Log Overloads (ILogTarget, FormattableString)
+        #region  Log Overloads (ILogTarget, InterpolatedStringHandler)
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(ILogTarget target, FormattableString messageObj)
+        public void Log(ILogTarget target, InterpolatedStringHandler messageObj)
         {
             Log(target, LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(ILogTarget target, FormattableString messageObj)
+        public void LogOnce(ILogTarget target, InterpolatedStringHandler messageObj)
         {
             Log(target, LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(ILogTarget, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogDebug(ILogTarget target, FormattableString messageObj)
+        public void LogDebug(ILogTarget target, InterpolatedStringHandler messageObj)
         {
             Log(target, LogCategory.Debug, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(ILogTarget, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogInfo(ILogTarget target, FormattableString messageObj)
+        public void LogInfo(ILogTarget target, InterpolatedStringHandler messageObj)
         {
             Log(target, LogCategory.Info, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(ILogTarget, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogImportant(ILogTarget target, FormattableString messageObj)
+        public void LogImportant(ILogTarget target, InterpolatedStringHandler messageObj)
         {
             Log(target, LogCategory.Important, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(ILogTarget, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogMessage(ILogTarget target, FormattableString messageObj)
+        public void LogMessage(ILogTarget target, InterpolatedStringHandler messageObj)
         {
             Log(target, LogCategory.Message, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(ILogTarget, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogWarning(ILogTarget target, FormattableString messageObj)
+        public void LogWarning(ILogTarget target, InterpolatedStringHandler messageObj)
         {
             Log(target, LogCategory.Warning, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(ILogTarget, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogError(ILogTarget target, FormattableString messageObj)
+        public void LogError(ILogTarget target, InterpolatedStringHandler messageObj)
         {
             Log(target, LogCategory.Error, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(ILogTarget, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogFatal(ILogTarget target, FormattableString messageObj)
+        public void LogFatal(ILogTarget target, InterpolatedStringHandler messageObj)
         {
             Log(target, LogCategory.Fatal, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(ILogTarget target, LogLevel category, FormattableString messageObj)
+        public void Log(ILogTarget target, LogLevel category, InterpolatedStringHandler messageObj)
         {
             Log(target, LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(ILogTarget target, string category, FormattableString messageObj)
+        public void Log(ILogTarget target, string category, InterpolatedStringHandler messageObj)
         {
             Log(target, LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(ILogTarget target, LogCategory category, FormattableString messageObj)
+        public void Log(ILogTarget target, LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogUnresolvedTarget(target, category, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(ILogTarget target, LogCategory category, FormattableString messageObj)
+        public void LogOnce(ILogTarget target, LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogUnresolvedTarget(target, category, messageObj, true);
         }
@@ -2383,276 +2384,276 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(ILogTarget target, FormattableString messageObj, Color messageColor)
+        public void Log(ILogTarget target, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(target, LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(ILogTarget target, FormattableString messageObj, Color messageColor)
+        public void LogOnce(ILogTarget target, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(target, LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogDebug(ILogTarget target, FormattableString messageObj, Color messageColor)
+        public void LogDebug(ILogTarget target, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(target, LogCategory.Debug, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogInfo(ILogTarget target, FormattableString messageObj, Color messageColor)
+        public void LogInfo(ILogTarget target, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(target, LogCategory.Info, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogImportant(ILogTarget target, FormattableString messageObj, Color messageColor)
+        public void LogImportant(ILogTarget target, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(target, LogCategory.Important, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogMessage(ILogTarget target, FormattableString messageObj, Color messageColor)
+        public void LogMessage(ILogTarget target, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(target, LogCategory.Message, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogWarning(ILogTarget target, FormattableString messageObj, Color messageColor)
+        public void LogWarning(ILogTarget target, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(target, LogCategory.Warning, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogError(ILogTarget target, FormattableString messageObj, Color messageColor)
+        public void LogError(ILogTarget target, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(target, LogCategory.Error, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogFatal(ILogTarget target, FormattableString messageObj, Color messageColor)
+        public void LogFatal(ILogTarget target, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(target, LogCategory.Fatal, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(ILogTarget target, LogLevel category, FormattableString messageObj, Color messageColor)
+        public void Log(ILogTarget target, LogLevel category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(target, LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(ILogTarget target, string category, FormattableString messageObj, Color messageColor)
+        public void Log(ILogTarget target, string category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(target, LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(ILogTarget target, LogCategory category, FormattableString messageObj, Color messageColor)
+        public void Log(ILogTarget target, LogCategory category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogUnresolvedTarget(target, category, messageObj, false, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(ILogTarget target, LogCategory category, FormattableString messageObj, Color messageColor)
+        public void LogOnce(ILogTarget target, LogCategory category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogUnresolvedTarget(target, category, messageObj, true, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(ILogTarget target, FormattableString messageObj, ConsoleColor messageColor)
+        public void Log(ILogTarget target, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Default, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(ILogTarget target, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogOnce(ILogTarget target, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Default, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogDebug(ILogTarget target, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogDebug(ILogTarget target, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Debug, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogInfo(ILogTarget target, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogInfo(ILogTarget target, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Info, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogImportant(ILogTarget target, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogImportant(ILogTarget target, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Important, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogMessage(ILogTarget target, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogMessage(ILogTarget target, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Message, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogWarning(ILogTarget target, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogWarning(ILogTarget target, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Warning, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogError(ILogTarget target, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogError(ILogTarget target, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Error, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogFatal(ILogTarget target, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogFatal(ILogTarget target, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Fatal, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(ILogTarget target, LogLevel category, FormattableString messageObj, ConsoleColor messageColor)
+        public void Log(ILogTarget target, LogLevel category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.ToCategory(category), messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(ILogTarget target, string category, FormattableString messageObj, ConsoleColor messageColor)
+        public void Log(ILogTarget target, string category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.ToCategory(category), messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(ILogTarget target, LogCategory category, FormattableString messageObj, ConsoleColor messageColor)
+        public void Log(ILogTarget target, LogCategory category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogUnresolvedTarget(target, category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(ILogTarget target, LogCategory category, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogOnce(ILogTarget target, LogCategory category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogUnresolvedTarget(target, category, messageObj, true, ConsoleColorMap.GetColor(messageColor));
         }
         #endregion
         #endregion
-        #region  Log Overloads (IEnumerable<ILogTarget>, FormattableString)
+        #region  Log Overloads (IEnumerable<ILogTarget>, InterpolatedStringHandler)
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(IEnumerable<ILogTarget> targets, FormattableString messageObj)
+        public void Log(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj)
         {
             Log(targets, LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(IEnumerable<ILogTarget> targets, FormattableString messageObj)
+        public void LogOnce(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj)
         {
             Log(targets, LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(IEnumerable{ILogTarget}, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogDebug(IEnumerable<ILogTarget> targets, FormattableString messageObj)
+        public void LogDebug(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj)
         {
             Log(targets, LogCategory.Debug, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(IEnumerable{ILogTarget}, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogInfo(IEnumerable<ILogTarget> targets, FormattableString messageObj)
+        public void LogInfo(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj)
         {
             Log(targets, LogCategory.Info, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(IEnumerable{ILogTarget}, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogImportant(IEnumerable<ILogTarget> targets, FormattableString messageObj)
+        public void LogImportant(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj)
         {
             Log(targets, LogCategory.Important, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(IEnumerable{ILogTarget}, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogMessage(IEnumerable<ILogTarget> targets, FormattableString messageObj)
+        public void LogMessage(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj)
         {
             Log(targets, LogCategory.Message, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(IEnumerable{ILogTarget}, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogWarning(IEnumerable<ILogTarget> targets, FormattableString messageObj)
+        public void LogWarning(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj)
         {
             Log(targets, LogCategory.Warning, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(IEnumerable{ILogTarget}, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogError(IEnumerable<ILogTarget> targets, FormattableString messageObj)
+        public void LogError(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj)
         {
             Log(targets, LogCategory.Error, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(IEnumerable{ILogTarget}, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogFatal(IEnumerable<ILogTarget> targets, FormattableString messageObj)
+        public void LogFatal(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj)
         {
             Log(targets, LogCategory.Fatal, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(IEnumerable<ILogTarget> targets, LogLevel category, FormattableString messageObj)
+        public void Log(IEnumerable<ILogTarget> targets, LogLevel category, InterpolatedStringHandler messageObj)
         {
             Log(targets, LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(IEnumerable<ILogTarget> targets, string category, FormattableString messageObj)
+        public void Log(IEnumerable<ILogTarget> targets, string category, InterpolatedStringHandler messageObj)
         {
             Log(targets, LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(IEnumerable<ILogTarget> targets, LogCategory category, FormattableString messageObj)
+        public void Log(IEnumerable<ILogTarget> targets, LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, FormattableString messageObj)
+        public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, true);
         }
@@ -2660,182 +2661,182 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(IEnumerable<ILogTarget> targets, FormattableString messageObj, Color messageColor)
+        public void Log(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(IEnumerable<ILogTarget> targets, FormattableString messageObj, Color messageColor)
+        public void LogOnce(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogDebug(IEnumerable<ILogTarget> targets, FormattableString messageObj, Color messageColor)
+        public void LogDebug(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Debug, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogInfo(IEnumerable<ILogTarget> targets, FormattableString messageObj, Color messageColor)
+        public void LogInfo(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Info, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogImportant(IEnumerable<ILogTarget> targets, FormattableString messageObj, Color messageColor)
+        public void LogImportant(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Important, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogMessage(IEnumerable<ILogTarget> targets, FormattableString messageObj, Color messageColor)
+        public void LogMessage(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Message, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogWarning(IEnumerable<ILogTarget> targets, FormattableString messageObj, Color messageColor)
+        public void LogWarning(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Warning, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogError(IEnumerable<ILogTarget> targets, FormattableString messageObj, Color messageColor)
+        public void LogError(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Error, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogFatal(IEnumerable<ILogTarget> targets, FormattableString messageObj, Color messageColor)
+        public void LogFatal(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Fatal, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(IEnumerable<ILogTarget> targets, LogLevel category, FormattableString messageObj, Color messageColor)
+        public void Log(IEnumerable<ILogTarget> targets, LogLevel category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(targets, LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(IEnumerable<ILogTarget> targets, string category, FormattableString messageObj, Color messageColor)
+        public void Log(IEnumerable<ILogTarget> targets, string category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(targets, LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(IEnumerable<ILogTarget> targets, LogCategory category, FormattableString messageObj, Color messageColor)
+        public void Log(IEnumerable<ILogTarget> targets, LogCategory category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, false, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, FormattableString messageObj, Color messageColor)
+        public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, true, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(IEnumerable<ILogTarget> targets, FormattableString messageObj, ConsoleColor messageColor)
+        public void Log(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(IEnumerable<ILogTarget> targets, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogOnce(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogDebug(IEnumerable<ILogTarget> targets, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogDebug(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Debug, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogInfo(IEnumerable<ILogTarget> targets, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogInfo(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Info, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogImportant(IEnumerable<ILogTarget> targets, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogImportant(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Important, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogMessage(IEnumerable<ILogTarget> targets, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogMessage(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Message, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogWarning(IEnumerable<ILogTarget> targets, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogWarning(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Warning, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogError(IEnumerable<ILogTarget> targets, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogError(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Error, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogFatal(IEnumerable<ILogTarget> targets, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogFatal(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Fatal, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(IEnumerable<ILogTarget> targets, LogLevel category, FormattableString messageObj, ConsoleColor messageColor)
+        public void Log(IEnumerable<ILogTarget> targets, LogLevel category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(IEnumerable<ILogTarget> targets, string category, FormattableString messageObj, ConsoleColor messageColor)
+        public void Log(IEnumerable<ILogTarget> targets, string category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(IEnumerable<ILogTarget> targets, LogCategory category, FormattableString messageObj, ConsoleColor messageColor)
+        public void Log(IEnumerable<ILogTarget> targets, LogCategory category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, FormattableString messageObj, ConsoleColor messageColor)
+        public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, true, ConsoleColorMap.GetColor(messageColor));
         }

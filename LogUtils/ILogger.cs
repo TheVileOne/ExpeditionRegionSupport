@@ -16,7 +16,7 @@ namespace LogUtils
     /// <summary>
     /// Represents a type used to perform logging that supports <see cref="FormattableString"/>
     /// </summary>
-    public interface IFormattableLogger : ILogger, ILogger<FormattableString>;
+    public interface IFormattableLogger : ILogger, ILogger<InterpolatedStringHandler>;
 
     /// <summary>
     /// Represents a type used to perform logging

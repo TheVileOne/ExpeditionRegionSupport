@@ -43,7 +43,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             AssertResultAndClear([typeof(object)]);
 
             logger.Log($"{argument}");
-            AssertResultAndClear([typeof(FormattableString)]);
+            AssertResultAndClear([typeof(InterpolatedStringHandler)]);
 
             logger.Log(LogCategory.Default);
             AssertResultAndClear([typeof(object)]);
@@ -108,9 +108,9 @@ namespace LogUtils.Diagnostics.Tests.Utility
                     if (tryCreateHook<LogCategory>(method, parameters, out Hook hook))
                         testHooks.Add(hook);
                 }
-                else if (firstParam == typeof(FormattableString))
+                else if (firstParam == typeof(InterpolatedStringHandler))
                 {
-                    if (tryCreateHook<FormattableString>(method, parameters, out Hook hook))
+                    if (tryCreateHook<InterpolatedStringHandler>(method, parameters, out Hook hook))
                         testHooks.Add(hook);
                 }
             }
@@ -144,9 +144,9 @@ namespace LogUtils.Diagnostics.Tests.Utility
                     {
                         hook = createHookWithTwoArguments<TFirst, object>(method);
                     }
-                    else if (secondParam == typeof(FormattableString))
+                    else if (secondParam == typeof(InterpolatedStringHandler))
                     {
-                        hook = createHookWithTwoArguments<TFirst, FormattableString>(method);
+                        hook = createHookWithTwoArguments<TFirst, InterpolatedStringHandler>(method);
                     }
                     else if (secondParam == typeof(object[]))
                     {
