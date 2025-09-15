@@ -87,7 +87,8 @@ namespace LogUtils.Policy
                 BindEntries();
                 AssignEvents();
 
-                DebugPolicy.DebugMode = DebugMode.Value;
+                if (UtilityCore.Build != UtilitySetup.Build.DEVELOPMENT) //Do not allow release mode to be set when not using release build
+                    DebugPolicy.DebugMode = DebugMode.Value;
                 DebugPolicy.ShowDebugLog = ShowDebugLog.Value;
                 DebugPolicy.ShowActivityLog = ShowActivityLog.Value;
             }
