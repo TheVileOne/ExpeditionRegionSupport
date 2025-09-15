@@ -19,6 +19,21 @@ namespace LogUtils.Diagnostics
         /// </summary>
         public static int LogFrameReportThreshold = 25;
 
+        /// <summary>
+        /// When set to true, ignores the <see cref="DebugContext"/> information when determining whether an assert is considered a test condition
+        /// </summary>
+        public static bool AcceptTestResultsFromAnyContext;
+
+        /// <summary>
+        /// When set to true, assert results will not be assigned an identifier
+        /// </summary>
+        public static bool SuppressTestResultCount;
+
+        /// <summary>
+        /// Context flag, typically used for assert processing
+        /// </summary>
+        public static DebugContext LastKnownContext;
+
         internal static TestSuite UtilityTests;
 
         internal static void InitializeTestSuite()

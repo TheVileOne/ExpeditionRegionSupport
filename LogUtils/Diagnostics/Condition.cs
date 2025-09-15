@@ -1,10 +1,10 @@
-using LogUtils.Diagnostics.Tests;
+using LogUtils.Enums;
 using System;
 using System.Collections.Generic;
 
 namespace LogUtils.Diagnostics
 {
-    public struct Condition<T>
+    public readonly struct Condition<T>
     {
         public static bool operator true(Condition<T> condition) => condition.Passed;
         public static bool operator false(Condition<T> condition) => !condition.Passed;
@@ -17,7 +17,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// The pass/fail state of the condition
         /// </summary>
-        internal Condition.Result Result;
+        internal readonly Condition.Result Result;
 
         public readonly bool Passed => Result.Passed;
 
@@ -209,26 +209,20 @@ namespace LogUtils.Diagnostics
         {
             private static int _nextID;
 
-            /// <summary>
-            /// Value to be assigned to the next created Result instance
-            /// </summary>
-            private static int nextID
+            private static int assignID()
             {
-                get
-                {
-                    //Maintaining a count for every result could easily balloon into a very high value - limit counting to only test results
-                    if (TestSuite.ActiveSuite == null)
-                        return 0;
+                bool isTestResult = Debug.AcceptTestResultsFromAnyContext || Debug.LastKnownContext == DebugContext.TestCondition;
 
-                    _nextID++;
-                    return _nextID;
-                }
+                if (!isTestResult || Debug.SuppressTestResultCount)
+                    return 0;
+
+                return _nextID++;
             }
 
             /// <summary>
             /// Value used for identification of the result (non-zero based)
             /// </summary>
-            public int ID = nextID;
+            public readonly int ID = assignID();
 
             public bool Passed;
             public Message Message;

@@ -1,4 +1,5 @@
-﻿using LogUtils.Policy;
+﻿using LogUtils.Enums;
+using LogUtils.Policy;
 using System;
 using System.Collections.Generic;
 using MessageFormatter = LogUtils.Diagnostics.AssertHandler.MessageFormatter;
@@ -100,7 +101,7 @@ namespace LogUtils.Diagnostics.Tests
         /// <param name="value">Value to be used as an assert target</param>
         public Condition<T> AssertThat<T>(T value)
         {
-            var condition = Assert.That(value, this);
+            var condition = Assert.Test(value, this);
 
             condition.AddHandlers(ApplicableHandlers);
             return condition;
@@ -112,7 +113,7 @@ namespace LogUtils.Diagnostics.Tests
         /// <param name="value">Value to be used as an assert target</param>
         public Condition<T?> AssertThat<T>(T? value) where T : struct
         {
-            var condition = Assert.That(value, this);
+            var condition = Assert.Test(value, this);
 
             condition.AddHandlers(ApplicableHandlers);
             return condition;

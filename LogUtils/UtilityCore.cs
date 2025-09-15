@@ -206,6 +206,10 @@ namespace LogUtils
                         LogCategory.InitializeEnums();
                         LogID.InitializeEnums();
 
+                        //These are regular ExtEnums, and do not depend on any component
+                        //TODO: BufferContext.InitializeEnums();
+                        DebugContext.InitializeEnums();
+
                         nextStep = UtilitySetup.InitializationStep.PARSE_FILTER_RULES;
                         break;
                     }
