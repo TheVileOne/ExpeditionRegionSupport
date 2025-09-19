@@ -1,4 +1,5 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Formatting;
 using MonoMod.RuntimeDetour;
 using System;
 using System.Collections.Generic;

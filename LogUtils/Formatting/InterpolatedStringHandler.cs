@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace LogUtils
+namespace LogUtils.Formatting
 {
     /// <summary>
     /// A struct that processes interpolated string data into a formatted string

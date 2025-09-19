@@ -1,5 +1,6 @@
 ﻿using LogUtils.Console;
 using LogUtils.Enums;
+using LogUtils.Formatting;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

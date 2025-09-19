@@ -1,6 +1,7 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Compatibility.BepInEx;
 using LogUtils.Enums;
+using LogUtils.Formatting;
 using System;
 using System.Threading;
 using UnityEngine;
