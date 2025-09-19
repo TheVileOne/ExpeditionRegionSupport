@@ -1809,7 +1809,6 @@ namespace LogUtils
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void Log(InterpolatedStringHandler messageObj)
         {
-            UtilityLogger.Log("Formattable String overload");
             Log(LogCategory.Default, messageObj);
         }
 

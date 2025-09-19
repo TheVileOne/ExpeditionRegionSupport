@@ -336,9 +336,6 @@ namespace LogUtils.Diagnostics.Tests.Utility
             activeCase = testGroup;
             Logger logger = new DiscreteLogger(false);
 
-            //logger.Log(formatArgs: "Hello Slugg", format: "{0}"); //format, formatArgument
-            //logger.Log("{0}", "Hello Slugg");         //category, message
-
             #region String tests
 
             Condition.Result.ResetCount();
@@ -1383,7 +1380,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             if (methodCalled == null) //Fail and return instead of throwing a null reference
             {
-                UtilityLogger.Log("Expected types missing test: " + string.Join<Type>(" ,", expectedTypes));
+                //UtilityLogger.Log("Expected types missing test: " + string.Join<Type>(" ,", expectedTypes));
                 activeCase.AssertThat(methodCalled).IsNotNull(); //This should not happen, and can be removed when tests are complete
                 return;
             }
@@ -1395,12 +1392,12 @@ namespace LogUtils.Diagnostics.Tests.Utility
             int checkCount = Math.Min(parameters.Length, expectedTypes.Length);
             for (int i = 0; i < checkCount; i++)
             {
-                UtilityLogger.Log($"Arg {i} actual type: " + parameters[i].ParameterType);
-                UtilityLogger.Log($"Arg {i} expected type: " + expectedTypes[i]);
+                //UtilityLogger.Log($"Arg {i} actual type: " + parameters[i].ParameterType);
+                //UtilityLogger.Log($"Arg {i} expected type: " + expectedTypes[i]);
 
                 var condition = activeCase.AssertThat(parameters[i].ParameterType).IsEqualTo(expectedTypes[i]); //Each type must match in the exact same order
 
-                UtilityLogger.Log("Condition passed: " + condition.Passed);
+                //UtilityLogger.Log("Condition passed: " + condition.Passed);
             }
 
             //Reset state for the next test
