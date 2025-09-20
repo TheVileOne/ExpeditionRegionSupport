@@ -246,6 +246,7 @@ namespace ExpeditionRegionSupport.Filters
             applyEmptyListHandling<Challenge>(cursor);
 
             while (cursor.TryGotoNext(MoveType.Before, x => x.MatchRet())) //Find the last return
+                continue;
 
             cursor.Emit(OpCodes.Dup);
             cursor.BranchStart(OpCodes.Brtrue); //Null check Challenge gen - This means challenge type cannot be selected
