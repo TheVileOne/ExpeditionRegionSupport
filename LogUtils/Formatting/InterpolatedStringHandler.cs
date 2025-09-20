@@ -36,6 +36,7 @@ namespace LogUtils.Formatting
         /// <summary>
         /// Adds an object component for later formatting (used by compiled code)
         /// </summary>
+        /// <param name="argument">An argument to be formatted</param>
         /// <exception cref="InvalidOperationException">More than the amount of expected arguments were provided to the handler</exception>
         public void AppendFormatted<T>(T argument)
         {
@@ -46,17 +47,41 @@ namespace LogUtils.Formatting
             arguments[argumentIndex] = new ArgumentInfo(argument, builder.Length);
         }
 
-        /// <summary>
-        /// Adds an object component for later formatting (used by compiled code)
-        /// </summary>
-        /// <exception cref="InvalidOperationException">More than the amount of expected arguments were provided to the handler</exception>
-        public void AppendFormatted<T>(T argument, int alignment) //TODO: Implement alignment
+        /// <inheritdoc cref="AppendFormatted{T}(T)"/>
+        /// <param name="argument">An argument to be formatted</param>
+        /// <param name="alignment">Value affects padded space unless used with a <see cref="UnityEngine.Color"/> or <see cref="ConsoleColor"/>, of which it represents the number of formatted characters</param>
+        public void AppendFormatted<T>(T argument, int alignment)
         {
             if (argumentIndex == arguments.Length - 1)
                 throw new InvalidOperationException("Handler does not accept additional arguments");
 
             argumentIndex++;
-            arguments[argumentIndex] = new ArgumentInfo(argument, builder.Length);
+            arguments[argumentIndex] = new ArgumentInfo(argument, builder.Length, alignment);
+        }
+
+        /// <inheritdoc cref="AppendFormatted{T}(T)"/>
+        /// <param name="argument">An argument to be formatted</param>
+        /// <param name="format">Format specification applicable to an argument</param>
+        public void AppendFormatted<T>(T argument, string format)
+        {
+            if (argumentIndex == arguments.Length - 1)
+                throw new InvalidOperationException("Handler does not accept additional arguments");
+
+            argumentIndex++;
+            arguments[argumentIndex] = new ArgumentInfo(argument, builder.Length, format: format);
+        }
+
+        /// <inheritdoc cref="AppendFormatted{T}(T)"/>
+        /// <param name="argument">An argument to be formatted</param>
+        /// <param name="format">Format specification applicable to an argument</param>
+        /// <param name="alignment">Value affects padded space unless used with a <see cref="UnityEngine.Color"/> or <see cref="ConsoleColor"/>, of which it represents the number of formatted characters</param>
+        public void AppendFormatted<T>(T argument, string format, int alignment)
+        {
+            if (argumentIndex == arguments.Length - 1)
+                throw new InvalidOperationException("Handler does not accept additional arguments");
+
+            argumentIndex++;
+            arguments[argumentIndex] = new ArgumentInfo(argument, builder.Length, alignment, format);
         }
 
         internal readonly void SetBuildString(string value)
@@ -102,7 +127,7 @@ namespace LogUtils.Formatting
             return formattedString;
         }
 
-        private readonly struct ArgumentInfo(object argument, int index)
+        private readonly struct ArgumentInfo(object argument, int index, int range = 0, string format = "o")
         {
             /// <summary>
             /// An object, or value to be inserted into the builder string
@@ -110,9 +135,19 @@ namespace LogUtils.Formatting
             public readonly object Argument = argument;
 
             /// <summary>
+            /// The format specifier code
+            /// </summary>
+            public readonly string Format = format;
+
+            /// <summary>
             /// The position in the builder string at the time of format
             /// </summary>
             public readonly int Index = index;
+
+            /// <summary>
+            /// The number of characters to apply the format
+            /// </summary>
+            public readonly int Range = range;
         }
 
         private readonly ref struct FormatProcessor
