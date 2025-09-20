@@ -42,7 +42,7 @@ namespace LogUtils.Formatting
         /// </summary>
         public virtual string Format(LogRequestEventArgs messageData)
         {
-            IFormattable formattable = messageData.MessageObject as IFormattable;
+            IFormattable formattable = messageData.FormattableMessage;
 
             string message = formattable != null ? formattable.ToString(null, ColorFormatter)
                                                  : messageData.Message;

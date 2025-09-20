@@ -96,7 +96,7 @@ namespace LogUtils
             if (request.Status == RequestStatus.Rejected)
                 return;
 
-            string message = request.Data.Message;
+            object message = request.Data.MessageObject;
 
             LogID logFile = request.Data.ID;
 
