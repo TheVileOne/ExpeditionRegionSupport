@@ -129,10 +129,8 @@ namespace LogUtils.Compatibility.BepInEx
                     //Slight chance this could fail - if a false positive line start is handled. It shouldn't happen under typical run conditions
                     int messageStartIndex = headerEnd + 1;
 
-                    if (messageStartIndex == line.Length) //Empty string
-                        messageBuilder.Append(string.Empty);
-                    else
-                        messageBuilder.Append(line.Substring(messageStartIndex));
+                    if (messageStartIndex != line.Length) //Append if string is not empty
+                        messageBuilder.Append(line, messageStartIndex, line.Length - messageStartIndex);
 
                     totalLinesProcessed++;
                 }

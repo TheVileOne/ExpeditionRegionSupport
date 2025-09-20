@@ -169,7 +169,7 @@ namespace LogUtils.Properties.Formatting
         /// <summary>
         /// Constructs a new LogRule instance
         /// </summary>
-        public LogRule(string name, bool enabled)
+        protected LogRule(string name, bool enabled)
         {
             Name = name;
             _enabled = enabled;

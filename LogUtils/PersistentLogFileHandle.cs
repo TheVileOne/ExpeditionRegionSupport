@@ -16,7 +16,7 @@ namespace LogUtils
 
             //ComparisonLogIDs are unsupported
             if (FileID.Properties == null)
-                throw new ArgumentException("LogProperties instance must not be null");
+                throw new ArgumentException("LogProperties instance must not be null", nameof(logFile));
 
             CreateFileStream();
             FileID.Properties.PersistentStreamHandles.Add(this);

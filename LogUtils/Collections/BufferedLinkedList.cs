@@ -24,14 +24,14 @@ namespace LogUtils.Collections
             set
             {
                 if (value <= 0)
-                    throw new ArgumentOutOfRangeException("value");
+                    throw new ArgumentOutOfRangeException(nameof(value));
 
                 int freeNodesAvailable = nodeLeaser.Count;
 
                 if (value < Capacity)
                 {
                     if (freeNodesAvailable <= Capacity - value)
-                        throw new ArgumentException("Not enough free nodes available");
+                        throw new ArgumentException("Not enough free nodes available", nameof(value));
 
                     for (int i = 0; i < Capacity - value; i++)
                         nodeLeaser.RemoveLast(); //Remove nodes to match new capacity

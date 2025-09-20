@@ -125,7 +125,7 @@ namespace LogUtils.Threading
                 throw new ArgumentNullException(nameof(task));
 
             if (task == taskOther)
-                throw new ArgumentException("Tasks refer to the same instance when expecting different instances");
+                throw new ArgumentException("Tasks refer to the same instance when expecting different instances", nameof(task));
 
             if (task.State != TaskState.NotSubmitted)
                 throw new InvalidStateException(nameof(task));
@@ -172,7 +172,7 @@ namespace LogUtils.Threading
                 throw new ArgumentNullException(nameof(task));
 
             if (task == taskOther)
-                throw new ArgumentException("Tasks refer to the same instance when expecting different instances");
+                throw new ArgumentException("Tasks refer to the same instance when expecting different instances", nameof(task));
 
             if (task.State != TaskState.NotSubmitted)
                 throw new InvalidStateException(nameof(task));

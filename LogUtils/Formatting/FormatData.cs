@@ -8,7 +8,7 @@ using UnityEngine;
 namespace LogUtils.Formatting
 {
     /// <summary>
-    /// A data class for storing format informations
+    /// A data class for storing format information
     /// </summary>
     public sealed class FormatData
     {
@@ -18,7 +18,7 @@ namespace LogUtils.Formatting
         public object Argument;
 
         /// <summary>
-        /// Checks that Argument is a UnityEngine.Color
+        /// Checks that Argument is a <see cref="Color"/> or a <see cref="ConsoleColor"/>
         /// </summary>
         public bool IsColorData => Argument is Color || Argument is ConsoleColor;
 

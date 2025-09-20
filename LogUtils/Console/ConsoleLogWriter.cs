@@ -89,7 +89,7 @@ namespace LogUtils.Console
         {
             IColorFormatProvider colorProvider = Formatter.ColorFormatter;
 
-            Color lastDefaultColor = colorProvider.MessageColor ?? ConsoleColorMap.DefaultColor; ;
+            Color lastDefaultColor = colorProvider.MessageColor ?? ConsoleColorMap.DefaultColor;
             try
             {
                 Color messageColor = messageData.MessageColor;

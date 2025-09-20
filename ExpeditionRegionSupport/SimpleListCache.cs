@@ -21,7 +21,7 @@ namespace ExpeditionRegionSupport
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException();
+                    throw new ArgumentNullException(nameof(value));
 
                 //This reference should not be overwritten. Transfer values to existing reference instead.
                 _items.Clear();

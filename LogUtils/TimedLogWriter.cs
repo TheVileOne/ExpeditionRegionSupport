@@ -39,7 +39,7 @@ namespace LogUtils
         public TimedLogWriter(int writeInterval = INTERVAL_DEFAULT)
         {
             if (writeInterval <= 0)
-                throw new ArgumentOutOfRangeException("Write interval must be greater than zero");
+                throw new ArgumentOutOfRangeException(nameof(writeInterval), "Write interval must be greater than zero");
 
             TimeSpan taskInterval = TimeSpan.FromMilliseconds(writeInterval);
 

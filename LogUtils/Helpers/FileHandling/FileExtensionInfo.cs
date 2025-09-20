@@ -59,7 +59,7 @@ namespace LogUtils
                 return;
             }
             Extension = fileExt;
-            IsNormalized = Extension == Extension.ToLower();
+            IsNormalized = string.Equals(Extension, Extension.ToLower());
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace LogUtils
         public string Normalize() => IsNormalized ? Extension : Extension.ToLower();
 
         /// <inheritdoc/>
-        public bool Equals(FileExtensionInfo other) => Normalize() == other.Normalize();
+        public bool Equals(FileExtensionInfo other) => string.Equals(Normalize(), other.Normalize());
 
         /// <inheritdoc/>
         public override string ToString() => Extension;

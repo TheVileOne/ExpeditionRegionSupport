@@ -210,7 +210,7 @@ namespace LogUtils.Properties
                 if (_version == value) return;
 
                 if (value == null)
-                    throw new ArgumentNullException(nameof(Version));
+                    throw new ArgumentNullException(nameof(value));
 
                 //Detect outdated versions, updating to the latest major revision
                 if (LatestVersion.Major > value.Major)

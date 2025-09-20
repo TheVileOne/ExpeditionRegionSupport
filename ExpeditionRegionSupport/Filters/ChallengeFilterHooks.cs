@@ -245,7 +245,7 @@ namespace ExpeditionRegionSupport.Filters
             cursor.Emit(OpCodes.Ldloc_0); //Push list of challenge types onto stack
             applyEmptyListHandling<Challenge>(cursor);
 
-            while (cursor.TryGotoNext(MoveType.Before, x => x.MatchRet())) ; //Find the last return
+            while (cursor.TryGotoNext(MoveType.Before, x => x.MatchRet())) //Find the last return
 
             cursor.Emit(OpCodes.Dup);
             cursor.BranchStart(OpCodes.Brtrue); //Null check Challenge gen - This means challenge type cannot be selected

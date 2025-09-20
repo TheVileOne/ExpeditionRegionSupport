@@ -100,7 +100,7 @@ namespace LogUtils.Enums
             value = value?.Trim();
 
             if (string.IsNullOrEmpty(value))
-                throw new ArgumentException("Value cannot be null or empty.");
+                throw new ArgumentException("Value cannot be null or empty.", nameof(value));
 
             T result = (T)Activator.CreateInstance(typeof(T), value, false);
             if (!result.Registered)

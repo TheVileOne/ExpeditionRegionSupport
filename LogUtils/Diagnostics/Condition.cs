@@ -185,7 +185,7 @@ namespace LogUtils.Diagnostics
             {
                 //To use the API properly, mod users need to acknowledge that changing the amount of format arguments is intended and allowable
                 if (throwIfDescriptorCountDoesNotMatch && descriptors.Length != Descriptors.Length)
-                    throw new ArgumentException("Changing the descriptor count is not allowed");
+                    throw new ArgumentException("Changing the descriptor count is not allowed", nameof(descriptors));
                 Descriptors = descriptors;
             }
 

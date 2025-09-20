@@ -9,6 +9,7 @@ using AssemblyCandidate = (System.Version Version, string Path);
 
 namespace LogUtils.Patcher;
 
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0049:Type name should not match containing namespace", Justification = "Assembly is accessed through reflection")]
 public static class Patcher
 {
     /// <summary>

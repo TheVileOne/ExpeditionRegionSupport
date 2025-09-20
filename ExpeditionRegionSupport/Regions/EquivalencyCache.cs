@@ -1,4 +1,5 @@
 ﻿using ExpeditionRegionSupport.Regions.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -91,7 +92,7 @@ namespace ExpeditionRegionSupport.Regions
             RegionProfile regionProfile = FindProfile(regionCode);
 
             if (regionProfile.IsDefault)
-                return includeSelf ? new string[] { regionCode } : new string[] { };
+                return includeSelf ? new string[] { regionCode } : Array.Empty<string>();
             return regionProfile.ListEquivalences(includeSelf).Select(rp => rp.RegionCode);
         }
 

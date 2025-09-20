@@ -111,7 +111,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                     {
                         int displayIndex = 0;
 
-                        StringBuilder sb = new StringBuilder();
+                        //StringBuilder sb = new StringBuilder();
                         for (int i = 0; i < RoomRestrictions.Count; i++)
                         {
                             RoomRestrictions current = RoomRestrictions[i];
@@ -121,10 +121,10 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                             Plugin.Logger.LogDebug($"[{displayIndex}]");
                             current.LogData(this);
 
-                            /*sb.Append($"[{i}]");
-                            sb.Append(Environment.NewLine);
-                            sb.Append(RoomRestrictions[i].ToString());
-                            sb.Append(Environment.NewLine);*/
+                            //sb.Append($"[{i}]");
+                            //sb.Append(Environment.NewLine);
+                            //sb.Append(RoomRestrictions[i].ToString());
+                            //sb.Append(Environment.NewLine);
 
                             displayIndex++;
                         }

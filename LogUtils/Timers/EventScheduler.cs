@@ -72,7 +72,7 @@ namespace LogUtils.Timers
         public ScheduledEvent Schedule(Action action, int frameInterval, bool syncToRainWorld, int invokeLimit = -1)
         {
             if (frameInterval < 0)
-                throw new ArgumentOutOfRangeException(nameof(frameInterval) + " must be greater than zero");
+                throw new ArgumentOutOfRangeException(nameof(frameInterval),  "Value must be greater than zero");
 
             ScheduledEvent pendingEvent = new ScheduledEvent(action, frameInterval, syncToRainWorld, invokeLimit);
 

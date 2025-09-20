@@ -20,7 +20,7 @@ namespace LogUtils.Events
         public LogMovePendingEventArgs(LogProperties properties, string pendingLogPath, string pendingFilename = null) : base(properties)
         {
             if (pendingLogPath == null)
-                throw new ArgumentNullException("Path must be specified");
+                throw new ArgumentNullException(nameof(pendingLogPath), "Path must be specified");
 
             MovePath = pendingLogPath;
             NewFilename = pendingFilename;

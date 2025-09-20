@@ -38,7 +38,7 @@ namespace LogUtils.Properties
                 if (_filename == value || ReadOnly) return;
 
                 if (value == null)
-                    throw new ArgumentNullException(nameof(Filename));
+                    throw new ArgumentNullException(nameof(value));
                 _filename = value;
             }
         }
@@ -54,7 +54,7 @@ namespace LogUtils.Properties
                 if (_altFilename == value || ReadOnly) return;
 
                 if (value == null)
-                    throw new ArgumentNullException(nameof(AltFilename));
+                    throw new ArgumentNullException(nameof(value));
 
                 _altFilename = value;
                 UpdateReserveFilename();
@@ -97,7 +97,7 @@ namespace LogUtils.Properties
                 if (_folderPath == value || ReadOnly) return;
 
                 if (value == null)
-                    throw new ArgumentNullException(nameof(FolderPath), "Property is not allowed to be null. Use root, or customroot as a value instead.");
+                    throw new ArgumentNullException(nameof(value), "Property is not allowed to be null. Use root, or customroot as a value instead.");
                 _folderPath = value;
             }
         }
@@ -113,7 +113,7 @@ namespace LogUtils.Properties
                 if (_originalFolderPath == value || ReadOnly) return;
 
                 if (value == null)
-                    throw new ArgumentNullException(nameof(OriginalFolderPath), "Property is not allowed to be null. Use root, or customroot as a value instead.");
+                    throw new ArgumentNullException(nameof(value), "Property is not allowed to be null. Use root, or customroot as a value instead.");
                 _originalFolderPath = value;
             }
         }
@@ -269,7 +269,7 @@ namespace LogUtils.Properties
         public void ChangeFilename(string newFilename)
         {
             if (PathUtils.IsEmpty(FileExtension.Remove(newFilename)))
-                throw new ArgumentException("Filename cannot be null, or empty");
+                throw new ArgumentException("Filename cannot be null, or empty", nameof(newFilename));
 
             UpdateCurrentPath(CurrentFolderPath, new LogFilename(newFilename));
         }
@@ -285,7 +285,7 @@ namespace LogUtils.Properties
             newPath = PathUtils.PathWithoutFilename(newPath, out string filename);
 
             if (PathUtils.IsEmpty(newPath))
-                throw new ArgumentException("Path cannot be null, or empty");
+                throw new ArgumentException("Path cannot be null, or empty", nameof(newPath));
 
             LogFilename newFilename;
             newPath = GetContainingPath(newPath);

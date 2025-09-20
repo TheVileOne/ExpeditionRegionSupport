@@ -131,7 +131,7 @@ namespace ExpeditionRegionSupport.Interface.Components
         {
             //Basic CheckBox validation is handled before this logic is run
             if (box is not FilterCheckBox)
-                throw new ArgumentException("FilterOptions only uses FilterCheckBox");
+                throw new ArgumentException("FilterOptions only uses FilterCheckBox", nameof(box));
 
             FilterCheckBox filterBox = (FilterCheckBox)box;
 
