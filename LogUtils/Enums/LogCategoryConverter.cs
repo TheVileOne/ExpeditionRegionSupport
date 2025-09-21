@@ -110,7 +110,7 @@ namespace LogUtils.Enums
             }
             catch (ArgumentOutOfRangeException)
             {
-                UtilityLogger.LogWarning("Invalid conversion offset processed during LogCategory conversion");
+                UtilityLogger.LogWarning("Invalid conversion offset processed during LogCategory conversion. Offset: " + enumValue);
             }
             return Default;
         }

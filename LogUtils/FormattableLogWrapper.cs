@@ -42,7 +42,7 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object)"/>
         public void LogImportant(object messageObj)
         {
-            Value.Log(LogCategory.Important.BepInExCategory, messageObj);
+            Value.Log(LogCategory.Important, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object)"/>
@@ -72,7 +72,7 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(LogType category, object messageObj)
         {
-            Value.Log(LogCategory.ToCategory(category).BepInExCategory, messageObj);
+            Value.Log(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
@@ -84,13 +84,13 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(string category, object messageObj)
         {
-            Value.Log(LogCategory.ToCategory(category).BepInExCategory, messageObj);
+            Value.Log(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(LogCategory category, object messageObj)
         {
-            Value.Log(category.BepInExCategory, messageObj);
+            Value.Log(category, messageObj);
         }
         #endregion
         #region IFormattableLogger members
@@ -116,7 +116,7 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object)"/>
         public void LogImportant(InterpolatedStringHandler messageObj)
         {
-            Value.Log(LogCategory.Important.BepInExCategory, messageObj);
+            Value.Log(LogCategory.Important, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object)"/>
@@ -146,7 +146,7 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(LogType category, InterpolatedStringHandler messageObj)
         {
-            Value.Log(LogCategory.ToCategory(category).BepInExCategory, messageObj);
+            Value.Log(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
@@ -158,13 +158,13 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(string category, InterpolatedStringHandler messageObj)
         {
-            Value.Log(LogCategory.ToCategory(category).BepInExCategory, messageObj);
+            Value.Log(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(LogCategory category, InterpolatedStringHandler messageObj)
         {
-            Value.Log(category.BepInExCategory, messageObj);
+            Value.Log(category, messageObj);
         }
         #endregion
         #region IEquality members
