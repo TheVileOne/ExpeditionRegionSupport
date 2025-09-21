@@ -435,40 +435,40 @@
         <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.Log(LogUtils.Enums.LogCategory,System.Object)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.Log(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.Log(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.Object)"/>
         </member>
-        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.LogDebug(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.LogDebug(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogDebug(System.Object)"/>
         </member>
-        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.LogInfo(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.LogInfo(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogInfo(System.Object)"/>
         </member>
-        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.LogImportant(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.LogImportant(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogImportant(System.Object)"/>
         </member>
-        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.LogMessage(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.LogMessage(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogMessage(System.Object)"/>
         </member>
-        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.LogWarning(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.LogWarning(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogWarning(System.Object)"/>
         </member>
-        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.LogError(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.LogError(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogError(System.Object)"/>
         </member>
-        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.LogFatal(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.LogFatal(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogFatal(System.Object)"/>
         </member>
-        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.Log(BepInEx.Logging.LogLevel,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.Log(BepInEx.Logging.LogLevel,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.Log(UnityEngine.LogType,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.Log(UnityEngine.LogType,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.Log(System.String,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.Log(System.String,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.Log(LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Compatibility.BepInEx.BepInExLogger.Log(LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
         <member name="T:LogUtils.Compatibility.BepInEx.Config">
@@ -1718,439 +1718,439 @@
         <member name="M:LogUtils.Logger.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,System.String,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.Log(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogOnce(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogDebug(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogDebug(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogDebug(System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogInfo(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogInfo(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogInfo(System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogImportant(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogImportant(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogImportant(System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogMessage(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogMessage(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogMessage(System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogWarning(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogWarning(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogWarning(System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogError(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogError(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogError(System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogFatal(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogFatal(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogFatal(System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.Log(LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogOnce(LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogDebug(LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogDebug(LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogDebug(System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogInfo(LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogInfo(LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogInfo(System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogImportant(LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogImportant(LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogImportant(System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogMessage(LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogMessage(LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogMessage(System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogWarning(LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogWarning(LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogWarning(System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogError(LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogError(LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogError(System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogFatal(LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogFatal(LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogFatal(System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.Log(LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogOnce(LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogDebug(LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogDebug(LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogDebug(System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogInfo(LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogInfo(LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogInfo(System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogImportant(LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogImportant(LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogImportant(System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogMessage(LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogMessage(LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogMessage(System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogWarning(LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogWarning(LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogWarning(System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogError(LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogError(LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogError(System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogFatal(LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogFatal(LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogFatal(System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(UnityEngine.LogType,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.Log(UnityEngine.LogType,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(BepInEx.Logging.LogLevel,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.Log(BepInEx.Logging.LogLevel,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(System.String,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.Log(System.String,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(UnityEngine.LogType,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogOnce(UnityEngine.LogType,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(BepInEx.Logging.LogLevel,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogOnce(BepInEx.Logging.LogLevel,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(System.String,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogOnce(System.String,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogOnce(LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(UnityEngine.LogType,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.Log(UnityEngine.LogType,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(BepInEx.Logging.LogLevel,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.Log(BepInEx.Logging.LogLevel,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(System.String,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.Log(System.String,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(UnityEngine.LogType,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogOnce(UnityEngine.LogType,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(BepInEx.Logging.LogLevel,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogOnce(BepInEx.Logging.LogLevel,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(System.String,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogOnce(System.String,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogOnce(LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(UnityEngine.LogType,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.Log(UnityEngine.LogType,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(BepInEx.Logging.LogLevel,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.Log(BepInEx.Logging.LogLevel,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(System.String,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.Log(System.String,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(UnityEngine.LogType,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogOnce(UnityEngine.LogType,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(BepInEx.Logging.LogLevel,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogOnce(BepInEx.Logging.LogLevel,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(System.String,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogOnce(System.String,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogOnce(LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogBepEx(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogBepEx(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Game.LogBepEx(System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogBepEx(BepInEx.Logging.LogLevel,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogBepEx(BepInEx.Logging.LogLevel,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Game.LogBepEx(BepInEx.Logging.LogLevel,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogBepEx(LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogBepEx(LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Game.LogBepEx(BepInEx.Logging.LogLevel,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogBepEx(LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogBepEx(LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Game.LogBepEx(BepInEx.Logging.LogLevel,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogBepEx(BepInEx.Logging.LogLevel,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogBepEx(BepInEx.Logging.LogLevel,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Game.LogBepEx(BepInEx.Logging.LogLevel,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogBepEx(LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogBepEx(LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Game.LogBepEx(BepInEx.Logging.LogLevel,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogBepEx(LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogBepEx(LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Game.LogBepEx(BepInEx.Logging.LogLevel,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogBepEx(BepInEx.Logging.LogLevel,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogBepEx(BepInEx.Logging.LogLevel,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Game.LogBepEx(BepInEx.Logging.LogLevel,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogBepEx(LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogBepEx(LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Game.LogBepEx(BepInEx.Logging.LogLevel,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogUnity(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogUnity(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Game.LogUnity(System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogUnity(UnityEngine.LogType,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogUnity(UnityEngine.LogType,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Game.LogUnity(UnityEngine.LogType,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogUnity(LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogUnity(LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Game.LogUnity(UnityEngine.LogType,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogExp(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogExp(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Game.LogExp(System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogExp(LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogExp(LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Game.LogExp(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogJolly(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogJolly(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Game.LogJolly(System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogJolly(LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogJolly(LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Game.LogJolly(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.ILogTarget,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogOnce(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(LogUtils.Enums.ILogTarget,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogDebug(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogDebug(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogDebug(LogUtils.Enums.ILogTarget,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogInfo(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogInfo(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogInfo(LogUtils.Enums.ILogTarget,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogImportant(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogImportant(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogImportant(LogUtils.Enums.ILogTarget,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogMessage(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogMessage(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogMessage(LogUtils.Enums.ILogTarget,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogWarning(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogWarning(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogWarning(LogUtils.Enums.ILogTarget,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogError(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogError(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogError(LogUtils.Enums.ILogTarget,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogFatal(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogFatal(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogFatal(LogUtils.Enums.ILogTarget,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,BepInEx.Logging.LogLevel,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,BepInEx.Logging.LogLevel,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,System.String,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,System.String,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogOnce(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.ILogTarget,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogOnce(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(LogUtils.Enums.ILogTarget,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogDebug(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogDebug(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogDebug(LogUtils.Enums.ILogTarget,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogInfo(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogInfo(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogInfo(LogUtils.Enums.ILogTarget,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogImportant(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogImportant(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogImportant(LogUtils.Enums.ILogTarget,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogMessage(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogMessage(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogMessage(LogUtils.Enums.ILogTarget,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogWarning(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogWarning(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogWarning(LogUtils.Enums.ILogTarget,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogError(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogError(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogError(LogUtils.Enums.ILogTarget,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogFatal(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogFatal(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogFatal(LogUtils.Enums.ILogTarget,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,BepInEx.Logging.LogLevel,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,BepInEx.Logging.LogLevel,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,System.String,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,System.String,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogOnce(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.ILogTarget,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogOnce(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(LogUtils.Enums.ILogTarget,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogDebug(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogDebug(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogDebug(LogUtils.Enums.ILogTarget,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogInfo(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogInfo(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogInfo(LogUtils.Enums.ILogTarget,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogImportant(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogImportant(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogImportant(LogUtils.Enums.ILogTarget,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogMessage(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogMessage(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogMessage(LogUtils.Enums.ILogTarget,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogWarning(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogWarning(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogWarning(LogUtils.Enums.ILogTarget,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogError(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogError(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogError(LogUtils.Enums.ILogTarget,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogFatal(LogUtils.Enums.ILogTarget,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogFatal(LogUtils.Enums.ILogTarget,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogFatal(LogUtils.Enums.ILogTarget,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,BepInEx.Logging.LogLevel,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,BepInEx.Logging.LogLevel,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,System.String,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,System.String,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.Log(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogOnce(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogDebug(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogDebug(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogDebug(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogInfo(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogInfo(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogInfo(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogImportant(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogImportant(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogImportant(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogMessage(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogMessage(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogMessage(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogWarning(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogWarning(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogWarning(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogError(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogError(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogError(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogFatal(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogFatal(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogFatal(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},BepInEx.Logging.LogLevel,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},BepInEx.Logging.LogLevel,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.String,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.String,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.Logger.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogDebug(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogDebug(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogDebug(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogInfo(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogInfo(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogInfo(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogImportant(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogImportant(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogImportant(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogMessage(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogMessage(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogMessage(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogWarning(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogWarning(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogWarning(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogError(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogError(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogError(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogFatal(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogFatal(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogFatal(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},BepInEx.Logging.LogLevel,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},BepInEx.Logging.LogLevel,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.String,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.String,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler,UnityEngine.Color)">
+        <member name="M:LogUtils.Logger.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler,UnityEngine.Color)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogDebug(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogDebug(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogDebug(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogInfo(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogInfo(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogInfo(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogImportant(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogImportant(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogImportant(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogMessage(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogMessage(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogMessage(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogWarning(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogWarning(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogWarning(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogError(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogError(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogError(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogFatal(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogFatal(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogFatal(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},BepInEx.Logging.LogLevel,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},BepInEx.Logging.LogLevel,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.String,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},System.String,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
-        <member name="M:LogUtils.Logger.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler,System.ConsoleColor)">
+        <member name="M:LogUtils.Logger.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler,System.ConsoleColor)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,System.Object,UnityEngine.Color)"/>
         </member>
         <member name="M:LogUtils.Logger.Log(System.String,System.Object[])">
@@ -3600,6 +3600,21 @@
         </member>
         <member name="M:LogUtils.Diagnostics.Extensions.AssertHelper.MustBePositiveOrZero``1(LogUtils.Diagnostics.Condition{System.Nullable{``0}}@)">
             <inheritdoc cref="M:LogUtils.Documentation.AssertDocumentation.NumericAssert.IsPositiveOrZero(LogUtils.Diagnostics.Condition{System.Int32})"/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.Condition`1.op_True(LogUtils.Diagnostics.Condition{`0})">
+            <summary>
+            Evaluates the result state as true
+            </summary>
+        </member>
+        <member name="M:LogUtils.Diagnostics.Condition`1.op_False(LogUtils.Diagnostics.Condition{`0})">
+            <summary>
+            Evaluates the result state as false
+            </summary>
+        </member>
+        <member name="M:LogUtils.Diagnostics.Condition`1.op_Implicit(LogUtils.Diagnostics.Condition{`0})~System.Boolean">
+            <summary>
+            Converts the <see cref="T:LogUtils.Diagnostics.Condition`1"/> into its result state
+            </summary>
         </member>
         <member name="F:LogUtils.Diagnostics.Condition`1.Value">
             <summary>
@@ -5623,6 +5638,11 @@
             A message targeted for logging
             </summary>
         </member>
+        <member name="P:LogUtils.Events.LogRequestEventArgs.FormattableMessage">
+            <summary>
+            Returns targeted message object as an <see cref="T:System.IFormattable"/>
+            </summary>
+        </member>
         <member name="P:LogUtils.Events.LogRequestEventArgs.MessageColor">
             <summary>
             The color to be used by default for a message
@@ -5744,40 +5764,40 @@
         <member name="M:LogUtils.FormattableLogWrapper.Log(LogUtils.Enums.LogCategory,System.Object)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.FormattableLogWrapper.Log(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.FormattableLogWrapper.Log(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.Object)"/>
         </member>
-        <member name="M:LogUtils.FormattableLogWrapper.LogDebug(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.FormattableLogWrapper.LogDebug(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogDebug(System.Object)"/>
         </member>
-        <member name="M:LogUtils.FormattableLogWrapper.LogInfo(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.FormattableLogWrapper.LogInfo(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogInfo(System.Object)"/>
         </member>
-        <member name="M:LogUtils.FormattableLogWrapper.LogImportant(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.FormattableLogWrapper.LogImportant(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogImportant(System.Object)"/>
         </member>
-        <member name="M:LogUtils.FormattableLogWrapper.LogMessage(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.FormattableLogWrapper.LogMessage(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogMessage(System.Object)"/>
         </member>
-        <member name="M:LogUtils.FormattableLogWrapper.LogWarning(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.FormattableLogWrapper.LogWarning(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogWarning(System.Object)"/>
         </member>
-        <member name="M:LogUtils.FormattableLogWrapper.LogError(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.FormattableLogWrapper.LogError(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogError(System.Object)"/>
         </member>
-        <member name="M:LogUtils.FormattableLogWrapper.LogFatal(LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.FormattableLogWrapper.LogFatal(LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogFatal(System.Object)"/>
         </member>
-        <member name="M:LogUtils.FormattableLogWrapper.Log(UnityEngine.LogType,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.FormattableLogWrapper.Log(UnityEngine.LogType,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.FormattableLogWrapper.Log(BepInEx.Logging.LogLevel,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.FormattableLogWrapper.Log(BepInEx.Logging.LogLevel,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.FormattableLogWrapper.Log(System.String,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.FormattableLogWrapper.Log(System.String,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
-        <member name="M:LogUtils.FormattableLogWrapper.Log(LogUtils.Enums.LogCategory,LogUtils.InterpolatedStringHandler)">
+        <member name="M:LogUtils.FormattableLogWrapper.Log(LogUtils.Enums.LogCategory,LogUtils.Formatting.InterpolatedStringHandler)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.Object)"/>
         </member>
         <member name="M:LogUtils.FormattableLogWrapper.Equals(LogUtils.ILogger)">
@@ -5826,7 +5846,7 @@
         </member>
         <member name="T:LogUtils.Formatting.FormatData">
             <summary>
-            A data class for storing format informations
+            A data class for storing format information
             </summary>
         </member>
         <member name="F:LogUtils.Formatting.FormatData.Argument">
@@ -5836,7 +5856,7 @@
         </member>
         <member name="P:LogUtils.Formatting.FormatData.IsColorData">
             <summary>
-            Checks that Argument is a UnityEngine.Color
+            Checks that Argument is a <see cref="T:UnityEngine.Color"/> or a <see cref="T:System.ConsoleColor"/>
             </summary>
         </member>
         <member name="F:LogUtils.Formatting.FormatData.BuildOffset">
@@ -5864,6 +5884,18 @@
             Converts format argument into a <see cref="T:UnityEngine.Color"/> value
             </summary>
             <exception cref="T:System.InvalidCastException">The format argument cannot be cast to a <see cref="T:UnityEngine.Color"/> value</exception>
+        </member>
+        <member name="M:LogUtils.Formatting.FormatData.ResolveArgument(System.Object,System.ICustomFormatter,System.Int32)">
+            <summary>
+            Converts argument into a <see cref="T:LogUtils.Formatting.FormatData"/> object when passed an implementation of <see cref="T:LogUtils.Formatting.IColorFormatProvider"/>, and the argument is a supported Color type 
+            </summary>
+            <param name="formatArgument">An argument value to a formatted string</param>
+            <param name="formatter">Handler responsible for formatting <paramref name="formatArgument"/></param>
+            <param name="commaValue">Alignment value of <paramref name="formatArgument"/>. This value is borrowed, and used as a range length.</param>
+            <returns>The replacement for <paramref name="formatArgument"/>, or the same instance when extra data is not required</returns>
+        </member>
+        <member name="M:LogUtils.Formatting.FormatData.ResolveArgument(System.Object,LogUtils.Formatting.IColorFormatProvider,System.Int32)">
+            <inheritdoc cref="M:LogUtils.Formatting.FormatData.ResolveArgument(System.Object,System.ICustomFormatter,System.Int32)"/>
         </member>
         <member name="F:LogUtils.Formatting.FormatDataAccess.Data.Entries">
             <summary>
@@ -5918,6 +5950,75 @@
         <member name="P:LogUtils.Formatting.IColorFormatProvider.MessageColor">
             <summary>
             The color that will be used as the default text color for handled messages
+            </summary>
+        </member>
+        <member name="T:LogUtils.Formatting.InterpolatedStringHandler">
+            <summary>
+            A struct that processes interpolated string data into a formatted string
+            </summary>
+        </member>
+        <member name="F:LogUtils.Formatting.InterpolatedStringHandler.builder">
+            <summary>
+            Stores the interpolate message string
+            </summary>
+        </member>
+        <member name="M:LogUtils.Formatting.InterpolatedStringHandler.AppendLiteral(System.String)">
+            <summary>
+            Adds a string component for later formatting (used by compiled code)
+            </summary>
+        </member>
+        <member name="M:LogUtils.Formatting.InterpolatedStringHandler.AppendFormatted``1(``0)">
+            <summary>
+            Adds an object component for later formatting (used by compiled code)
+            </summary>
+            <param name="argument">An argument to be formatted</param>
+            <exception cref="T:System.InvalidOperationException">More than the amount of expected arguments were provided to the handler</exception>
+        </member>
+        <member name="M:LogUtils.Formatting.InterpolatedStringHandler.AppendFormatted``1(``0,System.Int32)">
+            <inheritdoc cref="M:LogUtils.Formatting.InterpolatedStringHandler.AppendFormatted``1(``0)"/>
+            <param name="argument">An argument to be formatted</param>
+            <param name="alignment">Value affects padded space unless used with a <see cref="T:UnityEngine.Color"/> or <see cref="T:System.ConsoleColor"/>, of which it represents the number of formatted characters</param>
+        </member>
+        <member name="M:LogUtils.Formatting.InterpolatedStringHandler.AppendFormatted``1(``0,System.String)">
+            <inheritdoc cref="M:LogUtils.Formatting.InterpolatedStringHandler.AppendFormatted``1(``0)"/>
+            <param name="argument">An argument to be formatted</param>
+            <param name="format">Format specification applicable to an argument</param>
+        </member>
+        <member name="M:LogUtils.Formatting.InterpolatedStringHandler.AppendFormatted``1(``0,System.String,System.Int32)">
+            <inheritdoc cref="M:LogUtils.Formatting.InterpolatedStringHandler.AppendFormatted``1(``0)"/>
+            <param name="argument">An argument to be formatted</param>
+            <param name="format">Format specification applicable to an argument</param>
+            <param name="alignment">Value affects padded space unless used with a <see cref="T:UnityEngine.Color"/> or <see cref="T:System.ConsoleColor"/>, of which it represents the number of formatted characters</param>
+        </member>
+        <member name="M:LogUtils.Formatting.InterpolatedStringHandler.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Formatting.InterpolatedStringHandler.ToString(System.String,System.IFormatProvider)">
+            <inheritdoc/>
+        </member>
+        <member name="F:LogUtils.Formatting.InterpolatedStringHandler.ArgumentInfo.Argument">
+            <summary>
+            An object, or value to be inserted into the builder string
+            </summary>
+        </member>
+        <member name="F:LogUtils.Formatting.InterpolatedStringHandler.ArgumentInfo.Format">
+            <summary>
+            The format specifier code
+            </summary>
+        </member>
+        <member name="F:LogUtils.Formatting.InterpolatedStringHandler.ArgumentInfo.Index">
+            <summary>
+            The position in the builder string at the time of format
+            </summary>
+        </member>
+        <member name="F:LogUtils.Formatting.InterpolatedStringHandler.ArgumentInfo.Range">
+            <summary>
+            The number of characters to apply the format
+            </summary>
+        </member>
+        <member name="M:LogUtils.Formatting.InterpolatedStringHandler.FormatProcessor.AccessData">
+            <summary>
+            Accesses color related format data
             </summary>
         </member>
         <member name="T:LogUtils.Formatting.LogMessageFormatter">
@@ -6138,6 +6239,27 @@
         <member name="M:LogUtils.Helpers.Comparers.LogIDComparer.CompareNullProperties(LogUtils.Enums.LogID,LogUtils.Enums.LogID)">
             <summary>
             Compare LogID instances when one, or both instances has a null properties field
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.Comparers.PathComparer.CompareFilenameAndPath(System.String,System.String,System.Boolean)">
+            <summary>
+            Compares two paths (with or without a filename)
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.Comparers.PathComparer.Compare(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Helpers.Comparers.PathComparer.Equals(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Helpers.Comparers.PathComparer.InternalCompare(System.String,System.String)">
+            <summary>
+            Assumes path info is being compared, not keywords
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.Comparers.PathComparer.InternalEquals(System.String,System.String)">
+            <summary>
+            Assumes path info is being compared, not keywords
             </summary>
         </member>
         <member name="M:LogUtils.Helpers.Comparers.RemoteLoggerComparer.Compare(LogUtils.ILogHandler,LogUtils.ILogHandler)">
@@ -6771,49 +6893,6 @@
         <member name="M:LogUtils.ILogWriterProvider.GetWriter(LogUtils.Enums.LogID)">
             <summary>
             Gets the log writer associated with the provider for a specific log file
-            </summary>
-        </member>
-        <member name="T:LogUtils.InterpolatedStringHandler">
-            <summary>
-            A struct that processes interpolated string data into a formatted string
-            </summary>
-        </member>
-        <member name="F:LogUtils.InterpolatedStringHandler.builder">
-            <summary>
-            Stores the interpolate message string
-            </summary>
-        </member>
-        <member name="M:LogUtils.InterpolatedStringHandler.AppendLiteral(System.String)">
-            <summary>
-            Adds a string component for later formatting (used by compiled code)
-            </summary>
-        </member>
-        <member name="M:LogUtils.InterpolatedStringHandler.AppendFormatted``1(``0)">
-            <summary>
-            Adds an object component for later formatting (used by compiled code)
-            </summary>
-            <exception cref="T:System.InvalidOperationException">More than the amount of expected arguments were provided to the handler</exception>
-        </member>
-        <member name="M:LogUtils.InterpolatedStringHandler.AppendFormatted``1(``0,System.Int32)">
-            <summary>
-            Adds an object component for later formatting (used by compiled code)
-            </summary>
-            <exception cref="T:System.InvalidOperationException">More than the amount of expected arguments were provided to the handler</exception>
-        </member>
-        <member name="M:LogUtils.InterpolatedStringHandler.ToString">
-            <inheritdoc/>
-        </member>
-        <member name="M:LogUtils.InterpolatedStringHandler.ToString(System.String,System.IFormatProvider)">
-            <inheritdoc/>
-        </member>
-        <member name="F:LogUtils.InterpolatedStringHandler.ArgumentInfo.Argument">
-            <summary>
-            An object, or value to be inserted into the builder string
-            </summary>
-        </member>
-        <member name="F:LogUtils.InterpolatedStringHandler.ArgumentInfo.Index">
-            <summary>
-            The position in the builder string at the time of format
             </summary>
         </member>
         <member name="T:LogUtils.IPC.PipeDemo">
@@ -9417,27 +9496,6 @@
         <member name="T:System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute">
             <summary>
             Backported attribute
-            </summary>
-        </member>
-        <member name="M:PathComparer.CompareFilenameAndPath(System.String,System.String,System.Boolean)">
-            <summary>
-            Compares two paths (with or without a filename)
-            </summary>
-        </member>
-        <member name="M:PathComparer.Compare(System.String,System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="M:PathComparer.Equals(System.String,System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="M:PathComparer.InternalCompare(System.String,System.String)">
-            <summary>
-            Assumes path info is being compared, not keywords
-            </summary>
-        </member>
-        <member name="M:PathComparer.InternalEquals(System.String,System.String)">
-            <summary>
-            Assumes path info is being compared, not keywords
             </summary>
         </member>
     </members>
