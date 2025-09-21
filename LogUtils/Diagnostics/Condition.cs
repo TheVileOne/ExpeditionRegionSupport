@@ -6,8 +6,20 @@ namespace LogUtils.Diagnostics
 {
     public readonly struct Condition<T>
     {
+        /// <summary>
+        /// Evaluates the result state as true
+        /// </summary>
         public static bool operator true(Condition<T> condition) => condition.Passed;
+
+        /// <summary>
+        /// Evaluates the result state as false
+        /// </summary>
         public static bool operator false(Condition<T> condition) => !condition.Passed;
+
+        /// <summary>
+        /// Converts the <see cref="Condition{T}"/> into its result state
+        /// </summary>
+        public static implicit operator bool(Condition<T> condition) => condition.Passed;
 
         /// <summary>
         /// Contains the state of the condition to evaluate
