@@ -49,8 +49,6 @@ namespace LogUtils.Formatting
         /// <exception cref="InvalidOperationException">More than the amount of expected arguments were provided to the handler</exception>
         public void AppendFormatted<T>(T argument)
         {
-            if (argumentIndex == arguments.Count)
-                throw new InvalidOperationException("Handler does not accept additional arguments");
             arguments.Add(new ArgumentInfo(argument, elementCount));
         }
 
@@ -59,8 +57,6 @@ namespace LogUtils.Formatting
         /// <param name="alignment">Value affects padded space unless used with a <see cref="UnityEngine.Color"/> or <see cref="ConsoleColor"/>, of which it represents the number of formatted characters</param>
         public void AppendFormatted<T>(T argument, int alignment)
         {
-            if (argumentIndex == arguments.Count - 1)
-                throw new InvalidOperationException("Handler does not accept additional arguments");
             arguments.Add(new ArgumentInfo(argument, elementCount, alignment));
         }
 
@@ -69,8 +65,6 @@ namespace LogUtils.Formatting
         /// <param name="format">Format specification applicable to an argument</param>
         public void AppendFormatted<T>(T argument, string format)
         {
-            if (argumentIndex == arguments.Count - 1)
-                throw new InvalidOperationException("Handler does not accept additional arguments");
             arguments.Add(new ArgumentInfo(argument, elementCount, format: format));
         }
 
@@ -80,8 +74,6 @@ namespace LogUtils.Formatting
         /// <param name="alignment">Value affects padded space unless used with a <see cref="UnityEngine.Color"/> or <see cref="ConsoleColor"/>, of which it represents the number of formatted characters</param>
         public void AppendFormatted<T>(T argument, string format, int alignment)
         {
-            if (argumentIndex == arguments.Count - 1)
-                throw new InvalidOperationException("Handler does not accept additional arguments");
             arguments.Add(new ArgumentInfo(argument, elementCount, alignment, format));
         }
 
