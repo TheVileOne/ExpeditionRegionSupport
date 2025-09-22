@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -14,21 +16,22 @@ namespace LogUtils.Formatting
         /// Stores the interpolate message string
         /// </summary>
         private readonly StringBuilder builder;
+        private readonly List<LiteralInfo> literals;
+        private readonly List<ArgumentInfo> arguments;
 
-        private readonly ArgumentInfo[] arguments;
-
-        private int argumentIndex = -1;
+        private int elementCount => literals.Count + arguments.Count;
 
         /// <inheritdoc/>
         public override string Format => BuildFormat();
 
         /// <inheritdoc/>
-        public override int ArgumentCount => arguments.Length;
+        public override int ArgumentCount => arguments.Count;
 
         public InterpolatedStringHandler(int literalLength, int formattedCount)
         {
             builder = new StringBuilder(literalLength);
-            arguments = new ArgumentInfo[formattedCount];
+            literals = new List<LiteralInfo>(formattedCount + 1);
+            arguments = new List<ArgumentInfo>(formattedCount);
         }
 
         /// <summary>
@@ -36,7 +39,7 @@ namespace LogUtils.Formatting
         /// </summary>
         public void AppendLiteral(string literal)
         {
-            builder.Append(literal);
+            literals.Add(new LiteralInfo(literal, elementCount));
         }
 
         /// <summary>
@@ -46,11 +49,9 @@ namespace LogUtils.Formatting
         /// <exception cref="InvalidOperationException">More than the amount of expected arguments were provided to the handler</exception>
         public void AppendFormatted<T>(T argument)
         {
-            if (argumentIndex == arguments.Length)
+            if (argumentIndex == arguments.Count)
                 throw new InvalidOperationException("Handler does not accept additional arguments");
-
-            argumentIndex++;
-            arguments[argumentIndex] = new ArgumentInfo(argument, builder.Length);
+            arguments.Add(new ArgumentInfo(argument, elementCount));
         }
 
         /// <inheritdoc cref="AppendFormatted{T}(T)"/>
@@ -58,11 +59,9 @@ namespace LogUtils.Formatting
         /// <param name="alignment">Value affects padded space unless used with a <see cref="UnityEngine.Color"/> or <see cref="ConsoleColor"/>, of which it represents the number of formatted characters</param>
         public void AppendFormatted<T>(T argument, int alignment)
         {
-            if (argumentIndex == arguments.Length - 1)
+            if (argumentIndex == arguments.Count - 1)
                 throw new InvalidOperationException("Handler does not accept additional arguments");
-
-            argumentIndex++;
-            arguments[argumentIndex] = new ArgumentInfo(argument, builder.Length, alignment);
+            arguments.Add(new ArgumentInfo(argument, elementCount, alignment));
         }
 
         /// <inheritdoc cref="AppendFormatted{T}(T)"/>
@@ -70,11 +69,9 @@ namespace LogUtils.Formatting
         /// <param name="format">Format specification applicable to an argument</param>
         public void AppendFormatted<T>(T argument, string format)
         {
-            if (argumentIndex == arguments.Length - 1)
+            if (argumentIndex == arguments.Count - 1)
                 throw new InvalidOperationException("Handler does not accept additional arguments");
-
-            argumentIndex++;
-            arguments[argumentIndex] = new ArgumentInfo(argument, builder.Length, format: format);
+            arguments.Add(new ArgumentInfo(argument, elementCount, format: format));
         }
 
         /// <inheritdoc cref="AppendFormatted{T}(T)"/>
@@ -83,11 +80,9 @@ namespace LogUtils.Formatting
         /// <param name="alignment">Value affects padded space unless used with a <see cref="UnityEngine.Color"/> or <see cref="ConsoleColor"/>, of which it represents the number of formatted characters</param>
         public void AppendFormatted<T>(T argument, string format, int alignment)
         {
-            if (argumentIndex == arguments.Length - 1)
+            if (argumentIndex == arguments.Count - 1)
                 throw new InvalidOperationException("Handler does not accept additional arguments");
-
-            argumentIndex++;
-            arguments[argumentIndex] = new ArgumentInfo(argument, builder.Length, alignment, format);
+            arguments.Add(new ArgumentInfo(argument, elementCount, alignment, format));
         }
 
         /// <summary>
@@ -120,7 +115,7 @@ namespace LogUtils.Formatting
         /// <inheritdoc/>
         public override string ToString(IFormatProvider formatProvider)
         {
-            if (arguments.Length == 0)
+            if (arguments.Count == 0)
                 return builder.ToString();
 
             FormatProcessor processor = new FormatProcessor(formatProvider);
@@ -148,6 +143,20 @@ namespace LogUtils.Formatting
         }
 
         private readonly struct ArgumentInfo(object argument, int index, int range = 0, string format = "o")
+
+        private readonly struct LiteralInfo(string value, int position)
+        {
+            /// <summary>
+            /// The position in the builder string at the time of format
+            /// </summary>
+            public readonly int BuildPosition = position;
+
+            /// <summary>
+            /// The value of the literal
+            /// </summary>
+            public readonly string Value = value;
+        }
+
         {
             /// <summary>
             /// An object, or value to be inserted into the builder string
