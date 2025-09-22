@@ -5,10 +5,10 @@ using System.Text;
 namespace LogUtils.Formatting
 {
     /// <summary>
-    /// A struct that processes interpolated string data into a formatted string
+    /// A class that processes interpolated string data into a formatted string
     /// </summary>
     [InterpolatedStringHandler]
-    public struct InterpolatedStringHandler : IFormattable
+    public class InterpolatedStringHandler : FormattableString
     {
         /// <summary>
         /// Stores the interpolate message string
@@ -19,6 +19,12 @@ namespace LogUtils.Formatting
 
         private int argumentIndex = -1;
 
+        /// <inheritdoc/>
+        public override string Format => BuildFormat();
+
+        /// <inheritdoc/>
+        public override int ArgumentCount => arguments.Length;
+
         public InterpolatedStringHandler(int literalLength, int formattedCount)
         {
             builder = new StringBuilder(literalLength);
@@ -28,7 +34,7 @@ namespace LogUtils.Formatting
         /// <summary>
         /// Adds a string component for later formatting (used by compiled code)
         /// </summary>
-        public readonly void AppendLiteral(string literal)
+        public void AppendLiteral(string literal)
         {
             builder.Append(literal);
         }
@@ -84,7 +90,21 @@ namespace LogUtils.Formatting
             arguments[argumentIndex] = new ArgumentInfo(argument, builder.Length, alignment, format);
         }
 
-        internal readonly void SetBuildString(string value)
+        /// <summary>
+        /// Builds the format string out of appended string literals, and format arguments
+        /// </summary>
+        /// <returns></returns>
+        internal string BuildFormat()
+        {
+        }
+
+        /// <inheritdoc/>
+        public override object[] GetArguments() => arguments.Select(info => info.Argument).ToArray();
+
+        /// <inheritdoc/>
+        public override object GetArgument(int index) => arguments[index].Argument;
+
+        internal void SetBuildString(string value)
         {
             builder.Clear();
             builder.Capacity = value.Length;
@@ -92,18 +112,18 @@ namespace LogUtils.Formatting
         }
 
         /// <inheritdoc/>
-        public override readonly string ToString()
+        public override string ToString()
         {
-            return ToString(null, null);
+            return ToString(null);
         }
 
         /// <inheritdoc/>
-        public readonly string ToString(string format, IFormatProvider formatProvider)
+        public override string ToString(IFormatProvider formatProvider)
         {
             if (arguments.Length == 0)
                 return builder.ToString();
 
-            FormatProcessor processor = new FormatProcessor(format, formatProvider);
+            FormatProcessor processor = new FormatProcessor(formatProvider);
 
             var formatData = processor.AccessData();
 
@@ -152,13 +172,11 @@ namespace LogUtils.Formatting
 
         private readonly ref struct FormatProcessor
         {
-            public readonly string Format;
             public readonly IFormatProvider Provider;
             public readonly ICustomFormatter Formatter;
 
-            public FormatProcessor(string format, IFormatProvider provider)
+            public FormatProcessor(IFormatProvider provider)
             {
-                Format = format;
                 Provider = provider;
 
                 if (Provider != null)
@@ -182,12 +200,12 @@ namespace LogUtils.Formatting
                             FormatData.UpdateData(colorFormatter);
 
                         //Ensures that color data is stored as an argument, a requirement by color format providers
-                        object formatArgument = FormatData.ResolveArgument(info.Argument, Formatter, 0);
-                        argument = Formatter.Format(Format, formatArgument, Provider);
+                        object formatArgument = FormatData.ResolveArgument(info.Argument, Formatter, info.Range);
+                        argument = Formatter.Format(info.Format, formatArgument, Provider);
                     }
                     else if (info.Argument is IFormattable formattable)
                     {
-                        argument = formattable.ToString(Format, Provider);
+                        argument = formattable.ToString(info.Format, Provider);
                     }
                     else
                     {

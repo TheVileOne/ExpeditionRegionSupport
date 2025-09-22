@@ -54,9 +54,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
             logger.Log($"{Arguments.Object}");
             AssertResultAndClear(Types.InterpolatedStringHandler);
 
-            //Null
-            logger.Log(null);
-            AssertResultAndClear(Types.String);
+            //Null (ambiguous)
+            //logger.Log(null);
 
             //LogCategory
             logger.Log(Arguments.LogCategory);
@@ -183,8 +182,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
             logger.Log(Arguments.LogCategory, $"{Arguments.Object}");
             AssertResultAndClear(Types.LogCategory, Types.InterpolatedStringHandler);
 
-            //LogCategory, Null
-            logger.Log(Arguments.LogCategory, null);
+            //LogCategory, Null (ambiguous)
+            //logger.Log(Arguments.LogCategory, null);
             AssertResultAndClear(Types.LogCategory, Types.String);
 
             //LogCategory, LogCategory
@@ -219,9 +218,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
             logger.Log(Arguments.LogID, $"{Arguments.Object}");
             AssertResultAndClear(Types.LogTarget, Types.InterpolatedStringHandler);
 
-            //LogID, Null
-            logger.Log(Arguments.LogID, null);
-            AssertResultAndClear(Types.LogTarget, Types.String);
+            //LogID, Null (ambiguous)
+            //logger.Log(Arguments.LogID, null);
 
             //LogID, LogCategory
             logger.Log(Arguments.LogID, Arguments.LogCategory);
@@ -251,9 +249,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
             logger.Log(Arguments.ConsoleID, $"{Arguments.Object}");
             AssertResultAndClear(Types.LogTarget, Types.InterpolatedStringHandler);
 
-            //ConsoleID, Null
-            logger.Log(Arguments.ConsoleID, null);
-            AssertResultAndClear(Types.LogTarget, Types.String);
+            //ConsoleID, Null (ambiguous)
+            //logger.Log(Arguments.ConsoleID, null);
 
             //ConsoleID, LogCategory
             logger.Log(Arguments.ConsoleID, Arguments.LogCategory);
@@ -283,9 +280,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
             logger.Log(Arguments.LogTarget, $"{Arguments.Object}");
             AssertResultAndClear(Types.LogTarget, Types.InterpolatedStringHandler);
 
-            //ILogTarget, Null
-            logger.Log(Arguments.LogTarget, null);
-            AssertResultAndClear(Types.LogTarget, Types.String);
+            //ILogTarget, Null (ambiguous)
+            //logger.Log(Arguments.LogTarget, null);
 
             //ILogTarget, LogCategory
             logger.Log(Arguments.LogTarget, Arguments.LogCategory);
@@ -1039,9 +1035,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
             logger.Log(Arguments.LogTarget, Arguments.LogCategory, Arguments.Object);
             AssertResultAndClear(Types.LogTarget, Types.LogCategory, Types.Object);
 
-            //Null
-            logger.Log(Arguments.LogTarget, Arguments.LogCategory, null);
-            AssertResultAndClear(Types.LogTarget, Types.LogCategory, Types.String);
+            //Null (ambiguous)
+            //logger.Log(Arguments.LogTarget, Arguments.LogCategory, null);
 
             //Color (ambiguous)
             //logger.Log(Arguments.LogTarget, Arguments.LogCategory, Arguments.Color);
