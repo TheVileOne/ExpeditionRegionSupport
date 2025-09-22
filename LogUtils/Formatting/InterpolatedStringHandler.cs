@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace LogUtils.Formatting
@@ -134,8 +135,6 @@ namespace LogUtils.Formatting
             return formattedString;
         }
 
-        private readonly struct ArgumentInfo(object argument, int index, int range = 0, string format = "o")
-
         private readonly struct LiteralInfo(string value, int position)
         {
             /// <summary>
@@ -149,6 +148,7 @@ namespace LogUtils.Formatting
             public readonly string Value = value;
         }
 
+        private readonly struct ArgumentInfo(object argument, int position, [Optional]int range, [Optional]string format)
         {
             /// <summary>
             /// An object, or value to be inserted into the builder string
@@ -163,7 +163,7 @@ namespace LogUtils.Formatting
             /// <summary>
             /// The position in the builder string at the time of format
             /// </summary>
-            public readonly int Index = index;
+            public readonly int BuildPosition = position;
 
             /// <summary>
             /// The number of characters to apply the format
