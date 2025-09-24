@@ -16,7 +16,6 @@ namespace LogUtils.Formatting
         /// <summary>
         /// Stores the interpolate message string
         /// </summary>
-        private readonly StringBuilder builder;
         private readonly List<LiteralInfo> literals;
         private readonly List<ArgumentInfo> arguments;
 
@@ -30,7 +29,6 @@ namespace LogUtils.Formatting
 
         public InterpolatedStringHandler(int literalLength, int formattedCount)
         {
-            builder = new StringBuilder(literalLength);
             literals = new List<LiteralInfo>(formattedCount + 1);
             arguments = new List<ArgumentInfo>(formattedCount);
         }
@@ -92,13 +90,6 @@ namespace LogUtils.Formatting
         /// <inheritdoc/>
         public override object GetArgument(int index) => arguments[index].Argument;
 
-        internal void SetBuildString(string value)
-        {
-            builder.Clear();
-            builder.Capacity = value.Length;
-            builder.Append(value);
-        }
-
         /// <inheritdoc/>
         public override string ToString()
         {
@@ -108,8 +99,13 @@ namespace LogUtils.Formatting
         /// <inheritdoc/>
         public override string ToString(IFormatProvider formatProvider)
         {
+            StringBuilder builder = new StringBuilder();
             if (arguments.Count == 0)
+            {
+                for (int i = 0; i < literals.Count; i++)
+                    builder.Append(literals[i].Value);
                 return builder.ToString();
+            }
 
             FormatProcessor processor = new FormatProcessor(formatProvider);
 
@@ -118,8 +114,6 @@ namespace LogUtils.Formatting
             //Set a new format entry for this builder - used for color tracking and is removed after format process is completed
             if (formatData != null)
                 formatData.SetEntry(builder);
-
-            string initialBuildString = builder.ToString(); //Preserve the original string literals before including the formatted arguments
 
             string formattedString;
             try
@@ -130,7 +124,6 @@ namespace LogUtils.Formatting
             finally
             {
                 formatData?.EntryComplete((IColorFormatProvider)processor.Formatter);
-                SetBuildString(initialBuildString);
             }
             return formattedString;
         }
