@@ -184,7 +184,6 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             //LogCategory, Null (ambiguous)
             //logger.Log(Arguments.LogCategory, null);
-            AssertResultAndClear(Types.LogCategory, Types.String);
 
             //LogCategory, LogCategory
             logger.Log(Arguments.LogCategory, Arguments.LogCategory);
