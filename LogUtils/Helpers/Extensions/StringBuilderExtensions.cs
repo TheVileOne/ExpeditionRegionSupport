@@ -30,6 +30,13 @@ namespace LogUtils
             return builder;
         }
 
+        internal static StringBuilder AppendPlaceholderValue(this StringBuilder builder, string value)
+        {
+            return builder.Append('{')
+                          .Append(value)
+                          .Append('}');
+        }
+
         internal static StringBuilder AppendPropertyString(this StringBuilder builder, string name, string value = "")
         {
             return builder.AppendLine(LogProperties.ToPropertyString(name, value));

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using static LogUtils.Formatting.FormatDataAccess;
 
 namespace LogUtils.Formatting
 {
@@ -13,9 +14,8 @@ namespace LogUtils.Formatting
     [InterpolatedStringHandler]
     public class InterpolatedStringHandler : FormattableString
     {
-        /// <summary>
-        /// Stores the interpolate message string
-        /// </summary>
+        private FormatProcessor processor;
+
         private readonly List<LiteralInfo> literals;
         private readonly List<ArgumentInfo> arguments;
 
@@ -85,10 +85,10 @@ namespace LogUtils.Formatting
         }
 
         /// <inheritdoc/>
-        public override object[] GetArguments() => arguments.Select(info => info.Argument).ToArray();
+        public override object[] GetArguments() => arguments.Select(argument => argument.Value).ToArray();
 
         /// <inheritdoc/>
-        public override object GetArgument(int index) => arguments[index].Argument;
+        public override object GetArgument(int index) => arguments[index].Value;
 
         /// <inheritdoc/>
         public override string ToString()
@@ -100,14 +100,7 @@ namespace LogUtils.Formatting
         public override string ToString(IFormatProvider formatProvider)
         {
             StringBuilder builder = new StringBuilder();
-            if (arguments.Count == 0)
-            {
-                for (int i = 0; i < literals.Count; i++)
-                    builder.Append(literals[i].Value);
-                return builder.ToString();
-            }
-
-            FormatProcessor processor = new FormatProcessor(formatProvider);
+            processor = new FormatProcessor(formatProvider);
 
             var formatData = processor.AccessData();
 
@@ -115,17 +108,94 @@ namespace LogUtils.Formatting
             if (formatData != null)
                 formatData.SetEntry(builder);
 
-            string formattedString;
             try
             {
-                processor.Process(builder, arguments);
-                formattedString = builder.ToString();
+                if (arguments.Count == 0)
+                {
+                    for (int i = 0; i < literals.Count; i++)
+                        builder.Append(literals[i].Value);
+                }
+                else if (literals.Count == 0)
+                {
+                    for (int i = 0; i < arguments.Count; i++)
+                    {
+                        string argumentString = processor.Process(arguments[i]);
+
+                        if (!string.IsNullOrEmpty(argumentString))
+                            builder.Append(argumentString);
+                    }
+                }
+                else //At least one literal and one argument
+                {
+                    int literalsHandled = 0,
+                        argumentsHandled = 0;
+
+                    bool checkLiteralsFirst = true;
+                    for (int i = 0; i < elementCount; i++)
+                    {
+                        if (checkLiteralsFirst)
+                        {
+                            if (!tryProcessLiteral())
+                            {
+                                tryProcessArgument(); //This should always succeed
+                                checkLiteralsFirst = true; //After processing an argument, target a literal
+                                continue;
+                            }
+                            checkLiteralsFirst = false; //It is improbable that we will be required to process consecuative literals - .NET merges such literals
+                        }
+                        else
+                        {
+                            if (!tryProcessArgument())
+                            {
+                                tryProcessLiteral(); //This should always succeed
+                                checkLiteralsFirst = false;
+                                continue;
+                            }
+                            checkLiteralsFirst = true;
+                        }
+
+                        bool tryProcessLiteral()
+                        {
+                            if (literalsHandled == literals.Count)
+                                return false;
+
+                            LiteralInfo literal = literals[literalsHandled];
+
+                            if (literal.BuildPosition == i)
+                            {
+                                literalsHandled++;
+                                builder.Append(literal.Value);
+                                return true;
+                            }
+                            return false;
+                        }
+
+                        bool tryProcessArgument()
+                        {
+                            if (argumentsHandled == arguments.Count)
+                                return false;
+
+                            ArgumentInfo argument = arguments[argumentsHandled];
+
+                            if (argument.BuildPosition == i)
+                            {
+                                argumentsHandled++;
+                                string argumentString = processor.Process(argument);
+
+                                if (!string.IsNullOrEmpty(argumentString))
+                                    builder.Append(argumentString);
+                                return true;
+                            }
+                            return false;
+                        }
+                    }
+                }
+                return builder.ToString();
             }
             finally
             {
                 formatData?.EntryComplete((IColorFormatProvider)processor.Formatter);
             }
-            return formattedString;
         }
 
         private readonly struct LiteralInfo(string value, int position)
@@ -141,12 +211,12 @@ namespace LogUtils.Formatting
             public readonly string Value = value;
         }
 
-        private readonly struct ArgumentInfo(object argument, int position, [Optional]int range, [Optional]string format)
+        internal readonly struct ArgumentInfo(object argument, int position, [Optional]int range, [Optional]string format)
         {
             /// <summary>
             /// An object, or value to be inserted into the builder string
             /// </summary>
-            public readonly object Argument = argument;
+            public readonly object Value = argument;
 
             /// <summary>
             /// The format specifier code
@@ -164,7 +234,7 @@ namespace LogUtils.Formatting
             public readonly int Range = range;
         }
 
-        private readonly ref struct FormatProcessor
+        private readonly struct FormatProcessor
         {
             public readonly IFormatProvider Provider;
             public readonly ICustomFormatter Formatter;
@@ -177,41 +247,65 @@ namespace LogUtils.Formatting
                     Formatter = (ICustomFormatter)provider.GetFormat(typeof(ICustomFormatter));
             }
 
-            public readonly void Process(StringBuilder builder, ArgumentInfo[] arguments)
+            public readonly string Process(in ArgumentInfo argument)
             {
-                int indexOffset = 0; //The change in the build string length as arguments are inserted into the string
-                for (int i = 0; i < arguments.Length; i++)
+                //Converts argument to a string
+                string resultString;
+                if (Formatter != null)
                 {
-                    ArgumentInfo info = arguments[i];
+                    IColorFormatProvider colorFormatter = Formatter as IColorFormatProvider;
 
-                    //Converts argument to a string
-                    string argument;
-                    if (Formatter != null)
+                    if (colorFormatter != null)
                     {
-                        IColorFormatProvider colorFormatter = Formatter as IColorFormatProvider;
-
-                        if (colorFormatter != null)
-                            FormatData.UpdateData(colorFormatter);
-
-                        //Ensures that color data is stored as an argument, a requirement by color format providers
-                        object formatArgument = FormatData.ResolveArgument(info.Argument, Formatter, info.Range);
-                        argument = Formatter.Format(info.Format, formatArgument, Provider);
-                    }
-                    else if (info.Argument is IFormattable formattable)
-                    {
-                        argument = formattable.ToString(info.Format, Provider);
-                    }
-                    else
-                    {
-                        argument = info.Argument?.ToString();
+                        FormatData.UpdateData(colorFormatter);
                     }
 
-                    if (string.IsNullOrEmpty(argument)) //Inserting wont add any characters
-                        continue;
-
-                    builder.Insert(info.Index + indexOffset, argument);
-                    indexOffset += argument.Length;
+                    //Ensures that color data is stored as an argument, a requirement by color format providers
+                    object formatArgument = FormatData.ResolveArgument(argument.Value, Formatter, argument.Range);
+                    resultString = Formatter.Format(argument.Format, formatArgument, Provider);
                 }
+                else if (argument.Value is IFormattable formattable)
+                {
+                    resultString = formattable.ToString(argument.Format, Provider);
+                }
+                else
+                {
+                    resultString = argument.Value?.ToString();
+                }
+                return resultString;
+            }
+
+            internal static void UpdateData(IColorFormatProvider provider)
+            {
+                var data = provider.GetData();
+
+                LinkedListNode<NodeData> currentNode = data.Entries.Last;
+                NodeData currentBuildEntry = currentNode.Value;
+                StringBuilder currentBuilder = currentBuildEntry.Builder;
+
+                int positionOffset = currentNode.GetBuildOffset();
+                if (data.UpdateBuildLength())
+                {
+                    //Handle color reset
+                    currentBuildEntry.Current = new FormatData()
+                    {
+                        BuildOffset = positionOffset,
+                        LocalPosition = currentBuildEntry.LastCheckedBuildLength
+                    };
+                    provider.ResetColor(currentBuilder, currentBuildEntry.Current);
+                    data.UpdateBuildLength();
+                }
+                else
+                {
+                    data.BypassColorCancellation = false;
+                }
+
+                //This will replace the last FormatData instance with the current one - this is by design
+                currentBuildEntry.Current = new FormatData()
+                {
+                    BuildOffset = positionOffset,
+                    LocalPosition = currentBuilder.Length
+                };
             }
 
             /// <summary>
