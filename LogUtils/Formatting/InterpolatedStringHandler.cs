@@ -126,6 +126,9 @@ namespace LogUtils.Formatting
                 {
                     for (int i = 0; i < arguments.Count; i++)
                     {
+                        if (formatData != null)
+                            formatData.UpdateBuildLength();
+
                         string argumentString = processor.Process(arguments[i]);
 
                         if (!string.IsNullOrEmpty(argumentString))
@@ -140,6 +143,9 @@ namespace LogUtils.Formatting
                     bool checkLiteralsFirst = true;
                     for (int i = 0; i < elementCount; i++)
                     {
+                        if (formatData != null)
+                            formatData.UpdateBuildLength();
+
                         if (checkLiteralsFirst)
                         {
                             if (!tryProcessLiteral())
@@ -197,12 +203,13 @@ namespace LogUtils.Formatting
                         }
                     }
                 }
-                return builder.ToString();
             }
             finally
             {
-                formatData?.EntryComplete((IColorFormatProvider)processor.Formatter);
+                if (formatData != null)
+                    formatData.EntryComplete((IColorFormatProvider)processor.Formatter);
             }
+            return builder.ToString();
         }
 
         private readonly struct LiteralInfo(string value, int position)
