@@ -10,8 +10,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
     internal sealed class FormatTests : TestCase, ITestable
     {
         internal const string TEST_NAME = "Test - Color Formatting";
-
-        internal readonly Color TEST_COLOR = Color.red;
+        internal static readonly Color TEST_COLOR = Color.red;
 
         public FormatTests() : base(TEST_NAME)
         {
@@ -33,14 +32,22 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             const string TEST_FORMAT = "{0}";
 
-            FormattableString testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR);
-            InterpolatedStringHandler testDataB = new InterpolatedStringHandler(literalLength: 0, formattedCount: 1);
-            testDataB.AppendFormatted(TEST_COLOR);
+            FormattableString testDataA;
+            InterpolatedStringHandler testDataB;
+
+            createTestData();
 
             EmptyColorFormatProvider formatProvider = new EmptyColorFormatProvider();
 
             AssertThat(string.IsNullOrEmpty(testDataA.ToString(formatProvider))).IsTrue();
             AssertThat(string.IsNullOrEmpty(testDataB.ToString(formatProvider))).IsTrue();
+
+            void createTestData()
+            {
+                testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR);
+                testDataB = new InterpolatedStringHandler(literalLength: 0, formattedCount: 1);
+                testDataB.AppendFormatted(TEST_COLOR);
+            }
         }
 
         private void testAnsiCodeReplacesColorData()
@@ -48,13 +55,10 @@ namespace LogUtils.Diagnostics.Tests.Utility
             //Test data provides formatting at the beginning, middle, and end of a string
             const string TEST_FORMAT = "{0}test{0} result{0}";
 
-            FormattableString testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR);
-            InterpolatedStringHandler testDataB = new InterpolatedStringHandler(literalLength: 11, formattedCount: 3);
-            testDataB.AppendFormatted(TEST_COLOR);
-            testDataB.AppendLiteral("test");
-            testDataB.AppendFormatted(TEST_COLOR);
-            testDataB.AppendLiteral(" result");
-            testDataB.AppendFormatted(TEST_COLOR);
+            FormattableString testDataA;
+            InterpolatedStringHandler testDataB;
+
+            createTestData();
 
             AnsiColorFormatProvider formatProvider = new AnsiColorFormatProvider();
 
@@ -66,6 +70,17 @@ namespace LogUtils.Diagnostics.Tests.Utility
                                    + resultB.Count(c => c == AnsiColorConverter.ANSI_ESCAPE_CHAR);
 
             AssertThat(totalCodesDetected).IsEqualTo(6); //3 x 2
+
+            void createTestData()
+            {
+                testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR);
+                testDataB = new InterpolatedStringHandler(literalLength: 11, formattedCount: 3);
+                testDataB.AppendFormatted(TEST_COLOR);
+                testDataB.AppendLiteral("test");
+                testDataB.AppendFormatted(TEST_COLOR);
+                testDataB.AppendLiteral(" result");
+                testDataB.AppendFormatted(TEST_COLOR);
+            }
         }
 
         private void testFormatImplementationsProduceSameResult()
@@ -73,13 +88,10 @@ namespace LogUtils.Diagnostics.Tests.Utility
             //Test data provides formatting at the beginning, middle, and end of a string
             const string TEST_FORMAT = "{0}test{0} result{0}";
 
-            FormattableString testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR);
-            InterpolatedStringHandler testDataB = new InterpolatedStringHandler(literalLength: 11, formattedCount: 3);
-            testDataB.AppendFormatted(TEST_COLOR);
-            testDataB.AppendLiteral("test");
-            testDataB.AppendFormatted(TEST_COLOR);
-            testDataB.AppendLiteral(" result");
-            testDataB.AppendFormatted(TEST_COLOR);
+            FormattableString testDataA;
+            InterpolatedStringHandler testDataB;
+
+            createTestData();
 
             AnsiColorFormatProvider formatProvider = new AnsiColorFormatProvider();
 
@@ -88,6 +100,17 @@ namespace LogUtils.Diagnostics.Tests.Utility
             string resultB = testDataB.ToString(formatProvider);
 
             AssertThat(resultA).IsEqualTo(resultB);
+
+            void createTestData()
+            {
+                testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR);
+                testDataB = new InterpolatedStringHandler(literalLength: 11, formattedCount: 3);
+                testDataB.AppendFormatted(TEST_COLOR);
+                testDataB.AppendLiteral("test");
+                testDataB.AppendFormatted(TEST_COLOR);
+                testDataB.AppendLiteral(" result");
+                testDataB.AppendFormatted(TEST_COLOR);
+            }
         }
 
         private void testAnsiCodeTerminatesAtCorrectPosition()
@@ -95,10 +118,10 @@ namespace LogUtils.Diagnostics.Tests.Utility
             const byte COLOR_RANGE = 4;
             const string TEST_FORMAT = "{0,4}test result";
 
-            FormattableString testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR);
-            InterpolatedStringHandler testDataB = new InterpolatedStringHandler(literalLength: 11, formattedCount: 1);
-            testDataB.AppendFormatted(TEST_COLOR, COLOR_RANGE);
-            testDataB.AppendLiteral("test result");
+            FormattableString testDataA;
+            InterpolatedStringHandler testDataB;
+
+            createTestData();
 
             AnsiColorFormatProvider formatProvider = new AnsiColorFormatProvider();
 
@@ -114,6 +137,14 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             AssertThat(resultA[resultA.IndexOf("test") + COLOR_RANGE]).IsEqualTo(AnsiColorConverter.ANSI_ESCAPE_CHAR);
             AssertThat(resultB[resultB.IndexOf("test") + COLOR_RANGE]).IsEqualTo(AnsiColorConverter.ANSI_ESCAPE_CHAR);
+
+            void createTestData()
+            {
+                testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR);
+                testDataB = new InterpolatedStringHandler(literalLength: 11, formattedCount: 1);
+                testDataB.AppendFormatted(TEST_COLOR, COLOR_RANGE);
+                testDataB.AppendLiteral("test result");
+            }
         }
 
         private void testAnsiCodeTerminationSkipsOverUnviewableCharacters()
@@ -123,10 +154,10 @@ namespace LogUtils.Diagnostics.Tests.Utility
             const byte EXPECTED_COLOR_RANGE = COLOR_RANGE + EXPECTED_SKIPPED_CHARACTER_AMOUNT;
             const string TEST_FORMAT = "{0,6}t e-s\r\\t result"; //'\r' is not viewable, but `\\` is
 
-            FormattableString testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR);
-            InterpolatedStringHandler testDataB = new InterpolatedStringHandler(literalLength: 15, formattedCount: 1);
-            testDataB.AppendFormatted(TEST_COLOR, COLOR_RANGE);
-            testDataB.AppendLiteral("t e-s\r\\t result");
+            FormattableString testDataA;
+            InterpolatedStringHandler testDataB;
+
+            createTestData();
 
             AnsiColorFormatProvider formatProvider = new AnsiColorFormatProvider();
 
@@ -142,6 +173,14 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             AssertThat(resultA[resultA.IndexOf("t e-s\r\\t") + EXPECTED_COLOR_RANGE]).IsEqualTo(AnsiColorConverter.ANSI_ESCAPE_CHAR);
             AssertThat(resultB[resultB.IndexOf("t e-s\r\\t") + EXPECTED_COLOR_RANGE]).IsEqualTo(AnsiColorConverter.ANSI_ESCAPE_CHAR);
+
+            void createTestData()
+            {
+                testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR);
+                testDataB = new InterpolatedStringHandler(literalLength: 15, formattedCount: 1);
+                testDataB.AppendFormatted(TEST_COLOR, COLOR_RANGE);
+                testDataB.AppendLiteral("t e-s\r\\t result");
+            }
         }
 
         private void testAnsiCodeTerminationRespectsColorBoundaries()
@@ -152,17 +191,15 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             Color testColorAlt = Color.blue;
 
+            FormattableString testDataA;
+            InterpolatedStringHandler testDataB;
+
             testNonTerminatingExample();
             testTerminatingExample();
 
             void testNonTerminatingExample()
             {
-                FormattableString testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR, testColorAlt);
-                InterpolatedStringHandler testDataB = new InterpolatedStringHandler(literalLength: 11, formattedCount: 2);
-                testDataB.AppendFormatted(TEST_COLOR, COLOR_RANGE);
-                testDataB.AppendLiteral("tes");
-                testDataB.AppendFormatted(testColorAlt);
-                testDataB.AppendLiteral("t result");
+                createTestData();
 
                 AnsiColorFormatProvider formatProvider = new AnsiColorFormatProvider();
 
@@ -187,16 +224,21 @@ namespace LogUtils.Diagnostics.Tests.Utility
                                        + resultB.Count(c => c == AnsiColorConverter.ANSI_ESCAPE_CHAR);
 
                 AssertThat(totalCodesDetected).IsEqualTo(4); //2 x 2 - There should be no termination when there is an interception by another color
+
+                void createTestData()
+                {
+                    testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR, testColorAlt);
+                    testDataB = new InterpolatedStringHandler(literalLength: 11, formattedCount: 2);
+                    testDataB.AppendFormatted(TEST_COLOR, COLOR_RANGE);
+                    testDataB.AppendLiteral("tes");
+                    testDataB.AppendFormatted(testColorAlt);
+                    testDataB.AppendLiteral("t result");
+                }
             }
 
             void testTerminatingExample()
             {
-                FormattableString testDataA = FormattableStringFactory.Create(TEST_FORMAT_ALT, TEST_COLOR, testColorAlt);
-                InterpolatedStringHandler testDataB = new InterpolatedStringHandler(literalLength: 11, formattedCount: 2);
-                testDataB.AppendFormatted(TEST_COLOR, COLOR_RANGE);
-                testDataB.AppendLiteral("tes");
-                testDataB.AppendFormatted(testColorAlt, 2);
-                testDataB.AppendLiteral("t result");
+                createTestData();
 
                 AnsiColorFormatProvider formatProvider = new AnsiColorFormatProvider();
 
@@ -221,6 +263,16 @@ namespace LogUtils.Diagnostics.Tests.Utility
                                        + resultB.Count(c => c == AnsiColorConverter.ANSI_ESCAPE_CHAR);
 
                 AssertThat(totalCodesDetected).IsEqualTo(6); //3 x 2
+
+                void createTestData()
+                {
+                    testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR, testColorAlt);
+                    testDataB = new InterpolatedStringHandler(literalLength: 11, formattedCount: 2);
+                    testDataB.AppendFormatted(TEST_COLOR, COLOR_RANGE);
+                    testDataB.AppendLiteral("tes");
+                    testDataB.AppendFormatted(testColorAlt, 2);
+                    testDataB.AppendLiteral("t result");
+                }
             }
         }
 
