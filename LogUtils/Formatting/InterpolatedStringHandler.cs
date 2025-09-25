@@ -27,6 +27,12 @@ namespace LogUtils.Formatting
         /// <inheritdoc/>
         public override int ArgumentCount => arguments.Count;
 
+        public InterpolatedStringHandler()
+        {
+            literals = new List<LiteralInfo>();
+            arguments = new List<ArgumentInfo>();
+        }
+
         public InterpolatedStringHandler(int literalLength, int formattedCount)
         {
             literals = new List<LiteralInfo>(formattedCount + 1);

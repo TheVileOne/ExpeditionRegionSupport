@@ -45,7 +45,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             void createTestData()
             {
                 testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR);
-                testDataB = new InterpolatedStringHandler(literalLength: 0, formattedCount: 1);
+                testDataB = new InterpolatedStringHandler();
                 testDataB.AppendFormatted(TEST_COLOR);
             }
         }
@@ -74,7 +74,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             void createTestData()
             {
                 testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR);
-                testDataB = new InterpolatedStringHandler(literalLength: 11, formattedCount: 3);
+                testDataB = new InterpolatedStringHandler();
                 testDataB.AppendFormatted(TEST_COLOR);
                 testDataB.AppendLiteral("test");
                 testDataB.AppendFormatted(TEST_COLOR);
@@ -104,7 +104,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             void createTestData()
             {
                 testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR);
-                testDataB = new InterpolatedStringHandler(literalLength: 11, formattedCount: 3);
+                testDataB = new InterpolatedStringHandler();
                 testDataB.AppendFormatted(TEST_COLOR);
                 testDataB.AppendLiteral("test");
                 testDataB.AppendFormatted(TEST_COLOR);
@@ -141,7 +141,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             void createTestData()
             {
                 testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR);
-                testDataB = new InterpolatedStringHandler(literalLength: 11, formattedCount: 1);
+                testDataB = new InterpolatedStringHandler();
                 testDataB.AppendFormatted(TEST_COLOR, COLOR_RANGE);
                 testDataB.AppendLiteral("test result");
             }
@@ -177,7 +177,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             void createTestData()
             {
                 testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR);
-                testDataB = new InterpolatedStringHandler(literalLength: 15, formattedCount: 1);
+                testDataB = new InterpolatedStringHandler();
                 testDataB.AppendFormatted(TEST_COLOR, COLOR_RANGE);
                 testDataB.AppendLiteral("t e-s\r\\t result");
             }
@@ -228,7 +228,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 void createTestData()
                 {
                     testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR, testColorAlt);
-                    testDataB = new InterpolatedStringHandler(literalLength: 11, formattedCount: 2);
+                    testDataB = new InterpolatedStringHandler();
                     testDataB.AppendFormatted(TEST_COLOR, COLOR_RANGE);
                     testDataB.AppendLiteral("tes");
                     testDataB.AppendFormatted(testColorAlt);
@@ -267,7 +267,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 void createTestData()
                 {
                     testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR, testColorAlt);
-                    testDataB = new InterpolatedStringHandler(literalLength: 11, formattedCount: 2);
+                    testDataB = new InterpolatedStringHandler();
                     testDataB.AppendFormatted(TEST_COLOR, COLOR_RANGE);
                     testDataB.AppendLiteral("tes");
                     testDataB.AppendFormatted(testColorAlt, 2);
