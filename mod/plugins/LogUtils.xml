@@ -5954,13 +5954,14 @@
         </member>
         <member name="T:LogUtils.Formatting.InterpolatedStringHandler">
             <summary>
-            A struct that processes interpolated string data into a formatted string
+            A class that processes interpolated string data into a formatted string
             </summary>
         </member>
-        <member name="F:LogUtils.Formatting.InterpolatedStringHandler.builder">
-            <summary>
-            Stores the interpolate message string
-            </summary>
+        <member name="P:LogUtils.Formatting.InterpolatedStringHandler.Format">
+            <inheritdoc/>
+        </member>
+        <member name="P:LogUtils.Formatting.InterpolatedStringHandler.ArgumentCount">
+            <inheritdoc/>
         </member>
         <member name="M:LogUtils.Formatting.InterpolatedStringHandler.AppendLiteral(System.String)">
             <summary>
@@ -5990,13 +5991,35 @@
             <param name="format">Format specification applicable to an argument</param>
             <param name="alignment">Value affects padded space unless used with a <see cref="T:UnityEngine.Color"/> or <see cref="T:System.ConsoleColor"/>, of which it represents the number of formatted characters</param>
         </member>
+        <member name="M:LogUtils.Formatting.InterpolatedStringHandler.BuildFormat">
+            <summary>
+            Builds the format string out of appended string literals, and format arguments
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:LogUtils.Formatting.InterpolatedStringHandler.GetArguments">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Formatting.InterpolatedStringHandler.GetArgument(System.Int32)">
+            <inheritdoc/>
+        </member>
         <member name="M:LogUtils.Formatting.InterpolatedStringHandler.ToString">
             <inheritdoc/>
         </member>
-        <member name="M:LogUtils.Formatting.InterpolatedStringHandler.ToString(System.String,System.IFormatProvider)">
+        <member name="M:LogUtils.Formatting.InterpolatedStringHandler.ToString(System.IFormatProvider)">
             <inheritdoc/>
         </member>
-        <member name="F:LogUtils.Formatting.InterpolatedStringHandler.ArgumentInfo.Argument">
+        <member name="F:LogUtils.Formatting.InterpolatedStringHandler.LiteralInfo.BuildPosition">
+            <summary>
+            The position in the builder string at the time of format
+            </summary>
+        </member>
+        <member name="F:LogUtils.Formatting.InterpolatedStringHandler.LiteralInfo.Value">
+            <summary>
+            The value of the literal
+            </summary>
+        </member>
+        <member name="F:LogUtils.Formatting.InterpolatedStringHandler.ArgumentInfo.Value">
             <summary>
             An object, or value to be inserted into the builder string
             </summary>
@@ -6006,7 +6029,7 @@
             The format specifier code
             </summary>
         </member>
-        <member name="F:LogUtils.Formatting.InterpolatedStringHandler.ArgumentInfo.Index">
+        <member name="F:LogUtils.Formatting.InterpolatedStringHandler.ArgumentInfo.BuildPosition">
             <summary>
             The position in the builder string at the time of format
             </summary>

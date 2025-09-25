@@ -88,6 +88,7 @@ namespace LogUtils.Formatting
         /// <returns></returns>
         internal string BuildFormat()
         {
+            throw new NotImplementedException();
         }
 
         /// <inheritdoc/>
