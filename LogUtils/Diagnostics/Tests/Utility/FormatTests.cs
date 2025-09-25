@@ -266,7 +266,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
                 void createTestData()
                 {
-                    testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR, testColorAlt);
+                    testDataA = FormattableStringFactory.Create(TEST_FORMAT_ALT, TEST_COLOR, testColorAlt);
                     testDataB = new InterpolatedStringHandler();
                     testDataB.AppendFormatted(TEST_COLOR, COLOR_RANGE);
                     testDataB.AppendLiteral("tes");
