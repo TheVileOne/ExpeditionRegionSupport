@@ -28,11 +28,9 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
         public void Test()
         {
-            ApplyHooks();
             TestSingleArgument();
             TestTwoArguments();
             TestThreeArguments();
-            RemoveHooks();
         }
 
         internal void TestSingleArgument()
@@ -1398,6 +1396,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             methodCalled = null;
         }
 
+        [PreTest]
         internal void ApplyHooks()
         {
             Type loggerType = typeof(Logger);
@@ -1441,6 +1440,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 h.Apply();
         }
 
+        [PostTest]
         internal void RemoveHooks()
         {
             testHooks.ForEach(hook => hook.Free());
