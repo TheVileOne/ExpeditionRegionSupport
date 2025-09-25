@@ -26,6 +26,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             testAnsiCodeTerminatesAtCorrectPosition();
             testAnsiCodeTerminationSkipsOverUnviewableCharacters();
             testAnsiCodeTerminationRespectsColorBoundaries();
+            testFormatStringContainsPlaceholderFormatting();
         }
 
         private void testEmptyFormatRemovesColorData()
@@ -245,6 +246,12 @@ namespace LogUtils.Diagnostics.Tests.Utility
                                    + resultB.Count(c => c == AnsiColorConverter.ANSI_ESCAPE_CHAR);
 
             AssertThat(totalCodesDetected).IsEqualTo(expectedAnsiCodeAmount);
+        }
+
+        private void testFormatStringContainsPlaceholderFormatting()
+        {
+            InterpolatedStringHandler testData = $"Test format should contain {1} format arguments";
+            AssertThat(testData.Format.Contains("{0}")).IsTrue();
         }
 
         [PostTest]
