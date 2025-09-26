@@ -2843,6 +2843,394 @@ namespace LogUtils
         #endregion
         #endregion
 
+        #region Log Overloads (InterpolatedStringHandler, object[])
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(string, object[])"/>
+        public void Log(InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(LogCategory.Default, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(string, object[])"/>
+        public void LogOnce(InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            LogOnce(LogCategory.Default, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(string, object[])"/>
+        public void LogDebug(InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(LogCategory.Debug, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(string, object[])"/>
+        public void LogInfo(InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(LogCategory.Info, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(string, object[])"/>
+        public void LogImportant(InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(LogCategory.Important, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(string, object[])"/>
+        public void LogMessage(InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(LogCategory.Message, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(string, object[])"/>
+        public void LogWarning(InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(LogCategory.Warning, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogError(string, object[])"/>
+        public void LogError(InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(LogCategory.Error, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(string, object[])"/>
+        public void LogFatal(InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(LogCategory.Fatal, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, object[])"/>
+        public void Log(LogType category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(LogCategory.ToCategory(category), format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, object[])"/>
+        public void Log(LogLevel category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(LogCategory.ToCategory(category), format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, object[])"/>
+        public void Log(string category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(LogCategory.ToCategory(category), format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, object[])"/>
+        public void Log(LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            LogBase(category, format, false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, string, object[])"/>
+        public void LogOnce(LogType category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            LogOnce(LogCategory.ToCategory(category), format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, string, object[])"/>
+        public void LogOnce(LogLevel category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            LogOnce(LogCategory.ToCategory(category), format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, string, object[])"/>
+        public void LogOnce(string category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            LogOnce(LogCategory.ToCategory(category), format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, string, object[])"/>
+        public void LogOnce(LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            LogBase(category, format, true);
+        }
+        #region Rain World Overloads
+        #region BepInEx
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(string, object[])"/>
+        public void LogBepEx(InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            LogBase(LogID.BepInEx, LogCategory.Default, format, false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, string, object[])"/>
+        public void LogBepEx(LogLevel category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            LogBase(LogID.BepInEx, LogCategory.ToCategory(category), format, false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, string, object[])"/>
+        public void LogBepEx(LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            LogBase(LogID.BepInEx, category, format, false);
+        }
+        #endregion
+        #region Unity
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogUnity(string, object[])"/>
+        public void LogUnity(InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            LogBase(LogID.Unity, LogCategory.Default, format, false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, string, object[])"/>
+        public void LogUnity(LogType category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            LogBase(LogCategory.GetUnityLogID(category), LogCategory.ToCategory(category), format, false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, string, object[])"/>
+        public void LogUnity(LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            LogBase(LogCategory.GetUnityLogID(category.UnityCategory), category, format, false);
+        }
+        #endregion
+        #region Expedition
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogExp(string, object[])"/>
+        public void LogExp(InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            LogBase(LogID.Expedition, LogCategory.Default, format, false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogExp(LogCategory, string, object[])"/>
+        public void LogExp(LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            LogBase(LogID.Expedition, category, format, false);
+        }
+        #endregion
+        #region JollyCoop
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogJolly(string, object[])"/>
+        public void LogJolly(InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            LogBase(LogID.JollyCoop, LogCategory.Default, format, false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogJolly(LogCategory, string, object[])"/>
+        public void LogJolly(LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            LogBase(LogID.JollyCoop, category, format, false);
+        }
+        #endregion
+        #endregion
+        #endregion
+        #region  Log Overloads (ILogTarget, InterpolatedStringHandler, object[])
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, string, object[])"/>
+        public void Log(ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(target, LogCategory.Default, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, string, object[])"/>
+        public void LogOnce(ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(target, LogCategory.Default, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(ILogTarget, string, object[])"/>
+        public void LogDebug(ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(target, LogCategory.Debug, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(ILogTarget, string, object[])"/>
+        public void LogInfo(ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(target, LogCategory.Info, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(ILogTarget, string, object[])"/>
+        public void LogImportant(ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(target, LogCategory.Important, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(ILogTarget, string, object[])"/>
+        public void LogMessage(ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(target, LogCategory.Message, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(ILogTarget, string, object[])"/>
+        public void LogWarning(ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(target, LogCategory.Warning, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogError(ILogTarget, string, object[])"/>
+        public void LogError(ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(target, LogCategory.Error, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(ILogTarget, string, object[])"/>
+        public void LogFatal(ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(target, LogCategory.Fatal, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, string, object[])"/>
+        public void Log(ILogTarget target, LogLevel category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(target, LogCategory.ToCategory(category), format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, string, object[])"/>
+        public void Log(ILogTarget target, string category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(target, LogCategory.ToCategory(category), format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, string, object[])"/>
+        public void Log(ILogTarget target, LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            LogUnresolvedTarget(target, category, format, false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, string, object[])"/>
+        public void LogOnce(ILogTarget target, LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            LogUnresolvedTarget(target, category, format, true);
+        }
+        #endregion
+        #region  Log Overloads (IEnumerable<ILogTarget>, InterpolatedStringHandler, object[])
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, string, object[])"/>
+        public void Log(IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(targets, LogCategory.Default, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, string, object[])"/>
+        public void LogOnce(IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(targets, LogCategory.Default, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(IEnumerable{ILogTarget}, string, object[])"/>
+        public void LogDebug(IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(targets, LogCategory.Debug, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(IEnumerable{ILogTarget}, string, object[])"/>
+        public void LogInfo(IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(targets, LogCategory.Info, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(IEnumerable{ILogTarget}, string, object[])"/>
+        public void LogImportant(IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(targets, LogCategory.Important, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(IEnumerable{ILogTarget}, string, object[])"/>
+        public void LogMessage(IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(targets, LogCategory.Message, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(IEnumerable{ILogTarget}, string, object[])"/>
+        public void LogWarning(IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(targets, LogCategory.Warning, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogError(IEnumerable{ILogTarget}, string, object[])"/>
+        public void LogError(IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(targets, LogCategory.Error, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(IEnumerable{ILogTarget}, string, object[])"/>
+        public void LogFatal(IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(targets, LogCategory.Fatal, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, string, object[])"/>
+        public void Log(IEnumerable<ILogTarget> targets, LogLevel category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(targets, LogCategory.ToCategory(category), format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, string, object[])"/>
+        public void Log(IEnumerable<ILogTarget> targets, string category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            Log(targets, LogCategory.ToCategory(category), format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, string, object[])"/>
+        public void Log(IEnumerable<ILogTarget> targets, LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            LogBase(new LogTargetCollection(targets), category, format, false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, LogCategory, string, object[])"/>
+        public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            LogBase(new LogTargetCollection(targets), category, format, true);
+        }
+        #endregion
+        
         #region Log Overloads (string, object[])
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(string, object[])"/>
@@ -3252,5 +3640,395 @@ namespace LogUtils
         {
             logger.Log(category, FormattableStringFactory.Create(format, formatArgs));
         }
+
+        /*
+        #region Log Overloads (InterpolatedStringHandler, object[])
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(string, object[])"/>
+        public static void Log(this Logger logger, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(LogCategory.Default, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(string, object[])"/>
+        public static void LogOnce(this Logger logger, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.LogOnce(LogCategory.Default, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(string, object[])"/>
+        public static void LogDebug(this Logger logger, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(LogCategory.Debug, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(string, object[])"/>
+        public static void LogInfo(this Logger logger, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(LogCategory.Info, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(string, object[])"/>
+        public static void LogImportant(this Logger logger, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(LogCategory.Important, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(string, object[])"/>
+        public static void LogMessage(this Logger logger, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(LogCategory.Message, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(string, object[])"/>
+        public static void LogWarning(this Logger logger, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(LogCategory.Warning, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogError(string, object[])"/>
+        public static void LogError(this Logger logger, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(LogCategory.Error, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(string, object[])"/>
+        public static void LogFatal(this Logger logger, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(LogCategory.Fatal, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, object[])"/>
+        public static void Log(this Logger logger, LogType category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(LogCategory.ToCategory(category), format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, object[])"/>
+        public static void Log(this Logger logger, LogLevel category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(LogCategory.ToCategory(category), format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, object[])"/>
+        public static void Log(this Logger logger, string category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(LogCategory.ToCategory(category), format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, object[])"/>
+        public static void Log(this Logger logger, LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.LogBase(category, format, false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, string, object[])"/>
+        public static void LogOnce(this Logger logger, LogType category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.LogOnce(LogCategory.ToCategory(category), format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, string, object[])"/>
+        public static void LogOnce(this Logger logger, LogLevel category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.LogOnce(LogCategory.ToCategory(category), format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, string, object[])"/>
+        public static void LogOnce(this Logger logger, string category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.LogOnce(LogCategory.ToCategory(category), format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, string, object[])"/>
+        public static void LogOnce(this Logger logger, LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.LogBase(category, format, true);
+        }
+        #region Rain World Overloads
+        #region BepInEx
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(string, object[])"/>
+        public static void LogBepEx(this Logger logger, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.LogBase(LogID.BepInEx, LogCategory.Default, format, false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, string, object[])"/>
+        public static void LogBepEx(this Logger logger, LogLevel category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.LogBase(LogID.BepInEx, LogCategory.ToCategory(category), format, false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, string, object[])"/>
+        public static void LogBepEx(this Logger logger, LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.LogBase(LogID.BepInEx, category, format, false);
+        }
+        #endregion
+        #region Unity
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogUnity(string, object[])"/>
+        public static void LogUnity(this Logger logger, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.LogBase(LogID.Unity, LogCategory.Default, format, false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, string, object[])"/>
+        public static void LogUnity(this Logger logger, LogType category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.LogBase(LogCategory.GetUnityLogID(category), LogCategory.ToCategory(category), format, false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, string, object[])"/>
+        public static void LogUnity(this Logger logger, LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.LogBase(LogCategory.GetUnityLogID(category.UnityCategory), category, format, false);
+        }
+        #endregion
+        #region Expedition
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogExp(string, object[])"/>
+        public static void LogExp(this Logger logger, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.LogBase(LogID.Expedition, LogCategory.Default, format, false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogExp(LogCategory, string, object[])"/>
+        public static void LogExp(this Logger logger, LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.LogBase(LogID.Expedition, category, format, false);
+        }
+        #endregion
+        #region JollyCoop
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogJolly(string, object[])"/>
+        public static void LogJolly(this Logger logger, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.LogBase(LogID.JollyCoop, LogCategory.Default, format, false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogJolly(LogCategory, string, object[])"/>
+        public static void LogJolly(this Logger logger, LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.LogBase(LogID.JollyCoop, category, format, false);
+        }
+        #endregion
+        #endregion
+        #endregion
+        #region  Log Overloads (ILogTarget, InterpolatedStringHandler, object[])
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, string, object[])"/>
+        public static void Log(this Logger logger, ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(target, LogCategory.Default, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, string, object[])"/>
+        public static void LogOnce(this Logger logger, ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(target, LogCategory.Default, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(ILogTarget, string, object[])"/>
+        public static void LogDebug(this Logger logger, ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(target, LogCategory.Debug, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(ILogTarget, string, object[])"/>
+        public static void LogInfo(this Logger logger, ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(target, LogCategory.Info, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(ILogTarget, string, object[])"/>
+        public static void LogImportant(this Logger logger, ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(target, LogCategory.Important, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(ILogTarget, string, object[])"/>
+        public static void LogMessage(this Logger logger, ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(target, LogCategory.Message, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(ILogTarget, string, object[])"/>
+        public static void LogWarning(this Logger logger, ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(target, LogCategory.Warning, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogError(ILogTarget, string, object[])"/>
+        public static void LogError(this Logger logger, ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(target, LogCategory.Error, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(ILogTarget, string, object[])"/>
+        public static void LogFatal(this Logger logger, ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(target, LogCategory.Fatal, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, string, object[])"/>
+        public static void Log(this Logger logger, ILogTarget target, LogLevel category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(target, LogCategory.ToCategory(category), format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, string, object[])"/>
+        public static void Log(this Logger logger, ILogTarget target, string category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(target, LogCategory.ToCategory(category), format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, string, object[])"/>
+        public static void Log(this Logger logger, ILogTarget target, LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.LogUnresolvedTarget(target, category, format, false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, string, object[])"/>
+        public static void LogOnce(this Logger logger, ILogTarget target, LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.LogUnresolvedTarget(target, category, format, true);
+        }
+        #endregion
+        #region  Log Overloads (IEnumerable<ILogTarget>, InterpolatedStringHandler, object[])
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, string, object[])"/>
+        public static void Log(this Logger logger, IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(targets, LogCategory.Default, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, string, object[])"/>
+        public static void LogOnce(this Logger logger, IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(targets, LogCategory.Default, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(IEnumerable{ILogTarget}, string, object[])"/>
+        public static void LogDebug(this Logger logger, IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(targets, LogCategory.Debug, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(IEnumerable{ILogTarget}, string, object[])"/>
+        public static void LogInfo(this Logger logger, IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(targets, LogCategory.Info, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(IEnumerable{ILogTarget}, string, object[])"/>
+        public static void LogImportant(this Logger logger, IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(targets, LogCategory.Important, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(IEnumerable{ILogTarget}, string, object[])"/>
+        public static void LogMessage(this Logger logger, IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(targets, LogCategory.Message, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(IEnumerable{ILogTarget}, string, object[])"/>
+        public static void LogWarning(this Logger logger, IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(targets, LogCategory.Warning, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogError(IEnumerable{ILogTarget}, string, object[])"/>
+        public static void LogError(this Logger logger, IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(targets, LogCategory.Error, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(IEnumerable{ILogTarget}, string, object[])"/>
+        public static void LogFatal(this Logger logger, IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(targets, LogCategory.Fatal, format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, string, object[])"/>
+        public static void Log(this Logger logger, IEnumerable<ILogTarget> targets, LogLevel category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(targets, LogCategory.ToCategory(category), format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, string, object[])"/>
+        public static void Log(this Logger logger, IEnumerable<ILogTarget> targets, string category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.Log(targets, LogCategory.ToCategory(category), format);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, string, object[])"/>
+        public static void Log(this Logger logger, IEnumerable<ILogTarget> targets, LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.LogBase(new LogTargetCollection(targets), category, format, false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, LogCategory, string, object[])"/>
+        public static void LogOnce(this Logger logger, IEnumerable<ILogTarget> targets, LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
+        {
+            format.AppendFormattedRange(formatArgs);
+            logger.LogBase(new LogTargetCollection(targets), category, format, true);
+        }
+        #endregion
+        */
     }
 }

@@ -196,7 +196,7 @@ namespace LogUtils
         /// <summary>
         /// Log targets that may be composite need to be resolved before logging can occur
         /// </summary>
-        protected void LogUnresolvedTarget(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
+        protected internal void LogUnresolvedTarget(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
         {
             if (target is CompositeLogTarget compositeTarget)
             {
@@ -207,7 +207,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LogUnresolvedTarget(ILogTarget, LogCategory, object, bool, CreateRequestCallback)"/>
-        protected void LogUnresolvedTarget(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
+        protected internal void LogUnresolvedTarget(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
         {
             EventArgs extraData = new ColorEventArgs(messageColor);
             if (target is CompositeLogTarget compositeTarget)
@@ -218,25 +218,25 @@ namespace LogUtils
             LogBase(target, category, messageObj, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
         }
 
-        protected void LogBase(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
+        protected internal void LogBase(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
         {
             EventArgs extraData = new ColorEventArgs(messageColor);
             LogBase(target, category, messageObj, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
         }
 
-        protected void LogBase(LogTargetCollection targets, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
+        protected internal void LogBase(LogTargetCollection targets, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
         {
             EventArgs extraData = new ColorEventArgs(messageColor);
             LogBase(targets, category, messageObj, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
         }
 
-        protected void LogBase(LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
+        protected internal void LogBase(LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
         {
             EventArgs extraData = new ColorEventArgs(messageColor);
             LogBase(category, messageObj, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
         }
 
-        protected void LogBase(LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
+        protected internal void LogBase(LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
         {
             if (Targets.Count == 1)
             {
@@ -247,7 +247,7 @@ namespace LogUtils
             LogBase(Targets, category, messageObj, shouldFilter, createRequest);
         }
 
-        protected virtual void LogBase(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
+        protected internal virtual void LogBase(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
         {
             if (!AllowLogging || !target.IsEnabled) return;
 
@@ -268,7 +268,7 @@ namespace LogUtils
             }
         }
 
-        protected virtual void LogBase(LogTargetCollection targets, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
+        protected internal virtual void LogBase(LogTargetCollection targets, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
         {
             if (!AllowLogging) return;
 
@@ -296,7 +296,7 @@ namespace LogUtils
         /// Passes a log request to a writer, or request handler
         /// </summary>
         /// <remarks>Through normal code paths, this code may receive already submitted requests, but these requests should always be local</remarks>
-        protected virtual void LogBase(LogRequest request)
+        protected internal virtual void LogBase(LogRequest request)
         {
             try
             {

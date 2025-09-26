@@ -83,6 +83,16 @@ namespace LogUtils.Formatting
         }
 
         /// <summary>
+        /// Adds a range object components for later formatting
+        /// </summary>
+        /// <param name="arguments">An argument to be formatted</param>
+        public void AppendFormattedRange<T>(IEnumerable<T> arguments)
+        {
+            foreach (T arg in arguments)
+                AppendFormatted(arg);
+        }
+
+        /// <summary>
         /// Builds the format string out of appended string literals, and format arguments
         /// </summary>
         /// <returns></returns>
