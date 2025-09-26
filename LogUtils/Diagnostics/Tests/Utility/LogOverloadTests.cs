@@ -1421,7 +1421,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 }
                 else if (firstParam == Types.Object)
                 {
-                    if (tryCreateHook<string>(method, parameters, out Hook hook))
+                    if (tryCreateHook<object>(method, parameters, out Hook hook))
                         testHooks.Add(hook);
                 }
                 else if (firstParam == Types.LogCategory)
