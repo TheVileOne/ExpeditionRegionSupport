@@ -121,18 +121,20 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             testGroup.Add(activeCase = new TestCase("Test: Interpolated string arguments"));
 
+#if OVERLOAD_PRIORITY
             //Interpolated string, String
             logger.Log($"{Arguments.Object}", Arguments.String);
             AssertResultAndClear(Types.String, Types.String);
-
+#endif
             //Interpolated string, Object
             logger.Log($"{Arguments.Object}", Arguments.Object);
             AssertResultAndClear(Types.String, Types.Object);
 
+#if OVERLOAD_PRIORITY
             //Interpolated string, Interpolated string
             logger.Log($"{Arguments.Object}", $"{Arguments.Object}");
             AssertResultAndClear(Types.String, Types.InterpolatedStringHandler);
-
+#endif
             //Interpolated string, Null (ambiguous)
             //logger.Log($"{Arguments.Object}", null);
 
@@ -501,7 +503,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             testGroup.Add(activeCase = new TestCase("Test: Interpolated String arguments"));
 
             #region Interpolated String, String tests
-
+#if OVERLOAD_PRIORITY
             //String
             logger.Log($"{Arguments.Object}", Arguments.String, Arguments.String);
             AssertResultAndClear(Types.String, Types.String, Types.ObjectArray);
@@ -531,9 +533,10 @@ namespace LogUtils.Diagnostics.Tests.Utility
             //ConsoleColor
             logger.Log($"{Arguments.Object}", Arguments.String, Arguments.ConsoleColor);
             AssertResultAndClear(Types.String, Types.String, Types.ConsoleColor); //Color overload takes priority over object array overload
+#endif
             #endregion
             #region Interpolated String, Interpolated String tests
-
+#if OVERLOAD_PRIORITY
             //String
             logger.Log($"{Arguments.Object}", $"{Arguments.Object}", Arguments.String);
             AssertResultAndClear(Types.String, Types.String, Types.ObjectArray);
@@ -549,6 +552,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             //ConsoleColor
             logger.Log($"{Arguments.Object}", $"{Arguments.Object}", Arguments.ConsoleColor);
             AssertResultAndClear(Types.String, Types.InterpolatedStringHandler, Types.ConsoleColor); //Color overload takes priority over object array overload
+#endif
             #endregion
             #region Interpolated String, Object tests
 
@@ -564,13 +568,14 @@ namespace LogUtils.Diagnostics.Tests.Utility
             logger.Log($"{Arguments.Object}", Arguments.Object, null);
             AssertResultAndClear(Types.String, Types.ObjectArray);
 
+#if OVERLOAD_PRIORITY
             //Color
             logger.Log($"{Arguments.Object}", Arguments.Object, Arguments.Color);
             AssertResultAndClear(Types.String, Types.Object, Types.Color); //Color overload takes priority over object array overload
-
             //ConsoleColor
             logger.Log($"{Arguments.Object}", Arguments.Object, Arguments.ConsoleColor);
             AssertResultAndClear(Types.String, Types.Object, Types.ConsoleColor); //Color overload takes priority over object array overload
+#endif
             #endregion
             #region Interpolated String, LogCategory tests
 
@@ -586,6 +591,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             logger.Log($"{Arguments.Object}", Arguments.LogCategory, null);
             AssertResultAndClear(Types.String, Types.ObjectArray);
 
+#if OVERLOAD_PRIORITY
             //Color
             logger.Log($"{Arguments.Object}", Arguments.LogCategory, Arguments.Color);
             AssertResultAndClear(Types.String, Types.Object, Types.Color); //Color overload takes priority over object array overload
@@ -593,6 +599,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             //ConsoleColor
             logger.Log($"{Arguments.Object}", Arguments.LogCategory, Arguments.ConsoleColor);
             AssertResultAndClear(Types.String, Types.Object, Types.ConsoleColor); //Color overload takes priority over object array overload
+#endif
             #endregion
             #region Interpolated String, ILogTarget tests
 
@@ -608,6 +615,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             logger.Log($"{Arguments.Object}", Arguments.LogTarget, null);
             AssertResultAndClear(Types.String, Types.ObjectArray);
 
+#if OVERLOAD_PRIORITY
             //Color
             logger.Log($"{Arguments.Object}", Arguments.LogTarget, Arguments.Color);
             AssertResultAndClear(Types.String, Types.Object, Types.Color); //Color overload takes priority over object array overload
@@ -615,6 +623,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             //ConsoleColor
             logger.Log($"{Arguments.Object}", Arguments.LogTarget, Arguments.ConsoleColor);
             AssertResultAndClear(Types.String, Types.Object, Types.ConsoleColor); //Color overload takes priority over object array overload
+#endif
             #endregion
             #region Interpolated String, Color tests
 
@@ -630,6 +639,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             logger.Log($"{Arguments.Object}", Arguments.Color, null);
             AssertResultAndClear(Types.String, Types.ObjectArray);
 
+#if OVERLOAD_PRIORITY
             //Color
             logger.Log($"{Arguments.Object}", Arguments.Color, Arguments.Color);
             AssertResultAndClear(Types.String, Types.Object, Types.Color); //Color overload takes priority over object array overload
@@ -637,6 +647,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             //ConsoleColor
             logger.Log($"{Arguments.Object}", Arguments.Color, Arguments.ConsoleColor);
             AssertResultAndClear(Types.String, Types.Object, Types.ConsoleColor); //Color overload takes priority over object array overload
+#endif
             #endregion
             #region Interpolated String, ConsoleColor tests
 
@@ -652,6 +663,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             logger.Log($"{Arguments.Object}", Arguments.ConsoleColor, null);
             AssertResultAndClear(Types.String, Types.ObjectArray);
 
+#if OVERLOAD_PRIORITY
             //Color
             logger.Log($"{Arguments.Object}", Arguments.ConsoleColor, Arguments.Color);
             AssertResultAndClear(Types.String, Types.Object, Types.Color); //Color overload takes priority over object array overload
@@ -659,6 +671,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             //ConsoleColor
             logger.Log($"{Arguments.Object}", Arguments.ConsoleColor, Arguments.ConsoleColor);
             AssertResultAndClear(Types.String, Types.Object, Types.ConsoleColor); //Color overload takes priority over object array overload
+#endif
             #endregion
             #endregion
             #region Object tests
@@ -983,11 +996,11 @@ namespace LogUtils.Diagnostics.Tests.Utility
             AssertResultAndClear(Types.LogTarget, Types.String, Types.ConsoleColor); //Color overload takes priority over object array overload
             #endregion
             #region ILogTarget, Interpolated String tests
-
+#if OVERLOAD_PRIORITY
             //String
             logger.Log(Arguments.LogTarget, $"{Arguments.Object}", Arguments.String);
             AssertResultAndClear(Types.LogTarget, Types.String, Types.String);
-
+#endif
             //Object
             logger.Log(Arguments.LogTarget, $"{Arguments.Object}", Arguments.Object);
             AssertResultAndClear(Types.LogTarget, Types.String, Types.Object);

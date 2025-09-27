@@ -9,6 +9,7 @@
 		<EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
 		<WarningsAsErrors>CS1574</WarningsAsErrors>
 		<FileVersion>1.0.0.9</FileVersion>
+		<Configurations>Debug;Release;Overload_Priority</Configurations>
 	</PropertyGroup>
 
 	<ItemGroup>
