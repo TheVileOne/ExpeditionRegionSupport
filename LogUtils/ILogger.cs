@@ -56,9 +56,6 @@ namespace LogUtils
         void Log(LogLevel category, T messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        void Log(string category, T messageObj);
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         void Log(LogCategory category, T messageObj);
     }
 

@@ -192,12 +192,6 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        public void Log(string category, object messageObj)
-        {
-            Log(LogCategory.ToCategory(category), messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(LogCategory category, object messageObj)
         {
             LogBase(category, messageObj, false);
@@ -211,12 +205,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
         public void LogOnce(LogLevel category, object messageObj)
-        {
-            LogOnce(LogCategory.ToCategory(category), messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
-        public void LogOnce(string category, object messageObj)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj);
         }
@@ -241,12 +229,6 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
-        public void Log(string category, object messageObj, Color messageColor)
-        {
-            Log(LogCategory.ToCategory(category), messageObj, messageColor);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         public void Log(LogCategory category, object messageObj, Color messageColor)
         {
             LogBase(category, messageObj, false, messageColor);
@@ -260,12 +242,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
         public void LogOnce(LogLevel category, object messageObj, Color messageColor)
-        {
-            LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
-        public void LogOnce(string category, object messageObj, Color messageColor)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
         }
@@ -289,12 +265,6 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
-        public void Log(string category, object messageObj, ConsoleColor messageColor)
-        {
-            Log(LogCategory.ToCategory(category), messageObj, messageColor);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         public void Log(LogCategory category, object messageObj, ConsoleColor messageColor)
         {
             LogBase(category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
@@ -308,12 +278,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
         public void LogOnce(LogLevel category, object messageObj, ConsoleColor messageColor)
-        {
-            LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
-        public void LogOnce(string category, object messageObj, ConsoleColor messageColor)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
         }
@@ -494,12 +458,6 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object)"/>
-        public void Log(ILogTarget target, string category, object messageObj)
-        {
-            Log(target, LogCategory.ToCategory(category), messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object)"/>
         public void Log(ILogTarget target, LogCategory category, object messageObj)
         {
             LogUnresolvedTarget(target, category, messageObj, false);
@@ -573,12 +531,6 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
-        public void Log(ILogTarget target, string category, object messageObj, Color messageColor)
-        {
-            Log(target, LogCategory.ToCategory(category), messageObj, messageColor);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
         public void Log(ILogTarget target, LogCategory category, object messageObj, Color messageColor)
         {
             LogUnresolvedTarget(target, category, messageObj, false, messageColor);
@@ -646,12 +598,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
         public void Log(ILogTarget target, LogLevel category, object messageObj, ConsoleColor messageColor)
-        {
-            Log(target, LogCategory.ToCategory(category), messageObj, ConsoleColorMap.GetColor(messageColor));
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
-        public void Log(ILogTarget target, string category, object messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.ToCategory(category), messageObj, ConsoleColorMap.GetColor(messageColor));
         }
@@ -732,12 +678,6 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object)"/>
-        public void Log(IEnumerable<ILogTarget> targets, string category, object messageObj)
-        {
-            Log(targets, LogCategory.ToCategory(category), messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object)"/>
         public void Log(IEnumerable<ILogTarget> targets, LogCategory category, object messageObj)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, false);
@@ -811,12 +751,6 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
-        public void Log(IEnumerable<ILogTarget> targets, string category, object messageObj, Color messageColor)
-        {
-            Log(targets, LogCategory.ToCategory(category), messageObj, messageColor);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         public void Log(IEnumerable<ILogTarget> targets, LogCategory category, object messageObj, Color messageColor)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, false, messageColor);
@@ -884,12 +818,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         public void Log(IEnumerable<ILogTarget> targets, LogLevel category, object messageObj, ConsoleColor messageColor)
-        {
-            Log(targets, LogCategory.ToCategory(category), messageObj, messageColor);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
-        public void Log(IEnumerable<ILogTarget> targets, string category, object messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.ToCategory(category), messageObj, messageColor);
         }
@@ -1087,12 +1015,6 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        public void Log(string category, string messageObj)
-        {
-            Log(LogCategory.ToCategory(category), messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(LogCategory category, string messageObj)
         {
             LogBase(category, messageObj, false);
@@ -1106,12 +1028,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
         public void LogOnce(LogLevel category, string messageObj)
-        {
-            LogOnce(LogCategory.ToCategory(category), messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
-        public void LogOnce(string category, string messageObj)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj);
         }
@@ -1136,12 +1052,6 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
-        public void Log(string category, string messageObj, Color messageColor)
-        {
-            Log(LogCategory.ToCategory(category), messageObj, messageColor);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         public void Log(LogCategory category, string messageObj, Color messageColor)
         {
             LogBase(category, messageObj, false, messageColor);
@@ -1155,12 +1065,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
         public void LogOnce(LogLevel category, string messageObj, Color messageColor)
-        {
-            LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
-        public void LogOnce(string category, string messageObj, Color messageColor)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
         }
@@ -1184,12 +1088,6 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
-        public void Log(string category, string messageObj, ConsoleColor messageColor)
-        {
-            Log(LogCategory.ToCategory(category), messageObj, messageColor);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         public void Log(LogCategory category, string messageObj, ConsoleColor messageColor)
         {
             LogBase(category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
@@ -1203,12 +1101,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
         public void LogOnce(LogLevel category, string messageObj, ConsoleColor messageColor)
-        {
-            LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
-        public void LogOnce(string category, string messageObj, ConsoleColor messageColor)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
         }
@@ -1389,12 +1281,6 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object)"/>
-        public void Log(ILogTarget target, string category, string messageObj)
-        {
-            Log(target, LogCategory.ToCategory(category), messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object)"/>
         public void Log(ILogTarget target, LogCategory category, string messageObj)
         {
             LogUnresolvedTarget(target, category, messageObj, false);
@@ -1468,12 +1354,6 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
-        public void Log(ILogTarget target, string category, string messageObj, Color messageColor)
-        {
-            Log(target, LogCategory.ToCategory(category), messageObj, messageColor);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
         public void Log(ILogTarget target, LogCategory category, string messageObj, Color messageColor)
         {
             LogUnresolvedTarget(target, category, messageObj, false, messageColor);
@@ -1541,12 +1421,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
         public void Log(ILogTarget target, LogLevel category, string messageObj, ConsoleColor messageColor)
-        {
-            Log(target, LogCategory.ToCategory(category), messageObj, ConsoleColorMap.GetColor(messageColor));
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
-        public void Log(ILogTarget target, string category, string messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.ToCategory(category), messageObj, ConsoleColorMap.GetColor(messageColor));
         }
@@ -1627,12 +1501,6 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object)"/>
-        public void Log(IEnumerable<ILogTarget> targets, string category, string messageObj)
-        {
-            Log(targets, LogCategory.ToCategory(category), messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object)"/>
         public void Log(IEnumerable<ILogTarget> targets, LogCategory category, string messageObj)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, false);
@@ -1706,12 +1574,6 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
-        public void Log(IEnumerable<ILogTarget> targets, string category, string messageObj, Color messageColor)
-        {
-            Log(targets, LogCategory.ToCategory(category), messageObj, messageColor);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         public void Log(IEnumerable<ILogTarget> targets, LogCategory category, string messageObj, Color messageColor)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, false, messageColor);
@@ -1779,12 +1641,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         public void Log(IEnumerable<ILogTarget> targets, LogLevel category, string messageObj, ConsoleColor messageColor)
-        {
-            Log(targets, LogCategory.ToCategory(category), messageObj, messageColor);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
-        public void Log(IEnumerable<ILogTarget> targets, string category, string messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.ToCategory(category), messageObj, messageColor);
         }
@@ -2012,13 +1868,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(string category, InterpolatedStringHandler messageObj)
-        {
-            Log(LogCategory.ToCategory(category), messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        [EditorBrowsable(EditorBrowsableState.Never)]
         public void Log(LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogBase(category, messageObj, false);
@@ -2034,13 +1883,6 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void LogOnce(LogLevel category, InterpolatedStringHandler messageObj)
-        {
-            LogOnce(LogCategory.ToCategory(category), messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(string category, InterpolatedStringHandler messageObj)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj);
         }
@@ -2069,13 +1911,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(string category, InterpolatedStringHandler messageObj, Color messageColor)
-        {
-            Log(LogCategory.ToCategory(category), messageObj, messageColor);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
-        [EditorBrowsable(EditorBrowsableState.Never)]
         public void Log(LogCategory category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogBase(category, messageObj, false, messageColor);
@@ -2091,13 +1926,6 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void LogOnce(LogLevel category, InterpolatedStringHandler messageObj, Color messageColor)
-        {
-            LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(string category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
         }
@@ -2125,13 +1953,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(string category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
-        {
-            Log(LogCategory.ToCategory(category), messageObj, messageColor);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
-        [EditorBrowsable(EditorBrowsableState.Never)]
         public void Log(LogCategory category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogBase(category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
@@ -2147,13 +1968,6 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void LogOnce(LogLevel category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
-        {
-            LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void LogOnce(string category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
         }
@@ -2362,13 +2176,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(ILogTarget target, string category, InterpolatedStringHandler messageObj)
-        {
-            Log(target, LogCategory.ToCategory(category), messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object)"/>
-        [EditorBrowsable(EditorBrowsableState.Never)]
         public void Log(ILogTarget target, LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogUnresolvedTarget(target, category, messageObj, false);
@@ -2454,13 +2261,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(ILogTarget target, string category, InterpolatedStringHandler messageObj, Color messageColor)
-        {
-            Log(target, LogCategory.ToCategory(category), messageObj, messageColor);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
-        [EditorBrowsable(EditorBrowsableState.Never)]
         public void Log(ILogTarget target, LogCategory category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogUnresolvedTarget(target, category, messageObj, false, messageColor);
@@ -2539,13 +2339,6 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void Log(ILogTarget target, LogLevel category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
-        {
-            Log(target, LogCategory.ToCategory(category), messageObj, ConsoleColorMap.GetColor(messageColor));
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(ILogTarget target, string category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.ToCategory(category), messageObj, ConsoleColorMap.GetColor(messageColor));
         }
@@ -2639,13 +2432,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(IEnumerable<ILogTarget> targets, string category, InterpolatedStringHandler messageObj)
-        {
-            Log(targets, LogCategory.ToCategory(category), messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object)"/>
-        [EditorBrowsable(EditorBrowsableState.Never)]
         public void Log(IEnumerable<ILogTarget> targets, LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, false);
@@ -2725,13 +2511,6 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void Log(IEnumerable<ILogTarget> targets, LogLevel category, InterpolatedStringHandler messageObj, Color messageColor)
-        {
-            Log(targets, LogCategory.ToCategory(category), messageObj, messageColor);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(IEnumerable<ILogTarget> targets, string category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(targets, LogCategory.ToCategory(category), messageObj, messageColor);
         }
@@ -2822,13 +2601,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(IEnumerable<ILogTarget> targets, string category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
-        {
-            Log(targets, LogCategory.ToCategory(category), messageObj, messageColor);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
-        [EditorBrowsable(EditorBrowsableState.Never)]
         public void Log(IEnumerable<ILogTarget> targets, LogCategory category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
@@ -2912,12 +2684,6 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, object[])"/>
-        public void Log(string category, string format, params object[] formatArgs)
-        {
-            Log(LogCategory.ToCategory(category), FormattableStringFactory.Create(format, formatArgs));
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, object[])"/>
         public void Log(LogCategory category, string format, params object[] formatArgs)
         {
             LogBase(category, FormattableStringFactory.Create(format, formatArgs), false);
@@ -2931,12 +2697,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, string, object[])"/>
         public void LogOnce(LogLevel category, string format, params object[] formatArgs)
-        {
-            LogOnce(LogCategory.ToCategory(category), FormattableStringFactory.Create(format, formatArgs));
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, string, object[])"/>
-        public void LogOnce(string category, string format, params object[] formatArgs)
         {
             LogOnce(LogCategory.ToCategory(category), FormattableStringFactory.Create(format, formatArgs));
         }
@@ -3080,12 +2840,6 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, string, object[])"/>
-        public void Log(ILogTarget target, string category, string format, params object[] formatArgs)
-        {
-            Log(target, LogCategory.ToCategory(category), FormattableStringFactory.Create(format, formatArgs));
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, string, object[])"/>
         public void Log(ILogTarget target, LogCategory category, string format, params object[] formatArgs)
         {
             LogUnresolvedTarget(target, category, FormattableStringFactory.Create(format, formatArgs), false);
@@ -3155,12 +2909,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, string, object[])"/>
         public void Log(IEnumerable<ILogTarget> targets, LogLevel category, string format, params object[] formatArgs)
-        {
-            Log(targets, LogCategory.ToCategory(category), FormattableStringFactory.Create(format, formatArgs));
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, string, object[])"/>
-        public void Log(IEnumerable<ILogTarget> targets, string category, string format, params object[] formatArgs)
         {
             Log(targets, LogCategory.ToCategory(category), FormattableStringFactory.Create(format, formatArgs));
         }
@@ -3237,12 +2985,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, object[])"/>
         public static void Log(this IFormattableLogger logger, LogLevel category, string format, params object[] formatArgs)
-        {
-            logger.Log(LogCategory.ToCategory(category), FormattableStringFactory.Create(format, formatArgs));
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, object[])"/>
-        public static void Log(this IFormattableLogger logger, string category, string format, params object[] formatArgs)
         {
             logger.Log(LogCategory.ToCategory(category), FormattableStringFactory.Create(format, formatArgs));
         }

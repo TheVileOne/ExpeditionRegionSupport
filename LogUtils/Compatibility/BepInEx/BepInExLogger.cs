@@ -88,12 +88,6 @@ namespace LogUtils.Compatibility.BepInEx
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        public void Log(string category, object messageObj)
-        {
-            Log(LogCategory.ToCategory(category), messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(LogCategory category, object messageObj)
         {
             Source.Log(category.BepInExCategory, messageObj);
@@ -167,13 +161,6 @@ namespace LogUtils.Compatibility.BepInEx
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void Log(LogType category, InterpolatedStringHandler messageObj)
-        {
-            Log(LogCategory.ToCategory(category), messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(string category, InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.ToCategory(category), messageObj);
         }
