@@ -1,14 +1,13 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
 using LogUtils.Formatting;
-using System;
 using System.ComponentModel;
 using UnityEngine;
 using LoggerDocs = LogUtils.Documentation.LoggerDocumentation;
 
 namespace LogUtils.Compatibility.BepInEx
 {
-    public class BepInExLogger : IFormattableLogger
+    public class BepInExLogger : IFormatLogger
     {
         /// <summary>
         /// BepInEx derived logging interface

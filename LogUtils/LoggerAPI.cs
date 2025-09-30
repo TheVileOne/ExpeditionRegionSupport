@@ -3630,67 +3630,67 @@ namespace LogUtils
     public static class LoggerExtensions
     {
         /// <inheritdoc cref="LoggerDocs.Standard.Log(string, object[])"/>
-        public static void Log(this IFormattableLogger logger, string format, params object[] formatArgs)
+        public static void Log(this IFormatLogger logger, string format, params object[] formatArgs)
         {
             logger.Log(LogCategory.Default, FormattableStringFactory.Create(format, formatArgs));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(string, object[])"/>
-        public static void LogDebug(this IFormattableLogger logger, string format, params object[] formatArgs)
+        public static void LogDebug(this IFormatLogger logger, string format, params object[] formatArgs)
         {
             logger.Log(LogCategory.Debug, FormattableStringFactory.Create(format, formatArgs));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(string, object[])"/>
-        public static void LogInfo(this IFormattableLogger logger, string format, params object[] formatArgs)
+        public static void LogInfo(this IFormatLogger logger, string format, params object[] formatArgs)
         {
             logger.Log(LogCategory.Info, FormattableStringFactory.Create(format, formatArgs));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(string, object[])"/>
-        public static void LogImportant(this IFormattableLogger logger, string format, params object[] formatArgs)
+        public static void LogImportant(this IFormatLogger logger, string format, params object[] formatArgs)
         {
             logger.Log(LogCategory.Important, FormattableStringFactory.Create(format, formatArgs));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(string, object[])"/>
-        public static void LogMessage(this IFormattableLogger logger, string format, params object[] formatArgs)
+        public static void LogMessage(this IFormatLogger logger, string format, params object[] formatArgs)
         {
             logger.Log(LogCategory.Message, FormattableStringFactory.Create(format, formatArgs));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(string, object[])"/>
-        public static void LogWarning(this IFormattableLogger logger, string format, params object[] formatArgs)
+        public static void LogWarning(this IFormatLogger logger, string format, params object[] formatArgs)
         {
             logger.Log(LogCategory.Warning, FormattableStringFactory.Create(format, formatArgs));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(string, object[])"/>
-        public static void LogError(this IFormattableLogger logger, string format, params object[] formatArgs)
+        public static void LogError(this IFormatLogger logger, string format, params object[] formatArgs)
         {
             logger.Log(LogCategory.Error, FormattableStringFactory.Create(format, formatArgs));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(string, object[])"/>
-        public static void LogFatal(this IFormattableLogger logger, string format, params object[] formatArgs)
+        public static void LogFatal(this IFormatLogger logger, string format, params object[] formatArgs)
         {
             logger.Log(LogCategory.Fatal, FormattableStringFactory.Create(format, formatArgs));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, object[])"/>
-        public static void Log(this IFormattableLogger logger, LogType category, string format, params object[] formatArgs)
+        public static void Log(this IFormatLogger logger, LogType category, string format, params object[] formatArgs)
         {
             logger.Log(LogCategory.ToCategory(category), FormattableStringFactory.Create(format, formatArgs));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, object[])"/>
-        public static void Log(this IFormattableLogger logger, LogLevel category, string format, params object[] formatArgs)
+        public static void Log(this IFormatLogger logger, LogLevel category, string format, params object[] formatArgs)
         {
             logger.Log(LogCategory.ToCategory(category), FormattableStringFactory.Create(format, formatArgs));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, object[])"/>
-        public static void Log(this IFormattableLogger logger, LogCategory category, string format, params object[] formatArgs)
+        public static void Log(this IFormatLogger logger, LogCategory category, string format, params object[] formatArgs)
         {
             logger.Log(category, FormattableStringFactory.Create(format, formatArgs));
         }

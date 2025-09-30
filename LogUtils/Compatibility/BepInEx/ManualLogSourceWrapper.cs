@@ -9,7 +9,7 @@ namespace LogUtils.Compatibility.BepInEx
     /// <summary>
     /// A class dedicated to translating a ManualLogSource to an IExtendedLogSource
     /// </summary>
-    internal sealed class ManualLogSourceWrapper : IExtendedLogSource, IFormattableLogger
+    internal sealed class ManualLogSourceWrapper : IExtendedLogSource, IFormatLogger
     {
         public readonly ManualLogSource Source;
 

@@ -58,8 +58,8 @@ namespace LogUtils.Diagnostics
 
         public MessageFormatter Formatter = new MessageFormatter();
 
-        private IFormattableLogger _logger;
-        public IFormattableLogger Logger => _logger;
+        private IFormatLogger _logger;
+        public IFormatLogger Logger => _logger;
 
         /// <summary/>
         public virtual bool IsEnabled => DebugPolicy.AssertsEnabled;

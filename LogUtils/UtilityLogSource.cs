@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace LogUtils
 {
-    internal sealed class UtilityLogSource : IExtendedLogSource, IFormattableLogger
+    internal sealed class UtilityLogSource : IExtendedLogSource, IFormatLogger
     {
         public event EventHandler<LogEventArgs> LogEvent;
 

@@ -9,7 +9,7 @@ namespace LogUtils.Templates
     /// <summary>
     /// Illustrates the standardized method order implementation of the ILogger interface
     /// </summary>
-    internal sealed class LoggerTemplate : ILogger, IFormattableLogger
+    internal sealed class LoggerTemplate : ILogger, IFormatLogger
     {
         /*
          * IFormattableLogger is optional. Implement interface if you want to add support for color formatting features for your logger. Alternatively,
