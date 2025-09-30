@@ -7,7 +7,7 @@ using LoggerDocs = LogUtils.Documentation.LoggerDocumentation;
 
 namespace LogUtils
 {
-    internal sealed class FormattableLogWrapper : IFormattableLogger, IEquatable<ILogger>
+    internal sealed class FormattableLogWrapper : IFormatLogger, IEquatable<ILogger>
     {
         public ILogger Value;
 
@@ -82,12 +82,6 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        public void Log(string category, object messageObj)
-        {
-            Value.Log(LogCategory.ToCategory(category), messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(LogCategory category, object messageObj)
         {
             Value.Log(category, messageObj);
@@ -153,12 +147,6 @@ namespace LogUtils
         public void Log(LogLevel category, InterpolatedStringHandler messageObj)
         {
             Value.Log(category, messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        public void Log(string category, InterpolatedStringHandler messageObj)
-        {
-            Value.Log(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>

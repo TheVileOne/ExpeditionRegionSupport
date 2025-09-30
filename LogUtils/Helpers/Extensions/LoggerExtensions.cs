@@ -11,11 +11,11 @@ namespace LogUtils
     public static partial class ExtensionMethods
     {
         /// <summary>
-        /// Converts instance into an <see cref="IFormattableLogger"/> object
+        /// Converts instance into an <see cref="IFormatLogger"/> object
         /// </summary>
-        public static IFormattableLogger ToFormattableLogger(this ILogger logger)
+        public static IFormatLogger ToFormattableLogger(this ILogger logger)
         {
-            if (logger is IFormattableLogger value)
+            if (logger is IFormatLogger value)
                 return value;
 
             if (logger == null)

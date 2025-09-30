@@ -83,12 +83,55 @@ namespace LogUtils.Formatting
         }
 
         /// <summary>
+        /// Adds a range object components for later formatting
+        /// </summary>
+        /// <param name="arguments">An argument to be formatted</param>
+        public void AppendFormattedRange<T>(IEnumerable<T> arguments)
+        {
+            foreach (T arg in arguments)
+                AppendFormatted(arg);
+        }
+
+        /// <summary>
         /// Builds the format string out of appended string literals, and format arguments
         /// </summary>
         /// <returns></returns>
         internal string BuildFormat()
         {
-            throw new NotImplementedException();
+            StringBuilder builder = new StringBuilder();
+
+            int argumentsHandled = 0,
+                literalsHandled = 0;
+
+            for (int i = 0; i < elementCount; i++)
+            {
+                if (literalsHandled < literals.Count)
+                {
+                    LiteralInfo literal = literals[literalsHandled];
+
+                    if (literal.BuildPosition == i)
+                    {
+                        //Argument is the next entry in the build string
+                        builder.Append(literal.Value);
+                        literalsHandled++;
+                        continue;
+                    }
+                }
+
+                if (argumentsHandled < arguments.Count)
+                {
+                    ArgumentInfo argument = arguments[argumentsHandled];
+
+                    if (argument.BuildPosition == i)
+                    {
+                        //Argument is the next entry in the build string
+                        builder.AppendPlaceholderValue(argument.ToFormat(argumentsHandled));
+                        argumentsHandled++;
+                        continue;
+                    }
+                }
+            }
+            return builder.ToString();
         }
 
         /// <inheritdoc/>
@@ -126,6 +169,9 @@ namespace LogUtils.Formatting
                 {
                     for (int i = 0; i < arguments.Count; i++)
                     {
+                        if (formatData != null)
+                            formatData.UpdateBuildLength();
+
                         string argumentString = processor.Process(arguments[i]);
 
                         if (!string.IsNullOrEmpty(argumentString))
@@ -140,6 +186,9 @@ namespace LogUtils.Formatting
                     bool checkLiteralsFirst = true;
                     for (int i = 0; i < elementCount; i++)
                     {
+                        if (formatData != null)
+                            formatData.UpdateBuildLength();
+
                         if (checkLiteralsFirst)
                         {
                             if (!tryProcessLiteral())
@@ -197,12 +246,13 @@ namespace LogUtils.Formatting
                         }
                     }
                 }
-                return builder.ToString();
             }
             finally
             {
-                formatData?.EntryComplete((IColorFormatProvider)processor.Formatter);
+                if (formatData != null)
+                    formatData.EntryComplete((IColorFormatProvider)processor.Formatter);
             }
+            return builder.ToString();
         }
 
         private readonly struct LiteralInfo(string value, int position)
@@ -218,7 +268,7 @@ namespace LogUtils.Formatting
             public readonly string Value = value;
         }
 
-        internal readonly struct ArgumentInfo(object argument, int position, [Optional]int range, [Optional]string format)
+        private readonly struct ArgumentInfo(object argument, int position, [Optional]int range, [Optional]string format)
         {
             /// <summary>
             /// An object, or value to be inserted into the builder string
@@ -239,6 +289,43 @@ namespace LogUtils.Formatting
             /// The number of characters to apply the format
             /// </summary>
             public readonly int Range = range;
+
+            public string ToFormat(int identifier)
+            {
+                if (Range == 0)
+                {
+                    if (Format == null)
+                        return ArgumentFormatter.Format(identifier);
+                    return ArgumentFormatter.Format(identifier, Format);
+                }
+
+                if (Format == null)
+                    return ArgumentFormatter.Format(identifier, Range);
+                return ArgumentFormatter.Format(identifier, Range, Format);
+            }
+        }
+
+        private static class ArgumentFormatter
+        {
+            internal static string Format(int identifier)
+            {
+                return identifier.ToString();
+            }
+
+            internal static string Format(int identifier, int range)
+            {
+                return identifier + "," + range;
+            }
+
+            internal static string Format(int identifier, string format)
+            {
+                return identifier + ":" + format;
+            }
+
+            internal static string Format(int identifier, int range, string format)
+            {
+                return identifier + "," + range + ":" + format;
+            }
         }
 
         private readonly struct FormatProcessor
@@ -260,12 +347,7 @@ namespace LogUtils.Formatting
                 string resultString;
                 if (Formatter != null)
                 {
-                    IColorFormatProvider colorFormatter = Formatter as IColorFormatProvider;
-
-                    if (colorFormatter != null)
-                    {
-                        FormatData.UpdateData(colorFormatter);
-                    }
+                    FormatData.UpdateData(Formatter as IColorFormatProvider);
 
                     //Ensures that color data is stored as an argument, a requirement by color format providers
                     object formatArgument = FormatData.ResolveArgument(argument.Value, Formatter, argument.Range);
@@ -318,7 +400,7 @@ namespace LogUtils.Formatting
             /// <summary>
             /// Accesses color related format data
             /// </summary>
-            public readonly FormatDataAccess.Data AccessData()
+            public readonly Data AccessData()
             {
                 if (Formatter is IColorFormatProvider colorFormatter)
                     return colorFormatter.GetData();

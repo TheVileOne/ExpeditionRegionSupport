@@ -85,8 +85,6 @@ namespace LogUtils.Formatting
 
             if (currentEntry.IsColorData)
             {
-                Assert.That(data.RangeCounter).IsZero();
-
                 currentEntry.Range = commaValue;
                 data.RangeCounter = Math.Max(currentEntry.Range, 0);
                 data.BypassColorCancellation = true; //When ANSI color codes are applied for the first time, it will cancel the range check if we don't set this bypass flag
@@ -97,6 +95,9 @@ namespace LogUtils.Formatting
 
         internal static void UpdateData(IColorFormatProvider provider)
         {
+            if (provider == null)
+                return;
+
             var data = provider.GetData();
 
             LinkedListNode<NodeData> currentNode = data.Entries.Last;

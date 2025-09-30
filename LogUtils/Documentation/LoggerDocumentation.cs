@@ -221,7 +221,7 @@ namespace LogUtils.Documentation
             /// <param name="target">The specified log file, or console identifier to target</param>
             /// <param name="format">The message template</param>
             /// <param name="formatArgs">Arguments processed by the message template</param>
-            void Log(ILogTarget target, string format, params object[] formatArgs);
+            void Log(ILogTarget target, string format, object[] formatArgs);
 
             /// <inheritdoc cref="Log(LogCategory, string, object[])"/>
             /// <inheritdoc cref="Log(ILogTarget, string, object[])" select="param"/>
@@ -382,6 +382,188 @@ namespace LogUtils.Documentation
             /// <inheritdoc cref="LogOnce(IEnumerable{ILogTarget}, string, object[])"/>
             /// <inheritdoc cref="Log(IEnumerable{ILogTarget}, LogCategory, string, object[])" select="param"/>
             void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, string format, object[] formatArgs);
+            #endregion
+            #endregion
+            #region Composite (String argument)
+            #region Base
+
+            /// <inheritdoc cref="Log(string, object[])"/>
+            /// <param name="format">The message template</param>
+            /// <param name="formatArg">Argument processed by the message template</param>
+            void Log(string format, string formatArg);
+
+            /// <inheritdoc cref="Log(string, object[])"/>
+            /// <param name="category">The specified logging context</param>
+            /// <param name="format">The message template</param>
+            /// <param name="formatArg">Argument processed by the message template</param>
+            void Log(LogCategory category, string format, string formatArg);
+
+            /// <inheritdoc cref="Log(string, object[])"/>
+            /// <remarks>Accepts multiple targets through the use of bitflag operators (to combine multiple log targets into one)</remarks>
+            /// <param name="target">The specified log file, or console identifier to target</param>
+            /// <param name="format">The message template</param>
+            /// <param name="formatArg">Argument processed by the message template</param>
+            void Log(ILogTarget target, string format, string formatArg);
+
+            /// <inheritdoc cref="Log(LogCategory, string, object[])"/>
+            /// <inheritdoc cref="Log(ILogTarget, string, object[])" select="param"/>
+            void Log(ILogTarget target, LogCategory category, string format, string formatArg);
+
+            /// <summary>
+            /// Formats and writes a log message to multiple targets according to a message template, and provided format arguments
+            /// </summary>
+            /// <param name="targets">The specified log file, or console identifiers to target</param>
+            /// <param name="format">The message template</param>
+            /// <param name="formatArg">Argument processed by the message template</param>
+            /// <exception cref="ArgumentNullException">Format, or format arguments array is null</exception>
+            void Log(IEnumerable<ILogTarget> targets, string format, string formatArg);
+
+            /// <inheritdoc cref="Log(IEnumerable{ILogTarget}, string, object[])"/>
+            /// <param name="targets">The specified log file, or console identifiers to target</param>
+            /// <param name="category">The specified logging context</param>
+            /// <param name="format">The message template</param>
+            /// <param name="formatArg">Argument processed by the message template</param>
+            void Log(IEnumerable<ILogTarget> targets, LogCategory category, string format, string formatArg);
+            #endregion
+            #region Contextual
+
+            /// <summary>
+            /// Formats and writes a log message with a debug context according to a message template, and provided format arguments
+            /// </summary>
+            /// <inheritdoc cref="Log(string, string)" select="param"/>
+            void LogDebug(string format, string formatArg);
+
+            /// <summary>
+            /// Formats and writes a log message with an informational context (typically the default context) according to a message template, and provided format arguments
+            /// </summary>
+            /// <inheritdoc cref="Log(string, string)" select="param"/>
+            void LogInfo(string format, string formatArg);
+
+            /// <summary>
+            /// Formats and writes a log message with an important context according to a message template, and provided format arguments
+            /// </summary>
+            /// <inheritdoc cref="Log(string, string)" select="param"/>
+            void LogImportant(string format, string formatArg);
+
+            /// <summary>
+            /// Formats and writes a log message with a message context according to a message template, and provided format arguments
+            /// </summary>
+            /// <inheritdoc cref="Log(string, string)" select="param"/>
+            void LogMessage(string format, string formatArg);
+
+            /// <summary>
+            /// Formats and writes a log message with a warning context according to a message template, and provided format arguments
+            /// </summary>
+            /// <inheritdoc cref="Log(string, string)" select="param"/>
+            void LogWarning(string format, string formatArg);
+
+            /// <summary>
+            /// Formats and writes a log message with an error context according to a message template, and provided format arguments
+            /// </summary>
+            /// <inheritdoc cref="Log(string, string)" select="param"/>
+            void LogError(string format, string formatArg);
+
+            /// <summary>
+            /// Formats and writes a log message with a fatal context according to a message template, and provided format arguments
+            /// </summary>
+            /// <inheritdoc cref="Log(string, string)" select="param"/>
+            void LogFatal(string format, string formatArg);
+
+            /// <inheritdoc cref="LogDebug(string, object[])"/>
+            /// <inheritdoc cref="Log(ILogTarget, string, string)" select="param"/>
+            void LogDebug(ILogTarget target, string format, string formatArg);
+
+            /// <inheritdoc cref="LogInfo(string, object[])"/>
+            /// <inheritdoc cref="Log(ILogTarget, string, string)" select="param"/>
+            void LogInfo(ILogTarget target, string format, string formatArg);
+
+            /// <inheritdoc cref="LogImportant(string, object[])"/>
+            /// <inheritdoc cref="Log(ILogTarget, string, string)" select="param"/>
+            void LogImportant(ILogTarget target, string format, string formatArg);
+
+            /// <inheritdoc cref="LogMessage(string, object[])"/>
+            /// <inheritdoc cref="Log(ILogTarget, string, string)" select="param"/>
+            void LogMessage(ILogTarget target, string format, string formatArg);
+
+            /// <inheritdoc cref="LogWarning(string, object[])"/>
+            /// <inheritdoc cref="Log(ILogTarget, string, string)" select="param"/>
+            void LogWarning(ILogTarget target, string format, string formatArg);
+
+            /// <inheritdoc cref="LogError(string, object[])"/>
+            /// <inheritdoc cref="Log(ILogTarget, string, string)" select="param"/>
+            void LogError(ILogTarget target, string format, string formatArg);
+
+            /// <inheritdoc cref="LogFatal(string, object[])"/>
+            /// <inheritdoc cref="Log(ILogTarget, string, string)" select="param"/>
+            void LogFatal(ILogTarget target, string format, string formatArg);
+
+            /// <inheritdoc cref="LogDebug(string, object[])"/>
+            /// <inheritdoc cref="Log(IEnumerable{ILogTarget}, string, string)" select="param"/>
+            void LogDebug(IEnumerable<ILogTarget> targets, string format, string formatArg);
+
+            /// <inheritdoc cref="LogInfo(string, object[])"/>
+            /// <inheritdoc cref="Log(IEnumerable{ILogTarget}, string, string)" select="param"/>
+            void LogInfo(IEnumerable<ILogTarget> targets, string format, string formatArg);
+
+            /// <inheritdoc cref="LogImportant(string, object[])"/>
+            /// <inheritdoc cref="Log(IEnumerable{ILogTarget}, string, string)" select="param"/>
+            void LogImportant(IEnumerable<ILogTarget> targets, string format, string formatArg);
+
+            /// <inheritdoc cref="LogMessage(string, object[])"/>
+            /// <inheritdoc cref="Log(IEnumerable{ILogTarget}, string, string)" select="param"/>
+            void LogMessage(IEnumerable<ILogTarget> targets, string format, string formatArg);
+
+            /// <inheritdoc cref="LogWarning(string, object[])"/>
+            /// <inheritdoc cref="Log(IEnumerable{ILogTarget}, string, string)" select="param"/>
+            void LogWarning(IEnumerable<ILogTarget> targets, string format, string formatArg);
+
+            /// <inheritdoc cref="LogError(string, object[])"/>
+            /// <inheritdoc cref="Log(IEnumerable{ILogTarget}, string, string)" select="param"/>
+            void LogError(IEnumerable<ILogTarget> targets, string format, string formatArg);
+
+            /// <inheritdoc cref="LogFatal(string, object[])"/>
+            /// <inheritdoc cref="Log(IEnumerable{ILogTarget}, string, string)" select="param"/>
+            void LogFatal(IEnumerable<ILogTarget> targets, string format, string formatArg);
+            #endregion
+            #region LogOnce
+
+            /// <summary>
+            /// Formats and writes a log message only once according to a message template, and provided format arguments
+            /// </summary>
+            /// <inheritdoc cref="LogOnce(object)" select="remarks"/>
+            /// <inheritdoc cref="Log(string, string)" select="param"/>
+            void LogOnce(string format, string formatArg);
+
+            /// <summary>
+            /// Formats and writes a log message only once with a specified logging context according to a message template, and provided format arguments
+            /// </summary>
+            /// <inheritdoc cref="LogOnce(object)" select="remarks"/>
+            /// <inheritdoc cref="Log(LogCategory, string, string)" select="param"/>
+            void LogOnce(LogCategory category, string format, string formatArg);
+
+            /// <summary>
+            /// Formats and writes a log message only once according to a message template, and provided format arguments
+            /// </summary>
+            /// <inheritdoc cref="LogOnce(ILogTarget, object)" select="remarks"/>
+            /// <inheritdoc cref="Log(ILogTarget, string, string)" select="param"/>
+            void LogOnce(ILogTarget target, string format, string formatArg);
+
+            /// <summary>
+            /// Formats and writes a log message only once with a specified logging context according to a message template, and provided format arguments
+            /// </summary>
+            /// <inheritdoc cref="LogOnce(ILogTarget, string, string)" select="param, remarks"/>
+            void LogOnce(ILogTarget target, LogCategory category, string format, string formatArg);
+
+            /// <summary>
+            /// Formats and writes a log message to multiple log targets only once according to a message template, and provided format arguments
+            /// </summary>
+            /// <inheritdoc cref="LogOnce(object)" select="remarks"/>
+            /// <inheritdoc cref="Log(IEnumerable{ILogTarget}, string, string)" select="param"/>
+            void LogOnce(IEnumerable<ILogTarget> targets, string format, string formatArg);
+
+            /// <inheritdoc cref="LogOnce(IEnumerable{ILogTarget}, string, object[])"/>
+            /// <inheritdoc cref="Log(IEnumerable{ILogTarget}, LogCategory, string, string)" select="param"/>
+            void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, string format, string formatArg);
             #endregion
             #endregion
             #region Colors
@@ -653,6 +835,65 @@ namespace LogUtils.Documentation
             /// </summary>
             /// <inheritdoc cref="Standard.Log(LogCategory, string, object[])" select="param"/>
             void LogJolly(LogCategory category, string format, object[] formatArgs);
+            #endregion
+            #region Composite (String argument)
+
+            /// <summary>
+            /// Formats and writes a log message to BepInEx according to a message template, and provided format arguments
+            /// </summary>
+            /// <inheritdoc cref="Standard.Log(string, string)" select="param"/>
+            void LogBepEx(string format, string formatArg);
+
+            /// <summary>
+            /// Formats and writes a log message to BepInEx with a specified logging context according to a message template, and provided format arguments
+            /// </summary>
+            /// <inheritdoc cref="Standard.Log(LogCategory, string, string)" select="param"/>
+            void LogBepEx(LogLevel category, string format, string formatArg);
+
+            /// <summary>
+            /// Formats and writes a log message to BepInEx with a specified logging context, and logging source according to a message template, and provided format arguments
+            /// </summary>
+            /// <param name="source">The source of the logged message (usually a ManualLogSource in a modding context)</param>
+            /// <param name="category">The specified logging context</param>
+            /// <param name="format">The message template</param>
+            /// <param name="formatArg">Argument processed by the message template</param>
+            void LogBepEx(ILogSource source, LogLevel category, string format, string formatArg);
+
+            /// <summary>
+            /// Formats and writes a log message to Unity according to a message template, and provided format arguments
+            /// </summary>
+            /// <inheritdoc cref="Standard.Log(string, string)" select="param"/>
+            void LogUnity(string format, string formatArg);
+
+            /// <summary>
+            /// Formats and writes a log message to Unity with a specified logging context according to a message template, and provided format arguments
+            /// </summary>
+            /// <inheritdoc cref="Standard.Log(LogCategory, string, string)" select="param"/>
+            void LogUnity(LogType category, string format, string formatArg);
+
+            /// <summary>
+            /// Formats and writes a log message to Expedition according to a message template, and provided format arguments
+            /// </summary>
+            /// <inheritdoc cref="Standard.Log(string, string)" select="param"/>
+            void LogExp(string format, string formatArg);
+
+            /// <summary>
+            /// Formats and writes a log message to Expedition with a specified logging context according to a message template, and provided format arguments
+            /// </summary>
+            /// <inheritdoc cref="Standard.Log(LogCategory, string, string)" select="param"/>
+            void LogExp(LogCategory category, string format, string formatArg);
+
+            /// <summary>
+            /// Formats and writes a log message to JollyCoop
+            /// </summary>
+            /// <inheritdoc cref="Standard.Log(string, string)" select="param"/>
+            void LogJolly(string format, string formatArg);
+
+            /// <summary>
+            /// Formats and writes a log message to JollyCoop with a specified logging context according to a message template, and provided format arguments
+            /// </summary>
+            /// <inheritdoc cref="Standard.Log(LogCategory, string, string)" select="param"/>
+            void LogJolly(LogCategory category, string format, string formatArg);
             #endregion
             #region Colors
 

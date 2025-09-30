@@ -15,9 +15,9 @@ namespace LogUtils
     public interface ILogger : ILogger<object>;
 
     /// <summary>
-    /// Represents a type used to perform logging that supports <see cref="FormattableString"/>
+    /// Represents a type used to perform logging that supports <see cref="InterpolatedStringHandler"/>
     /// </summary>
-    public interface IFormattableLogger : ILogger, ILogger<InterpolatedStringHandler>;
+    public interface IFormatLogger : ILogger, ILogger<InterpolatedStringHandler>;
 
     /// <summary>
     /// Represents a type used to perform logging
@@ -54,9 +54,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         void Log(LogLevel category, T messageObj);
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        void Log(string category, T messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         void Log(LogCategory category, T messageObj);

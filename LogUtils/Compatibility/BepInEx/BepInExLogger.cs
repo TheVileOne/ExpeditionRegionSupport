@@ -1,14 +1,13 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
 using LogUtils.Formatting;
-using System;
 using System.ComponentModel;
 using UnityEngine;
 using LoggerDocs = LogUtils.Documentation.LoggerDocumentation;
 
 namespace LogUtils.Compatibility.BepInEx
 {
-    public class BepInExLogger : IFormattableLogger
+    public class BepInExLogger : IFormatLogger
     {
         /// <summary>
         /// BepInEx derived logging interface
@@ -88,12 +87,6 @@ namespace LogUtils.Compatibility.BepInEx
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        public void Log(string category, object messageObj)
-        {
-            Log(LogCategory.ToCategory(category), messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         public void Log(LogCategory category, object messageObj)
         {
             Source.Log(category.BepInExCategory, messageObj);
@@ -167,13 +160,6 @@ namespace LogUtils.Compatibility.BepInEx
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void Log(LogType category, InterpolatedStringHandler messageObj)
-        {
-            Log(LogCategory.ToCategory(category), messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Log(string category, InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.ToCategory(category), messageObj);
         }

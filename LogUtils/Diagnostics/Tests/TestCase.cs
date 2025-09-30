@@ -47,7 +47,7 @@ namespace LogUtils.Diagnostics.Tests
          * It is safe to modify the Tags collection, which are stored in Message.Tags.
          */
 
-        public static IFormattableLogger TestLogger
+        public static IFormatLogger TestLogger
         {
             get
             {

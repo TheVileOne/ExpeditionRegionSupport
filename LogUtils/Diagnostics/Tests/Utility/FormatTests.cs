@@ -26,6 +26,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             testAnsiCodeTerminatesAtCorrectPosition();
             testAnsiCodeTerminationSkipsOverUnviewableCharacters();
             testAnsiCodeTerminationRespectsColorBoundaries();
+            testFormatStringContainsPlaceholderFormatting();
         }
 
         private void testEmptyFormatRemovesColorData()
@@ -66,10 +67,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             string resultB = testDataB.ToString(formatProvider);
 
             //All three placeholder arguments should now be replaced with an Ansi color code
-            int totalCodesDetected = resultA.Count(c => c == AnsiColorConverter.ANSI_ESCAPE_CHAR)
-                                   + resultB.Count(c => c == AnsiColorConverter.ANSI_ESCAPE_CHAR);
-
-            AssertThat(totalCodesDetected).IsEqualTo(6); //3 x 2
+            testAnsiCodeAmount(resultA, resultB, expectedAnsiCodeAmount: 6);
 
             void createTestData()
             {
@@ -129,12 +127,6 @@ namespace LogUtils.Diagnostics.Tests.Utility
             string resultA = testDataA.ToString(formatProvider);
             string resultB = testDataB.ToString(formatProvider);
 
-            //UtilityLogger.Log("TEST INDEX: " + (resultB.LastIndexOf("test") + 1));
-            //UtilityLogger.Log("TEST STRING: " + (resultB));
-
-            //for (int i = 0; i < resultB.Length; i++)
-            //    UtilityLogger.Log("ch " + resultB[i]);
-
             AssertThat(resultA[resultA.IndexOf("test") + COLOR_RANGE]).IsEqualTo(AnsiColorConverter.ANSI_ESCAPE_CHAR);
             AssertThat(resultB[resultB.IndexOf("test") + COLOR_RANGE]).IsEqualTo(AnsiColorConverter.ANSI_ESCAPE_CHAR);
 
@@ -165,12 +157,6 @@ namespace LogUtils.Diagnostics.Tests.Utility
             string resultA = testDataA.ToString(formatProvider);
             string resultB = testDataB.ToString(formatProvider);
 
-            //UtilityLogger.Log("TEST INDEX: " + (resultA.LastIndexOf("t e-s\r\\t") + 1));
-            //UtilityLogger.Log("TEST STRING: " + (resultA));
-
-            //for (int i = 0; i < resultA.Length; i++)
-            //    UtilityLogger.Log("ch " + resultA[i]);
-
             AssertThat(resultA[resultA.IndexOf("t e-s\r\\t") + EXPECTED_COLOR_RANGE]).IsEqualTo(AnsiColorConverter.ANSI_ESCAPE_CHAR);
             AssertThat(resultB[resultB.IndexOf("t e-s\r\\t") + EXPECTED_COLOR_RANGE]).IsEqualTo(AnsiColorConverter.ANSI_ESCAPE_CHAR);
 
@@ -186,10 +172,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         private void testAnsiCodeTerminationRespectsColorBoundaries()
         {
             const byte COLOR_RANGE = 4;
-            const string TEST_FORMAT = "{0,4}tes{1}t result";
-            const string TEST_FORMAT_ALT = "{0,4}tes{1,2}t result";
-
-            Color testColorAlt = Color.blue;
+            Color TEST_COLOR_ALT = Color.blue;
 
             FormattableString testDataA;
             InterpolatedStringHandler testDataB;
@@ -203,35 +186,20 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
                 AnsiColorFormatProvider formatProvider = new AnsiColorFormatProvider();
 
-                //The first four characters of the result string should be followed with an Ansi color code
                 string resultA = testDataA.ToString(formatProvider);
                 string resultB = testDataB.ToString(formatProvider);
 
-                //UtilityLogger.Log("TEST INDEX: " + (resultB.LastIndexOf("test") + 1));
-                //UtilityLogger.Log("TEST STRING: " + (resultB));
-
-                //for (int i = 0; i < resultB.Length; i++)
-                //    UtilityLogger.Log("ch " + resultB[i]);
-
-                //Check that ANSI terminator exists where second color was included
-                AssertThat(resultA[resultA.IndexOf("tes") + "tes".Length]).IsEqualTo(AnsiColorConverter.ANSI_ESCAPE_CHAR);
-                AssertThat(resultB[resultB.IndexOf("tes") + "tes".Length]).IsEqualTo(AnsiColorConverter.ANSI_ESCAPE_CHAR);
-
-                //Check that correct amount of ANSI escape characterttts are present
-
-                //All three placeholder arguments should now be replaced with an Ansi color code
-                int totalCodesDetected = resultA.Count(c => c == AnsiColorConverter.ANSI_ESCAPE_CHAR)
-                                       + resultB.Count(c => c == AnsiColorConverter.ANSI_ESCAPE_CHAR);
-
-                AssertThat(totalCodesDetected).IsEqualTo(4); //2 x 2 - There should be no termination when there is an interception by another color
+                processResults(resultA, resultB, expectedAnsiCodeAmount: 4);
 
                 void createTestData()
                 {
-                    testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR, testColorAlt);
+                    const string TEST_FORMAT = "{0,4}tes{1}t result";
+
+                    testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR, TEST_COLOR_ALT);
                     testDataB = new InterpolatedStringHandler();
                     testDataB.AppendFormatted(TEST_COLOR, COLOR_RANGE);
                     testDataB.AppendLiteral("tes");
-                    testDataB.AppendFormatted(testColorAlt);
+                    testDataB.AppendFormatted(TEST_COLOR_ALT);
                     testDataB.AppendLiteral("t result");
                 }
             }
@@ -242,38 +210,48 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
                 AnsiColorFormatProvider formatProvider = new AnsiColorFormatProvider();
 
-                //The first four characters of the result string should be followed with an Ansi color code
                 string resultA = testDataA.ToString(formatProvider);
                 string resultB = testDataB.ToString(formatProvider);
 
-                //UtilityLogger.Log("TEST INDEX: " + (resultB.LastIndexOf("test") + 1));
-                //UtilityLogger.Log("TEST STRING: " + (resultB));
+                processResults(resultA, resultB, expectedAnsiCodeAmount: 6);
 
-                //for (int i = 0; i < resultB.Length; i++)
-                //    UtilityLogger.Log("ch " + resultB[i]);
+                void createTestData()
+                {
+                    const string TEST_FORMAT = "{0,4}tes{1,2}t result";
+
+                    testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR, TEST_COLOR_ALT);
+                    testDataB = new InterpolatedStringHandler();
+                    testDataB.AppendFormatted(TEST_COLOR, COLOR_RANGE);
+                    testDataB.AppendLiteral("tes");
+                    testDataB.AppendFormatted(TEST_COLOR_ALT, 2);
+                    testDataB.AppendLiteral("t result");
+                }
+            }
+
+            void processResults(string resultA, string resultB, int expectedAnsiCodeAmount)
+            {
 
                 //Check that ANSI terminator exists where second color was included
                 AssertThat(resultA[resultA.IndexOf("tes") + "tes".Length]).IsEqualTo(AnsiColorConverter.ANSI_ESCAPE_CHAR);
                 AssertThat(resultB[resultB.IndexOf("tes") + "tes".Length]).IsEqualTo(AnsiColorConverter.ANSI_ESCAPE_CHAR);
 
-                //Check that correct amount of ANSI escape characterttts are present
-
-                //All three placeholder arguments should now be replaced with an Ansi color code
-                int totalCodesDetected = resultA.Count(c => c == AnsiColorConverter.ANSI_ESCAPE_CHAR)
-                                       + resultB.Count(c => c == AnsiColorConverter.ANSI_ESCAPE_CHAR);
-
-                AssertThat(totalCodesDetected).IsEqualTo(6); //3 x 2
-
-                void createTestData()
-                {
-                    testDataA = FormattableStringFactory.Create(TEST_FORMAT, TEST_COLOR, testColorAlt);
-                    testDataB = new InterpolatedStringHandler();
-                    testDataB.AppendFormatted(TEST_COLOR, COLOR_RANGE);
-                    testDataB.AppendLiteral("tes");
-                    testDataB.AppendFormatted(testColorAlt, 2);
-                    testDataB.AppendLiteral("t result");
-                }
+                testAnsiCodeAmount(resultA, resultB, expectedAnsiCodeAmount);
             }
+        }
+
+        private void testAnsiCodeAmount(string resultA, string resultB, int expectedAnsiCodeAmount)
+        {
+            //Check that correct amount of ANSI escape characters are present
+            int totalCodesDetected = resultA.Count(c => c == AnsiColorConverter.ANSI_ESCAPE_CHAR)
+                                   + resultB.Count(c => c == AnsiColorConverter.ANSI_ESCAPE_CHAR);
+
+            AssertThat(totalCodesDetected).IsEqualTo(expectedAnsiCodeAmount);
+        }
+
+        private void testFormatStringContainsPlaceholderFormatting()
+        {
+            InterpolatedStringHandler testData = $"Test format should contain {1} format arguments";
+            AssertThat(testData.Format.Contains("{0}")).IsTrue();
         }
 
         [PostTest]

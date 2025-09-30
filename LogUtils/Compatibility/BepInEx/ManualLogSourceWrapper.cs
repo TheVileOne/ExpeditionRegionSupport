@@ -9,7 +9,7 @@ namespace LogUtils.Compatibility.BepInEx
     /// <summary>
     /// A class dedicated to translating a ManualLogSource to an IExtendedLogSource
     /// </summary>
-    internal sealed class ManualLogSourceWrapper : IExtendedLogSource, IFormattableLogger
+    internal sealed class ManualLogSourceWrapper : IExtendedLogSource, IFormatLogger
     {
         public readonly ManualLogSource Source;
 
@@ -78,11 +78,6 @@ namespace LogUtils.Compatibility.BepInEx
             Source.Log(category, messageObj);
         }
 
-        public void Log(string category, object messageObj)
-        {
-            Source.Log(LogCategory.ToCategory(category).BepInExCategory, messageObj);
-        }
-
         public void Log(LogCategory category, object messageObj)
         {
             Source.Log(category.BepInExCategory, messageObj);
@@ -138,11 +133,6 @@ namespace LogUtils.Compatibility.BepInEx
         public void Log(LogLevel category, InterpolatedStringHandler messageObj)
         {
             Source.Log(category, messageObj);
-        }
-
-        public void Log(string category, InterpolatedStringHandler messageObj)
-        {
-            Source.Log(LogCategory.ToCategory(category).BepInExCategory, messageObj);
         }
 
         public void Log(LogCategory category, InterpolatedStringHandler messageObj)

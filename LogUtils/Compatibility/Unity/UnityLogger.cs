@@ -118,13 +118,6 @@ namespace LogUtils.Compatibility.Unity
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         /// <remarks>Utilizes Unity's logging API</remarks>
-        public void Log(string category, object messageObj)
-        {
-            Log(LogCategory.ToCategory(category), messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        /// <remarks>Utilizes Unity's logging API</remarks>
         public void Log(LogCategory category, object messageObj)
         {
             Debug.unityLogger.Log(category.UnityCategory, messageObj);

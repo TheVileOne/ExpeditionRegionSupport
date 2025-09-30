@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>net48</TargetFramework>
-		<LangVersion>12</LangVersion>
+		<LangVersion>13</LangVersion>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<Title>Rain World Log Utility</Title>
-		<AssemblyVersion>1.0.0.9</AssemblyVersion>
+		<AssemblyVersion>1.0.0.10</AssemblyVersion>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
 		<WarningsAsErrors>CS1574</WarningsAsErrors>
-		<FileVersion>1.0.0.9</FileVersion>
+		<FileVersion>1.0.0.10</FileVersion>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -134,13 +134,6 @@ namespace LogUtils.Diagnostics
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        void ILogger<object>.Log(string category, object messageObj)
-        {
-            Logger.Log(category, messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
         public void Log(LogCategory category, object messageObj)
         {
             Logger.Log(category, messageObj);
