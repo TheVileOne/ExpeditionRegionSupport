@@ -88,7 +88,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             //String, String
             logger.Log(Arguments.String, Arguments.String);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.String, Types.String);
 
             //String, Object
             logger.Log(Arguments.String, Arguments.Object);
@@ -96,7 +96,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             //String, Interpolated string
             logger.Log(Arguments.String, $"{Arguments.Object}");
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.String, Types.String);
 
             //String, Null (ambiguous)
             //logger.Log(Arguments.String, null);
@@ -123,7 +123,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             //Interpolated string, String
             logger.Log($"{Arguments.Object}", Arguments.String);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.String, Types.String);
 
             //Interpolated string, Object
             logger.Log($"{Arguments.Object}", Arguments.Object);
@@ -131,7 +131,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             //Interpolated string, Interpolated string
             logger.Log($"{Arguments.Object}", $"{Arguments.Object}");
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.String, Types.String);
 
             //Interpolated string, Null (ambiguous)
             //logger.Log($"{Arguments.Object}", null);
@@ -781,25 +781,14 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             //String
             logger.Log(Arguments.LogCategory, Arguments.String, Arguments.String);
-            AssertResultAndClear(Types.LogCategory, Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.LogCategory, Types.String, Types.String);
 
             //Object
             logger.Log(Arguments.LogCategory, Arguments.String, Arguments.Object);
             AssertResultAndClear(Types.LogCategory, Types.String, Types.ObjectArray);
 
-            //Null
-            Exception exception = null;
-            try
-            {
-                logger.Log(Arguments.LogCategory, Arguments.String, null);
-            }
-            catch (ArgumentNullException ex)
-            {
-                exception = ex;
-            }
-            AssertThat(exception).IsNotNull(); //Exception is expected to throw when a null is passed into params
-            exception = null;
-            methodCalled = null;
+            //Null (ambiguous)
+            //logger.Log(Arguments.LogCategory, Arguments.String, null);
 
             //Color
             logger.Log(Arguments.LogCategory, Arguments.String, Arguments.Color);
@@ -813,7 +802,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             //String
             logger.Log(Arguments.LogCategory, $"{Arguments.Object}", Arguments.String);
-            AssertResultAndClear(Types.LogCategory, Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.LogCategory, Types.String, Types.String);
 
             //Object
             logger.Log(Arguments.LogCategory, $"{Arguments.Object}", Arguments.Object);
@@ -947,7 +936,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             //String
             logger.Log(Arguments.LogTarget, Arguments.String, Arguments.String);
-            AssertResultAndClear(Types.LogTarget, Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.LogTarget, Types.String, Types.String);
 
             //Object
             logger.Log(Arguments.LogTarget, Arguments.String, Arguments.Object);
@@ -968,7 +957,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             //String
             logger.Log(Arguments.LogTarget, $"{Arguments.Object}", Arguments.String);
-            AssertResultAndClear(Types.LogTarget, Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.LogTarget, Types.String, Types.String);
 
             //Object
             logger.Log(Arguments.LogTarget, $"{Arguments.Object}", Arguments.Object);

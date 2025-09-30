@@ -2925,6 +2925,318 @@ namespace LogUtils
             LogBase(new LogTargetCollection(targets), category, FormattableStringFactory.Create(format, formatArgs), true);
         }
         #endregion
+
+        //These overloads exist to circumvent a null being passed as the params array
+        #region Log Overloads (string, string)
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(string, string)"/>
+        public void Log(string format, string formatArg)
+        {
+            Log(LogCategory.Default, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(string, string)"/>
+        public void LogOnce(string format, string formatArg)
+        {
+            LogOnce(LogCategory.Default, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(string, string)"/>
+        public void LogDebug(string format, string formatArg)
+        {
+            Log(LogCategory.Debug, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(string, string)"/>
+        public void LogInfo(string format, string formatArg)
+        {
+            Log(LogCategory.Info, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(string, string)"/>
+        public void LogImportant(string format, string formatArg)
+        {
+            Log(LogCategory.Important, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(string, string)"/>
+        public void LogMessage(string format, string formatArg)
+        {
+            Log(LogCategory.Message, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(string, string)"/>
+        public void LogWarning(string format, string formatArg)
+        {
+            Log(LogCategory.Warning, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogError(string, string)"/>
+        public void LogError(string format, string formatArg)
+        {
+            Log(LogCategory.Error, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(string, string)"/>
+        public void LogFatal(string format, string formatArg)
+        {
+            Log(LogCategory.Fatal, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, string)"/>
+        public void Log(LogType category, string format, string formatArg)
+        {
+            Log(LogCategory.ToCategory(category), FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, string)"/>
+        public void Log(LogLevel category, string format, string formatArg)
+        {
+            Log(LogCategory.ToCategory(category), FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, string)"/>
+        public void Log(LogCategory category, string format, string formatArg)
+        {
+            LogBase(category, FormattableStringFactory.Create(format, formatArg), false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, string, string)"/>
+        public void LogOnce(LogType category, string format, string formatArg)
+        {
+            LogOnce(LogCategory.ToCategory(category), FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, string, string)"/>
+        public void LogOnce(LogLevel category, string format, string formatArg)
+        {
+            LogOnce(LogCategory.ToCategory(category), FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, string, string)"/>
+        public void LogOnce(LogCategory category, string format, string formatArg)
+        {
+            LogBase(category, FormattableStringFactory.Create(format, formatArg), true);
+        }
+        #region Rain World Overloads
+        #region BepInEx
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(string, string)"/>
+        public void LogBepEx(string format, string formatArg)
+        {
+            LogBase(LogID.BepInEx, LogCategory.Default, FormattableStringFactory.Create(format, formatArg), false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, string, string)"/>
+        public void LogBepEx(LogLevel category, string format, string formatArg)
+        {
+            LogBase(LogID.BepInEx, LogCategory.ToCategory(category), FormattableStringFactory.Create(format, formatArg), false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, string, string)"/>
+        public void LogBepEx(LogCategory category, string format, string formatArg)
+        {
+            LogBase(LogID.BepInEx, category, FormattableStringFactory.Create(format, formatArg), false);
+        }
+        #endregion
+        #region Unity
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogUnity(string, string)"/>
+        public void LogUnity(string format, string formatArg)
+        {
+            LogBase(LogID.Unity, LogCategory.Default, FormattableStringFactory.Create(format, formatArg), false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, string, string)"/>
+        public void LogUnity(LogType category, string format, string formatArg)
+        {
+            LogBase(LogCategory.GetUnityLogID(category), LogCategory.ToCategory(category), FormattableStringFactory.Create(format, formatArg), false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, string, string)"/>
+        public void LogUnity(LogCategory category, string format, string formatArg)
+        {
+            LogBase(LogCategory.GetUnityLogID(category.UnityCategory), category, FormattableStringFactory.Create(format, formatArg), false);
+        }
+        #endregion
+        #region Expedition
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogExp(string, string)"/>
+        public void LogExp(string format, string formatArg)
+        {
+            LogBase(LogID.Expedition, LogCategory.Default, FormattableStringFactory.Create(format, formatArg), false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogExp(LogCategory, string, string)"/>
+        public void LogExp(LogCategory category, string format, string formatArg)
+        {
+            LogBase(LogID.Expedition, category, FormattableStringFactory.Create(format, formatArg), false);
+        }
+        #endregion
+        #region JollyCoop
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogJolly(string, string)"/>
+        public void LogJolly(string format, string formatArg)
+        {
+            LogBase(LogID.JollyCoop, LogCategory.Default, FormattableStringFactory.Create(format, formatArg), false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogJolly(LogCategory, string, string)"/>
+        public void LogJolly(LogCategory category, string format, string formatArg)
+        {
+            LogBase(LogID.JollyCoop, category, FormattableStringFactory.Create(format, formatArg), false);
+        }
+        #endregion
+        #endregion
+        #endregion
+        #region  Log Overloads (ILogTarget, string, string)
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, string, string)"/>
+        public void Log(ILogTarget target, string format, string formatArg)
+        {
+            Log(target, LogCategory.Default, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, string, string)"/>
+        public void LogOnce(ILogTarget target, string format, string formatArg)
+        {
+            Log(target, LogCategory.Default, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(ILogTarget, string, string)"/>
+        public void LogDebug(ILogTarget target, string format, string formatArg)
+        {
+            Log(target, LogCategory.Debug, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(ILogTarget, string, string)"/>
+        public void LogInfo(ILogTarget target, string format, string formatArg)
+        {
+            Log(target, LogCategory.Info, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(ILogTarget, string, string)"/>
+        public void LogImportant(ILogTarget target, string format, string formatArg)
+        {
+            Log(target, LogCategory.Important, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(ILogTarget, string, string)"/>
+        public void LogMessage(ILogTarget target, string format, string formatArg)
+        {
+            Log(target, LogCategory.Message, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(ILogTarget, string, string)"/>
+        public void LogWarning(ILogTarget target, string format, string formatArg)
+        {
+            Log(target, LogCategory.Warning, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogError(ILogTarget, string, string)"/>
+        public void LogError(ILogTarget target, string format, string formatArg)
+        {
+            Log(target, LogCategory.Error, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(ILogTarget, string, string)"/>
+        public void LogFatal(ILogTarget target, string format, string formatArg)
+        {
+            Log(target, LogCategory.Fatal, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, string, string)"/>
+        public void Log(ILogTarget target, LogLevel category, string format, string formatArg)
+        {
+            Log(target, LogCategory.ToCategory(category), FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, string, string)"/>
+        public void Log(ILogTarget target, LogCategory category, string format, string formatArg)
+        {
+            LogUnresolvedTarget(target, category, FormattableStringFactory.Create(format, formatArg), false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, string, string)"/>
+        public void LogOnce(ILogTarget target, LogCategory category, string format, string formatArg)
+        {
+            LogUnresolvedTarget(target, category, FormattableStringFactory.Create(format, formatArg), true);
+        }
+        #endregion
+        #region  Log Overloads (IEnumerable<ILogTarget>, string, string)
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, string, string)"/>
+        public void Log(IEnumerable<ILogTarget> targets, string format, string formatArg)
+        {
+            Log(targets, LogCategory.Default, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, string, string)"/>
+        public void LogOnce(IEnumerable<ILogTarget> targets, string format, string formatArg)
+        {
+            Log(targets, LogCategory.Default, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(IEnumerable{ILogTarget}, string, string)"/>
+        public void LogDebug(IEnumerable<ILogTarget> targets, string format, string formatArg)
+        {
+            Log(targets, LogCategory.Debug, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(IEnumerable{ILogTarget}, string, string)"/>
+        public void LogInfo(IEnumerable<ILogTarget> targets, string format, string formatArg)
+        {
+            Log(targets, LogCategory.Info, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(IEnumerable{ILogTarget}, string, string)"/>
+        public void LogImportant(IEnumerable<ILogTarget> targets, string format, string formatArg)
+        {
+            Log(targets, LogCategory.Important, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(IEnumerable{ILogTarget}, string, string)"/>
+        public void LogMessage(IEnumerable<ILogTarget> targets, string format, string formatArg)
+        {
+            Log(targets, LogCategory.Message, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(IEnumerable{ILogTarget}, string, string)"/>
+        public void LogWarning(IEnumerable<ILogTarget> targets, string format, string formatArg)
+        {
+            Log(targets, LogCategory.Warning, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogError(IEnumerable{ILogTarget}, string, string)"/>
+        public void LogError(IEnumerable<ILogTarget> targets, string format, string formatArg)
+        {
+            Log(targets, LogCategory.Error, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(IEnumerable{ILogTarget}, string, string)"/>
+        public void LogFatal(IEnumerable<ILogTarget> targets, string format, string formatArg)
+        {
+            Log(targets, LogCategory.Fatal, FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, string, string)"/>
+        public void Log(IEnumerable<ILogTarget> targets, LogLevel category, string format, string formatArg)
+        {
+            Log(targets, LogCategory.ToCategory(category), FormattableStringFactory.Create(format, formatArg));
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, string, string)"/>
+        public void Log(IEnumerable<ILogTarget> targets, LogCategory category, string format, string formatArg)
+        {
+            LogBase(new LogTargetCollection(targets), category, FormattableStringFactory.Create(format, formatArg), false);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, LogCategory, string, string)"/>
+        public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, string format, string formatArg)
+        {
+            LogBase(new LogTargetCollection(targets), category, FormattableStringFactory.Create(format, formatArg), true);
+        }
+        #endregion
     }
 
     public static class LoggerExtensions
