@@ -120,31 +120,30 @@ namespace LogUtils.Diagnostics.Tests.Utility
             #region Interpolated String tests
 
             testGroup.Add(activeCase = new TestCase("Test: Interpolated string arguments"));
-
 #if OVERLOAD_PRIORITY
             //Interpolated string, String
             logger.Log($"{Arguments.Object}", Arguments.String);
-            AssertResultAndClear(Types.String, Types.String);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 #endif
             //Interpolated string, Object
             logger.Log($"{Arguments.Object}", Arguments.Object);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
 #if OVERLOAD_PRIORITY
             //Interpolated string, Interpolated string
             logger.Log($"{Arguments.Object}", $"{Arguments.Object}");
-            AssertResultAndClear(Types.String, Types.String);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 #endif
             //Interpolated string, Null (ambiguous)
             //logger.Log($"{Arguments.Object}", null);
 
             //Interpolated string, LogCategory
             logger.Log($"{Arguments.Object}", Arguments.LogCategory);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
             //Interpolated string, LogID
             logger.Log($"{Arguments.Object}", Arguments.LogID);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
             //Interpolated string, Color
             logger.Log($"{Arguments.Object}", Arguments.Color);
@@ -495,165 +494,154 @@ namespace LogUtils.Diagnostics.Tests.Utility
             testGroup.Add(activeCase = new TestCase("Test: Interpolated String arguments"));
 
             #region Interpolated String, String tests
-#if OVERLOAD_PRIORITY
+
             //String
             logger.Log($"{Arguments.Object}", Arguments.String, Arguments.String);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
             //Object
             logger.Log($"{Arguments.Object}", Arguments.String, Arguments.Object);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
             //Null
             logger.Log($"{Arguments.Object}", Arguments.String, null);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
             //Color
             logger.Log($"{Arguments.Object}", Arguments.String, Arguments.Color);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
             //ConsoleColor
             logger.Log($"{Arguments.Object}", Arguments.String, Arguments.ConsoleColor);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
-#endif
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
             #endregion
             #region Interpolated String, Interpolated String tests
-#if OVERLOAD_PRIORITY
+
             //String
             logger.Log($"{Arguments.Object}", $"{Arguments.Object}", Arguments.String);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
             //Object
             logger.Log($"{Arguments.Object}", $"{Arguments.Object}", Arguments.Object);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
             //Color
             logger.Log($"{Arguments.Object}", $"{Arguments.Object}", Arguments.Color);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
             //ConsoleColor
             logger.Log($"{Arguments.Object}", $"{Arguments.Object}", Arguments.ConsoleColor);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
-#endif
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
             #endregion
             #region Interpolated String, Object tests
 
             //String
             logger.Log($"{Arguments.Object}", Arguments.Object, Arguments.String);
-            AssertResultAndClear(Types.String, Types.ObjectArray); //There is no `string, object, object[]` overload 
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray); //There is no `string, object, object[]` overload 
 
             //Object
             logger.Log($"{Arguments.Object}", Arguments.Object, Arguments.Object);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
             //Null
             logger.Log($"{Arguments.Object}", Arguments.Object, null);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
-#if OVERLOAD_PRIORITY
             //Color
             logger.Log($"{Arguments.Object}", Arguments.Object, Arguments.Color);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
+
             //ConsoleColor
             logger.Log($"{Arguments.Object}", Arguments.Object, Arguments.ConsoleColor);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
-#endif
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
             #endregion
             #region Interpolated String, LogCategory tests
 
             //String
             logger.Log($"{Arguments.Object}", Arguments.LogCategory, Arguments.String);
-            AssertResultAndClear(Types.String, Types.ObjectArray); //There is no `string, object, object[]` overload 
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray); //There is no `string, object, object[]` overload 
 
             //Object
             logger.Log($"{Arguments.Object}", Arguments.LogCategory, Arguments.Object);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
             //Null
             logger.Log($"{Arguments.Object}", Arguments.LogCategory, null);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
-#if OVERLOAD_PRIORITY
             //Color
             logger.Log($"{Arguments.Object}", Arguments.LogCategory, Arguments.Color);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
             //ConsoleColor
             logger.Log($"{Arguments.Object}", Arguments.LogCategory, Arguments.ConsoleColor);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
-#endif
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
             #endregion
             #region Interpolated String, ILogTarget tests
 
             //String
             logger.Log($"{Arguments.Object}", Arguments.LogTarget, Arguments.String);
-            AssertResultAndClear(Types.String, Types.ObjectArray); //There is no `string, object, object[]` overload 
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray); //There is no `string, object, object[]` overload 
 
             //Object
             logger.Log($"{Arguments.Object}", Arguments.LogTarget, Arguments.Object);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
             //Null
             logger.Log($"{Arguments.Object}", Arguments.LogTarget, null);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
-#if OVERLOAD_PRIORITY
             //Color
             logger.Log($"{Arguments.Object}", Arguments.LogTarget, Arguments.Color);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
             //ConsoleColor
             logger.Log($"{Arguments.Object}", Arguments.LogTarget, Arguments.ConsoleColor);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
-#endif
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
             #endregion
             #region Interpolated String, Color tests
 
             //String
             logger.Log($"{Arguments.Object}", Arguments.Color, Arguments.String);
-            AssertResultAndClear(Types.String, Types.ObjectArray); //There is no `string, object, object[]` overload 
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray); //There is no `string, object, object[]` overload 
 
             //Object
             logger.Log($"{Arguments.Object}", Arguments.Color, Arguments.Object);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
             //Null
             logger.Log($"{Arguments.Object}", Arguments.Color, null);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
-#if OVERLOAD_PRIORITY
             //Color
             logger.Log($"{Arguments.Object}", Arguments.Color, Arguments.Color);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
             //ConsoleColor
             logger.Log($"{Arguments.Object}", Arguments.Color, Arguments.ConsoleColor);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
-#endif
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
             #endregion
             #region Interpolated String, ConsoleColor tests
 
             //String
             logger.Log($"{Arguments.Object}", Arguments.ConsoleColor, Arguments.String);
-            AssertResultAndClear(Types.String, Types.ObjectArray); //There is no `string, object, object[]` overload 
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray); //There is no `string, object, object[]` overload 
 
             //Object
             logger.Log($"{Arguments.Object}", Arguments.ConsoleColor, Arguments.Object);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
             //Null
             logger.Log($"{Arguments.Object}", Arguments.ConsoleColor, null);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
-#if OVERLOAD_PRIORITY
             //Color
             logger.Log($"{Arguments.Object}", Arguments.ConsoleColor, Arguments.Color);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
             //ConsoleColor
             logger.Log($"{Arguments.Object}", Arguments.ConsoleColor, Arguments.ConsoleColor);
-            AssertResultAndClear(Types.String, Types.ObjectArray);
-#endif
+            AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
             #endregion
             #endregion
             #region Object tests
@@ -813,13 +801,14 @@ namespace LogUtils.Diagnostics.Tests.Utility
             #endregion
             #region LogCategory, Interpolated String tests
 
+#if OVERLOAD_PRIORITY
             //String
             logger.Log(Arguments.LogCategory, $"{Arguments.Object}", Arguments.String);
             AssertResultAndClear(Types.LogCategory, Types.String, Types.String);
-
+#endif
             //Object
             logger.Log(Arguments.LogCategory, $"{Arguments.Object}", Arguments.Object);
-            AssertResultAndClear(Types.LogCategory, Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.LogCategory, Types.InterpolatedStringHandler, Types.ObjectArray);
 
             //Color
             logger.Log(Arguments.LogCategory, $"{Arguments.Object}", Arguments.Color);
@@ -967,14 +956,15 @@ namespace LogUtils.Diagnostics.Tests.Utility
             AssertResultAndClear(Types.LogTarget, Types.String, Types.ConsoleColor); //Color overload takes priority over object array overload
             #endregion
             #region ILogTarget, Interpolated String tests
+
 #if OVERLOAD_PRIORITY
             //String
             logger.Log(Arguments.LogTarget, $"{Arguments.Object}", Arguments.String);
-            AssertResultAndClear(Types.LogTarget, Types.String, Types.String);
+            AssertResultAndClear(Types.LogTarget, Types.InterpolatedStringHandler, Types.String);
 #endif
             //Object
             logger.Log(Arguments.LogTarget, $"{Arguments.Object}", Arguments.Object);
-            AssertResultAndClear(Types.LogTarget, Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.LogTarget, Types.InterpolatedStringHandler, Types.ObjectArray);
 
             //Color
             logger.Log(Arguments.LogTarget, $"{Arguments.Object}", Arguments.Color);

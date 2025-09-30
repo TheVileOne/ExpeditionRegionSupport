@@ -2695,13 +2695,6 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, object[])"/>
-        public void Log(string category, InterpolatedStringHandler format, params object[] formatArgs)
-        {
-            format.AppendFormattedRange(formatArgs);
-            Log(LogCategory.ToCategory(category), format);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, object[])"/>
         public void Log(LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2717,13 +2710,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, string, object[])"/>
         public void LogOnce(LogLevel category, InterpolatedStringHandler format, params object[] formatArgs)
-        {
-            format.AppendFormattedRange(formatArgs);
-            LogOnce(LogCategory.ToCategory(category), format);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, string, object[])"/>
-        public void LogOnce(string category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
             LogOnce(LogCategory.ToCategory(category), format);
@@ -2889,13 +2875,6 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, string, object[])"/>
-        public void Log(ILogTarget target, string category, InterpolatedStringHandler format, params object[] formatArgs)
-        {
-            format.AppendFormattedRange(formatArgs);
-            Log(target, LogCategory.ToCategory(category), format);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, string, object[])"/>
         public void Log(ILogTarget target, LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2976,13 +2955,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, string, object[])"/>
         public void Log(IEnumerable<ILogTarget> targets, LogLevel category, InterpolatedStringHandler format, params object[] formatArgs)
-        {
-            format.AppendFormattedRange(formatArgs);
-            Log(targets, LogCategory.ToCategory(category), format);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, string, object[])"/>
-        public void Log(IEnumerable<ILogTarget> targets, string category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
             Log(targets, LogCategory.ToCategory(category), format);
@@ -3776,13 +3748,6 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, object[])"/>
-        public static void Log(this Logger logger, string category, InterpolatedStringHandler format, params object[] formatArgs)
-        {
-            format.AppendFormattedRange(formatArgs);
-            logger.Log(LogCategory.ToCategory(category), format);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, object[])"/>
         public static void Log(this Logger logger, LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -3798,13 +3763,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, string, object[])"/>
         public static void LogOnce(this Logger logger, LogLevel category, InterpolatedStringHandler format, params object[] formatArgs)
-        {
-            format.AppendFormattedRange(formatArgs);
-            logger.LogOnce(LogCategory.ToCategory(category), format);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, string, object[])"/>
-        public static void LogOnce(this Logger logger, string category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
             logger.LogOnce(LogCategory.ToCategory(category), format);
@@ -3970,13 +3928,6 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, string, object[])"/>
-        public static void Log(this Logger logger, ILogTarget target, string category, InterpolatedStringHandler format, params object[] formatArgs)
-        {
-            format.AppendFormattedRange(formatArgs);
-            logger.Log(target, LogCategory.ToCategory(category), format);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, string, object[])"/>
         public static void Log(this Logger logger, ILogTarget target, LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -4057,13 +4008,6 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, string, object[])"/>
         public static void Log(this Logger logger, IEnumerable<ILogTarget> targets, LogLevel category, InterpolatedStringHandler format, params object[] formatArgs)
-        {
-            format.AppendFormattedRange(formatArgs);
-            logger.Log(targets, LogCategory.ToCategory(category), format);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, string, object[])"/>
-        public static void Log(this Logger logger, IEnumerable<ILogTarget> targets, string category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
             logger.Log(targets, LogCategory.ToCategory(category), format);
