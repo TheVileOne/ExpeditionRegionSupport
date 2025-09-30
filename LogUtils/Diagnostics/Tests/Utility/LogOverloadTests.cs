@@ -320,6 +320,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
             logger.Log(Arguments.ConsoleColor, Arguments.ConsoleColor);
             AssertResultAndClear(Types.Object, Types.ConsoleColor); //Color overload takes priority over object overload
             #endregion
+
+            logger.Dispose();
         }
 
         internal void TestThreeArguments()
@@ -1346,6 +1348,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
             //logger.Log(Arguments.ConsoleColor, Arguments.ConsoleColor, Arguments.ConsoleColor);
             #endregion
             #endregion
+
+            logger.Dispose();
         }
 
         internal void AssertResultAndClear(params Type[] expectedTypes)
