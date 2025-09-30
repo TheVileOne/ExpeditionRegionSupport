@@ -92,22 +92,22 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             //String, Object
             logger.Log(Arguments.String, Arguments.Object);
-            AssertResultAndClear(Types.String, Types.Object);
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //String, Interpolated string
             logger.Log(Arguments.String, $"{Arguments.Object}");
-            AssertResultAndClear(Types.String, Types.InterpolatedStringHandler);
+            AssertResultAndClear(Types.String, Types.String);
 
             //String, Null (ambiguous)
             //logger.Log(Arguments.String, null);
 
             //String, LogCategory
             logger.Log(Arguments.String, Arguments.LogCategory);
-            AssertResultAndClear(Types.String, Types.Object);
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //String, LogID
             logger.Log(Arguments.String, Arguments.LogID);
-            AssertResultAndClear(Types.String, Types.Object);
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //String, Color
             logger.Log(Arguments.String, Arguments.Color);
@@ -128,23 +128,23 @@ namespace LogUtils.Diagnostics.Tests.Utility
 #endif
             //Interpolated string, Object
             logger.Log($"{Arguments.Object}", Arguments.Object);
-            AssertResultAndClear(Types.String, Types.Object);
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
 #if OVERLOAD_PRIORITY
             //Interpolated string, Interpolated string
             logger.Log($"{Arguments.Object}", $"{Arguments.Object}");
-            AssertResultAndClear(Types.String, Types.InterpolatedStringHandler);
+            AssertResultAndClear(Types.String, Types.String);
 #endif
             //Interpolated string, Null (ambiguous)
             //logger.Log($"{Arguments.Object}", null);
 
             //Interpolated string, LogCategory
             logger.Log($"{Arguments.Object}", Arguments.LogCategory);
-            AssertResultAndClear(Types.String, Types.Object);
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //Interpolated string, LogID
             logger.Log($"{Arguments.Object}", Arguments.LogID);
-            AssertResultAndClear(Types.String, Types.Object);
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //Interpolated string, Color
             logger.Log($"{Arguments.Object}", Arguments.Color);
@@ -322,6 +322,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
             logger.Log(Arguments.ConsoleColor, Arguments.ConsoleColor);
             AssertResultAndClear(Types.Object, Types.ConsoleColor); //Color overload takes priority over object overload
             #endregion
+
+            logger.Dispose();
         }
 
         internal void TestThreeArguments()
@@ -340,51 +342,41 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             //String
             logger.Log(Arguments.String, Arguments.String, Arguments.String);
-            AssertResultAndClear(Types.String, Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //Object
             logger.Log(Arguments.String, Arguments.String, Arguments.Object);
-            AssertResultAndClear(Types.String, Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //Null
-            Exception exception = null;
-            try
-            {
-                logger.Log(Arguments.String, Arguments.String, null);
-            }
-            catch (ArgumentNullException ex)
-            {
-                exception = ex;
-            }
-            AssertThat(exception).IsNotNull(); //Exception is expected to throw when a null is passed into params
-            exception = null;
-            methodCalled = null;
+            logger.Log(Arguments.String, Arguments.String, null);
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //Color
             logger.Log(Arguments.String, Arguments.String, Arguments.Color);
-            AssertResultAndClear(Types.String, Types.String, Types.Color); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //ConsoleColor
             logger.Log(Arguments.String, Arguments.String, Arguments.ConsoleColor);
-            AssertResultAndClear(Types.String, Types.String, Types.ConsoleColor); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
             #endregion
             #region String, Interpolated String tests
 
             //String
             logger.Log(Arguments.String, $"{Arguments.Object}", Arguments.String);
-            AssertResultAndClear(Types.String, Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //Object
             logger.Log(Arguments.String, $"{Arguments.Object}", Arguments.Object);
-            AssertResultAndClear(Types.String, Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //Color
             logger.Log(Arguments.String, $"{Arguments.Object}", Arguments.Color);
-            AssertResultAndClear(Types.String, Types.InterpolatedStringHandler, Types.Color); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //ConsoleColor
             logger.Log(Arguments.String, $"{Arguments.Object}", Arguments.ConsoleColor);
-            AssertResultAndClear(Types.String, Types.InterpolatedStringHandler, Types.ConsoleColor); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
             #endregion
             #region String, Object tests
 
@@ -402,11 +394,11 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             //Color
             logger.Log(Arguments.String, Arguments.Object, Arguments.Color);
-            AssertResultAndClear(Types.String, Types.Object, Types.Color); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //ConsoleColor
             logger.Log(Arguments.String, Arguments.Object, Arguments.ConsoleColor);
-            AssertResultAndClear(Types.String, Types.Object, Types.ConsoleColor); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
             #endregion
             #region String, LogCategory tests
 
@@ -424,11 +416,11 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             //Color
             logger.Log(Arguments.String, Arguments.LogCategory, Arguments.Color);
-            AssertResultAndClear(Types.String, Types.Object, Types.Color); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //ConsoleColor
             logger.Log(Arguments.String, Arguments.LogCategory, Arguments.ConsoleColor);
-            AssertResultAndClear(Types.String, Types.Object, Types.ConsoleColor); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
             #endregion
             #region String, ILogTarget tests
 
@@ -446,11 +438,11 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             //Color
             logger.Log(Arguments.String, Arguments.LogTarget, Arguments.Color);
-            AssertResultAndClear(Types.String, Types.Object, Types.Color); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //ConsoleColor
             logger.Log(Arguments.String, Arguments.LogTarget, Arguments.ConsoleColor);
-            AssertResultAndClear(Types.String, Types.Object, Types.ConsoleColor); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
             #endregion
             #region String, Color tests
 
@@ -468,11 +460,11 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             //Color
             logger.Log(Arguments.String, Arguments.Color, Arguments.Color);
-            AssertResultAndClear(Types.String, Types.Object, Types.Color); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //ConsoleColor
             logger.Log(Arguments.String, Arguments.Color, Arguments.ConsoleColor);
-            AssertResultAndClear(Types.String, Types.Object, Types.ConsoleColor); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
             #endregion
             #region String, ConsoleColor tests
 
@@ -490,11 +482,11 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             //Color
             logger.Log(Arguments.String, Arguments.ConsoleColor, Arguments.Color);
-            AssertResultAndClear(Types.String, Types.Object, Types.Color); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //ConsoleColor
             logger.Log(Arguments.String, Arguments.ConsoleColor, Arguments.ConsoleColor);
-            AssertResultAndClear(Types.String, Types.Object, Types.ConsoleColor); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
             #endregion
             #endregion
             #region Interpolated string tests
@@ -506,52 +498,42 @@ namespace LogUtils.Diagnostics.Tests.Utility
 #if OVERLOAD_PRIORITY
             //String
             logger.Log($"{Arguments.Object}", Arguments.String, Arguments.String);
-            AssertResultAndClear(Types.String, Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //Object
             logger.Log($"{Arguments.Object}", Arguments.String, Arguments.Object);
-            AssertResultAndClear(Types.String, Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //Null
-            exception = null;
-            try
-            {
-                logger.Log($"{Arguments.Object}", Arguments.String, null);
-            }
-            catch (ArgumentNullException ex)
-            {
-                exception = ex;
-            }
-            AssertThat(exception).IsNotNull(); //Exception is expected to throw when a null is passed into params
-            exception = null;
-            methodCalled = null;
+            logger.Log($"{Arguments.Object}", Arguments.String, null);
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //Color
             logger.Log($"{Arguments.Object}", Arguments.String, Arguments.Color);
-            AssertResultAndClear(Types.String, Types.String, Types.Color); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //ConsoleColor
             logger.Log($"{Arguments.Object}", Arguments.String, Arguments.ConsoleColor);
-            AssertResultAndClear(Types.String, Types.String, Types.ConsoleColor); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 #endif
             #endregion
             #region Interpolated String, Interpolated String tests
 #if OVERLOAD_PRIORITY
             //String
             logger.Log($"{Arguments.Object}", $"{Arguments.Object}", Arguments.String);
-            AssertResultAndClear(Types.String, Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //Object
             logger.Log($"{Arguments.Object}", $"{Arguments.Object}", Arguments.Object);
-            AssertResultAndClear(Types.String, Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //Color
             logger.Log($"{Arguments.Object}", $"{Arguments.Object}", Arguments.Color);
-            AssertResultAndClear(Types.String, Types.InterpolatedStringHandler, Types.Color); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //ConsoleColor
             logger.Log($"{Arguments.Object}", $"{Arguments.Object}", Arguments.ConsoleColor);
-            AssertResultAndClear(Types.String, Types.InterpolatedStringHandler, Types.ConsoleColor); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 #endif
             #endregion
             #region Interpolated String, Object tests
@@ -571,10 +553,10 @@ namespace LogUtils.Diagnostics.Tests.Utility
 #if OVERLOAD_PRIORITY
             //Color
             logger.Log($"{Arguments.Object}", Arguments.Object, Arguments.Color);
-            AssertResultAndClear(Types.String, Types.Object, Types.Color); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
             //ConsoleColor
             logger.Log($"{Arguments.Object}", Arguments.Object, Arguments.ConsoleColor);
-            AssertResultAndClear(Types.String, Types.Object, Types.ConsoleColor); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 #endif
             #endregion
             #region Interpolated String, LogCategory tests
@@ -594,11 +576,11 @@ namespace LogUtils.Diagnostics.Tests.Utility
 #if OVERLOAD_PRIORITY
             //Color
             logger.Log($"{Arguments.Object}", Arguments.LogCategory, Arguments.Color);
-            AssertResultAndClear(Types.String, Types.Object, Types.Color); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //ConsoleColor
             logger.Log($"{Arguments.Object}", Arguments.LogCategory, Arguments.ConsoleColor);
-            AssertResultAndClear(Types.String, Types.Object, Types.ConsoleColor); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 #endif
             #endregion
             #region Interpolated String, ILogTarget tests
@@ -618,11 +600,11 @@ namespace LogUtils.Diagnostics.Tests.Utility
 #if OVERLOAD_PRIORITY
             //Color
             logger.Log($"{Arguments.Object}", Arguments.LogTarget, Arguments.Color);
-            AssertResultAndClear(Types.String, Types.Object, Types.Color); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //ConsoleColor
             logger.Log($"{Arguments.Object}", Arguments.LogTarget, Arguments.ConsoleColor);
-            AssertResultAndClear(Types.String, Types.Object, Types.ConsoleColor); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 #endif
             #endregion
             #region Interpolated String, Color tests
@@ -642,11 +624,11 @@ namespace LogUtils.Diagnostics.Tests.Utility
 #if OVERLOAD_PRIORITY
             //Color
             logger.Log($"{Arguments.Object}", Arguments.Color, Arguments.Color);
-            AssertResultAndClear(Types.String, Types.Object, Types.Color); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //ConsoleColor
             logger.Log($"{Arguments.Object}", Arguments.Color, Arguments.ConsoleColor);
-            AssertResultAndClear(Types.String, Types.Object, Types.ConsoleColor); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 #endif
             #endregion
             #region Interpolated String, ConsoleColor tests
@@ -666,11 +648,11 @@ namespace LogUtils.Diagnostics.Tests.Utility
 #if OVERLOAD_PRIORITY
             //Color
             logger.Log($"{Arguments.Object}", Arguments.ConsoleColor, Arguments.Color);
-            AssertResultAndClear(Types.String, Types.Object, Types.Color); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 
             //ConsoleColor
             logger.Log($"{Arguments.Object}", Arguments.ConsoleColor, Arguments.ConsoleColor);
-            AssertResultAndClear(Types.String, Types.Object, Types.ConsoleColor); //Color overload takes priority over object array overload
+            AssertResultAndClear(Types.String, Types.ObjectArray);
 #endif
             #endregion
             #endregion
@@ -812,25 +794,14 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             //String
             logger.Log(Arguments.LogCategory, Arguments.String, Arguments.String);
-            AssertResultAndClear(Types.LogCategory, Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.LogCategory, Types.String, Types.String);
 
             //Object
             logger.Log(Arguments.LogCategory, Arguments.String, Arguments.Object);
             AssertResultAndClear(Types.LogCategory, Types.String, Types.ObjectArray);
 
-            //Null
-            exception = null;
-            try
-            {
-                logger.Log(Arguments.LogCategory, Arguments.String, null);
-            }
-            catch (ArgumentNullException ex)
-            {
-                exception = ex;
-            }
-            AssertThat(exception).IsNotNull(); //Exception is expected to throw when a null is passed into params
-            exception = null;
-            methodCalled = null;
+            //Null (ambiguous)
+            //logger.Log(Arguments.LogCategory, Arguments.String, null);
 
             //Color
             logger.Log(Arguments.LogCategory, Arguments.String, Arguments.Color);
@@ -844,7 +815,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             //String
             logger.Log(Arguments.LogCategory, $"{Arguments.Object}", Arguments.String);
-            AssertResultAndClear(Types.LogCategory, Types.String, Types.ObjectArray);
+            AssertResultAndClear(Types.LogCategory, Types.String, Types.String);
 
             //Object
             logger.Log(Arguments.LogCategory, $"{Arguments.Object}", Arguments.Object);
@@ -978,11 +949,11 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             //String
             logger.Log(Arguments.LogTarget, Arguments.String, Arguments.String);
-            AssertResultAndClear(Types.LogTarget, Types.String, Types.String); //Targets object instead of object array
+            AssertResultAndClear(Types.LogTarget, Types.String, Types.String);
 
             //Object
             logger.Log(Arguments.LogTarget, Arguments.String, Arguments.Object);
-            AssertResultAndClear(Types.LogTarget, Types.String, Types.Object);
+            AssertResultAndClear(Types.LogTarget, Types.String, Types.ObjectArray);
 
             //Null (ambiguous)
             //logger.Log(Arguments.LogTarget, Arguments.String, null);
@@ -1003,15 +974,15 @@ namespace LogUtils.Diagnostics.Tests.Utility
 #endif
             //Object
             logger.Log(Arguments.LogTarget, $"{Arguments.Object}", Arguments.Object);
-            AssertResultAndClear(Types.LogTarget, Types.String, Types.Object);
+            AssertResultAndClear(Types.LogTarget, Types.String, Types.ObjectArray);
 
             //Color
             logger.Log(Arguments.LogTarget, $"{Arguments.Object}", Arguments.Color);
             AssertResultAndClear(Types.LogTarget, Types.InterpolatedStringHandler, Types.Color); //Color overload takes priority over object array overload
 
             //ConsoleColor
-            logger.Log(Arguments.String, $"{Arguments.Object}", Arguments.ConsoleColor);
-            AssertResultAndClear(Types.String, Types.InterpolatedStringHandler, Types.ConsoleColor); //Color overload takes priority over object array overload
+            logger.Log(Arguments.LogTarget, $"{Arguments.Object}", Arguments.ConsoleColor);
+            AssertResultAndClear(Types.LogTarget, Types.InterpolatedStringHandler, Types.ConsoleColor); //Color overload takes priority over object array overload
             #endregion
             #region ILogTarget, Object tests
 
@@ -1379,6 +1350,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
             //logger.Log(Arguments.ConsoleColor, Arguments.ConsoleColor, Arguments.ConsoleColor);
             #endregion
             #endregion
+
+            logger.Dispose();
         }
 
         internal void AssertResultAndClear(params Type[] expectedTypes)

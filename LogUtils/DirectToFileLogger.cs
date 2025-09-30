@@ -113,11 +113,6 @@ namespace LogUtils
             Log(messageObj);
         }
 
-        public void Log(string category, object messageObj)
-        {
-            Log(messageObj);
-        }
-
         public void Log(LogCategory category, object messageObj)
         {
             Log(messageObj);

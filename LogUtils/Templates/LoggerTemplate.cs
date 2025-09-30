@@ -2,7 +2,6 @@
 using LogUtils.Enums;
 using LogUtils.Formatting;
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace LogUtils.Templates
@@ -69,11 +68,6 @@ namespace LogUtils.Templates
             throw new NotImplementedException();
         }
 
-        public void Log(string category, object messageObj)
-        {
-            throw new NotImplementedException();
-        }
-
         public void Log(LogCategory category, object messageObj)
         {
             throw new NotImplementedException();
@@ -127,11 +121,6 @@ namespace LogUtils.Templates
         }
 
         public void Log(LogLevel category, InterpolatedStringHandler messageObj)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Log(string category, InterpolatedStringHandler messageObj)
         {
             throw new NotImplementedException();
         }

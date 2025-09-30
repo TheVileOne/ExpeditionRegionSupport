@@ -347,10 +347,7 @@ namespace LogUtils.Formatting
                 string resultString;
                 if (Formatter != null)
                 {
-                    IColorFormatProvider colorFormatter = Formatter as IColorFormatProvider;
-
-                    if (colorFormatter != null)
-                        FormatData.UpdateData(colorFormatter);
+                    FormatData.UpdateData(Formatter as IColorFormatProvider);
 
                     //Ensures that color data is stored as an argument, a requirement by color format providers
                     object formatArgument = FormatData.ResolveArgument(argument.Value, Formatter, argument.Range);

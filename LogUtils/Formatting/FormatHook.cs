@@ -1,5 +1,4 @@
-﻿using LogUtils.Diagnostics;
-using Mono.Cecil.Cil;
+﻿using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using System;
@@ -89,40 +88,7 @@ namespace LogUtils.Formatting
 
         private static void formatPlaceholderStart(ICustomFormatter formatter)
         {
-            var provider = formatter as IColorFormatProvider;
-
-            if (provider != null)
-            {
-                var data = provider.GetData();
-
-                LinkedListNode<NodeData> currentNode = data.Entries.Last;
-                NodeData currentBuildEntry = currentNode.Value;
-                StringBuilder currentBuilder = currentBuildEntry.Builder;
-
-                int positionOffset = currentNode.GetBuildOffset();
-                if (data.UpdateBuildLength())
-                {
-                    //Handle color reset
-                    currentBuildEntry.Current = new FormatData()
-                    {
-                        BuildOffset = positionOffset,
-                        LocalPosition = currentBuildEntry.LastCheckedBuildLength
-                    };
-                    provider.ResetColor(currentBuilder, currentBuildEntry.Current);
-                    data.UpdateBuildLength();
-                }
-                else
-                {
-                    data.BypassColorCancellation = false;
-                }
-
-                //This will replace the last FormatData instance with the current one - this is by design
-                currentBuildEntry.Current = new FormatData()
-                {
-                    BuildOffset = positionOffset,
-                    LocalPosition = currentBuilder.Length
-                };
-            }
+            FormatData.UpdateData(formatter as IColorFormatProvider);
         }
 
         private static int adjustFormatPadding(int paddingValue, ICustomFormatter formatter)

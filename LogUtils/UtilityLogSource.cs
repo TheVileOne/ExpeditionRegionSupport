@@ -75,11 +75,6 @@ namespace LogUtils
             LogBase(category, messageObj);
         }
 
-        public void Log(string category, object messageObj)
-        {
-            LogBase(LogCategory.ToCategory(category).BepInExCategory, messageObj);
-        }
-
         public void Log(LogCategory category, object messageObj)
         {
             LogBase(category.BepInExCategory, messageObj);
@@ -135,11 +130,6 @@ namespace LogUtils
         public void Log(LogLevel category, InterpolatedStringHandler messageObj)
         {
             LogBase(category, messageObj);
-        }
-
-        public void Log(string category, InterpolatedStringHandler messageObj)
-        {
-            LogBase(LogCategory.ToCategory(category).BepInExCategory, messageObj);
         }
 
         public void Log(LogCategory category, InterpolatedStringHandler messageObj)
