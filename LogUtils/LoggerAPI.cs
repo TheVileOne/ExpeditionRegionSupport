@@ -13,6 +13,8 @@ namespace LogUtils
 {
     public partial class Logger
     {
+        internal const int PRIORITY_MODERATE = 1;
+
         #region Log Overloads (object)
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object)"/>
@@ -839,54 +841,63 @@ namespace LogUtils
         #region Log Overloads (string)
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(string messageObj)
         {
             Log(LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(string messageObj)
         {
             LogOnce(LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogDebug(string messageObj)
         {
             Log(LogCategory.Debug, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogInfo(string messageObj)
         {
             Log(LogCategory.Info, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogImportant(string messageObj)
         {
             Log(LogCategory.Important, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogMessage(string messageObj)
         {
             Log(LogCategory.Message, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogWarning(string messageObj)
         {
             Log(LogCategory.Warning, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogError(string messageObj)
         {
             Log(LogCategory.Error, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogFatal(string messageObj)
         {
             Log(LogCategory.Fatal, messageObj);
@@ -894,108 +905,126 @@ namespace LogUtils
         #region Color Overloads
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(string messageObj, Color messageColor)
         {
             Log(LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(string messageObj, Color messageColor)
         {
             LogOnce(LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogDebug(string messageObj, Color messageColor)
         {
             Log(LogCategory.Debug, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogInfo(string messageObj, Color messageColor)
         {
             Log(LogCategory.Info, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogImportant(string messageObj, Color messageColor)
         {
             Log(LogCategory.Important, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogMessage(string messageObj, Color messageColor)
         {
             Log(LogCategory.Message, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogWarning(string messageObj, Color messageColor)
         {
             Log(LogCategory.Warning, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogError(string messageObj, Color messageColor)
         {
             Log(LogCategory.Error, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogFatal(string messageObj, Color messageColor)
         {
             Log(LogCategory.Fatal, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(string messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Default, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(string messageObj, ConsoleColor messageColor)
         {
             LogOnce(LogCategory.Default, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogDebug(string messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Debug, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogInfo(string messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Info, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogImportant(string messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Important, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogMessage(string messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Message, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogWarning(string messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Warning, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogError(string messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Error, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogFatal(string messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Fatal, messageObj, ConsoleColorMap.GetColor(messageColor));
@@ -1003,36 +1032,42 @@ namespace LogUtils
         #endregion
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(LogType category, string messageObj)
         {
             Log(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(LogLevel category, string messageObj)
         {
             Log(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(LogCategory category, string messageObj)
         {
             LogBase(category, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(LogType category, string messageObj)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(LogLevel category, string messageObj)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(LogCategory category, string messageObj)
         {
             LogBase(category, messageObj, true);
@@ -1221,72 +1256,84 @@ namespace LogUtils
         #region  Log Overloads (ILogTarget, string)
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(ILogTarget target, string messageObj)
         {
             Log(target, LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(ILogTarget target, string messageObj)
         {
             Log(target, LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(ILogTarget, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogDebug(ILogTarget target, string messageObj)
         {
             Log(target, LogCategory.Debug, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(ILogTarget, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogInfo(ILogTarget target, string messageObj)
         {
             Log(target, LogCategory.Info, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(ILogTarget, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogImportant(ILogTarget target, string messageObj)
         {
             Log(target, LogCategory.Important, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(ILogTarget, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogMessage(ILogTarget target, string messageObj)
         {
             Log(target, LogCategory.Message, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(ILogTarget, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogWarning(ILogTarget target, string messageObj)
         {
             Log(target, LogCategory.Warning, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(ILogTarget, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogError(ILogTarget target, string messageObj)
         {
             Log(target, LogCategory.Error, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(ILogTarget, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogFatal(ILogTarget target, string messageObj)
         {
             Log(target, LogCategory.Fatal, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(ILogTarget target, LogLevel category, string messageObj)
         {
             Log(target, LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(ILogTarget target, LogCategory category, string messageObj)
         {
             LogUnresolvedTarget(target, category, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(ILogTarget target, LogCategory category, string messageObj)
         {
             LogUnresolvedTarget(target, category, messageObj, true);
@@ -1294,144 +1341,168 @@ namespace LogUtils
         #region Color Overloads
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(ILogTarget target, string messageObj, Color messageColor)
         {
             Log(target, LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(ILogTarget target, string messageObj, Color messageColor)
         {
             Log(target, LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(ILogTarget, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogDebug(ILogTarget target, string messageObj, Color messageColor)
         {
             Log(target, LogCategory.Debug, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(ILogTarget, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogInfo(ILogTarget target, string messageObj, Color messageColor)
         {
             Log(target, LogCategory.Info, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(ILogTarget, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogImportant(ILogTarget target, string messageObj, Color messageColor)
         {
             Log(target, LogCategory.Important, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(ILogTarget, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogMessage(ILogTarget target, string messageObj, Color messageColor)
         {
             Log(target, LogCategory.Message, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(ILogTarget, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogWarning(ILogTarget target, string messageObj, Color messageColor)
         {
             Log(target, LogCategory.Warning, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(ILogTarget, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogError(ILogTarget target, string messageObj, Color messageColor)
         {
             Log(target, LogCategory.Error, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(ILogTarget, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogFatal(ILogTarget target, string messageObj, Color messageColor)
         {
             Log(target, LogCategory.Fatal, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(ILogTarget target, LogLevel category, string messageObj, Color messageColor)
         {
             Log(target, LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(ILogTarget target, LogCategory category, string messageObj, Color messageColor)
         {
             LogUnresolvedTarget(target, category, messageObj, false, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(ILogTarget target, LogCategory category, string messageObj, Color messageColor)
         {
             LogUnresolvedTarget(target, category, messageObj, true, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(ILogTarget target, string messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Default, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(ILogTarget target, string messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Default, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(ILogTarget, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogDebug(ILogTarget target, string messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Debug, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(ILogTarget, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogInfo(ILogTarget target, string messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Info, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(ILogTarget, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogImportant(ILogTarget target, string messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Important, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(ILogTarget, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogMessage(ILogTarget target, string messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Message, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(ILogTarget, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogWarning(ILogTarget target, string messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Warning, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(ILogTarget, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogError(ILogTarget target, string messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Error, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(ILogTarget, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogFatal(ILogTarget target, string messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Fatal, messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(ILogTarget target, LogLevel category, string messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.ToCategory(category), messageObj, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(ILogTarget target, LogCategory category, string messageObj, ConsoleColor messageColor)
         {
             LogUnresolvedTarget(target, category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(ILogTarget target, LogCategory category, string messageObj, ConsoleColor messageColor)
         {
             LogUnresolvedTarget(target, category, messageObj, true, ConsoleColorMap.GetColor(messageColor));
@@ -1441,72 +1512,84 @@ namespace LogUtils
         #region  Log Overloads (IEnumerable<ILogTarget>, string)
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(IEnumerable<ILogTarget> targets, string messageObj)
         {
             Log(targets, LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(IEnumerable<ILogTarget> targets, string messageObj)
         {
             Log(targets, LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(IEnumerable{ILogTarget}, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogDebug(IEnumerable<ILogTarget> targets, string messageObj)
         {
             Log(targets, LogCategory.Debug, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(IEnumerable{ILogTarget}, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogInfo(IEnumerable<ILogTarget> targets, string messageObj)
         {
             Log(targets, LogCategory.Info, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(IEnumerable{ILogTarget}, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogImportant(IEnumerable<ILogTarget> targets, string messageObj)
         {
             Log(targets, LogCategory.Important, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(IEnumerable{ILogTarget}, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogMessage(IEnumerable<ILogTarget> targets, string messageObj)
         {
             Log(targets, LogCategory.Message, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(IEnumerable{ILogTarget}, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogWarning(IEnumerable<ILogTarget> targets, string messageObj)
         {
             Log(targets, LogCategory.Warning, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(IEnumerable{ILogTarget}, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogError(IEnumerable<ILogTarget> targets, string messageObj)
         {
             Log(targets, LogCategory.Error, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(IEnumerable{ILogTarget}, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogFatal(IEnumerable<ILogTarget> targets, string messageObj)
         {
             Log(targets, LogCategory.Fatal, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(IEnumerable<ILogTarget> targets, LogLevel category, string messageObj)
         {
             Log(targets, LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(IEnumerable<ILogTarget> targets, LogCategory category, string messageObj)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, false);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, LogCategory, object)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, string messageObj)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, true);
@@ -1514,144 +1597,168 @@ namespace LogUtils
         #region Color Overloads
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(IEnumerable<ILogTarget> targets, string messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(IEnumerable<ILogTarget> targets, string messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(IEnumerable{ILogTarget}, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogDebug(IEnumerable<ILogTarget> targets, string messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Debug, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(IEnumerable{ILogTarget}, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogInfo(IEnumerable<ILogTarget> targets, string messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Info, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(IEnumerable{ILogTarget}, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogImportant(IEnumerable<ILogTarget> targets, string messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Important, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(IEnumerable{ILogTarget}, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogMessage(IEnumerable<ILogTarget> targets, string messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Message, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(IEnumerable{ILogTarget}, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogWarning(IEnumerable<ILogTarget> targets, string messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Warning, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(IEnumerable{ILogTarget}, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogError(IEnumerable<ILogTarget> targets, string messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Error, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(IEnumerable{ILogTarget}, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogFatal(IEnumerable<ILogTarget> targets, string messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Fatal, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(IEnumerable<ILogTarget> targets, LogLevel category, string messageObj, Color messageColor)
         {
             Log(targets, LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(IEnumerable<ILogTarget> targets, LogCategory category, string messageObj, Color messageColor)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, false, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, string messageObj, Color messageColor)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, true, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(IEnumerable<ILogTarget> targets, string messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(IEnumerable<ILogTarget> targets, string messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Default, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(IEnumerable{ILogTarget}, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogDebug(IEnumerable<ILogTarget> targets, string messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Debug, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(IEnumerable{ILogTarget}, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogInfo(IEnumerable<ILogTarget> targets, string messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Info, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(IEnumerable{ILogTarget}, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogImportant(IEnumerable<ILogTarget> targets, string messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Important, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(IEnumerable{ILogTarget}, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogMessage(IEnumerable<ILogTarget> targets, string messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Message, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(IEnumerable{ILogTarget}, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogWarning(IEnumerable<ILogTarget> targets, string messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Warning, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(IEnumerable{ILogTarget}, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogError(IEnumerable<ILogTarget> targets, string messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Error, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(IEnumerable{ILogTarget}, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogFatal(IEnumerable<ILogTarget> targets, string messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Fatal, messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(IEnumerable<ILogTarget> targets, LogLevel category, string messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.ToCategory(category), messageObj, messageColor);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(IEnumerable<ILogTarget> targets, LogCategory category, string messageObj, ConsoleColor messageColor)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, string messageObj, ConsoleColor messageColor)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, true, ConsoleColorMap.GetColor(messageColor));
@@ -1663,6 +1770,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.Default, messageObj);
@@ -1670,6 +1778,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(InterpolatedStringHandler messageObj)
         {
             LogOnce(LogCategory.Default, messageObj);
@@ -1677,6 +1786,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogDebug(InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.Debug, messageObj);
@@ -1684,6 +1794,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogInfo(InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.Info, messageObj);
@@ -1691,6 +1802,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogImportant(InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.Important, messageObj);
@@ -1698,6 +1810,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogMessage(InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.Message, messageObj);
@@ -1705,6 +1818,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogWarning(InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.Warning, messageObj);
@@ -1712,6 +1826,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogError(InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.Error, messageObj);
@@ -1719,6 +1834,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogFatal(InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.Fatal, messageObj);
@@ -1727,6 +1843,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(LogCategory.Default, messageObj, messageColor);
@@ -1734,6 +1851,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogOnce(LogCategory.Default, messageObj, messageColor);
@@ -1741,6 +1859,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogDebug(InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(LogCategory.Debug, messageObj, messageColor);
@@ -1748,6 +1867,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogInfo(InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(LogCategory.Info, messageObj, messageColor);
@@ -1755,6 +1875,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogImportant(InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(LogCategory.Important, messageObj, messageColor);
@@ -1762,6 +1883,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogMessage(InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(LogCategory.Message, messageObj, messageColor);
@@ -1769,6 +1891,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogWarning(InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(LogCategory.Warning, messageObj, messageColor);
@@ -1776,6 +1899,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogError(InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(LogCategory.Error, messageObj, messageColor);
@@ -1783,6 +1907,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogFatal(InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(LogCategory.Fatal, messageObj, messageColor);
@@ -1790,6 +1915,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Default, messageObj, ConsoleColorMap.GetColor(messageColor));
@@ -1797,6 +1923,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogOnce(LogCategory.Default, messageObj, ConsoleColorMap.GetColor(messageColor));
@@ -1804,6 +1931,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogDebug(InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Debug, messageObj, ConsoleColorMap.GetColor(messageColor));
@@ -1811,6 +1939,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogInfo(InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Info, messageObj, ConsoleColorMap.GetColor(messageColor));
@@ -1818,6 +1947,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogImportant(InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Important, messageObj, ConsoleColorMap.GetColor(messageColor));
@@ -1825,6 +1955,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogMessage(InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Message, messageObj, ConsoleColorMap.GetColor(messageColor));
@@ -1832,6 +1963,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogWarning(InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Warning, messageObj, ConsoleColorMap.GetColor(messageColor));
@@ -1839,6 +1971,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogError(InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Error, messageObj, ConsoleColorMap.GetColor(messageColor));
@@ -1846,6 +1979,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogFatal(InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.Fatal, messageObj, ConsoleColorMap.GetColor(messageColor));
@@ -1854,6 +1988,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(LogType category, InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.ToCategory(category), messageObj);
@@ -1861,6 +1996,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(LogLevel category, InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.ToCategory(category), messageObj);
@@ -1868,6 +2004,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogBase(category, messageObj, false);
@@ -1875,6 +2012,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(LogType category, InterpolatedStringHandler messageObj)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj);
@@ -1882,6 +2020,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(LogLevel category, InterpolatedStringHandler messageObj)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj);
@@ -1889,6 +2028,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogBase(category, messageObj, true);
@@ -1897,6 +2037,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(LogType category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(LogCategory.ToCategory(category), messageObj, messageColor);
@@ -1904,6 +2045,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(LogLevel category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(LogCategory.ToCategory(category), messageObj, messageColor);
@@ -1911,6 +2053,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(LogCategory category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogBase(category, messageObj, false, messageColor);
@@ -1918,6 +2061,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(LogType category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
@@ -1925,6 +2069,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(LogLevel category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
@@ -1932,6 +2077,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(LogCategory category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogBase(category, messageObj, true, messageColor);
@@ -1939,6 +2085,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(LogType category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.ToCategory(category), messageObj, ConsoleColorMap.GetColor(messageColor));
@@ -1946,6 +2093,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(LogLevel category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(LogCategory.ToCategory(category), messageObj, messageColor);
@@ -1953,6 +2101,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(LogCategory category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogBase(category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
@@ -1960,6 +2109,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(LogType category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
@@ -1967,6 +2117,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(LogLevel category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogOnce(LogCategory.ToCategory(category), messageObj, messageColor);
@@ -1974,6 +2125,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(LogCategory category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogBase(category, messageObj, true, ConsoleColorMap.GetColor(messageColor));
@@ -1984,6 +2136,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogBepEx(InterpolatedStringHandler messageObj)
         {
             LogBase(LogID.BepInEx, LogCategory.Default, messageObj, false);
@@ -1991,6 +2144,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogBepEx(LogLevel category, InterpolatedStringHandler messageObj)
         {
             LogBase(LogID.BepInEx, LogCategory.ToCategory(category), messageObj, false);
@@ -1998,6 +2152,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogBepEx(LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogBase(LogID.BepInEx, category, messageObj, false);
@@ -2005,6 +2160,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogBepEx(InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogBase(LogID.BepInEx, LogCategory.Default, messageObj, false, messageColor);
@@ -2012,6 +2168,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogBepEx(LogLevel category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogBase(LogID.BepInEx, LogCategory.ToCategory(category), messageObj, false, messageColor);
@@ -2019,6 +2176,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogBepEx(LogCategory category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogBase(LogID.BepInEx, category, messageObj, false, messageColor);
@@ -2026,6 +2184,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogBepEx(InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogBase(LogID.BepInEx, LogCategory.Default, messageObj, false, ConsoleColorMap.GetColor(messageColor));
@@ -2033,6 +2192,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogBepEx(LogLevel category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogBase(LogID.BepInEx, LogCategory.ToCategory(category), messageObj, false, ConsoleColorMap.GetColor(messageColor));
@@ -2040,6 +2200,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogBepEx(LogCategory category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogBase(LogID.BepInEx, category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
@@ -2049,6 +2210,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Game.LogUnity(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogUnity(InterpolatedStringHandler messageObj)
         {
             LogBase(LogID.Unity, LogCategory.Default, messageObj, false);
@@ -2056,6 +2218,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogUnity(LogType category, InterpolatedStringHandler messageObj)
         {
             LogBase(LogCategory.GetUnityLogID(category), LogCategory.ToCategory(category), messageObj, false);
@@ -2063,6 +2226,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogUnity(LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogBase(LogCategory.GetUnityLogID(category.UnityCategory), category, messageObj, false);
@@ -2072,6 +2236,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Game.LogExp(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogExp(InterpolatedStringHandler messageObj)
         {
             LogBase(LogID.Expedition, LogCategory.Default, messageObj, false);
@@ -2079,6 +2244,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Game.LogExp(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogExp(LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogBase(LogID.Expedition, category, messageObj, false);
@@ -2088,6 +2254,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Game.LogJolly(object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogJolly(InterpolatedStringHandler messageObj)
         {
             LogBase(LogID.JollyCoop, LogCategory.Default, messageObj, false);
@@ -2095,6 +2262,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Game.LogJolly(LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogJolly(LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogBase(LogID.JollyCoop, category, messageObj, false);
@@ -2106,6 +2274,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(ILogTarget target, InterpolatedStringHandler messageObj)
         {
             Log(target, LogCategory.Default, messageObj);
@@ -2113,6 +2282,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(ILogTarget target, InterpolatedStringHandler messageObj)
         {
             Log(target, LogCategory.Default, messageObj);
@@ -2120,6 +2290,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(ILogTarget, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogDebug(ILogTarget target, InterpolatedStringHandler messageObj)
         {
             Log(target, LogCategory.Debug, messageObj);
@@ -2127,6 +2298,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(ILogTarget, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogInfo(ILogTarget target, InterpolatedStringHandler messageObj)
         {
             Log(target, LogCategory.Info, messageObj);
@@ -2134,6 +2306,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(ILogTarget, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogImportant(ILogTarget target, InterpolatedStringHandler messageObj)
         {
             Log(target, LogCategory.Important, messageObj);
@@ -2141,6 +2314,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(ILogTarget, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogMessage(ILogTarget target, InterpolatedStringHandler messageObj)
         {
             Log(target, LogCategory.Message, messageObj);
@@ -2148,6 +2322,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(ILogTarget, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogWarning(ILogTarget target, InterpolatedStringHandler messageObj)
         {
             Log(target, LogCategory.Warning, messageObj);
@@ -2155,6 +2330,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(ILogTarget, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogError(ILogTarget target, InterpolatedStringHandler messageObj)
         {
             Log(target, LogCategory.Error, messageObj);
@@ -2162,6 +2338,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(ILogTarget, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogFatal(ILogTarget target, InterpolatedStringHandler messageObj)
         {
             Log(target, LogCategory.Fatal, messageObj);
@@ -2169,6 +2346,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(ILogTarget target, LogLevel category, InterpolatedStringHandler messageObj)
         {
             Log(target, LogCategory.ToCategory(category), messageObj);
@@ -2176,6 +2354,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(ILogTarget target, LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogUnresolvedTarget(target, category, messageObj, false);
@@ -2183,6 +2362,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(ILogTarget target, LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogUnresolvedTarget(target, category, messageObj, true);
@@ -2191,6 +2371,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(ILogTarget target, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(target, LogCategory.Default, messageObj, messageColor);
@@ -2198,6 +2379,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(ILogTarget target, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(target, LogCategory.Default, messageObj, messageColor);
@@ -2205,6 +2387,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogDebug(ILogTarget target, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(target, LogCategory.Debug, messageObj, messageColor);
@@ -2212,6 +2395,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogInfo(ILogTarget target, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(target, LogCategory.Info, messageObj, messageColor);
@@ -2219,6 +2403,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogImportant(ILogTarget target, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(target, LogCategory.Important, messageObj, messageColor);
@@ -2226,6 +2411,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogMessage(ILogTarget target, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(target, LogCategory.Message, messageObj, messageColor);
@@ -2233,6 +2419,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogWarning(ILogTarget target, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(target, LogCategory.Warning, messageObj, messageColor);
@@ -2240,6 +2427,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogError(ILogTarget target, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(target, LogCategory.Error, messageObj, messageColor);
@@ -2247,6 +2435,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogFatal(ILogTarget target, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(target, LogCategory.Fatal, messageObj, messageColor);
@@ -2254,6 +2443,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(ILogTarget target, LogLevel category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(target, LogCategory.ToCategory(category), messageObj, messageColor);
@@ -2261,6 +2451,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(ILogTarget target, LogCategory category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogUnresolvedTarget(target, category, messageObj, false, messageColor);
@@ -2268,6 +2459,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(ILogTarget target, LogCategory category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogUnresolvedTarget(target, category, messageObj, true, messageColor);
@@ -2275,6 +2467,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(ILogTarget target, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Default, messageObj, ConsoleColorMap.GetColor(messageColor));
@@ -2282,6 +2475,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(ILogTarget target, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Default, messageObj, ConsoleColorMap.GetColor(messageColor));
@@ -2289,6 +2483,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogDebug(ILogTarget target, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Debug, messageObj, ConsoleColorMap.GetColor(messageColor));
@@ -2296,6 +2491,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogInfo(ILogTarget target, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Info, messageObj, ConsoleColorMap.GetColor(messageColor));
@@ -2303,6 +2499,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogImportant(ILogTarget target, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Important, messageObj, ConsoleColorMap.GetColor(messageColor));
@@ -2310,6 +2507,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogMessage(ILogTarget target, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Message, messageObj, ConsoleColorMap.GetColor(messageColor));
@@ -2317,6 +2515,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogWarning(ILogTarget target, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Warning, messageObj, ConsoleColorMap.GetColor(messageColor));
@@ -2324,6 +2523,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogError(ILogTarget target, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Error, messageObj, ConsoleColorMap.GetColor(messageColor));
@@ -2331,6 +2531,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(ILogTarget, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogFatal(ILogTarget target, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.Fatal, messageObj, ConsoleColorMap.GetColor(messageColor));
@@ -2338,6 +2539,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(ILogTarget target, LogLevel category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(target, LogCategory.ToCategory(category), messageObj, ConsoleColorMap.GetColor(messageColor));
@@ -2345,6 +2547,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(ILogTarget target, LogCategory category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogUnresolvedTarget(target, category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
@@ -2352,6 +2555,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(ILogTarget target, LogCategory category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogUnresolvedTarget(target, category, messageObj, true, ConsoleColorMap.GetColor(messageColor));
@@ -2362,6 +2566,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj)
         {
             Log(targets, LogCategory.Default, messageObj);
@@ -2369,6 +2574,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj)
         {
             Log(targets, LogCategory.Default, messageObj);
@@ -2376,6 +2582,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(IEnumerable{ILogTarget}, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogDebug(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj)
         {
             Log(targets, LogCategory.Debug, messageObj);
@@ -2383,6 +2590,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(IEnumerable{ILogTarget}, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogInfo(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj)
         {
             Log(targets, LogCategory.Info, messageObj);
@@ -2390,6 +2598,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(IEnumerable{ILogTarget}, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogImportant(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj)
         {
             Log(targets, LogCategory.Important, messageObj);
@@ -2397,6 +2606,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(IEnumerable{ILogTarget}, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogMessage(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj)
         {
             Log(targets, LogCategory.Message, messageObj);
@@ -2404,6 +2614,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(IEnumerable{ILogTarget}, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogWarning(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj)
         {
             Log(targets, LogCategory.Warning, messageObj);
@@ -2411,6 +2622,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(IEnumerable{ILogTarget}, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogError(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj)
         {
             Log(targets, LogCategory.Error, messageObj);
@@ -2418,6 +2630,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(IEnumerable{ILogTarget}, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogFatal(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj)
         {
             Log(targets, LogCategory.Fatal, messageObj);
@@ -2425,6 +2638,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(IEnumerable<ILogTarget> targets, LogLevel category, InterpolatedStringHandler messageObj)
         {
             Log(targets, LogCategory.ToCategory(category), messageObj);
@@ -2432,6 +2646,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(IEnumerable<ILogTarget> targets, LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, false);
@@ -2439,6 +2654,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, LogCategory, object)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, InterpolatedStringHandler messageObj)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, true);
@@ -2447,6 +2663,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Default, messageObj, messageColor);
@@ -2454,6 +2671,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Default, messageObj, messageColor);
@@ -2461,6 +2679,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogDebug(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Debug, messageObj, messageColor);
@@ -2468,6 +2687,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogInfo(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Info, messageObj, messageColor);
@@ -2475,6 +2695,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogImportant(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Important, messageObj, messageColor);
@@ -2482,6 +2703,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogMessage(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Message, messageObj, messageColor);
@@ -2489,6 +2711,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogWarning(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Warning, messageObj, messageColor);
@@ -2496,6 +2719,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogError(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Error, messageObj, messageColor);
@@ -2503,6 +2727,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogFatal(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(targets, LogCategory.Fatal, messageObj, messageColor);
@@ -2510,6 +2735,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(IEnumerable<ILogTarget> targets, LogLevel category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             Log(targets, LogCategory.ToCategory(category), messageObj, messageColor);
@@ -2517,6 +2743,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(IEnumerable<ILogTarget> targets, LogCategory category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, false, messageColor);
@@ -2524,6 +2751,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, InterpolatedStringHandler messageObj, Color messageColor)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, true, messageColor);
@@ -2531,6 +2759,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Default, messageObj, messageColor);
@@ -2538,6 +2767,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Default, messageObj, messageColor);
@@ -2545,6 +2775,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogDebug(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Debug, messageObj, messageColor);
@@ -2552,6 +2783,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogInfo(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Info, messageObj, messageColor);
@@ -2559,6 +2791,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogImportant(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Important, messageObj, messageColor);
@@ -2566,6 +2799,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogMessage(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Message, messageObj, messageColor);
@@ -2573,6 +2807,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogWarning(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Warning, messageObj, messageColor);
@@ -2580,6 +2815,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogError(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Error, messageObj, messageColor);
@@ -2587,6 +2823,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(IEnumerable{ILogTarget}, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogFatal(IEnumerable<ILogTarget> targets, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.Fatal, messageObj, messageColor);
@@ -2594,6 +2831,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(IEnumerable<ILogTarget> targets, LogLevel category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             Log(targets, LogCategory.ToCategory(category), messageObj, messageColor);
@@ -2601,6 +2839,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(IEnumerable<ILogTarget> targets, LogCategory category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, false, ConsoleColorMap.GetColor(messageColor));
@@ -2608,6 +2847,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, LogCategory, object, Color)"/>
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, InterpolatedStringHandler messageObj, ConsoleColor messageColor)
         {
             LogBase(new LogTargetCollection(targets), category, messageObj, true, ConsoleColorMap.GetColor(messageColor));
@@ -2618,6 +2858,7 @@ namespace LogUtils
         #region Log Overloads (InterpolatedStringHandler, object[])
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2625,6 +2866,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2632,6 +2874,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogDebug(InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2639,6 +2882,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogInfo(InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2646,6 +2890,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogImportant(InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2653,6 +2898,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogMessage(InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2660,6 +2906,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogWarning(InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2667,6 +2914,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogError(InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2674,6 +2922,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogFatal(InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2681,6 +2930,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(LogType category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2688,6 +2938,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(LogLevel category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2695,6 +2946,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2702,6 +2954,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(LogType category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2709,6 +2962,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(LogLevel category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2716,6 +2970,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(LogCategory, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2725,6 +2980,7 @@ namespace LogUtils
         #region BepInEx
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogBepEx(InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2732,6 +2988,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogBepEx(LogLevel category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2739,6 +2996,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(LogLevel, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogBepEx(LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2748,6 +3006,7 @@ namespace LogUtils
         #region Unity
 
         /// <inheritdoc cref="LoggerDocs.Game.LogUnity(string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogUnity(InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2755,6 +3014,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogUnity(LogType category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2762,6 +3022,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogUnity(LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2771,6 +3032,7 @@ namespace LogUtils
         #region Expedition
 
         /// <inheritdoc cref="LoggerDocs.Game.LogExp(string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogExp(InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2778,6 +3040,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogExp(LogCategory, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogExp(LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2787,6 +3050,7 @@ namespace LogUtils
         #region JollyCoop
 
         /// <inheritdoc cref="LoggerDocs.Game.LogJolly(string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogJolly(InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2794,6 +3058,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogJolly(LogCategory, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogJolly(LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2805,6 +3070,7 @@ namespace LogUtils
         #region  Log Overloads (ILogTarget, InterpolatedStringHandler, object[])
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2812,6 +3078,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2819,6 +3086,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(ILogTarget, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogDebug(ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2826,6 +3094,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(ILogTarget, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogInfo(ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2833,6 +3102,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(ILogTarget, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogImportant(ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2840,6 +3110,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(ILogTarget, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogMessage(ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2847,6 +3118,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(ILogTarget, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogWarning(ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2854,6 +3126,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(ILogTarget, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogError(ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2861,6 +3134,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(ILogTarget, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogFatal(ILogTarget target, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2868,6 +3142,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(ILogTarget target, LogLevel category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2875,6 +3150,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(ILogTarget, LogCategory, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(ILogTarget target, LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2882,6 +3158,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(ILogTarget, LogCategory, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(ILogTarget target, LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2891,6 +3168,7 @@ namespace LogUtils
         #region  Log Overloads (IEnumerable<ILogTarget>, InterpolatedStringHandler, object[])
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2898,6 +3176,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2905,6 +3184,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(IEnumerable{ILogTarget}, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogDebug(IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2912,6 +3192,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(IEnumerable{ILogTarget}, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogInfo(IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2919,6 +3200,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(IEnumerable{ILogTarget}, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogImportant(IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2926,6 +3208,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(IEnumerable{ILogTarget}, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogMessage(IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2933,6 +3216,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(IEnumerable{ILogTarget}, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogWarning(IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2940,6 +3224,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(IEnumerable{ILogTarget}, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogError(IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2947,6 +3232,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(IEnumerable{ILogTarget}, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogFatal(IEnumerable<ILogTarget> targets, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2954,6 +3240,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(IEnumerable<ILogTarget> targets, LogLevel category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2961,6 +3248,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(IEnumerable{ILogTarget}, LogCategory, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void Log(IEnumerable<ILogTarget> targets, LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);
@@ -2968,6 +3256,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogOnce(IEnumerable{ILogTarget}, LogCategory, string, object[])"/>
+        [OverloadResolutionPriority(PRIORITY_MODERATE)]
         public void LogOnce(IEnumerable<ILogTarget> targets, LogCategory category, InterpolatedStringHandler format, params object[] formatArgs)
         {
             format.AppendFormattedRange(formatArgs);

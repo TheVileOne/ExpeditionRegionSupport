@@ -54,6 +54,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             //Null (ambiguous)
             //logger.Log(null);
+            //AssertResultAndClear(Types.String);
 
             //LogCategory
             logger.Log(Arguments.LogCategory);
@@ -120,20 +121,18 @@ namespace LogUtils.Diagnostics.Tests.Utility
             #region Interpolated String tests
 
             testGroup.Add(activeCase = new TestCase("Test: Interpolated string arguments"));
-#if OVERLOAD_PRIORITY
             //Interpolated string, String
             logger.Log($"{Arguments.Object}", Arguments.String);
             AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
-#endif
+
             //Interpolated string, Object
             logger.Log($"{Arguments.Object}", Arguments.Object);
             AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
 
-#if OVERLOAD_PRIORITY
             //Interpolated string, Interpolated string
             logger.Log($"{Arguments.Object}", $"{Arguments.Object}");
             AssertResultAndClear(Types.InterpolatedStringHandler, Types.ObjectArray);
-#endif
+
             //Interpolated string, Null (ambiguous)
             //logger.Log($"{Arguments.Object}", null);
 
@@ -801,11 +800,10 @@ namespace LogUtils.Diagnostics.Tests.Utility
             #endregion
             #region LogCategory, Interpolated String tests
 
-#if OVERLOAD_PRIORITY
             //String
             logger.Log(Arguments.LogCategory, $"{Arguments.Object}", Arguments.String);
-            AssertResultAndClear(Types.LogCategory, Types.String, Types.String);
-#endif
+            AssertResultAndClear(Types.LogCategory, Types.InterpolatedStringHandler, Types.ObjectArray);
+
             //Object
             logger.Log(Arguments.LogCategory, $"{Arguments.Object}", Arguments.Object);
             AssertResultAndClear(Types.LogCategory, Types.InterpolatedStringHandler, Types.ObjectArray);
@@ -957,11 +955,10 @@ namespace LogUtils.Diagnostics.Tests.Utility
             #endregion
             #region ILogTarget, Interpolated String tests
 
-#if OVERLOAD_PRIORITY
             //String
             logger.Log(Arguments.LogTarget, $"{Arguments.Object}", Arguments.String);
-            AssertResultAndClear(Types.LogTarget, Types.InterpolatedStringHandler, Types.String);
-#endif
+            AssertResultAndClear(Types.LogTarget, Types.InterpolatedStringHandler, Types.ObjectArray);
+
             //Object
             logger.Log(Arguments.LogTarget, $"{Arguments.Object}", Arguments.Object);
             AssertResultAndClear(Types.LogTarget, Types.InterpolatedStringHandler, Types.ObjectArray);

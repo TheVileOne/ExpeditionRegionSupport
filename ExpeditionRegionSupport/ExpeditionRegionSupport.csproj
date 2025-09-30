@@ -1,9 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>net48</TargetFramework>
 		<LangVersion>11</LangVersion>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Configurations>Debug;Release;Overload_Priority</Configurations>
 	</PropertyGroup>
 
 	<ItemGroup>
