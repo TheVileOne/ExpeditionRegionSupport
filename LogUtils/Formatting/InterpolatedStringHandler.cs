@@ -40,7 +40,7 @@ namespace LogUtils.Formatting
         }
 
         /// <summary>
-        /// Adds a string component for later formatting (used by compiled code)
+        /// Adds a string component for later formatting
         /// </summary>
         public void AppendLiteral(string literal)
         {
@@ -48,10 +48,9 @@ namespace LogUtils.Formatting
         }
 
         /// <summary>
-        /// Adds an object component for later formatting (used by compiled code)
+        /// Adds an object component for later formatting
         /// </summary>
         /// <param name="argument">An argument to be formatted</param>
-        /// <exception cref="InvalidOperationException">More than the amount of expected arguments were provided to the handler</exception>
         public void AppendFormatted<T>(T argument)
         {
             arguments.Add(new ArgumentInfo(argument, elementCount));
@@ -83,9 +82,9 @@ namespace LogUtils.Formatting
         }
 
         /// <summary>
-        /// Adds a range object components for later formatting
+        /// Adds a range of arguments to be formatted
         /// </summary>
-        /// <param name="arguments">An argument to be formatted</param>
+        /// <param name="arguments">An enumeration of arguments to be formatted</param>
         public void AppendFormattedRange<T>(IEnumerable<T> arguments)
         {
             foreach (T arg in arguments)
@@ -95,7 +94,6 @@ namespace LogUtils.Formatting
         /// <summary>
         /// Builds the format string out of appended string literals, and format arguments
         /// </summary>
-        /// <returns></returns>
         internal string BuildFormat()
         {
             StringBuilder builder = new StringBuilder();
@@ -341,6 +339,16 @@ namespace LogUtils.Formatting
                     Formatter = (ICustomFormatter)provider.GetFormat(typeof(ICustomFormatter));
             }
 
+            /// <summary>
+            /// Accesses color related format data
+            /// </summary>
+            public readonly Data AccessData()
+            {
+                if (Formatter is IColorFormatProvider colorFormatter)
+                    return colorFormatter.GetData();
+                return null;
+            }
+
             public readonly string Process(in ArgumentInfo argument)
             {
                 //Converts argument to a string
@@ -362,49 +370,6 @@ namespace LogUtils.Formatting
                     resultString = argument.Value?.ToString();
                 }
                 return resultString;
-            }
-
-            internal static void UpdateData(IColorFormatProvider provider)
-            {
-                var data = provider.GetData();
-
-                LinkedListNode<NodeData> currentNode = data.Entries.Last;
-                NodeData currentBuildEntry = currentNode.Value;
-                StringBuilder currentBuilder = currentBuildEntry.Builder;
-
-                int positionOffset = currentNode.GetBuildOffset();
-                if (data.UpdateBuildLength())
-                {
-                    //Handle color reset
-                    currentBuildEntry.Current = new FormatData()
-                    {
-                        BuildOffset = positionOffset,
-                        LocalPosition = currentBuildEntry.LastCheckedBuildLength
-                    };
-                    provider.ResetColor(currentBuilder, currentBuildEntry.Current);
-                    data.UpdateBuildLength();
-                }
-                else
-                {
-                    data.BypassColorCancellation = false;
-                }
-
-                //This will replace the last FormatData instance with the current one - this is by design
-                currentBuildEntry.Current = new FormatData()
-                {
-                    BuildOffset = positionOffset,
-                    LocalPosition = currentBuilder.Length
-                };
-            }
-
-            /// <summary>
-            /// Accesses color related format data
-            /// </summary>
-            public readonly Data AccessData()
-            {
-                if (Formatter is IColorFormatProvider colorFormatter)
-                    return colorFormatter.GetData();
-                return null;
             }
         }
     }
