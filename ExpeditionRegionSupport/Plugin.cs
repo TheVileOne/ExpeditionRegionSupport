@@ -114,9 +114,11 @@ namespace ExpeditionRegionSupport
                 IL.SaveState.setDenPosition += SaveState_setDenPosition;
 
                 //ModMerger
-                //On.ModManager.ModMerger.PendingApply.CollectModifications += PendingApply_CollectModifications;
-                //IL.ModManager.ModMerger.PendingApply.CollectModifications += PendingApply_CollectModifications;
-
+#if DEBUG
+                //TODO: These crash the game when you try to disable mod
+                On.ModManager.ModMerger.PendingApply.CollectModifications += PendingApply_CollectModifications;
+                IL.ModManager.ModMerger.PendingApply.CollectModifications += PendingApply_CollectModifications;
+#endif
                 //RegionDataMiner (Dispose file streams hook)
                 On.ModManager.GenerateMergedMods += ModManager_GenerateMergedMods;
 
@@ -351,7 +353,11 @@ namespace ExpeditionRegionSupport
                 pendingApplyLine = "[ADD]" + pendingApplyLine;
         }
 
+#if RAIN_WORLD_1_10
         private void ModManager_GenerateMergedMods(On.ModManager.orig_GenerateMergedMods orig, ModManager.ModApplyer applyer, List<bool> pendingEnabled, bool hasRegionMods)
+#else
+        private void ModManager_GenerateMergedMods(On.ModManager.orig_GenerateMergedMods orig, ModManager.ModApplyer applyer, List<bool> pendingEnabled)
+#endif
         {
             //Make sure no stream is allowed to stay open. Open world files interfere with the merging process
             int closedStreams = 0;
@@ -367,8 +373,11 @@ namespace ExpeditionRegionSupport
 
             if (closedStreams > 0)
                 Logger.LogInfo($"Closing {closedStreams} filestreams before merge process starts");
-
+#if RAIN_WORLD_1_10
             orig(applyer, pendingEnabled, hasRegionMods);
+#else
+            orig(applyer, pendingEnabled);
+#endif
         }
 
         private HSLColor Menu_MenuColor(On.Menu.Menu.orig_MenuColor orig, Menu.Menu.MenuColors color)
