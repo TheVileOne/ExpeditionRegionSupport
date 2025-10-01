@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using AssemblyCandidate = (System.Version Version, string Path);
 
-namespace LogUtils.Patcher;
+namespace LogUtils.VersionLoader;
 
 internal static class AssemblyUtils
 {

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using LogEventData = (BepInEx.Logging.LogEventArgs EventData, System.DateTime Timestamp);
 
-namespace LogUtils.Patcher;
+namespace LogUtils.VersionLoader;
 
 internal class LogEventCache : ILogListener
 {

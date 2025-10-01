@@ -3,13 +3,13 @@ using BepInEx.Logging;
 using BepInEx.MultiFolderLoader;
 using Mono.Cecil;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using AssemblyCandidate = (System.Version Version, string Path);
 
-namespace LogUtils.Patcher;
+namespace LogUtils.VersionLoader;
 
-[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "MA0049:Type name should not match containing namespace", Justification = "Assembly is accessed through reflection")]
 public static class Patcher
 {
     /// <summary>
