@@ -433,7 +433,7 @@ namespace LogUtils
                 //Keep this inside a lock, we want to ensure that it remains in sync with the MessagesHandled count, which is used for this process
                 string message = ApplyRules(messageData);
 
-                logFile.Properties.WriteBuffer.AppendMessage(message);
+                logFile.Properties.WriteBuffer.AppendLine(message);
                 logFile.Properties.MessagesHandledThisSession++;
             }
         }

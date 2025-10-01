@@ -88,7 +88,7 @@ namespace LogUtils
             //not allowed to write to file when in buffering mode
             if (WriteBuffer.IsBuffering)
             {
-                WriteBuffer.AppendMessage(message);
+                WriteBuffer.AppendLine(message);
                 return;
             }
 
@@ -99,7 +99,7 @@ namespace LogUtils
             }
             catch
             {
-                WriteBuffer.AppendMessage(message);
+                WriteBuffer.AppendLine(message);
             }
         }
 
