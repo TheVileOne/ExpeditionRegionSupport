@@ -49,7 +49,7 @@ public static class Patcher
 
     private static IEnumerable<string> getSearchPaths()
     {
-        foreach (Mod mod in ModManager.Mods)
+        foreach (Mod mod in BepInEx.MultiFolderLoader.ModManager.Mods)
         {
             yield return mod.PluginsPath;
 
@@ -59,7 +59,7 @@ public static class Patcher
         }
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Method required for patcher detection")]
+    [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Method required for patcher detection")]
     public static void Patch(AssemblyDefinition assembly)
     {
     }

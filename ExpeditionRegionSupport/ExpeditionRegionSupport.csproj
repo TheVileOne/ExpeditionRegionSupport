@@ -4,6 +4,9 @@
 		<LangVersion>13</LangVersion>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<Configurations>Debug;Release;RAIN_WORLD_1.10</Configurations>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<OutputPath>../mod/plugins</OutputPath>
+		<PathMap>$(MSBuildProjectDirectory)=/$(SolutionName)</PathMap>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -15,17 +18,4 @@
 			<Private>false</Private>
 		</Reference>
 	</ItemGroup>
-
-	<Target Name="GenerateMod" AfterTargets="PostBuildEvent">
-		<ItemGroup>
-			<RemovePlugins Include="../mod/plugins/ExpeditionRegionSupport.dll" />
-			<RemovePDBs Include="$(OutDir)*.pdb" />
-		</ItemGroup>
-		<ItemGroup>
-			<CopyPlugins Include="$(TargetPath)" />
-			<CopyPDBs Include="$(OutDir)*.pdb" />
-		</ItemGroup>
-		<Delete Files="@(RemovePlugins)" />
-		<Copy SourceFiles="@(CopyPlugins);@(CopyPDBs)" DestinationFolder="../mod/plugins/" />
-	</Target>
 </Project>

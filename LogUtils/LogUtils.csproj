@@ -9,6 +9,9 @@
 		<EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
 		<WarningsAsErrors>CS1574</WarningsAsErrors>
 		<FileVersion>1.0.0.10</FileVersion>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<OutputPath>../mod/plugins</OutputPath>
+		<PathMap>$(MSBuildProjectDirectory)=/$(SolutionName)</PathMap>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -34,21 +37,4 @@
 	    <LastGenOutput>Resources.Designer.cs</LastGenOutput>
 	  </EmbeddedResource>
 	</ItemGroup>
-
-	<Target Name="GenerateMod" AfterTargets="PostBuildEvent">
-		<ItemGroup>
-			<RemovePlugins Include="../mod/plugins/LogUtils.dll" />
-			<RemovePDBs Include="$(OutDir)*.pdb" />
-		</ItemGroup>
-		<ItemGroup>
-			<CopyPlugins Include="$(TargetPath)" />
-			<CopyPDBs Include="$(OutDir)*.pdb" />
-		</ItemGroup>
-		<ItemGroup>
-			<CopyPlugins Include="$(TargetPath)" />
-			<CopyXMLs Include="$(OutDir)*.xml" />
-		</ItemGroup>
-		<Delete Files="@(RemovePlugins)" />
-		<Copy SourceFiles="@(CopyPlugins);@(CopyPDBs);@(CopyXMLs)" DestinationFolder="../mod/plugins/" />
-	</Target>
 </Project>
