@@ -9,3 +9,5 @@
 /ExpeditionRegionSupport/bin
 /ExpeditionRegionSupport/obj
 LogUtils/LogUtils.csproj.user
+/lib 1.10/HOOKS-Assembly-CSharp.dll
+/lib 1.10/PUBLIC-Assembly-CSharp.dll

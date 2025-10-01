@@ -9,11 +9,20 @@
 		<PathMap>$(MSBuildProjectDirectory)=/$(SolutionName)</PathMap>
 	</PropertyGroup>
 
-	<ItemGroup>
+	<ItemGroup Condition="'$(Configuration)'=='RAIN_WORLD_1.10'">
+		<Reference Include="../lib 1.10/*.dll">
+			<Private>false</Private>
+		</Reference>
+		<ProjectReference Include="../LogUtils/LogUtils.csproj" />
+		<Reference Include="Microsoft.CSharp" Version="4.7.0">
+			<Private>false</Private>
+		</Reference>
+	</ItemGroup>
+	<ItemGroup Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'">
 		<Reference Include="../lib/*.dll">
 			<Private>false</Private>
 		</Reference>
-		<ProjectReference Include="..\LogUtils\LogUtils.csproj" />
+		<ProjectReference Include="../LogUtils/LogUtils.csproj" />
 		<Reference Include="Microsoft.CSharp" Version="4.7.0">
 			<Private>false</Private>
 		</Reference>
