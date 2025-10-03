@@ -49,7 +49,7 @@ public static class Patcher
 
     private static IEnumerable<string> getSearchPaths()
     {
-        foreach (Mod mod in BepInEx.MultiFolderLoader.ModManager.Mods)
+        foreach (Mod mod in ModManager.Mods)
         {
             yield return mod.PluginsPath;
 

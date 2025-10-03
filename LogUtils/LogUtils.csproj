@@ -10,8 +10,8 @@
 	<!-- Metadata properties -->
 	<PropertyGroup>
 		<Title>Rain World Log Utility</Title>
-		<AssemblyVersion>1.0.0.10</AssemblyVersion>
-		<FileVersion>1.0.0.10</FileVersion>
+		<AssemblyVersion>1.0.1.0</AssemblyVersion>
+		<FileVersion>1.0.1.0</FileVersion>
 	</PropertyGroup>
 
 	<!-- Build output properties -->

@@ -7,6 +7,12 @@
 		<Configurations>Debug;Release;RAIN_WORLD_1.10</Configurations>
 	</PropertyGroup>
 
+	<!-- Metadata properties -->
+	<PropertyGroup>
+		<AssemblyVersion>1.01</AssemblyVersion>
+		<FileVersion>1.01</FileVersion>
+	</PropertyGroup>
+
 	<!-- Build output properties -->
 	<PropertyGroup>
 		<AppendTargetFrameworkToOutputPath>False</AppendTargetFrameworkToOutputPath>

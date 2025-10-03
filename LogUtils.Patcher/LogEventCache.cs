@@ -21,6 +21,6 @@ internal class LogEventCache : ILogListener
 
     public void Dispose()
     {
-        BepInEx.Logging.Logger.Listeners.Remove(this);
+        Logger.Listeners.Remove(this);
     }
 }

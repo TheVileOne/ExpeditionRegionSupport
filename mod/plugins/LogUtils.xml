@@ -6351,15 +6351,14 @@
         </member>
         <member name="M:LogUtils.Formatting.InterpolatedStringHandler.AppendLiteral(System.String)">
             <summary>
-            Adds a string component for later formatting (used by compiled code)
+            Adds a string component for later formatting
             </summary>
         </member>
         <member name="M:LogUtils.Formatting.InterpolatedStringHandler.AppendFormatted``1(``0)">
             <summary>
-            Adds an object component for later formatting (used by compiled code)
+            Adds an object component for later formatting
             </summary>
             <param name="argument">An argument to be formatted</param>
-            <exception cref="T:System.InvalidOperationException">More than the amount of expected arguments were provided to the handler</exception>
         </member>
         <member name="M:LogUtils.Formatting.InterpolatedStringHandler.AppendFormatted``1(``0,System.Int32)">
             <inheritdoc cref="M:LogUtils.Formatting.InterpolatedStringHandler.AppendFormatted``1(``0)"/>
@@ -6379,15 +6378,14 @@
         </member>
         <member name="M:LogUtils.Formatting.InterpolatedStringHandler.AppendFormattedRange``1(System.Collections.Generic.IEnumerable{``0})">
             <summary>
-            Adds a range object components for later formatting
+            Adds a range of arguments to be formatted
             </summary>
-            <param name="arguments">An argument to be formatted</param>
+            <param name="arguments">An enumeration of arguments to be formatted</param>
         </member>
         <member name="M:LogUtils.Formatting.InterpolatedStringHandler.BuildFormat">
             <summary>
             Builds the format string out of appended string literals, and format arguments
             </summary>
-            <returns></returns>
         </member>
         <member name="M:LogUtils.Formatting.InterpolatedStringHandler.GetArguments">
             <inheritdoc/>
