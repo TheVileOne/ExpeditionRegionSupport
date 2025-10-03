@@ -1,6 +1,4 @@
 /.vs
-/lib/HOOKS-Assembly-CSharp.dll
-/lib/PUBLIC-Assembly-CSharp.dll
 /mod/debug/
 /LogUtils/bin
 /LogUtils/obj
@@ -9,5 +7,7 @@
 /ExpeditionRegionSupport/bin
 /ExpeditionRegionSupport/obj
 LogUtils/LogUtils.csproj.user
-/lib 1.10/HOOKS-Assembly-CSharp.dll
-/lib 1.10/PUBLIC-Assembly-CSharp.dll
+/lib/rainworld/1.10/HOOKS-Assembly-CSharp.dll
+/lib/rainworld/1.10/PUBLIC-Assembly-CSharp.dll
+/lib/rainworld/PUBLIC-Assembly-CSharp.dll
+/lib/rainworld/HOOKS-Assembly-CSharp.dll

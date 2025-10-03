@@ -1,21 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+	<!-- General properties -->
     <PropertyGroup>
         <TargetFramework>net48</TargetFramework>
         <LangVersion>12</LangVersion>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+	<!-- Metadata properties -->
+	<PropertyGroup>
 		<Title>Rain World Log Utility</Title>
 		<AssemblyVersion>1.0.3.0</AssemblyVersion>
 		<FileVersion>1.0.3.0</FileVersion>
-		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+	</PropertyGroup>
+
+	<!-- Build output properties -->
+	<PropertyGroup>
+		<AppendTargetFrameworkToOutputPath>False</AppendTargetFrameworkToOutputPath>
 		<OutputPath>../mod/patchers</OutputPath>
-		<PathMap>$(MSBuildProjectDirectory)=/$(SolutionName)</PathMap>
-    </PropertyGroup>
+	</PropertyGroup>
+
+	<!-- Compile time assembly references -->
 	<ItemGroup>
 		<Reference Include="../lib/*.dll">
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="Microsoft.CSharp" Version="4.7.0">
-			<Private>false</Private>
+			<Private>False</Private>
 		</Reference>
 	</ItemGroup>
 </Project>
