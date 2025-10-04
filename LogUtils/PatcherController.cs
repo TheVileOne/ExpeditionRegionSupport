@@ -5,6 +5,7 @@ using LogUtils.Policy;
 using Menu;
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using BepInExPath = LogUtils.Helpers.Paths.BepInEx;
@@ -99,6 +100,7 @@ namespace LogUtils
 
         public static void Deploy()
         {
+            removeBackups();
             UtilityLogger.Log("Checking patcher status");
 
             byte[] byteStream = getResourceBytes();
@@ -156,8 +158,7 @@ namespace LogUtils
                 UtilityLogger.Log("Deploying patcher");
                 try
                 {
-                    string patcherBackupPath = Path.Combine(BepInExPath.BackupPath, patcherFilename);
-                    FileUtils.TryDelete(patcherBackupPath); //Patcher should never exist in both patchers, and backup directories at the same time
+                    removeBackups();
 
                     File.WriteAllBytes(patcherPath, byteStream);
                     HasDeployed = true;
@@ -244,6 +245,17 @@ namespace LogUtils
             {
                 UtilityLogger.LogError("Unable to remove file", ex);
             }
+        }
+
+        private static void removeBackups()
+        {
+            //Cleanup of the backups folder is essential for stability of the MultiFolderLoader. It is possible to fail on a duplicate backup,
+            string[] patcherBackups = Directory.GetFiles(BepInExPath.BackupPath)
+                                               .Where(p => Path.GetFileName(p).StartsWith(UtilityConsts.ResourceNames.PATCHER, StringComparison.Ordinal))
+                                               .ToArray();
+
+            foreach (string file in patcherBackups)
+                FileUtils.TryDelete(file);
         }
     }
 }
