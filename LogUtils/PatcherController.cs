@@ -101,13 +101,17 @@ namespace LogUtils
         {
             UtilityLogger.Log("Checking patcher status");
 
-            byte[] byteStream = (byte[])Properties.Resources.ResourceManager.GetObject(UtilityConsts.ResourceNames.PATCHER);
+            byte[] byteStream = getResourceBytes();
 
             Version resourceVersion = Assembly.ReflectionOnlyLoad(byteStream).GetName().Version;
             UtilityLogger.Log("Patcher resource version: " + resourceVersion);
 
-            string patcherPath = Path.Combine(BepInExPath.PatcherPath, "LogUtils.VersionLoader.dll");
-            string patcherBackupPath = Path.Combine(BepInExPath.BackupPath, "LogUtils.VersionLoader.dll");
+            string patcherFilename = "LogUtils.VersionLoader.dll";
+            string patcherPath = Path.Combine(BepInExPath.PatcherPath, patcherFilename);
+
+            //These are used as a workaround solution that ensures the VersionLoader can be updated without intermittently losing patcher functionality during the transition
+            string transferFilename = "LogUtils.VersionLoader (Patch).dll";
+            string transferPath = Path.Combine(BepInExPath.PatcherPath, transferFilename);
 
             if (File.Exists(patcherPath)) //Already deployed
             {
@@ -124,17 +128,17 @@ namespace LogUtils
                     if (activeVersion < resourceVersion)
                     {
                         if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.PreMods) //Late enough into init process to not have to schedule
-                            ReplaceWithNewVersion();
+                            replaceWithNewVersion();
                         else
                         {
                             UtilityEvents.OnSetupPeriodReached += replaceWithNewVersionEvent;
 
-                            static void replaceWithNewVersionEvent(SetupPeriodEventArgs e)
+                            void replaceWithNewVersionEvent(SetupPeriodEventArgs e)
                             {
                                 if (e.CurrentPeriod < SetupPeriod.PreMods)
                                     return;
 
-                                ReplaceWithNewVersion();
+                                replaceWithNewVersion();
                                 UtilityEvents.OnSetupPeriodReached -= replaceWithNewVersionEvent;
                             }
                         }
@@ -143,24 +147,76 @@ namespace LogUtils
                 return;
             }
 
-            UtilityLogger.Log("Deploying patcher");
-            try
-            {
-                FileUtils.TryDelete(patcherBackupPath); //Patcher should never exist in both patchers, and backup directories at the same time
+            if (File.Exists(transferPath))
+                removeTransferFile();
+            deployInternal();
 
-                File.WriteAllBytes(patcherPath, byteStream);
-                HasDeployed = true;
+            void deployInternal()
+            {
+                UtilityLogger.Log("Deploying patcher");
+                try
+                {
+                    string patcherBackupPath = Path.Combine(BepInExPath.BackupPath, patcherFilename);
+                    FileUtils.TryDelete(patcherBackupPath); //Patcher should never exist in both patchers, and backup directories at the same time
 
-                UnityDoorstop.AddToWhitelist("LogUtils.VersionLoader.dll");
+                    File.WriteAllBytes(patcherPath, byteStream);
+                    HasDeployed = true;
+
+                    UnityDoorstop.AddToWhitelist(patcherFilename);
+                }
+                catch (FileNotFoundException)
+                {
+                    UtilityLogger.LogWarning("whitelist.txt is unavailable");
+                }
+                catch (IOException ex)
+                {
+                    UtilityLogger.LogError("Unable to deploy patcher", ex);
+                }
             }
-            catch (FileNotFoundException)
+
+            void replaceWithNewVersion()
             {
-                UtilityLogger.LogWarning("whitelist.txt is unavailable");
+                //If we don't stop this process here, Rain World will black screen when the next dialog activates
+                if (currentDialog != null)
+                    currentProcess.StopSideProcess(currentDialog);
+
+                currentDialog = new DialogNotify("A new version for LogUtils.VersionLoader is available.", new Vector2(450, 175), currentProcess, () =>
+                {
+                    UtilityLogger.Log("Replacing patcher with new version");
+
+                    Remove();
+
+                    //Rain World will need to be launched several times before we can replace the loaded assembly with the new version
+                    patcherFilename = transferFilename;
+                    patcherPath = transferPath;
+                    deployInternal();
+
+                    currentDialog = null;
+                });
+                currentProcess.ShowDialog(currentDialog);
             }
-            catch (IOException ex)
+
+            void removeTransferFile()
             {
-                UtilityLogger.LogError("Unable to deploy patcher", ex);
+                UtilityLogger.Log("Removing patcher transfer file");
+                try
+                {
+                    UnityDoorstop.RemoveFromWhitelist(transferFilename);
+                }
+                catch (FileNotFoundException)
+                {
+                    UtilityLogger.LogWarning("whitelist.txt is unavailable");
+                }
+                catch (IOException ex)
+                {
+                    UtilityLogger.LogError("Unable to remove file", ex);
+                }
             }
+        }
+
+        private static byte[] getResourceBytes()
+        {
+            return (byte[])Properties.Resources.ResourceManager.GetObject(UtilityConsts.ResourceNames.PATCHER);
         }
 
         public static void Remove()
@@ -186,24 +242,8 @@ namespace LogUtils
             }
             catch (IOException ex)
             {
-                UtilityLogger.LogError("Unable to remove patcher", ex);
+                UtilityLogger.LogError("Unable to remove file", ex);
             }
-        }
-
-        public static void ReplaceWithNewVersion()
-        {
-            //If we don't stop this process here, Rain World will black screen when the next dialog activates
-            if (currentDialog != null)
-                currentProcess.StopSideProcess(currentDialog);
-
-            currentDialog = new DialogNotify("A new version for LogUtils.VersionLoader is available.", new Vector2(450, 175), currentProcess, () =>
-            {
-                //Patcher will be replaced the next time Rain World starts
-                UtilityLogger.Log($"Replacing patcher with new version");
-                Remove();
-                currentDialog = null;
-            });
-            currentProcess.ShowDialog(currentDialog);
         }
     }
 }
