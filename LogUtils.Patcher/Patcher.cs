@@ -23,28 +23,23 @@ public static class Patcher
     {
         yield return "BepInEx.MultiFolderLoader.dll"; //Our patcher code needs to run after this patcher runs
 
-        string patcherPath = Path.Combine(Paths.PatcherPluginPath, "LogUtils.VersionLoader.dll");
+        LogEventCache eventCache = new LogEventCache();
 
-        if (File.Exists(patcherPath)) //The file may have been moved by the MultiFolderLoader
+        BepInEx.Logging.Logger.Listeners.Add(eventCache);
+        Logger.LogMessage("=== Patcher.GetDLLs() start ===");
+
+        AssemblyCandidate target = AssemblyUtils.FindLatestAssembly(getSearchPaths(), "LogUtils.dll");
+
+        if (target.Path != null)
         {
-            LogEventCache eventCache = new LogEventCache();
-
-            BepInEx.Logging.Logger.Listeners.Add(eventCache);
-            Logger.LogMessage("=== Patcher.GetDLLs() start ===");
-
-            AssemblyCandidate target = AssemblyUtils.FindLatestAssembly(getSearchPaths(), "LogUtils.dll");
-
-            if (target.Path != null)
-            {
-                Logger.LogMessage("Loading latest LogUtils DLL: " + target.Path);
-                Assembly.LoadFrom(target.Path);
-            }
-            else
-            {
-                Logger.LogInfo("No LogUtils assembly found.");
-            }
-            eventCache.IsEnabled = false; //For some reason events will be handled twice if we keep event listening enabled
+            Logger.LogMessage("Loading latest LogUtils DLL: " + target.Path);
+            Assembly.LoadFrom(target.Path);
         }
+        else
+        {
+            Logger.LogInfo("No LogUtils assembly found.");
+        }
+        eventCache.IsEnabled = false; //For some reason events will be handled twice if we keep event listening enabled
     }
 
     private static IEnumerable<string> getSearchPaths()
