@@ -615,13 +615,14 @@
             <summary>
             Adds a filename entry to whitelist.txt
             </summary>
-            <exception cref="T:System.IO.FileNotFoundException"></exception>
+            <exception cref="T:System.IO.FileNotFoundException">whitelist.txt does not exist</exception>
         </member>
         <member name="M:LogUtils.Compatibility.Unity.UnityDoorstop.RemoveFromWhitelist(System.String)">
             <summary>
-            Removes a filename entry to whitelist.txt
+            Removes a filename entry from whitelist.txt
             </summary>
-            <exception cref="T:System.IO.FileNotFoundException"></exception>
+            <remarks>Input is case insensitive</remarks>
+            <exception cref="T:System.IO.FileNotFoundException">whitelist.txt does not exist</exception>
         </member>
         <member name="P:LogUtils.Compatibility.Unity.UnityLogEventArgs.Context">
             <summary>
