@@ -16,7 +16,7 @@ namespace LogUtils.Diagnostics
 
         public bool HasResults => Results.Any();
 
-        public DeferredAssertHandler(Logger logger) : base(logger)
+        public DeferredAssertHandler(ILogger logger) : base(logger)
         {
         }
 

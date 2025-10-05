@@ -5,13 +5,14 @@ using LogUtils.Helpers.FileHandling;
 using LogUtils.Policy;
 using LogUtils.Threading;
 using System;
+using System.IO;
 using System.Linq;
 
 namespace LogUtils
 {
     internal static class UtilityLogger
     {
-        internal static DirectToFileLogger DebugLogger = new DirectToFileLogger(DirectToFileLogger.DEFAULT_LOG_NAME);
+        internal static DirectToFileLogger DebugLogger = new DirectToFileLogger(DirectToFileLogger.DEFAULT_LOG_NAME, false);
 
         public static UtilityLogSource Logger;
 
@@ -80,23 +81,23 @@ namespace LogUtils
 
         internal static void DeleteInternalLogs()
         {
-            FileUtils.SafeDelete("LogActivity.log");
+            FileUtils.TryDelete("LogActivity.log");
             DebugLogger.DeleteAll();
         }
 
-        public static void DebugLog(object data)
+        public static void DebugLog(object messageObj)
         {
-            DebugLogger.Log(data);
+            DebugLogger.Log(messageObj);
         }
 
-        public static void Log(object data)
+        public static void Log(object messageObj)
         {
-            Logger.LogInfo(data);
+            Logger.LogInfo(messageObj);
         }
 
-        public static void Log(LogCategory category, object data)
+        public static void Log(LogCategory category, object messageObj)
         {
-            Logger.Log(category.BepInExCategory, data);
+            Logger.Log(category.BepInExCategory, messageObj);
         }
 
         public static void LogActivity(FormattableString message)
@@ -110,38 +111,42 @@ namespace LogUtils
                     Logger.LogInfo(message);
                     return;
                 }
-                activityLogger = new Logger(LogID.FileActivity);
+
+                activityLogger = new Logger(LogID.FileActivity)
+                {
+                    IsThreadSafe = false //This logger is used in very sensitive areas, and cannot be safe logging from other threads
+                };
             }
             activityLogger.Log(message);
         }
 
-        public static void LogError(object data)
+        public static void LogError(object messageObj)
         {
-            Logger.LogError(data);
+            Logger.LogError(messageObj);
         }
 
-        public static void LogError(string errorMessage, Exception ex)
+        public static void LogError(string errorMessage, Exception error)
         {
             if (errorMessage != null)
                 Logger.LogError(errorMessage);
-            Logger.LogError(ex);
+            Logger.LogError(error);
         }
 
-        public static void LogFatal(object data)
+        public static void LogFatal(object messageObj)
         {
-            Logger.LogFatal(data);
+            Logger.LogFatal(messageObj);
         }
 
-        public static void LogFatal(string errorMessage, Exception ex)
+        public static void LogFatal(string errorMessage, Exception error)
         {
             if (errorMessage != null)
                 Logger.LogFatal(errorMessage);
-            Logger.LogFatal(ex);
+            Logger.LogFatal(error);
         }
 
-        public static void LogWarning(object data)
+        public static void LogWarning(object messageObj)
         {
-            Logger.LogWarning(data);
+            Logger.LogWarning(messageObj);
         }
 
         /// <summary>
@@ -149,14 +154,13 @@ namespace LogUtils
         /// </summary>
         internal static DebugLogger CreateLogger(string logName, StringProvider provider)
         {
-            var logger = logName == DirectToFileLogger.DEFAULT_LOG_NAME ? DebugLogger : new DirectToFileLogger(logName);
+            var logger = logName == DirectToFileLogger.DEFAULT_LOG_NAME ? DebugLogger : new DirectToFileLogger(logName, true);
 
             return new DebugLogger(logger, provider);
         }
 
         static UtilityLogger()
         {
-            DebugLogger.AllowLogging = DebugPolicy.ShowDebugLog;
             UtilityCore.EnsureInitializedState();
         }
     }

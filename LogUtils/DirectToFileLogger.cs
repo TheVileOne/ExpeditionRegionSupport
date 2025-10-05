@@ -20,9 +20,9 @@ namespace LogUtils
 
         public MessageBuffer WriteBuffer;
 
-        public DirectToFileLogger(string name) : base()
+        public DirectToFileLogger(string name, bool enabledByDefault) : base()
         {
-            AllowLogging = true;
+            AllowLogging = enabledByDefault;
             Name = name;
             LogPath = getLogPath();
             WriteBuffer = new MessageBuffer();
@@ -41,7 +41,7 @@ namespace LogUtils
         /// </summary>
         internal void Delete()
         {
-            FileUtils.SafeDelete(LogPath);
+            FileUtils.TryDelete(LogPath);
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace LogUtils
         internal void DeleteAll()
         {
             foreach (string file in Directory.GetFiles(RainWorldPath.RootPath, Name + "[*", SearchOption.TopDirectoryOnly))
-                FileUtils.SafeDelete(file);
+                FileUtils.TryDelete(file);
         }
 
         public bool TryFlush()
@@ -74,7 +74,7 @@ namespace LogUtils
             //Always handle buffered write data first
             if (WriteBuffer.HasContent)
             {
-                FileUtils.WriteLine(LogPath, WriteBuffer.ToString());
+                FileUtils.AppendLine(LogPath, WriteBuffer.ToString());
                 WriteBuffer.Clear();
             }
         }
@@ -88,18 +88,18 @@ namespace LogUtils
             //not allowed to write to file when in buffering mode
             if (WriteBuffer.IsBuffering)
             {
-                WriteBuffer.AppendMessage(message);
+                WriteBuffer.AppendLine(message);
                 return;
             }
 
             try
             {
                 Flush();
-                FileUtils.WriteLine(LogPath, message);
+                FileUtils.AppendLine(LogPath, message);
             }
             catch
             {
-                WriteBuffer.AppendMessage(message);
+                WriteBuffer.AppendLine(message);
             }
         }
 
@@ -109,11 +109,6 @@ namespace LogUtils
         }
 
         public void Log(LogLevel category, object messageObj)
-        {
-            Log(messageObj);
-        }
-
-        public void Log(string category, object messageObj)
         {
             Log(messageObj);
         }

@@ -3,7 +3,9 @@ using LogUtils.Enums;
 using LogUtils.Formatting;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using UnityEngine;
+using LoggerDocs = LogUtils.Documentation.LoggerDocumentation;
 
 namespace LogUtils.Diagnostics
 {
@@ -58,68 +60,89 @@ namespace LogUtils.Diagnostics
             Logger.Log(Enumerator.Current);
         }
 
-        #region ILogger implementation
-        void ILogger.Log(object messageObj)
+        #region ILogger members
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(object)"/>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public void Log(object messageObj)
         {
             Logger.Log(messageObj);
         }
 
-        void ILogger.Log(LogType category, object messageObj)
-        {
-            Logger.Log(category, messageObj);
-        }
-
-        void ILogger.Log(LogLevel category, object messageObj)
-        {
-            Logger.Log(category, messageObj);
-        }
-
-        void ILogger.Log(string category, object messageObj)
-        {
-            Logger.Log(category, messageObj);
-        }
-
-        void ILogger.Log(LogCategory category, object messageObj)
-        {
-            Logger.Log(category, messageObj);
-        }
-
-        void ILogger.LogDebug(object messageObj)
+        /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object)"/>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public void LogDebug(object messageObj)
         {
             Logger.LogDebug(messageObj);
         }
 
-        void ILogger.LogError(object messageObj)
-        {
-            Logger.LogError(messageObj);
-        }
-
-        void ILogger.LogFatal(object messageObj)
-        {
-            Logger.LogFatal(messageObj);
-        }
-
-        void ILogger.LogImportant(object messageObj)
-        {
-            Logger.LogImportant(messageObj);
-        }
-
-        void ILogger.LogInfo(object messageObj)
+        /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object)"/>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public void LogInfo(object messageObj)
         {
             Logger.LogInfo(messageObj);
         }
 
-        void ILogger.LogMessage(object messageObj)
+        /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object)"/>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public void LogImportant(object messageObj)
+        {
+            Logger.LogImportant(messageObj);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object)"/>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public void LogMessage(object messageObj)
         {
             Logger.LogMessage(messageObj);
         }
 
-        void ILogger.LogWarning(object messageObj)
+        /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object)"/>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public void LogWarning(object messageObj)
         {
             Logger.LogWarning(messageObj);
         }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogError(object)"/>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        void ILogger<object>.LogError(object messageObj)
+        {
+            Logger.LogError(messageObj);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object)"/>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public void LogFatal(object messageObj)
+        {
+            Logger.LogFatal(messageObj);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public void Log(LogType category, object messageObj)
+        {
+            Logger.Log(category, messageObj);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public void Log(LogLevel category, object messageObj)
+        {
+            Logger.Log(category, messageObj);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public void Log(LogCategory category, object messageObj)
+        {
+            Logger.Log(category, messageObj);
+        }
         #endregion
 
+        /// <summary>
+        /// Resets enumerator to a default state
+        /// </summary>
         public void Dispose()
         {
             ResetState();

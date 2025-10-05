@@ -38,7 +38,12 @@ namespace LogUtils.Requests
         public bool IsCompleteOrRejected => Status == RequestStatus.Complete || Status == RequestStatus.Rejected;
 
         /// <summary>
-        /// The logger instance (if any) that was responsible for submitting the request
+        /// This field is primarily used by <see cref="LogRequestHandler"/> to communicate with unregistered loggers 
+        /// </summary>
+        public LogRequestEventHandler LogCallback;
+
+        /// <summary>
+        /// The log handler that was responsible for submitting the request
         /// </summary>
         public ILogger Sender;
 
@@ -48,6 +53,11 @@ namespace LogUtils.Requests
         /// Whether this request has once been submitted through the log request system
         /// </summary>
         public bool Submitted;
+
+        /// <summary>
+        /// A flag indicating whether the request targets a log file
+        /// </summary>
+        public bool IsFileRequest => Type != RequestType.Invalid && Type != RequestType.Console && Type != RequestType.Batch;
 
         public bool ThreadCanWrite => Status == RequestStatus.WritePending && Thread.CurrentThread.ManagedThreadId == managedThreadID;
 
@@ -197,7 +207,8 @@ namespace LogUtils.Requests
                 if (UnhandledReason != RejectionReason.None)
                     UtilityLogger.Logger.LogDebug("Unhandled reason already exists");
 
-                if (reason != RejectionReason.ExceptionAlreadyReported && reason != RejectionReason.FilterMatch) //Temporary conditions should not be recorded
+                if (Type != RequestType.Batch && //Batch requests do not have their own properties 
+                    reason != RejectionReason.ExceptionAlreadyReported && reason != RejectionReason.FilterMatch) //Temporary conditions should not be recorded
                     Data.Properties.HandleRecord.SetReason(reason);
 
                 if (UnhandledReason != reason)
@@ -424,7 +435,8 @@ namespace LogUtils.Requests
         Local,
         Remote,
         Game,
-        Console
+        Console,
+        Batch
     }
 
     /// <summary>

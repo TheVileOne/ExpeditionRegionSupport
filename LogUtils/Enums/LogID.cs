@@ -1,5 +1,4 @@
 ﻿using LogUtils.Helpers.Comparers;
-using LogUtils.Helpers.Extensions;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Policy;
 using LogUtils.Properties;
@@ -7,7 +6,6 @@ using LogUtils.Properties.Formatting;
 using LogUtils.Requests;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using BepInExPath = LogUtils.Helpers.Paths.BepInEx;
 
@@ -21,7 +19,7 @@ namespace LogUtils.Enums
         public LogProperties Properties { get; protected set; }
 
         /// <summary>
-        /// Controls the handle limitations of this LogID for the local mod
+        /// Acts as a permission flag that affects the behavior of loggers, and the handling of logging requests targeting this LogID
         /// </summary>
         public LogAccess Access;
 
@@ -41,7 +39,7 @@ namespace LogUtils.Enums
         public bool IsInstanceEnabled = true;
 
         /// <summary>
-        /// A flag that indicates that this represents a log file managed by the game
+        /// A flag that indicates that this represents an existing game-controlled log file
         /// </summary>
         public bool IsGameControlled;
 
@@ -62,6 +60,7 @@ namespace LogUtils.Enums
         /// An unregistered LogID will still get its own properties, those properties, and changes to those properties wont be saved to file
         /// DO NOT register a LogID that is temporary, and your mod is designated for public release
         /// </param>
+        /// <exception cref="ArgumentNullException">Filename provided is null</exception>
         public LogID(string filename, LogAccess access, bool register = false) : this(new PathWrapper(filename), access, register)
         {
         }
@@ -69,7 +68,7 @@ namespace LogUtils.Enums
         /// <summary>
         /// Creates a new LogID instance without attempting to create a LogProperties instance
         /// </summary>
-        internal LogID(string filename) : base(Path.GetFileNameWithoutExtension(filename), false) //Used by ComparisonLogID to bypass LogProperties creation
+        internal LogID(string filename) : base(Sanitize(filename), false) //Used by ComparisonLogID to bypass LogProperties creation
         {
             InitializeFields();
         }
@@ -90,7 +89,7 @@ namespace LogUtils.Enums
         {
         }
 
-        internal LogID(LogProperties properties, string filename, string path, bool register) : base(Path.GetFileNameWithoutExtension(filename), register)
+        internal LogID(LogProperties properties, string filename, string path, bool register) : base(Sanitize(filename), register)
         {
             Access = LogAccess.RemoteAccessOnly;
             InitializeFields();
@@ -117,7 +116,7 @@ namespace LogUtils.Enums
         /// An unregistered LogID will still get its own properties, those properties, and changes to those properties wont be saved to file
         /// DO NOT register a LogID that is temporary, and your mod is designated for public release
         /// </param>
-        public LogID(string filename, string relativePathNoFile, LogAccess access, bool register = false) : base(Path.GetFileNameWithoutExtension(filename), register)
+        public LogID(string filename, string relativePathNoFile, LogAccess access, bool register = false) : base(Sanitize(filename), register)
         {
             Access = access;
 
@@ -272,6 +271,19 @@ namespace LogUtils.Enums
             Unity      = new LogID(null, UtilityConsts.LogNames.Unity,      FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
 #pragma warning restore IDE0055 //Fix formatting
 
+            //This log file should only be activated when there is data to log to it
+            if (PatcherPolicy.ShowPatcherLog)
+            {
+                Patcher = new LogID("LogUtils.VersionLoader.log", UtilityConsts.PathKeywords.ROOT, LogAccess.Private, true);
+                Patcher.Properties.AccessPeriod = SetupPeriod.Pregame;
+                //Patcher.Properties.Rules.Add(new DelegatedLogRule("LogUtils.VersionLoader", applyMessageHeader, true));
+
+                //static string applyMessageHeader(LogMessageFormatter formatter, string message, LogRequestEventArgs data)
+                //{
+                //    return $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}";
+                //}
+            }
+
             //Throwaway LogID
             NotUsed = new LogID("NotUsed", UtilityConsts.PathKeywords.ROOT, LogAccess.Private, false);
 
@@ -319,6 +331,18 @@ namespace LogUtils.Enums
                 UtilityCore.RequestHandler.GameLogger.ExpectedRequestCounter[gameID] = 0;
         }
 
+        /// <summary>
+        /// Converts a filename input into a LogUtils supported filename
+        /// </summary>
+        /// <exception cref="ArgumentNullException">Filename provided is null</exception>
+        internal static string Sanitize(string filename)
+        {
+            if (filename == null)
+                throw new ArgumentNullException(filename);
+
+            return FileExtension.Remove(filename).Trim();
+        }
+
         public RequestType GetRequestType(ILogHandler handler)
         {
             if (Properties == null)
@@ -349,6 +373,8 @@ namespace LogUtils.Enums
 
         //LogUtils LogIDs
         internal static LogID FileActivity;
+        internal static LogID Patcher;
+
         /// <summary>An unregistered LogID designed to be used as a throwaway parameter</summary>
         public static LogID NotUsed;
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

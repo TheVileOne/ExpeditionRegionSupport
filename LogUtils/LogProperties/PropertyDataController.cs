@@ -98,7 +98,7 @@ namespace LogUtils.Properties
                 if (!UtilityCore.IsControllingAssembly)
                 {
                     if (logFile != LogID.BepInEx && moveFileFromOriginalPath) //This file would already have been moved by the controlling process - this original file is likely a duplicate
-                        originalFileDeleted = FileUtils.SafeDelete(originalFilePath);
+                        originalFileDeleted = FileUtils.TryDelete(originalFilePath);
 
                     //Moving files on other processes is not supported
                     moveFileFromOriginalPath = false;
@@ -116,7 +116,7 @@ namespace LogUtils.Properties
 
                     using (properties.FileLock.Acquire())
                     {
-                        properties.FileLock.SetActivity(properties.ID, FileAction.Move);
+                        properties.FileLock.SetActivity(FileAction.Move);
 
                         //Move the file, and if it fails, change the path. Either way, log file exists
                         FileStatus moveResult = LogFile.Move(originalFilePath, properties.CurrentFilePath, overwriteExisting: true);
@@ -357,6 +357,7 @@ namespace LogUtils.Properties
             return Properties.Where(p => p.ProcessedWithErrors || p.HasModifiedData()).ToArray();
         }
 
+        /// <inheritdoc/>
         public override Dictionary<string, object> GetFields()
         {
             Dictionary<string, object> fields = base.GetFields();

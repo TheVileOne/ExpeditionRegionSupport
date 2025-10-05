@@ -39,19 +39,21 @@ namespace LogUtils.Compatibility.BepInEx.Listeners
 
             using (UtilityCore.RequestHandler.BeginCriticalSection())
             {
-                UtilityCore.RequestHandler.SanitizeCurrentRequest();
-
-                LogRequest request = UtilityCore.RequestHandler.GetRequestFromAPI(LogID.BepInEx);
-
+                LogRequest request;
                 //Utility log events are easy to trigger stack overflows through recursive access. For this reason we handle utility sourced requests
-                //differently than other requests. Requests that come through the LogRequestSystem that use the utility SourceName shouldn't be a risk for
-                //a stack overflow here
-                if (request == null && eventArgs.Source.SourceName == UtilityConsts.UTILITY_NAME)
+                //differently than other requests.
+                if (eventArgs.Source is UtilityLogSource)
                 {
                     request = new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.BepInEx, eventArgs));
                     logUtilityEvent(request);
                     return;
                 }
+
+                //No situation should require sanitization here. This is a safeguard protection used for stability purposes.
+                UtilityCore.RequestHandler.SanitizeCurrentRequest();
+
+                //BepInEx requests are handled through an external API. We make sure the recursive counter is updated to reflect that we receives a request.
+                request = UtilityCore.RequestHandler.GetRequestFromAPI(LogID.BepInEx);
 
                 //if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake)
                 //    ThreadUtils.AssertRunningOnMainThread(LogID.BepInEx);
@@ -118,6 +120,11 @@ namespace LogUtils.Compatibility.BepInEx.Listeners
 
         internal bool IsDisposed;
 
+        /// <summary>
+        /// Performs tasks for disposing a <see cref="DiskLogListener"/>
+        /// </summary>
+        /// <param name="disposing">Whether or not the dispose request is invoked by the application (true), or invoked by the destructor (false)</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Dispose pattern")]
         internal void Dispose(bool disposing)
         {
             if (IsDisposed) return;
@@ -128,14 +135,14 @@ namespace LogUtils.Compatibility.BepInEx.Listeners
             IsDisposed = true;
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="Dispose(bool)"/>
         public void Dispose()
         {
-            //Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary/>
         ~DiskLogListener()
         {
             Dispose(disposing: false);

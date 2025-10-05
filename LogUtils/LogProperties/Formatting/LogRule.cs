@@ -7,13 +7,16 @@ using UnityEngine;
 
 namespace LogUtils.Properties.Formatting
 {
-    public abstract class LogRule
+    public abstract class LogRule : ICloneable
     {
         /// <summary>
         /// The containing collection instance of a LogRule. Only one collection allowed per instance
         /// </summary>
         public LogRuleCollection Owner;
 
+        /// <summary>
+        /// Is persistent state protected from modifications
+        /// </summary>
         public bool ReadOnly
         {
             get
@@ -21,7 +24,8 @@ namespace LogUtils.Properties.Formatting
                 //Temporary rules can always be changed, because the utility wont write this data to file, unlike a non-temporary rule
                 if (IsTemporary)
                     return false;
-                return Owner?.ReadOnly == true;
+
+                return Owner != null && !Owner.AllowRuleChanges;
             }
         }
 
@@ -122,11 +126,9 @@ namespace LogUtils.Properties.Formatting
                 Owner?.ResetRecord(); //Clear any past changes before operation runs
 
                 if (TemporaryOverride == null)
-                    TemporaryOverride = (LogRule)Activator.CreateInstance(GetType(), new object[] { true });
-                else
-                {
-                    TemporaryOverride.Enable();
-                }
+                    TemporaryOverride = (LogRule)Clone();
+
+                TemporaryOverride.Enable();
             }
             else //Temporary rules are free to be modified directly
             {
@@ -144,11 +146,9 @@ namespace LogUtils.Properties.Formatting
                 Owner?.ResetRecord(); //Clear any past changes before operation runs
 
                 if (TemporaryOverride == null)
-                    TemporaryOverride = (LogRule)Activator.CreateInstance(GetType(), new object[] { false });
-                else
-                {
-                    TemporaryOverride.Disable();
-                }
+                    TemporaryOverride = (LogRule)Clone();
+
+                TemporaryOverride.Disable();
             }
             else //Temporary rules are free to be modified directly
             {
@@ -169,7 +169,7 @@ namespace LogUtils.Properties.Formatting
         /// <summary>
         /// Constructs a new LogRule instance
         /// </summary>
-        public LogRule(string name, bool enabled)
+        protected LogRule(string name, bool enabled)
         {
             Name = name;
             _enabled = enabled;
@@ -217,6 +217,12 @@ namespace LogUtils.Properties.Formatting
         public override string ToString()
         {
             return ToPropertyString();
+        }
+
+        /// <inheritdoc/>
+        public virtual object Clone()
+        {
+            return MemberwiseClone();
         }
 
         /// <summary>

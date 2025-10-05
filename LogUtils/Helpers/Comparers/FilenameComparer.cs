@@ -19,8 +19,8 @@ namespace LogUtils.Helpers.Comparers
         {
             if (ignoreExtensions)
             {
-                filename = FileUtils.RemoveExtension(filename);
-                filenameOther = FileUtils.RemoveExtension(filename);
+                filename = FileExtension.Remove(filename);
+                filenameOther = FileExtension.Remove(filenameOther);
             }
             return Compare(filename, filenameOther);
         }
@@ -46,8 +46,8 @@ namespace LogUtils.Helpers.Comparers
         {
             if (ignoreExtensions)
             {
-                filename = FileUtils.RemoveExtension(filename);
-                filenameOther = FileUtils.RemoveExtension(filenameOther);
+                filename = FileExtension.Remove(filename);
+                filenameOther = FileExtension.Remove(filenameOther);
             }
             return Equals(filename, filenameOther);
         }

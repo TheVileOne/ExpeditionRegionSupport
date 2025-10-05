@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LogUtils
+namespace LogUtils.Collections
 {
     public class BufferedLinkedList<T> : ICollection<T>, ILinkedListEnumerable<T> where T : class
     {
@@ -24,14 +24,14 @@ namespace LogUtils
             set
             {
                 if (value <= 0)
-                    throw new ArgumentOutOfRangeException("value");
+                    throw new ArgumentOutOfRangeException(nameof(value));
 
                 int freeNodesAvailable = nodeLeaser.Count;
 
                 if (value < Capacity)
                 {
                     if (freeNodesAvailable <= Capacity - value)
-                        throw new ArgumentException("Not enough free nodes available");
+                        throw new ArgumentException("Not enough free nodes available", nameof(value));
 
                     for (int i = 0; i < Capacity - value; i++)
                         nodeLeaser.RemoveLast(); //Remove nodes to match new capacity
@@ -300,7 +300,9 @@ namespace LogUtils
                 items = list ?? throw new ArgumentNullException(nameof(list));
             }
 
-            /// <inheritdoc/>
+            /// <summary>
+            /// Resets enumerator to a default state
+            /// </summary>
             public void Dispose()
             {
                 Reset();
@@ -317,9 +319,7 @@ namespace LogUtils
                 {
                     //checkForOverflowConditions();
                     if (refNode == null)
-                    {
                         refNode = items.First;
-                    }
                     else //Transition from first to second element needs only the flag changed, leaving refNode unchanged
                     {
                         firstProcess = false;
@@ -399,7 +399,9 @@ namespace LogUtils
                 innerEnumerator = enumerator ?? throw new ArgumentNullException(nameof(enumerator));
             }
 
-            /// <inheritdoc/>
+            /// <summary>
+            /// Resets enumerator to a default state
+            /// </summary>
             public void Dispose()
             {
                 Reset();
@@ -489,11 +491,13 @@ namespace LogUtils
 
             public WhereEnumerator(ILinkedListEnumerator<T> enumerator, Func<T, bool> predicate)
             {
-                this.innerEnumerator = enumerator ?? throw new ArgumentNullException(nameof(enumerator));
+                innerEnumerator = enumerator ?? throw new ArgumentNullException(nameof(enumerator));
                 this.predicate = predicate;
             }
 
-            /// <inheritdoc/>
+            /// <summary>
+            /// Resets enumerator to a default state
+            /// </summary>
             public void Dispose()
             {
                 Reset();

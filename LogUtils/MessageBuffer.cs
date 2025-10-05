@@ -29,11 +29,23 @@ namespace LogUtils
             Content = new StringBuilder();
         }
 
-        public void AppendMessage(string message)
+        public void Append(string value)
         {
             try
             {
-                Content.AppendLine(message);
+                Content.Append(value);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                UtilityLogger.LogWarning("Write buffer exceeded capacity");
+            }
+        }
+
+        public void AppendLine(string value)
+        {
+            try
+            {
+                Content.AppendLine(value);
             }
             catch (ArgumentOutOfRangeException)
             {

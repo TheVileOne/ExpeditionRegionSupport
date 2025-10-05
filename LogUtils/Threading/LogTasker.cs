@@ -11,6 +11,11 @@ namespace LogUtils.Threading
 
         private static Thread _thread;
 
+        /// <summary>
+        /// The managed thread ID of the LogTasker thread
+        /// </summary>
+        public static int ThreadID => _thread.ManagedThreadId;
+
         internal static CrawlMark CurrentCrawlMark = CrawlMark.None;
 
         public static CrawlMark WaitOnCrawlMark = CrawlMark.None;
@@ -120,7 +125,7 @@ namespace LogUtils.Threading
                 throw new ArgumentNullException(nameof(task));
 
             if (task == taskOther)
-                throw new ArgumentException("Tasks refer to the same instance when expecting different instances");
+                throw new ArgumentException("Tasks refer to the same instance when expecting different instances", nameof(task));
 
             if (task.State != TaskState.NotSubmitted)
                 throw new InvalidStateException(nameof(task));
@@ -167,7 +172,7 @@ namespace LogUtils.Threading
                 throw new ArgumentNullException(nameof(task));
 
             if (task == taskOther)
-                throw new ArgumentException("Tasks refer to the same instance when expecting different instances");
+                throw new ArgumentException("Tasks refer to the same instance when expecting different instances", nameof(task));
 
             if (task.State != TaskState.NotSubmitted)
                 throw new InvalidStateException(nameof(task));
@@ -246,7 +251,7 @@ namespace LogUtils.Threading
             }
         }
 
-        private static bool timerStarted = timerUpdate != null;
+        private static bool timerStarted => timerUpdate != null;
         private static Action timerUpdate;
 
         public static void StartTimingFrames()
@@ -357,6 +362,10 @@ namespace LogUtils.Threading
                     crawlMarkReached(CrawlMark.EndUpdate);
                 }
             }
+            //catch (Exception ex)
+            //{
+            //    UtilityLogger.DebugLog(ex);
+            //}
             finally
             {
                 UtilityLogger.DebugLog("Task thread terminating" + (IsRunning ? " unexpectedly" : string.Empty));

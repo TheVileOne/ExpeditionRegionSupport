@@ -1,90 +1,92 @@
-﻿using LogUtils.Helpers.Comparers;
-using LogUtils.Helpers.FileHandling;
+﻿using LogUtils.Helpers.FileHandling;
 using System;
 using System.IO;
 
-public class PathComparer : ComparerBase<string>
+namespace LogUtils.Helpers.Comparers
 {
-    public PathComparer() : base()
+    public class PathComparer : ComparerBase<string>
     {
-    }
-
-    public PathComparer(StringComparison comparisonOption) : base(comparisonOption)
-    {
-    }
-
-    /// <summary>
-    /// Compares two paths (with or without a filename)
-    /// </summary>
-    public int CompareFilenameAndPath(string path, string pathOther, bool ignoreExtensions)
-    {
-        //GetPathFromKeyword will strip the filename
-        if (PathUtils.IsPathKeyword(path))
-            path = PathUtils.GetPathFromKeyword(path);
-
-        if (PathUtils.IsPathKeyword(pathOther))
-            pathOther = PathUtils.GetPathFromKeyword(pathOther);
-
-        if (ignoreExtensions)
+        public PathComparer() : base()
         {
-            path = FileUtils.RemoveExtension(path);
-            pathOther = FileUtils.RemoveExtension(pathOther);
         }
 
-        return InternalCompare(path, pathOther);
-    }
+        public PathComparer(StringComparison comparisonOption) : base(comparisonOption)
+        {
+        }
 
-    /// <inheritdoc/>
-    public override int Compare(string path, string pathOther)
-    {
-        //Make sure we are comparing path data, not keywords
-        path = PathUtils.GetPathFromKeyword(path);
-        pathOther = PathUtils.GetPathFromKeyword(pathOther);
+        /// <summary>
+        /// Compares two paths (with or without a filename)
+        /// </summary>
+        public int CompareFilenameAndPath(string path, string pathOther, bool ignoreExtensions)
+        {
+            //GetPathFromKeyword will strip the filename
+            if (PathUtils.IsPathKeyword(path))
+                path = PathUtils.GetPathFromKeyword(path);
 
-        return InternalCompare(path, pathOther);
-    }
+            if (PathUtils.IsPathKeyword(pathOther))
+                pathOther = PathUtils.GetPathFromKeyword(pathOther);
 
-    /// <inheritdoc/>
-    public override bool Equals(string path, string pathOther)
-    {
-        //Make sure we are comparing path data, not keywords
-        path = PathUtils.GetPathFromKeyword(path);
-        pathOther = PathUtils.GetPathFromKeyword(pathOther);
+            if (ignoreExtensions)
+            {
+                path = FileExtension.Remove(path);
+                pathOther = FileExtension.Remove(pathOther);
+            }
 
-        return InternalEquals(path, pathOther);
-    }
+            return InternalCompare(path, pathOther);
+        }
 
-    /// <summary>
-    /// Assumes path info is being compared, not keywords
-    /// </summary>
-    internal int InternalCompare(string path, string pathOther)
-    {
-        if (PathUtils.IsEmpty(path))
-            return pathOther != null ? int.MinValue : 0;
+        /// <inheritdoc/>
+        public override int Compare(string path, string pathOther)
+        {
+            //Make sure we are comparing path data, not keywords
+            path = PathUtils.GetPathFromKeyword(path);
+            pathOther = PathUtils.GetPathFromKeyword(pathOther);
 
-        if (PathUtils.IsEmpty(pathOther))
-            return int.MaxValue;
+            return InternalCompare(path, pathOther);
+        }
 
-        path = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar);
-        pathOther = Path.GetFullPath(pathOther).TrimEnd(Path.DirectorySeparatorChar);
+        /// <inheritdoc/>
+        public override bool Equals(string path, string pathOther)
+        {
+            //Make sure we are comparing path data, not keywords
+            path = PathUtils.GetPathFromKeyword(path);
+            pathOther = PathUtils.GetPathFromKeyword(pathOther);
 
-        return base.Compare(path, pathOther);
-    }
+            return InternalEquals(path, pathOther);
+        }
 
-    /// <summary>
-    /// Assumes path info is being compared, not keywords
-    /// </summary>
-    internal bool InternalEquals(string path, string pathOther)
-    {
-        if (PathUtils.IsEmpty(path))
-            return PathUtils.IsEmpty(pathOther);
+        /// <summary>
+        /// Assumes path info is being compared, not keywords
+        /// </summary>
+        internal int InternalCompare(string path, string pathOther)
+        {
+            if (PathUtils.IsEmpty(path))
+                return pathOther != null ? int.MinValue : 0;
 
-        if (PathUtils.IsEmpty(pathOther))
-            return false;
+            if (PathUtils.IsEmpty(pathOther))
+                return int.MaxValue;
 
-        path = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar);
-        pathOther = Path.GetFullPath(pathOther).TrimEnd(Path.DirectorySeparatorChar);
+            path = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar);
+            pathOther = Path.GetFullPath(pathOther).TrimEnd(Path.DirectorySeparatorChar);
 
-        return base.Equals(path, pathOther);
+            return base.Compare(path, pathOther);
+        }
+
+        /// <summary>
+        /// Assumes path info is being compared, not keywords
+        /// </summary>
+        internal bool InternalEquals(string path, string pathOther)
+        {
+            if (PathUtils.IsEmpty(path))
+                return PathUtils.IsEmpty(pathOther);
+
+            if (PathUtils.IsEmpty(pathOther))
+                return false;
+
+            path = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar);
+            pathOther = Path.GetFullPath(pathOther).TrimEnd(Path.DirectorySeparatorChar);
+
+            return base.Equals(path, pathOther);
+        }
     }
 }

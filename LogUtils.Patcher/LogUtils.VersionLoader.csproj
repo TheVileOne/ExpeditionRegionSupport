@@ -1,43 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+	<!-- General properties -->
     <PropertyGroup>
         <TargetFramework>net48</TargetFramework>
         <LangVersion>12</LangVersion>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<Title>Rain World Log Utility</Title>
-		<AssemblyVersion>1.0.0.0</AssemblyVersion>
-		<FileVersion>1.0.0.0</FileVersion>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     </PropertyGroup>
 
+	<!-- Metadata properties -->
+	<PropertyGroup>
+		<Title>Rain World Log Utility</Title>
+		<AssemblyVersion>1.0.4.1</AssemblyVersion>
+		<FileVersion>1.0.4.1</FileVersion>
+	</PropertyGroup>
+
+	<!-- Build output properties -->
+	<PropertyGroup>
+		<AppendTargetFrameworkToOutputPath>False</AppendTargetFrameworkToOutputPath>
+		<OutputPath>../mod/patchers</OutputPath>
+	</PropertyGroup>
+
+	<!-- Compile time assembly references -->
 	<ItemGroup>
-		<Reference Include="BepInEx">
-		  <HintPath>..\lib\BepInEx.dll</HintPath>
-		</Reference>
-		<Reference Include="BepInEx.MultiFolderLoader">
-		  <HintPath>..\lib\BepInEx.MultiFolderLoader.dll</HintPath>
-		</Reference>
-		<Reference Include="Microsoft.CSharp" Version="4.7.0">
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="Mono.Cecil">
-		  <HintPath>..\lib\Mono.Cecil.dll</HintPath>
-			<Private>false</Private>
-		</Reference>
-		<Reference Include="MonoMod.RuntimeDetour">
-		  <HintPath>..\lib\MonoMod.RuntimeDetour.dll</HintPath>
-			<Private>false</Private>
+		<Reference Include="../lib/*.dll">
+			<Private>False</Private>
 		</Reference>
 	</ItemGroup>
-
-	<Target Name="GenerateMod" AfterTargets="PostBuildEvent">
-		<ItemGroup>
-			<RemovePlugins Include="../mod/patchers/LogUtils.VersionLoader.dll" />
-			<RemovePDBs Include="$(OutDir)*.pdb" />
-		</ItemGroup>
-		<ItemGroup>
-			<CopyPlugins Include="$(TargetPath)" />
-			<CopyPDBs Include="$(OutDir)*.pdb" />
-		</ItemGroup>
-		<Delete Files="@(RemovePlugins)" />
-		<Copy SourceFiles="@(CopyPlugins);@(CopyPDBs)" DestinationFolder="../mod/patchers" />
-	</Target>
 </Project>

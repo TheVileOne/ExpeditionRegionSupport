@@ -1,6 +1,5 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Console;
-using LogUtils.Helpers.Extensions;
 using System;
 using System.Linq;
 using UnityEngine;
@@ -333,5 +332,7 @@ namespace LogUtils.Enums
         public static CompositeLogCategory ErrorFlags;
         public static LogCategory Default;
 #pragma warning restore CS1591 //Missing XML comment for publicly visible type or member
+
+        public static explicit operator LogCategory(string value) => ToCategory(value);
     }
 }

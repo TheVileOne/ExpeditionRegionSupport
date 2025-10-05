@@ -1,4 +1,5 @@
 ﻿using BepInEx.MultiFolderLoader;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -36,17 +37,16 @@ namespace LogUtils.Compatibility.Unity
         /// <summary>
         /// Adds a filename entry to whitelist.txt
         /// </summary>
-        /// <exception cref="FileNotFoundException"></exception>
-        public static void AddToWhitelist(string filename)
+        /// <exception cref="FileNotFoundException">whitelist.txt does not exist</exception>
+        public static void AddToWhitelist(string entry)
         {
             UtilityLogger.Log("Updating whitelist.txt");
+            UtilityLogger.Log("Target: " + entry);
 
             string allowListPath = getWhitelistPath();
-            string allowListEntry = filename.ToLower(); //Lowercase to be consistent with other entries in this txt file
-
             string[] lines = File.ReadAllLines(allowListPath);
 
-            if (lines.Contains(allowListEntry))
+            if (lines.Contains(entry, StringComparer.OrdinalIgnoreCase))
             {
                 UtilityLogger.Log("Entry found");
                 return;
@@ -55,21 +55,21 @@ namespace LogUtils.Compatibility.Unity
             UtilityLogger.Log("Adding patcher entry");
             using (StreamWriter writer = File.AppendText(allowListPath))
             {
-                writer.WriteLine(allowListEntry);
+                writer.WriteLine(entry.ToLower()); //Lowercase to be consistent with other entries in this txt file
             }
         }
 
         /// <summary>
-        /// Removes a filename entry to whitelist.txt
+        /// Removes a filename entry from whitelist.txt
         /// </summary>
-        /// <exception cref="FileNotFoundException"></exception>
-        public static void RemoveFromWhitelist(string filename)
+        /// <remarks>Input is case insensitive</remarks>
+        /// <exception cref="FileNotFoundException">whitelist.txt does not exist</exception>
+        public static void RemoveFromWhitelist(string entry)
         {
             UtilityLogger.Log("Updating whitelist.txt");
+            UtilityLogger.Log("Target: " + entry);
 
             string allowListPath = getWhitelistPath();
-            string allowListEntry = filename.ToLower();
-
             string[] lines = File.ReadAllLines(allowListPath);
 
             using (StreamWriter writer = File.CreateText(allowListPath))
@@ -77,11 +77,15 @@ namespace LogUtils.Compatibility.Unity
                 int entryCount = 0;
                 foreach (string line in lines)
                 {
-                    if (line != allowListEntry) //Write all lines except the line that identifies the patcher
+                    if (string.Equals(line, entry, StringComparison.OrdinalIgnoreCase))
                     {
-                        entryCount++;
-                        writer.WriteLine(line);
+                        UtilityLogger.Log("Entry found");
+                        continue;
                     }
+
+                    //Write all lines except the line that identifies the patcher
+                    entryCount++;
+                    writer.WriteLine(line);
                 }
 
                 if (entryCount != lines.Length)

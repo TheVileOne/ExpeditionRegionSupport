@@ -1,7 +1,6 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
 using LogUtils.Events;
-using LogUtils.Helpers.Extensions;
 using LogUtils.Requests;
 using LogUtils.Requests.Validation;
 using System;
@@ -15,7 +14,7 @@ namespace LogUtils
     /// <summary>
     /// Allows you to log messages to file, or a console using the write implementation of your choosing
     /// </summary>
-    public partial class Logger : ILogger, ILogHandler, ILogSourceProvider, ILogWriterProvider, IDisposable
+    public partial class Logger : IFormatLogger, ILogHandler, ILogSourceProvider, ILogWriterProvider, IDisposable
     {
         /// <summary>
         /// A flag that allows/disallows handling of log requests (local and remote) through this logger 
@@ -53,6 +52,11 @@ namespace LogUtils
         public ILogSource LogSource { get; set; }
 
         /// <summary>
+        /// A flag that indicates whether this logger should take a conservative approach to thread safety when handling new log requests
+        /// </summary>
+        public bool IsThreadSafe = true;
+
+        /// <summary>
         /// Contains a record of logger field values that can be restored on demand
         /// </summary>
         public LogRestorePoint RestorePoint;
@@ -72,7 +76,7 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Constructs a logger instance
+        /// Constructs a new <see cref="Logger"/> instance
         /// </summary>
         /// <param name="logSource">The BepInEx log source (typically a ManualLogsource) to assign to this logger</param>
         public Logger(ILogSource logSource) : this(LoggingMode.Inherit, true, LogID.BepInEx)
@@ -80,61 +84,47 @@ namespace LogUtils
             LogSource = logSource;
         }
 
-        /// <summary>
-        /// Constructs a logger instance
-        /// </summary>
+        /// <inheritdoc cref="Logger(ILogSource)"/>
         /// <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
         public Logger(ILogTarget preset) : this(LoggingMode.Inherit, true, preset)
         {
         }
 
-        /// <summary>
-        /// Constructs a logger instance
-        /// </summary>
+        /// <inheritdoc cref="Logger(ILogSource)"/>
         /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
         /// <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
         public Logger(bool allowLogging, ILogTarget preset) : this(LoggingMode.Inherit, allowLogging, preset)
         {
         }
 
-        /// <summary>
-        /// Constructs a logger instance
-        /// </summary>
+        /// <inheritdoc cref="Logger(ILogSource)"/>
         /// <param name="mode">Changes the technique used to write messages to file</param>
         /// <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
         public Logger(LoggingMode mode, ILogTarget preset) : this(mode, true, preset)
         {
         }
 
-        /// <summary>
-        /// Constructs a logger instance
-        /// </summary>
+        /// <inheritdoc cref="Logger(ILogSource)"/>
         /// <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
         public Logger(params ILogTarget[] presets) : this(LoggingMode.Inherit, true, presets)
         {
         }
 
-        /// <summary>
-        /// Constructs a logger instance
-        /// </summary>
+        /// <inheritdoc cref="Logger(ILogSource)"/>
         /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
         /// <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
         public Logger(bool allowLogging, params ILogTarget[] presets) : this(LoggingMode.Inherit, allowLogging, presets)
         {
         }
 
-        /// <summary>
-        /// Constructs a logger instance
-        /// </summary>
+        /// <inheritdoc cref="Logger(ILogSource)"/>
         /// <param name="mode">Changes the technique used to write messages to file</param>
         /// <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
         public Logger(LoggingMode mode, params ILogTarget[] presets) : this(mode, true, presets)
         {
         }
 
-        /// <summary>
-        /// Constructs a logger instance
-        /// </summary>
+        /// <inheritdoc cref="Logger(ILogSource)"/>
         /// <param name="mode">Changes the technique used to write messages to file</param>
         /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
         /// <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
@@ -143,6 +133,7 @@ namespace LogUtils
             if (UtilitySetup.CurrentStep < UtilitySetup.InitializationStep.INITIALIZE_ENUMS)
                 throw new EarlyInitializationException("Logger created too early");
 
+            Processor = new LogProcessor(this);
             AllowLogging = allowLogging;
 
             Targets.AddRange(presets);
@@ -202,24 +193,61 @@ namespace LogUtils
         #region Logging
 #pragma warning disable CS1591 //Missing XML comment for publicly visible type or member
 
-        protected void LogData(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
+        /// <summary>
+        /// Log targets that may be composite need to be resolved before logging can occur
+        /// </summary>
+        protected internal void LogUnresolvedTarget(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
+        {
+            if (target is CompositeLogTarget compositeTarget)
+            {
+                LogBase(compositeTarget.ToCollection(), category, messageObj, shouldFilter, createRequest);
+                return;
+            }
+            LogBase(target, category, messageObj, shouldFilter, createRequest);
+        }
+
+        /// <inheritdoc cref="LogUnresolvedTarget(ILogTarget, LogCategory, object, bool, CreateRequestCallback)"/>
+        protected internal void LogUnresolvedTarget(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
         {
             EventArgs extraData = new ColorEventArgs(messageColor);
-            LogData(target, category, messageObj, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
+            if (target is CompositeLogTarget compositeTarget)
+            {
+                LogBase(compositeTarget.ToCollection(), category, messageObj, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
+                return;
+            }
+            LogBase(target, category, messageObj, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
         }
 
-        protected void LogData(CompositeLogTarget target, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
-        {
-            LogData(target.ToCollection(), category, messageObj, shouldFilter, messageColor);
-        }
-
-        protected void LogData(LogTargetCollection targets, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
+        protected internal void LogBase(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
         {
             EventArgs extraData = new ColorEventArgs(messageColor);
-            LogData(targets, category, messageObj, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
+            LogBase(target, category, messageObj, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
         }
 
-        protected virtual void LogData(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
+        protected internal void LogBase(LogTargetCollection targets, LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
+        {
+            EventArgs extraData = new ColorEventArgs(messageColor);
+            LogBase(targets, category, messageObj, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
+        }
+
+        protected internal void LogBase(LogCategory category, object messageObj, bool shouldFilter, Color messageColor)
+        {
+            EventArgs extraData = new ColorEventArgs(messageColor);
+            LogBase(category, messageObj, shouldFilter, LogRequest.Factory.CreateDataCallback(extraData));
+        }
+
+        protected internal void LogBase(LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
+        {
+            if (Targets.Count == 1)
+            {
+                ILogTarget target = Targets.LogIDs.Count > 0 ? Targets.LogIDs[0] : Targets.ConsoleIDs[0];
+                LogBase(target, category, messageObj, shouldFilter, createRequest);
+                return;
+            }
+            LogBase(Targets, category, messageObj, shouldFilter, createRequest);
+        }
+
+        protected internal virtual void LogBase(ILogTarget target, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
         {
             if (!AllowLogging || !target.IsEnabled) return;
 
@@ -229,71 +257,46 @@ namespace LogUtils
             LogRequest request = createRequest.Invoke(target.GetRequestType(this), target, category, messageObj, shouldFilter);
 
             if (request != null)
-                LogData(request);
+            {
+                if (!IsThreadSafe)
+                {
+                    request.Sender = this;
+                    UtilityCore.RequestHandler.HandleOnNextAvailableFrame.Enqueue(request);
+                    return;
+                }
+                LogBase(request);
+            }
         }
 
-        protected void LogData(CompositeLogTarget target, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
-        {
-            LogData(target.ToCollection(), category, messageObj, shouldFilter, createRequest);
-        }
-
-        protected virtual void LogData(LogTargetCollection targets, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
+        protected internal virtual void LogBase(LogTargetCollection targets, LogCategory category, object messageObj, bool shouldFilter, CreateRequestCallback createRequest = null)
         {
             if (!AllowLogging) return;
 
-            if (targets.Count == 0)
+            if (Targets.Count == 0)
             {
                 UtilityLogger.LogWarning("Attempted to log message with no available log targets");
                 return;
             }
 
-            if (createRequest == null)
-                createRequest = LogRequest.Factory.Create;
-
-            IEnumerable<ILogTarget> enabledTargets = targets.LogIDs.Where(t => t.IsEnabled);
-
-            LogRequest lastRequest = null;
-            foreach (LogID target in enabledTargets.Cast<LogID>())
+            LogRequestEventArgs batchRequestArgs = new LogRequestEventArgs(new LogProcessorArgs(targets, createRequest), messageObj, category);
+            LogRequest batchRequest = new LogRequest(RequestType.Batch, batchRequestArgs)
             {
-                LogRequest currentRequest = createRequest.Invoke(target.GetRequestType(this), target, category, messageObj, shouldFilter);
+                Sender = this
+            };
 
-                if (currentRequest != null)
-                {
-                    //Avoids the possibility of messages being processed by the console more than once
-                    currentRequest.InheritHandledConsoleTargets(lastRequest);
-
-                    lastRequest = currentRequest;
-                    LogData(currentRequest);
-                }
-            }
-
-            enabledTargets = targets.ConsoleIDs.Where(t => t.IsEnabled);
-
-            if (lastRequest != null) //Possible to be null if all of the requests were rejected
+            if (!IsThreadSafe)
             {
-                var consoleMessageData = lastRequest.Data.GetConsoleData();
-
-                //Exclude any ConsoleIDs that were already handled when the LogIDs were processed
-                if (consoleMessageData != null)
-                    enabledTargets = enabledTargets.Except(consoleMessageData.Handled);
+                UtilityCore.RequestHandler.HandleOnNextAvailableFrame.Enqueue(batchRequest);
+                return;
             }
-
-            foreach (ConsoleID target in enabledTargets.Cast<ConsoleID>())
-            {
-                LogRequest currentRequest = createRequest.Invoke(RequestType.Console, target, category, messageObj, shouldFilter);
-
-                if (currentRequest != null)
-                {
-                    //Avoids the possibility of messages being processed by the console more than once
-                    currentRequest.InheritHandledConsoleTargets(lastRequest);
-
-                    lastRequest = currentRequest;
-                    LogData(currentRequest);
-                }
-            }
+            UtilityCore.RequestHandler.Submit(batchRequest, true);
         }
 
-        protected virtual void LogData(LogRequest request)
+        /// <summary>
+        /// Passes a log request to a writer, or request handler
+        /// </summary>
+        /// <remarks>Through normal code paths, this code may receive already submitted requests, but these requests should always be local</remarks>
+        protected internal virtual void LogBase(LogRequest request)
         {
             try
             {
@@ -306,16 +309,16 @@ namespace LogUtils
                 if (request.Type != RequestType.Local)
                 {
                     UtilityCore.RequestHandler.Submit(request, true);
+                    return;
                 }
-                else
+
+                using (UtilityCore.RequestHandler.BeginCriticalSection())
                 {
-                    using (UtilityCore.RequestHandler.BeginCriticalSection())
-                    {
+                    if (!request.Submitted)
                         UtilityCore.RequestHandler.Submit(request, false);
 
-                        if (request.Status != RequestStatus.Rejected)
-                            SendToWriter(request);
-                    }
+                    if (request.Status != RequestStatus.Rejected)
+                        SendToWriter(request);
                 }
             }
             finally
@@ -386,10 +389,15 @@ namespace LogUtils
         }
         #endregion
 
-        #region Dispose pattern
+        #region Dispose handling
 
+        /// <summary/>
         protected bool IsDisposed;
 
+        /// <summary>
+        /// Performs tasks for disposing a <see cref="Logger"/>
+        /// </summary>
+        /// <param name="disposing">Whether or not the dispose request is invoked by the application (true), or invoked by the destructor (false)</param>
         protected virtual void Dispose(bool disposing)
         {
             if (IsDisposed) return;
@@ -397,28 +405,25 @@ namespace LogUtils
             LogWriter.TryDispose(Writer);
 
             if (AllowRegistration)
-            {
                 UtilityCore.RequestHandler.Unregister(this);
-                UtilityEvents.OnRegistrationChanged -= registrationChangedHandler;
-            }
 
+            RemoveEvents();
             Writer = null;
             IsDisposed = true;
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="Dispose(bool)"/>
         public void Dispose()
         {
-            //Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary/>
         ~Logger()
         {
             Dispose(disposing: false);
         }
-
         #endregion
 
         /// <summary>

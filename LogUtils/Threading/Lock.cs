@@ -14,6 +14,25 @@ namespace LogUtils.Threading
         /// </summary>
         public int ActiveCount;
 
+        private object _context;
+        private ContextProvider _contextProvider;
+
+        /// <summary>
+        /// Information assigned to identify the lock instance
+        /// </summary>
+        public object Context
+        {
+            get
+            {
+                if (_context == null)
+                    _context = _contextProvider?.Invoke();
+                return _context;
+            }
+        }
+
+        /// <summary/>
+        public bool IsAcquiredByCurrentThread => ActiveCount > 0 && Monitor.IsEntered(lockScope);
+
         /// <summary>
         /// Suppresses the next Release attempt made on this lock 
         /// </summary>
@@ -33,6 +52,16 @@ namespace LogUtils.Threading
         {
             lockScope = new Scope(this);
             lockEvent.Raise(this, EventID.LockCreated);
+        }
+
+        public Lock(object context) : this()
+        {
+            _context = context;
+        }
+
+        public Lock(ContextProvider contextProvider) : this()
+        {
+            _contextProvider = contextProvider;
         }
 
         public Scope Acquire()
@@ -68,6 +97,11 @@ namespace LogUtils.Threading
             lockEvent.Raise(this, EventID.LockReleased);
         }
 
+        internal void BindToRainWorld()
+        {
+            //RainWorld._loggingLock = lockScope;
+        }
+
         public sealed class Scope : IDisposable
         {
             private readonly Lock _lock;
@@ -94,5 +128,10 @@ namespace LogUtils.Threading
             LockAcquired,
             WaitingToAcquire
         }
+
+        /// <summary>
+        /// A provided delegate used to provide a context on demand
+        /// </summary>
+        public delegate object ContextProvider();
     }
 }

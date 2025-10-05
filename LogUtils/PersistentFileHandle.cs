@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using UnityEngine;
 
 namespace LogUtils
 {
@@ -73,48 +74,74 @@ namespace LogUtils
 
         protected abstract void CreateFileStream();
 
-        #region Dispose pattern
+        #region Dispose handling
 
+        /// <summary/>
         protected bool IsDisposed;
-        protected bool IsDisposing;
+        internal bool IsDisposing;
 
-        /// <inheritdoc/>
-        public void Dispose()
+        /// <summary>
+        /// Performs tasks for disposing a <see cref="PersistentFileHandle"/>
+        /// </summary>
+        /// <param name="disposeState">Whether or not the dispose request is invoked by the application (true), or invoked by the destructor (false)</param>
+        protected void Dispose(bool disposeState)
         {
-            //Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
-        }
+            if (IsDisposed || IsDisposing) return;
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (IsDisposed) return;
+            IsDisposing = true;
+            Action<bool>[] stages = [BeginDispose, EndDispose];
 
-            if (disposing)
-                OnDispose();
+            //Ensure that begin, and end stages always invoke even in the case of an exception
+            foreach (var disposeStage in stages)
+            {
+                try
+                {
+                    disposeStage.Invoke(disposeState);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                }
+            }
 
-            Stream?.Dispose();
-            Stream = null;
             IsDisposed = true;
-            IsDisposing = false;
-        }
-
-        ~PersistentFileHandle()
-        {
-            //Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: false);
+            IsDisposing = false; //Dispose complete, no longer in disposing state
         }
 
         /// <summary>
-        /// Runs logic that should happen at the very start of a dispose request
+        /// Dispose logic that must run at the start of a dispose request
         /// </summary>
-        protected void OnDispose()
+        /// <inheritdoc cref="Dispose(bool)" select="param"/>
+        protected virtual void BeginDispose(bool disposeState)
         {
-            if (IsDisposing) return;
+            if (!disposeState) return; //The code here is not necessary to be called from the destructor
 
-            IsDisposing = true; //Ensures that OnDispose is only handled once
             UtilityCore.PersistenceManager.NotifyOnDispose(this);
             Lifetime.SetDuration(0); //Disposed handles should not be considered alive
+        }
+
+        /// <summary>
+        /// Dispose logic that must run at the end of a dispose request
+        /// </summary>
+        /// <inheritdoc cref="Dispose(bool)" select="param"/>
+        protected virtual void EndDispose(bool disposeState)
+        {
+            //This code is alright to be called from any dispose state
+            Stream?.Dispose();
+            Stream = null;
+        }
+
+        /// <inheritdoc cref="Dispose(bool)"/>
+        public void Dispose()
+        {
+            Dispose(disposeState: true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary/>
+        ~PersistentFileHandle()
+        {
+            Dispose(disposeState: false);
         }
         #endregion
     }

@@ -25,7 +25,29 @@ namespace LogUtils
                         captured.OnUnregister();
                 }
             });
-            UtilityEvents.OnRegistrationChanged += registrationChangedHandler;
+
+            newRequestHandler = new LogRequestEventHandler((request) =>
+            {
+                //Event trigger conditions: only applies to the target instance
+                if (weakRef.TryGetTarget(out Logger captured) && captured == request.Sender)
+                {
+                    //Invoke event
+                    captured.OnNewRequest(request);
+                }
+            });
+
+            if (AllowRegistration)
+                UtilityEvents.OnRegistrationChanged += registrationChangedHandler;
+            LogRequestEvents.OnSubmit += newRequestHandler;
+        }
+
+        internal void RemoveEvents()
+        {
+            if (AllowRegistration)
+                UtilityEvents.OnRegistrationChanged -= registrationChangedHandler;
+
+            //TODO: Without a solution for async logging, this will prevent DiscreteLoggers from being able to handle requests post disposal
+            //LogRequestEvents.OnSubmit -= newRequestHandler;
         }
 
         /// <summary>
@@ -33,21 +55,6 @@ namespace LogUtils
         /// </summary>
         protected virtual void OnRegister()
         {
-            if (newRequestHandler == null)
-            {
-                WeakReference<Logger> weakRef = new WeakReference<Logger>(this);
-
-                newRequestHandler = new LogRequestEventHandler((request) =>
-                {
-                    //Event trigger conditions: only applies to the target instance
-                    if (weakRef.TryGetTarget(out Logger captured) && captured == request.Sender)
-                    {
-                        //Invoke event
-                        captured.OnNewRequest(request);
-                    }
-                });
-            }
-            LogRequestEvents.OnSubmit += newRequestHandler;
         }
 
         /// <summary>
@@ -55,7 +62,6 @@ namespace LogUtils
         /// </summary>
         protected virtual void OnUnregister()
         {
-            LogRequestEvents.OnSubmit -= newRequestHandler;
         }
 
         /// <summary>
@@ -63,6 +69,14 @@ namespace LogUtils
         /// </summary>
         protected virtual void OnNewRequest(LogRequest request)
         {
+            if (!AllowRegistration && request.Type == RequestType.Local)
+            {
+                request.LogCallback = LogBase;
+                return;
+            }
+
+            if (request.Type == RequestType.Batch)
+                request.LogCallback = ProcessBatch;
         }
     }
 }

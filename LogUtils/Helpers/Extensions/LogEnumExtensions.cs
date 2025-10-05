@@ -1,10 +1,11 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
+using LogUtils.Helpers;
 using System;
 using System.Linq;
 using UnityEngine;
 
-namespace LogUtils.Helpers.Extensions
+namespace LogUtils
 {
     public static partial class ExtensionMethods
     {

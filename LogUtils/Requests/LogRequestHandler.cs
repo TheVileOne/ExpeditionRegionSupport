@@ -1,8 +1,8 @@
-﻿using LogUtils.Console;
+﻿using LogUtils.Collections;
+using LogUtils.Console;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
-using LogUtils.Helpers.Extensions;
 using LogUtils.Requests.Validation;
 using LogUtils.Threading;
 using System;
@@ -203,12 +203,10 @@ namespace LogUtils.Requests
 
                 request.OnSubmit();
 
-                if (request.Type == RequestType.Console)
+                if (!request.IsFileRequest)
                 {
                     if (handleSubmission)
-                        LogConsole.HandleRequest(request);
-
-                    //Console only requests do not support log file processing, and are not treated as a pending request
+                        ProcessRequest(request);
                     return request;
                 }
 
@@ -298,23 +296,35 @@ namespace LogUtils.Requests
 
             UtilityEvents.OnRegistrationChanged?.Invoke(logger, new RegistrationChangedEventArgs(status: true));
             availableLoggers.Add(logger);
+
+            IEnumerable<FileLock> acquiredLocks =
+                logger.GetAccessibleTargets()
+                      .Select(logFile => logFile.Properties.FileLock)
+                      .Where(fileLock => fileLock.IsAcquiredByCurrentThread);
+
+            //Avoiding potential deadlocks necessitates that we avoid acquiring a file lock before acquiring the request processing lock
+            if (acquiredLocks.Any())
+            {
+                //By scheduling this process event, we ensure that any request processing is handled by a thread that can safely acquire the request processing lock
+                LogTasker.Schedule(new Task(() =>
+                {
+                    ProcessRequests(logger);
+                }, 1));
+                return;
+            }
             ProcessRequests(logger);
         }
 
         /// <summary>
         /// Disables log handler communication with the log request system
         /// </summary>
-        /// <exception cref="InvalidOperationException">The logger is not allowed to be registered</exception>
         public void Unregister(ILogHandler logger)
         {
-            if (!logger.AllowRegistration)
-                throw new InvalidOperationException("Log handler does not allow registration");
-
-            UtilityEvents.OnRegistrationChanged?.Invoke(logger, new RegistrationChangedEventArgs(status: false));
-            availableLoggers.Remove(logger);
+            if (availableLoggers.Remove(logger))
+                UtilityEvents.OnRegistrationChanged?.Invoke(logger, new RegistrationChangedEventArgs(status: false));
         }
 
-        protected bool PrepareRequest(LogRequest request, long processTimestamp = -1)
+        internal bool PrepareRequest(LogRequest request, long processTimestamp = -1)
         {
             if (request == null)
             {
@@ -324,6 +334,9 @@ namespace LogUtils.Requests
 
             //Before a request can be handled properly, we need to treat it as if it is an unprocessed request
             request.ResetStatus();
+
+            if (!request.IsFileRequest) //Currently only log file requests support waiting on other requests
+                return true;
 
             //The HandleRecord needs to conditionally be reset here for WaitingOnOtherRequests to produce an accurate result
             if (processTimestamp < 0 || request.Data.Properties.HandleRecord.LastUpdated < processTimestamp)
@@ -337,7 +350,7 @@ namespace LogUtils.Requests
             return true;
         }
 
-        protected bool PrepareRequestNoReset(LogRequest request)
+        internal bool PrepareRequestNoReset(LogRequest request)
         {
             if (request == null)
             {
@@ -354,6 +367,15 @@ namespace LogUtils.Requests
                 return false;
             }
             return true;
+        }
+
+        /// <summary>
+        /// Attempts to handle all unhandled log requests belonging to one, or more LogIDs in the order they were submitted
+        /// </summary>
+        public void ProcessRequests(CompositeLogTarget logFiles)
+        {
+            foreach (LogID logFile in logFiles.Set.OfType<LogID>())
+                ProcessRequests(logFile);
         }
 
         /// <summary>
@@ -533,13 +555,32 @@ namespace LogUtils.Requests
 
             if (!shouldHandle) return;
 
-            LogID logFile = request.Data.ID;
+            if (request.LogCallback != null)
+            {
+                request.LogCallback.Invoke(request);
 
-            //Beyond this point, we can assume that there are no preexisting unhandled requests for this log file
-            ILogHandler selectedLogger = !logFile.IsGameControlled
-                ? availableLoggers.FindCompatible(logFile, request.Type) : GameLogger;
+                //Check that request was handled through the callback 
+                if (request.IsCompleteOrRejected)
+                {
+                    RequestMayBeCompleteOrInvalid(request);
+                    return;
+                }
+            }
 
-            HandleRequest(request, selectedLogger);
+            if (request.IsFileRequest)
+            {
+                LogID logFile = request.Data.ID;
+
+                //Beyond this point, we can assume that there are no preexisting unhandled requests for this log file
+                ILogHandler selectedLogger = !logFile.IsGameControlled
+                    ? availableLoggers.FindCompatible(logFile, request.Type) : GameLogger;
+
+                HandleRequest(request, selectedLogger);
+            }
+            else if (request.Type == RequestType.Console)
+            {
+                LogConsole.HandleRequest(request);
+            }
         }
 
         internal void HandleRequest(LogRequest request, ILogHandler logger)
@@ -591,8 +632,8 @@ namespace LogUtils.Requests
             {
                 if (status == DiscardStatus.Hard)
                 {
-                    if (UnhandledRequests.Remove(request))
-                        request.Submitted = false;
+                    request.Submitted = false;
+                    UnhandledRequests.Remove(request);
                 }
 
                 if (CurrentRequest == request)

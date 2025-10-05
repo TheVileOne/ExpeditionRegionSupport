@@ -6,6 +6,9 @@ using System.Linq;
 
 namespace LogUtils.Helpers.FileHandling
 {
+    /// <summary>
+    /// Helper class for interacting with the file system that is safe and supported by LogUtils
+    /// </summary>
     public static class FileUtils
     {
         /// <summary>
@@ -13,77 +16,9 @@ namespace LogUtils.Helpers.FileHandling
         /// </summary>
         public const string BRACKET_FORMAT = "{0}[{1}]{2}";
 
-        /// <summary>
-        /// Case insensitive file extensions that are supports by LogUtils for use in log filenames, or log backup filenames
-        /// </summary>
-        public static string[] SupportedExtensions = { FileExt.LOG, FileExt.TEXT, FileExt.TEMP };
-
-        public static void CreateTextFile(string filepath)
-        {
-            var stream = File.CreateText(filepath);
-
-            stream.Close();
-            stream = null;
-        }
-
-        /// <summary>
-        /// Extracts the file extension from the filename. If there is no extension, this method returns null
-        /// </summary>
-        public static string GetExtension(string filename, bool normalize = true)
-        {
-            if (!Path.HasExtension(filename))
-                return null;
-
-            string extInfo = Path.GetExtension(filename);
-
-            return !normalize ? extInfo : extInfo.ToLower();
-        }
-
-        public static string RemoveExtension(string filename)
-        {
-            return Path.ChangeExtension(filename, null);
-        }
-
-        public static string RemoveExtension(string filename, out string fileExt)
-        {
-            fileExt = null;
-            if (filename != null)
-            {
-                int extIndex = filename.LastIndexOf('.');
-
-                if (extIndex != -1)
-                {
-                    fileExt = filename.Substring(extIndex);
-                    return filename.Substring(0, extIndex);
-                }
-            }
-            return filename;
-        }
-
-        public static string TransferExtension(string transferFrom, string transferTo)
-        {
-            return Path.ChangeExtension(transferTo, GetExtension(transferFrom));
-        }
-
-        /// <summary>
-        /// Returns true if string contains a file extension listed as a supported extension for the utility
-        /// </summary>
-        public static bool IsSupportedExtension(string filename)
-        {
-            return SupportedExtensions.Contains(GetExtension(filename));
-        }
-
-        public static bool ExtensionsMatch(string filename, string filename2)
-        {
-            string fileExt = GetExtension(filename);
-            string fileExt2 = GetExtension(filename2);
-
-            return fileExt == fileExt2;
-        }
-
         public static string ApplyBracketInfo(string filename, string info)
         {
-            filename = RemoveExtension(filename, out string fileExt);
+            filename = FileExtension.Remove(filename, out string fileExt);
             return string.Format(BRACKET_FORMAT, filename, info, fileExt);
         }
 
@@ -105,13 +40,31 @@ namespace LogUtils.Helpers.FileHandling
             if (bracketIndex == -1)
                 return filename;
 
-            string extInfo = GetExtension(filename, false);
+            FileExtensionInfo extInfo = FileExtensionInfo.FromFilename(filename);
+
+            bool useExtension;
+            switch (FileExtension.LongExtensionSupport)
+            {
+                case LongExtensionSupport.SupportedOnly:
+                    useExtension = !extInfo.IsLong || extInfo.IsSupported;
+                    break;
+                case LongExtensionSupport.Ignore:
+                    useExtension = !extInfo.IsLong;
+                    break;
+                default:
+                case LongExtensionSupport.Full:
+                    useExtension = true;
+                    break;
+            }
 
             //Strips the bracket info at the end, while retaining the file extension
-            return filename.Substring(0, bracketIndex) + extInfo;
+            return filename.Substring(0, bracketIndex) + (useExtension ? extInfo.Extension : string.Empty);
         }
 
-        public static bool SafeDelete(string path, string customErrorMsg = null)
+        /// <summary>
+        /// Attempts to delete a file at the specified path
+        /// </summary>
+        public static bool TryDelete(string path, string customErrorMsg = null)
         {
             try
             {
@@ -122,11 +75,15 @@ namespace LogUtils.Helpers.FileHandling
             catch (Exception ex)
             {
                 UtilityLogger.LogError(customErrorMsg ?? "Unable to delete file", ex);
-                return false;
             }
+            return false;
         }
 
-        public static bool SafeCopy(string sourcePath, string destPath, int attemptsAllowed = 1)
+        /// <summary>
+        /// Attempts to copy a file to a specified path 
+        /// </summary>
+        /// <remarks>Any file at the destination path will be overwritten</remarks>
+        public static bool TryCopy(string sourcePath, string destPath, int attemptsAllowed = 1)
         {
             string sourceFilename = Path.GetFileName(sourcePath);
             string destFilename = Path.GetFileName(destPath);
@@ -139,25 +96,11 @@ namespace LogUtils.Helpers.FileHandling
                 return false;
             }
 
-            bool destEmpty = !File.Exists(destPath);
             bool exceptionLogged = false;
             while (attemptsAllowed > 0)
             {
                 try
                 {
-                    //Make sure destination is clear
-                    /*if (!destEmpty)
-                    {
-                        SafeDeleteFile(destPath);
-
-                        if (File.Exists(destPath)) //File removal failed
-                        {
-                            attemptsAllowed--;
-                            continue;
-                        }
-                        destEmpty = true;
-                    }*/
-
                     File.Copy(sourcePath, destPath, true);
                     return true;
                 }
@@ -187,11 +130,14 @@ namespace LogUtils.Helpers.FileHandling
                     exceptionLogged = true;
                 }
             }
-
             return false;
         }
 
-        public static bool SafeMove(string sourcePath, string destPath, int attemptsAllowed = 1)
+        /// <summary>
+        /// Attempts to move a file to a specified path
+        /// </summary>
+        /// <remarks>Any file at the destination path will be overwritten</remarks>
+        public static bool TryMove(string sourcePath, string destPath, int attemptsAllowed = 1)
         {
             string sourceFilename = Path.GetFileName(sourcePath);
             string destFilename = Path.GetFileName(destPath);
@@ -213,9 +159,7 @@ namespace LogUtils.Helpers.FileHandling
                     //Make sure destination is clear
                     if (!destEmpty)
                     {
-                        SafeDelete(destPath);
-
-                        if (File.Exists(destPath)) //File removal failed
+                        if (!TryDelete(destPath))
                         {
                             attemptsAllowed--;
                             continue;
@@ -252,48 +196,50 @@ namespace LogUtils.Helpers.FileHandling
                     exceptionLogged = true;
                 }
             }
-
             return false;
         }
 
-        public static void SafeWriteToFile(string filePath, params string[] values)
+        /// <summary>
+        /// Attempts to write one or more strings to file
+        /// </summary>
+        /// <remarks>File is created, its contents are overwritten if it already exists</remarks>
+        public static bool TryWrite(string filePath, params string[] values)
         {
-            bool fileWriteSuccess = false;
-            Exception fileWriteError = null;
-
             try
             {
-                using (TextWriter writer = File.CreateText(filePath))
-                {
-                    foreach (string entry in values)
-                        writer.WriteLine(entry);
-                    writer.Close();
-                }
-
-                fileWriteSuccess = File.Exists(filePath);
+                File.WriteAllLines(filePath, values);
+                return true;
             }
             catch (Exception ex)
             {
-                fileWriteError = ex;
+                UtilityLogger.LogError("Unable to write to file " + filePath, ex);
             }
-
-            if (!fileWriteSuccess)
-            {
-                UtilityLogger.LogError("Unable to write to file " + filePath);
-
-                if (fileWriteError != null)
-                    UtilityLogger.LogError(fileWriteError);
-            }
+            return false;
         }
 
-        public static void SafeWriteToFile(string filePath, IEnumerable<string> values)
+        /// <inheritdoc cref="TryWrite(string, string[])"/>
+        public static bool TryWrite(string filePath, IEnumerable<string> values)
         {
-            SafeWriteToFile(filePath, values.ToArray());
+            return TryWrite(filePath, values.ToArray());
         }
 
         private static readonly object writeLock = new object();
 
-        public static void WriteLine(string path, string message)
+        /// <inheritdoc cref="File.AppendAllText(string, string)"/>
+        /// <remarks>
+        /// - Appends a new line after specified string.<br/>
+        /// - Write lock is applied internally for thread safety, but is not safe to run from multiple processes.
+        /// </remarks>
+        public static void AppendLine(string path, string contents)
+        {
+            AppendText(path, contents + Environment.NewLine);
+        }
+
+        /// <inheritdoc cref="File.AppendAllText(string, string)"/>
+        /// <remarks>
+        /// - Write lock is applied internally for thread safety, but is not safe to run from multiple processes.
+        /// </remarks>
+        public static void AppendText(string path, string contents)
         {
             /*
             using (FileStream stream = File.Open(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
@@ -303,22 +249,12 @@ namespace LogUtils.Helpers.FileHandling
                 {
                     writer.Write(message);
                 }
-            } 
+            }
             */
-
             lock (writeLock)
             {
-                File.AppendAllText(path, message + Environment.NewLine);
+                File.AppendAllText(path, contents);
             }
         }
-    }
-
-    public static class FileExt
-    {
-        public const string LOG = ".log";
-        public const string TEXT = ".txt";
-        public const string TEMP = ".tmp";
-
-        public const string DEFAULT = LOG;
     }
 }

@@ -36,17 +36,9 @@ namespace LogUtils.Threading
             try
             {
                 //Activate all locks before doing any work
-                foreach (object objLock in locksEnumerable)
+                foreach (object lockObj in locksEnumerable)
                 {
-                    Lock lockCast = objLock as Lock;
-
-                    if (lockCast != null)
-                    {
-                        lockCast.Acquire();
-                        continue;
-                    }
-
-                    Monitor.Enter(objLock);
+                    AcquireLock(lockObj);
                     locksEntered++;
                 }
 
@@ -66,17 +58,33 @@ namespace LogUtils.Threading
                     locksEntered--;
                     locksEnumerator.MoveNext();
 
-                    Lock lockCast = locksEnumerator.Current as Lock;
-
-                    if (lockCast != null)
-                    {
-                        lockCast.Release();
-                        continue;
-                    }
-
-                    Monitor.Exit(locksEnumerator.Current);
+                    ReleaseLock(locksEnumerator.Current);
                 }
             }
+        }
+
+        internal void AcquireLock(object lockObj)
+        {
+            Lock lockCast = lockObj as Lock;
+
+            if (lockCast != null)
+            {
+                lockCast.Acquire();
+                return;
+            }
+            Monitor.Enter(lockObj);
+        }
+
+        internal void ReleaseLock(object lockObj)
+        {
+            Lock lockCast = lockObj as Lock;
+
+            if (lockCast != null)
+            {
+                lockCast.Release();
+                return;
+            }
+            Monitor.Exit(lockObj);
         }
 
         private IEnumerable<object> safeGetLocks() => (UseEnumerableWrapper ? _locks.ToArray() : _locks).Where(o => o != null);

@@ -1,25 +1,38 @@
 ﻿using LogUtils.Diagnostics.Tests;
 using LogUtils.Diagnostics.Tests.Utility;
 using LogUtils.Enums;
-using LogUtils.Helpers.Extensions;
 using LogUtils.Requests;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using ReportVerbosity = LogUtils.Enums.FormatEnums.FormatVerbosity;
 
 namespace LogUtils.Diagnostics
 {
     public static class Debug
     {
-        public static bool AssertsEnabled = true;
-
         /// <summary>
         /// The maximum amount of time (in milliseconds) that a logging thread update can experience without triggering a slow update report message
         /// Set to 25 by default (time windows shorter than this will be subject to context switching delays)
         /// </summary>
         public static int LogFrameReportThreshold = 25;
+
+        /// <summary>
+        /// When set to true, ignores the <see cref="DebugContext"/> information when determining whether an assert is considered a test condition
+        /// </summary>
+        public static bool AcceptTestResultsFromAnyContext;
+
+        /// <summary>
+        /// When set to true, assert results will not be assigned an identifier
+        /// </summary>
+        public static bool SuppressTestResultCount;
+
+        /// <summary>
+        /// Context flag, typically used for assert processing
+        /// </summary>
+        public static DebugContext LastKnownContext;
 
         internal static TestSuite UtilityTests;
 
@@ -32,7 +45,7 @@ namespace LogUtils.Diagnostics
         internal static void RunTests()
         {
             UtilityTests.RunAllTests();
-            //StressTests.TestMultithreadedLogging();
+            //Task.Run(StressTests.TestMultithreadedLogging);
             //StressTests.TestLoggerDisposal();
             //StressTests.LogEveryFrame(LogID.Unity, messageFrequency: 1, logUntilThisFrame: 100000, messagesPerFrame: 100);
             //TestLogsFolder();

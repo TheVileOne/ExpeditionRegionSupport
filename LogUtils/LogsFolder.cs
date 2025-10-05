@@ -1,7 +1,6 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
-using LogUtils.Helpers.Extensions;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties;
 using LogUtils.Threading;
@@ -350,6 +349,8 @@ namespace LogUtils
 
             worker.DoWork(() =>
             {
+                bool moveCompleted = false;
+
                 List<MessageBuffer> activeBuffers = new List<MessageBuffer>();
                 List<StreamResumer> streamsToResume = new List<StreamResumer>();
                 try
@@ -362,13 +363,14 @@ namespace LogUtils
                         writeBuffer.SetState(true, BufferContext.CriticalArea);
                         activeBuffers.Add(writeBuffer);
 
-                        logFile.Properties.FileLock.SetActivity(logFile, FileAction.Move); //Lock activated by ThreadSafeWorker
+                        logFile.Properties.FileLock.SetActivity(FileAction.Move); //Lock activated by ThreadSafeWorker
                         logFile.Properties.NotifyPendingMove(path);
 
                         //The move operation requires that all persistent file activity be closed until move is complete
                         streamsToResume.AddRange(logFile.Properties.PersistentStreamHandles.InterruptAll());
                     }
                     Directory.Move(CurrentPath, path);
+                    moveCompleted = true;
 
                     //Update path info for affected log files
                     foreach (LogID logFile in logFilesInFolder)
@@ -376,6 +378,12 @@ namespace LogUtils
                 }
                 finally
                 {
+                    if (!moveCompleted)
+                    {
+                        foreach (LogID logFile in logFilesInFolder)
+                            logFile.Properties.NotifyPendingMoveAborted();
+                    }
+
                     //Reopen the streams
                     streamsToResume.ResumeAll();
                     activeBuffers.ForEach(buffer => buffer.SetState(false, BufferContext.CriticalArea));

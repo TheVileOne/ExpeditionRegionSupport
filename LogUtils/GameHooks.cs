@@ -3,7 +3,6 @@ using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Formatting;
 using LogUtils.Helpers;
-using LogUtils.Helpers.Extensions;
 using LogUtils.Properties;
 using LogUtils.Requests;
 using Mono.Cecil.Cil;
@@ -128,7 +127,7 @@ namespace LogUtils
         private static void RainWorld_Awake(On.RainWorld.orig_Awake orig, RainWorld self)
         {
             ThreadUtils.MainThreadID = Environment.CurrentManagedThreadId; //Used for debug purposes
-            RainWorld._loggingLock = UtilityCore.RequestHandler.RequestProcessLock;
+            UtilityCore.RequestHandler.RequestProcessLock.BindToRainWorld();
 
             //Utility bypasses attempts to define this from the game code. Avoid any potential null references 
             JollyCoop.JollyCustom.logCache = new Queue<JollyCoop.LogElement>();
@@ -265,6 +264,13 @@ namespace LogUtils
                     UtilityCore.RequestHandler.RecursionCheckCounter++;
                     orig(self, logString, stackTrace, category);
                     processFinished = true;
+                }
+                catch (Exception ex)
+                {
+                    if (logFile != LogID.Exception)
+                        Debug.LogException(ex); //Attempt to log to exceptionLog
+                    else
+                        UtilityLogger.LogError(ex); //Fallback in case logging to exception log fails
                 }
                 finally
                 {

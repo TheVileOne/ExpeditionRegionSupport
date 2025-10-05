@@ -13,6 +13,7 @@ namespace LogUtils.Formatting
         /// <inheritdoc/>
         public Color? MessageColor { get; set; }
 
+        /// <inheritdoc/>
         public string ApplyFormat(string message, Color messageColor)
         {
             if (!LogConsole.ANSIColorSupport)
@@ -32,7 +33,7 @@ namespace LogUtils.Formatting
             {
                 if (!LogConsole.ANSIColorSupport)
                     return string.Empty;
-                return AnsiColorConverter.AnsiToForeground((Color)formatData.Argument);
+                return AnsiColorConverter.AnsiToForeground(formatData.GetColor());
             }
 
             IFormattable formattableArg = arg as IFormattable;

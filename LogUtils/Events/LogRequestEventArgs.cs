@@ -2,6 +2,7 @@
 using JollyCoop;
 using LogUtils.Console;
 using LogUtils.Enums;
+using LogUtils.Formatting;
 using LogUtils.Properties.Formatting;
 using System;
 using System.Collections.Generic;
@@ -85,7 +86,20 @@ namespace LogUtils.Events
         /// <summary>
         /// A message targeted for logging
         /// </summary>
-        public string Message => MessageObject.ToString();
+        public string Message
+        {
+            get
+            {
+                IFormattable formattable = FormattableMessage;
+                return formattable != null ? formattable.ToString(null, LogMessageFormatter.Default.ColorFormatter)
+                                           : MessageObject.ToString();
+            }
+        }
+
+        /// <summary>
+        /// Returns targeted message object as an <see cref="IFormattable"/>
+        /// </summary>
+        public IFormattable FormattableMessage => MessageObject as IFormattable; 
 
         /// <summary>
         /// The color to be used by default for a message
@@ -227,6 +241,11 @@ namespace LogUtils.Events
         public LogRequestEventArgs(ConsoleID consoleID, object messageData, LogType category) : this(LogID.NotUsed, messageData, category)
         {
             ExtraArgs.Add(new ConsoleRequestEventArgs(consoleID));
+        }
+
+        public LogRequestEventArgs(Logger.LogProcessorArgs batchArgs, object messageData, LogCategory category = null) : this(LogID.NotUsed, messageData, category)
+        {
+            ExtraArgs.Add(batchArgs);
         }
         #endregion
 

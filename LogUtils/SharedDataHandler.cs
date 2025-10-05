@@ -169,6 +169,7 @@ namespace LogUtils
             return storedData;
         }
 
+        /// <inheritdoc/>
         public override Dictionary<string, object> GetFields()
         {
             Dictionary<string, object> fields = base.GetFields();

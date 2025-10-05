@@ -1,4 +1,5 @@
-﻿using LogUtils.Enums;
+﻿using LogUtils.Collections;
+using LogUtils.Enums;
 using System.Collections.Generic;
 using System.Linq;
 

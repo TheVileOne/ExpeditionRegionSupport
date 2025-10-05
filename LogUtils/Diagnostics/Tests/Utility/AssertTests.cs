@@ -137,8 +137,6 @@ namespace LogUtils.Diagnostics.Tests.Utility
         /// <summary>
         /// Empty class used to test detection of custom collections
         /// </summary>
-        private class CustomCollection : List<string>
-        {
-        }
+        private class CustomCollection : List<string>;
     }
 }

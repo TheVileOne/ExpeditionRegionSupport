@@ -91,7 +91,7 @@ namespace LogUtils
                 var fileLock = logEntry.Properties.FileLock;
 
                 fileLock.Acquire();
-                fileLock.SetActivity(logEntry.ID, FileAction.Write);
+                fileLock.SetActivity(FileAction.Write);
 
                 ProcessResult streamResult = TryAssignWriter(logEntry.ID, out StreamWriter writer);
 

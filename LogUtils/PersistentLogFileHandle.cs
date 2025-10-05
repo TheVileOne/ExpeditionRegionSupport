@@ -16,7 +16,7 @@ namespace LogUtils
 
             //ComparisonLogIDs are unsupported
             if (FileID.Properties == null)
-                throw new ArgumentException("LogProperties instance must not be null");
+                throw new ArgumentException("LogProperties instance must not be null", nameof(logFile));
 
             CreateFileStream();
             FileID.Properties.PersistentStreamHandles.Add(this);
@@ -29,7 +29,7 @@ namespace LogUtils
             using (fileLock.Acquire())
             {
                 if (!WaitingToResume)
-                    fileLock.SetActivity(FileID, FileAction.StreamDisposal);
+                    fileLock.SetActivity(FileAction.StreamDisposal);
                 return base.InterruptStream();
             }
         }
@@ -75,24 +75,25 @@ namespace LogUtils
             }
         }
 
-        protected override void Dispose(bool disposing)
+        /// <inheritdoc/>
+        protected override void BeginDispose(bool disposeState)
+        {
+            FileID.Properties.FileLock.Acquire(); //Released on EndDispose()
+            base.BeginDispose(disposeState);
+        }
+
+        /// <inheritdoc/>
+        protected override void EndDispose(bool disposeState)
         {
             var fileLock = FileID.Properties.FileLock;
 
-            //Locked to avoid interfering with any write operations
-            using (fileLock.Acquire())
-            {
-                if (IsDisposed) return;
+            fileLock.SetActivity(FileAction.StreamDisposal);
 
-                if (disposing)
-                    OnDispose();
+            base.EndDispose(disposeState); //Safe to call without error handling
+            if (disposeState)
+                FileID.Properties.PersistentStreamHandles.Remove(this);
 
-                fileLock.SetActivity(FileID, FileAction.StreamDisposal);
-                base.Dispose(disposing);
-
-                if (disposing)
-                    FileID.Properties.PersistentStreamHandles.Remove(this);
-            }
+            fileLock.Release();
         }
     }
 }

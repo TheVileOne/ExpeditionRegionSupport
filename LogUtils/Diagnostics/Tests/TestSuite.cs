@@ -257,7 +257,7 @@ namespace LogUtils.Diagnostics.Tests
             Type type = test.GetType();
 
             //Get methods that have at least one custom attribute
-            MethodInfo[] methods = type.GetMethods()
+            MethodInfo[] methods = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                                        .Where(m => m.GetCustomAttributes(inherit: true).Any())
                                        .ToArray();
 

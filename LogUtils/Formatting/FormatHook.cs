@@ -1,5 +1,4 @@
-﻿using LogUtils.Diagnostics;
-using Mono.Cecil.Cil;
+﻿using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using System;
@@ -16,7 +15,7 @@ namespace LogUtils.Formatting
         internal static IDetour[] Create()
         {
             MethodInfo appendFormatHelper = typeof(StringBuilder).GetMethod("AppendFormatHelper", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            MethodInfo hookMethod = typeof(FormatHook).GetMethod("StringBuilder_AppendFormatHelper", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+            MethodInfo hookMethod = typeof(FormatHook).GetMethod(nameof(StringBuilder_AppendFormatHelper), BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
 
             //This is required, because this method involves an internal class that cannot be referenced through the IDE
             var args = appendFormatHelper.GetParameters();
@@ -69,7 +68,7 @@ namespace LogUtils.Formatting
             //Handle the char position of the right-most curly brace
             cursor.Emit(OpCodes.Ldloc_3); //ICustomFormatter
             cursor.Emit(OpCodes.Ldloc, 6); //Argument comma value
-            cursor.EmitDelegate(resolveArgumentData);
+            cursor.EmitDelegate<Func<object, ICustomFormatter, int, object>>(FormatData.ResolveArgument);
 
             cursor.GotoNext(MoveType.After, x => x.MatchStloc(11)); //Assignment of local variable responsible for padding spaces
 
@@ -89,66 +88,7 @@ namespace LogUtils.Formatting
 
         private static void formatPlaceholderStart(ICustomFormatter formatter)
         {
-            var provider = formatter as IColorFormatProvider;
-
-            if (provider != null)
-            {
-                var data = provider.GetData();
-
-                LinkedListNode<NodeData> currentNode = data.Entries.Last;
-                NodeData currentBuildEntry = currentNode.Value;
-                StringBuilder currentBuilder = currentBuildEntry.Builder;
-
-                int positionOffset = currentNode.GetBuildOffset();
-                if (data.UpdateBuildLength())
-                {
-                    //Handle color reset
-                    currentBuildEntry.Current = new FormatData()
-                    {
-                        BuildOffset = positionOffset,
-                        LocalPosition = currentBuildEntry.LastCheckedBuildLength
-                    };
-                    provider.ResetColor(currentBuilder, currentBuildEntry.Current);
-                    data.UpdateBuildLength();
-                }
-                else
-                {
-                    data.BypassColorCancellation = false;
-                }
-
-                //This will replace the last FormatData instance with the current one - this is by design
-                currentBuildEntry.Current = new FormatData()
-                {
-                    BuildOffset = positionOffset,
-                    LocalPosition = currentBuilder.Length
-                };
-            }
-        }
-
-        private static object resolveArgumentData(object formatArgument, ICustomFormatter formatter, int commaValue)
-        {
-            var provider = formatter as IColorFormatProvider;
-
-            if (provider != null)
-            {
-                var data = provider.GetData();
-
-                LinkedListNode<NodeData> currentNode = data.Entries.Last;
-
-                FormatData currentEntry = currentNode.Value.Current;
-                currentEntry.Argument = formatArgument;
-
-                if (currentEntry.IsColorData)
-                {
-                    Assert.That(data.RangeCounter).IsZero();
-
-                    currentEntry.Range = commaValue;
-                    data.RangeCounter = Math.Max(currentEntry.Range, 0);
-                    data.BypassColorCancellation = true; //When ANSI color codes are applied for the first time, it will cancel the range check if we don't set this bypass flag
-                    return currentEntry;
-                }
-            }
-            return formatArgument;
+            FormatData.UpdateData(formatter as IColorFormatProvider);
         }
 
         private static int adjustFormatPadding(int paddingValue, ICustomFormatter formatter)

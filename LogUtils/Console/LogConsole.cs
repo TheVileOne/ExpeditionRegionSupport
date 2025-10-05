@@ -2,13 +2,12 @@
 using LogUtils.Diagnostics;
 using LogUtils.Enums;
 using LogUtils.Events;
-using LogUtils.Helpers;
 using LogUtils.Requests;
+using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 
 namespace LogUtils.Console
 {
@@ -22,20 +21,22 @@ namespace LogUtils.Console
         /// </summary>
         public static bool ANSIColorSupport;
 
-        private static MethodInfo createConsole;
-        private static MethodInfo detachConsole;
-        private static MethodInfo setConsoleColor;
-
-        /// <summary>
-        /// Initialization process was unable to complete. This is an indication that the state is invalid
-        /// </summary>
-        public static bool InitializedWithErrors { get; private set; }
-
-        public static bool IsInitialized { get; private set; }
-
         public static bool IsEnabled { get; private set; }
 
+        /// <summary>
+        /// This lock is used for interacting with BepInEx log console
+        /// </summary>
+        public static readonly Lock WriteLock = new Lock();
+
         public static readonly List<ConsoleLogWriter> Writers = new List<ConsoleLogWriter>();
+
+        internal static void EnableAnsiSupport()
+        {
+            ANSIColorSupport = ConsoleVirtualization.TryEnableVirtualTerminal(out int errorCode);
+
+            if (!ANSIColorSupport)
+                UtilityLogger.LogWarning($"[ERROR CODE {errorCode}] ANSI color codes are unsupported");
+        }
 
         /// <summary>
         /// Finds the writer associated with a given ConsoleID
@@ -51,6 +52,13 @@ namespace LogUtils.Console
         public static ConsoleLogWriter[] FindWriters(IEnumerable<ConsoleID> targets, bool enabledOnly)
         {
             return Writers.FindAll(console => targets.Contains(console.ID) && (!enabledOnly || console.IsEnabled)).ToArray();
+        }
+
+        internal static bool HasCompatibleWriter()
+        {
+            //Users should not be tampering with ConsoleID.BepInEx. This should be a reliable way of telling if console state should be active
+            var writer = FindWriter(ConsoleID.BepInEx, enabledOnly: false);
+            return writer != null;
         }
 
         internal static void HandleRequest(LogRequest request)
@@ -94,97 +102,34 @@ namespace LogUtils.Console
         {
             UtilityLogger.Log("Checking for console availability");
 
-            var consoleState = getManagedBepInExState();
-
-            InitializedWithErrors = consoleState.ProcessedWithErrors;
-
-            if (InitializedWithErrors)
-                UtilityLogger.LogError(consoleState.Exception);
-
-            createConsole = consoleState.CreateConsole;
-            detachConsole = consoleState.DetachConsole;
-            setConsoleColor = consoleState.SetConsoleColor;
-
-            ConsoleLogWriter writer = null;
-            if (consoleState.IsEnabled)
+            TextWriter consoleStream = null;
+            if (BepInEx.ConsoleManager.ConsoleActive)
             {
-                if (ConsoleVirtualization.TryEnableVirtualTerminal(out int errorCode))
+                EnableAnsiSupport();
+                consoleStream = BepInEx.ConsoleManager.ConsoleStream;
+                if (consoleStream != null) //I don't know if it is possible for the stream to be null here
                 {
-                    ANSIColorSupport = true;
-                }
-                else
-                {
-                    UtilityLogger.LogWarning($"[ERROR CODE {errorCode}] ANSI color codes are unsupported - using fallback method");
-                }
-
-                if (consoleState.ConsoleStream != null) //I don't know if it is possible for the stream to be null here
-                {
-                    //TODO: Writer may need to be included at a later time (Override BepInEx console config setting) 
-                    Writers.RemoveAll(console => console.ID == ConsoleID.BepInEx);
-                    Writers.Add(writer = new ConsoleLogWriter(ConsoleID.BepInEx, TextWriter.Synchronized(consoleState.ConsoleStream)));
+                    //TODO: Override BepInEx console config setting
+                    AddWriter(new ConsoleLogWriter(ConsoleID.BepInEx));
                 }
             }
 
             //Console is considered in a functional state when the log writer could be instantiated successfully
-            if (writer == null)
-            {
-                UtilityLogger.Log("Console is disabled");
-                IsEnabled = false;
-            }
-            else
-            {
-                UtilityLogger.Log("Console stream started");
-                IsEnabled = true;
-            }
+            IsEnabled = consoleStream != null;
 
-            IsInitialized = true;
+            if (IsEnabled)
+                UtilityLogger.Log("Console stream started");
+            else
+                UtilityLogger.Log("Console is disabled");
         }
 
-        private static ReflectionResult getManagedBepInExState()
+        /// <summary>
+        /// Registers a <see cref="ConsoleLogWriter"/> instance
+        /// </summary>
+        public static void AddWriter(ConsoleLogWriter writer)
         {
-            ReflectionResult result = new ReflectionResult();
-
-            //Reflection allows us to interact with the BepInEx defined console stream. We cannot access it directly in BepInEx ver. 5.4.17.0. ConsoleManager is an internal class.
-            try
-            {
-                //Locate the ConsoleManager type from all loaded assemblies.
-                Type consoleManagerType = AssemblyUtils.GetAllTypes()
-                    .FirstOrDefault(matchConsoleManager) ??
-                    throw new ConsoleLoadException("ConsoleManager type not found in loaded assemblies.");
-
-                PropertyInfo consoleActiveProperty, consoleStreamProperty;
-
-                //Retrieve the static ConsoleActive property.
-                consoleActiveProperty = consoleManagerType.GetProperty(
-                    "ConsoleActive",
-                    BindingFlags.Static | BindingFlags.Public) ??
-                    throw new ConsoleLoadException("ConsoleActive property not found on ConsoleManager type.");
-
-                result.IsEnabled = (bool)consoleActiveProperty.GetValue(null);
-
-                result.SetConsoleColor = consoleManagerType.GetMethod("SetConsoleColor");
-                result.CreateConsole = consoleManagerType.GetMethod("CreateConsole");
-                result.DetachConsole = consoleManagerType.GetMethod("DetachConsole");
-
-                if (!result.MethodStatesAreValid)
-                    UtilityLogger.LogError(new ConsoleLoadException("One or more required methods could not be found on ConsoleManager type. Check BepInEx version"));
-
-                //Retrieve the static ConsoleStream property.
-                consoleStreamProperty = consoleManagerType.GetProperty(
-                    "ConsoleStream",
-                    BindingFlags.Static | BindingFlags.Public) ??
-                    throw new ConsoleLoadException("ConsoleStream property not found on ConsoleManager type.");
-
-                result.ConsoleStream = consoleStreamProperty.GetValue(null) as TextWriter;
-
-                if (result.IsEnabled && result.ConsoleStream == null)
-                    throw new ConsoleLoadException("ConsoleStream is null.");
-            }
-            catch (ConsoleLoadException ex)
-            {
-                result.Exception = ex;
-            }
-            return result;
+            Writers.RemoveAll(console => console.ID == writer.ID); //Ensure only one instance is active per ID
+            Writers.Add(writer);
         }
 
         /// <summary>
@@ -192,11 +137,11 @@ namespace LogUtils.Console
         /// </summary>
         public static void SetConsoleColor(ConsoleColor color)
         {
-            setConsoleColor.Invoke(null, [color]);
+            BepInEx.ConsoleManager.SetConsoleColor(color);
         }
 
         /// <summary>
-        /// Sets the enabled state for the BepInEx console (when it supported) 
+        /// Sets the enabled state for the BepInEx console (when it is supported) 
         /// </summary>
         public static void SetEnabledState(bool state)
         {
@@ -204,27 +149,40 @@ namespace LogUtils.Console
 
             try
             {
+                WriteLock.Acquire();
+
+                var consoleStream = BepInEx.ConsoleManager.ConsoleStream;
+                var consoleWriters = Writers.FindAll(console => console.ID == ConsoleID.BepInEx || console.Stream == consoleStream).ToArray();
                 if (state)
                 {
-                    createConsole.Invoke(null, null);
+                    BepInEx.ConsoleManager.CreateConsole();
+
+                    EnableAnsiSupport();
+                    foreach (var console in consoleWriters)
+                        console.ReloadStream();
+
                     UtilityLogger.Log("Creating console window"); //Needs to log after console construction to show up in the console
                 }
                 else
                 {
                     UtilityLogger.Log("Destroying console window");
-                    detachConsole.Invoke(null, null);
+                    BepInEx.ConsoleManager.DetachConsole();
                 }
 
-                //TODO: Confirm that console will always show, or not be shown if execution makes it to this point
+                //TODO: Can this be implemented?
+                //foreach (var writer in consoleWriters)
+                //    writer.IsEnabled = state;
                 IsEnabled = state;
             }
             catch (Exception ex)
             {
                 UtilityLogger.LogError(ex);
             }
+            finally
+            {
+                WriteLock.Release();
+            }
         }
-
-        private static bool matchConsoleManager(Type type) => type.Namespace == "BepInEx" && type.Name == "ConsoleManager";
 
         /// <summary>
         /// Writes a message to the BepInEx console (when enabled)
@@ -242,74 +200,18 @@ namespace LogUtils.Console
             WriteLine(LogCategory.Info, message);
         }
 
-        internal static void WriteLineTest()
-        {
-            ConsoleLogWriter console = FindWriter(ConsoleID.BepInEx, enabledOnly: true);
-
-            foreach (ConsoleColor colorValue in Enum.GetValues(typeof(ConsoleColor)))
-            {
-                //Show that color helpers return correct values, and the console produces the correct color
-                SetConsoleColor(colorValue);
-                console.Stream.WriteLine(colorValue);
-
-                var unityColor = ConsoleColorMap.GetColor(colorValue);
-                SetConsoleColor(ConsoleColorMap.ClosestConsoleColor(unityColor));
-                console.Stream.WriteLine("Unity Color");
-                console.Stream.WriteLine(AnsiColorConverter.ApplyFormat("ANSI Color", unityColor));
-            }
-            SetConsoleColor(ConsoleColorMap.DefaultConsoleColor);
-        }
-
         public static void WriteLine(ILogSource source, LogCategory category, string message)
         {
             ConsoleLogWriter console = FindWriter(ConsoleID.BepInEx, enabledOnly: true);
 
-            if (console == null) return;
+            if (console == null)
+                return;
 
             LogRequest request = new LogRequest(RequestType.Console, new LogRequestEventArgs(ConsoleID.BepInEx, message, category)
             {
                 LogSource = source
             });
             console.WriteFrom(request);
-        }
-
-        private struct ReflectionResult
-        {
-            internal MethodInfo CreateConsole;
-            internal MethodInfo DetachConsole;
-            internal MethodInfo SetConsoleColor; //Taken from BepInEx through reflection
-
-            internal TextWriter ConsoleStream;
-            internal bool IsEnabled;
-
-            internal Exception Exception;
-
-            internal bool MethodStatesAreValid => CreateConsole != null && DetachConsole != null && SetConsoleColor != null;
-
-            internal bool ProcessedWithErrors => Exception != null;
-        }
-    }
-
-    /// <summary>
-    /// Represents errors that occur while initializing the console
-    /// </summary>
-    public class ConsoleLoadException : Exception
-    {
-        /// <summary>
-        /// Construct a new ConsoleLoadException instance
-        /// </summary>
-        public ConsoleLoadException() : base()
-        {
-        }
-
-        /// <inheritdoc cref="ConsoleLoadException()"/>
-        public ConsoleLoadException(string message) : base(message)
-        {
-        }
-
-        /// <inheritdoc cref="ConsoleLoadException()"/>
-        public ConsoleLoadException(string message, Exception innerException) : base(message, innerException)
-        {
         }
     }
 }

@@ -24,7 +24,7 @@ namespace LogUtils
             UnvalidatedSourcePath = UnvalidatedDestinationPath = null;
             SourceFile = DestinationFile = null;
 
-            if (!FileUtils.IsSupportedExtension(sourcePath)) return false; //We don't want to handle random filetypes
+            if (!FileExtension.IsSupported(sourcePath)) return false; //We don't want to handle random filetypes
 
             //A valid filetype is all we need to validate the source path
             SourceFile = new FileInfo(sourcePath);
@@ -34,7 +34,7 @@ namespace LogUtils
             {
                 string destFilename = Path.GetFileName(destPath);
 
-                if (!FileUtils.ExtensionsMatch(SourceFile.Name, destFilename) && !FileUtils.IsSupportedExtension(destFilename))
+                if (!FileExtension.Match(SourceFile.Name, destFilename) && !FileExtension.IsSupported(destFilename))
                     return false; //We can only replace log files
 
                 DestinationFile = new FileInfo(destPath);

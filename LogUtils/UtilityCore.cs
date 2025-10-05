@@ -1,10 +1,10 @@
-﻿using LogUtils.Compatibility.BepInEx;
+﻿using BepInEx.Logging;
+using LogUtils.Compatibility.BepInEx;
 using LogUtils.Compatibility.Unity;
 using LogUtils.Console;
 using LogUtils.Diagnostics.Tools;
 using LogUtils.Enums;
 using LogUtils.Events;
-using LogUtils.Helpers.FileHandling;
 using LogUtils.IPC;
 using LogUtils.Policy;
 using LogUtils.Properties;
@@ -13,10 +13,8 @@ using LogUtils.Threading;
 using LogUtils.Timers;
 using Menu;
 using System;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using BepInExPath = LogUtils.Helpers.Paths.BepInEx;
 using Debug = LogUtils.Diagnostics.Debug;
 
 namespace LogUtils
@@ -52,6 +50,9 @@ namespace LogUtils
         /// The initialization process is in progress for the current assembly
         /// </summary>
         private static bool initializingInProgress;
+
+        /// <inheritdoc cref="UtilityConfig"/>
+        public static UtilityConfig Config;
 
         /// <summary>
         /// Handles cross-mod data storage for the utility
@@ -123,6 +124,15 @@ namespace LogUtils
                 Debug.RunTests();
             }
 
+            //Patcher log processing cleanup
+            ILogListener eventListener = PatcherLogEventProcessor.GetEventListener();
+
+            if (eventListener != null)
+            {
+                PatcherLogEventProcessor.Results.Clear(); //Results have no purpose beyond this point - clear to free up memory
+                eventListener.Dispose(); //This event listener removes itself from the Listeners collection when disposed
+            }
+
             initializingInProgress = false;
             IsInitialized = true;
         }
@@ -135,16 +145,12 @@ namespace LogUtils
             {
                 case UtilitySetup.InitializationStep.SETUP_ENVIRONMENT:
                     {
+                        //Utility logger cannot be used before it is initialized, and debug log cannot be used before config is read
                         UnityLogger.EnsureLogTypeCapacity(UtilityConsts.CUSTOM_LOGTYPE_LIMIT);
                         UtilityLogger.Initialize();
 
-                        //TODO: Read LogUtils policies from config file
+                        UtilityConfig.Initialize();
                         AnnounceBuild();
-
-                        if (PatcherPolicy.ShouldDeploy)
-                            DeployPatcher();
-                        else
-                            RemovePatcher();
 
                         DeadlockTester.Run();
 
@@ -175,7 +181,18 @@ namespace LogUtils
                     }
                 case UtilitySetup.InitializationStep.INITIALIZE_COMPONENTS:
                     {
+                        ProcessMonitor.WaitOnConnectionStatus();
+                        UtilityLogger.Log("IsControllingAssembly: " + IsControllingAssembly);
+
                         LoadComponents();
+
+                        nextStep = UtilitySetup.InitializationStep.INITIALIZE_PATCHER;
+                        break;
+                    }
+                case UtilitySetup.InitializationStep.INITIALIZE_PATCHER:
+                    {
+                        PatcherLogEventProcessor.ProcessLogEvents();
+                        PatcherController.Initialize();
 
                         nextStep = UtilitySetup.InitializationStep.INITIALIZE_ENUMS;
                         break;
@@ -188,6 +205,10 @@ namespace LogUtils
                         ConsoleID.InitializeEnums();
                         LogCategory.InitializeEnums();
                         LogID.InitializeEnums();
+
+                        //These are regular ExtEnums, and do not depend on any component
+                        //TODO: BufferContext.InitializeEnums();
+                        DebugContext.InitializeEnums();
 
                         nextStep = UtilitySetup.InitializationStep.PARSE_FILTER_RULES;
                         break;
@@ -206,6 +227,7 @@ namespace LogUtils
                     {
                         //This must be run before late initialized log files are handled to allow BepInEx log file to be moved
                         BepInExAdapter.Run();
+                        UnityAdapter.Run();
                         LogConsole.Initialize();
 
                         if (!IsControllingAssembly)
@@ -219,6 +241,9 @@ namespace LogUtils
                     }
                 case UtilitySetup.InitializationStep.POST_LOGID_PROCESSING:
                     {
+                        if (PatcherPolicy.ShowPatcherLog)
+                            PatcherLogEventProcessor.LogResults();
+
                         PropertyManager.ProcessLogFiles();
 
                         //Listen for Unity log requests while the log file is unavailable
@@ -276,9 +301,6 @@ namespace LogUtils
         /// </summary>
         internal static void LoadComponents()
         {
-            ProcessMonitor.WaitOnConnectionStatus();
-            UtilityLogger.Log("IsControllingAssembly: " + IsControllingAssembly);
-
             Scheduler = UtilityComponent.Create<EventScheduler>();
             PersistenceManager = UtilityComponent.Create<PersistenceManager>();
             DataHandler = UtilityComponent.Create<SharedDataHandler>();
@@ -326,89 +348,12 @@ namespace LogUtils
             UtilityEvents.OnProcessSwitch.Invoke();
         }
 
-        internal static void DeployPatcher()
-        {
-            UtilityLogger.Log("Checking patcher status");
-
-            byte[] byteStream = (byte[])Resources.ResourceManager.GetObject(UtilityConsts.ResourceNames.PATCHER);
-
-            Version resourceVersion = Assembly.ReflectionOnlyLoad(byteStream).GetName().Version;
-            UtilityLogger.Log("Patcher resource version: " + resourceVersion);
-
-            string patcherPath = Path.Combine(BepInExPath.PatcherPath, "LogUtils.VersionLoader.dll");
-            string patcherBackupPath = Path.Combine(BepInExPath.BackupPath, "LogUtils.VersionLoader.dll");
-
-            if (File.Exists(patcherPath)) //Already deployed
-            {
-                Version activeVersion = AssemblyName.GetAssemblyName(patcherPath).Version;
-
-                if (activeVersion == resourceVersion)
-                {
-                    UtilityLogger.Log("Patcher found");
-                }
-                else
-                {
-                    UtilityLogger.Log($"Current patcher version doesn't match resource - (Current {activeVersion})");
-                    if (activeVersion < resourceVersion)
-                    {
-                        //Patcher will be replaced the next time Rain World starts
-                        UtilityLogger.Log($"Replacing patcher with new version");
-                        RemovePatcher();
-                    }
-                }
-                return;
-            }
-
-            UtilityLogger.Log("Deploying patcher");
-            try
-            {
-                FileUtils.SafeDelete(patcherBackupPath); //Patcher should never exist in both patchers, and backup directories at the same time
-
-                File.WriteAllBytes(patcherPath, byteStream);
-                UnityDoorstop.AddToWhitelist("LogUtils.VersionLoader.dll");
-            }
-            catch (FileNotFoundException)
-            {
-                UtilityLogger.LogWarning("whitelist.txt is unavailable");
-            }
-            catch (IOException ex)
-            {
-                UtilityLogger.LogError("Unable to deploy patcher", ex);
-            }
-        }
-
-        internal static void RemovePatcher()
-        {
-            UtilityLogger.Log("Checking patcher status");
-
-            string patcherPath = Path.Combine(BepInExPath.PatcherPath, "LogUtils.VersionLoader.dll");
-
-            if (!File.Exists(patcherPath)) //Patcher not available
-            {
-                UtilityLogger.Log("Patcher not found");
-                return;
-            }
-
-            UtilityLogger.Log("Removing patcher");
-            try
-            {
-                UnityDoorstop.RemoveFromWhitelist("LogUtils.VersionLoader.dll");
-            }
-            catch (FileNotFoundException)
-            {
-                UtilityLogger.LogWarning("whitelist.txt is unavailable");
-            }
-            catch (IOException ex)
-            {
-                UtilityLogger.LogError("Unable to remove patcher", ex);
-            }
-        }
-
         internal static void OnProcessSwitch()
         {
-            if (LogConsole.FindWriter(ConsoleID.BepInEx, false) != null)
+            if (LogConsole.HasCompatibleWriter())
                 LogConsole.SetEnabledState(true);
 
+            Config.ReloadFromProcessSwitch();
             PropertyManager.ReloadFromProcessSwitch();
 
             //Refresh PropertyFile stream - It is currently has read only permissions
@@ -419,6 +364,7 @@ namespace LogUtils
         {
             LogProperties.PropertyManager.SaveToFile();
 
+            Config.TrySave();
             UtilityLogger.Log("Disabling log files");
 
             //End all active log sessions

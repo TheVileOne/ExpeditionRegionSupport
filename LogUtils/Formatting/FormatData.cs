@@ -1,13 +1,16 @@
 ﻿using LogUtils.Console;
+using LogUtils.Diagnostics;
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 using UnityEngine;
+using static LogUtils.Formatting.FormatDataAccess;
 
 namespace LogUtils.Formatting
 {
     /// <summary>
-    /// A data class for storing format informations
+    /// A data class for storing format information
     /// </summary>
     public sealed class FormatData
     {
@@ -17,9 +20,9 @@ namespace LogUtils.Formatting
         public object Argument;
 
         /// <summary>
-        /// Checks that Argument is a UnityEngine.Color
+        /// Checks that Argument is a <see cref="Color"/> or a <see cref="ConsoleColor"/>
         /// </summary>
-        public bool IsColorData => Argument is Color;
+        public bool IsColorData => Argument is Color || Argument is ConsoleColor;
 
         /// <summary>
         /// The positional offset between the local build position, and the actual position in the formatted string
@@ -40,6 +43,91 @@ namespace LogUtils.Formatting
         /// The number of valid chars to apply color formatting
         /// </summary>
         public int Range;
+
+        /// <summary>
+        /// Converts format argument into a <see cref="Color"/> value
+        /// </summary>
+        /// <exception cref="InvalidCastException">The format argument cannot be cast to a <see cref="Color"/> value</exception>
+        public Color GetColor()
+        {
+            if (Argument is ConsoleColor color)
+                return ConsoleColorMap.GetColor(color);
+            return (Color)Argument;
+        }
+
+        /// <summary>
+        /// Converts argument into a <see cref="FormatData"/> object when passed an implementation of <see cref="IColorFormatProvider"/>, and the argument is a supported Color type 
+        /// </summary>
+        /// <param name="formatArgument">An argument value to a formatted string</param>
+        /// <param name="formatter">Handler responsible for formatting <paramref name="formatArgument"/></param>
+        /// <param name="commaValue">Alignment value of <paramref name="formatArgument"/>. This value is borrowed, and used as a range length.</param>
+        /// <returns>The replacement for <paramref name="formatArgument"/>, or the same instance when extra data is not required</returns>
+        internal static object ResolveArgument(object formatArgument, ICustomFormatter formatter, int commaValue)
+        {
+            var colorProvider = formatter as IColorFormatProvider;
+
+            if (colorProvider != null)
+                return ResolveArgument(formatArgument, colorProvider, commaValue);
+
+            return formatArgument;
+        }
+
+        /// <inheritdoc cref="ResolveArgument(object, ICustomFormatter, int)"/>
+        internal static object ResolveArgument(object formatArgument, IColorFormatProvider provider, int commaValue)
+        {
+            var data = provider.GetData();
+
+            LinkedListNode<NodeData> currentNode = data.Entries.Last;
+
+            FormatData currentEntry = currentNode.Value.Current;
+
+            currentEntry.Argument = formatArgument;
+
+            if (currentEntry.IsColorData)
+            {
+                currentEntry.Range = commaValue;
+                data.RangeCounter = Math.Max(currentEntry.Range, 0);
+                data.BypassColorCancellation = true; //When ANSI color codes are applied for the first time, it will cancel the range check if we don't set this bypass flag
+                return currentEntry;
+            }
+            return formatArgument;
+        }
+
+        internal static void UpdateData(IColorFormatProvider provider)
+        {
+            if (provider == null)
+                return;
+
+            var data = provider.GetData();
+
+            LinkedListNode<NodeData> currentNode = data.Entries.Last;
+            NodeData currentBuildEntry = currentNode.Value;
+            StringBuilder currentBuilder = currentBuildEntry.Builder;
+
+            int positionOffset = currentNode.GetBuildOffset();
+            if (data.UpdateBuildLength())
+            {
+                //Handle color reset
+                currentBuildEntry.Current = new FormatData()
+                {
+                    BuildOffset = positionOffset,
+                    LocalPosition = currentBuildEntry.LastCheckedBuildLength
+                };
+                provider.ResetColor(currentBuilder, currentBuildEntry.Current);
+                data.UpdateBuildLength();
+            }
+            else
+            {
+                data.BypassColorCancellation = false;
+            }
+
+            //This will replace the last FormatData instance with the current one - this is by design
+            currentBuildEntry.Current = new FormatData()
+            {
+                BuildOffset = positionOffset,
+                LocalPosition = currentBuilder.Length
+            };
+        }
     }
 
     internal static class FormatDataAccess
@@ -146,12 +234,12 @@ namespace LogUtils.Formatting
                 //We are not expecting there to be format information in the string here
                 if (!ExpectAnsiCode && (RangeCounter == 0 || numCharsSinceLastArgument == 0))
                 {
-                    if (numCharsSinceLastArgument > 0)
-                    {
-                        string unprocessedBuildString = currentBuilder.ToString().Substring(currentBuilder.Length - numCharsSinceLastArgument);
+                    //if (numCharsSinceLastArgument > 0)
+                    //{
+                    //    string unprocessedBuildString = currentBuilder.ToString().Substring(currentBuilder.Length - numCharsSinceLastArgument);
 
-                        //UtilityLogger.DebugLog($"'{unprocessedBuildString}' will remain at the last assigned color");
-                    }
+                    //    UtilityLogger.DebugLog($"'{unprocessedBuildString}' will remain at the last assigned color");
+                    //}
                     currentBuildEntry.LastCheckedBuildLength = currentBuilder.Length;
                     return false;
                 }

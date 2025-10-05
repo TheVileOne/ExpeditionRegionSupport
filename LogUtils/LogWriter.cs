@@ -187,6 +187,9 @@ namespace LogUtils
         /// <returns>A handle to the scheduled write task</returns>
         public Task WriteFromBuffer(LogID logFile, TimeSpan waitTime, bool respectBufferState = true)
         {
+            if (!UtilityCore.IsControllingAssembly)
+                return null;
+
             MessageBuffer writeBuffer = logFile.Properties.WriteBuffer;
             FileLock fileLock = logFile.Properties.FileLock;
 
@@ -234,7 +237,7 @@ namespace LogUtils
                     return false;
 
                 fileLock.Acquire();
-                fileLock.SetActivity(logFile, FileAction.Write);
+                fileLock.SetActivity(FileAction.Write);
 
                 ProcessResult result = TryAssignWriter(logFile, out StreamWriter writer);
 
@@ -292,7 +295,7 @@ namespace LogUtils
             var fileLock = logFile.Properties.FileLock;
 
             fileLock.Acquire();
-            fileLock.SetActivity(logFile, FileAction.Write);
+            fileLock.SetActivity(FileAction.Write);
 
             ProcessResult streamResult = TryAssignWriter(logFile, out StreamWriter writer);
 
@@ -423,14 +426,14 @@ namespace LogUtils
 
             using (fileLock.Acquire())
             {
-                fileLock.SetActivity(logFile, FileAction.Buffering);
+                fileLock.SetActivity(FileAction.Buffering);
 
                 messageData.CacheMessageTotal();
 
                 //Keep this inside a lock, we want to ensure that it remains in sync with the MessagesHandled count, which is used for this process
                 string message = ApplyRules(messageData);
 
-                logFile.Properties.WriteBuffer.AppendMessage(message);
+                logFile.Properties.WriteBuffer.AppendLine(message);
                 logFile.Properties.MessagesHandledThisSession++;
             }
         }

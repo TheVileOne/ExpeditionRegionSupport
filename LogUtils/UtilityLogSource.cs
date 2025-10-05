@@ -1,13 +1,14 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Compatibility.BepInEx;
 using LogUtils.Enums;
+using LogUtils.Formatting;
 using System;
 using System.Threading;
 using UnityEngine;
 
 namespace LogUtils
 {
-    internal class UtilityLogSource : IExtendedLogSource
+    internal sealed class UtilityLogSource : IExtendedLogSource, IFormatLogger
     {
         public event EventHandler<LogEventArgs> LogEvent;
 
@@ -22,53 +23,122 @@ namespace LogUtils
             return recursiveAccessFlag;
         }
 
-        #region Implementation
-        public void Log(object data)
+        #region ILogger members
+
+        public void Log(object messageObj)
         {
-            Log(LogLevel.Info, data);
+            LogBase(LogLevel.Info, messageObj);
         }
 
-        public void LogDebug(object data)
+        public void LogDebug(object messageObj)
         {
-            Log(LogLevel.Debug, data);
+            LogBase(LogLevel.Debug, messageObj);
         }
 
-        public void LogInfo(object data)
+        public void LogInfo(object messageObj)
         {
-            Log(LogLevel.Info, data);
+            LogBase(LogLevel.Info, messageObj);
         }
 
-        public void LogImportant(object data)
+        public void LogImportant(object messageObj)
         {
-            Log(LogCategory.Important.BepInExCategory, data);
+            LogBase(LogCategory.Important.BepInExCategory, messageObj);
         }
 
-        public void LogMessage(object data)
+        public void LogMessage(object messageObj)
         {
-            Log(LogLevel.Message, data);
+            LogBase(LogLevel.Message, messageObj);
         }
 
-        public void LogWarning(object data)
+        public void LogWarning(object messageObj)
         {
-            Log(LogLevel.Warning, data);
+            LogBase(LogLevel.Warning, messageObj);
         }
 
-        public void LogError(object data)
+        public void LogError(object messageObj)
         {
-            Log(LogLevel.Error, data);
+            LogBase(LogLevel.Error, messageObj);
         }
 
-        public void LogFatal(object data)
+        public void LogFatal(object messageObj)
         {
-            Log(LogLevel.Fatal, data);
+            LogBase(LogLevel.Fatal, messageObj);
         }
 
-        public void Log(LogType category, object data)
+        public void Log(LogType category, object messageObj)
         {
-            Log(LogCategory.ToCategory(category).BepInExCategory, data);
+            LogBase(LogCategory.ToCategory(category).BepInExCategory, messageObj);
         }
 
-        public void Log(LogLevel category, object data)
+        public void Log(LogLevel category, object messageObj)
+        {
+            LogBase(category, messageObj);
+        }
+
+        public void Log(LogCategory category, object messageObj)
+        {
+            LogBase(category.BepInExCategory, messageObj);
+        }
+        #endregion
+        #region IFormattableLogger members
+
+        public void Log(InterpolatedStringHandler messageObj)
+        {
+            LogBase(LogLevel.Info, messageObj);
+        }
+
+        public void LogDebug(InterpolatedStringHandler messageObj)
+        {
+            LogBase(LogLevel.Debug, messageObj);
+        }
+
+        public void LogInfo(InterpolatedStringHandler messageObj)
+        {
+            LogBase(LogLevel.Info, messageObj);
+        }
+
+        public void LogImportant(InterpolatedStringHandler messageObj)
+        {
+            LogBase(LogCategory.Important.BepInExCategory, messageObj);
+        }
+
+        public void LogMessage(InterpolatedStringHandler messageObj)
+        {
+            LogBase(LogLevel.Message, messageObj);
+        }
+
+        public void LogWarning(InterpolatedStringHandler messageObj)
+        {
+            LogBase(LogLevel.Warning, messageObj);
+        }
+
+        public void LogError(InterpolatedStringHandler messageObj)
+        {
+            LogBase(LogLevel.Error, messageObj);
+        }
+
+        public void LogFatal(InterpolatedStringHandler messageObj)
+        {
+            LogBase(LogLevel.Fatal, messageObj);
+        }
+
+        public void Log(LogType category, InterpolatedStringHandler messageObj)
+        {
+            LogBase(LogCategory.ToCategory(category).BepInExCategory, messageObj);
+        }
+
+        public void Log(LogLevel category, InterpolatedStringHandler messageObj)
+        {
+            LogBase(category, messageObj);
+        }
+
+        public void Log(LogCategory category, InterpolatedStringHandler messageObj)
+        {
+            LogBase(category.BepInExCategory, messageObj);
+        }
+        #endregion
+
+        internal void LogBase(LogLevel category, object messageObj)
         {
             Monitor.Enter(sourceLock);
 
@@ -81,7 +151,7 @@ namespace LogUtils
             recursiveAccessFlag = true;
             try
             {
-                LogEvent?.Invoke(this, new LogEventArgs(data, category, this));
+                LogEvent?.Invoke(this, new LogEventArgs(messageObj, category, this));
             }
             finally
             {
@@ -90,17 +160,9 @@ namespace LogUtils
             }
         }
 
-        public void Log(string category, object data)
-        {
-            Log(LogCategory.ToCategory(category).BepInExCategory, data);
-        }
-
-        public void Log(LogCategory category, object data)
-        {
-            Log(category.BepInExCategory, data);
-        }
-        #endregion
-
+        /// <summary>
+        /// Performs tasks for disposing a <see cref="UtilityLogSource"/>
+        /// </summary>
         public void Dispose()
         {
             BepInEx.Logging.Logger.Sources.Remove(this);

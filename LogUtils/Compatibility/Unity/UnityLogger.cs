@@ -12,8 +12,12 @@ namespace LogUtils.Compatibility.Unity
     /// </summary>
     public class UnityLogger : ILogger
     {
-        private static bool _receiveUnityLogEvents;
+        /// <summary>
+        /// Critical section flag for interacting with Unity's logging API
+        /// </summary>
+        internal static bool IsSafeToLogToUnity = true;
 
+        private static bool _receiveUnityLogEvents;
         internal static bool ReceiveUnityLogEvents
         {
             get => _receiveUnityLogEvents;
@@ -114,13 +118,6 @@ namespace LogUtils.Compatibility.Unity
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
         /// <remarks>Utilizes Unity's logging API</remarks>
-        public void Log(string category, object messageObj)
-        {
-            Log(LogCategory.ToCategory(category), messageObj);
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        /// <remarks>Utilizes Unity's logging API</remarks>
         public void Log(LogCategory category, object messageObj)
         {
             Debug.unityLogger.Log(category.UnityCategory, messageObj);
@@ -128,6 +125,7 @@ namespace LogUtils.Compatibility.Unity
 
         private static void logEvent(string message, string stackTrace, LogType category)
         {
+            IsSafeToLogToUnity = false;
             using (UtilityCore.RequestHandler.BeginCriticalSection())
             {
                 UtilityCore.RequestHandler.SanitizeCurrentRequest();
@@ -151,15 +149,19 @@ namespace LogUtils.Compatibility.Unity
                             if (!RWInfo.CheckExceptionMatch(LogID.Exception, exceptionInfo))
                             {
                                 RWInfo.ReportException(LogID.Exception, exceptionInfo);
-                                UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Exception, exceptionInfo, category)), false);
+                                request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Exception, exceptionInfo, category)), false);
                             }
                             return;
                         }
-                        UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Unity, message, category)), false);
+                        request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Unity, message, category)), false);
                     }
                     finally
                     {
+                        if (request != null && request.Status == RequestStatus.Rejected)
+                            UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
+
                         UtilityCore.RequestHandler.RecursionCheckCounter--;
+                        IsSafeToLogToUnity = true;
                     }
                 }
             }

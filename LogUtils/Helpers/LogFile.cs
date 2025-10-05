@@ -1,5 +1,4 @@
 ﻿using LogUtils.Enums;
-using LogUtils.Helpers.Extensions;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Requests;
 using System.Collections.Generic;
@@ -64,7 +63,7 @@ namespace LogUtils.Helpers
                     return FileStatus.NoActionRequired;
                 }
 
-                fileLock.SetActivity(logFile, FileAction.Move);
+                fileLock.SetActivity(FileAction.Move);
 
                 //The move operation requires that all persistent file activity be closed until move is complete
                 var streamsToResume = logFile.Properties.PersistentStreamHandles.InterruptAll();
@@ -138,7 +137,7 @@ namespace LogUtils.Helpers
 
             using (fileLock.Acquire())
             {
-                fileLock.SetActivity(logFile, FileAction.Open);
+                fileLock.SetActivity(FileAction.Open);
                 bool retryAttempt = false;
 
             retry:
@@ -172,8 +171,15 @@ namespace LogUtils.Helpers
         {
             try
             {
+                FileAccess access = FileAccess.ReadWrite;
+                if (!UtilityCore.IsControllingAssembly)
+                {
+                    mode = FileMode.Open;
+                    access = FileAccess.Read;
+                }
+
                 //Open filestream using maximal FileShare privileges
-                FileStream stream = File.Open(logFile.Properties.CurrentFilePath, mode, FileAccess.ReadWrite, FileShare.ReadWrite);
+                FileStream stream = File.Open(logFile.Properties.CurrentFilePath, mode, access, FileShare.ReadWrite);
 
                 //Seeks to the end of the file - I don't know of a better way of handling this. Other methods that append to the file also create the file
                 //for us. It is important for the utility to handle creating the file using its own process
@@ -210,6 +216,12 @@ namespace LogUtils.Helpers
         /// </summary>
         public static void StartNewSession(LogID logFile)
         {
+            if (!UtilityCore.IsControllingAssembly)
+            {
+                UtilityLogger.DebugLog("Replacing log file from alternate Rain World processes is unsupported");
+                return;
+            }
+
             logFile.Properties.EndLogSession();
 
             var streamsToResume = logFile.Properties.PersistentStreamHandles.InterruptAll();
@@ -217,11 +229,11 @@ namespace LogUtils.Helpers
 
             using (fileLock.Acquire())
             {
-                fileLock.SetActivity(logFile, FileAction.Delete);
+                fileLock.SetActivity(FileAction.Delete);
 
                 if (logFile.Properties.FileExists)
                 {
-                    bool fileRemoved = FileUtils.SafeDelete(logFile.Properties.CurrentFilePath, "Unable to delete log file");
+                    bool fileRemoved = FileUtils.TryDelete(logFile.Properties.CurrentFilePath, "Unable to delete log file");
 
                     if (fileRemoved)
                         logFile.Properties.FileExists = false;
@@ -259,7 +271,7 @@ namespace LogUtils.Helpers
 
         public static string FindPathWithoutFileExtension(string searchPath, string filename)
         {
-            return FileUtils.SupportedExtensions.Select(fileExt => Path.Combine(searchPath, filename + fileExt)).FirstOrDefault(File.Exists);
+            return FileExtension.SupportedExtensions.Select(fileExt => Path.Combine(searchPath, filename + fileExt)).FirstOrDefault(File.Exists);
         }
 
         public static ILogWriter FindWriter(LogID logFile)

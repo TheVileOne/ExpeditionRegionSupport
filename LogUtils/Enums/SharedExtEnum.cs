@@ -97,10 +97,10 @@ namespace LogUtils.Enums
         /// <exception cref="ValueNotFoundException">A registered entry was not found with the given value</exception>
         public static T Parse(string value)
         {
-            value = value.Trim();
+            value = value?.Trim();
 
-            if (value == string.Empty)
-                throw new ArgumentException("An empty string is not considered a valid value.");
+            if (string.IsNullOrEmpty(value))
+                throw new ArgumentException("Value cannot be null or empty.", nameof(value));
 
             T result = (T)Activator.CreateInstance(typeof(T), value, false);
             if (!result.Registered)
@@ -117,9 +117,9 @@ namespace LogUtils.Enums
         public static bool TryParse(string value, out T result)
         {
             result = null;
-            value = value.Trim();
+            value = value?.Trim();
 
-            if (value == string.Empty)
+            if (string.IsNullOrEmpty(value))
                 return false;
 
             result = (T)Activator.CreateInstance(typeof(T), value, false);

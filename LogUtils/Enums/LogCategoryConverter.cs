@@ -1,6 +1,5 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Helpers;
-using LogUtils.Helpers.Extensions;
 using System;
 using UnityEngine;
 
@@ -111,7 +110,7 @@ namespace LogUtils.Enums
             }
             catch (ArgumentOutOfRangeException)
             {
-                UtilityLogger.LogWarning("Invalid conversion offset processed during LogCategory conversion");
+                UtilityLogger.LogWarning("Invalid conversion offset processed during LogCategory conversion. Offset: " + enumValue);
             }
             return Default;
         }

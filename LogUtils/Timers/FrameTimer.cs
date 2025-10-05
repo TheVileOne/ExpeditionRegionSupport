@@ -17,7 +17,7 @@ namespace LogUtils.Timers
             set
             {
                 if (value <= 0)
-                    throw new ArgumentOutOfRangeException(nameof(Frequency));
+                    throw new ArgumentOutOfRangeException(nameof(value));
                 _frequency = value;
             }
         }
@@ -49,7 +49,7 @@ namespace LogUtils.Timers
         public FrameTimer(int interval, bool syncToRainWorld = false)
         {
             if (interval <= 0)
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException(nameof(interval));
 
             IsSynchronous = syncToRainWorld;
             Frequency = interval;

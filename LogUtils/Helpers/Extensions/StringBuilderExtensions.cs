@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace LogUtils.Helpers.Extensions
+namespace LogUtils
 {
     public static partial class ExtensionMethods
     {
@@ -28,6 +28,13 @@ namespace LogUtils.Helpers.Extensions
             foreach (string comment in applicableComments.Select(entry => entry.Message))
                 builder.AppendLine(comment);
             return builder;
+        }
+
+        internal static StringBuilder AppendPlaceholderValue(this StringBuilder builder, string value)
+        {
+            return builder.Append('{')
+                          .Append(value)
+                          .Append('}');
         }
 
         internal static StringBuilder AppendPropertyString(this StringBuilder builder, string name, string value = "")

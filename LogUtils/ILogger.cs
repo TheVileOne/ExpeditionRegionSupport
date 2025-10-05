@@ -1,6 +1,8 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
+using LogUtils.Formatting;
 using LogUtils.Requests;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using LoggerDocs = LogUtils.Documentation.LoggerDocumentation;
@@ -10,43 +12,51 @@ namespace LogUtils
     /// <summary>
     /// Represents a type used to perform logging
     /// </summary>
-    public interface ILogger
+    public interface ILogger : ILogger<object>;
+
+    /// <summary>
+    /// Represents a type used to perform logging that supports <see cref="InterpolatedStringHandler"/>
+    /// </summary>
+    public interface IFormatLogger : ILogger, ILogger<InterpolatedStringHandler>;
+
+    /// <summary>
+    /// Represents a type used to perform logging
+    /// </summary>
+    /// <typeparam name="T">The type accepted as the message argument</typeparam>
+    public interface ILogger<T>
     {
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object)"/>
-        void Log(object messageObj);
+        void Log(T messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object)"/>
-        void LogDebug(object messageObj);
+        void LogDebug(T messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object)"/>
-        void LogInfo(object messageObj);
+        void LogInfo(T messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object)"/>
-        void LogImportant(object messageObj);
+        void LogImportant(T messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object)"/>
-        void LogMessage(object messageObj);
+        void LogMessage(T messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object)"/>
-        void LogWarning(object messageObj);
+        void LogWarning(T messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogError(object)"/>
-        void LogError(object messageObj);
+        void LogError(T messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object)"/>
-        void LogFatal(object messageObj);
+        void LogFatal(T messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        void Log(LogType category, object messageObj);
+        void Log(LogType category, T messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        void Log(LogLevel category, object messageObj);
+        void Log(LogLevel category, T messageObj);
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        void Log(string category, object messageObj);
-
-        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        void Log(LogCategory category, object messageObj);
+        void Log(LogCategory category, T messageObj);
     }
 
     /// <summary>

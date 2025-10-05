@@ -1,10 +1,10 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Collections;
 using LogUtils.Diagnostics.Tools;
 using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Helpers.Comparers;
-using LogUtils.Helpers.Extensions;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties.Custom;
 using LogUtils.Properties.Formatting;
@@ -23,6 +23,12 @@ namespace LogUtils.Properties
 {
     public partial class LogProperties : IEquatable<LogProperties>
     {
+        /// <summary>
+        /// The latest properties version recognized by LogUtils
+        /// </summary>
+        /// <remarks>Major&lt;Reserved for LogUtils&gt; Minor (or less)&lt;Reserved for mod usage&gt;</remarks>
+        public static readonly Version LatestVersion = new Version(0, 5, 0);
+
         public static PropertyDataController PropertyManager => UtilityCore.PropertyManager;
 
         public CustomLogPropertyCollection CustomProperties = new CustomLogPropertyCollection();
@@ -30,7 +36,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// A prioritized order of process actions that must be applied to a message string before logging it to file 
         /// </summary>
-        public LogRuleCollection Rules = new LogRuleCollection();
+        public LogRuleCollection Rules;
 
         /// <summary>
         /// Events triggers at the start, or the end of a log session
@@ -40,7 +46,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// Ensures thread safety while accessing the log file
         /// </summary>
-        public FileLock FileLock = new FileLock();
+        public FileLock FileLock;
 
         /// <summary>
         /// This field contains the last known LogRequest handle state for this LogID, particularly the rejection status, and the reason for rejection of the request
@@ -106,7 +112,7 @@ namespace LogUtils.Properties
                     readOnlyRestoreEvent?.Cancel();
                     readOnlyRestoreEvent = null;
                 }
-                _readOnly = Rules.ReadOnly = value;
+                _readOnly = value;
             }
         }
 
@@ -146,7 +152,7 @@ namespace LogUtils.Properties
         private string _idValue;
         private ManualLogSource _logSource;
         private bool _readOnly;
-        private string _version = "0.5.0";
+        private Version _version = LatestVersion;
         private bool _logsFolderAware;
         private bool _logsFolderEligible = true;
 
@@ -175,7 +181,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// List of targeted ConsoleIDs to send requests to when logging to file
         /// </summary>
-        public List<ConsoleID> ConsoleIDs = new List<ConsoleID>();
+        public ValueCollection<ConsoleID> ConsoleIDs;
 
         public ManualLogSource LogSource
         {
@@ -196,7 +202,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// A string representation of the content state. This is useful for preventing user sourced changes from being overwritten by mods
         /// </summary>
-        public string Version
+        public Version Version
         {
             get => _version;
             set
@@ -204,7 +210,11 @@ namespace LogUtils.Properties
                 if (_version == value) return;
 
                 if (value == null)
-                    throw new ArgumentNullException(nameof(Version));
+                    throw new ArgumentNullException(nameof(value));
+
+                //Detect outdated versions, updating to the latest major revision
+                if (LatestVersion.Major > value.Major)
+                    value = value.Bump(VersionCode.Major, LatestVersion.Major - value.Major);
 
                 ReadOnly = false; //Updating the version exposes LogProperties to changes
                 _version = value;
@@ -326,12 +336,19 @@ namespace LogUtils.Properties
         public LogRule ShowLineCount => Rules.FindByType<ShowLineCountRule>();
         #endregion
 
-        public LogProperties(string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS) : this(FileUtils.RemoveExtension(filename), filename, relativePathNoFile)
+        public LogProperties(string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS) : this(FileExtension.Remove(filename), filename, relativePathNoFile)
         {
         }
 
         internal LogProperties(string propertyID, string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS)
         {
+            FileLock = new FileLock(new Lock.ContextProvider(() => ID));
+
+            ReadOnlyProvider readOnlyProvider = new ReadOnlyProvider(() => ReadOnly);
+
+            Rules = new LogRuleCollection(readOnlyProvider);
+            ConsoleIDs = new ValueCollection<ConsoleID>(readOnlyProvider);
+
             UtilityLogger.DebugLog("Generating properties for " + propertyID);
             UtilityLogger.Log("Generating properties for " + propertyID);
             _idValue = propertyID;
@@ -467,12 +484,12 @@ namespace LogUtils.Properties
                 FileStatus status;
                 if (copyOnly)
                 {
-                    FileLock.SetActivity(ID, FileAction.Copy);
+                    FileLock.SetActivity(FileAction.Copy);
                     status = LogFile.Copy(LastKnownFilePath, ReplacementFilePath, true);
                 }
                 else
                 {
-                    FileLock.SetActivity(ID, FileAction.Move);
+                    FileLock.SetActivity(FileAction.Move);
                     status = LogFile.Move(LastKnownFilePath, ReplacementFilePath, true);
                 }
 
@@ -485,7 +502,7 @@ namespace LogUtils.Properties
 
         public void RemoveTempFile()
         {
-            FileUtils.SafeDelete(ReplacementFilePath, "Unable to delete temporary file");
+            FileUtils.TryDelete(ReplacementFilePath, "Unable to delete temporary file");
         }
 
         /// <summary>
@@ -502,13 +519,13 @@ namespace LogUtils.Properties
             {
                 using (FileLock.Acquire())
                 {
-                    FileLock.SetActivity(logID, FileAction.SessionStart);
+                    FileLock.SetActivity(FileAction.SessionStart);
 
                     using (FileStream stream = LogFile.Create(logID))
                     {
                         FileExists = stream != null;
 
-                        if (FileExists)
+                        if (FileExists && stream.CanWrite)
                         {
                             StreamWriter writer = new StreamWriter(stream);
 
@@ -565,13 +582,13 @@ namespace LogUtils.Properties
             {
                 using (FileLock.Acquire())
                 {
-                    FileLock.SetActivity(logID, FileAction.SessionEnd);
+                    FileLock.SetActivity(FileAction.SessionEnd);
 
                     using (FileStream stream = LogFile.OpenNoCreate(logID))
                     {
                         FileExists = stream != null;
 
-                        if (FileExists)
+                        if (FileExists && stream.CanWrite)
                         {
                             using (StreamWriter writer = new StreamWriter(stream))
                             {
@@ -600,7 +617,7 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
-        /// Triggers the UtilityEvents.OnMovePending event for this instance
+        /// Triggers the <see cref="UtilityEvents.OnMovePending"/> event
         /// </summary>
         /// <param name="movePath">The pending log path for this instance (include filename with extension if filename has changed)</param>
         public void NotifyPendingMove(string movePath)
@@ -609,6 +626,9 @@ namespace LogUtils.Properties
             UtilityEvents.OnMovePending?.Invoke(new LogMovePendingEventArgs(this, movePath, filename));
         }
 
+        /// <summary>
+        /// Triggers the <see cref="UtilityEvents.OnMoveAborted"/> event
+        /// </summary>
         public void NotifyPendingMoveAborted()
         {
             UtilityEvents.OnMoveAborted?.Invoke(new Events.LogEventArgs(this));
@@ -656,6 +676,7 @@ namespace LogUtils.Properties
             return other != null && IDHash.Equals(other.IDHash);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             return IDHash;
@@ -677,26 +698,29 @@ namespace LogUtils.Properties
             string[] dataTags = Tags;
             Tags = oldTags;
 
+            #pragma warning disable IDE0055 //Fix formatting
             var fields = new LogPropertyStringDictionary
             {
-                [DataFields.LOGID] = ID.Value,
-                [DataFields.FILENAME] = Filename.WithExtension(),
-                [DataFields.ALTFILENAME] = AltFilename?.WithExtension(),
-                [DataFields.VERSION] = Version,
-                [DataFields.TAGS] = dataTags != null ? string.Join(",", dataTags) : string.Empty,
-                [DataFields.LOGS_FOLDER_AWARE] = LogsFolderAware.ToString(),
+                [DataFields.LOGID]                = ID.Value,
+                [DataFields.FILENAME]             = Filename.WithExtension(),
+                [DataFields.ALTFILENAME]          = AltFilename?.WithExtension(),
+                [DataFields.VERSION]              = Version.ToString(),
+                [DataFields.CONSOLEIDS]           = string.Join(",", ConsoleIDs),
+                [DataFields.TAGS]                 = dataTags != null ? string.Join(",", dataTags) : string.Empty,
+                [DataFields.LOGS_FOLDER_AWARE]    = LogsFolderAware.ToString(),
                 [DataFields.LOGS_FOLDER_ELIGIBLE] = LogsFolderEligible.ToString(),
-                [DataFields.SHOW_LOGS_AWARE] = ShowLogsAware.ToString(),
-                [DataFields.PATH] = PathUtils.GetPathKeyword(FolderPath) ?? FolderPath,
-                [DataFields.ORIGINAL_PATH] = PathUtils.GetPathKeyword(OriginalFolderPath) ?? OriginalFolderPath,
-                [DataFields.LAST_KNOWN_PATH] = LastKnownFilePath,
-                [DataFields.Intro.MESSAGE] = IntroMessage,
-                [DataFields.Intro.TIMESTAMP] = ShowIntroTimestamp.ToString(),
-                [DataFields.Outro.MESSAGE] = OutroMessage,
-                [DataFields.Outro.TIMESTAMP] = ShowOutroTimestamp.ToString(),
+                [DataFields.SHOW_LOGS_AWARE]      = ShowLogsAware.ToString(),
+                [DataFields.PATH]                 = PathUtils.GetPathKeyword(FolderPath) ?? FolderPath,
+                [DataFields.ORIGINAL_PATH]        = PathUtils.GetPathKeyword(OriginalFolderPath) ?? OriginalFolderPath,
+                [DataFields.LAST_KNOWN_PATH]      = LastKnownFilePath,
+                [DataFields.Intro.MESSAGE]        = IntroMessage,
+                [DataFields.Intro.TIMESTAMP]      = ShowIntroTimestamp.ToString(),
+                [DataFields.Outro.MESSAGE]        = OutroMessage,
+                [DataFields.Outro.TIMESTAMP]      = ShowOutroTimestamp.ToString(),
 
                 [DataFields.Rules.HEADER] = string.Empty //Not an actual property field
             };
+            #pragma warning restore IDE0055 //Fix formatting
 
             fields.Add(ShowLineCount.PropertyString);
             fields.Add(ShowCategories.PropertyString);
@@ -788,7 +812,7 @@ namespace LogUtils.Properties
         {
             if (filename != null)
             {
-                filename = Path.GetFileNameWithoutExtension(filename);
+                filename = FileExtension.Remove(filename);
                 return filename.MatchAny(ComparerUtils.StringComparerIgnoreCase, GetFilenamesToCompare(compareOptions));
             }
             return false;
@@ -833,6 +857,9 @@ namespace LogUtils.Properties
             return hashString.GetHashCode();
         }
 
+        /// <summary>
+        /// Resolves a path, or path keyword into a usable log path
+        /// </summary>
         public static string GetContainingPath(string relativePath)
         {
             if (relativePath == null)

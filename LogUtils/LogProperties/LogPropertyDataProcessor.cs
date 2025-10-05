@@ -1,4 +1,6 @@
-﻿using System;
+﻿using LogUtils.Collections;
+using LogUtils.Enums;
+using System;
 using System.Collections;
 using System.Collections.Specialized;
 using DataFields = LogUtils.UtilityConsts.DataFields;
@@ -61,10 +63,11 @@ namespace LogUtils.Properties
             //Property setters are inaccesible. Define delegate wrappers for each one, and store in a dictionary
             OrderedDictionary fieldAssignments = new OrderedDictionary
             {
-                [DataFields.VERSION]              = new Action(() => properties.Version            = dataFields[DataFields.VERSION]),
+                [DataFields.VERSION]              = new Action(() => properties.Version            = Version.Parse(dataFields[DataFields.VERSION])),
                 [DataFields.ALTFILENAME]          = new Action(() => properties.AltFilename        = (LogFilename)dataFields[DataFields.ALTFILENAME]),
                 [DataFields.ORIGINAL_PATH]        = new Action(() => properties.OriginalFolderPath = dataFields[DataFields.ORIGINAL_PATH]),
                 [DataFields.LAST_KNOWN_PATH]      = new Action(() => properties.LastKnownFilePath  = dataFields[DataFields.LAST_KNOWN_PATH]),
+                [DataFields.CONSOLEIDS]           = new Action(() => properties.ConsoleIDs         = parseConsoleIDs(properties, dataFields[DataFields.CONSOLEIDS].Split(','))),
                 [DataFields.TAGS]                 = new Action(() => properties.Tags               = dataFields[DataFields.TAGS].Split(',')),
                 [DataFields.LOGS_FOLDER_AWARE]    = new Action(() => properties.LogsFolderAware    = bool.Parse(dataFields[DataFields.LOGS_FOLDER_AWARE])),
                 [DataFields.LOGS_FOLDER_ELIGIBLE] = new Action(() => properties.LogsFolderEligible = bool.Parse(dataFields[DataFields.LOGS_FOLDER_ELIGIBLE])),
@@ -91,7 +94,7 @@ namespace LogUtils.Properties
                 {
                     setDataField(); //Apply the action that was stored earlier
                 }
-                catch (Exception ex) when (ex is ArgumentNullException || ex is NullReferenceException)
+                catch (Exception ex) when (ex is ArgumentNullException || ex is NullReferenceException || ex is FormatException)
                 {
                     if (dataField == DataFields.TAGS)
                         properties.Tags = Array.Empty<string>();
@@ -107,6 +110,19 @@ namespace LogUtils.Properties
                 UtilityLogger.LogWarning("There were issues while processing LogID " + id);
 
             Results = properties;
+        }
+
+        private static ValueCollection<ConsoleID> parseConsoleIDs(LogProperties properties, string[] data)
+        {
+            var consoleIDs = new ValueCollection<ConsoleID>(() => properties.ReadOnly);
+            foreach (string idValue in data)
+            {
+                ConsoleID.TryParse(idValue, out ConsoleID id);
+
+                if (id != null)
+                    consoleIDs.Add(new ConsoleID(idValue, register: false));
+            }
+            return consoleIDs;
         }
     }
 }

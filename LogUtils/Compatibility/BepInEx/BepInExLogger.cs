@@ -1,11 +1,13 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
+using LogUtils.Formatting;
+using System.ComponentModel;
 using UnityEngine;
 using LoggerDocs = LogUtils.Documentation.LoggerDocumentation;
 
 namespace LogUtils.Compatibility.BepInEx
 {
-    public class BepInExLogger : ILogger
+    public class BepInExLogger : IFormatLogger
     {
         /// <summary>
         /// BepInEx derived logging interface
@@ -21,6 +23,8 @@ namespace LogUtils.Compatibility.BepInEx
         {
             Source = source;
         }
+
+        #region ILogger members
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object)"/>
         public void Log(object messageObj)
@@ -83,15 +87,89 @@ namespace LogUtils.Compatibility.BepInEx
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        public void Log(string category, object messageObj)
+        public void Log(LogCategory category, object messageObj)
+        {
+            Source.Log(category.BepInExCategory, messageObj);
+        }
+        #endregion
+        #region IFormattableLogger implementation
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(object)"/>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void Log(InterpolatedStringHandler messageObj)
+        {
+            Source.LogInfo(messageObj);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object)"/>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void LogDebug(InterpolatedStringHandler messageObj)
+        {
+            Source.LogDebug(messageObj);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogInfo(object)"/>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void LogInfo(InterpolatedStringHandler messageObj)
+        {
+            Source.LogInfo(messageObj);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogImportant(object)"/>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void LogImportant(InterpolatedStringHandler messageObj)
+        {
+            Log(LogCategory.Important, messageObj);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogMessage(object)"/>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void LogMessage(InterpolatedStringHandler messageObj)
+        {
+            Source.LogMessage(messageObj);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogWarning(object)"/>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void LogWarning(InterpolatedStringHandler messageObj)
+        {
+            Source.LogWarning(messageObj);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogError(object)"/>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void LogError(InterpolatedStringHandler messageObj)
+        {
+            Source.LogError(messageObj);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.LogFatal(object)"/>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void LogFatal(InterpolatedStringHandler messageObj)
+        {
+            Source.LogFatal(messageObj);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void Log(LogLevel category, InterpolatedStringHandler messageObj)
+        {
+            Source.Log(category, messageObj);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void Log(LogType category, InterpolatedStringHandler messageObj)
         {
             Log(LogCategory.ToCategory(category), messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(LogCategory, object)"/>
-        public void Log(LogCategory category, object messageObj)
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void Log(LogCategory category, InterpolatedStringHandler messageObj)
         {
             Source.Log(category.BepInExCategory, messageObj);
         }
+        #endregion
     }
 }

@@ -26,9 +26,8 @@ namespace LogUtils.Templates
             {
                 UnsafeAccess();
 
-                //TODO: Show off composite targets?
                 //These represent the log files you want to target for logging
-                LogID[] myLogTargets = new LogID[] { LogID.BepInEx, LogID.Unity };
+                var myLogTargets = LogID.BepInEx | LogID.Unity;
 
                 LogUtilsAdapter adapter = new LogUtilsAdapter()
                 {

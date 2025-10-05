@@ -1,25 +1,53 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+	<!-- General properties -->
 	<PropertyGroup>
 		<TargetFramework>net48</TargetFramework>
-		<LangVersion>12</LangVersion>
+		<LangVersion>13</LangVersion>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Title>Rain World Log Utility</Title>
-		<AssemblyVersion>0.9.3.5</AssemblyVersion>
-		<GenerateDocumentationFile>True</GenerateDocumentationFile>
-		<EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
-		<WarningsAsErrors>CS1574</WarningsAsErrors>
-		<FileVersion>0.9.3.5</FileVersion>
+		<Configurations>Debug;Release;</Configurations>
 	</PropertyGroup>
 
+	<!-- Metadata properties -->
+	<PropertyGroup>
+		<Title>Rain World Log Utility</Title>
+		<AssemblyVersion>1.0.1.1</AssemblyVersion>
+		<FileVersion>1.0.1.1</FileVersion>
+	</PropertyGroup>
+
+	<!-- Build output properties -->
+	<PropertyGroup>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<AppendTargetFrameworkToOutputPath>False</AppendTargetFrameworkToOutputPath>
+		<OutputPath>../mod/plugins</OutputPath>
+		<GameAssemblyHintPath>../lib/rainworld/</GameAssemblyHintPath>
+		<PathMap>$(MSBuildProjectDirectory)=/$(SolutionName)</PathMap>
+	</PropertyGroup>
+
+	<!-- Code analysis properties -->
+	<PropertyGroup>
+		<EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
+		<WarningsAsErrors>CS1574</WarningsAsErrors>
+	</PropertyGroup>
+
+	<!-- Prevents references from being copied to build folder -->
+	<ItemDefinitionGroup>
+		<Reference>
+			<Private>False</Private>
+		</Reference>
+	</ItemDefinitionGroup>
+	
+	<!-- Compile time assembly references -->
 	<ItemGroup>
-		<Reference Include="../lib/*.dll">
-			<Private>false</Private>
+		<Reference Include="HOOKS-Assembly-CSharp">
+			<HintPath>$(GameAssemblyHintPath)HOOKS-Assembly-CSharp.dll</HintPath>
 		</Reference>
-		<Reference Include="Microsoft.CSharp" Version="4.7.0">
-			<Private>false</Private>
+		<Reference Include="PUBLIC-Assembly-CSharp">
+			<HintPath>$(GameAssemblyHintPath)PUBLIC-Assembly-CSharp.dll</HintPath>
 		</Reference>
+		<Reference Include="../lib/*.dll"/>
 	</ItemGroup>
 
+	<!-- Embedded resources -->
 	<ItemGroup>
 	  <Compile Update="Properties\Resources.Designer.cs">
 	    <DesignTime>True</DesignTime>
@@ -34,21 +62,4 @@
 	    <LastGenOutput>Resources.Designer.cs</LastGenOutput>
 	  </EmbeddedResource>
 	</ItemGroup>
-
-	<Target Name="GenerateMod" AfterTargets="PostBuildEvent">
-		<ItemGroup>
-			<RemovePlugins Include="../mod/plugins/LogUtils.dll" />
-			<RemovePDBs Include="$(OutDir)*.pdb" />
-		</ItemGroup>
-		<ItemGroup>
-			<CopyPlugins Include="$(TargetPath)" />
-			<CopyPDBs Include="$(OutDir)*.pdb" />
-		</ItemGroup>
-		<ItemGroup>
-			<CopyPlugins Include="$(TargetPath)" />
-			<CopyXMLs Include="$(OutDir)*.xml" />
-		</ItemGroup>
-		<Delete Files="@(RemovePlugins)" />
-		<Copy SourceFiles="@(CopyPlugins);@(CopyPDBs);@(CopyXMLs)" DestinationFolder="../mod/plugins/" />
-	</Target>
 </Project>

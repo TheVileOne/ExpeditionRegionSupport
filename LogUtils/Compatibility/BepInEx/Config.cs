@@ -1,6 +1,5 @@
 ﻿using BepInEx.Configuration;
 using System;
-using System.Reflection;
 
 namespace LogUtils.Compatibility.BepInEx
 {
@@ -13,7 +12,7 @@ namespace LogUtils.Compatibility.BepInEx
         /// <summary>
         /// Contains the BepInEx Core config instance
         /// </summary>
-        public static ConfigFile Base;
+        public static ConfigFile Base = ConfigFile.CoreConfig;
 
         /// <summary>
         /// Config setting affecting whether the a console is displayed when BepInEx loads
@@ -75,12 +74,9 @@ namespace LogUtils.Compatibility.BepInEx
 
         static Config()
         {
+            UtilityCore.EnsureInitializedState();
             try
             {
-                Type type = typeof(ConfigFile);
-                PropertyInfo configProperty = type.GetProperty("CoreConfig", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
-                Base = configProperty.GetValue(null, null) as ConfigFile;
-
                 InitializeEntries();
             }
             catch (Exception ex)

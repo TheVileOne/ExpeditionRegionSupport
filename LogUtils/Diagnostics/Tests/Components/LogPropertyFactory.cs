@@ -62,7 +62,9 @@ namespace LogUtils.Diagnostics.Tests.Components
             return instance;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Performs tasks for disposing a <see cref="LogPropertyFactory"/>
+        /// </summary>
         public void Dispose()
         {
             NameEnumerator.Dispose();
