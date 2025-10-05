@@ -137,6 +137,8 @@ namespace ExpeditionRegionSupport
                 On.HardmodeStart.SinglePlayerUpdate += HardmodeStart_SinglePlayerUpdate;
                 On.Room.Loaded += Room_Loaded;
                 On.RegionGate.customOEGateRequirements += RegionGate_customOEGateRequirements;
+
+                Logger.Log("Hooks loaded successfully");
             }
             catch (Exception ex)
             {

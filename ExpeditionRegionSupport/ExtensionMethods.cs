@@ -33,7 +33,7 @@ namespace Extensions
         {
             self.pos.y = self.lastPos.y = y;
         }
-
+        
         public static void SetAlpha(this MenuObject self, float alpha)
         {
             self.Container.alpha = alpha;
