@@ -137,7 +137,7 @@ namespace ExpeditionRegionSupport
 
         private void OverWorld_WorldLoaded(On.OverWorld.orig_WorldLoaded orig, OverWorld self)
         {
-            ExtensionMethods.WorldCWT cwt = null;
+            Extensions.ExtensionMethods.WorldCWT cwt = null;
 
             if (self.reportBackToGate != null) //Indicates a gate transition
             {
