@@ -152,7 +152,8 @@ namespace LogUtils
                         UtilityConfig.Initialize();
                         AnnounceBuild();
 
-                        DeadlockTester.Run();
+                        if (Build == UtilitySetup.Build.DEVELOPMENT)
+                            DeadlockTester.Run();
 
                         nextStep = UtilitySetup.InitializationStep.START_SCHEDULER;
                         break;
