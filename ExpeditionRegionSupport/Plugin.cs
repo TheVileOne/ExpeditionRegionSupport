@@ -32,7 +32,7 @@ namespace ExpeditionRegionSupport
     {
         public const string PLUGIN_GUID = "fluffball.expeditionregionsupport";
         public const string PLUGIN_NAME = "Expedition Region Support";
-        public const string PLUGIN_VERSION = "1.0.0";
+        public const string PLUGIN_VERSION = "1.0.1";
 
         public static bool DebugMode
         {
