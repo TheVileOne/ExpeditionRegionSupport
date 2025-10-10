@@ -16,6 +16,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using DataFields = LogUtils.UtilityConsts.DataFields;
 using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
 
@@ -159,6 +160,7 @@ namespace LogUtils.Properties
         private string _introMessage, _outroMessage;
         private bool _showIntroTimestamp, _showOutroTimestamp;
         private bool _showLogsAware;
+        private DateTimeFormat _dateTimeFormat = new DateTimeFormat("G");
 
         /// <summary>
         /// The LogID associated with the log properties
@@ -268,6 +270,23 @@ namespace LogUtils.Properties
         public string[] Tags;
 
         /// <summary>
+        /// A format used to display timestamps in the log file
+        /// </summary>
+        public DateTimeFormat DateTimeFormat
+        {
+            get => _dateTimeFormat;
+            set
+            {
+                if (ReadOnly) return;
+
+                if (value == null)
+                    _dateTimeFormat = new DateTimeFormat("G");
+                else
+                    _dateTimeFormat = value;
+            }
+        }
+
+        /// <summary>
         /// A message that will be logged at the start of a log session
         /// </summary>
         public string IntroMessage
@@ -332,8 +351,20 @@ namespace LogUtils.Properties
             }
         }
 
+        /// <summary>
+        /// Exposes <see cref="LogRule"/> that attaches category information to a logged message
+        /// </summary>
         public LogRule ShowCategories => Rules.FindByType<ShowCategoryRule>();
+
+        /// <summary>
+        /// Exposes <see cref="LogRule"/> that attaches line count information to a logged message
+        /// </summary>
         public LogRule ShowLineCount => Rules.FindByType<ShowLineCountRule>();
+
+        /// <summary>
+        /// Exposes <see cref="LogRule"/> that attaches timestamp information to a logged message
+        /// </summary>
+        public LogRule ShowLogTimestamp => Rules.FindByType<LogTimestampRule>();
         #endregion
 
         public LogProperties(string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS) : this(FileExtension.Remove(filename), filename, relativePathNoFile)
@@ -377,8 +408,9 @@ namespace LogUtils.Properties
             recentlyCreatedCutoffEvent = UtilityCore.Scheduler.Schedule(onCreationCutoffReached, frameInterval: framesUntilCutoff, invokeLimit: 1);
 
             //Utility packaged rules get added to every log file disabled by default 
-            Rules.Add(new ShowCategoryRule(false));
-            Rules.Add(new ShowLineCountRule(false));
+            Rules.Add(new ShowCategoryRule(enabled: false));
+            Rules.Add(new ShowLineCountRule(enabled: false));
+            Rules.Add(new LogTimestampRule(enabled: false));
 
             CustomProperties.OnPropertyAdded += onCustomPropertyAdded;
             CustomProperties.OnPropertyRemoved += onCustomPropertyRemoved;
@@ -388,14 +420,15 @@ namespace LogUtils.Properties
             {
                 OnLogSessionStart += (LogStreamEventArgs e) =>
                 {
-                    e.Writer.WriteLine("[EXPEDITION LOGGER] - " + DateTime.Now);
+                    DateTimeFormat format = e.Properties.DateTimeFormat;
+                    e.Writer.WriteLine("[EXPEDITION LOGGER] - " + DateTime.Now.ToString(format.FormatString, format.FormatProvider));
                 };
             }
             else if (propertyID == UtilityConsts.LogNames.JollyCoop)
             {
                 OnLogSessionStart += (LogStreamEventArgs e) =>
                 {
-                    e.Writer.WriteLine(string.Format("############################################\n Jolly Coop Log {0} [DEBUG LEVEL: {1}]\n", 0, RWInfo.Build));
+                    e.Writer.WriteLine("############################################\n Jolly Coop Log [DEBUG LEVEL: {0}]\n", RWInfo.Build);
                 };
             }
 
@@ -422,10 +455,11 @@ namespace LogUtils.Properties
 
             if (IntroMessage != null)
                 e.Writer.WriteLine(IntroMessage);
-
             if (ShowIntroTimestamp)
-                e.Writer.WriteLine($"[{DateTime.Now}]");
-
+            {
+                DateTimeFormat format = e.Properties.DateTimeFormat;
+                e.Writer.WriteLine($"[{DateTime.Now.ToString(format.FormatString, format.FormatProvider)}]");
+            }
             Profiler.Start();
         }
 
@@ -437,8 +471,10 @@ namespace LogUtils.Properties
                 e.Writer.WriteLine(OutroMessage);
 
             if (ShowOutroTimestamp)
-                e.Writer.WriteLine($"[{DateTime.Now}]");
-
+            {
+                DateTimeFormat format = e.Properties.DateTimeFormat;
+                e.Writer.WriteLine($"[{DateTime.Now.ToString(format.FormatString, format.FormatProvider)}]");
+            }
             Profiler.Stop();
         }
 
@@ -682,6 +718,19 @@ namespace LogUtils.Properties
             return IDHash;
         }
 
+        /// <summary>
+        /// Gets rules that are supported by LogUtils by default for all log files
+        /// </summary>
+        internal LogRule[] GetPackagedRuleEntries()
+        {
+            return new LogRule[]
+            {
+                ShowLineCount,
+                ShowCategories,
+                ShowLogTimestamp
+            };
+        }
+
         public LogPropertyData ToData(List<CommentEntry> comments = null)
         {
             return new LogPropertyData(ToDictionary(), comments);
@@ -713,17 +762,18 @@ namespace LogUtils.Properties
                 [DataFields.PATH]                 = PathUtils.GetPathKeyword(FolderPath) ?? FolderPath,
                 [DataFields.ORIGINAL_PATH]        = PathUtils.GetPathKeyword(OriginalFolderPath) ?? OriginalFolderPath,
                 [DataFields.LAST_KNOWN_PATH]      = LastKnownFilePath,
+                [DataFields.TIMESTAMP_FORMAT]     = DateTimeFormat.FormatString != "G" ? DateTimeFormat.FormatString : string.Empty,
                 [DataFields.Intro.MESSAGE]        = IntroMessage,
                 [DataFields.Intro.TIMESTAMP]      = ShowIntroTimestamp.ToString(),
                 [DataFields.Outro.MESSAGE]        = OutroMessage,
                 [DataFields.Outro.TIMESTAMP]      = ShowOutroTimestamp.ToString(),
 
-                [DataFields.Rules.HEADER] = string.Empty //Not an actual property field
+                [DataFields.Rules.HEADER]         = string.Empty //Not an actual property field
             };
             #pragma warning restore IDE0055 //Fix formatting
 
-            fields.Add(ShowLineCount.PropertyString);
-            fields.Add(ShowCategories.PropertyString);
+            foreach (LogRule rule in GetPackagedRuleEntries())
+                fields.Add(rule.PropertyString);
 
             PropertyManager.UnrecognizedFields.TryGetValue(this, out LogPropertyStringDictionary unrecognizedFields);
 

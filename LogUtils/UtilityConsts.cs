@@ -11,7 +11,7 @@ namespace LogUtils
 
         public static class DataFields
         {
-            public const int EXPECTED_FIELD_COUNT = 19;
+            public const int EXPECTED_FIELD_COUNT = 21;
 
             public readonly static string[] OrderedFields;
 
@@ -27,6 +27,7 @@ namespace LogUtils
             public const string LOGS_FOLDER_AWARE = "logsfolderaware";
             public const string LOGS_FOLDER_ELIGIBLE = "logsfoldereligible";
             public const string SHOW_LOGS_AWARE = "showlogsaware";
+            public const string TIMESTAMP_FORMAT = "timestamp_format";
             public const string CUSTOM = "custom";
 
             public static class Intro
@@ -44,6 +45,7 @@ namespace LogUtils
             public static class Rules
             {
                 public const string HEADER = "logrules";
+                public const string LOG_TIMESTAMP = "showlogtimestamp";
                 public const string SHOW_CATEGORIES = "showcategories";
                 public const string SHOW_LINE_COUNT = "showlinecount";
             }
@@ -73,9 +75,11 @@ namespace LogUtils
                     case LOGS_FOLDER_AWARE:
                     case LOGS_FOLDER_ELIGIBLE:
                     case SHOW_LOGS_AWARE:
+                    case TIMESTAMP_FORMAT:
                     case Rules.HEADER:
                     case Rules.SHOW_LINE_COUNT:
                     case Rules.SHOW_CATEGORIES:
+                    case Rules.LOG_TIMESTAMP:
                         return true;
                     default:
                         return false;
@@ -102,9 +106,11 @@ namespace LogUtils
                     Intro.TIMESTAMP,
                     Outro.MESSAGE,
                     Outro.TIMESTAMP,
+                    TIMESTAMP_FORMAT,
                     Rules.HEADER,
                     Rules.SHOW_LINE_COUNT,
                     Rules.SHOW_CATEGORIES,
+                    Rules.LOG_TIMESTAMP,
                     CUSTOM
                 };
             }

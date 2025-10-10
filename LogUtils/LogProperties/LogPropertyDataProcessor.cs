@@ -3,6 +3,7 @@ using LogUtils.Enums;
 using System;
 using System.Collections;
 using System.Collections.Specialized;
+using System.Runtime.Serialization;
 using DataFields = LogUtils.UtilityConsts.DataFields;
 
 namespace LogUtils.Properties
@@ -76,9 +77,11 @@ namespace LogUtils.Properties
                 [DataFields.Intro.TIMESTAMP]      = new Action(() => properties.ShowIntroTimestamp = bool.Parse(dataFields[DataFields.Intro.TIMESTAMP])),
                 [DataFields.Outro.MESSAGE]        = new Action(() => properties.OutroMessage       = dataFields[DataFields.Outro.MESSAGE]),
                 [DataFields.Outro.TIMESTAMP]      = new Action(() => properties.ShowOutroTimestamp = bool.Parse(dataFields[DataFields.Outro.TIMESTAMP])),
+                [DataFields.TIMESTAMP_FORMAT]     = new Action(() => properties.DateTimeFormat     = parseDateTimeFormat(dataFields[DataFields.TIMESTAMP_FORMAT])),
 
                 [DataFields.Rules.SHOW_CATEGORIES] = new Action(() => properties.ShowCategories.IsEnabled = bool.Parse(dataFields[DataFields.Rules.SHOW_CATEGORIES])),
-                [DataFields.Rules.SHOW_LINE_COUNT] = new Action(() => properties.ShowLineCount.IsEnabled = bool.Parse(dataFields[DataFields.Rules.SHOW_LINE_COUNT]))
+                [DataFields.Rules.SHOW_LINE_COUNT] = new Action(() => properties.ShowLineCount.IsEnabled = bool.Parse(dataFields[DataFields.Rules.SHOW_LINE_COUNT])),
+                [DataFields.Rules.LOG_TIMESTAMP]   = new Action(() => properties.ShowLogTimestamp.IsEnabled = bool.Parse(dataFields[DataFields.Rules.LOG_TIMESTAMP]))
             };
             #pragma warning restore IDE0055 //Fix formatting
 
@@ -123,6 +126,13 @@ namespace LogUtils.Properties
                     consoleIDs.Add(new ConsoleID(idValue, register: false));
             }
             return consoleIDs;
+        }
+
+        private static DateTimeFormat parseDateTimeFormat(string format)
+        {
+            if (string.IsNullOrEmpty(format))
+                return null;
+            return new DateTimeFormat(format);
         }
     }
 }
