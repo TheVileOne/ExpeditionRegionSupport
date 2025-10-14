@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using PatcherLogEvent = (BepInEx.Logging.LogEventArgs EventData, System.DateTime Timestamp);
 
 namespace LogUtils
@@ -57,7 +58,10 @@ namespace LogUtils
                     if (messageObj is Exception)
                         messageObj = "!!!Exception: " + messageObj;
 
-                    messageObj = $"{logEvent.Timestamp:yyyy-MM-dd HH:mm:ss} - {messageObj}";
+                    //TODO: This needs to be handled through a log rule instead
+                    DateTimeFormat format = LogID.Patcher.Properties.DateTimeFormat;
+
+                    messageObj = $"{logEvent.Timestamp.ToString(format.FormatString, format.FormatProvider)} - {messageObj}";
                     logger.Log(category, messageObj);
                 }
             }

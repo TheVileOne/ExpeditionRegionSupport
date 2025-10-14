@@ -7,6 +7,7 @@ using LogUtils.Requests;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using BepInExPath = LogUtils.Helpers.Paths.BepInEx;
 
 namespace LogUtils.Enums
@@ -276,12 +277,7 @@ namespace LogUtils.Enums
             {
                 Patcher = new LogID("LogUtils.VersionLoader.log", UtilityConsts.PathKeywords.ROOT, LogAccess.Private, true);
                 Patcher.Properties.AccessPeriod = SetupPeriod.Pregame;
-                //Patcher.Properties.Rules.Add(new DelegatedLogRule("LogUtils.VersionLoader", applyMessageHeader, true));
-
-                //static string applyMessageHeader(LogMessageFormatter formatter, string message, LogRequestEventArgs data)
-                //{
-                //    return $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}";
-                //}
+                Patcher.Properties.DateTimeFormat = new DateTimeFormat("yyyy-MM-dd HH:mm:ss");
             }
 
             //Throwaway LogID
