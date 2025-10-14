@@ -20,7 +20,9 @@ namespace LogUtils.Properties.Formatting
             Color headerColor = category.ConsoleColor;
 
             DateTimeFormat format = logEventData.Properties.DateTimeFormat;
-            string messageHeader = string.Format("{0} ", DateTime.Now.ToString(format.FormatString, format.FormatProvider));
+            string messageHeader = string.Format("{0} ", logEventData.IsTargetingConsole
+                ? DateTime.Now.ToLongTimeString()
+                : DateTime.Now.ToString(format.FormatString, format.FormatProvider));
 
             messageHeader = formatter.ApplyColor(messageHeader, headerColor);
             return messageHeader + message;
