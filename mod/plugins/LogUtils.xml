@@ -7791,6 +7791,12 @@
         <member name="M:LogUtils.Properties.Formatting.LogRuleCollection.GetEnumerator">
             <inheritdoc/>
         </member>
+        <member name="M:LogUtils.Properties.Formatting.LogTimestampRule.ApplyRule(LogUtils.Formatting.LogMessageFormatter,System.String,LogUtils.Events.LogRequestEventArgs)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Properties.Formatting.LogTimestampRule.GetPriority">
+            <inheritdoc/>
+        </member>
         <member name="F:LogUtils.Properties.LogProperties.LatestVersion">
             <summary>
             The latest properties version recognized by LogUtils
@@ -7913,6 +7919,11 @@
             An array of value identifiers for a specific log
             </summary>
         </member>
+        <member name="P:LogUtils.Properties.LogProperties.DateTimeFormat">
+            <summary>
+            A format used to display timestamps in the log file
+            </summary>
+        </member>
         <member name="P:LogUtils.Properties.LogProperties.IntroMessage">
             <summary>
             A message that will be logged at the start of a log session
@@ -7936,6 +7947,21 @@
         <member name="P:LogUtils.Properties.LogProperties.ShowLogsAware">
             <summary>
             A flag that controls whether log is allowed to be used when RainWorld.ShowLogs is false
+            </summary>
+        </member>
+        <member name="P:LogUtils.Properties.LogProperties.ShowCategories">
+            <summary>
+            Exposes <see cref="T:LogUtils.Properties.Formatting.LogRule"/> that attaches category information to a logged message
+            </summary>
+        </member>
+        <member name="P:LogUtils.Properties.LogProperties.ShowLineCount">
+            <summary>
+            Exposes <see cref="T:LogUtils.Properties.Formatting.LogRule"/> that attaches line count information to a logged message
+            </summary>
+        </member>
+        <member name="P:LogUtils.Properties.LogProperties.ShowLogTimestamp">
+            <summary>
+            Exposes <see cref="T:LogUtils.Properties.Formatting.LogRule"/> that attaches timestamp information to a logged message
             </summary>
         </member>
         <member name="M:LogUtils.Properties.LogProperties.BeginLogSession">
@@ -7986,6 +8012,11 @@
         </member>
         <member name="M:LogUtils.Properties.LogProperties.GetHashCode">
             <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Properties.LogProperties.GetPackagedRuleEntries">
+            <summary>
+            Gets rules that are supported by LogUtils by default for all log files
+            </summary>
         </member>
         <member name="M:LogUtils.Properties.LogProperties.ToString">
             <inheritdoc/>
