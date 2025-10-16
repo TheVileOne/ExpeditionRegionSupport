@@ -8,7 +8,7 @@ using CreateRequestCallback = LogUtils.Requests.LogRequest.Factory.Callback;
 
 namespace LogUtils
 {
-    public partial class Logger
+    public partial class LoggerBase
     {
         protected LogProcessor Processor;
 

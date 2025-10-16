@@ -45,7 +45,7 @@ namespace LogUtils.Requests
         /// <summary>
         /// The log handler that was responsible for submitting the request
         /// </summary>
-        public ILogger Sender;
+        public object Sender;
 
         public RequestStatus Status => _state.Status;
 

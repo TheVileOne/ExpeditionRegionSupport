@@ -4,19 +4,19 @@ using System;
 
 namespace LogUtils
 {
-    public partial class Logger
+    public partial class LoggerBase
     {
         private LogRequestEventHandler newRequestHandler;
         private RegistrationChangedEventHandler registrationChangedHandler;
 
         internal void SetEvents()
         {
-            WeakReference<Logger> weakRef = new WeakReference<Logger>(this);
+            WeakReference<LoggerBase> weakRef = new WeakReference<LoggerBase>(this);
 
             registrationChangedHandler = new RegistrationChangedEventHandler((target, registrationStatus) =>
             {
                 //Event trigger conditions: only applies to the target instance
-                if (weakRef.TryGetTarget(out Logger captured) && captured == target)
+                if (weakRef.TryGetTarget(out LoggerBase captured) && captured == target)
                 {
                     //Invoke event
                     if (registrationStatus.Current)
@@ -29,7 +29,7 @@ namespace LogUtils
             newRequestHandler = new LogRequestEventHandler((request) =>
             {
                 //Event trigger conditions: only applies to the target instance
-                if (weakRef.TryGetTarget(out Logger captured) && captured == request.Sender)
+                if (weakRef.TryGetTarget(out LoggerBase captured) && captured == request.Sender)
                 {
                     //Invoke event
                     captured.OnNewRequest(request);
