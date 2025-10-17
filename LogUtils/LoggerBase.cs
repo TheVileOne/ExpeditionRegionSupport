@@ -463,11 +463,28 @@ namespace LogUtils
 
     internal class EarlyInitializationException(string message) : InvalidOperationException(message);
 
+    /// <summary>
+    /// Represents the write implementation mode
+    /// </summary>
     public enum LoggingMode
     {
+        /// <summary>
+        /// Specifies that a shared default instance should be used
+        /// </summary>
         Inherit = 0,
+        /// <summary>
+        /// Specifies that a standard <see cref="LogWriter"/> should be used
+        /// </summary>
         Normal,
+        /// <summary>
+        /// Specifies that a <see cref="QueueLogWriter"/> should be used
+        /// </summary>
+        /// <remarks>Emulates Jolly Coop logging</remarks>
         Queue,
+        /// <summary>
+        /// Specifies that a <see cref="TimedLogWriter"/> should be used
+        /// </summary>
+        /// <remarks>Emulates BepInEx logging</remarks>
         Timed
     }
 }

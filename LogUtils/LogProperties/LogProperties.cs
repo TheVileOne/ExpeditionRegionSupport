@@ -339,7 +339,7 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
-        /// A flag that controls whether log is allowed to be used when RainWorld.ShowLogs is false
+        /// A flag that determines whether <see cref="RainWorld.ShowLogs"/> should affect log processing of a specific log target
         /// </summary>
         public bool ShowLogsAware
         {

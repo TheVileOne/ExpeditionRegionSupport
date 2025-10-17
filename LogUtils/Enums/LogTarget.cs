@@ -8,7 +8,7 @@ namespace LogUtils.Enums
     }
 
     /// <summary>
-    /// Shared by implementations that function as a compatible target by a Logger instance
+    /// Represents a target for logged messages (such as a log file or console)
     /// </summary>
     public interface ILogTarget
     {

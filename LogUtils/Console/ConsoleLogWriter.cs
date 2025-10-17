@@ -34,6 +34,9 @@ namespace LogUtils.Console
         /// </summary>
         public LogRuleCollection Rules = new LogRuleCollection();
 
+        /// <summary>
+        /// A flag that determines whether <see cref="RainWorld.ShowLogs"/> should affect log processing to the console
+        /// </summary>
         public bool ShowLogsAware;
 
         /// <summary>
@@ -81,6 +84,7 @@ namespace LogUtils.Console
         }
 
         /// <inheritdoc/>
+        /// <exception cref="NotImplementedException"></exception>
         public void SendToBuffer(LogRequestEventArgs messageData)
         {
             throw new NotImplementedException();

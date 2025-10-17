@@ -548,30 +548,43 @@
             </summary>
             <remarks>Allows usage of all existing logging overloads in addition to those provided by the interface</remarks>
         </member>
-        <member name="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor">
+        <member name="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor(BepInEx.Logging.ILogSource)">
             <summary>
             Constructs a new <see cref="T:LogUtils.Compatibility.DotNet.DotNetLogger"/> instance
             </summary>
-        </member>
-        <member name="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor(BepInEx.Logging.ILogSource)">
-            <inheritdoc cref="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor"/>
-            <inheritdoc cref="M:LogUtils.Logger.#ctor(BepInEx.Logging.ILogSource)" select="params"/>
+            <inheritdoc select="params"/>
         </member>
         <member name="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor(LogUtils.Enums.ILogTarget)">
-            <inheritdoc cref="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor"/>
-            <inheritdoc cref="M:LogUtils.Logger.#ctor(LogUtils.Enums.ILogTarget)" select="params"/>
+            <inheritdoc cref="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor(BepInEx.Logging.ILogSource)"/>
+            <inheritdoc select="params"/>
         </member>
         <member name="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor(System.Boolean,LogUtils.Enums.ILogTarget)">
-            <inheritdoc cref="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor"/>
-            <inheritdoc cref="M:LogUtils.Logger.#ctor(System.Boolean,LogUtils.Enums.ILogTarget)" select="params"/>
+            <inheritdoc cref="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor(BepInEx.Logging.ILogSource)"/>
+            <inheritdoc select="params"/>
         </member>
         <member name="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor(LogUtils.LoggingMode,LogUtils.Enums.ILogTarget)">
-            <inheritdoc cref="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor"/>
-            <inheritdoc cref="M:LogUtils.Logger.#ctor(LogUtils.LoggingMode,LogUtils.Enums.ILogTarget)" select="params"/>
+            <inheritdoc cref="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor(BepInEx.Logging.ILogSource)"/>
+            <inheritdoc select="params"/>
+        </member>
+        <member name="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor(LogUtils.LoggingMode,System.Boolean,LogUtils.Enums.ILogTarget)">
+            <inheritdoc cref="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor(BepInEx.Logging.ILogSource)"/>
+            <inheritdoc select="params"/>
         </member>
         <member name="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor(LogUtils.Enums.ILogTarget[])">
-            <inheritdoc cref="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor"/>
-            <inheritdoc cref="M:LogUtils.Logger.#ctor(LogUtils.Enums.ILogTarget[])" select="params"/>
+            <inheritdoc cref="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor(BepInEx.Logging.ILogSource)"/>
+            <inheritdoc select="params"/>
+        </member>
+        <member name="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor(System.Boolean,LogUtils.Enums.ILogTarget[])">
+            <inheritdoc cref="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor(BepInEx.Logging.ILogSource)"/>
+            <inheritdoc select="params"/>
+        </member>
+        <member name="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor(LogUtils.LoggingMode,LogUtils.Enums.ILogTarget[])">
+            <inheritdoc cref="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor(BepInEx.Logging.ILogSource)"/>
+            <inheritdoc select="params"/>
+        </member>
+        <member name="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor(LogUtils.LoggingMode,System.Boolean,LogUtils.Enums.ILogTarget[])">
+            <inheritdoc cref="M:LogUtils.Compatibility.DotNet.DotNetLogger.#ctor(BepInEx.Logging.ILogSource)"/>
+            <inheritdoc select="params"/>
         </member>
         <member name="M:LogUtils.Compatibility.DotNet.DotNetLogger.BeginScope``1(``0)">
             <summary>
@@ -709,135 +722,32 @@
             This method receives all log API calls that make use of Unity specific logging arguments for this logger
             </summary>
         </member>
-        <member name="P:LogUtils.Logger.AllowLogging">
-            <summary>
-            A flag that allows/disallows handling of log requests (local and remote) through this logger 
-            </summary>
-        </member>
-        <member name="P:LogUtils.Logger.AllowRemoteLogging">
-            <summary>
-            A flag that allows/disallows handling of remote log requests through this logger
-            </summary>
-        </member>
-        <member name="P:LogUtils.Logger.AllowRegistration">
-            <inheritdoc/>
-        </member>
-        <member name="F:LogUtils.Logger.Targets">
-            <summary>
-            Contains all assigned log targets
-            </summary>
-        </member>
-        <member name="P:LogUtils.Logger.LogTargets">
-            <summary>
-            Contains a list of LogIDs (both local and remote) that will be handled in the case of an untargeted log request
-            </summary>
-        </member>
-        <member name="P:LogUtils.Logger.ConsoleTargets">
-            <summary>
-            Contains a list of ConsoleIDs that will be handled by any log request that can be handled by this logger
-            </summary>
-        </member>
-        <member name="P:LogUtils.Logger.LogSource">
-            <summary>
-            A log source that will be applied by default to log requests that require such information
-            </summary>
-        </member>
-        <member name="F:LogUtils.Logger.IsThreadSafe">
-            <summary>
-            A flag that indicates whether this logger should take a conservative approach to thread safety when handling new log requests
-            </summary>
-        </member>
-        <member name="F:LogUtils.Logger.RestorePoint">
-            <summary>
-            Contains a record of logger field values that can be restored on demand
-            </summary>
-        </member>
-        <member name="F:LogUtils.Logger.Writer">
-            <summary>
-            Writer implementation (responsible for writing to file, or storing messages in the message buffer)
-            </summary>
-        </member>
         <member name="M:LogUtils.Logger.#ctor(BepInEx.Logging.ILogSource)">
-            <summary>
-            Constructs a new <see cref="T:LogUtils.Logger"/> instance
-            </summary>
-            <param name="logSource">The BepInEx log source (typically a ManualLogsource) to assign to this logger</param>
+            <inheritdoc/>
         </member>
         <member name="M:LogUtils.Logger.#ctor(LogUtils.Enums.ILogTarget)">
-            <inheritdoc cref="M:LogUtils.Logger.#ctor(BepInEx.Logging.ILogSource)"/>
-            <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
-        </member>
-        <member name="M:LogUtils.Logger.#ctor(System.Boolean,LogUtils.Enums.ILogTarget)">
-            <inheritdoc cref="M:LogUtils.Logger.#ctor(BepInEx.Logging.ILogSource)"/>
-            <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
-            <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
-        </member>
-        <member name="M:LogUtils.Logger.#ctor(LogUtils.LoggingMode,LogUtils.Enums.ILogTarget)">
-            <inheritdoc cref="M:LogUtils.Logger.#ctor(BepInEx.Logging.ILogSource)"/>
-            <param name="mode">Changes the technique used to write messages to file</param>
-            <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
-        </member>
-        <member name="M:LogUtils.Logger.#ctor(LogUtils.Enums.ILogTarget[])">
-            <inheritdoc cref="M:LogUtils.Logger.#ctor(BepInEx.Logging.ILogSource)"/>
-            <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
-        </member>
-        <member name="M:LogUtils.Logger.#ctor(System.Boolean,LogUtils.Enums.ILogTarget[])">
-            <inheritdoc cref="M:LogUtils.Logger.#ctor(BepInEx.Logging.ILogSource)"/>
-            <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
-            <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
-        </member>
-        <member name="M:LogUtils.Logger.#ctor(LogUtils.LoggingMode,LogUtils.Enums.ILogTarget[])">
-            <inheritdoc cref="M:LogUtils.Logger.#ctor(BepInEx.Logging.ILogSource)"/>
-            <param name="mode">Changes the technique used to write messages to file</param>
-            <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
-        </member>
-        <member name="M:LogUtils.Logger.#ctor(LogUtils.LoggingMode,System.Boolean,LogUtils.Enums.ILogTarget[])">
-            <inheritdoc cref="M:LogUtils.Logger.#ctor(BepInEx.Logging.ILogSource)"/>
-            <param name="mode">Changes the technique used to write messages to file</param>
-            <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
-            <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
-        </member>
-        <member name="M:LogUtils.Logger.LogUnresolvedTarget(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,System.Object,System.Boolean,LogUtils.Requests.LogRequest.Factory.Callback)">
-            <summary>
-            Log targets that may be composite need to be resolved before logging can occur
-            </summary>
-        </member>
-        <member name="M:LogUtils.Logger.LogUnresolvedTarget(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,System.Object,System.Boolean,UnityEngine.Color)">
-            <inheritdoc cref="M:LogUtils.Logger.LogUnresolvedTarget(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,System.Object,System.Boolean,LogUtils.Requests.LogRequest.Factory.Callback)"/>
-        </member>
-        <member name="M:LogUtils.Logger.LogBase(LogUtils.Requests.LogRequest)">
-            <summary>
-            Passes a log request to a writer, or request handler
-            </summary>
-            <remarks>Through normal code paths, this code may receive already submitted requests, but these requests should always be local</remarks>
-        </member>
-        <member name="M:LogUtils.Logger.CanHandle(LogUtils.Enums.LogID,LogUtils.Requests.RequestType)">
-            <summary>
-            Determines if the specified LogID can be handled by this logger with the specified RequestType
-            </summary>
-        </member>
-        <member name="M:LogUtils.Logger.HandleRequest(LogUtils.Requests.LogRequest)">
             <inheritdoc/>
         </member>
-        <member name="F:LogUtils.Logger.IsDisposed">
-            <summary/>
+        <member name="M:LogUtils.Logger.#ctor(System.Boolean,LogUtils.Enums.ILogTarget)">
+            <inheritdoc/>
         </member>
-        <member name="M:LogUtils.Logger.Dispose(System.Boolean)">
-            <summary>
-            Performs tasks for disposing a <see cref="T:LogUtils.Logger"/>
-            </summary>
-            <param name="disposing">Whether or not the dispose request is invoked by the application (true), or invoked by the destructor (false)</param>
+        <member name="M:LogUtils.Logger.#ctor(LogUtils.LoggingMode,LogUtils.Enums.ILogTarget)">
+            <inheritdoc/>
         </member>
-        <member name="M:LogUtils.Logger.Dispose">
-            <inheritdoc cref="M:LogUtils.Logger.Dispose(System.Boolean)"/>
+        <member name="M:LogUtils.Logger.#ctor(LogUtils.LoggingMode,System.Boolean,LogUtils.Enums.ILogTarget)">
+            <inheritdoc/>
         </member>
-        <member name="M:LogUtils.Logger.Finalize">
-            <summary/>
+        <member name="M:LogUtils.Logger.#ctor(LogUtils.Enums.ILogTarget[])">
+            <inheritdoc/>
         </member>
-        <member name="T:LogUtils.Logger.LogRestorePoint">
-            <summary>
-            A snapshot of the logger's state at a certain point in time
-            </summary>
+        <member name="M:LogUtils.Logger.#ctor(System.Boolean,LogUtils.Enums.ILogTarget[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Logger.#ctor(LogUtils.LoggingMode,LogUtils.Enums.ILogTarget[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Logger.#ctor(LogUtils.LoggingMode,System.Boolean,LogUtils.Enums.ILogTarget[])">
+            <inheritdoc/>
         </member>
         <member name="M:LogUtils.Logger.Log(System.Object)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.Object)"/>
@@ -2477,31 +2387,6 @@
         <member name="M:LogUtils.Logger.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,System.String,System.String)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,System.String,System.String)"/>
         </member>
-        <member name="M:LogUtils.Logger.ProcessBatch(LogUtils.Requests.LogRequest)">
-            <summary>
-            Processes and logs a previously initiated batch of log reqeusts
-            </summary>
-        </member>
-        <member name="F:LogUtils.Logger.LogProcessor._logHandler">
-            <summary>
-            The handler that is responsible for handling processed log requests
-            </summary>
-        </member>
-        <member name="M:LogUtils.Logger.OnRegister">
-            <summary>
-            Event is invoked when the logger is registered
-            </summary>
-        </member>
-        <member name="M:LogUtils.Logger.OnUnregister">
-            <summary>
-            Event is invoked when the logger becomes unregistered
-            </summary>
-        </member>
-        <member name="M:LogUtils.Logger.OnNewRequest(LogUtils.Requests.LogRequest)">
-            <summary>
-            Event is invoked each time a LogRequest is submitted by the current logger
-            </summary>
-        </member>
         <member name="T:LogUtils.Console.AnsiColorConverter">
             <summary>
             This class converts color information into an ANSI color code
@@ -2595,6 +2480,11 @@
             Collection of associated message format rules
             </summary>
         </member>
+        <member name="F:LogUtils.Console.ConsoleLogWriter.ShowLogsAware">
+            <summary>
+            A flag that determines whether <see cref="P:RainWorld.ShowLogs"/> should affect log processing to the console
+            </summary>
+        </member>
         <member name="P:LogUtils.Console.ConsoleLogWriter.Stream">
             <summary>
             The active write stream for writers that use one
@@ -2610,6 +2500,7 @@
         </member>
         <member name="M:LogUtils.Console.ConsoleLogWriter.SendToBuffer(LogUtils.Events.LogRequestEventArgs)">
             <inheritdoc/>
+            <exception cref="T:System.NotImplementedException"></exception>
         </member>
         <member name="M:LogUtils.Console.ConsoleLogWriter.WriteFrom(LogUtils.Requests.LogRequest)">
             <inheritdoc/>
@@ -4367,17 +4258,39 @@
             <inheritdoc/>
             <value>Always returns false</value>
         </member>
+        <member name="M:LogUtils.DiscreteLogger.#ctor(LogUtils.Enums.ILogTarget)">
+            <summary>
+            Constructs a new <see cref="T:LogUtils.DiscreteLogger"/> instance
+            </summary>
+            <inheritdoc select="params"/>
+        </member>
+        <member name="M:LogUtils.DiscreteLogger.#ctor(System.Boolean,LogUtils.Enums.ILogTarget)">
+            <inheritdoc cref="M:LogUtils.DiscreteLogger.#ctor(LogUtils.Enums.ILogTarget)"/>
+            <inheritdoc select="params"/>
+        </member>
+        <member name="M:LogUtils.DiscreteLogger.#ctor(LogUtils.LoggingMode,LogUtils.Enums.ILogTarget)">
+            <inheritdoc cref="M:LogUtils.DiscreteLogger.#ctor(LogUtils.Enums.ILogTarget)"/>
+            <inheritdoc select="params"/>
+        </member>
+        <member name="M:LogUtils.DiscreteLogger.#ctor(LogUtils.LoggingMode,System.Boolean,LogUtils.Enums.ILogTarget)">
+            <inheritdoc cref="M:LogUtils.DiscreteLogger.#ctor(LogUtils.Enums.ILogTarget)"/>
+            <inheritdoc select="params"/>
+        </member>
         <member name="M:LogUtils.DiscreteLogger.#ctor(LogUtils.Enums.ILogTarget[])">
-            <inheritdoc/>
+            <inheritdoc cref="M:LogUtils.DiscreteLogger.#ctor(LogUtils.Enums.ILogTarget)"/>
+            <inheritdoc select="params"/>
         </member>
         <member name="M:LogUtils.DiscreteLogger.#ctor(System.Boolean,LogUtils.Enums.ILogTarget[])">
-            <inheritdoc/>
+            <inheritdoc cref="M:LogUtils.DiscreteLogger.#ctor(LogUtils.Enums.ILogTarget)"/>
+            <inheritdoc select="params"/>
         </member>
         <member name="M:LogUtils.DiscreteLogger.#ctor(LogUtils.LoggingMode,LogUtils.Enums.ILogTarget[])">
-            <inheritdoc/>
+            <inheritdoc cref="M:LogUtils.DiscreteLogger.#ctor(LogUtils.Enums.ILogTarget)"/>
+            <inheritdoc select="params"/>
         </member>
         <member name="M:LogUtils.DiscreteLogger.#ctor(LogUtils.LoggingMode,System.Boolean,LogUtils.Enums.ILogTarget[])">
-            <inheritdoc/>
+            <inheritdoc cref="M:LogUtils.DiscreteLogger.#ctor(LogUtils.Enums.ILogTarget)"/>
+            <inheritdoc select="params"/>
         </member>
         <member name="M:LogUtils.Documentation.AssertDocumentation.GeneralAssert.EvaluateCondition``1(LogUtils.Diagnostics.Condition{``0},``0,System.Func{``0,System.Boolean},LogUtils.Diagnostics.Assert.EvaluationCriteria)">
             <summary>
@@ -5823,7 +5736,7 @@
         </member>
         <member name="T:LogUtils.Enums.ILogTarget">
             <summary>
-            Shared by implementations that function as a compatible target by a Logger instance
+            Represents a target for logged messages (such as a log file or console)
             </summary>
         </member>
         <member name="P:LogUtils.Enums.ILogTarget.Value">
@@ -5881,6 +5794,18 @@
             <summary>
             Creates a new object that is a member deep copy of this instance
             </summary>
+        </member>
+        <member name="M:LogUtils.Enums.LogTargetCombiner.Combine(LogUtils.Enums.ILogTarget,LogUtils.Enums.ILogTarget)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Enums.LogTargetCombiner.Distinct(LogUtils.Enums.ILogTarget,LogUtils.Enums.ILogTarget)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Enums.LogTargetCombiner.GetComplement(LogUtils.Enums.ILogTarget)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Enums.LogTargetCombiner.Intersect(LogUtils.Enums.ILogTarget,LogUtils.Enums.ILogTarget)">
+            <inheritdoc/>
         </member>
         <member name="P:LogUtils.Enums.SharedExtEnum`1.Index">
             <summary>
@@ -7519,6 +7444,214 @@
         <member name="M:LogUtils.LoggerExtensions.Log(LogUtils.IFormatLogger,LogUtils.Enums.LogCategory,System.String,System.Object[])">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(LogUtils.Enums.LogCategory,System.String,System.Object[])"/>
         </member>
+        <member name="T:LogUtils.LoggerBase">
+            <summary>
+            Base class for specialized, and general purpose logger implementations
+            </summary>
+        </member>
+        <member name="P:LogUtils.LoggerBase.AllowLogging">
+            <summary>
+            A flag that allows/disallows handling of log requests (local and remote) through this logger 
+            </summary>
+        </member>
+        <member name="P:LogUtils.LoggerBase.AllowRemoteLogging">
+            <summary>
+            A flag that allows/disallows handling of remote log requests through this logger
+            </summary>
+        </member>
+        <member name="P:LogUtils.LoggerBase.AllowRegistration">
+            <inheritdoc/>
+        </member>
+        <member name="F:LogUtils.LoggerBase.Targets">
+            <summary>
+            Contains all assigned log targets
+            </summary>
+        </member>
+        <member name="P:LogUtils.LoggerBase.LogTargets">
+            <summary>
+            Contains a list of LogIDs (both local and remote) that will be handled in the case of an untargeted log request
+            </summary>
+        </member>
+        <member name="P:LogUtils.LoggerBase.ConsoleTargets">
+            <summary>
+            Contains a list of ConsoleIDs that will be handled by any log request that can be handled by this logger
+            </summary>
+        </member>
+        <member name="P:LogUtils.LoggerBase.LogSource">
+            <summary>
+            A log source that will be applied by default to log requests that require such information
+            </summary>
+        </member>
+        <member name="F:LogUtils.LoggerBase.IsThreadSafe">
+            <summary>
+            A flag that indicates whether this logger should take a conservative approach to thread safety when handling new log requests
+            </summary>
+        </member>
+        <member name="F:LogUtils.LoggerBase.RestorePoint">
+            <summary>
+            Contains a record of logger field values that can be restored on demand
+            </summary>
+        </member>
+        <member name="F:LogUtils.LoggerBase.Writer">
+            <summary>
+            Writer implementation (responsible for writing to file, or storing messages in the message buffer)
+            </summary>
+        </member>
+        <member name="M:LogUtils.LoggerBase.#ctor(BepInEx.Logging.ILogSource)">
+            <summary>
+            Constructs a new <see cref="T:LogUtils.Logger"/> instance
+            </summary>
+            <param name="logSource">The BepInEx log source (typically a <see cref="T:BepInEx.Logging.ManualLogSource"/>) to assign to this logger</param>
+        </member>
+        <member name="M:LogUtils.LoggerBase.#ctor(LogUtils.Enums.ILogTarget)">
+            <inheritdoc cref="M:LogUtils.LoggerBase.#ctor(BepInEx.Logging.ILogSource)"/>
+            <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
+        </member>
+        <member name="M:LogUtils.LoggerBase.#ctor(System.Boolean,LogUtils.Enums.ILogTarget)">
+            <inheritdoc cref="M:LogUtils.LoggerBase.#ctor(BepInEx.Logging.ILogSource)"/>
+            <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
+            <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
+        </member>
+        <member name="M:LogUtils.LoggerBase.#ctor(LogUtils.LoggingMode,LogUtils.Enums.ILogTarget)">
+            <inheritdoc cref="M:LogUtils.LoggerBase.#ctor(BepInEx.Logging.ILogSource)"/>
+            <param name="mode">Changes the technique used to write messages to file</param>
+            <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
+        </member>
+        <member name="M:LogUtils.LoggerBase.#ctor(LogUtils.LoggingMode,System.Boolean,LogUtils.Enums.ILogTarget)">
+            <inheritdoc cref="M:LogUtils.LoggerBase.#ctor(BepInEx.Logging.ILogSource)"/>
+            <param name="mode">Changes the technique used to write messages to file</param>
+            <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
+            <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
+        </member>
+        <member name="M:LogUtils.LoggerBase.#ctor(LogUtils.Enums.ILogTarget[])">
+            <inheritdoc cref="M:LogUtils.LoggerBase.#ctor(BepInEx.Logging.ILogSource)"/>
+            <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
+        </member>
+        <member name="M:LogUtils.LoggerBase.#ctor(System.Boolean,LogUtils.Enums.ILogTarget[])">
+            <inheritdoc cref="M:LogUtils.LoggerBase.#ctor(BepInEx.Logging.ILogSource)"/>
+            <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
+            <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
+        </member>
+        <member name="M:LogUtils.LoggerBase.#ctor(LogUtils.LoggingMode,LogUtils.Enums.ILogTarget[])">
+            <inheritdoc cref="M:LogUtils.LoggerBase.#ctor(BepInEx.Logging.ILogSource)"/>
+            <param name="mode">Changes the technique used to write messages to file</param>
+            <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
+        </member>
+        <member name="M:LogUtils.LoggerBase.#ctor(LogUtils.LoggingMode,System.Boolean,LogUtils.Enums.ILogTarget[])">
+            <inheritdoc cref="M:LogUtils.LoggerBase.#ctor(BepInEx.Logging.ILogSource)"/>
+            <param name="mode">Changes the technique used to write messages to file</param>
+            <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
+            <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
+        </member>
+        <member name="M:LogUtils.LoggerBase.LogUnresolvedTarget(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,System.Object,System.Boolean,LogUtils.Requests.LogRequest.Factory.Callback)">
+            <summary>
+            An intermediate logging layer that resolves the type of the target to determine if it should be treated as a singular or batched log request
+            </summary>
+        </member>
+        <member name="M:LogUtils.LoggerBase.LogUnresolvedTarget(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,System.Object,System.Boolean,UnityEngine.Color)">
+            <inheritdoc cref="M:LogUtils.LoggerBase.LogUnresolvedTarget(LogUtils.Enums.ILogTarget,LogUtils.Enums.LogCategory,System.Object,System.Boolean,LogUtils.Requests.LogRequest.Factory.Callback)"/>
+        </member>
+        <member name="M:LogUtils.LoggerBase.LogBase(LogUtils.Requests.LogRequest)">
+            <summary>
+            Passes a log request to a writer, or request handler
+            </summary>
+            <remarks>Through normal code paths, this code may receive already submitted requests, but these requests should always be local</remarks>
+        </member>
+        <member name="M:LogUtils.LoggerBase.CanHandle(LogUtils.Enums.LogID,LogUtils.Requests.RequestType)">
+            <summary>
+            Determines if the specified LogID can be handled by this logger with the specified RequestType
+            </summary>
+        </member>
+        <member name="M:LogUtils.LoggerBase.HandleRequest(LogUtils.Requests.LogRequest)">
+            <inheritdoc/>
+        </member>
+        <member name="F:LogUtils.LoggerBase.IsDisposed">
+            <summary/>
+        </member>
+        <member name="M:LogUtils.LoggerBase.Dispose(System.Boolean)">
+            <summary>
+            Performs tasks for disposing a <see cref="T:LogUtils.Logger"/>
+            </summary>
+            <param name="disposing">Whether or not the dispose request is invoked by the application (true), or invoked by the destructor (false)</param>
+        </member>
+        <member name="M:LogUtils.LoggerBase.Dispose">
+            <inheritdoc cref="M:LogUtils.LoggerBase.Dispose(System.Boolean)"/>
+        </member>
+        <member name="M:LogUtils.LoggerBase.Finalize">
+            <summary/>
+        </member>
+        <member name="T:LogUtils.LoggerBase.LogRestorePoint">
+            <summary>
+            A snapshot of the logger's state at a certain point in time
+            </summary>
+        </member>
+        <member name="F:LogUtils.LoggerBase.LogRestorePoint.AllowLogging">
+            <summary>
+            Cached state for AllowLogging field
+            </summary>
+        </member>
+        <member name="F:LogUtils.LoggerBase.LogRestorePoint.AllowRemoteLogging">
+            <summary>
+            Cached state for AllowRemoteLogging field
+            </summary>
+        </member>
+        <member name="F:LogUtils.LoggerBase.LogRestorePoint.LogTargets">
+            <summary>
+            Cached state for Targets field
+            </summary>
+        </member>
+        <member name="M:LogUtils.LoggerBase.ProcessBatch(LogUtils.Requests.LogRequest)">
+            <summary>
+            Processes and logs a previously initiated batch of log reqeusts
+            </summary>
+        </member>
+        <member name="F:LogUtils.LoggerBase.LogProcessor._logHandler">
+            <summary>
+            The handler that is responsible for handling processed log requests
+            </summary>
+        </member>
+        <member name="M:LogUtils.LoggerBase.OnRegister">
+            <summary>
+            Event is invoked when the logger is registered
+            </summary>
+        </member>
+        <member name="M:LogUtils.LoggerBase.OnUnregister">
+            <summary>
+            Event is invoked when the logger becomes unregistered
+            </summary>
+        </member>
+        <member name="M:LogUtils.LoggerBase.OnNewRequest(LogUtils.Requests.LogRequest)">
+            <summary>
+            Event is invoked each time a LogRequest is submitted by the current logger
+            </summary>
+        </member>
+        <member name="T:LogUtils.LoggingMode">
+            <summary>
+            Represents the write implementation mode
+            </summary>
+        </member>
+        <member name="F:LogUtils.LoggingMode.Inherit">
+            <summary>
+            Specifies that a shared default instance should be used
+            </summary>
+        </member>
+        <member name="F:LogUtils.LoggingMode.Normal">
+            <summary>
+            Specifies that a standard <see cref="T:LogUtils.LogWriter"/> should be used
+            </summary>
+        </member>
+        <member name="F:LogUtils.LoggingMode.Queue">
+            <summary>
+            Specifies that a <see cref="T:LogUtils.QueueLogWriter"/> should be used
+            </summary>
+            <remarks>Emulates Jolly Coop logging</remarks>
+        </member>
+        <member name="F:LogUtils.LoggingMode.Timed">
+            <summary>
+            Specifies that a <see cref="T:LogUtils.TimedLogWriter"/> should be used
+            </summary>
+            <remarks>Emulates BepInEx logging</remarks>
+        </member>
         <member name="F:LogUtils.Properties.Custom.CustomLogProperty.IsLogRule">
             <summary>
             A field that indicates that this property is convertible into a LogRule instance
@@ -7794,6 +7927,11 @@
         <member name="M:LogUtils.Properties.Formatting.LogTimestampRule.ApplyRule(LogUtils.Formatting.LogMessageFormatter,System.String,LogUtils.Events.LogRequestEventArgs)">
             <inheritdoc/>
         </member>
+        <member name="M:LogUtils.Properties.Formatting.LogTimestampRule.GetTime(LogUtils.Events.LogRequestEventArgs)">
+            <summary>
+            Gets a <see cref="T:System.DateTime"/> instance to use as a timestamp
+            </summary>
+        </member>
         <member name="M:LogUtils.Properties.Formatting.LogTimestampRule.GetPriority">
             <inheritdoc/>
         </member>
@@ -7946,7 +8084,7 @@
         </member>
         <member name="P:LogUtils.Properties.LogProperties.ShowLogsAware">
             <summary>
-            A flag that controls whether log is allowed to be used when RainWorld.ShowLogs is false
+            A flag that determines whether <see cref="P:RainWorld.ShowLogs"/> should affect log processing of a specific log target
             </summary>
         </member>
         <member name="P:LogUtils.Properties.LogProperties.ShowCategories">
@@ -8528,6 +8666,13 @@
             <summary>
             Extracts log event data from event listener object
             </summary>
+        </member>
+        <member name="P:LogUtils.PatcherLogEventProcessor.EventLogger.AllowRemoteLogging">
+            <inheritdoc/>
+            <value>Always returns false</value>
+        </member>
+        <member name="M:LogUtils.PatcherLogEventProcessor.EventLogger.#ctor">
+            <inheritdocs/>
         </member>
         <member name="P:LogUtils.PersistenceManager.Tag">
             <inheritdoc/>
