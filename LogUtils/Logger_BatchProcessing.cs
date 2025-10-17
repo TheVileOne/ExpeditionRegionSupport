@@ -92,10 +92,10 @@ namespace LogUtils
 
         public class LogProcessorArgs : EventArgs
         {
-            public readonly LogTargetCollection Targets;
-
             internal IEnumerable<LogID> EnabledLogIDs => Targets.LogIDs.Where(t => t.IsEnabled);
             internal IEnumerable<ConsoleID> EnabledConsoleIDs => Targets.ConsoleIDs.Where(t => t.IsEnabled);
+
+            public readonly LogTargetCollection Targets;
 
             public readonly CreateRequestCallback RequestFactory;
 

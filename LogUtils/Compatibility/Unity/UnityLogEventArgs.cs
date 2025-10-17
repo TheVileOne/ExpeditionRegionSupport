@@ -7,12 +7,12 @@ namespace LogUtils.Compatibility.Unity
         /// <summary>
         /// Unity object - typically given to provide context to the log message
         /// </summary>
-        public UnityEngine.Object Context { get; }
+        public readonly UnityEngine.Object Context;
 
         /// <summary>
         /// Unity tag - typically given to provide context to the log message
         /// </summary>
-        public string Tag { get; }
+        public readonly string Tag;
 
         public UnityLogEventArgs(UnityEngine.Object context, string tag)
         {

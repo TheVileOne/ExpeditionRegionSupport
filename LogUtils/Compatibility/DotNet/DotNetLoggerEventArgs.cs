@@ -5,7 +5,7 @@ namespace LogUtils.Compatibility.DotNet
 {
     public class DotNetLoggerEventArgs : EventArgs
     {
-        public EventId EventID { get; }
+        public readonly EventId EventID;
 
         public DotNetLoggerEventArgs(EventId eventID)
         {
