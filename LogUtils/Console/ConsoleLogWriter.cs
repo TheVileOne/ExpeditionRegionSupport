@@ -55,6 +55,7 @@ namespace LogUtils.Console
             {
                 Formatter = new LogMessageFormatter(new AnsiColorFormatProvider());
                 Rules = LogID.BepInEx.Properties.Rules;
+                ShowLogsAware = LogID.BepInEx.Properties.ShowLogsAware;
             }
 
             IsEnabled = Stream != null;
