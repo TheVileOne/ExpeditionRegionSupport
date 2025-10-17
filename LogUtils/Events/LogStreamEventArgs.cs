@@ -5,7 +5,7 @@ namespace LogUtils.Events
 {
     public class LogStreamEventArgs : LogEventArgs
     {
-        public StreamWriter Writer { get; }
+        public readonly StreamWriter Writer;
 
         public LogStreamEventArgs(LogID logID, StreamWriter writer) : base(logID)
         {

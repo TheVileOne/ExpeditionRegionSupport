@@ -5,7 +5,7 @@ namespace LogUtils.Events
 {
     public class ColorEventArgs : EventArgs
     {
-        public Color Color { get; }
+        public readonly Color Color;
 
         public ColorEventArgs(Color color)
         {
