@@ -314,9 +314,17 @@ namespace LogUtils.Enums
             JollyCoop.Properties.AltFilename = new LogFilename(UtilityConsts.LogNames.JollyCoopAlt, FileExt.LOG);
             JollyCoop.Properties.ShowLogsAware = true;
 
+            Version version = Unity.Properties.Version;
+
+            if (version.Major == 0)
+            {
+                //It is important that all users have ConsoleIDs field updated for this log file
+                Unity.Properties.Version = version.Bump(VersionCode.Major);
+            }
+
             Unity.Properties.AccessPeriod = SetupPeriod.RWAwake;
             Unity.Properties.AddTag(nameof(Unity));
-            //TODO: Add RainWorld ConsoleID to this LogID
+            Unity.Properties.ConsoleIDs.Add(ConsoleID.RainWorld);
             Unity.Properties.ConsoleIDs.Add(ConsoleID.BepInEx); //Unity logs to BepInEx by default
             Unity.Properties.LogSourceName = nameof(Unity);
             Unity.Properties.AltFilename = new LogFilename(UtilityConsts.LogNames.UnityAlt, FileExt.LOG);
