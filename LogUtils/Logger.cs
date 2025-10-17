@@ -42,6 +42,11 @@ namespace LogUtils
         }
 
         /// <inheritdoc/>
+        public Logger(LoggingMode mode, bool allowLogging, ILogTarget preset) : base(mode, allowLogging, preset)
+        {
+        }
+
+        /// <inheritdoc/>
         public Logger(params ILogTarget[] presets) : base(LoggingMode.Inherit, true, presets)
         {
         }

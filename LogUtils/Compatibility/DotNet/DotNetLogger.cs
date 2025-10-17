@@ -16,38 +16,57 @@ namespace LogUtils.Compatibility.DotNet
         /// <summary>
         /// Constructs a new <see cref="DotNetLogger"/> instance
         /// </summary>
-        public DotNetLogger() : base()
-        {
-        }
-
-        /// <inheritdoc cref="DotNetLogger()"/>
-        /// <inheritdoc cref="Logger(ILogSource)" select="params"/>
+        /// <inheritdoc select="params"/>
         public DotNetLogger(ILogSource logSource) : base(LoggingMode.Inherit, true, LogID.BepInEx)
         {
             LogSource = logSource;
         }
 
-        /// <inheritdoc cref="DotNetLogger()"/>
-        /// <inheritdoc cref="Logger(ILogTarget)" select="params"/>
+        /// <inheritdoc cref="DotNetLogger(ILogSource)"/>
+        /// <inheritdoc select="params"/>
         public DotNetLogger(ILogTarget preset) : base(LoggingMode.Inherit, true, preset)
         {
         }
 
-        /// <inheritdoc cref="DotNetLogger()"/>
-        /// <inheritdoc cref="Logger(bool, ILogTarget)" select="params"/>
+        /// <inheritdoc cref="DotNetLogger(ILogSource)"/>
+        /// <inheritdoc select="params"/>
         public DotNetLogger(bool allowLogging, ILogTarget preset) : base(LoggingMode.Inherit, allowLogging, preset)
         {
         }
 
-        /// <inheritdoc cref="DotNetLogger()"/>
-        /// <inheritdoc cref="Logger(LoggingMode, ILogTarget)" select="params"/>
+        /// <inheritdoc cref="DotNetLogger(ILogSource)"/>
+        /// <inheritdoc select="params"/>
         public DotNetLogger(LoggingMode mode, ILogTarget preset) : base(mode, true, preset)
         {
         }
 
-        /// <inheritdoc cref="DotNetLogger()"/>
-        /// <inheritdoc cref="Logger(ILogTarget[])" select="params"/>
+        /// <inheritdoc cref="DotNetLogger(ILogSource)"/>
+        /// <inheritdoc select="params"/>
+        public DotNetLogger(LoggingMode mode, bool allowLogging, ILogTarget preset) : base(mode, allowLogging, preset)
+        {
+        }
+
+        /// <inheritdoc cref="DotNetLogger(ILogSource)"/>
+        /// <inheritdoc select="params"/>
         public DotNetLogger(params ILogTarget[] presets) : base(LoggingMode.Inherit, true, presets)
+        {
+        }
+
+        /// <inheritdoc cref="DotNetLogger(ILogSource)"/>
+        /// <inheritdoc select="params"/>
+        public DotNetLogger(bool allowLogging, params ILogTarget[] presets) : base(LoggingMode.Inherit, allowLogging, presets)
+        {
+        }
+
+        /// <inheritdoc cref="DotNetLogger(ILogSource)"/>
+        /// <inheritdoc select="params"/>
+        public DotNetLogger(LoggingMode mode, params ILogTarget[] presets) : base(mode, true, presets)
+        {
+        }
+
+        /// <inheritdoc cref="DotNetLogger(ILogSource)"/>
+        /// <inheritdoc select="params"/>
+        public DotNetLogger(LoggingMode mode, bool allowLogging, params ILogTarget[] presets) : base(mode, allowLogging, presets)
         {
         }
 
