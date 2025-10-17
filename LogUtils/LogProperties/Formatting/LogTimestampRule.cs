@@ -19,13 +19,28 @@ namespace LogUtils.Properties.Formatting
             LogCategory category = logEventData.Category;
             Color headerColor = category.ConsoleColor;
 
+            DateTime time = GetTime(logEventData);
             DateTimeFormat format = logEventData.Properties.DateTimeFormat;
             string messageHeader = string.Format("{0} ", logEventData.IsTargetingConsole
-                ? DateTime.Now.ToLongTimeString()
-                : DateTime.Now.ToString(format.FormatString, format.FormatProvider));
+                ? time.ToLongTimeString()
+                : time.ToString(format.FormatString, format.FormatProvider));
 
             messageHeader = formatter.ApplyColor(messageHeader, headerColor);
             return messageHeader + message;
+        }
+
+        /// <summary>
+        /// Gets a <see cref="DateTime"/> instance to use as a timestamp
+        /// </summary>
+        protected DateTime GetTime(LogRequestEventArgs logEventData)
+        {
+            var timeData = logEventData.FindData<TimeEventArgs>();
+
+            if (timeData != null)
+                return timeData.Time;
+
+            //When logging to file, or the console, we want output to reflect local system time
+            return DateTime.Now;
         }
 
         /// <inheritdoc/>

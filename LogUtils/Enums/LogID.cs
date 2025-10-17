@@ -277,7 +277,8 @@ namespace LogUtils.Enums
             {
                 Patcher = new LogID("LogUtils.VersionLoader.log", UtilityConsts.PathKeywords.ROOT, LogAccess.Private, true);
                 Patcher.Properties.AccessPeriod = SetupPeriod.Pregame;
-                Patcher.Properties.DateTimeFormat = new DateTimeFormat("yyyy-MM-dd HH:mm:ss");
+                Patcher.Properties.ShowLogTimestamp.IsEnabled = true;
+                Patcher.Properties.DateTimeFormat = new DateTimeFormat("yyyy-MM-dd HH:mm:ss -");
             }
 
             //Throwaway LogID

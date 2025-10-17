@@ -1,10 +1,11 @@
 ﻿using BepInEx.Logging;
 using LogUtils.Enums;
+using LogUtils.Events;
+using LogUtils.Requests;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
 using PatcherLogEvent = (BepInEx.Logging.LogEventArgs EventData, System.DateTime Timestamp);
 
 namespace LogUtils
@@ -46,24 +47,10 @@ namespace LogUtils
                 return;
             }
 
-            Logger logger = new DiscreteLogger(LogID.Patcher);
-
-            using (logger)
+            using (EventLogger logger = new EventLogger())
             {
                 foreach (PatcherLogEvent logEvent in Results)
-                {
-                    LogLevel category = logEvent.EventData.Level;
-                    object messageObj = logEvent.EventData.Data;
-
-                    if (messageObj is Exception)
-                        messageObj = "!!!Exception: " + messageObj;
-
-                    //TODO: This needs to be handled through a log rule instead
-                    DateTimeFormat format = LogID.Patcher.Properties.DateTimeFormat;
-
-                    messageObj = $"{logEvent.Timestamp.ToString(format.FormatString, format.FormatProvider)} - {messageObj}";
-                    logger.Log(category, messageObj);
-                }
+                    logger.Log(logEvent);
             }
         }
 
@@ -93,6 +80,30 @@ namespace LogUtils
         {
             Type type = target.GetType();
             return type.Namespace.StartsWith("LogUtils") && type.Name == "LogEventCache";
+        }
+
+        private class EventLogger : LoggerBase
+        {
+            /// <inheritdoc/>
+            /// <value>Always returns false</value>
+            public override bool AllowRemoteLogging => false;
+            
+            /// <inheritdocs/>
+            public EventLogger() : base(LogID.Patcher)
+            {
+            }
+
+            public void Log(PatcherLogEvent logEvent)
+            {
+                LogCategory category = LogCategory.ToCategory(logEvent.EventData.Level);
+                object messageObj = logEvent.EventData.Data;
+                EventArgs extraData = new TimeEventArgs(logEvent.Timestamp);
+
+                if (messageObj is Exception)
+                    messageObj = "!!!Exception: " + messageObj;
+
+                LogBase(category, messageObj, false, LogRequest.Factory.CreateDataCallback(extraData));
+            }
         }
     }
 }
