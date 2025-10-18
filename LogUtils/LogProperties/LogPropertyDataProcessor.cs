@@ -102,7 +102,7 @@ namespace LogUtils.Properties
                     if (dataField == DataFields.TAGS)
                         properties.Tags = Array.Empty<string>();
 
-                    UtilityLogger.LogError(ex);
+                    UtilityLogger.LogWarning($"Expected data field '{dataField}' was missing or malformatted");
                     processedWithErrors = true;
                 }
             }
