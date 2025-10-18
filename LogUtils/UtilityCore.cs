@@ -391,7 +391,7 @@ namespace LogUtils
                     logFile.Properties.EndLogSession();
                     logFile.Properties.AllowLogging = false;
 
-                    if (IsControllingAssembly)
+                    if (IsControllingAssembly && logFile.Properties.OverwriteLog)
                     {
                         //BepInEx log file requires special treatment. This log file cannot be replaced on game start like the other log files
                         //To account for this, replace this log file when the game closes

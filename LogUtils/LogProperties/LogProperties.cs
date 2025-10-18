@@ -161,6 +161,7 @@ namespace LogUtils.Properties
         private bool _showIntroTimestamp, _showOutroTimestamp;
         private bool _showLogsAware;
         private DateTimeFormat _dateTimeFormat = new DateTimeFormat("G");
+        private bool _overwriteLog = true;
 
         /// <summary>
         /// The LogID associated with the log properties
@@ -220,6 +221,20 @@ namespace LogUtils.Properties
 
                 ReadOnly = false; //Updating the version exposes LogProperties to changes
                 _version = value;
+            }
+        }
+
+        /// <summary>
+        /// Affects whether new messages targeting this log file will be appended to an existing file instead of the existing file being removed when LogUtils startup routine activates 
+        /// </summary>
+        /// <remarks>As a result of this feature being active, backups for this file may not be available (depending on how the mod that handles backups is configured)</remarks>
+        public bool OverwriteLog
+        {
+            get => _overwriteLog;
+            set
+            {
+                if (ReadOnly) return;
+                _overwriteLog = value;
             }
         }
 

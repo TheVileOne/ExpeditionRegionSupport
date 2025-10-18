@@ -86,60 +86,61 @@ namespace LogUtils.Properties
         {
             LogProperties properties = logFile.Properties;
 
+            if (!properties.OverwriteLog)
+                properties.SkipStartupRoutine = true; //Persistent log files should not be renamed and replaced
+
             //The original filename is stored without its original file extension in the value field of the LogID
-            string originalFilePath = LogFile.FindPathWithoutFileExtension(properties.OriginalFolderPath, logFile.Value);
+            string originalFilePath = LogFile.FindExistingPath(properties.OriginalFolderPath, logFile.Value);
 
-            if (originalFilePath != null) //This shouldn't be null under typical circumstances
+            if (originalFilePath == null) return; //This shouldn't be null under typical circumstances
+
+            bool moveFileFromOriginalPath = !PathUtils.PathsAreEqual(originalFilePath, properties.CurrentFilePath);
+            bool lastKnownFileOverwritten = PathUtils.PathsAreEqual(originalFilePath, properties.LastKnownFilePath);
+
+            bool originalFileDeleted = false;
+            if (!UtilityCore.IsControllingAssembly)
             {
-                bool moveFileFromOriginalPath = !PathUtils.PathsAreEqual(originalFilePath, properties.CurrentFilePath);
-                bool lastKnownFileOverwritten = PathUtils.PathsAreEqual(originalFilePath, properties.LastKnownFilePath);
+                if (logFile != LogID.BepInEx && moveFileFromOriginalPath) //This file would already have been moved by the controlling process - this original file is likely a duplicate
+                    originalFileDeleted = FileUtils.TryDelete(originalFilePath);
 
-                bool originalFileDeleted = false;
-                if (!UtilityCore.IsControllingAssembly)
+                //Moving files on other processes is not supported
+                moveFileFromOriginalPath = false;
+                properties.SkipStartupRoutine = true;
+            }
+
+            if (moveFileFromOriginalPath)
+            {
+                //Set up the temp file for this log file if it isn't too late to do so
+                if (!lastKnownFileOverwritten && !properties.SkipStartupRoutine && StartupRoutineActive)
                 {
-                    if (logFile != LogID.BepInEx && moveFileFromOriginalPath) //This file would already have been moved by the controlling process - this original file is likely a duplicate
-                        originalFileDeleted = FileUtils.TryDelete(originalFilePath);
-
-                    //Moving files on other processes is not supported
-                    moveFileFromOriginalPath = false;
+                    properties.CreateTempFile();
                     properties.SkipStartupRoutine = true;
                 }
 
-                if (moveFileFromOriginalPath)
+                using (properties.FileLock.Acquire())
                 {
-                    //Set up the temp file for this log file if it isn't too late to do so
-                    if (!lastKnownFileOverwritten && StartupRoutineActive)
-                    {
-                        properties.CreateTempFile();
-                        properties.SkipStartupRoutine = true;
-                    }
+                    properties.FileLock.SetActivity(FileAction.Move);
 
-                    using (properties.FileLock.Acquire())
-                    {
-                        properties.FileLock.SetActivity(FileAction.Move);
+                    //Move the file, and if it fails, change the path. Either way, log file exists
+                    FileStatus moveResult = LogFile.Move(originalFilePath, properties.CurrentFilePath, overwriteExisting: true);
 
-                        //Move the file, and if it fails, change the path. Either way, log file exists
-                        FileStatus moveResult = LogFile.Move(originalFilePath, properties.CurrentFilePath, overwriteExisting: true);
+                    if (moveResult != FileStatus.MoveComplete)
+                        properties.ChangePath(originalFilePath);
 
-                        if (moveResult != FileStatus.MoveComplete)
-                            properties.ChangePath(originalFilePath);
-
-                        properties.FileExists = true;
-                        properties.LogSessionActive = true;
-                    }
+                    properties.FileExists = true;
+                    properties.LogSessionActive = true;
                 }
-                else if (!originalFileDeleted)
-                {
-                    using (properties.FileLock.Acquire())
-                    {
-                        //File exists - we don't necessarily know if it is an old file here though
-                        properties.FileExists = true;
-                        properties.LogSessionActive = true;
-                    }
-                }
-
-                properties.SkipStartupRoutine |= lastKnownFileOverwritten;
             }
+            else if (!originalFileDeleted)
+            {
+                using (properties.FileLock.Acquire())
+                {
+                    //File exists - we don't necessarily know if it is an old file here though
+                    properties.FileExists = true;
+                    properties.LogSessionActive = true;
+                }
+            }
+            properties.SkipStartupRoutine |= lastKnownFileOverwritten;
         }
 
         internal void BeginStartupRoutine()
@@ -149,6 +150,9 @@ namespace LogUtils.Properties
             StartupRoutineActive = true;
             foreach (LogProperties properties in Properties)
             {
+                if (!properties.OverwriteLog)
+                    properties.SkipStartupRoutine = true; //Persistent log files should not be renamed and replaced
+
                 if (!properties.SkipStartupRoutine && !properties.LogSessionActive)
                     properties.CreateTempFile();
 
