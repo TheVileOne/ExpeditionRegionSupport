@@ -47,19 +47,19 @@ namespace LogUtils.Enums
         public static LogID[] RegisteredEntries => LogProperties.PropertyManager.Properties.Select(p => p.ID).ToArray();
 
         /// <summary>
-        /// Creates a new LogID instance
+        /// Creates a new <see cref="LogID"/> instance.
         /// </summary>
-        /// <param name="filename">The filename, and optional path to target and use for logging
-        /// The ExtEnum value will be equivalent to the filename portion of this parameter without the file extension
-        /// A filename without a path will default to StreamingAssets directory as a path unless an existing LogID with the specified filename is already registered
+        /// <param name="filename">The filename, and optional path to target and use for logging.<br/>
+        /// The ExtEnum value will be equivalent to the filename portion of this parameter without the file extension.<br/>
+        /// A filename without a path will default to StreamingAssets directory as a path unless an existing LogID with the specified filename is already registered.
         /// </param>
-        /// <param name="access">Modifier that affects who may access and use the log file
-        /// Set to LogAccess.RemoteAccessOnly UNLESS your mod intends to handle LogRequests for this LogID
+        /// <param name="access">Modifier that affects who may access and use the log file.<br/>
+        /// To access a log file you control, use <b>Private/FullAccess</b>. To access a log file you do not control, use <b>RemoteAccessOnly</b>.
         /// </param>
-        /// <param name="register">Whether or not this LogID is registered as an ExtEnum
-        /// Registration affects whether a LogID gets its own properties that write to file on game close
-        /// An unregistered LogID will still get its own properties, those properties, and changes to those properties wont be saved to file
-        /// DO NOT register a LogID that is temporary, and your mod is designated for public release
+        /// <param name="register">Sets registration state for the ExtEnum.<br/>
+        /// <para>Registration affects whether a LogID gets its own properties that write to file on game close. An unregistered LogID will still get its own properties,<br/>
+        /// but those properties, and changes to those properties wont be saved to file.</para>
+        /// <para>Avoid registering a LogID that is temporary, and your mod is designated for public release.</para>
         /// </param>
         /// <exception cref="ArgumentNullException">Filename provided is null</exception>
         public LogID(string filename, LogAccess access, bool register = false) : this(new PathWrapper(filename), access, register)
@@ -67,7 +67,7 @@ namespace LogUtils.Enums
         }
 
         /// <summary>
-        /// Creates a new LogID instance without attempting to create a LogProperties instance
+        /// Creates a new <see cref="LogID"/> instance without attempting to create properties for it.
         /// </summary>
         internal LogID(string filename) : base(Sanitize(filename), false) //Used by ComparisonLogID to bypass LogProperties creation
         {
@@ -75,7 +75,7 @@ namespace LogUtils.Enums
         }
 
         /// <summary>
-        /// Creates a new LogID instance using a filename, and assuming a default/preexisting registered path
+        /// Creates a new <see cref="LogID"/> instance using a filename, and assuming a default/preexisting registered path.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Exists to satisfy Activator parameters for SharedExtEnum")]
         internal LogID(string filename, bool register) : this(filename, null, LogAccess.RemoteAccessOnly)
@@ -102,20 +102,21 @@ namespace LogUtils.Enums
         }
 
         /// <summary>
-        /// Creates a new LogID instance
+        /// Creates a new <see cref="LogID"/> instance.
         /// </summary>
-        /// <param name="filename">The filename to target, and use for logging
-        /// The ExtEnum value will be equivalent to the filename without the file extension
+        /// <param name="filename">The filename to target, and use for logging.<br/>
+        /// The ExtEnum value will be equivalent to the filename without the file extension.
         /// </param>
-        /// <param name="relativePathNoFile">The path to the log file
-        /// Setting to null will default to the StreamingAssets directory as a path unless an existing LogID with the specified filename is already registered</param>
-        /// <param name="access">Modifier that affects who may access and use the log file
-        /// Set to LogAccess.RemoteAccessOnly UNLESS your mod intends to handle LogRequests for this LogID
+        /// <param name="relativePathNoFile">The path to the log file.<br/>
+        /// Setting to null will default to the StreamingAssets directory as a path unless an existing LogID with the specified filename is already registered.
         /// </param>
-        /// <param name="register">Whether or not this LogID is registered as an ExtEnum
-        /// Registration affects whether a LogID gets its own properties that write to file on game close
-        /// An unregistered LogID will still get its own properties, those properties, and changes to those properties wont be saved to file
-        /// DO NOT register a LogID that is temporary, and your mod is designated for public release
+        /// <param name="access">Modifier that affects who may access and use the log file.<br/>
+        /// To access a log file you control, use <b>Private/FullAccess</b>. To access a log file you do not control, use <b>RemoteAccessOnly</b>.
+        /// </param>
+        /// <param name="register">Sets registration state for the ExtEnum.<br/>
+        /// <para>Registration affects whether a LogID gets its own properties that write to file on game close. An unregistered LogID will still get its own properties,<br/>
+        /// but those properties, and changes to those properties wont be saved to file.</para>
+        /// <para>Avoid registering a LogID that is temporary, and your mod is designated for public release.</para>
         /// </param>
         public LogID(string filename, string relativePathNoFile, LogAccess access, bool register = false) : base(Sanitize(filename), register)
         {
