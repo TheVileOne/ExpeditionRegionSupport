@@ -1,8 +1,9 @@
-﻿using LogUtils.Collections;
-using LogUtils.Enums;
+﻿using LogUtils.Enums;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
 using System.Runtime.Serialization;
 using DataFields = LogUtils.UtilityConsts.DataFields;
 
@@ -58,7 +59,15 @@ namespace LogUtils.Properties
                     filename = id;
             }
 
-            LogProperties properties = new LogProperties(id, filename, path);
+            string[] tags = parseTags(dataFields[DataFields.TAGS]);
+
+            if (tags == null)
+                onProcessError(DataFields.TAGS);
+
+            LogProperties properties = new LogProperties(id, filename, path)
+            {
+                Tags = tags
+            };
 
             #pragma warning disable IDE0055 //Fix formatting
             //Property setters are inaccesible. Define delegate wrappers for each one, and store in a dictionary
@@ -68,8 +77,7 @@ namespace LogUtils.Properties
                 [DataFields.ALTFILENAME]          = new Action(() => properties.AltFilename        = (LogFilename)dataFields[DataFields.ALTFILENAME]),
                 [DataFields.ORIGINAL_PATH]        = new Action(() => properties.OriginalFolderPath = dataFields[DataFields.ORIGINAL_PATH]),
                 [DataFields.LAST_KNOWN_PATH]      = new Action(() => properties.LastKnownFilePath  = dataFields[DataFields.LAST_KNOWN_PATH]),
-                [DataFields.CONSOLEIDS]           = new Action(() => properties.ConsoleIDs         = parseConsoleIDs(properties, dataFields[DataFields.CONSOLEIDS].Split(','))),
-                [DataFields.TAGS]                 = new Action(() => properties.Tags               = dataFields[DataFields.TAGS].Split(',')),
+                [DataFields.CONSOLEIDS]           = new Action(() => properties.ConsoleIDs         .AddRange(parseConsoleIDs(dataFields[DataFields.CONSOLEIDS]))),
                 [DataFields.LOGS_FOLDER_AWARE]    = new Action(() => properties.LogsFolderAware    = bool.Parse(dataFields[DataFields.LOGS_FOLDER_AWARE])),
                 [DataFields.LOGS_FOLDER_ELIGIBLE] = new Action(() => properties.LogsFolderEligible = bool.Parse(dataFields[DataFields.LOGS_FOLDER_ELIGIBLE])),
                 [DataFields.SHOW_LOGS_AWARE]      = new Action(() => properties.ShowLogsAware      = bool.Parse(dataFields[DataFields.SHOW_LOGS_AWARE])),
@@ -99,11 +107,7 @@ namespace LogUtils.Properties
                 }
                 catch (Exception ex) when (ex is ArgumentNullException || ex is NullReferenceException || ex is FormatException)
                 {
-                    if (dataField == DataFields.TAGS)
-                        properties.Tags = Array.Empty<string>();
-
-                    UtilityLogger.LogWarning($"Expected data field '{dataField}' was missing or malformatted");
-                    processedWithErrors = true;
+                    onProcessError(dataField);
                 }
             }
 
@@ -113,26 +117,38 @@ namespace LogUtils.Properties
                 UtilityLogger.LogWarning("There were issues while processing LogID " + id);
 
             Results = properties;
+
+            void onProcessError(string dataField)
+            {
+                UtilityLogger.LogWarning($"Expected data field '{dataField}' was missing or malformatted");
+                processedWithErrors = true;
+            }
         }
 
-        private static ValueCollection<ConsoleID> parseConsoleIDs(LogProperties properties, string[] data)
+        private static IEnumerable<ConsoleID> parseConsoleIDs(string dataEntry)
         {
-            var consoleIDs = new ValueCollection<ConsoleID>(() => properties.ReadOnly);
-            foreach (string idValue in data)
+            foreach (string idValue in dataEntry.Split(','))
             {
                 ConsoleID.TryParse(idValue, out ConsoleID id);
 
                 if (id != null)
-                    consoleIDs.Add(new ConsoleID(idValue, register: false));
+                    yield return new ConsoleID(idValue, register: false);
             }
-            return consoleIDs;
+            yield break;
         }
 
-        private static DateTimeFormat parseDateTimeFormat(string format)
+        private static DateTimeFormat parseDateTimeFormat(string dataEntry)
         {
-            if (string.IsNullOrEmpty(format))
+            if (string.IsNullOrEmpty(dataEntry))
                 return null;
-            return new DateTimeFormat(format);
+            return new DateTimeFormat(dataEntry);
+        }
+
+        private static string[] parseTags(string dataEntry)
+        {
+            if (dataEntry == null) //Avoid hiding that data field was null
+                return null;
+            return dataEntry.Split(',');
         }
     }
 }
