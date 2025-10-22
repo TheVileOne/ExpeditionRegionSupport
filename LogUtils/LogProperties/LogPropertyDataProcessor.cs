@@ -64,10 +64,28 @@ namespace LogUtils.Properties
             if (tags == null)
                 onProcessError(DataFields.TAGS);
 
-            LogProperties properties = new LogProperties(id, filename, path)
+            bool hasFilenameGroup = tags != null && tags.Contains(UtilityConsts.PropertyTag.LOG_GROUP);
+
+            LogProperties properties;
+            if (hasFilenameGroup)
             {
-                Tags = tags
-            };
+                LogFilenameProvider provider = new LogFilenameProvider(() =>
+                {
+                    return filename.Split([','], StringSplitOptions.RemoveEmptyEntries).Select(entry => new LogFilename(entry));
+                });
+
+                properties = new LogProperties(id, provider, path)
+                {
+                    Tags = tags
+                };
+            }
+            else
+            {
+                properties = new LogProperties(id, filename, path)
+                {
+                    Tags = tags
+                };
+            }
 
             #pragma warning disable IDE0055 //Fix formatting
             //Property setters are inaccesible. Define delegate wrappers for each one, and store in a dictionary
