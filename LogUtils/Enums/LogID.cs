@@ -1,5 +1,4 @@
-﻿using LogUtils.Helpers.Comparers;
-using LogUtils.Helpers.FileHandling;
+﻿using LogUtils.Helpers.FileHandling;
 using LogUtils.Policy;
 using LogUtils.Properties;
 using LogUtils.Properties.Formatting;
@@ -148,9 +147,9 @@ namespace LogUtils.Enums
         }
 
         /// <summary>
-        /// Determines whether the specified LogID is equal to the current LogID
+        /// Determines whether the specified <see cref="LogID"/> instance is equal to the current instance
         /// </summary>
-        /// <param name="idOther">The LogID to compare with the current LogID</param>
+        /// <param name="idOther">The <see cref="LogID"/> instance to compare with the current instance</param>
         /// <param name="doPathCheck">Whether the folder path should also be considered in the equality check</param>
         public bool Equals(LogID idOther, bool doPathCheck)
         {
@@ -173,73 +172,56 @@ namespace LogUtils.Enums
         }
 
         /// <summary>
-        /// Finds a registered LogID with the given filename, and path
+        /// Finds a registered <see cref="LogID"/> instance with the given filename, and path
         /// </summary>
         /// <remarks>Compares ID, Filename, and CurrentFilename fields</remarks>
         /// <param name="filename">The filename to search for</param>
         /// <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
         public static LogID Find(string filename, string relativePathNoFile = null)
         {
-            IEnumerable<LogID> results = FindAll(filename, CompareOptions.Basic);
-
-            if (!results.Any())
-                return null;
-
-            bool searchForAnyPath = LogProperties.IsPathWildcard(relativePathNoFile);
-            string searchPath = LogProperties.GetContainingPath(relativePathNoFile);
-
-            LogID bestCandidate = null;
-            foreach (LogID logID in results)
-            {
-                if (logID.Properties.HasFolderPath(searchPath))
-                {
-                    bestCandidate = logID;
-                    break; //Best match has been found
-                }
-
-                if (searchForAnyPath && bestCandidate == null) //First match is prioritized over any other match when all paths are valid
-                    bestCandidate = logID;
-            }
-            return bestCandidate;
+            return LogProperties.PropertyManager.Properties.Find(filename, relativePathNoFile);
         }
 
         /// <summary>
-        /// Finds all registered LogID with the given filename
+        /// Finds all registered <see cref="LogID"/> instance with the given filename
         /// </summary>
         /// <remarks>Compares ID, Filename, and CurrentFilename fields</remarks>
         /// <param name="filename">The filename to search for</param>
         public static IEnumerable<LogID> FindAll(string filename)
         {
-            return FindAll(filename, CompareOptions.Basic);
+            return LogProperties.PropertyManager.Properties.FindAll(filename, CompareOptions.Basic);
         }
 
         /// <summary>
-        /// Finds all registered LogID with the given filename
+        /// Finds all registered <see cref="LogID"/> instances with the given filename
         /// </summary>
         /// <param name="filename">The filename to search for</param>
         /// <param name="compareOptions">Represents options that determine which fields to check against</param>
         public static IEnumerable<LogID> FindAll(string filename, CompareOptions compareOptions)
         {
-            return LogProperties.PropertyManager.Properties.Where(p => p.HasFilename(filename, compareOptions)).Select(p => p.ID);
+            return LogProperties.PropertyManager.Properties.FindAll(filename, compareOptions);
         }
 
+        /// <summary>
+        /// Finds all registered <see cref="LogID"/> instances that match a predicate
+        /// </summary>
+        /// <param name="predicate">The predicate to match</param>
         public static IEnumerable<LogID> FindAll(Func<LogProperties, bool> predicate)
         {
-            return LogProperties.PropertyManager.Properties.Where(predicate).Select(p => p.ID);
+            return LogProperties.PropertyManager.Properties.FindAll(predicate);
         }
 
         /// <summary>
-        /// Finds all registered LogIDs with the given tags
+        /// Finds all registered <see cref="LogID"/> instances with the given tag
         /// </summary>
-        public static LogID[] FindByTag(params string[] tags)
+        /// <param name="tag">The tag to search for</param>
+        public static LogID[] FindByTag(string tag)
         {
-            return LogProperties.PropertyManager.Properties.Where(properties => properties.Tags.Any(tag => tags.Contains(tag, ComparerUtils.StringComparerIgnoreCase)))
-                                                           .Select(p => p.ID)
-                                                           .ToArray();
+            return LogProperties.PropertyManager.Properties.FindByTag(tag);
         }
 
         /// <summary>
-        /// Checks whether file, and path combination matches the file and path information of an existing registered LogID
+        /// Checks whether file, and path combination matches the file and path information of an existing registered <see cref="LogID"/> instance
         /// </summary>
         /// <param name="filename">The filename to search for</param>
         /// <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
