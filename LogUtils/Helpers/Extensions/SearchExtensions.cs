@@ -62,7 +62,7 @@ namespace LogUtils
         /// </summary>
         /// <param name="values"></param>
         /// <param name="tag">The tag to search for</param>
-        public static LogID[] FindByTag(this IEnumerable<LogID> values, string tag)
+        public static IEnumerable<LogID> FindByTag(this IEnumerable<LogID> values, string tag)
         {
             return values.Select(id => id.Properties)
                          .FindByTag(tag);
@@ -109,11 +109,10 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="FindByTag(IEnumerable{LogID}, string)"/>
-        internal static LogID[] FindByTag(this IEnumerable<LogProperties> values, string tag)
+        internal static IEnumerable<LogID> FindByTag(this IEnumerable<LogProperties> values, string tag)
         {
             return values.Where(p => p.Tags.Contains(tag, ComparerUtils.StringComparerIgnoreCase))
-                         .Select(p => p.ID)
-                         .ToArray();
+                         .Select(p => p.ID);
         }
     }
 }

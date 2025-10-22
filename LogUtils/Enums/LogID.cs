@@ -215,7 +215,7 @@ namespace LogUtils.Enums
         /// Finds all registered <see cref="LogID"/> instances with the given tag
         /// </summary>
         /// <param name="tag">The tag to search for</param>
-        public static LogID[] FindByTag(string tag)
+        public static IEnumerable<LogID> FindByTag(string tag)
         {
             return LogProperties.PropertyManager.Properties.FindByTag(tag);
         }
