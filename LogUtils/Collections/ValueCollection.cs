@@ -43,6 +43,15 @@ namespace LogUtils.Collections
             ((ICollection<T>)Values).Add(item);
         }
 
+        /// <summary>
+        /// Adds all elements from a collection of elements skipping over any duplicated elements in the collection
+        /// </summary>
+        public void AddRange(IEnumerable<T> items)
+        {
+            foreach (var item in items)
+                Add(item);
+        }
+
         void ICollection<T>.Clear()
         {
             Values.Clear();

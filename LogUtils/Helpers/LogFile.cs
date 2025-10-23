@@ -269,9 +269,20 @@ namespace LogUtils.Helpers
             }
         }
 
-        public static string FindPathWithoutFileExtension(string searchPath, string filename)
+        /// <summary>
+        /// Finds a path containing this filename with an unknown file extension
+        /// </summary>
+        public static string FindExistingPath(string searchPath, string filename)
         {
-            return FileExtension.SupportedExtensions.Select(fileExt => Path.Combine(searchPath, filename + fileExt)).FirstOrDefault(File.Exists);
+            //TODO: Can we use Directory search wildcards for this?
+            foreach (string fileExt in FileExtension.SupportedExtensions)
+            {
+                string foundPath = Path.Combine(searchPath, filename + fileExt);
+
+                if (File.Exists(foundPath))
+                    return foundPath;
+            }
+            return null;
         }
 
         public static ILogWriter FindWriter(LogID logFile)

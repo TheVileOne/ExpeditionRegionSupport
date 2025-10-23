@@ -267,6 +267,11 @@
         <member name="M:LogUtils.Collections.ValueCollection`1.Add(`0)">
             <inheritdoc/>
         </member>
+        <member name="M:LogUtils.Collections.ValueCollection`1.AddRange(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Adds all elements from a collection of elements skipping over any duplicated elements in the collection
+            </summary>
+        </member>
         <member name="M:LogUtils.Collections.ValueCollection`1.Remove(`0)">
             <inheritdoc/>
         </member>
@@ -637,12 +642,12 @@
             <remarks>Input is case insensitive</remarks>
             <exception cref="T:System.IO.FileNotFoundException">whitelist.txt does not exist</exception>
         </member>
-        <member name="P:LogUtils.Compatibility.Unity.UnityLogEventArgs.Context">
+        <member name="F:LogUtils.Compatibility.Unity.UnityLogEventArgs.Context">
             <summary>
             Unity object - typically given to provide context to the log message
             </summary>
         </member>
-        <member name="P:LogUtils.Compatibility.Unity.UnityLogEventArgs.Tag">
+        <member name="F:LogUtils.Compatibility.Unity.UnityLogEventArgs.Tag">
             <summary>
             Unity tag - typically given to provide context to the log message
             </summary>
@@ -5617,48 +5622,49 @@
         </member>
         <member name="M:LogUtils.Enums.LogID.#ctor(System.String,LogUtils.Enums.LogAccess,System.Boolean)">
             <summary>
-            Creates a new LogID instance
+            Creates a new <see cref="T:LogUtils.Enums.LogID"/> instance.
             </summary>
-            <param name="filename">The filename, and optional path to target and use for logging
-            The ExtEnum value will be equivalent to the filename portion of this parameter without the file extension
-            A filename without a path will default to StreamingAssets directory as a path unless an existing LogID with the specified filename is already registered
+            <param name="filename">The filename, and optional path to target and use for logging.<br/>
+            The ExtEnum value will be equivalent to the filename portion of this parameter without the file extension.<br/>
+            A filename without a path will default to StreamingAssets directory as a path unless an existing LogID with the specified filename is already registered.
             </param>
-            <param name="access">Modifier that affects who may access and use the log file
-            Set to LogAccess.RemoteAccessOnly UNLESS your mod intends to handle LogRequests for this LogID
+            <param name="access">Modifier that affects who may access and use the log file.<br/>
+            To access a log file you control, use <b>Private/FullAccess</b>. To access a log file you do not control, use <b>RemoteAccessOnly</b>.
             </param>
-            <param name="register">Whether or not this LogID is registered as an ExtEnum
-            Registration affects whether a LogID gets its own properties that write to file on game close
-            An unregistered LogID will still get its own properties, those properties, and changes to those properties wont be saved to file
-            DO NOT register a LogID that is temporary, and your mod is designated for public release
+            <param name="register">Sets registration state for the ExtEnum.<br/>
+            <para>Registration affects whether a LogID gets its own properties that write to file on game close. An unregistered LogID will still get its own properties,<br/>
+            but those properties, and changes to those properties wont be saved to file.</para>
+            <para>Avoid registering a LogID that is temporary, and your mod is designated for public release.</para>
             </param>
             <exception cref="T:System.ArgumentNullException">Filename provided is null</exception>
         </member>
         <member name="M:LogUtils.Enums.LogID.#ctor(System.String)">
             <summary>
-            Creates a new LogID instance without attempting to create a LogProperties instance
+            Creates a new <see cref="T:LogUtils.Enums.LogID"/> instance without attempting to create properties for it.
             </summary>
         </member>
         <member name="M:LogUtils.Enums.LogID.#ctor(System.String,System.Boolean)">
             <summary>
-            Creates a new LogID instance using a filename, and assuming a default/preexisting registered path
+            Creates a new <see cref="T:LogUtils.Enums.LogID"/> instance using a filename, and assuming a default/preexisting registered path.
             </summary>
         </member>
         <member name="M:LogUtils.Enums.LogID.#ctor(System.String,System.String,LogUtils.Enums.LogAccess,System.Boolean)">
             <summary>
-            Creates a new LogID instance
+            Creates a new <see cref="T:LogUtils.Enums.LogID"/> instance.
             </summary>
-            <param name="filename">The filename to target, and use for logging
-            The ExtEnum value will be equivalent to the filename without the file extension
+            <param name="filename">The filename to target, and use for logging.<br/>
+            The ExtEnum value will be equivalent to the filename without the file extension.
             </param>
-            <param name="relativePathNoFile">The path to the log file
-            Setting to null will default to the StreamingAssets directory as a path unless an existing LogID with the specified filename is already registered</param>
-            <param name="access">Modifier that affects who may access and use the log file
-            Set to LogAccess.RemoteAccessOnly UNLESS your mod intends to handle LogRequests for this LogID
+            <param name="relativePathNoFile">The path to the log file.<br/>
+            Setting to null will default to the StreamingAssets directory as a path unless an existing LogID with the specified filename is already registered.
             </param>
-            <param name="register">Whether or not this LogID is registered as an ExtEnum
-            Registration affects whether a LogID gets its own properties that write to file on game close
-            An unregistered LogID will still get its own properties, those properties, and changes to those properties wont be saved to file
-            DO NOT register a LogID that is temporary, and your mod is designated for public release
+            <param name="access">Modifier that affects who may access and use the log file.<br/>
+            To access a log file you control, use <b>Private/FullAccess</b>. To access a log file you do not control, use <b>RemoteAccessOnly</b>.
+            </param>
+            <param name="register">Sets registration state for the ExtEnum.<br/>
+            <para>Registration affects whether a LogID gets its own properties that write to file on game close. An unregistered LogID will still get its own properties,<br/>
+            but those properties, and changes to those properties wont be saved to file.</para>
+            <para>Avoid registering a LogID that is temporary, and your mod is designated for public release.</para>
             </param>
         </member>
         <member name="M:LogUtils.Enums.LogID.Equals(LogUtils.Enums.LogID,System.Boolean)">
@@ -6911,6 +6917,11 @@
             Ends the current logging session, and starts a new one if allowed to do so 
             </summary>
         </member>
+        <member name="M:LogUtils.Helpers.LogFile.FindExistingPath(System.String,System.String)">
+            <summary>
+            Finds a path containing this filename with an unknown file extension
+            </summary>
+        </member>
         <member name="M:LogUtils.Helpers.LogFile.GetPersistentLogFiles">
             <summary>
             Retrieves all file handles for log files with at least one persistent FileStream open (file is currently in use), or temporarily closed
@@ -8036,6 +8047,12 @@
             <summary>
             A string representation of the content state. This is useful for preventing user sourced changes from being overwritten by mods
             </summary>
+        </member>
+        <member name="P:LogUtils.Properties.LogProperties.OverwriteLog">
+            <summary>
+            Affects whether new messages targeting this log file will be appended to an existing file instead of the existing file being removed when LogUtils startup routine activates 
+            </summary>
+            <remarks>As a result of this feature being active, backups for this file may not be available (depending on how the mod that handles backups is configured)</remarks>
         </member>
         <member name="F:LogUtils.Properties.LogProperties.IsWriteRestricted">
             <summary>
