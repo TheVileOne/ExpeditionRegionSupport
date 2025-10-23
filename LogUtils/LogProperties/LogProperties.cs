@@ -175,7 +175,7 @@ namespace LogUtils.Properties
                 {
                     if (_idValue == null)
                         return null;
-                    _id = new LogID(this, _idValue, OriginalFolderPath);
+                    _id = new LogID(this, false);
                 }
                 return _id;
             }

@@ -68,7 +68,7 @@ namespace LogUtils.Enums
         /// <summary>
         /// Creates a new <see cref="LogID"/> instance without attempting to create properties for it.
         /// </summary>
-        internal LogID(string filename) : base(Sanitize(filename)) //Used by ComparisonLogID to bypass LogProperties creation
+        protected private LogID(string filename) : base(Sanitize(filename)) //Used by ComparisonLogID to bypass LogProperties creation
         {
             InitializeFields();
         }
@@ -97,7 +97,7 @@ namespace LogUtils.Enums
             //Intermediary constructor overload
         }
 
-        internal LogID(LogProperties properties, string filename, string path, LogAccess access = LogAccess.RemoteAccessOnly, bool register = false) : base(Sanitize(filename), register)
+        private LogID(LogProperties properties, string filename, string path, LogAccess access = LogAccess.RemoteAccessOnly, bool register = false) : base(Sanitize(filename), register)
         {
             Access = access;
             InitializeFields();
@@ -113,8 +113,7 @@ namespace LogUtils.Enums
 
         internal LogID(LogProperties properties, bool register) : base(properties.GetRawID(), register)
         {
-            //Log groups are not intended to be logged to - this will make it so that a log target will never be available
-            Access = LogAccess.RemoteAccessOnly;
+            Access = LogAccess.RemoteAccessOnly; //Log access is presumed to be unavailable to loggers
             Properties = properties;
         }
 
