@@ -68,7 +68,7 @@ namespace LogUtils.Enums
         /// <summary>
         /// Creates a new <see cref="LogID"/> instance without attempting to create properties for it.
         /// </summary>
-        internal LogID(string filename) : base(Sanitize(filename), false) //Used by ComparisonLogID to bypass LogProperties creation
+        internal LogID(string filename) : base(Sanitize(filename)) //Used by ComparisonLogID to bypass LogProperties creation
         {
             InitializeFields();
         }
@@ -76,28 +76,43 @@ namespace LogUtils.Enums
         /// <summary>
         /// Creates a new <see cref="LogID"/> instance using a filename, and assuming a default/preexisting registered path.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Exists to satisfy Activator parameters for SharedExtEnum")]
-        internal LogID(string filename, bool register) : this(filename, null, LogAccess.RemoteAccessOnly)
+
+        internal LogID(string filename, bool register) : this(filename, null, LogAccess.RemoteAccessOnly, register)
         {
+            //Used for LogID tests and to satisfy Activator parameters for SharedExtEnum
         }
 
-        internal LogID(PathWrapper pathData, LogAccess access, bool register) : this(pathData.Filename, pathData.Path, access, register)
+        internal LogID(string filename, string fileExt, string path, bool register) : this(filename + fileExt, path, LogAccess.RemoteAccessOnly, register)
         {
+            //Used to initialize game-controlled LogIDs
         }
 
-        internal LogID(LogProperties properties, string filename, string fileExt, string path, bool register) : this(properties, filename + fileExt, path, register)
+        private LogID(PathWrapper pathData, LogAccess access, bool register) : this(pathData.Filename, pathData.Path, access, register)
         {
+            //Intermediary constructor overload
         }
 
-        internal LogID(LogProperties properties, string filename, string path, bool register) : base(Sanitize(filename), register)
+        private LogID(LogProperties properties, PathWrapper pathData, LogAccess access) : this(properties, pathData.Filename, pathData.Path, access)
         {
-            Access = LogAccess.RemoteAccessOnly;
+            //Intermediary constructor overload
+        }
+
+        internal LogID(LogProperties properties, string filename, string path, LogAccess access = LogAccess.RemoteAccessOnly, bool register = false) : base(Sanitize(filename), register)
+        {
+            Access = access;
             InitializeFields();
 
             Properties = properties;
 
             if (Properties == null)
                 InitializeProperties(filename, path);
+        }
+
+        internal LogID(LogProperties properties, bool register) : base(properties.GetRawID(), register)
+        {
+            //Log groups are not intended to be logged to - this will make it so that a log target will never be available
+            Access = LogAccess.RemoteAccessOnly;
+            Properties = properties;
         }
 
         /// <summary>
@@ -123,6 +138,40 @@ namespace LogUtils.Enums
 
             InitializeFields();
             InitializeProperties(filename, relativePathNoFile);
+        }
+
+        /// <summary>
+        /// Creates a new unregistered <see cref="LogID"/> instance associated with a group identifier.
+        /// </summary>
+        /// <remarks>Log properties will be inherited by the group id <i>unless</i> the specified logging path is already associated with a registered <see cref="LogID"/> instance.</remarks>
+        /// <param name="groupID">The group to associate this instance with.</param>
+        /// <param name="filename">The filename, and optional path to target and use for logging.<br/>
+        /// The ExtEnum value will be equivalent to the filename portion of this parameter without the file extension.<br/>
+        /// A filename without a path will default to StreamingAssets directory as a path unless an existing LogID with the specified filename is already registered.
+        /// </param>
+        /// <param name="access">Modifier that affects who may access and use the log file.<br/>
+        /// To access a log file you control, use <b>Private/FullAccess</b>. To access a log file you do not control, use <b>RemoteAccessOnly</b>.
+        /// </param>
+        public LogID(LogGroupID groupID, string filename, LogAccess access) : this(groupID.Properties, new PathWrapper(filename), access)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new unregistered <see cref="LogID"/> instance associated with a group identifier.
+        /// </summary>
+        /// <remarks>Log properties will be inherited by the group id <i>unless</i> the specified logging path is already associated with a registered <see cref="LogID"/> instance.</remarks>
+        /// <param name="groupID">The group to associate this instance with.</param>
+        /// <param name="filename">The filename to target, and use for logging.<br/>
+        /// The ExtEnum value will be equivalent to the filename without the file extension.
+        /// </param>
+        /// <param name="relativePathNoFile">The path to the log file.<br/>
+        /// Setting to null will default to the StreamingAssets directory as a path unless an existing LogID with the specified filename is already registered.
+        /// </param>
+        /// <param name="access">Modifier that affects who may access and use the log file.<br/>
+        /// To access a log file you control, use <b>Private/FullAccess</b>. To access a log file you do not control, use <b>RemoteAccessOnly</b>.
+        /// </param>
+        public LogID(LogGroupID groupID, string filename, string relativePathNoFile, LogAccess access) : this(groupID.Properties, filename, relativePathNoFile, access)
+        {
         }
 
         protected void InitializeFields()
@@ -248,11 +297,11 @@ namespace LogUtils.Enums
 
 #pragma warning disable IDE0055 //Fix formatting
             //Game-defined LogIDs
-            BepInEx    = new LogID(null, UtilityConsts.LogNames.BepInEx,    FileExt.LOG,  BepInExPath.RootPath, true);
-            Exception  = new LogID(null, UtilityConsts.LogNames.Exception,  FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
-            Expedition = new LogID(null, UtilityConsts.LogNames.Expedition, FileExt.TEXT, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
-            JollyCoop  = new LogID(null, UtilityConsts.LogNames.JollyCoop,  FileExt.TEXT, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
-            Unity      = new LogID(null, UtilityConsts.LogNames.Unity,      FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
+            BepInEx    = new LogID(UtilityConsts.LogNames.BepInEx,    FileExt.LOG,  BepInExPath.RootPath, true);
+            Exception  = new LogID(UtilityConsts.LogNames.Exception,  FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
+            Expedition = new LogID(UtilityConsts.LogNames.Expedition, FileExt.TEXT, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
+            JollyCoop  = new LogID(UtilityConsts.LogNames.JollyCoop,  FileExt.TEXT, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
+            Unity      = new LogID(UtilityConsts.LogNames.Unity,      FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
 #pragma warning restore IDE0055 //Fix formatting
 
             //This log file should only be activated when there is data to log to it

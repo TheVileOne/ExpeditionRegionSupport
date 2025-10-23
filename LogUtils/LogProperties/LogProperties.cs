@@ -175,7 +175,7 @@ namespace LogUtils.Properties
                 {
                     if (_idValue == null)
                         return null;
-                    _id = new LogID(this, _idValue, OriginalFolderPath, false);
+                    _id = new LogID(this, _idValue, OriginalFolderPath);
                 }
                 return _id;
             }
@@ -744,6 +744,11 @@ namespace LogUtils.Properties
                 ShowCategories,
                 ShowLogTimestamp
             };
+        }
+
+        internal string GetRawID()
+        {
+            return _idValue;
         }
 
         public LogPropertyData ToData(List<CommentEntry> comments = null)
