@@ -70,7 +70,7 @@ namespace LogUtils.Enums
         /// </summary>
         protected private LogID(string filename) : base(Sanitize(filename)) //Used by ComparisonLogID to bypass LogProperties creation
         {
-            InitializeFields();
+            InitializeAccess(LogAccess.RemoteAccessOnly);
         }
 
         /// <summary>
@@ -97,11 +97,9 @@ namespace LogUtils.Enums
             //Intermediary constructor overload
         }
 
-        private LogID(LogProperties properties, string filename, string path, LogAccess access = LogAccess.RemoteAccessOnly, bool register = false) : base(Sanitize(filename), register)
+        private LogID(LogProperties properties, string filename, string path, LogAccess access, bool register = false) : base(Sanitize(filename), register)
         {
-            Access = access;
-            InitializeFields();
-
+            InitializeAccess(access);
             bool hasGroupTag = properties != null && properties.ContainsTag(UtilityConsts.PropertyTag.LOG_GROUP);
 
             //Each instance of a group inherits from the group's shared properties
@@ -113,7 +111,7 @@ namespace LogUtils.Enums
 
         internal LogID(LogProperties properties, bool register) : base(properties.GetRawID(), register)
         {
-            Access = LogAccess.RemoteAccessOnly; //Log access is presumed to be unavailable to loggers
+            InitializeAccess(LogAccess.RemoteAccessOnly); //Log access is presumed to be unavailable to loggers
             Properties = properties;
         }
 
@@ -136,9 +134,7 @@ namespace LogUtils.Enums
         /// </param>
         public LogID(string filename, string relativePathNoFile, LogAccess access, bool register = false) : base(Sanitize(filename), register)
         {
-            Access = access;
-
-            InitializeFields();
+            InitializeAccess(access);
             InitializeProperties(filename, relativePathNoFile);
         }
 
@@ -176,12 +172,10 @@ namespace LogUtils.Enums
         {
         }
 
-        protected void InitializeFields()
+        protected void InitializeAccess(LogAccess initialAccess)
         {
             IsGameControlled = ManagedReference == this ? UtilityConsts.LogNames.NameMatch(Value) : ManagedReference.IsGameControlled;
-
-            if (IsGameControlled)
-                Access = LogAccess.FullAccess;
+            Access = IsGameControlled ? LogAccess.FullAccess : initialAccess;
         }
 
         protected void InitializeProperties(string filename, string logPath)
