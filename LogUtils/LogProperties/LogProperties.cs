@@ -382,6 +382,7 @@ namespace LogUtils.Properties
         public LogRule ShowLogTimestamp => Rules.FindByType<LogTimestampRule>();
         #endregion
 
+        //TODO: Check that FileExtension.Remove behavior here doesn't tamper with log filenames with periods
         public LogProperties(string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS) : this(FileExtension.Remove(filename), filename, relativePathNoFile)
         {
         }
