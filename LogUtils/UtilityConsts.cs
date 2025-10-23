@@ -255,6 +255,7 @@ namespace LogUtils
 
         public static class PropertyTag
         {
+            public const string LOG_GROUP = "group";
             public const string CONFLICT = "conflict";
         }
 
