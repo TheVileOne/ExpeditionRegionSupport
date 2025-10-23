@@ -102,7 +102,10 @@ namespace LogUtils.Enums
             Access = access;
             InitializeFields();
 
-            Properties = properties;
+            bool hasGroupTag = properties != null && properties.ContainsTag(UtilityConsts.PropertyTag.LOG_GROUP);
+
+            //Each instance of a group inherits from the group's shared properties
+            Properties = !hasGroupTag ? properties : properties.Clone(filename, path);
 
             if (Properties == null)
                 InitializeProperties(filename, path);

@@ -721,6 +721,29 @@ namespace LogUtils.Properties
             WriteHash = writeString.GetHashCode();
         }
 
+        /// <summary>
+        /// Creates a new LogProperties instance inheriting all log independent property values for the current instance
+        /// </summary>
+        public LogProperties Clone(string filename, string path)
+        {
+            LogProperties properties = new LogProperties(filename, path)
+            {
+                Version            = this.Version,
+                LogsFolderAware    = this.LogsFolderAware,
+                LogsFolderEligible = this.LogsFolderEligible,
+                ShowLogsAware      = this.ShowLogsAware,
+                IntroMessage       = this.IntroMessage,
+                ShowIntroTimestamp = this.ShowIntroTimestamp,
+                OutroMessage       = this.OutroMessage,
+                ShowOutroTimestamp = this.ShowOutroTimestamp,
+                DateTimeFormat     = this.DateTimeFormat,
+            };
+
+            properties.ConsoleIDs.AddRange(this.ConsoleIDs);
+            properties.Rules = this.Rules;
+            return properties;
+        }
+
         /// <inheritdoc/>
         public bool Equals(LogProperties other)
         {
