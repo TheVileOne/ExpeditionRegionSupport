@@ -112,6 +112,10 @@ namespace LogUtils.Enums
         internal LogID(LogProperties properties, bool register) : base(properties.GetRawID(), register)
         {
             InitializeAccess(LogAccess.RemoteAccessOnly); //Log access is presumed to be unavailable to loggers
+
+            if (Registered && !LogProperties.PropertyManager.Properties.Contains(properties))
+                LogProperties.PropertyManager.SetProperties(properties);
+
             Properties = properties;
         }
 
