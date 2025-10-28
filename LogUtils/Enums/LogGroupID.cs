@@ -18,6 +18,10 @@ namespace LogUtils.Enums
         {
         }
 
+        internal LogGroupID(LogProperties properties, bool register) : base(properties, register)
+        {
+        }
+
         private static LogProperties getProperties(string value)
         {
             value = createIDValue(value); //Expecting an unformatted value here
@@ -31,10 +35,7 @@ namespace LogUtils.Enums
             if (found != null)
                 return found.Properties;
 
-            return new LogProperties(value, "logutils-group", null)
-            {
-                Tags = [UtilityConsts.PropertyTag.LOG_GROUP]
-            };
+            return new LogGroupProperties(value);
         }
 
         private static string createIDValue(string valueBase) => ID_PREFIX + valueBase;

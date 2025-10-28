@@ -62,12 +62,18 @@ namespace LogUtils.Properties
             string[] tags = parseTags(dataFields[DataFields.TAGS]);
 
             if (tags == null)
-                onProcessError(DataFields.TAGS);
-
-            LogProperties properties = new LogProperties(id, filename, path)
             {
-                Tags = tags
-            };
+                tags = [];
+                onProcessError(DataFields.TAGS);
+            }
+
+            LogProperties properties;
+            if (tags.Contains(UtilityConsts.PropertyTag.LOG_GROUP))
+                properties = new LogGroupProperties(id);
+            else
+                properties = new LogProperties(id, filename, path);
+
+            properties.Tags = tags;
 
             #pragma warning disable IDE0055 //Fix formatting
             //Property setters are inaccesible. Define delegate wrappers for each one, and store in a dictionary

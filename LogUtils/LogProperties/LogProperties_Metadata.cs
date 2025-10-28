@@ -1,4 +1,5 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Helpers;
 using LogUtils.Helpers.FileHandling;
 using System;
 using System.Collections.Generic;
@@ -64,12 +65,12 @@ namespace LogUtils.Properties
         /// <summary>
         /// The filename that will serve as the replacement filename if the alternate filename needs to be renamed due to a conflict
         /// </summary>
-        public LogFilename ReserveFilename { get; private set; }
+        public LogFilename ReserveFilename { get; protected set; }
 
         /// <summary>
         /// The active filename of the log file (without file extension)
         /// </summary>
-        public LogFilename CurrentFilename { get; private set; }
+        public LogFilename CurrentFilename { get; protected set; }
 
         /// <summary>
         /// The active filepath of the log file (with filename)
@@ -84,7 +85,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// The active full path of the directory containing the log file
         /// </summary>
-        public string CurrentFolderPath { get; private set; }
+        public string CurrentFolderPath { get; protected set; }
 
         /// <summary>
         /// The full path to the directory containing the log file as recorded from the properties file
@@ -261,12 +262,12 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
-        /// Allows the filename, or file extension to be changed
+        /// Sets the current filename to a specified value.
         /// </summary>
-        /// <remarks>This will not initiate a file move, or rename any file</remarks>
+        /// <inheritdoc cref="ChangePath" select="remarks"/>
         /// <param name="newFilename">The new filename</param>
         /// <exception cref="ArgumentException">The filename is null, empty, or contains invalid characters</exception>
-        public void ChangeFilename(string newFilename)
+        public virtual void ChangeFilename(string newFilename)
         {
             if (PathUtils.IsEmpty(FileExtension.Remove(newFilename)))
                 throw new ArgumentException("Filename cannot be null, or empty", nameof(newFilename));
@@ -275,12 +276,23 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
-        /// Allows the filepath (filename optional) to be changed
+        /// Sets the current path to a specified value. Filename field will also be changed if provided.
         /// </summary>
-        /// <remarks>This will not initiate a file move, or rename any file</remarks>
+        /// <remarks>
+        /// <para>
+        /// For log files:<br/>
+        /// - This will not initiate a file move, or rename any file.
+        /// <br/>
+        /// To move, or rename a log file, use <see cref="LogFile.Move(LogID, string)"/> instead.
+        /// </para>
+        /// <para>
+        /// For log groups:<br/>
+        /// - This method does nothing.
+        /// </para>
+        /// </remarks>
         /// <param name="newPath">The new path</param>
         /// <exception cref="ArgumentException">The directory is null, empty, or contains invalid characters</exception>
-        public void ChangePath(string newPath)
+        public virtual void ChangePath(string newPath)
         {
             newPath = PathUtils.PathWithoutFilename(newPath, out string filename);
 
@@ -347,7 +359,7 @@ namespace LogUtils.Properties
 
         internal void UpdateReserveFilename()
         {
-            if (CurrentFilename == null) return; //ReserveFilename wont be assigned yet
+            if (CurrentFilename == null || !CurrentFilename.IsValid) return; //CurrentFilename must be valid before we continue
 
             bool hasConflictDetails = ContainsTag(UtilityConsts.PropertyTag.CONFLICT);
 

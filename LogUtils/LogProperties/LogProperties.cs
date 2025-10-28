@@ -175,11 +175,16 @@ namespace LogUtils.Properties
                 {
                     if (_idValue == null)
                         return null;
-                    _id = new LogID(this, false);
+                    _id = CreateID();
                 }
                 return _id;
             }
         }
+
+        /// <summary>
+        /// Creates a new <see cref="LogID"/> instance usiong these properties
+        /// </summary>
+        protected virtual LogID CreateID() => new LogID(this, false);
 
         /// <summary>
         /// List of targeted ConsoleIDs to send requests to when logging to file
@@ -400,14 +405,7 @@ namespace LogUtils.Properties
             UtilityLogger.Log("Generating properties for " + propertyID);
             _idValue = propertyID;
 
-            Filename = new LogFilename(filename);
-            FolderPath = GetContainingPath(relativePathNoFile);
-
-            CurrentFilename = ReserveFilename = Filename;
-            CurrentFolderPath = OriginalFolderPath = FolderPath;
-
-            EnsurePathDoesNotConflict();
-            LastKnownFilePath = CurrentFilePath;
+            InitializeMetadata(filename, relativePathNoFile);
 
             IDHash = CreateIDHash(_idValue, OriginalFolderPath);
 
@@ -450,6 +448,18 @@ namespace LogUtils.Properties
 
             OnLogSessionStart += onLogSessionStart;
             OnLogSessionFinish += onLogSessionFinish;
+        }
+
+        internal virtual void InitializeMetadata(string filename, string path)
+        {
+            Filename = new LogFilename(filename);
+            FolderPath = GetContainingPath(path);
+
+            CurrentFilename = ReserveFilename = Filename;
+            CurrentFolderPath = OriginalFolderPath = FolderPath;
+
+            EnsurePathDoesNotConflict();
+            LastKnownFilePath = CurrentFilePath;
         }
 
         private void onCustomPropertyAdded(CustomLogProperty property)
