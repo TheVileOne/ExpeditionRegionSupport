@@ -20,6 +20,11 @@ namespace LogUtils.Helpers
         /// <param name="copyPath">The full path to the destination of the log file. Log filename is optional</param>
         public static FileStatus Copy(LogID logFile, string copyPath)
         {
+            if (logFile is LogGroupID)
+            {
+                UtilityLogger.LogWarning($"Improper use of {nameof(LogFile)} API detected.");
+                return FileStatus.NoActionRequired;
+            }
             return Copy(logFile.Properties.CurrentFilePath, copyPath, false);
         }
 
@@ -51,6 +56,12 @@ namespace LogUtils.Helpers
 
         internal static FileStatus InternalMove(LogID logFile, string newLogPath)
         {
+            if (logFile is LogGroupID)
+            {
+                UtilityLogger.LogWarning($"Improper use of {nameof(LogFile)} API detected.");
+                return FileStatus.NoActionRequired;
+            }
+
             var fileLock = logFile.Properties.FileLock;
 
             using (fileLock.Acquire())

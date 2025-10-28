@@ -12,7 +12,9 @@ namespace LogUtils
         /// <summary>
         /// Finds a <see cref="LogID"/> instance with the given metadata in the provided collection
         /// </summary>
-        /// <remarks>Compares ID, Filename, and CurrentFilename fields</remarks>
+        /// <remarks>
+        /// - Compares ID, Filename, and CurrentFilename fields
+        /// </remarks>
         /// <param name="values"></param>
         /// <param name="filename">The filename to search for</param>
         /// <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
@@ -25,7 +27,9 @@ namespace LogUtils
         /// <summary>
         /// Finds all <see cref="LogID"/> instances with the given metadata in the provided collection
         /// </summary>
-        /// <remarks>Compares ID, Filename, and CurrentFilename fields</remarks>
+        /// <remarks>
+        /// - Compares ID, Filename, and CurrentFilename fields
+        /// </remarks>
         /// <param name="values"></param>
         /// <param name="filename">The filename to search for</param>
         public static IEnumerable<LogID> FindAll(this IEnumerable<LogID> values, string filename)
@@ -69,7 +73,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="Find(IEnumerable{LogID}, string, string)"/>
-        internal static LogID Find(this IEnumerable<LogProperties> values, string filename, string relativePathNoFile)
+        internal static LogID Find(this IEnumerable<LogProperties> values, string filename, string relativePathNoFile = null)
         {
             IEnumerable<LogID> results = values.FindAll(filename, CompareOptions.Basic);
 

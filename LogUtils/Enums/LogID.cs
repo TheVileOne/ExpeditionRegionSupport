@@ -11,7 +11,7 @@ using BepInExPath = LogUtils.Helpers.Paths.BepInEx;
 
 namespace LogUtils.Enums
 {
-    public class LogID : SharedExtEnum<LogID>, ILogTarget, IEquatable<LogID>
+    public partial class LogID : SharedExtEnum<LogID>, ILogTarget, IEquatable<LogID>
     {
         /// <summary>
         /// Contains path information, and other settings that affect logging behavior 
@@ -42,8 +42,6 @@ namespace LogUtils.Enums
         /// A flag that indicates that this represents an existing game-controlled log file
         /// </summary>
         public bool IsGameControlled;
-
-        public static LogID[] RegisteredEntries => LogProperties.PropertyManager.Properties.Select(p => p.ID).ToArray();
 
         /// <summary>
         /// Creates a new <see cref="LogID"/> instance.
@@ -219,65 +217,6 @@ namespace LogUtils.Enums
                 throw new InvalidOperationException("Temporary log ID could not be created; a registered log ID already exists.");
 
             return new LogID(filename, relativePathNoFile, LogAccess.Private);
-        }
-
-        /// <summary>
-        /// Finds a registered <see cref="LogID"/> instance with the given filename, and path
-        /// </summary>
-        /// <remarks>Compares ID, Filename, and CurrentFilename fields</remarks>
-        /// <param name="filename">The filename to search for</param>
-        /// <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
-        public static LogID Find(string filename, string relativePathNoFile = null)
-        {
-            return LogProperties.PropertyManager.Properties.Find(filename, relativePathNoFile);
-        }
-
-        /// <summary>
-        /// Finds all registered <see cref="LogID"/> instance with the given filename
-        /// </summary>
-        /// <remarks>Compares ID, Filename, and CurrentFilename fields</remarks>
-        /// <param name="filename">The filename to search for</param>
-        public static IEnumerable<LogID> FindAll(string filename)
-        {
-            return LogProperties.PropertyManager.Properties.FindAll(filename, CompareOptions.Basic);
-        }
-
-        /// <summary>
-        /// Finds all registered <see cref="LogID"/> instances with the given filename
-        /// </summary>
-        /// <param name="filename">The filename to search for</param>
-        /// <param name="compareOptions">Represents options that determine which fields to check against</param>
-        public static IEnumerable<LogID> FindAll(string filename, CompareOptions compareOptions)
-        {
-            return LogProperties.PropertyManager.Properties.FindAll(filename, compareOptions);
-        }
-
-        /// <summary>
-        /// Finds all registered <see cref="LogID"/> instances that match a predicate
-        /// </summary>
-        /// <param name="predicate">The predicate to match</param>
-        public static IEnumerable<LogID> FindAll(Func<LogProperties, bool> predicate)
-        {
-            return LogProperties.PropertyManager.Properties.FindAll(predicate);
-        }
-
-        /// <summary>
-        /// Finds all registered <see cref="LogID"/> instances with the given tag
-        /// </summary>
-        /// <param name="tag">The tag to search for</param>
-        public static IEnumerable<LogID> FindByTag(string tag)
-        {
-            return LogProperties.PropertyManager.Properties.FindByTag(tag);
-        }
-
-        /// <summary>
-        /// Checks whether file, and path combination matches the file and path information of an existing registered <see cref="LogID"/> instance
-        /// </summary>
-        /// <param name="filename">The filename to search for</param>
-        /// <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
-        public static bool IsRegistered(string filename, string relativePathNoFile = null)
-        {
-            return Find(filename, relativePathNoFile) != null;
         }
 
         /// <inheritdoc/>

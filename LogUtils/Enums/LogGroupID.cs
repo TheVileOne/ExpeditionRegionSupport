@@ -26,11 +26,8 @@ namespace LogUtils.Enums
         {
             value = createIDValue(value); //Expecting an unformatted value here
 
-            IEnumerable<LogID> logGroups = FindByTag(UtilityConsts.PropertyTag.LOG_GROUP);
-
             //Inherit properties from an existing group ID if one exists, or create new properties
-            LogID found = logGroups.FindAll(value, CompareOptions.ID)
-                                   .FirstOrDefault();
+            LogID found = LogID.Find(value, CompareOptions.ID, includeGroupIDs: true);
 
             if (found != null)
                 return found.Properties;
