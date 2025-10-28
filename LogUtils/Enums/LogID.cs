@@ -113,8 +113,9 @@ namespace LogUtils.Enums
         {
             InitializeAccess(LogAccess.RemoteAccessOnly); //Log access is presumed to be unavailable to loggers
 
-            if (Registered && !LogProperties.PropertyManager.Properties.Contains(properties))
-                LogProperties.PropertyManager.SetProperties(properties);
+            PropertyDataController propertyManager = LogProperties.PropertyManager;
+            if (Registered && !propertyManager.Exists(properties))
+                propertyManager.SetProperties(properties);
 
             Properties = properties;
         }

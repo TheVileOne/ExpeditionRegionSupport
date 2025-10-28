@@ -213,7 +213,7 @@ namespace LogUtils
             orig(self);
 
             //TODO: It could be guaranteed that this runs after all hooks by setting a flag here, that is checked in ModManager.CheckInitIssues, or we could possibly use the scheduler
-            foreach (LogProperties properties in LogProperties.PropertyManager.Properties)
+            foreach (LogProperties properties in LogProperties.PropertyManager.AllProperties)
                 properties.ReadOnly = true;
 
             LogProperties.PropertyManager.IsEditGracePeriod = false;

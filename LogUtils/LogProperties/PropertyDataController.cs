@@ -11,11 +11,36 @@ namespace LogUtils.Properties
     public class PropertyDataController : UtilityComponent
     {
         private List<LogProperties> _properties = new List<LogProperties>();
+        private List<LogProperties> _groupProperties = new List<LogProperties>();
 
+        /// <summary>
+        /// A cache for currently registered log file property entries
+        /// </summary>
         public IEnumerable<LogProperties> Properties => _properties.ToArray();
+
+        /// <summary>
+        /// A cache for currently registered log group property entries
+        /// </summary>
+        public IEnumerable<LogProperties> GroupProperties => _groupProperties.ToArray();
+
+        /// <summary>
+        /// An enumeration containing currently registered log properties for files, and groups
+        /// </summary>
+        public IEnumerable<LogProperties> AllProperties => _properties.Concat(_groupProperties);
+
+        /// <summary>
+        /// A cache for custom property implementations for log files, or log groups
+        /// </summary>
         public CustomLogPropertyCollection CustomLogProperties = new CustomLogPropertyCollection();
+
+        /// <summary>
+        /// Contains any field entries that LogUtils couldn't associate with a recognized property field
+        /// </summary>
         public Dictionary<LogProperties, LogPropertyStringDictionary> UnrecognizedFields = new Dictionary<LogProperties, LogPropertyStringDictionary>();
 
+        /// <summary>
+        /// A handle to the log properties file
+        /// </summary>
         public LogPropertyFile PropertyFile = new LogPropertyFile();
 
         /// <inheritdoc/>
@@ -175,7 +200,7 @@ namespace LogUtils.Properties
 
         private void onCustomPropertyAdded(CustomLogProperty property)
         {
-            foreach (LogProperties properties in Properties)
+            foreach (LogProperties properties in AllProperties)
             {
                 CustomLogProperty customProperty = property.Clone(); //Create an instance of the custom property for each item in the property list
 
@@ -200,13 +225,20 @@ namespace LogUtils.Properties
         private void onCustomPropertyRemoved(CustomLogProperty property)
         {
             //Remove the custom property reference from each properties instance
-            foreach (LogProperties properties in Properties)
+            foreach (LogProperties properties in AllProperties)
                 properties.CustomProperties.RemoveProperty(p => p.Name == property.Name);
+        }
+
+        public bool Exists(LogProperties properties)
+        {
+            var entries = FindPropertyGroup(properties);
+            return entries.Contains(properties);
         }
 
         public IEnumerable<LogProperties> GetProperties(LogID logID)
         {
-            return Properties.Where(p => p.ID.BaseEquals(logID));
+            var entries = FindPropertyGroup(logID);
+            return entries.Where(p => p.ID.BaseEquals(logID));
         }
 
         /// <summary>
@@ -233,22 +265,30 @@ namespace LogUtils.Properties
             return bestCandidate;
         }
 
+        internal ICollection<LogProperties> FindPropertyGroup(LogID logID)
+        {
+            return (logID is LogGroupID)
+                ? _groupProperties
+                : _properties;
+        }
+
+        internal ICollection<LogProperties> FindPropertyGroup(LogProperties properties)
+        {
+            return (properties is LogGroupProperties)
+                ? _groupProperties
+                : _properties;
+        }
+
         internal void SetProperties(LogProperties properties)
         {
-            _properties.Add(properties);
+            var entries = FindPropertyGroup(properties);
+            entries.Add(properties);
         }
 
         internal void RemoveProperties(LogProperties properties)
         {
-            _properties.Remove(properties);
-        }
-
-        public LogProperties SetProperties(LogID logID, string relativePathNoFile)
-        {
-            LogProperties properties = new LogProperties(logID.Value, relativePathNoFile);
-
-            _properties.Add(properties);
-            return properties;
+            var entries = FindPropertyGroup(properties);
+            entries.Remove(properties);
         }
 
         /// <summary>
@@ -266,25 +306,27 @@ namespace LogUtils.Properties
                 data.ProcessFields();
                 LogProperties properties = data.Processor.Results;
 
-                if (properties != null)
+                if (properties == null)
+                    continue;
+
+                var entries = FindPropertyGroup(properties);
+
+                bool propertiesAlreadyExists = entries.Any(p => propertyComparer.Compare(p, properties) == 0);
+
+                if (propertiesAlreadyExists)
                 {
-                    bool propertiesAlreadyExists = Properties.Any(p => propertyComparer.Compare(p, properties) == 0);
-
-                    if (propertiesAlreadyExists)
-                    {
-                        ForceWriteAll = true;
-                        HasDuplicateFileEntries = true;
-                        continue;
-                    }
-
-                    if (data.UnrecognizedFields.Count > 0)
-                        UnrecognizedFields[properties] = data.UnrecognizedFields;
-
-                    properties.UpdateWriteHash();
-                    properties.ReadOnly = true;
-
-                    _properties.Add(properties);
+                    ForceWriteAll = true;
+                    HasDuplicateFileEntries = true;
+                    continue;
                 }
+
+                if (data.UnrecognizedFields.Count > 0)
+                    UnrecognizedFields[properties] = data.UnrecognizedFields;
+
+                properties.UpdateWriteHash();
+                properties.ReadOnly = true;
+
+                entries.Add(properties);
             }
         }
 
@@ -297,10 +339,20 @@ namespace LogUtils.Properties
                 data.ProcessFields();
                 LogProperties properties = data.Processor.Results;
 
-                if (properties != null)
-                {
-                    LogProperties existingProperties = Properties.FirstOrDefault(p => propertyComparer.Compare(p, properties) == 0);
+                if (properties == null)
+                    continue;
 
+                var entries = FindPropertyGroup(properties);
+
+                LogProperties existingProperties = entries.FirstOrDefault(p => propertyComparer.Compare(p, properties) == 0);
+
+                if (properties is LogGroupProperties)
+                {
+                    if (existingProperties != null)
+                        continue;
+                }
+                else
+                {
                     //When a main process closes, it's state is written to file - in particular the current path for the file gets stored as the last known path.
                     //We need to restore this metadata so that the incoming process knows where to log new messages
                     if (existingProperties != null)
@@ -310,16 +362,16 @@ namespace LogUtils.Properties
                     }
 
                     properties.ChangePath(properties.LastKnownFilePath);
-
-                    //This log file is unrecognized by this process and must be new
-                    if (data.UnrecognizedFields.Count > 0)
-                        UnrecognizedFields[properties] = data.UnrecognizedFields;
-
-                    properties.UpdateWriteHash();
-                    properties.ReadOnly = true;
-
-                    _properties.Add(properties);
                 }
+
+                //This log file is unrecognized by this process and must be new
+                if (data.UnrecognizedFields.Count > 0)
+                    UnrecognizedFields[properties] = data.UnrecognizedFields;
+
+                properties.UpdateWriteHash();
+                properties.ReadOnly = true;
+
+                entries.Add(properties);
             }
         }
 
@@ -355,10 +407,10 @@ namespace LogUtils.Properties
         internal LogProperties[] GetUpdateEntries()
         {
             if (ForceWriteAll || !File.Exists(PropertyFile.FilePath))
-                return (LogProperties[])Properties;
+                return AllProperties.ToArray();
 
             //Reasons to update include new log file data, incomplete data read from file, or modifications made to property data 
-            return Properties.Where(p => p.ProcessedWithErrors || p.HasModifiedData()).ToArray();
+            return AllProperties.Where(p => p.ProcessedWithErrors || p.HasModifiedData()).ToArray();
         }
 
         /// <inheritdoc/>
@@ -367,6 +419,7 @@ namespace LogUtils.Properties
             Dictionary<string, object> fields = base.GetFields();
 
             fields[nameof(Properties)] = Properties;
+            fields[nameof(GroupProperties)] = GroupProperties;
             fields[nameof(CustomLogProperties)] = CustomLogProperties;
             fields[nameof(UnrecognizedFields)] = UnrecognizedFields;
             return fields;
