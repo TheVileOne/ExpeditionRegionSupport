@@ -3,8 +3,11 @@
 namespace LogUtils.Enums
 {
     /// <summary>
-    /// Represents an identifier for related <see cref="LogID"/> instances
+    /// A type of <see cref="LogID"/> representing a log file group.
     /// </summary>
+    /// <remarks>
+    /// Log group properties may be accessed, and changed through the <see cref="Properties"/> field.
+    /// </remarks>
     public partial class LogGroupID : LogID
     {
         /// <summary>
@@ -12,6 +15,12 @@ namespace LogUtils.Enums
         /// </summary>
         internal const string ID_PREFIX = $"{UtilityConsts.PropertyTag.LOG_GROUP}:";
 
+        /// <summary>
+        /// Creates a new <see cref="LogGroupID"/> instance.
+        /// </summary>
+        /// <inheritdoc cref="LogID(string, LogAccess, bool)"/>
+        /// <param name="value">The value that identifies the <see cref="LogGroupID"/> instance</param>
+        /// <param name="register"/>
         public LogGroupID(string value, bool register = false) : base(getProperties(value), register)
         {
         }

@@ -9,6 +9,14 @@ using BepInExPath = LogUtils.Helpers.Paths.BepInEx;
 
 namespace LogUtils.Enums
 {
+    /// <summary>
+    /// An <see cref="ExtEnum{LogID}"/> type representing a log file.
+    /// </summary>
+    /// <remarks>
+    /// Log file properties may be accessed, and changed through the <see cref="Properties"/> field.<br/>
+    /// Implements <see cref="ILogTarget"/> interface.<br/>
+    /// Note: This type serves as the base class for <see cref="LogGroupID"/>, which is designed for inheritance of log properties, not as a logging target.
+    /// </remarks>
     public partial class LogID : SharedExtEnum<LogID>, ILogTarget, IEquatable<LogID>
     {
         /// <summary>
