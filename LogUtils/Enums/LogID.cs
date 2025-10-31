@@ -211,14 +211,6 @@ namespace LogUtils.Enums
             return !doPathCheck || Properties.HasFolderPath(idOther.Properties.FolderPath);
         }
 
-        public static LogID CreateTemporaryID(string filename, string relativePathNoFile)
-        {
-            if (IsRegistered(filename, relativePathNoFile))
-                throw new InvalidOperationException("Temporary log ID could not be created; a registered log ID already exists.");
-
-            return new LogID(filename, relativePathNoFile, LogAccess.Private);
-        }
-
         /// <inheritdoc/>
         public override int GetHashCode()
         {
