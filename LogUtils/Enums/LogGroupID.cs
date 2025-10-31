@@ -1,13 +1,11 @@
 ﻿using LogUtils.Properties;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace LogUtils.Enums
 {
     /// <summary>
     /// Represents an identifier for related <see cref="LogID"/> instances
     /// </summary>
-    public class LogGroupID : LogID
+    public partial class LogGroupID : LogID
     {
         /// <summary>
         /// This prefix differentiates log group entries from log file entries

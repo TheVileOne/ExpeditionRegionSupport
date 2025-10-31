@@ -16,5 +16,15 @@ namespace LogUtils.Enums
 
             return new LogID(filename, relativePathNoFile, LogAccess.Private);
         }
+
+        public static LogID CreateComparisonID(string filename, string relativePathNoFile = null)
+        {
+            return new ComparisonLogID(filename, relativePathNoFile);
+        }
+
+        public static LogID CreateComparisonID(string value, LogIDType context)
+        {
+            return new ComparisonLogID(value, context);
+        }
     }
 }

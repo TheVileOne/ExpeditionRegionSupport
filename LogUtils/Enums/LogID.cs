@@ -4,8 +4,6 @@ using LogUtils.Properties;
 using LogUtils.Properties.Formatting;
 using LogUtils.Requests;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
 using BepInExPath = LogUtils.Helpers.Paths.BepInEx;
 
