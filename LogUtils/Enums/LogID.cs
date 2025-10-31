@@ -372,4 +372,15 @@ namespace LogUtils.Enums
         /// </summary>
         Private = 2
     }
+
+    /// <summary>
+    /// A context identifier that describes the purpose of a <see cref="Enums.LogID"/>
+    /// </summary>
+    public enum LogIDType
+    {
+        /// <summary>The context represents a log file</summary>
+        File,
+        /// <summary>The context represents a log group</summary>
+        Group
+    }
 }

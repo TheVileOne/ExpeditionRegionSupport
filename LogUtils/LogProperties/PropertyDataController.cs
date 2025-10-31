@@ -267,16 +267,19 @@ namespace LogUtils.Properties
 
         internal ICollection<LogProperties> FindPropertyGroup(LogID logID)
         {
-            return (logID is LogGroupID)
-                ? _groupProperties
-                : _properties;
+            //TODO: Can ComparisonLogID be deprecated? This check is ugly.
+            bool isGroupIdentifier = logID is LogGroupID || (logID is ComparisonLogID comparisonID && comparisonID.RepresentedType == LogIDType.Group);
+
+            if (isGroupIdentifier)
+                return _groupProperties;
+            return _properties;
         }
 
         internal ICollection<LogProperties> FindPropertyGroup(LogProperties properties)
         {
-            return (properties is LogGroupProperties)
-                ? _groupProperties
-                : _properties;
+            if (properties is LogGroupProperties)
+                return _groupProperties;
+            return _properties;
         }
 
         internal void SetProperties(LogProperties properties)
