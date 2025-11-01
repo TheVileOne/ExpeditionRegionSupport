@@ -122,6 +122,8 @@ namespace LogUtils.Properties
         /// </summary>
         public bool IsNewInstance { get; private set; }
 
+        internal bool InitializationInProgress;
+
         /// <summary>
         /// Indicates that the startup routine for this log file should not be run
         /// </summary>
@@ -394,6 +396,7 @@ namespace LogUtils.Properties
 
         internal LogProperties(string propertyID, string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS)
         {
+            InitializationInProgress = true;
             FileLock = new FileLock(new Lock.ContextProvider(() => ID));
 
             ReadOnlyProvider readOnlyProvider = new ReadOnlyProvider(() => ReadOnly);
@@ -461,6 +464,8 @@ namespace LogUtils.Properties
 
             OnLogSessionStart += onLogSessionStart;
             OnLogSessionFinish += onLogSessionFinish;
+
+            InitializationInProgress = false;
         }
 
         internal virtual void InitializeMetadata(string filename, string path)

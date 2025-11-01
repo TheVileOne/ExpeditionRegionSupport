@@ -284,6 +284,8 @@ namespace LogUtils.Properties
 
         internal void SetProperties(LogProperties properties)
         {
+            if (properties.InitializationInProgress) return; //Do not allow LogProperties to be registered recursively
+
             var entries = FindPropertyGroup(properties);
             entries.Add(properties);
         }

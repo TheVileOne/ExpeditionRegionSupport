@@ -55,12 +55,15 @@ namespace LogUtils.Properties
                 //Find all matching comparisons
                 IEnumerable<LogProperties> availableEntries = LogProperties.PropertyManager.GetProperties(new ComparisonLogID(dataID, data.GetContext()));
 
-                //Find a comparison match that is contained within updateList
-                LogProperties properties = updateEntries.Intersect(availableEntries).FirstOrDefault();
+                int idHash = data.GetHashCode();
 
-                int idHash = properties != null ? properties.IDHash : data.GetHashCode();
+                //UtilityLogger.Log(idHash);
 
-                //UtilityLogger.DebugLog(idHash);
+                //Find a hashcode match - We need to avoid overwriting log properties that do not belong to this instance
+                availableEntries = updateEntries.Intersect(availableEntries)
+                                                .Where(p => idHash == p.GetHashCode());
+
+                LogProperties properties = availableEntries.FirstOrDefault();
 
                 //We found a duplicate entry - don't handle it
                 if (processedHashes.Contains(idHash))
