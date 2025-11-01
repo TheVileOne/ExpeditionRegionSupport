@@ -34,8 +34,13 @@ namespace LogUtils.Enums
             RepresentedType = representedType;
             IsInstanceEnabled = false;
 
-            var availableProperties = LogProperties.PropertyManager.GetProperties(this);
-            Properties = availableProperties.FirstOrDefault();
+            if (representedType == LogIDType.File)
+                Properties = LogProperties.PropertyManager.GetProperties(this, null); //Maintains same behavior as other constructor
+            else
+            {
+                var availableProperties = LogProperties.PropertyManager.GetProperties(this);
+                Properties = availableProperties.FirstOrDefault();
+            }
         }
     }
 }
