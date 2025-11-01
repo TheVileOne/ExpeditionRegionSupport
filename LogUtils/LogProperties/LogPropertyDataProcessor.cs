@@ -31,6 +31,7 @@ namespace LogUtils.Properties
             LogPropertyStringDictionary dataFields = data.Fields;
 
             bool processedWithErrors = false;
+            bool hasGroupTag = processTags(out string[] tags);
 
             string id = dataFields[DataFields.LOGID];
             string filename = dataFields[DataFields.FILENAME];
@@ -39,7 +40,7 @@ namespace LogUtils.Properties
             bool hasID = !string.IsNullOrEmpty(id);
             bool hasFilename = !string.IsNullOrEmpty(filename);
 
-            processedWithErrors = !hasID || !hasFilename || path == null;
+            processedWithErrors = !hasID || (!hasGroupTag && (!hasFilename || path == null));
 
             if (processedWithErrors)
             {
@@ -59,19 +60,11 @@ namespace LogUtils.Properties
                     filename = id;
             }
 
-            string[] tags = parseTags(dataFields[DataFields.TAGS]);
-
-            if (tags == null)
-            {
-                tags = [];
-                onProcessError(DataFields.TAGS);
-            }
-
             LogProperties properties;
-            if (tags.Contains(UtilityConsts.PropertyTag.LOG_GROUP))
-                properties = new LogGroupProperties(id);
-            else
+            if (!hasGroupTag)
                 properties = new LogProperties(id, filename, path);
+            else
+                properties = new LogGroupProperties(LogID.CreateIDValue(id, LogIDType.Group));
 
             properties.Tags = tags;
 
@@ -120,9 +113,28 @@ namespace LogUtils.Properties
             properties.ProcessedWithErrors = processedWithErrors;
 
             if (properties.ProcessedWithErrors)
-                UtilityLogger.LogWarning("There were issues while processing LogID " + id);
+            {
+                string reportMessage;
+                if (!hasGroupTag)
+                    reportMessage = "There were issues while processing LogID " + id;
+                else
+                    reportMessage = "There were issues while processing GroupID " + id;
+                UtilityLogger.LogWarning(reportMessage);
+            }
 
             Results = properties;
+
+            bool processTags(out string[] tags)
+            {
+                tags = parseTags(dataFields[DataFields.TAGS]);
+
+                if (tags == null)
+                {
+                    tags = [];
+                    onProcessError(DataFields.TAGS);
+                }
+                return tags.Contains(UtilityConsts.PropertyTag.LOG_GROUP);
+            }
 
             void onProcessError(string dataField)
             {

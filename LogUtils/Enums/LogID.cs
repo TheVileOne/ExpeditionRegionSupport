@@ -225,6 +225,28 @@ namespace LogUtils.Enums
             return base.GetHashCode();
         }
 
+        public RequestType GetRequestType(ILogHandler handler)
+        {
+            if (Properties == null)
+                return RequestType.Invalid;
+
+            if (IsGameControlled)
+                return RequestType.Game;
+
+            LogID handlerID = handler.FindEquivalentTarget(this);
+
+            //Check whether LogID should be handled as a local request, or an outgoing (remote) request. Not being recognized by the handler means that
+            //the handler is processing a target specifically made through one of the logging method overloads
+            return handlerID != null && handlerID.HasLocalAccess ? RequestType.Local : RequestType.Remote;
+        }
+
+        internal static string CreateIDValue(string valueBase, LogIDType idType)
+        {
+            if (idType == LogIDType.Group)
+                return LogGroupID.ID_PREFIX + valueBase;
+            return valueBase;
+        }
+
         internal static void InitializeEnums()
         {
             //File activity monitoring LogID
@@ -316,21 +338,6 @@ namespace LogUtils.Enums
                 throw new ArgumentNullException(filename);
 
             return FileExtension.Remove(filename).Trim();
-        }
-
-        public RequestType GetRequestType(ILogHandler handler)
-        {
-            if (Properties == null)
-                return RequestType.Invalid;
-
-            if (IsGameControlled)
-                return RequestType.Game;
-
-            LogID handlerID = handler.FindEquivalentTarget(this);
-
-            //Check whether LogID should be handled as a local request, or an outgoing (remote) request. Not being recognized by the handler means that
-            //the handler is processing a target specifically made through one of the logging method overloads
-            return handlerID != null && handlerID.HasLocalAccess ? RequestType.Local : RequestType.Remote;
         }
 
         static LogID()

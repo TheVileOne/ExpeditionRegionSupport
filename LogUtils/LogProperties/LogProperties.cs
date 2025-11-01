@@ -401,8 +401,21 @@ namespace LogUtils.Properties
             Rules = new LogRuleCollection(readOnlyProvider);
             ConsoleIDs = new ValueCollection<ConsoleID>(readOnlyProvider);
 
-            UtilityLogger.DebugLog("Generating properties for " + propertyID);
-            UtilityLogger.Log("Generating properties for " + propertyID);
+            //Report log groups slightly differently than other types of log id. The value will contain prefix formatting that we don't want to report to the user.
+            if (!propertyID.StartsWith(LogGroupID.ID_PREFIX))
+            {
+                string reportMessage = "Generating properties for " + propertyID;
+                UtilityLogger.DebugLog(reportMessage);
+                UtilityLogger.Log(reportMessage);
+            }
+            else
+            {
+                string actualPropertyID = propertyID.Substring(LogGroupID.ID_PREFIX.Length);
+                string reportMessage = "Generating properties for group " + actualPropertyID;
+                UtilityLogger.DebugLog(reportMessage);
+                UtilityLogger.Log(reportMessage);
+            }
+
             _idValue = propertyID;
 
             InitializeMetadata(filename, relativePathNoFile);
@@ -801,10 +814,14 @@ namespace LogUtils.Properties
             string[] dataTags = Tags;
             Tags = oldTags;
 
+            string idValue = ID.Value;
+            if (idValue.StartsWith(LogGroupID.ID_PREFIX))
+                idValue = idValue.Substring(LogGroupID.ID_PREFIX.Length); //Strips out the prefix
+
             #pragma warning disable IDE0055 //Fix formatting
             var fields = new LogPropertyStringDictionary
             {
-                [DataFields.LOGID]                = ID.Value,
+                [DataFields.LOGID]                = idValue,
                 [DataFields.FILENAME]             = Filename.WithExtension(),
                 [DataFields.ALTFILENAME]          = AltFilename?.WithExtension(),
                 [DataFields.VERSION]              = Version.ToString(),

@@ -29,20 +29,13 @@ namespace LogUtils.Enums
         /// <inheritdoc cref="ComparisonLogID(string, string)"/>
         /// <param name="value">The value that identifies the <see cref="ComparisonLogID"/> instance</param>
         /// <param name="representedType">The type of <see cref="LogID"/> represented by this instance</param>
-        public ComparisonLogID(string value, LogIDType representedType) : base(processValue(value, representedType))
+        public ComparisonLogID(string value, LogIDType representedType) : base(CreateIDValue(value, representedType))
         {
             RepresentedType = representedType;
             IsInstanceEnabled = false;
 
             var availableProperties = LogProperties.PropertyManager.GetProperties(this);
             Properties = availableProperties.FirstOrDefault();
-        }
-
-        private static string processValue(string valueBase, LogIDType representedType)
-        {
-            if (representedType == LogIDType.Group)
-                return LogGroupID.ID_PREFIX + valueBase; //It is ensured that LogUtils will never pass in a value with the prefix already applied
-            return valueBase;
         }
     }
 }

@@ -31,7 +31,7 @@ namespace LogUtils.Enums
 
         private static LogProperties getProperties(string value)
         {
-            value = createIDValue(value); //Expecting an unformatted value here
+            value = CreateIDValue(value, LogIDType.Group); //Expecting an unformatted value here
 
             //Inherit properties from an existing group ID if one exists, or create new properties
             LogID found = LogID.Find(value, CompareOptions.ID, includeGroupIDs: true);
@@ -41,7 +41,5 @@ namespace LogUtils.Enums
 
             return new LogGroupProperties(value);
         }
-
-        private static string createIDValue(string valueBase) => ID_PREFIX + valueBase;
     }
 }
