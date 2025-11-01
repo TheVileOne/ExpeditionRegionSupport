@@ -72,7 +72,7 @@ namespace LogUtils.Enums
         /// <summary>
         /// Creates a new <see cref="LogID"/> instance without attempting to create properties for it.
         /// </summary>
-        protected private LogID(string filename) : base(Sanitize(filename)) //Used by ComparisonLogID to bypass LogProperties creation
+        protected private LogID(string filename) : base(filename) //Used by ComparisonLogID to bypass LogProperties creation
         {
             InitializeAccess(LogAccess.RemoteAccessOnly);
         }
@@ -244,7 +244,7 @@ namespace LogUtils.Enums
         {
             if (idType == LogIDType.Group)
                 return LogGroupID.ID_PREFIX + valueBase;
-            return valueBase;
+            return Sanitize(valueBase);
         }
 
         internal static void InitializeEnums()

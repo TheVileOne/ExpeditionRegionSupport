@@ -18,7 +18,7 @@ namespace LogUtils.Enums
         /// </summary>
         /// <inheritdoc cref="LogID(string, string, LogAccess, bool)"/>
         /// <remarks>This type is not registered by default, and does not have its own properties (unless an existing <see cref="LogID"/> already has properties)</remarks>
-        public ComparisonLogID(string filename, string relativePathNoFile = null) : base(filename)
+        public ComparisonLogID(string filename, string relativePathNoFile = null) : base(Sanitize(filename))
         {
             RepresentedType = LogIDType.File;
             IsInstanceEnabled = false;
