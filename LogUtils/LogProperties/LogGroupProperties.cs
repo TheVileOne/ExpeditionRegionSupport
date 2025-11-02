@@ -1,10 +1,12 @@
 ﻿using LogUtils.Enums;
-using System;
 
 namespace LogUtils.Properties
 {
     public class LogGroupProperties : LogProperties
     {
+        /// <inheritdoc/>
+        protected override CompareOptions CompareMask => CompareOptions.ID;
+
         /// <inheritdoc/>
         protected override LogID CreateID() => new LogGroupID(this, false);
 

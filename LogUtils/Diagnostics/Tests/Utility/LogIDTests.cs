@@ -1,4 +1,6 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Helpers.Comparers;
+using LogUtils.Properties;
 using System.Collections.Generic;
 using System.Linq;
 using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
@@ -46,6 +48,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             public void Test()
             {
                 testInstanceEquality();
+                testInstanceEqualityComparer();
             }
 
             [PostTest]
@@ -132,6 +135,42 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 {
                     AssertThat(results.EqualsCheck).IsFalse();
                     AssertThat(results.NotEqualsCheck).IsTrue();
+                }
+            }
+
+            private void testInstanceEqualityComparer()
+            {
+                CompareOptions compareOptions = CompareOptions.All;
+                LogIDComparer comparer = new LogIDComparer(compareOptions);
+
+                LogID fileLog, groupLogA, groupLogB, groupLogC;
+
+                fileLog = new LogID("Test", false);
+                fileLog.Properties.AltFilename = new LogFilename("AltTest");
+
+                groupLogA = new LogGroupID("Test");
+                groupLogB = new LogGroupID("Test B");
+                groupLogC = new LogGroupID("TEST");
+
+                AssertThat(comparer.Compare(fileLog, groupLogA)).IsNotZero();   //No match
+                AssertThat(comparer.Compare(groupLogA, groupLogB)).IsNotZero(); //No match
+                AssertThat(comparer.Compare(groupLogA, groupLogC)).IsZero();    //Match
+
+                AssertThat(comparer.Equals(fileLog, groupLogA)).IsFalse();   //No match
+                AssertThat(comparer.Equals(groupLogA, groupLogB)).IsFalse(); //No match
+                AssertThat(comparer.Equals(groupLogA, groupLogC)).IsTrue();  //Match
+
+                testCompareMasks();
+
+                void testCompareMasks()
+                {
+                    int resultLengthFile, resultLengthGroup;
+
+                    resultLengthFile = fileLog.Properties.GetValuesToCompare(compareOptions).Length;
+                    resultLengthGroup = groupLogA.Properties.GetValuesToCompare(compareOptions).Length;
+
+                    AssertThat(resultLengthFile).IsEqualTo(4);  //ID, Filename, CurrentFilename, AltFilename
+                    AssertThat(resultLengthGroup).IsEqualTo(1); //ID
                 }
             }
 

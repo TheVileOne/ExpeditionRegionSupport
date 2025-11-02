@@ -50,6 +50,11 @@ namespace LogUtils.Properties
         public FileLock FileLock;
 
         /// <summary>
+        /// Value is used to filter invalid compare options
+        /// </summary>
+        protected virtual CompareOptions CompareMask => ~CompareOptions.None;
+
+        /// <summary>
         /// This field contains the last known LogRequest handle state for this LogID, particularly the rejection status, and the reason for rejection of the request
         /// </summary>
         public LogRequestRecord HandleRecord;
@@ -893,8 +898,10 @@ namespace LogUtils.Properties
             return GetWriteString();
         }
 
-        internal string[] GetFilenamesToCompare(CompareOptions compareOptions)
+        internal string[] GetValuesToCompare(CompareOptions compareOptions)
         {
+            compareOptions &= CompareMask;
+
             List<string> compareStrings = new List<string>();
 
             if ((compareOptions & CompareOptions.ID) != 0)
@@ -939,7 +946,7 @@ namespace LogUtils.Properties
             if (filename != null)
             {
                 filename = FileExtension.Remove(filename);
-                return filename.MatchAny(ComparerUtils.StringComparerIgnoreCase, GetFilenamesToCompare(compareOptions));
+                return filename.MatchAny(ComparerUtils.StringComparerIgnoreCase, GetValuesToCompare(compareOptions));
             }
             return false;
         }

@@ -33,8 +33,8 @@ namespace LogUtils.Helpers.Comparers
 
             string[] compareFields, compareFieldsOther;
 
-            compareFields = id.Properties.GetFilenamesToCompare(CompareOptions);
-            compareFieldsOther = idOther.Properties.GetFilenamesToCompare(CompareOptions);
+            compareFields = id.Properties.GetValuesToCompare(CompareOptions);
+            compareFieldsOther = idOther.Properties.GetValuesToCompare(CompareOptions);
 
             int compareValue = -1;
             bool hasAtLeastOneNonEmptyPair = false;
@@ -88,7 +88,7 @@ namespace LogUtils.Helpers.Comparers
         internal int CompareHelper(LogID id, LogID idNoProperties)
         {
             //Get fields from the instance with properties
-            string[] compareStrings = id.Properties.GetFilenamesToCompare(CompareOptions);
+            string[] compareStrings = id.Properties.GetValuesToCompare(CompareOptions);
 
             if (compareStrings.Length == 0)
                 return base.Compare(id, idNoProperties); //valueHash will be compared
