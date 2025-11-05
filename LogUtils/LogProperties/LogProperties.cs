@@ -995,7 +995,7 @@ namespace LogUtils.Properties
         /// </summary>
         public static string GetContainingPath(string relativePath)
         {
-            if (relativePath == null)
+            if (PathUtils.IsEmpty(relativePath))
                 return RainWorldPath.StreamingAssetsPath;
 
             //Apply some preprocessing to the path based on whether it is a partial, or full path
