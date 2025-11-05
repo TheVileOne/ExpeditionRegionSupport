@@ -973,6 +973,9 @@ namespace LogUtils.Properties
         /// <returns>Returns whether a match was found</returns>
         public bool HasFolderPath(string relativePathNoFile)
         {
+            if (PathUtils.IsEmpty(relativePathNoFile)) //Path should be valid before we can compare it
+                return false;
+
             return PathUtils.PathsAreEqual(relativePathNoFile, OriginalFolderPath)
                 || PathUtils.PathsAreEqual(relativePathNoFile, CurrentFolderPath);
         }

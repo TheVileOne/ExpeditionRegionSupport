@@ -205,7 +205,7 @@ namespace LogUtils.Enums
         /// </summary>
         /// <param name="idOther">The <see cref="LogID"/> instance to compare with the current instance</param>
         /// <param name="doPathCheck">Whether the folder path should also be considered in the equality check</param>
-        public bool Equals(LogID idOther, bool doPathCheck)
+        public virtual bool Equals(LogID idOther, bool doPathCheck)
         {
             if (!Equals(idOther))
                 return false;

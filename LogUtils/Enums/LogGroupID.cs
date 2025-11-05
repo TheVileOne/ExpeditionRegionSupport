@@ -1,4 +1,5 @@
-﻿using LogUtils.Properties;
+﻿using LogUtils.Helpers.FileHandling;
+using LogUtils.Properties;
 
 namespace LogUtils.Enums
 {
@@ -27,6 +28,16 @@ namespace LogUtils.Enums
 
         internal LogGroupID(LogProperties properties, bool register) : base(properties, register)
         {
+        }
+
+        /// <inheritdoc/>
+        public override bool Equals(LogID idOther, bool doPathCheck)
+        {
+            if (base.Equals(idOther, doPathCheck))
+                return true;
+
+            //Log group comparisons require a direct field comparison to detect a path match
+            return Equals(idOther) && PathUtils.PathsAreEqual(Properties.FolderPath, idOther.Properties.FolderPath);
         }
 
         private static LogProperties getProperties(string value)
