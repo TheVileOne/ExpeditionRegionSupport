@@ -1044,7 +1044,7 @@ namespace LogUtils.Properties
 
         public static bool IsPathWildcard(string path)
         {
-            return path == null;
+            return PathUtils.IsEmpty(path);
         }
 
         public static string ToPropertyString(string name, string value = "")
