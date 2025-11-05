@@ -61,7 +61,7 @@ namespace LogUtils.Helpers.Comparers
         internal int InternalCompare(string path, string pathOther)
         {
             if (PathUtils.IsEmpty(path))
-                return pathOther != null ? int.MinValue : 0;
+                return !PathUtils.IsEmpty(pathOther) ? int.MinValue : 0;
 
             if (PathUtils.IsEmpty(pathOther))
                 return int.MaxValue;
