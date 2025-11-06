@@ -839,6 +839,26 @@ namespace LogUtils.Properties
 
                 [DataFields.Rules.HEADER]         = string.Empty //Not an actual property field
             };
+
+            if (IsMetadataOptional)
+            {
+                List<string> fieldsToRemove = new List<string>();
+
+                handleOptionalField(DataFields.FILENAME);
+                handleOptionalField(DataFields.ALTFILENAME);
+                handleOptionalField(DataFields.PATH);
+                handleOptionalField(DataFields.ORIGINAL_PATH);
+                handleOptionalField(DataFields.LAST_KNOWN_PATH);
+
+                foreach (string target in fieldsToRemove)
+                    fields.Remove(target);
+
+                void handleOptionalField(string dataField)
+                {
+                    if (string.IsNullOrEmpty(fields[dataField]))
+                        fieldsToRemove.Add(dataField);
+                }
+            }
             #pragma warning restore IDE0055 //Fix formatting
 
             foreach (LogRule rule in GetPackagedRuleEntries())
