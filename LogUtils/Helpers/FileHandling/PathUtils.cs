@@ -22,6 +22,12 @@ namespace LogUtils.Helpers.FileHandling
             bool dirFound = false;
             while (dirLevelsToCheck > 0)
             {
+                if (IsEmpty(path))
+                {
+                    dirLevelsToCheck = 0;
+                    break;
+                }
+
                 if (path.EndsWith(dirName, StringComparison.InvariantCultureIgnoreCase))
                 {
                     dirFound = true;
@@ -32,9 +38,6 @@ namespace LogUtils.Helpers.FileHandling
                     //Keep stripping away directories, 
                     path = Path.GetDirectoryName(path);
                     dirLevelsToCheck--;
-
-                    if (path == string.Empty)
-                        dirLevelsToCheck = 0;
                 }
             }
             return dirFound;
@@ -179,7 +182,7 @@ namespace LogUtils.Helpers.FileHandling
 
         internal static string FindExistingPathRootRecursive(string path, int parentDirChecksAllowed)
         {
-            if (path == null || Directory.Exists(path))
+            if (IsEmpty(path) || Directory.Exists(path))
                 return path;
 
             if (parentDirChecksAllowed > 1)
