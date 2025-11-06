@@ -611,7 +611,7 @@ namespace LogUtils.Properties
                                 writer.Close();
 
                                 LogSessionActive = true;
-                                SetLastKnownPath();
+                                UpdateLastKnownPath();
                             }
                         }
                     }

@@ -144,7 +144,7 @@ namespace LogUtils.Properties
             CurrentFolderPath = OriginalFolderPath = FolderPath;
 
             EnsurePathDoesNotConflict();
-            SetLastKnownPath();
+            UpdateLastKnownPath();
         }
 
         /// <summary>
@@ -336,17 +336,19 @@ namespace LogUtils.Properties
             return LastKnownFilePath;
         }
 
-        internal virtual void SetLastKnownPath(string path = null)
+        internal virtual void SetLastKnownPath(string path)
         {
-            if (PathUtils.IsEmpty(path))
-                path = CurrentFilePath; //The last known path can be extracted from the current path
-
-            if (IsMetadataOptional && !PathUtils.IsFilePath(path)) //The filename, or directory information may be missing
+            if (PathUtils.IsEmpty(path) || (IsMetadataOptional && !PathUtils.IsFilePath(path))) //The filename, or directory information may be missing
             {
                 LastKnownFilePath = string.Empty;
                 return;
             }
             LastKnownFilePath = path;
+        }
+
+        internal void UpdateLastKnownPath()
+        {
+            SetLastKnownPath(CurrentFilePath);
         }
 
         internal void UpdateCurrentPath(string path, LogFilename filename)
@@ -394,7 +396,7 @@ namespace LogUtils.Properties
                 if (changesPresent)
                 {
                     FileExists = File.Exists(CurrentFilePath);
-                    SetLastKnownPath();
+                    UpdateLastKnownPath();
                     NotifyPathChanged();
                 }
             }
