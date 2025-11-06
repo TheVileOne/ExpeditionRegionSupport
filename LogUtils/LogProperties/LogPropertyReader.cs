@@ -124,7 +124,7 @@ namespace LogUtils.Properties
                             if (optionalFieldsBypassed > 0)
                             {
                                 expectedFieldsMatch = true;
-                                fieldMatchCount += optionalFieldsBypassed;
+                                fieldMatchCount += optionalFieldsBypassed + 1;
                                 optionalFieldsMissingCount += optionalFieldsBypassed;
                             }
                         }
