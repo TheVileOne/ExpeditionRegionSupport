@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using DataFields = LogUtils.UtilityConsts.DataFields;
 
 namespace LogUtils.Properties
 {
@@ -23,8 +25,11 @@ namespace LogUtils.Properties
 
             bool expectingNextEntry = true;
 
+            //Data process fields
             bool expectedFieldsMatch = true;
-            int fieldMatchCount = 0; //Amount of consecuative fields that are consistent with the expected write order 
+
+            int fieldMatchCount = 0;            //Amount of consecuative fields that are consistent with the expected write order
+            int optionalFieldsMissingCount = 0; //Amount of fields that were expected optional fields that were not read from file
             int commentCountForThisField = 0;
             List<CommentEntry> commentEntries = new List<CommentEntry>();
 
@@ -78,9 +83,9 @@ namespace LogUtils.Properties
                         commentCountForThisField = 0;
                     }
 
-                    //Check if the data represents a new log file
-                    //All log file data should have this header, but by checking for duplicate keys after an empty line, we can handle cases when it is missing
-                    bool startNextEntry = header == UtilityConsts.DataFields.LOGID || (expectingNextEntry && (propertyInFile == null || propertyInFile.ContainsKey(header)));
+                    //Check if the data represents a new log property set.
+                    //All log property sets should have this header, but by checking for duplicate keys after an empty line, we can handle cases when it is missing
+                    bool startNextEntry = header == DataFields.LOGID || (expectingNextEntry && (propertyInFile == null || propertyInFile.ContainsKey(header)));
 
                     if (startNextEntry)
                     {
@@ -94,25 +99,38 @@ namespace LogUtils.Properties
                         {
                             commentEntries = new List<CommentEntry>();
 
-                            LogPropertyData data = new LogPropertyData(lastProcessed, lastComments, !expectedFieldsMatch);
+                            LogPropertyData data = new LogPropertyData(lastProcessed, lastComments, optionalFieldsMissingCount, !expectedFieldsMatch);
                             yield return data; //Data collection has finished for the last entry - return the data
                         }
 
                         //Reset values to default
                         expectedFieldsMatch = true;
-                        fieldMatchCount = 0;
+                        fieldMatchCount = optionalFieldsMissingCount = 0;
                     }
 
                     //Check that the actual field order read from file matches the field order expected by the utility
-                    if (expectedFieldsMatch && fieldMatchCount < UtilityConsts.DataFields.OrderedFields.Length)
+                    if (expectedFieldsMatch && fieldMatchCount < DataFields.OrderedFields.Length)
                     {
-                        expectedFieldsMatch = header == UtilityConsts.DataFields.OrderedFields[fieldMatchCount];
+                        expectedFieldsMatch = header == DataFields.OrderedFields[fieldMatchCount];
 
                         if (expectedFieldsMatch)
+                        {
                             fieldMatchCount++;
+                        }
+                        else
+                        {
+                            int optionalFieldsBypassed = countOptionalFieldsBeforeNextMatch(header, fieldMatchCount);
+
+                            if (optionalFieldsBypassed > 0)
+                            {
+                                expectedFieldsMatch = true;
+                                fieldMatchCount += optionalFieldsBypassed;
+                                optionalFieldsMissingCount += optionalFieldsBypassed;
+                            }
+                        }
                     }
 
-                    //Store each data field in a dictionary until all lines pertaining to the current property are read
+                    //Store each data field in a dictionary until all lines pertaining to the current log property set are read
                     propertyInFile[header] = value;
                 }
             }
@@ -123,9 +141,48 @@ namespace LogUtils.Properties
                 if (commentEntries.Count > 0 && commentEntries[commentEntries.Count - 1].Owner == null)
                     UtilityLogger.LogWarning("End of file comments are unsupported");
 
-                LogPropertyData data = new LogPropertyData(propertyInFile, commentEntries, !expectedFieldsMatch);
+                LogPropertyData data = new LogPropertyData(propertyInFile, commentEntries, optionalFieldsMissingCount, !expectedFieldsMatch);
                 yield return data;
             }
+        }
+
+        /// <summary>
+        /// Finds the position of a data field header beginning at the start index, and searches until the end of the collection, or the search encounters a non-optional data field entry
+        /// </summary>
+        private int countOptionalFieldsBeforeNextMatch(string field, int searchIndex)
+        {
+            //Fields that are considered optional will be considered as matched if they happen to be missing. Later there will be a process
+            //that will evaluate if these fields are actually required, a qualification that is dependent on if it is referring to file, or group data.
+            //Field mismatch status can be fully resolved at that point, and would be very complicated if we tried to resolve it here.
+            int fieldProcessCount = 0;
+            int optionalFieldCount = DataFields.CountOptionalFieldsAtThisIndex(searchIndex);
+
+            if (optionalFieldCount == 0)
+                return fieldProcessCount;
+
+            //When the field is optional, we must look for it in the optional field range, but we know it wont be in the first index in the range
+            if (DataFields.IsOptionalField(field))
+            {
+                if (optionalFieldCount == 1)
+                    return fieldProcessCount;
+
+                int startIndex = searchIndex + 1;
+                int searchRange = optionalFieldCount - 1;
+                bool searchPredicate(string fieldEntry) => fieldEntry == field;
+
+                int resultIndex = Array.FindIndex(DataFields.OrderedFields, startIndex, searchRange, searchPredicate);
+
+                if (resultIndex != -1)
+                    fieldProcessCount = resultIndex - searchIndex;
+            }
+            else //Field is required (or possibly unknown)
+            {
+                int nextRequiredFieldIndex = searchIndex + optionalFieldCount;
+
+                if (nextRequiredFieldIndex < DataFields.OrderedFields.Length && field == DataFields.OrderedFields[nextRequiredFieldIndex])
+                    fieldProcessCount = nextRequiredFieldIndex - searchIndex;
+            }
+            return fieldProcessCount;
         }
 
         IEnumerator IEnumerable.GetEnumerator()
