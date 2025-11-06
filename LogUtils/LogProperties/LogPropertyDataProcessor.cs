@@ -64,7 +64,7 @@ namespace LogUtils.Properties
             if (!hasGroupTag)
                 properties = new LogProperties(id, filename, path);
             else
-                properties = new LogGroupProperties(LogID.CreateIDValue(id, LogIDType.Group));
+                properties = new LogGroupProperties(LogID.CreateIDValue(id, LogIDType.Group), dataFields);
 
             properties.Tags = tags;
 

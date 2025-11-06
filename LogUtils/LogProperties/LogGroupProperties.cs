@@ -25,6 +25,11 @@ namespace LogUtils.Properties
             AddTag(UtilityConsts.PropertyTag.LOG_GROUP);
         }
 
+        internal LogGroupProperties(string propertyID, LogPropertyStringDictionary optionalFields) : base(propertyID, optionalFields[UtilityConsts.DataFields.FILENAME] ?? string.Empty, optionalFields[UtilityConsts.DataFields.PATH] ?? string.Empty)
+        {
+            AddTag(UtilityConsts.PropertyTag.LOG_GROUP);
+        }
+
         /// <inheritdoc/>
         public override void ChangeFilename(string newFilename)
         {
