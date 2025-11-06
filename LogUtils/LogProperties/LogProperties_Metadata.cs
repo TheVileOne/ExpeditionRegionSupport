@@ -10,6 +10,11 @@ namespace LogUtils.Properties
 {
     public partial class LogProperties
     {
+        /// <summary>
+        /// Indicates whether optional metadata is supported for this instance
+        /// </summary>
+        public virtual bool IsMetadataOptional => false;
+
         private bool _fileExists;
         private LogFilename _filename;
         private LogFilename _altFilename;
@@ -122,7 +127,25 @@ namespace LogUtils.Properties
         /// <summary>
         /// The path of the last known location of the log file
         /// </summary>
-        public string LastKnownFilePath { get; internal set; }
+        /// <value>Default value is an empty string when not storing a path</value>
+        public string LastKnownFilePath { get; private set; }
+
+        internal void InitializeMetadata(string filename, string path)
+        {
+            Filename = new LogFilename(filename);
+
+            //Determines how empty path data should be handled on initialization (class implementation specific)
+            bool shouldAssignPath = !PathUtils.IsEmpty(path) || !IsMetadataOptional;
+
+            if (shouldAssignPath)
+                FolderPath = GetContainingPath(path);
+
+            CurrentFilename = ReserveFilename = Filename;
+            CurrentFolderPath = OriginalFolderPath = FolderPath;
+
+            EnsurePathDoesNotConflict();
+            SetLastKnownPath();
+        }
 
         /// <summary>
         /// Given the last available current filename, and the property assign AltFilename, this method returns the option not represented as the current path
@@ -160,6 +183,8 @@ namespace LogUtils.Properties
         /// </summary>
         internal void EnsurePathDoesNotConflict()
         {
+            if (!CurrentFilename.IsValid) return;
+
             string filename = CurrentFilename;
 
             if (ContainsTag(UtilityConsts.PropertyTag.CONFLICT))
@@ -211,7 +236,7 @@ namespace LogUtils.Properties
                 if (!byte.TryParse(bracketInfo, out byte currentDesignation))
                 {
                     UtilityLogger.LogWarning("Unable to parse conflict designation from filename");
-                    UtilityLogger.LogWarning("FilePath: " + logFile.Properties.CurrentFilename + " INFO: " + bracketInfo);
+                    UtilityLogger.LogWarning("FILENAME: " + logFile.Properties.CurrentFilename + " INFO: " + bracketInfo);
                     continue;
                 }
                 takenDesignations.Add(currentDesignation);
@@ -306,6 +331,24 @@ namespace LogUtils.Properties
             UpdateCurrentPath(newPath, newFilename);
         }
 
+        internal virtual string GetLastKnownPath()
+        {
+            return LastKnownFilePath;
+        }
+
+        internal virtual void SetLastKnownPath(string path = null)
+        {
+            if (PathUtils.IsEmpty(path))
+                path = CurrentFilePath; //The last known path can be extracted from the current path
+
+            if (IsMetadataOptional && !PathUtils.IsFilePath(path)) //The filename, or directory information may be missing
+            {
+                LastKnownFilePath = string.Empty;
+                return;
+            }
+            LastKnownFilePath = path;
+        }
+
         internal void UpdateCurrentPath(string path, LogFilename filename)
         {
             using (FileLock.Acquire())
@@ -351,7 +394,7 @@ namespace LogUtils.Properties
                 if (changesPresent)
                 {
                     FileExists = File.Exists(CurrentFilePath);
-                    LastKnownFilePath = CurrentFilePath;
+                    SetLastKnownPath();
                     NotifyPathChanged();
                 }
             }

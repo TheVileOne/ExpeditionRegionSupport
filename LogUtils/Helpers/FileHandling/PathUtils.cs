@@ -261,6 +261,17 @@ namespace LogUtils.Helpers.FileHandling
             return string.IsNullOrWhiteSpace(path);
         }
 
+        /// <summary>
+        /// Checks that the path string contains both directory and file information
+        /// </summary>
+        public static bool IsFilePath(string path)
+        {
+            path = PathWithoutFilename(path, out string filename);
+
+            return !string.IsNullOrEmpty(path) &&
+                   !string.IsNullOrEmpty(filename);
+        }
+
         public static bool IsPathKeyword(string pathString)
         {
             if (pathString == null) return false;

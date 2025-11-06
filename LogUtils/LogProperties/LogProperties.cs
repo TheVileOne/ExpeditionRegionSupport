@@ -473,18 +473,6 @@ namespace LogUtils.Properties
             InitializationInProgress = false;
         }
 
-        internal virtual void InitializeMetadata(string filename, string path)
-        {
-            Filename = new LogFilename(filename);
-            FolderPath = GetContainingPath(path);
-
-            CurrentFilename = ReserveFilename = Filename;
-            CurrentFolderPath = OriginalFolderPath = FolderPath;
-
-            EnsurePathDoesNotConflict();
-            LastKnownFilePath = CurrentFilePath;
-        }
-
         private void onCustomPropertyAdded(CustomLogProperty property)
         {
             if (property.IsLogRule)
@@ -623,7 +611,7 @@ namespace LogUtils.Properties
                                 writer.Close();
 
                                 LogSessionActive = true;
-                                LastKnownFilePath = CurrentFilePath;
+                                SetLastKnownPath();
                             }
                         }
                     }
@@ -842,7 +830,7 @@ namespace LogUtils.Properties
                 [DataFields.SHOW_LOGS_AWARE]      = ShowLogsAware.ToString(),
                 [DataFields.PATH]                 = PathUtils.GetPathKeyword(FolderPath) ?? FolderPath,
                 [DataFields.ORIGINAL_PATH]        = PathUtils.GetPathKeyword(OriginalFolderPath) ?? OriginalFolderPath,
-                [DataFields.LAST_KNOWN_PATH]      = LastKnownFilePath,
+                [DataFields.LAST_KNOWN_PATH]      = GetLastKnownPath(),
                 [DataFields.TIMESTAMP_FORMAT]     = DateTimeFormat.FormatString != "G" ? DateTimeFormat.FormatString : string.Empty,
                 [DataFields.Intro.MESSAGE]        = IntroMessage,
                 [DataFields.Intro.TIMESTAMP]      = ShowIntroTimestamp.ToString(),

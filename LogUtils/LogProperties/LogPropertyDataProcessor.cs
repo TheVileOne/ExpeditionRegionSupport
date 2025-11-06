@@ -75,7 +75,7 @@ namespace LogUtils.Properties
                 [DataFields.VERSION]              = new Action(() => properties.Version            = Version.Parse(dataFields[DataFields.VERSION])),
                 [DataFields.ALTFILENAME]          = new Action(() => properties.AltFilename        = (LogFilename)dataFields[DataFields.ALTFILENAME]),
                 [DataFields.ORIGINAL_PATH]        = new Action(() => properties.OriginalFolderPath = dataFields[DataFields.ORIGINAL_PATH]),
-                [DataFields.LAST_KNOWN_PATH]      = new Action(() => properties.LastKnownFilePath  = dataFields[DataFields.LAST_KNOWN_PATH]),
+                [DataFields.LAST_KNOWN_PATH]      = new Action(() => properties                    .SetLastKnownPath(dataFields[DataFields.LAST_KNOWN_PATH])),
                 [DataFields.CONSOLEIDS]           = new Action(() => properties.ConsoleIDs         .AddRange(parseConsoleIDs(dataFields[DataFields.CONSOLEIDS]))),
                 [DataFields.LOGS_FOLDER_AWARE]    = new Action(() => properties.LogsFolderAware    = bool.Parse(dataFields[DataFields.LOGS_FOLDER_AWARE])),
                 [DataFields.LOGS_FOLDER_ELIGIBLE] = new Action(() => properties.LogsFolderEligible = bool.Parse(dataFields[DataFields.LOGS_FOLDER_ELIGIBLE])),
