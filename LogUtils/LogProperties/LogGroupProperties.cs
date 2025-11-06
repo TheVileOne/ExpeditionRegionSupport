@@ -20,6 +20,9 @@ namespace LogUtils.Properties
         /// <inheritdoc/>
         protected override LogID CreateID() => new LogGroupID(this, false);
 
+        /// <inheritdoc/>
+        protected override int CreateIDHash() => CreateIDHash(GetRawID(), string.Empty);
+
         public LogGroupProperties(string propertyID) : base(propertyID, string.Empty, string.Empty)
         {
             AddTag(UtilityConsts.PropertyTag.LOG_GROUP);

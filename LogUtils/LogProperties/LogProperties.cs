@@ -194,6 +194,11 @@ namespace LogUtils.Properties
         protected virtual LogID CreateID() => new LogID(this, false);
 
         /// <summary>
+        /// Creates a value hash for comparison purposes
+        /// </summary>
+        protected virtual int CreateIDHash() => CreateIDHash(_idValue, OriginalFolderPath);
+
+        /// <summary>
         /// List of targeted ConsoleIDs to send requests to when logging to file
         /// </summary>
         public ValueCollection<ConsoleID> ConsoleIDs;
@@ -428,7 +433,7 @@ namespace LogUtils.Properties
 
             InitializeMetadata(filename, relativePathNoFile);
 
-            IDHash = CreateIDHash(_idValue, OriginalFolderPath);
+            IDHash = CreateIDHash();
 
             const int framesUntilCutoff = 10; //Number of frames before instance is no longer considered a 'new' instance
 
