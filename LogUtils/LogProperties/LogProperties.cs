@@ -406,6 +406,20 @@ namespace LogUtils.Properties
 
         internal LogProperties(string propertyID, string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS)
         {
+            _idValue = propertyID;
+
+            BeginInit();
+            InitializeMetadata(filename, relativePathNoFile);
+            EndInit();
+        }
+
+        /// <summary>
+        /// Initialization processes that run before metadata is initialized
+        /// </summary>
+        internal void BeginInit()
+        {
+            string propertyID = GetRawID();
+
             InitializationInProgress = true;
             FileLock = new FileLock(new Lock.ContextProvider(() => ID));
 
@@ -429,16 +443,19 @@ namespace LogUtils.Properties
                 UtilityLogger.Log(reportMessage);
             }
 
-            _idValue = propertyID;
+        }
 
-            InitializeMetadata(filename, relativePathNoFile);
+        /// <summary>
+        /// Initialization processes that run after metadata is initialized
+        /// </summary>
+        internal void EndInit()
+        {
+            string propertyID = GetRawID();
 
             IDHash = CreateIDHash();
-
-            const int framesUntilCutoff = 10; //Number of frames before instance is no longer considered a 'new' instance
-
             IsNewInstance = true;
 
+            const int framesUntilCutoff = 10; //Number of frames before instance is no longer considered a 'new' instance
             Action onCreationCutoffReached = new Action(() =>
             {
                 IsNewInstance = false;
@@ -687,7 +704,7 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
-        /// Triggers the UtilityEvents.OnPathChanged event for this instance
+        /// Triggers the <see cref="UtilityEvents.OnPathChanged"/> event
         /// </summary>
         public void NotifyPathChanged()
         {
@@ -716,7 +733,7 @@ namespace LogUtils.Properties
         /// The hashcode representing the log filepath at the time of instantiation
         /// </summary>
         /// <remarks>This value is intended to be a unique identifier for this LogProperties instance, and will not change even if the file metadata changes</remarks>
-        internal readonly int IDHash = 0;
+        internal int IDHash = 0;
 
         /// <summary>
         /// The hashcode produced by the write string cached when properties are read from file
@@ -749,7 +766,7 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
-        /// Creates a new LogProperties instance inheriting all log independent property values for the current instance
+        /// Creates a new <see cref="LogProperties"/> instance inheriting all log independent property values for the current instance
         /// </summary>
         public LogProperties Clone(string filename, string path)
         {
