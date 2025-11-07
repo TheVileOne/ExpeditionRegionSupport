@@ -407,9 +407,23 @@ namespace LogUtils.Properties
         internal LogProperties(string propertyID, string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS)
         {
             _idValue = propertyID;
+            Initialize(new LogPropertyMetadata
+            {
+                Filename = filename,
+                Path = relativePathNoFile
+            });
+        }
 
+        internal LogProperties(string propertyID, LogPropertyMetadata metadata)
+        {
+            _idValue = propertyID;
+            Initialize(metadata);
+        }
+
+        internal void Initialize(LogPropertyMetadata metadata)
+        {
             BeginInit();
-            InitializeMetadata(filename, relativePathNoFile);
+            InitializeMetadata(metadata);
             EndInit();
         }
 

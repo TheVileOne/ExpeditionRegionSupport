@@ -130,21 +130,43 @@ namespace LogUtils.Properties
         /// <value>Default value is an empty string when not storing a path</value>
         public string LastKnownFilePath { get; private set; }
 
-        internal void InitializeMetadata(string filename, string path)
+        internal void InitializeMetadata(LogPropertyMetadata metadata)
         {
-            Filename = new LogFilename(filename);
+            //AltFilename, and LastKnownPath do not need to be set - fields are null safe
+            if (metadata == null)
+            {
+                Filename = new LogFilename(string.Empty);
+                FolderPath = string.Empty;
+
+                CurrentFilename = ReserveFilename = Filename;
+                CurrentFolderPath = OriginalFolderPath = FolderPath;
+                return;
+            }
+
+            Filename = (LogFilename)metadata.Filename;
+            AltFilename = (LogFilename)metadata.AltFilename;
+
+            if (Filename == null)
+            {
+                if (!IsMetadataOptional)
+                    throw new ArgumentException("Filename shouldn't be null on property initialization");
+                Filename = new LogFilename(string.Empty);
+            }
 
             //Determines how empty path data should be handled on initialization (class implementation specific)
-            bool shouldAssignPath = !PathUtils.IsEmpty(path) || !IsMetadataOptional;
+            bool shouldAssignPath = !PathUtils.IsEmpty(metadata.Path) || !IsMetadataOptional;
 
             if (shouldAssignPath)
-                FolderPath = GetContainingPath(path);
+                FolderPath = GetContainingPath(metadata.Path);
 
             CurrentFilename = ReserveFilename = Filename;
             CurrentFolderPath = OriginalFolderPath = FolderPath;
 
+            if (!PathUtils.IsEmpty(metadata.OriginalPath))
+                OriginalFolderPath = GetContainingPath(metadata.OriginalPath);
+
             EnsurePathDoesNotConflict();
-            UpdateLastKnownPath();
+            SetLastKnownPath(metadata.LastKnownPath);
         }
 
         /// <summary>
@@ -420,5 +442,71 @@ namespace LogUtils.Properties
             if (AltFilename == null || !AltFilename.Equals(currentFilenameBase))
                 ReserveFilename = new LogFilename(currentFilenameBase, CurrentFilename.Extension);
         }
+    }
+
+    internal class LogPropertyMetadata
+    {
+        internal bool IsOptional;
+
+        public string Filename;
+        public string AltFilename;
+        public string Path;
+        public string OriginalPath;
+        public string LastKnownPath;
+
+        public MetadataPathResult PopulateMissingPathValues()
+        {
+            bool hasPath =  !PathUtils.IsEmpty(Path);
+            bool hasOriginalPath = !PathUtils.IsEmpty(OriginalPath);
+
+            if (hasPath)
+                return pathIsFound();
+
+            return pathIsMissing();
+
+            MetadataPathResult pathIsFound()
+            {
+                if (IsOptional)
+                    return MetadataPathResult.NoChanges;
+
+                //Inherit from the current path when original path is missing
+                if (!hasOriginalPath)
+                {
+                    OriginalPath = Path;
+                    return MetadataPathResult.MissingPathResolved;
+                }
+                return MetadataPathResult.NoChanges;
+            }
+
+            MetadataPathResult pathIsMissing()
+            {
+                //Inherit path from other path fields when available
+                if (hasOriginalPath)
+                {
+                    Path = OriginalPath;
+                    return MetadataPathResult.MissingPathResolved;
+                }
+
+                bool hasLastKnownPath = !PathUtils.IsEmpty(LastKnownPath);
+
+                if (hasLastKnownPath)
+                {
+                    Path = OriginalPath = PathUtils.PathWithoutFilename(LastKnownPath);
+                    return MetadataPathResult.MissingPathResolved;
+                }
+
+                if (!IsOptional)
+                    return MetadataPathResult.UnableToResolve;
+
+                return MetadataPathResult.NoChanges;
+            }
+        }
+    }
+
+    internal enum MetadataPathResult
+    {
+        NoChanges,
+        MissingPathResolved,
+        UnableToResolve
     }
 }

@@ -1,5 +1,6 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Helpers.FileHandling;
+using static LogUtils.UtilityConsts;
 
 namespace LogUtils.Properties
 {
@@ -23,14 +24,14 @@ namespace LogUtils.Properties
         /// <inheritdoc/>
         protected override int CreateIDHash() => CreateIDHash(GetRawID(), string.Empty);
 
-        public LogGroupProperties(string propertyID) : base(propertyID, string.Empty, string.Empty)
+        public LogGroupProperties(string propertyID) : base(propertyID, metadata: null)
         {
-            AddTag(UtilityConsts.PropertyTag.LOG_GROUP);
+            AddTag(PropertyTag.LOG_GROUP);
         }
 
-        internal LogGroupProperties(string propertyID, LogPropertyStringDictionary optionalFields) : base(propertyID, optionalFields[UtilityConsts.DataFields.FILENAME] ?? string.Empty, optionalFields[UtilityConsts.DataFields.PATH] ?? string.Empty)
+        internal LogGroupProperties(string propertyID, LogPropertyMetadata metadata) : base(propertyID, metadata)
         {
-            AddTag(UtilityConsts.PropertyTag.LOG_GROUP);
+            AddTag(PropertyTag.LOG_GROUP);
         }
 
         /// <inheritdoc/>
