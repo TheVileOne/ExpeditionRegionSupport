@@ -58,19 +58,33 @@ namespace LogUtils.Enums
         [Obsolete("This property is from the base class. Use Value instead.")]
         public new string value => base.value;
 
+        private Action _registrationCallback;
+        private RegistrationStatus _registrationStage = RegistrationStatus.Ready;
+        /// <summary>
+        /// The current stage in assigning a registered state to this instance
+        /// </summary>
+        protected virtual RegistrationStatus RegistrationStage => _registrationStage;
+
         public SharedExtEnum(string value, bool register = false) : base(value, false)
         {
             ManagedReference = (T)UtilityCore.DataHandler.GetOrAssign(this);
 
-            if (register)
+            _registrationCallback = handleRegistration;
+            if (RegistrationStage == RegistrationStatus.Ready)
+                CompleteRegistration();
+
+            void handleRegistration()
             {
-                Register();
-            }
-            else if (!ReferenceEquals(ManagedReference, this) && ManagedReference.Registered) //Propagate field values from registered reference
-            {
-                Value = ManagedReference.Value;
-                valueHash = ManagedReference.valueHash;
-                index = ManagedReference.Index;
+                if (register)
+                {
+                    Register();
+                }
+                else if (!ReferenceEquals(ManagedReference, this) && ManagedReference.Registered) //Propagate field values from registered reference
+                {
+                    Value = ManagedReference.Value;
+                    valueHash = ManagedReference.valueHash;
+                    index = ManagedReference.Index;
+                }
             }
         }
 
@@ -124,6 +138,22 @@ namespace LogUtils.Enums
 
             result = (T)Activator.CreateInstance(typeof(T), value, false);
             return result.Registered;
+        }
+
+        /// <summary>
+        /// Completes the registration process
+        /// </summary>
+        protected virtual void CompleteRegistration()
+        {
+            if (RegistrationStage != RegistrationStatus.Ready)
+            {
+                UtilityLogger.LogWarning($"Registration stage is unexpected - EXPECTED: {RegistrationStatus.Ready} ACTUAL: {RegistrationStage}");
+                return;
+            }
+
+            _registrationCallback?.Invoke();
+            _registrationCallback = null;
+            _registrationStage = RegistrationStatus.Completed;
         }
 
         /// <summary>
@@ -251,6 +281,19 @@ namespace LogUtils.Enums
             int hashOther = right?.GetHashCode() ?? 0;
 
             return hash.CompareTo(hashOther);
+        }
+
+        /// <summary>
+        /// Represents the initialization state of the registration process
+        /// </summary>
+        protected enum RegistrationStatus
+        {
+            /// <summary>Registration can be completed anytime</summary>
+            Ready,
+            /// <summary>Registration is deferred until a child class signals it is ready to complete registration</summary>
+            WaitingOnSignal,
+            /// <summary>Registration has been completed</summary>
+            Completed
         }
     }
 

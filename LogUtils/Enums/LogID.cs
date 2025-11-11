@@ -20,9 +20,40 @@ namespace LogUtils.Enums
     public partial class LogID : SharedExtEnum<LogID>, ILogTarget, IEquatable<LogID>
     {
         /// <summary>
+        /// Registration may be handled through the <see cref="SharedExtEnum{T}"/> constructor only when no other existing reference to this LogID value is present.  
+        /// </summary>
+        protected override RegistrationStatus RegistrationStage
+        {
+            get
+            {
+                RegistrationStatus stage = base.RegistrationStage;
+
+                //Inherit the status when registration is already completed
+                if (stage == RegistrationStatus.Completed)
+                    return RegistrationStatus.Completed;
+
+                //When we know this instance is the managed reference, signal to complete the registration process
+                if (ReferenceEquals(ManagedReference, this) || Properties != null)
+                    return RegistrationStatus.Ready;
+
+                //When it is not the same reference, and we know registration is not yet completed, we need to wait
+                return RegistrationStatus.WaitingOnSignal;
+            }
+        }
+
+        private LogProperties _properties;
+        /// <summary>
         /// Contains path information, and other settings that affect logging behavior 
         /// </summary>
-        public LogProperties Properties { get; protected set; }
+        public LogProperties Properties
+        {
+            get => _properties;
+            protected set
+            {
+                _properties = value;
+                CompleteRegistration(); //LogID is a class that defers registration in certain situations until properties are assigned
+            }
+        }
 
         /// <summary>
         /// Acts as a permission flag that affects the behavior of loggers, and the handling of logging requests targeting this LogID
@@ -198,6 +229,18 @@ namespace LogUtils.Enums
 
             if (Registered)
                 LogProperties.PropertyManager.SetProperties(Properties);
+        }
+
+        /// <inheritdoc/>
+        protected override void CompleteRegistration()
+        {
+            if (RegistrationStage == RegistrationStatus.Completed)
+                return;
+
+            //TODO: Determine how ComparisonLogID should be handled
+            if (Properties == null)
+                ManagedReference = (LogID)UtilityCore.DataHandler.GetOrAssign(this);
+            base.CompleteRegistration();
         }
 
         /// <inheritdoc cref="Equals(LogID, bool)"/>
