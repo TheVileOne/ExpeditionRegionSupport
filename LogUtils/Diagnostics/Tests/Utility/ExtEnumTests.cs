@@ -1,4 +1,5 @@
 ﻿using LogUtils.Diagnostics.Tests.Components;
+using LogUtils.Enums;
 using System;
 
 namespace LogUtils.Diagnostics.Tests.Utility
@@ -20,6 +21,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             //ManagedReference should always be set on initialization
             testManagedReferenceIsInitialized();
             testManagedReferenceIsSharedBetweenInstances();
+            testManagedReferenceIsDifferentPerLogPath();
 
             testCaseInsensitivity();
         }
@@ -74,6 +76,23 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             testEnumA.Unregister();
             clearSharedData();
+        }
+
+        /// <summary>
+        /// Test that a log filename can exist at two different paths without sharing the same managed reference
+        /// </summary>
+        private void testManagedReferenceIsDifferentPerLogPath()
+        {
+            LogID testA = createTestLogID("test-managed", UtilityConsts.PathKeywords.ROOT);
+            LogID testB = createTestLogID("test-managed", UtilityConsts.PathKeywords.STREAMING_ASSETS);
+
+            AssertThat(testA.ManagedReference).IsNotThisInstance(testB.ManagedReference);
+        }
+
+        private static LogID createTestLogID(string filename, string path = null)
+        {
+            //TODO: LogID instances need to be cleaned up through SharedDataHandler
+            return new LogID(filename, path, LogAccess.Private, false);
         }
 
         /// <summary>
