@@ -103,25 +103,22 @@ namespace LogUtils.Enums
 
         private LogID(LogProperties properties, string filename, string path, LogAccess access, bool register = false) : base(Sanitize(filename), register)
         {
-            InitializeAccess(access);
-            bool hasGroupTag = properties != null && properties.ContainsTag(UtilityConsts.PropertyTag.LOG_GROUP);
+            //Properties wont be null here
+            bool hasGroupTag = properties.ContainsTag(UtilityConsts.PropertyTag.LOG_GROUP);
 
             //Each instance of a group inherits from the group's shared properties
             Properties = !hasGroupTag ? properties : properties.Clone(filename, path);
-
-            if (Properties == null)
-                InitializeProperties(filename, path);
+            InitializeAccess(access);
         }
 
         internal LogID(LogProperties properties, bool register) : base(properties.GetRawID(), register)
         {
+            Properties = properties; //Wont be null
+
+            if (Registered && !LogProperties.PropertyManager.Exists(properties))
+                LogProperties.PropertyManager.SetProperties(properties);
+
             InitializeAccess(LogAccess.RemoteAccessOnly); //Log access is presumed to be unavailable to loggers
-
-            PropertyDataController propertyManager = LogProperties.PropertyManager;
-            if (Registered && !propertyManager.Exists(properties))
-                propertyManager.SetProperties(properties);
-
-            Properties = properties;
         }
 
         /// <summary>
@@ -143,8 +140,8 @@ namespace LogUtils.Enums
         /// </param>
         public LogID(string filename, string relativePathNoFile, LogAccess access, bool register = false) : base(Sanitize(filename), register)
         {
-            InitializeAccess(access);
             InitializeProperties(filename, relativePathNoFile);
+            InitializeAccess(access);
         }
 
         /// <summary>
@@ -189,15 +186,18 @@ namespace LogUtils.Enums
 
         protected void InitializeProperties(string filename, string logPath)
         {
-            Properties = LogProperties.PropertyManager.GetProperties(this, logPath);
+            var properties = LogProperties.PropertyManager.GetProperties(this, logPath);
 
-            if (Properties == null)
+            if (properties != null)
             {
-                Properties = new LogProperties(filename, logPath);
-
-                if (Registered)
-                    LogProperties.PropertyManager.SetProperties(Properties);
+                Properties = properties;
+                return;
             }
+
+            Properties = new LogProperties(filename, logPath);
+
+            if (Registered)
+                LogProperties.PropertyManager.SetProperties(Properties);
         }
 
         /// <summary>
