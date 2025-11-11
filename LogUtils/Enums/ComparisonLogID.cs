@@ -1,4 +1,5 @@
 ﻿using LogUtils.Properties;
+using System.IO;
 using System.Linq;
 
 namespace LogUtils.Enums
@@ -12,6 +13,21 @@ namespace LogUtils.Enums
         /// Indicates the kind of <see cref="LogID"/> represented by the comparison instance
         /// </summary>
         public readonly LogIDType RepresentedType;
+
+        /// <inheritdoc/>
+        public override string Tag
+        {
+            get
+            {
+                if (ManagedReference != null && !ReferenceEquals(ManagedReference, this)) //Can be null here when it is accessed through the constructor
+                    return ManagedReference.Tag;
+
+                if (Properties != null && RepresentedType == LogIDType.File) //Files and groups use different identifying information
+                    return Path.Combine(Properties.OriginalFolderPath, Value);
+
+                return Value;
+            }
+        }
 
         /// <summary>
         /// Constructs a lightweight <see cref="LogID"/> instance intended for local comparisons rather than logging

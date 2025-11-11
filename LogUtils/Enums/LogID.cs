@@ -1,9 +1,11 @@
-﻿using LogUtils.Helpers.FileHandling;
+﻿using LogUtils.Helpers.Comparers;
+using LogUtils.Helpers.FileHandling;
 using LogUtils.Policy;
 using LogUtils.Properties;
 using LogUtils.Properties.Formatting;
 using LogUtils.Requests;
 using System;
+using System.IO;
 using System.Runtime.Serialization;
 using BepInExPath = LogUtils.Helpers.Paths.BepInEx;
 
@@ -52,6 +54,21 @@ namespace LogUtils.Enums
             {
                 _properties = value;
                 CompleteRegistration(); //LogID is a class that defers registration in certain situations until properties are assigned
+            }
+        }
+
+        /// <inheritdoc/>
+        public override string Tag
+        {
+            get
+            {
+                if (ManagedReference != null && !ReferenceEquals(ManagedReference, this)) //Can be null here when it is accessed through the constructor
+                    return ManagedReference.Tag;
+
+                if (Properties != null)
+                    return Path.Combine(Properties.OriginalFolderPath, Value);
+
+                return Value;
             }
         }
 
@@ -241,6 +258,26 @@ namespace LogUtils.Enums
             if (Properties == null)
                 ManagedReference = (LogID)UtilityCore.DataHandler.GetOrAssign(this);
             base.CompleteRegistration();
+        }
+
+        /// <inheritdoc/>
+        public override bool CheckTag(string tag)
+        {
+            //Adding a file extension is required by the helper, and also protects file information that contains a period in the filename
+            string path = PathUtils.PathWithoutFilename(tag + ".txt", out string value);
+
+            bool hasPath = false;
+            if (!PathUtils.IsEmpty(path))
+            {
+                hasPath = true;
+                tag = FileExtension.Remove(value);
+            }
+
+            bool hasValue = ComparerUtils.StringComparerIgnoreCase.Equals(Value, tag);
+            bool checkPath = hasPath && Properties != null;
+
+            //Intentionally not checking Tag property here - it will be more efficient to check the metadata this way and use the Tag value exclusively for lookups
+            return hasValue && (!checkPath || PathUtils.PathsAreEqual(path, Properties.OriginalFolderPath));
         }
 
         /// <inheritdoc cref="Equals(LogID, bool)"/>

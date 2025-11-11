@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogUtils.Helpers.Comparers;
+using System;
 
 namespace LogUtils.Enums
 {
@@ -34,12 +35,12 @@ namespace LogUtils.Enums
         public bool Registered => Index >= 0;
 
         /// <inheritdoc/>
-        public string Tag
+        public virtual string Tag
         {
             get
             {
-                if (!ReferenceEquals(ManagedReference, this))
-                    return ManagedReference?.Tag ?? Value; //Can be null here when it is accessed through the constructor
+                if (ManagedReference != null && !ReferenceEquals(ManagedReference, this)) //Can be null here when it is accessed through the constructor
+                    return ManagedReference.Tag;
                 return Value;
             }
         }
@@ -199,7 +200,7 @@ namespace LogUtils.Enums
         /// <inheritdoc/>
         public virtual bool CheckTag(string tag)
         {
-            return string.Equals(Value, tag, StringComparison.InvariantCultureIgnoreCase);
+            return ComparerUtils.StringComparerIgnoreCase.Equals(Tag, tag);
         }
 
         /// <inheritdoc/>

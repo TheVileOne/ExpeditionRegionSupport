@@ -1,4 +1,6 @@
-﻿using LogUtils.Properties;
+﻿using LogUtils.Helpers.Comparers;
+using LogUtils.Helpers.FileHandling;
+using LogUtils.Properties;
 
 namespace LogUtils.Enums
 {
@@ -15,6 +17,18 @@ namespace LogUtils.Enums
         /// </summary>
         internal const string ID_PREFIX = $"{UtilityConsts.PropertyTag.LOG_GROUP}:";
 
+        /// <inheritdoc/>
+        public override string Tag
+        {
+            get
+            {
+                if (ManagedReference != null && !ReferenceEquals(ManagedReference, this)) //Can be null here when it is accessed through the constructor
+                    return ManagedReference.Tag;
+
+                return Value; //Unlike typical LogID types, groups do not use the path as an identifier. There can be multiple groups with the same specified path.
+            }
+        }
+
         /// <summary>
         /// Creates a new <see cref="LogGroupID"/> instance.
         /// </summary>
@@ -27,6 +41,16 @@ namespace LogUtils.Enums
 
         internal LogGroupID(LogProperties properties, bool register) : base(properties, register)
         {
+        }
+
+        /// <inheritdoc/>
+        public override bool CheckTag(string tag)
+        {
+            //Adding a file extension is required by the helper
+            if (PathUtils.IsFilePath(tag + ".txt")) //LogGroupIDs do not store path information in the tags - this should never be a match
+                return false;
+
+            return ComparerUtils.StringComparerIgnoreCase.Equals(Tag, tag);
         }
 
         private static LogProperties getProperties(string value)
