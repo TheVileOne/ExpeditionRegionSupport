@@ -24,8 +24,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             private void testOnlyOnePropertiesInstancePerLogFile()
             {
-                LogID exampleA = new LogID("example", register: false),
-                      exampleB = new LogID("example", register: false);
+                LogID exampleA = createTestLogID("example"),
+                      exampleB = createTestLogID("example");
 
                 AssertThat(exampleA.Properties).IsSameInstance(exampleB.Properties);
             }
@@ -174,16 +174,17 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 }
             }
 
-            private LogID createTestLogID(string filename, string path)
-            {
-                return new LogID(filename, path, LogAccess.Private, false);
-            }
-
             private (bool EqualsCheck, bool NotEqualsCheck) getTestResults(LogID A, LogID B)
             {
                 return (A == B && A.Equals(B),
                         A != B && !A.Equals(B));
             }
+        }
+
+        private static LogID createTestLogID(string filename, string path = null)
+        {
+            //TODO: LogID instances need to be cleaned up through SharedDataHandler
+            return new LogID(filename, path, LogAccess.Private, false);
         }
 
         internal readonly struct ValuePair<T>(T A, T B)
