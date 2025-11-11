@@ -200,6 +200,13 @@ namespace LogUtils.Enums
                 LogProperties.PropertyManager.SetProperties(Properties);
         }
 
+        /// <inheritdoc cref="Equals(LogID, bool)"/>
+        /// <remarks>The log path is included as part of the equality check</remarks>
+        public new bool Equals(LogID idOther)
+        {
+            return Equals(idOther, doPathCheck: true);
+        }
+
         /// <summary>
         /// Determines whether the specified <see cref="LogID"/> instance is equal to the current instance
         /// </summary>
@@ -218,7 +225,7 @@ namespace LogUtils.Enums
             if (!doPathCheck)
                 return BaseEquals(idOther);
 
-            return Equals(idOther);
+            return base.Equals(idOther);
         }
 
         /// <inheritdoc/>
