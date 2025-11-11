@@ -247,6 +247,7 @@ namespace LogUtils.Enums
         /// <remarks>The log path is included as part of the equality check</remarks>
         public new bool Equals(LogID idOther)
         {
+            //This should return an expected result even for implementations that do not include the path
             return Equals(idOther, doPathCheck: true);
         }
 
@@ -260,12 +261,9 @@ namespace LogUtils.Enums
             if (idOther == null)
                 return false;
 
-            //Let the null case here be considered a wildcard path match
-            if (Properties == null || idOther.Properties == null)
-                return true;
-
             //Comparing through Equals will check the IDHash, which involves the path. BaseEquals compares the value part only.
-            if (!doPathCheck)
+            //Properties being null is considered a wildcard check, and should always return true if there is a value match.
+            if (!doPathCheck || Properties == null || idOther.Properties == null)
                 return BaseEquals(idOther);
 
             return base.Equals(idOther);
