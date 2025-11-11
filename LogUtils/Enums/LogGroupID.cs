@@ -36,6 +36,9 @@ namespace LogUtils.Enums
             if (base.Equals(idOther, doPathCheck))
                 return true;
 
+            if (!doPathCheck) //Base check would have handled this case
+                return false;
+
             //Log group comparisons require a direct field comparison to detect a path match
             return Equals(idOther) && PathUtils.PathsAreEqual(Properties.FolderPath, idOther.Properties.FolderPath);
         }

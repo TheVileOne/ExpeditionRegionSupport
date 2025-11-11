@@ -207,12 +207,15 @@ namespace LogUtils.Enums
         /// <param name="doPathCheck">Whether the folder path should also be considered in the equality check</param>
         public virtual bool Equals(LogID idOther, bool doPathCheck)
         {
-            if (!Equals(idOther))
+            if (idOther == null)
                 return false;
 
             //Let the null case here be considered a wildcard path match
             if (Properties == null || idOther.Properties == null)
                 return true;
+
+            if (!Equals(idOther))
+                return false;
 
             return !doPathCheck || Properties.HasFolderPath(idOther.Properties.FolderPath);
         }
