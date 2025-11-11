@@ -171,7 +171,7 @@ namespace LogUtils.Requests
 
         public LogRequest[] GetRequests(LogID logFile)
         {
-            return UnhandledRequests.Where(req => req.Data.ID.Equals(logFile, doPathCheck: true)).ToArray();
+            return UnhandledRequests.Where(req => req.Data.ID.Equals(logFile)).ToArray();
         }
 
         /// <summary>
