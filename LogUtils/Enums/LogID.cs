@@ -214,10 +214,11 @@ namespace LogUtils.Enums
             if (Properties == null || idOther.Properties == null)
                 return true;
 
-            if (!Equals(idOther))
-                return false;
+            //Comparing through Equals will check the IDHash, which involves the path. BaseEquals compares the value part only.
+            if (!doPathCheck)
+                return BaseEquals(idOther);
 
-            return !doPathCheck || Properties.HasFolderPath(idOther.Properties.FolderPath);
+            return Equals(idOther);
         }
 
         /// <inheritdoc/>
