@@ -39,7 +39,7 @@ namespace LogUtils.Enums
         {
             get
             {
-                if (ManagedReference != null && !ReferenceEquals(ManagedReference, this)) //Can be null here when it is accessed through the constructor
+                if (RegistrationStage == RegistrationStatus.Completed && !ReferenceEquals(ManagedReference, this))
                     return ManagedReference.Tag;
                 return Value;
             }
@@ -152,9 +152,9 @@ namespace LogUtils.Enums
                 return;
             }
 
+            _registrationStage = RegistrationStatus.Completed; //This needs to be set before callback is invoked
             _registrationCallback?.Invoke();
             _registrationCallback = null;
-            _registrationStage = RegistrationStatus.Completed;
         }
 
         /// <summary>

@@ -62,7 +62,7 @@ namespace LogUtils.Enums
         {
             get
             {
-                if (ManagedReference != null && !ReferenceEquals(ManagedReference, this)) //Can be null here when it is accessed through the constructor
+                if (RegistrationStage == RegistrationStatus.Completed && !ReferenceEquals(ManagedReference, this))
                     return ManagedReference.Tag;
 
                 if (Properties != null)
@@ -254,8 +254,7 @@ namespace LogUtils.Enums
             if (RegistrationStage == RegistrationStatus.Completed)
                 return;
 
-            //TODO: Determine how ComparisonLogID should be handled
-            if (Properties == null)
+            if (!ReferenceEquals(ManagedReference, this)) //This reference cannot be trusted to be accurate unless we try to assign with path information available
                 ManagedReference = (LogID)UtilityCore.DataHandler.GetOrAssign(this);
             base.CompleteRegistration();
         }

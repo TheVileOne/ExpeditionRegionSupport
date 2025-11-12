@@ -22,7 +22,7 @@ namespace LogUtils.Enums
         {
             get
             {
-                if (ManagedReference != null && !ReferenceEquals(ManagedReference, this)) //Can be null here when it is accessed through the constructor
+                if (RegistrationStage == RegistrationStatus.Completed && !ReferenceEquals(ManagedReference, this))
                     return ManagedReference.Tag;
 
                 return Value; //Unlike typical LogID types, groups do not use the path as an identifier. There can be multiple groups with the same specified path.
