@@ -156,6 +156,22 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <summary>
+        /// Replace all directory separator characters with the default platform-specific directory separator character removing any trailing separator characters
+        /// </summary>
+        public static string NormalizeAndTrim(string path)
+        {
+            return Normalize(path)?.TrimEnd(Path.DirectorySeparatorChar);
+        }
+
+        /// <summary>
+        /// Removes any trailing directory separator characters
+        /// </summary>
+        public static string Trim(string path)
+        {
+            return path?.TrimEnd(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+        }
+
+        /// <summary>
         /// Checks the path directory and parents of that directory for an existing directory
         /// </summary>
         public static bool PathRootExists(string path, int parentDirChecksAllowed = 3)
