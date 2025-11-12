@@ -4154,6 +4154,11 @@
             Empty class used to test detection of custom collections
             </summary>
         </member>
+        <member name="M:LogUtils.Diagnostics.Tests.Utility.ExtEnumTests.testManagedReferenceIsDifferentPerLogPath">
+            <summary>
+            Test that a log filename can exist at two different paths without sharing the same managed reference
+            </summary>
+        </member>
         <member name="M:LogUtils.Diagnostics.Tests.Utility.ExtEnumTests.clearSharedData">
             <summary>
             This should be called after each test that sets shared data to ensure that state transfer isn't a factor in between tests
@@ -5355,14 +5360,39 @@
         </member>
         <member name="T:LogUtils.Enums.ComparisonLogID">
             <summary>
-            A type of LogID designed for comparisons. Not to be used for logging purposes
+            A type of <see cref="T:LogUtils.Enums.LogID"/> designed for comparisons. Not to be used for logging purposes
             </summary>
+        </member>
+        <member name="F:LogUtils.Enums.ComparisonLogID.RepresentedType">
+            <summary>
+            Indicates the kind of <see cref="T:LogUtils.Enums.LogID"/> represented by the comparison instance
+            </summary>
+        </member>
+        <member name="P:LogUtils.Enums.ComparisonLogID.Tag">
+            <inheritdoc/>
         </member>
         <member name="M:LogUtils.Enums.ComparisonLogID.#ctor(System.String,System.String)">
             <summary>
-            Constructs a lightweight version of a LogID intended for local comparisons rather than logging
+            Constructs a lightweight <see cref="T:LogUtils.Enums.LogID"/> instance intended for local comparisons rather than logging
             </summary>
-            <remarks>This type of LogID is not registered by default, and does not have its own properties (unless an existing LogID already has properties)</remarks>
+            <inheritdoc cref="M:LogUtils.Enums.LogID.#ctor(System.String,System.String,LogUtils.Enums.LogAccess,System.Boolean)"/>
+            <remarks>This type is not registered by default, and does not have its own properties (unless an existing <see cref="T:LogUtils.Enums.LogID"/> already has properties)</remarks>
+        </member>
+        <member name="M:LogUtils.Enums.ComparisonLogID.#ctor(System.String,LogUtils.Enums.LogIDType)">
+            <inheritdoc cref="M:LogUtils.Enums.ComparisonLogID.#ctor(System.String,System.String)"/>
+            <param name="value">The value that identifies the <see cref="T:LogUtils.Enums.ComparisonLogID"/> instance</param>
+            <param name="representedType">The type of <see cref="T:LogUtils.Enums.LogID"/> represented by this instance</param>
+        </member>
+        <member name="F:LogUtils.Enums.ComparisonLogID.Factory">
+            <inheritdoc cref="F:LogUtils.Enums.LogID.Factory"/>
+        </member>
+        <member name="T:LogUtils.Enums.ComparisonLogID._Factory">
+            <summary>
+            Factory implementation
+            </summary>
+        </member>
+        <member name="M:LogUtils.Enums.ComparisonLogID._Factory.CreateID(System.String,System.String)">
+            <inheritdoc cref="M:LogUtils.Enums.ComparisonLogID.#ctor(System.String,System.String)"/>
         </member>
         <member name="T:LogUtils.Enums.CompositeLogCategory">
             <summary>
@@ -5575,6 +5605,47 @@
         <member name="M:LogUtils.Enums.LogCategoryFilter.BySpecificGroup.CompareTo(LogUtils.Enums.LogCategory)">
             <inheritdoc/>
         </member>
+        <member name="T:LogUtils.Enums.LogGroupID">
+            <summary>
+            A type of <see cref="T:LogUtils.Enums.LogID"/> representing a log file group.
+            </summary>
+            <remarks>
+            Log group properties may be accessed, and changed through the <see cref="N:LogUtils.Properties"/> field.
+            </remarks>
+        </member>
+        <member name="F:LogUtils.Enums.LogGroupID.ID_PREFIX">
+            <summary>
+            This prefix differentiates log group entries from log file entries
+            </summary>
+        </member>
+        <member name="P:LogUtils.Enums.LogGroupID.Tag">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Enums.LogGroupID.#ctor(System.String,System.Boolean)">
+            <summary>
+            Creates a new <see cref="T:LogUtils.Enums.LogGroupID"/> instance.
+            </summary>
+            <inheritdoc cref="M:LogUtils.Enums.LogID.#ctor(System.String,LogUtils.Enums.LogAccess,System.Boolean)"/>
+            <param name="value">The value that identifies the <see cref="T:LogUtils.Enums.LogGroupID"/> instance</param>
+            <param name="register"/>
+        </member>
+        <member name="M:LogUtils.Enums.LogGroupID.CheckTag(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="F:LogUtils.Enums.LogGroupID.Factory">
+            <inheritdoc cref="F:LogUtils.Enums.LogID.Factory"/>
+        </member>
+        <member name="T:LogUtils.Enums.LogGroupID._Factory">
+            <summary>
+            Factory implementation
+            </summary>
+        </member>
+        <member name="M:LogUtils.Enums.LogGroupID._Factory.CreateID(System.String,System.Boolean)">
+            <inheritdoc cref="M:LogUtils.Enums.LogGroupID.#ctor(System.String,System.Boolean)"/>
+        </member>
+        <member name="M:LogUtils.Enums.LogGroupID._Factory.CreateComparisonID(System.String)">
+            <inheritdoc cref="M:LogUtils.Enums.ComparisonLogID.#ctor(System.String,LogUtils.Enums.LogIDType)"/>
+        </member>
         <member name="M:LogUtils.Enums.LogGroupMap.GetEquivalent(BepInEx.Logging.LogLevel@,System.Boolean)">
             <summary>
             Implementation doesn't account for composites
@@ -5590,10 +5661,28 @@
             A slightly modified set of values based on BepInEx.Logging.LogLevel
             </summary>
         </member>
+        <member name="T:LogUtils.Enums.LogID">
+            <summary>
+            An <see cref="T:ExtEnum`1"/> type representing a log file.
+            </summary>
+            <remarks>
+            Log file properties may be accessed, and changed through the <see cref="P:LogUtils.Enums.LogID.Properties"/> field.<br/>
+            Implements <see cref="T:LogUtils.Enums.ILogTarget"/> interface.<br/>
+            Note: This type serves as the base class for <see cref="T:LogUtils.Enums.LogGroupID"/>, which is designed for inheritance of log properties, not as a logging target.
+            </remarks>
+        </member>
+        <member name="P:LogUtils.Enums.LogID.RegistrationStage">
+            <summary>
+            Registration may be handled through the <see cref="T:LogUtils.Enums.SharedExtEnum`1"/> constructor only when no other existing reference to this LogID value is present.  
+            </summary>
+        </member>
         <member name="P:LogUtils.Enums.LogID.Properties">
             <summary>
             Contains path information, and other settings that affect logging behavior 
             </summary>
+        </member>
+        <member name="P:LogUtils.Enums.LogID.Tag">
+            <inheritdoc/>
         </member>
         <member name="F:LogUtils.Enums.LogID.Access">
             <summary>
@@ -5667,46 +5756,52 @@
             <para>Avoid registering a LogID that is temporary, and your mod is designated for public release.</para>
             </param>
         </member>
+        <member name="M:LogUtils.Enums.LogID.#ctor(LogUtils.Enums.LogGroupID,System.String,LogUtils.Enums.LogAccess)">
+            <summary>
+            Creates a new unregistered <see cref="T:LogUtils.Enums.LogID"/> instance associated with a group identifier.
+            </summary>
+            <remarks>Log properties will be inherited by the group id <i>unless</i> the specified logging path is already associated with a registered <see cref="T:LogUtils.Enums.LogID"/> instance.</remarks>
+            <param name="groupID">The group to associate this instance with.</param>
+            <param name="filename">The filename, and optional path to target and use for logging.<br/>
+            The ExtEnum value will be equivalent to the filename portion of this parameter without the file extension.<br/>
+            A filename without a path will default to StreamingAssets directory as a path unless an existing LogID with the specified filename is already registered.
+            </param>
+            <param name="access">Modifier that affects who may access and use the log file.<br/>
+            To access a log file you control, use <b>Private/FullAccess</b>. To access a log file you do not control, use <b>RemoteAccessOnly</b>.
+            </param>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.#ctor(LogUtils.Enums.LogGroupID,System.String,System.String,LogUtils.Enums.LogAccess)">
+            <summary>
+            Creates a new unregistered <see cref="T:LogUtils.Enums.LogID"/> instance associated with a group identifier.
+            </summary>
+            <remarks>Log properties will be inherited by the group id <i>unless</i> the specified logging path is already associated with a registered <see cref="T:LogUtils.Enums.LogID"/> instance.</remarks>
+            <param name="groupID">The group to associate this instance with.</param>
+            <param name="filename">The filename to target, and use for logging.<br/>
+            The ExtEnum value will be equivalent to the filename without the file extension.
+            </param>
+            <param name="relativePathNoFile">The path to the log file.<br/>
+            Setting to null will default to the StreamingAssets directory as a path unless an existing LogID with the specified filename is already registered.
+            </param>
+            <param name="access">Modifier that affects who may access and use the log file.<br/>
+            To access a log file you control, use <b>Private/FullAccess</b>. To access a log file you do not control, use <b>RemoteAccessOnly</b>.
+            </param>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.CompleteRegistration">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.CheckTag(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.Equals(LogUtils.Enums.LogID)">
+            <inheritdoc cref="M:LogUtils.Enums.LogID.Equals(LogUtils.Enums.LogID,System.Boolean)"/>
+            <remarks>The log path is included as part of the equality check</remarks>
+        </member>
         <member name="M:LogUtils.Enums.LogID.Equals(LogUtils.Enums.LogID,System.Boolean)">
             <summary>
-            Determines whether the specified LogID is equal to the current LogID
+            Determines whether the specified <see cref="T:LogUtils.Enums.LogID"/> instance is equal to the current instance
             </summary>
-            <param name="idOther">The LogID to compare with the current LogID</param>
+            <param name="idOther">The <see cref="T:LogUtils.Enums.LogID"/> instance to compare with the current instance</param>
             <param name="doPathCheck">Whether the folder path should also be considered in the equality check</param>
-        </member>
-        <member name="M:LogUtils.Enums.LogID.Find(System.String,System.String)">
-            <summary>
-            Finds a registered LogID with the given filename, and path
-            </summary>
-            <remarks>Compares ID, Filename, and CurrentFilename fields</remarks>
-            <param name="filename">The filename to search for</param>
-            <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
-        </member>
-        <member name="M:LogUtils.Enums.LogID.FindAll(System.String)">
-            <summary>
-            Finds all registered LogID with the given filename
-            </summary>
-            <remarks>Compares ID, Filename, and CurrentFilename fields</remarks>
-            <param name="filename">The filename to search for</param>
-        </member>
-        <member name="M:LogUtils.Enums.LogID.FindAll(System.String,LogUtils.Properties.CompareOptions)">
-            <summary>
-            Finds all registered LogID with the given filename
-            </summary>
-            <param name="filename">The filename to search for</param>
-            <param name="compareOptions">Represents options that determine which fields to check against</param>
-        </member>
-        <member name="M:LogUtils.Enums.LogID.FindByTag(System.String[])">
-            <summary>
-            Finds all registered LogIDs with the given tags
-            </summary>
-        </member>
-        <member name="M:LogUtils.Enums.LogID.IsRegistered(System.String,System.String)">
-            <summary>
-            Checks whether file, and path combination matches the file and path information of an existing registered LogID
-            </summary>
-            <param name="filename">The filename to search for</param>
-            <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
         </member>
         <member name="M:LogUtils.Enums.LogID.GetHashCode">
             <inheritdoc/>
@@ -5719,6 +5814,143 @@
         </member>
         <member name="F:LogUtils.Enums.LogID.NotUsed">
             <summary>An unregistered LogID designed to be used as a throwaway parameter</summary>
+        </member>
+        <member name="F:LogUtils.Enums.LogID.Factory">
+            <summary>
+            Access factory methods for creating specific kinds of <see cref="T:LogUtils.Enums.LogID"/> instances 
+            </summary>
+        </member>
+        <member name="T:LogUtils.Enums.LogID._Factory">
+            <summary>
+            Factory implementation
+            </summary>
+        </member>
+        <member name="M:LogUtils.Enums.LogID._Factory.CreateID(System.String,LogUtils.Enums.LogAccess,System.Boolean)">
+            <inheritdoc cref="M:LogUtils.Enums.LogID.#ctor(System.String,LogUtils.Enums.LogAccess,System.Boolean)"/>
+        </member>
+        <member name="M:LogUtils.Enums.LogID._Factory.CreateID(System.String,System.String,LogUtils.Enums.LogAccess,System.Boolean)">
+            <inheritdoc cref="M:LogUtils.Enums.LogID.#ctor(System.String,System.String,LogUtils.Enums.LogAccess,System.Boolean)"/>
+        </member>
+        <member name="M:LogUtils.Enums.LogID._Factory.CreateTemporaryID(System.String,System.String)">
+            <summary>
+            Creates a <see cref="T:LogUtils.Enums.LogID"/> instance designed to accessed only in a local context
+            </summary>
+            <inheritdoc cref="M:LogUtils.Enums.LogID.#ctor(System.String,System.String,LogUtils.Enums.LogAccess,System.Boolean)" select="params"/>
+            <exception cref="T:System.InvalidOperationException">A registered <see cref="T:LogUtils.Enums.LogID"/> instance already exists</exception>
+        </member>
+        <member name="M:LogUtils.Enums.LogID._Factory.CreateComparisonID(System.String,System.String)">
+            <inheritdoc cref="M:LogUtils.Enums.ComparisonLogID.#ctor(System.String,System.String)"/>
+        </member>
+        <member name="M:LogUtils.Enums.LogID._Factory.CreateComparisonID(System.String,LogUtils.Enums.LogIDType)">
+            <inheritdoc cref="M:LogUtils.Enums.ComparisonLogID.#ctor(System.String,LogUtils.Enums.LogIDType)"/>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.CreateTemporaryID(System.String,System.String)">
+            <inheritdoc cref="M:LogUtils.Enums.LogID._Factory.CreateTemporaryID(System.String,System.String)"/>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.GetEntries(System.Boolean)">
+            <summary>
+            Gets an array of registered <see cref="T:LogUtils.Enums.LogID"/> instances
+            </summary>
+            <param name="includeGroupIDs">A flag that allows log group identifiers to be included in the results</param>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.Find(System.String,System.String)">
+            <summary>
+            Finds a registered <see cref="T:LogUtils.Enums.LogID"/> instance with the given filename, and path
+            </summary>
+            <remarks>
+            Applies to log files only<br/>
+            - Compares against ID, Filename, and CurrentFilename fields
+            </remarks>
+            <param name="filename">The filename to search for</param>
+            <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.Find(System.String,LogUtils.Properties.CompareOptions,System.Boolean)">
+            <summary>
+            Finds a registered <see cref="T:LogUtils.Enums.LogID"/> instance with the given identifying value
+            </summary>
+            <param name="value">The value to search for</param>
+            <param name="compareOptions">Represents options that determine which fields to check against</param>
+            <param name="includeGroupIDs">A flag that allows log group identifiers to be included in the results</param>
+            <returns>A <see cref="T:LogUtils.Enums.LogID"/> instance that matches the search criteria, or null if no match was found</returns>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.FindAll(System.String)">
+            <summary>
+            Finds all registered <see cref="T:LogUtils.Enums.LogID"/> instance with the given filename
+            </summary>
+            <remarks>
+            Applies to log files only<br/>
+            - Compares against ID, Filename, and CurrentFilename fields
+            </remarks>
+            <param name="filename">The filename to search for</param>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.FindAll(System.String,System.Boolean)">
+            <summary>
+            Finds all registered <see cref="T:LogUtils.Enums.LogID"/> instance matching against common identifying fields
+            </summary>
+            <remarks>
+            - Compares against ID, Filename, and CurrentFilename fields
+            </remarks>
+            <param name="value">The value to search for</param>
+            <param name="includeGroupIDs">A flag that allows log group identifiers to be included in the results</param>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.FindAll(System.String,LogUtils.Properties.CompareOptions)">
+            <summary>
+            Finds all registered <see cref="T:LogUtils.Enums.LogID"/> instances with the given filename
+            </summary>
+            <remarks>Applies to log files only</remarks>
+            <param name="filename">The filename to search for</param>
+            <param name="compareOptions">Represents options that determine which fields to check against</param>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.FindAll(System.String,LogUtils.Properties.CompareOptions,System.Boolean)">
+            <summary>
+            Finds all registered <see cref="T:LogUtils.Enums.LogID"/> instances matching against one or more identifying fields
+            </summary>
+            <param name="value">The value to search for</param>
+            <param name="compareOptions">Represents options that determine which fields to check against</param>
+            <param name="includeGroupIDs">A flag that allows log group identifiers to be included in the results</param>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.FindAll(System.Func{LogUtils.Properties.LogProperties,System.Boolean})">
+            <summary>
+            Finds all registered <see cref="T:LogUtils.Enums.LogID"/> instances that match a predicate
+            </summary>
+            <remarks>Applies to log files only</remarks>
+            <param name="predicate">The predicate to match</param>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.FindAll(System.Func{LogUtils.Properties.LogProperties,System.Boolean},System.Boolean)">
+            <summary>
+            Finds all registered <see cref="T:LogUtils.Enums.LogID"/> instances that match a predicate
+            </summary>
+            <param name="predicate">The predicate to match</param>
+            <param name="includeGroupIDs">A flag that allows log group identifiers to be included in the results</param>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.FindByTag(System.String)">
+            <summary>
+            Finds all registered <see cref="T:LogUtils.Enums.LogID"/> instances with the given tag
+            </summary>
+            <remarks>Applies to log files only</remarks>
+            <param name="tag">The tag to search for</param>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.FindByTag(System.String,System.Boolean)">
+            <summary>
+            Finds all registered <see cref="T:LogUtils.Enums.LogID"/> instances with the given tag
+            </summary>
+            <param name="tag">The tag to search for</param>
+            <param name="includeGroupIDs">A flag that allows log group identifiers to be included in the results</param>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.IsRegistered(System.String,System.String)">
+            <summary>
+            Checks whether file, and path combination matches the file and path information of an existing registered <see cref="T:LogUtils.Enums.LogID"/> instance
+            </summary>
+            <remarks>Applies to log files only</remarks>
+            <param name="filename">The filename to search for</param>
+            <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.IsRegistered(System.String,System.Boolean)">
+            <summary>
+            Checks whether a registered <see cref="T:LogUtils.Enums.LogID"/> instance with the given identifying value exists
+            </summary>
+            <param name="value">The value to search for</param>
+            <param name="includeGroupIDs">A flag that allows log group identifiers to be included in the results</param>
         </member>
         <member name="T:LogUtils.Enums.LogAccess">
             <summary>
@@ -5739,6 +5971,17 @@
             <summary>
             LogID can only be handled through a local log request
             </summary>
+        </member>
+        <member name="T:LogUtils.Enums.LogIDType">
+            <summary>
+            A context identifier that describes the purpose of a <see cref="T:LogUtils.Enums.LogID"/>
+            </summary>
+        </member>
+        <member name="F:LogUtils.Enums.LogIDType.File">
+            <summary>The context represents a log file</summary>
+        </member>
+        <member name="F:LogUtils.Enums.LogIDType.Group">
+            <summary>The context represents a log group</summary>
         </member>
         <member name="T:LogUtils.Enums.ILogTarget">
             <summary>
@@ -5844,6 +6087,11 @@
         <member name="P:LogUtils.Enums.SharedExtEnum`1.value">
             <inheritdoc cref="P:LogUtils.Enums.SharedExtEnum`1.Value"/>
         </member>
+        <member name="P:LogUtils.Enums.SharedExtEnum`1.RegistrationStage">
+            <summary>
+            The current stage in assigning a registered state to this instance
+            </summary>
+        </member>
         <member name="M:LogUtils.Enums.SharedExtEnum`1.EntryAt(System.Int32)">
             <summary>
             Retrieves an ExtEnum instance at the specified index
@@ -5865,6 +6113,11 @@
             <param name="value">Case insensitive value to compare with</param>
             <param name="result">The instance created from the provided value</param>
             <returns>Returns whether a registered instance was found</returns>
+        </member>
+        <member name="M:LogUtils.Enums.SharedExtEnum`1.CompleteRegistration">
+            <summary>
+            Completes the registration process
+            </summary>
         </member>
         <member name="M:LogUtils.Enums.SharedExtEnum`1.Register">
             <summary>
@@ -5894,6 +6147,20 @@
             <summary>
             Indicates whether the current object is equal to another object of the same time (utilizes a customized value hashcode comparison to determine equality)
             </summary>
+        </member>
+        <member name="T:LogUtils.Enums.SharedExtEnum`1.RegistrationStatus">
+            <summary>
+            Represents the initialization state of the registration process
+            </summary>
+        </member>
+        <member name="F:LogUtils.Enums.SharedExtEnum`1.RegistrationStatus.Ready">
+            <summary>Registration can be completed anytime</summary>
+        </member>
+        <member name="F:LogUtils.Enums.SharedExtEnum`1.RegistrationStatus.WaitingOnSignal">
+            <summary>Registration is deferred until a child class signals it is ready to complete registration</summary>
+        </member>
+        <member name="F:LogUtils.Enums.SharedExtEnum`1.RegistrationStatus.Completed">
+            <summary>Registration has been completed</summary>
         </member>
         <member name="T:LogUtils.Enums.ValueNotFoundException">
             <summary>
@@ -6807,6 +7074,16 @@
             Replace all directory separator characters with the default platform-specific directory separator character 
             </summary>
         </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.NormalizeAndTrim(System.String)">
+            <summary>
+            Replace all directory separator characters with the default platform-specific directory separator character removing any trailing separator characters
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.Trim(System.String)">
+            <summary>
+            Removes any trailing directory separator characters
+            </summary>
+        </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.PathRootExists(System.String,System.Int32)">
             <summary>
             Checks the path directory and parents of that directory for an existing directory
@@ -6847,6 +7124,11 @@
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.IsAbsolute(System.String)">
             <summary>
             Checks that the path given is an absolute path
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.IsFilePath(System.String)">
+            <summary>
+            Checks that the path string contains both directory and file information
             </summary>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.PathsAreEqual(System.String,System.String)">
@@ -6937,12 +7219,6 @@
             Extension method that checks if an enumerable contains an item of a specified type
             </summary>
         </member>
-        <member name="M:LogUtils.ExtensionMethods.Normalize(System.Collections.Generic.HashSet{LogUtils.Enums.LogCategory})">
-            <summary>
-            Ensures that set is not null, and invalid entries are not present
-            </summary>
-            <remarks>This method is null safe, and HashSet will be operated on directly</remarks>
-        </member>
         <member name="M:LogUtils.ExtensionMethods.IsComposite(UnityEngine.LogType)">
             <summary>
             Evaluates whether the enum is composed of two or more distinct flagged values
@@ -6964,6 +7240,12 @@
             </summary>
             <param name="logType">The LogType to evaluate</param>
             <returns>A LogType only containing bits within the conversion value range if any are present; otherwise defaults to -1</returns>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.Normalize(System.Collections.Generic.HashSet{LogUtils.Enums.LogCategory})">
+            <summary>
+            Ensures that set is not null, and invalid entries are not present
+            </summary>
+            <remarks>This method is null safe, and HashSet will be operated on directly</remarks>
         </member>
         <member name="M:LogUtils.ExtensionMethods.ToFormattableLogger(LogUtils.ILogger)">
             <summary>
@@ -7004,6 +7286,61 @@
             <param name="writer"></param>
             <param name="logFile">The file that contains the message buffer</param>
             <param name="respectBufferState">When true no content will be written to file if MessageBuffer.IsBuffering property is set to true</param>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.Find(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String,System.String)">
+            <summary>
+            Finds a <see cref="T:LogUtils.Enums.LogID"/> instance with the given metadata in the provided collection
+            </summary>
+            <remarks>
+            - Compares ID, Filename, and CurrentFilename fields
+            </remarks>
+            <param name="values"></param>
+            <param name="filename">The filename to search for</param>
+            <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.FindAll(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String)">
+            <summary>
+            Finds all <see cref="T:LogUtils.Enums.LogID"/> instances with the given metadata in the provided collection
+            </summary>
+            <remarks>
+            - Compares ID, Filename, and CurrentFilename fields
+            </remarks>
+            <param name="values"></param>
+            <param name="filename">The filename to search for</param>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.FindAll(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String,LogUtils.Properties.CompareOptions)">
+            <summary>
+            Finds all <see cref="T:LogUtils.Enums.LogID"/> instances with the given metadata in the provided collection
+            </summary>
+            <param name="values"></param>
+            <param name="filename">The filename to search for</param>
+            <param name="compareOptions">Represents options that determine which fields to check against</param>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.FindAll(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.Func{LogUtils.Properties.LogProperties,System.Boolean})">
+            <summary>
+            Finds all <see cref="T:LogUtils.Enums.LogID"/> instances that match a predicate in the provided collection
+            </summary>
+            <param name="values"></param>
+            <param name="predicate">The predicate to match</param>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.FindByTag(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String)">
+            <summary>
+            Finds all <see cref="T:LogUtils.Enums.LogID"/> instances with the given tag in the provided collection
+            </summary>
+            <param name="values"></param>
+            <param name="tag">The tag to search for</param>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.Find(System.Collections.Generic.IEnumerable{LogUtils.Properties.LogProperties},System.String,System.String)">
+            <inheritdoc cref="M:LogUtils.ExtensionMethods.Find(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String,System.String)"/>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.FindAll(System.Collections.Generic.IEnumerable{LogUtils.Properties.LogProperties},System.String,LogUtils.Properties.CompareOptions)">
+            <inheritdoc cref="M:LogUtils.ExtensionMethods.FindAll(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String,LogUtils.Properties.CompareOptions)"/>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.FindAll(System.Collections.Generic.IEnumerable{LogUtils.Properties.LogProperties},System.Func{LogUtils.Properties.LogProperties,System.Boolean})">
+            <inheritdoc cref="M:LogUtils.ExtensionMethods.FindAll(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.Func{LogUtils.Properties.LogProperties,System.Boolean})"/>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.FindByTag(System.Collections.Generic.IEnumerable{LogUtils.Properties.LogProperties},System.String)">
+            <inheritdoc cref="M:LogUtils.ExtensionMethods.FindByTag(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String)"/>
         </member>
         <member name="M:LogUtils.ExtensionMethods.AppendHeader(System.Text.StringBuilder,System.String)">
             <summary>
@@ -7946,6 +8283,30 @@
         <member name="M:LogUtils.Properties.Formatting.LogTimestampRule.GetPriority">
             <inheritdoc/>
         </member>
+        <member name="P:LogUtils.Properties.LogGroupProperties.IsMetadataOptional">
+            <inheritdoc/>
+        </member>
+        <member name="P:LogUtils.Properties.LogGroupProperties.LastKnownFolderPath">
+            <summary>
+            The last known folder path representing this log group
+            </summary>
+            <value>Default value is an empty string when not storing a path</value>
+        </member>
+        <member name="P:LogUtils.Properties.LogGroupProperties.CompareMask">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Properties.LogGroupProperties.CreateID">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Properties.LogGroupProperties.CreateIDHash">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Properties.LogGroupProperties.ChangeFilename(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Properties.LogGroupProperties.ChangePath(System.String)">
+            <inheritdoc/>
+        </member>
         <member name="F:LogUtils.Properties.LogProperties.LatestVersion">
             <summary>
             The latest properties version recognized by LogUtils
@@ -7970,6 +8331,11 @@
         <member name="F:LogUtils.Properties.LogProperties.FileLock">
             <summary>
             Ensures thread safety while accessing the log file
+            </summary>
+        </member>
+        <member name="P:LogUtils.Properties.LogProperties.CompareMask">
+            <summary>
+            Value is used to filter invalid compare options
             </summary>
         </member>
         <member name="F:LogUtils.Properties.LogProperties.HandleRecord">
@@ -8031,6 +8397,16 @@
         <member name="P:LogUtils.Properties.LogProperties.ID">
             <summary>
             The LogID associated with the log properties
+            </summary>
+        </member>
+        <member name="M:LogUtils.Properties.LogProperties.CreateID">
+            <summary>
+            Creates a new <see cref="T:LogUtils.Enums.LogID"/> instance usiong these properties
+            </summary>
+        </member>
+        <member name="M:LogUtils.Properties.LogProperties.CreateIDHash">
+            <summary>
+            Creates a value hash for comparison purposes
             </summary>
         </member>
         <member name="F:LogUtils.Properties.LogProperties.ConsoleIDs">
@@ -8119,6 +8495,16 @@
             Exposes <see cref="T:LogUtils.Properties.Formatting.LogRule"/> that attaches timestamp information to a logged message
             </summary>
         </member>
+        <member name="M:LogUtils.Properties.LogProperties.BeginInit">
+            <summary>
+            Initialization processes that run before metadata is initialized
+            </summary>
+        </member>
+        <member name="M:LogUtils.Properties.LogProperties.EndInit">
+            <summary>
+            Initialization processes that run after metadata is initialized
+            </summary>
+        </member>
         <member name="M:LogUtils.Properties.LogProperties.BeginLogSession">
             <summary>
             Initiates the routine that applies at the start of a log session. Handle initial file write operations through this process
@@ -8131,7 +8517,7 @@
         </member>
         <member name="M:LogUtils.Properties.LogProperties.NotifyPathChanged">
             <summary>
-            Triggers the UtilityEvents.OnPathChanged event for this instance
+            Triggers the <see cref="F:LogUtils.Events.UtilityEvents.OnPathChanged"/> event
             </summary>
         </member>
         <member name="M:LogUtils.Properties.LogProperties.NotifyPendingMove(System.String)">
@@ -8160,6 +8546,11 @@
         <member name="M:LogUtils.Properties.LogProperties.HasModifiedData">
             <summary>
             Checks whether this instance has writeable data that hasn't yet been written to file
+            </summary>
+        </member>
+        <member name="M:LogUtils.Properties.LogProperties.Clone(System.String,System.String)">
+            <summary>
+            Creates a new <see cref="T:LogUtils.Properties.LogProperties"/> instance inheriting all log independent property values for the current instance
             </summary>
         </member>
         <member name="M:LogUtils.Properties.LogProperties.Equals(LogUtils.Properties.LogProperties)">
@@ -8205,6 +8596,11 @@
         <member name="M:LogUtils.Properties.LogProperties.GetContainingPath(System.String)">
             <summary>
             Resolves a path, or path keyword into a usable log path
+            </summary>
+        </member>
+        <member name="P:LogUtils.Properties.LogProperties.IsMetadataOptional">
+            <summary>
+            Indicates whether optional metadata is supported for this instance
             </summary>
         </member>
         <member name="P:LogUtils.Properties.LogProperties.Filename">
@@ -8256,6 +8652,7 @@
             <summary>
             The path of the last known location of the log file
             </summary>
+            <value>Default value is an empty string when not storing a path</value>
         </member>
         <member name="M:LogUtils.Properties.LogProperties.GetFallbackFilename">
             <summary>
@@ -8271,17 +8668,28 @@
         </member>
         <member name="M:LogUtils.Properties.LogProperties.ChangeFilename(System.String)">
             <summary>
-            Allows the filename, or file extension to be changed
+            Sets the current filename to a specified value.
             </summary>
-            <remarks>This will not initiate a file move, or rename any file</remarks>
+            <inheritdoc cref="M:LogUtils.Properties.LogProperties.ChangePath(System.String)" select="remarks"/>
             <param name="newFilename">The new filename</param>
             <exception cref="T:System.ArgumentException">The filename is null, empty, or contains invalid characters</exception>
         </member>
         <member name="M:LogUtils.Properties.LogProperties.ChangePath(System.String)">
             <summary>
-            Allows the filepath (filename optional) to be changed
+            Sets the current path to a specified value. Filename field will also be changed if provided.
             </summary>
-            <remarks>This will not initiate a file move, or rename any file</remarks>
+            <remarks>
+            <para>
+            For log files:<br/>
+            - This will not initiate a file move, or rename any file.
+            <br/>
+            To move, or rename a log file, use <see cref="M:LogUtils.Helpers.LogFile.Move(LogUtils.Enums.LogID,System.String)"/> instead.
+            </para>
+            <para>
+            For log groups:<br/>
+            - This method does nothing.
+            </para>
+            </remarks>
             <param name="newPath">The new path</param>
             <exception cref="T:System.ArgumentException">The directory is null, empty, or contains invalid characters</exception>
         </member>
@@ -8295,8 +8703,36 @@
             Stores a flag describing whether the field state read from file matches the expected field order
             </summary>
         </member>
+        <member name="F:LogUtils.Properties.LogPropertyData.optionalFieldsMissingTotal">
+            <summary>
+            The number of optional fields expected, but not found
+            </summary>
+            <remarks>This is not guaranteed to be fully accurate when <see cref="F:LogUtils.Properties.LogPropertyData.FieldOrderMismatch"/> flag is true</remarks>
+        </member>
+        <member name="M:LogUtils.Properties.LogPropertyData.HasContext(LogUtils.Enums.LogIDType)">
+            <summary>
+            Checks that log property data is associated with a particular logging context
+            </summary>
+        </member>
+        <member name="M:LogUtils.Properties.LogPropertyData.GetContext">
+            <summary>
+            Gets the representation context of the log property data
+            </summary>
+        </member>
         <member name="M:LogUtils.Properties.LogPropertyData.GetHashCode">
             <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Properties.LogPropertyData.GetID">
+            <summary>
+            Returns the cached id value or fallback equivalent
+            </summary>
+            <remarks>Value is provided as it would appear in the property file (without prefixes)</remarks>
+        </member>
+        <member name="M:LogUtils.Properties.LogPropertyData.GetPrefixedID">
+            <summary>
+            Returns the cached id value or fallback equivalent with applicable prefixes
+            </summary>
+            <remarks>Value is provided as it would apply to hashing, and registration of the ExtEnum instance</remarks>
         </member>
         <member name="M:LogUtils.Properties.LogPropertyData.ToString">
             <inheritdoc/>
@@ -8329,6 +8765,11 @@
         <member name="M:LogUtils.Properties.LogPropertyFile.RefreshStream">
             <summary>
             Closes and reopens the filestream
+            </summary>
+        </member>
+        <member name="M:LogUtils.Properties.LogPropertyReader.countOptionalFieldsBeforeNextMatch(System.String,System.Int32)">
+            <summary>
+            Finds the position of a data field header beginning at the start index, and searches until the end of the collection, or the search encounters a non-optional data field entry
             </summary>
         </member>
         <member name="P:LogUtils.Properties.LogPropertyStringDictionary.Count">
@@ -8379,6 +8820,36 @@
         <member name="M:LogUtils.Properties.LogPropertyWriter.Write(LogUtils.Properties.LogProperties[])">
             <summary>
             Writes property data to file. If the content already exists, it is overwritten, if it doesn't exist, it is written at the current stream position.
+            </summary>
+        </member>
+        <member name="P:LogUtils.Properties.PropertyDataController.Properties">
+            <summary>
+            A cache for currently registered log file property entries
+            </summary>
+        </member>
+        <member name="P:LogUtils.Properties.PropertyDataController.GroupProperties">
+            <summary>
+            A cache for currently registered log group property entries
+            </summary>
+        </member>
+        <member name="P:LogUtils.Properties.PropertyDataController.AllProperties">
+            <summary>
+            An enumeration containing currently registered log properties for files, and groups
+            </summary>
+        </member>
+        <member name="F:LogUtils.Properties.PropertyDataController.CustomLogProperties">
+            <summary>
+            A cache for custom property implementations for log files, or log groups
+            </summary>
+        </member>
+        <member name="F:LogUtils.Properties.PropertyDataController.UnrecognizedFields">
+            <summary>
+            Contains any field entries that LogUtils couldn't associate with a recognized property field
+            </summary>
+        </member>
+        <member name="F:LogUtils.Properties.PropertyDataController.PropertyFile">
+            <summary>
+            A handle to the log properties file
             </summary>
         </member>
         <member name="P:LogUtils.Properties.PropertyDataController.Tag">
