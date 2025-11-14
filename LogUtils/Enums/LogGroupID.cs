@@ -29,6 +29,13 @@ namespace LogUtils.Enums
             }
         }
 
+        /// <inheritdoc cref="LogID.Properties"/>
+        public new LogGroupProperties Properties
+        {
+            get => (LogGroupProperties)base.Properties;
+            protected set => base.Properties = value;
+        }
+
         /// <summary>
         /// Creates a new <see cref="LogGroupID"/> instance.
         /// </summary>
@@ -41,6 +48,12 @@ namespace LogUtils.Enums
 
         internal LogGroupID(LogProperties properties, bool register) : base(properties, register)
         {
+        }
+
+        internal void Assign(LogID target)
+        {
+            target.Properties.Group = this;
+            Properties.Members.Add(target);
         }
 
         /// <inheritdoc/>

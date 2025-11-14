@@ -50,6 +50,11 @@ namespace LogUtils.Properties
         public FileLock FileLock;
 
         /// <summary>
+        /// The id of the log group associated with this instance (null by default)
+        /// </summary>
+        public LogGroupID Group { get; internal set; }
+
+        /// <summary>
         /// Value is used to filter invalid compare options
         /// </summary>
         protected virtual CompareOptions CompareMask => ~CompareOptions.None;

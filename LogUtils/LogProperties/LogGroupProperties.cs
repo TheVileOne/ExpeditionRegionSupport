@@ -1,5 +1,6 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Helpers.FileHandling;
+using System.Collections.Generic;
 using static LogUtils.UtilityConsts;
 
 namespace LogUtils.Properties
@@ -14,6 +15,11 @@ namespace LogUtils.Properties
         /// </summary>
         /// <value>Default value is an empty string when not storing a path</value>
         public string LastKnownFolderPath { get; private set; }
+
+        /// <summary>
+        /// All members associated with this log group
+        /// </summary>
+        public readonly List<LogID> Members = new List<LogID>();
 
         /// <inheritdoc/>
         protected override CompareOptions CompareMask => CompareOptions.ID;

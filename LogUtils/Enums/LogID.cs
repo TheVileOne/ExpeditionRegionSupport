@@ -144,21 +144,6 @@ namespace LogUtils.Enums
             //Intermediary constructor overload
         }
 
-        private LogID(LogProperties properties, PathWrapper pathData, LogAccess access) : this(properties, pathData.Filename, pathData.Path, access)
-        {
-            //Intermediary constructor overload
-        }
-
-        private LogID(LogProperties properties, string filename, string path, LogAccess access, bool register = false) : base(Sanitize(filename), register)
-        {
-            //Properties wont be null here
-            bool hasGroupTag = properties.ContainsTag(UtilityConsts.PropertyTag.LOG_GROUP);
-
-            //Each instance of a group inherits from the group's shared properties
-            Properties = !hasGroupTag ? properties : properties.Clone(filename, path);
-            InitializeAccess(access);
-        }
-
         internal LogID(LogProperties properties, bool register) : base(properties.GetRawID(), register)
         {
             Properties = properties; //Wont be null
@@ -204,8 +189,13 @@ namespace LogUtils.Enums
         /// <param name="access">Modifier that affects who may access and use the log file.<br/>
         /// To access a log file you control, use <b>Private/FullAccess</b>. To access a log file you do not control, use <b>RemoteAccessOnly</b>.
         /// </param>
-        public LogID(LogGroupID groupID, string filename, LogAccess access) : this(groupID.Properties, new PathWrapper(filename), access)
+        public LogID(LogGroupID groupID, string filename, LogAccess access) : this(groupID, new PathWrapper(filename), access)
         {
+        }
+
+        private LogID(LogGroupID groupID, PathWrapper pathData, LogAccess access) : this(groupID, pathData.Filename, pathData.Path, access)
+        {
+            //Intermediary constructor overload
         }
 
         /// <summary>
@@ -222,8 +212,36 @@ namespace LogUtils.Enums
         /// <param name="access">Modifier that affects who may access and use the log file.<br/>
         /// To access a log file you control, use <b>Private/FullAccess</b>. To access a log file you do not control, use <b>RemoteAccessOnly</b>.
         /// </param>
-        public LogID(LogGroupID groupID, string filename, string relativePathNoFile, LogAccess access) : this(groupID.Properties, filename, relativePathNoFile, access)
+        public LogID(LogGroupID groupID, string filename, string relativePathNoFile, LogAccess access) : base(Sanitize(filename), false)
         {
+            //Initialize properties
+            var groupProperties = groupID.Properties;
+
+            if (PathUtils.IsEmpty(groupProperties.FolderPath))
+                InitializeProperties(filename, relativePathNoFile);
+            else
+            {
+                var existingProperties = LogProperties.PropertyManager.GetProperties(this, relativePathNoFile);
+
+                if (existingProperties != null)
+                    Properties = existingProperties;
+                else
+                    Properties = groupID.Properties.Clone(filename, relativePathNoFile);
+            }
+
+            //Assign to group
+            UtilityLogger.Log("Assigning entry to group");
+            if (Properties.Group == null)
+            {
+                groupID.Assign(this);
+            }
+            else if (!Properties.Group.Equals(groupID))
+            {
+                UtilityLogger.LogWarning("Entry already assigned");
+            }
+
+            //Initialize log access
+            InitializeAccess(access);
         }
 
         protected void InitializeAccess(LogAccess initialAccess)
