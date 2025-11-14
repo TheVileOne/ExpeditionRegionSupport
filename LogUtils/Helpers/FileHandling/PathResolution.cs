@@ -24,7 +24,7 @@ namespace LogUtils.Helpers.FileHandling
             if (!RWInfo.MergeProcessComplete)
                 UtilityLogger.LogWarning("Resolving path before mod merging has completed");
 
-            if (string.IsNullOrWhiteSpace(path))
+            if (PathUtils.IsEmpty(path))
             {
                 return new ResolveResults()
                 {

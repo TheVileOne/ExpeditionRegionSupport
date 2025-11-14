@@ -10,12 +10,12 @@
 
         public PathWrapper(string pathString)
         {
-            pathString = pathString?.Trim('\\');
+            if (pathString == null) return;
 
-            Filename = System.IO.Path.GetFileName(pathString);
+            Filename = System.IO.Path.GetFileName(pathString); //No filename will return an empty string. No file extension will be treated as a filename not a directory
 
-            //There is more than just the filename if this is true
-            if (Filename != null && Filename.Length != pathString.Length)
+            bool containsPathInfo = Filename.Length != pathString.Length;
+            if (containsPathInfo)
                 Path = System.IO.Path.GetDirectoryName(pathString);
         }
     }
