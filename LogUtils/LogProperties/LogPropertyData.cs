@@ -13,7 +13,7 @@ namespace LogUtils.Properties
         public LogPropertyStringDictionary Fields;
 
         /// <summary>
-        /// A subset of the Fields dictionary containing field data not recognized by the utility. This will include all custom field data
+        /// A subset of <see cref="Fields"/> containing field data not recognized by the utility. This will include all custom field data
         /// </summary>
         public LogPropertyStringDictionary UnrecognizedFields;
 
@@ -92,7 +92,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// Returns the cached id value or fallback equivalent with applicable prefixes
         /// </summary>
-        /// <remarks>Value is provided as it would apply to hashing, and registration of the ExtEnum instance</remarks>
+        /// <remarks>Value is provided as it would apply to hashing, and registration of the <see cref="ExtEnum{T}"/> instance</remarks>
         public string GetPrefixedID()
         {
             return LogID.CreateIDValue(GetID(), GetContext());

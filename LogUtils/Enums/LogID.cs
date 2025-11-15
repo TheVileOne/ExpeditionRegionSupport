@@ -22,7 +22,7 @@ namespace LogUtils.Enums
     public partial class LogID : SharedExtEnum<LogID>, ILogTarget, IEquatable<LogID>
     {
         /// <summary>
-        /// Registration may be handled through the <see cref="SharedExtEnum{T}"/> constructor only when no other existing reference to this LogID value is present.  
+        /// Registration may be handled through the <see cref="SharedExtEnum{T}"/> constructor only when no other existing reference to this <see cref="LogID"/> value is present.  
         /// </summary>
         protected override RegistrationStatus RegistrationStage
         {
@@ -73,12 +73,12 @@ namespace LogUtils.Enums
         }
 
         /// <summary>
-        /// Acts as a permission flag that affects the behavior of loggers, and the handling of logging requests targeting this LogID
+        /// Acts as a permission flag that affects the behavior of loggers, and the handling of logging requests targeting this <see cref="LogID"/> instance
         /// </summary>
         public LogAccess Access;
 
         /// <summary>
-        /// Will this LogID be handled as having a local context when passed to a logger
+        /// Checks that <see cref="LogID"/> will be handled with a local context when passed to a logger
         /// </summary>
         internal bool HasLocalAccess => !IsGameControlled && (Access == LogAccess.FullAccess || Access == LogAccess.Private);
 
@@ -88,7 +88,7 @@ namespace LogUtils.Enums
         public bool IsEnabled => UtilityCore.IsControllingAssembly && IsInstanceEnabled && (Properties == null || Properties.AllowLogging);
 
         /// <summary>
-        /// A flag that controls whether logging should be permitted for this LogID instance
+        /// A flag that controls whether logging should be permitted for this <see cref="LogID"/> instance
         /// </summary>
         public bool IsInstanceEnabled = true;
 
@@ -102,15 +102,15 @@ namespace LogUtils.Enums
         /// </summary>
         /// <param name="filename">The filename, and optional path to target and use for logging.<br/>
         /// The ExtEnum value will be equivalent to the filename portion of this parameter without the file extension.<br/>
-        /// A filename without a path will default to StreamingAssets directory as a path unless an existing LogID with the specified filename is already registered.
+        /// A filename without a path will default to StreamingAssets directory as a path unless an existing <see cref="LogID"/> with the specified filename is already registered.
         /// </param>
         /// <param name="access">Modifier that affects who may access and use the log file.<br/>
         /// To access a log file you control, use <b>Private/FullAccess</b>. To access a log file you do not control, use <b>RemoteAccessOnly</b>.
         /// </param>
         /// <param name="register">Sets registration state for the ExtEnum.<br/>
-        /// <para>Registration affects whether a LogID gets its own properties that write to file on game close. An unregistered LogID will still get its own properties,<br/>
+        /// <para>Registration affects whether a <see cref="LogID"/> gets its own properties that write to file on game close. An unregistered <see cref="LogID"/> will still get its own properties,<br/>
         /// but those properties, and changes to those properties wont be saved to file.</para>
-        /// <para>Avoid registering a LogID that is temporary, and your mod is designated for public release.</para>
+        /// <para>Avoid registering a <see cref="LogID"/> that is temporary, and your mod is designated for public release.</para>
         /// </param>
         /// <exception cref="ArgumentNullException">Filename provided is null</exception>
         public LogID(string filename, LogAccess access, bool register = false) : this(new PathWrapper(filename), access, register)
@@ -161,15 +161,15 @@ namespace LogUtils.Enums
         /// The ExtEnum value will be equivalent to the filename without the file extension.
         /// </param>
         /// <param name="relativePathNoFile">The path to the log file.<br/>
-        /// Setting to null will default to the StreamingAssets directory as a path unless an existing LogID with the specified filename is already registered.
+        /// Setting to null will default to the StreamingAssets directory as a path unless an existing <see cref="LogID"/> with the specified filename is already registered.
         /// </param>
         /// <param name="access">Modifier that affects who may access and use the log file.<br/>
         /// To access a log file you control, use <b>Private/FullAccess</b>. To access a log file you do not control, use <b>RemoteAccessOnly</b>.
         /// </param>
         /// <param name="register">Sets registration state for the ExtEnum.<br/>
-        /// <para>Registration affects whether a LogID gets its own properties that write to file on game close. An unregistered LogID will still get its own properties,<br/>
+        /// <para>Registration affects whether a <see cref="LogID"/> gets its own properties that write to file on game close. An unregistered <see cref="LogID"/> will still get its own properties,<br/>
         /// but those properties, and changes to those properties wont be saved to file.</para>
-        /// <para>Avoid registering a LogID that is temporary, and your mod is designated for public release.</para>
+        /// <para>Avoid registering a <see cref="LogID"/> that is temporary, and your mod is designated for public release.</para>
         /// </param>
         public LogID(string filename, string relativePathNoFile, LogAccess access, bool register = false) : base(Sanitize(filename), register)
         {
@@ -184,7 +184,7 @@ namespace LogUtils.Enums
         /// <param name="groupID">The group to associate this instance with.</param>
         /// <param name="filename">The filename, and optional path to target and use for logging.<br/>
         /// The ExtEnum value will be equivalent to the filename portion of this parameter without the file extension.<br/>
-        /// A filename without a path will default to StreamingAssets directory as a path unless an existing LogID with the specified filename is already registered.
+        /// A filename without a path will default to StreamingAssets directory as a path unless an existing <see cref="LogID"/> with the specified filename is already registered.
         /// </param>
         /// <param name="access">Modifier that affects who may access and use the log file.<br/>
         /// To access a log file you control, use <b>Private/FullAccess</b>. To access a log file you do not control, use <b>RemoteAccessOnly</b>.
@@ -207,7 +207,7 @@ namespace LogUtils.Enums
         /// The ExtEnum value will be equivalent to the filename without the file extension.
         /// </param>
         /// <param name="relativePathNoFile">The path to the log file.<br/>
-        /// Setting to null will default to the StreamingAssets directory as a path unless an existing LogID with the specified filename is already registered.
+        /// Setting to null will default to the StreamingAssets directory as a path unless an existing <see cref="LogID"/> with the specified filename is already registered.
         /// </param>
         /// <param name="access">Modifier that affects who may access and use the log file.<br/>
         /// To access a log file you control, use <b>Private/FullAccess</b>. To access a log file you do not control, use <b>RemoteAccessOnly</b>.
@@ -463,7 +463,7 @@ namespace LogUtils.Enums
         internal static LogID FileActivity;
         internal static LogID Patcher;
 
-        /// <summary>An unregistered LogID designed to be used as a throwaway parameter</summary>
+        /// <summary>An unregistered <see cref="LogID"/> designed to be used as a throwaway parameter</summary>
         public static LogID NotUsed;
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
@@ -474,26 +474,26 @@ namespace LogUtils.Enums
     }
 
     /// <summary>
-    /// Logger permission values - Assign to a LogID provided to a logger to influence how messages are logged, and handled by that logger
+    /// Logger permission values - Assign to a <see cref="LogID"/> provided to a logger to influence how messages are logged, and handled by that logger
     /// </summary>
     public enum LogAccess
     {
         /// <summary>
-        /// LogID can be handled by either local, or remote loggers
+        /// The <see cref="LogID"/> can be handled by either local, or remote loggers
         /// </summary>
         FullAccess = 0,
         /// <summary>
-        /// LogID is only able to be handled as a remote request from one logger to another
+        /// The <see cref="LogID"/> is only able to be handled as a remote request from one logger to another
         /// </summary>
         RemoteAccessOnly = 1,
         /// <summary>
-        /// LogID can only be handled through a local log request
+        /// The <see cref="LogID"/> can only be handled through a local log request
         /// </summary>
         Private = 2
     }
 
     /// <summary>
-    /// A context identifier that describes the purpose of a <see cref="Enums.LogID"/>
+    /// A context identifier that describes the purpose of a <see cref="LogID"/>
     /// </summary>
     public enum LogIDType
     {

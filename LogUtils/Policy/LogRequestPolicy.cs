@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using LogUtils.Requests;
 using static LogUtils.UtilityConsts;
 
 namespace LogUtils.Policy
@@ -6,7 +7,7 @@ namespace LogUtils.Policy
     public static class LogRequestPolicy
     {
         /// <summary>
-        /// A flag that affects whether RejectionReasons are logged to file when they occur
+        /// A flag that affects whether a detected <see cref="RejectionReason"/> is logged to file when they occur
         /// </summary>
         public static bool ShowRejectionReasons
         {

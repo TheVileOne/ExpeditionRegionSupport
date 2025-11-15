@@ -19,7 +19,7 @@ namespace LogUtils
     public class GameLogger : ILogHandler, ILogWriterProvider
     {
         /// <summary>
-        /// Set to the LogID of a request while it is being handled through an external logging API accessed by a GameLogger instance
+        /// Set to the <see cref="LogID"/> of a request while it is being handled through an external logging API accessed by this instance
         /// </summary>
         public LogID LogFileInProcess;
 
@@ -55,7 +55,7 @@ namespace LogUtils
         bool ILogHandler.CanHandle(LogID logFile, RequestType requestType) => CanHandle(logFile);
 
         /// <summary>
-        /// Checks that provided LogID is game-controlled, the only type of LogID supported by this log handler
+        /// Checks that the provided <see cref="LogID"/> is game-controlled, the only type of <see cref="LogID"/> supported by this instance
         /// </summary>
         public bool CanHandle(LogID logFile) => logFile.IsGameControlled;
 
@@ -68,7 +68,7 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Retrieves the current LogWriter for a game-controlled log file 
+        /// Retrieves the current <see cref="ILogWriter"/> instance for a game-controlled log file 
         /// </summary>
         public ILogWriter GetWriter(LogID logFile)
         {
@@ -85,6 +85,7 @@ namespace LogUtils
             return LogWriter.Writer;
         }
 
+        /// <inheritdoc/>
         public void HandleRequest(LogRequest request)
         {
             if (request.Submitted)

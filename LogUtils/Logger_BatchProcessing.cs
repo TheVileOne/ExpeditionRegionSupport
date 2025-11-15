@@ -38,7 +38,7 @@ namespace LogUtils
         protected readonly struct LogProcessor
         {
             /// <summary>
-            /// The handler that is responsible for handling processed log requests
+            /// The <see cref="ILogHandler"/> that is responsible for handling processed log requests
             /// </summary>
             private readonly ILogHandler _logHandler;
 

@@ -16,7 +16,7 @@ namespace LogUtils.Helpers
         /// <summary>
         /// Creates a copy of a log file
         /// </summary>
-        /// <param name="logFile">The LogID that accesses the log file path</param>
+        /// <param name="logFile">The <see cref="LogID"/> that accesses the log file path</param>
         /// <param name="copyPath">The full path to the destination of the log file. Log filename is optional</param>
         public static FileStatus Copy(LogID logFile, string copyPath)
         {
@@ -31,7 +31,7 @@ namespace LogUtils.Helpers
         /// <summary>
         /// Creates a copy of a log file
         /// </summary>
-        /// <param name="sourceLogPath">The full path to the log file that needs to be copied (including filename + ext)</param>
+        /// <param name="sourceLogPath">The full path to the log file that needs to be copied (including filename and extension)</param>
         /// <param name="destLogPath">The full path to the destination of the log file. Log filename is optional</param>
         /// <param name="overwriteExisting">Specifies the behavior that happens when the file already exists at the destination path</param>
         internal static FileStatus Copy(string sourceLogPath, string destLogPath, bool overwriteExisting)
@@ -123,7 +123,7 @@ namespace LogUtils.Helpers
         /// <summary>
         /// Moves a log file from one place to another. Allows file renaming
         /// </summary>
-        /// <param name="sourceLogPath">The full path to the log file that needs to be moved (including filename + ext)</param>
+        /// <param name="sourceLogPath">The full path to the log file that needs to be moved (including filename and extension)</param>
         /// <param name="destLogPath">The full path to the destination of the log file. Log filename is optional</param>
         /// <param name="overwriteExisting">Specifies the behavior that happens when the file already exists at the destination path</param>
         internal static FileStatus Move(string sourceLogPath, string destLogPath, bool overwriteExisting)
@@ -139,7 +139,7 @@ namespace LogUtils.Helpers
         /// <summary>
         /// Opens a FileStream instance for a log file
         /// </summary>
-        /// <param name="logFile">The LogID that accesses the log file path</param>
+        /// <param name="logFile">The <see cref="LogID"/> that accesses the log file path</param>
         /// <returns>The opened FileStream, or null if the file could not be opened, or created</returns>
         /// <exception cref="IOException"></exception>
         public static FileStream Open(LogID logFile)
@@ -211,7 +211,7 @@ namespace LogUtils.Helpers
         /// <summary>
         /// Starts a log file session creating the log file if it doesn't exist
         /// </summary>
-        /// <param name="logFile">The LogID that accesses the log file path</param>
+        /// <param name="logFile">The <see cref="LogID"/> that accesses the log file path</param>
         /// <returns>The active state of the log session</returns>
         public static bool TryCreate(LogID logFile)
         {

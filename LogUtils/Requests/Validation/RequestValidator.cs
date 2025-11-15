@@ -43,7 +43,7 @@ namespace LogUtils.Requests.Validation
         }
 
         /// <summary>
-        /// Checks that the ShowLogs property is applicable to the provided LogID, and returns the applicable RejectionReason when it does
+        /// Checks that the <see cref="RainWorld.ShowLogs"/> property is applicable to the provided <see cref="LogID"/> instance, and returns the applicable <see cref="RejectionReason"/> when it does
         /// </summary>
         public static RejectionReason ShowLogsValidation(LogID logID)
         {
@@ -53,7 +53,7 @@ namespace LogUtils.Requests.Validation
         }
 
         /// <summary>
-        /// Gets the applicable RejectionReason for a ShowLogs aware log request
+        /// Gets the applicable <see cref="RejectionReason"/> for a <see cref="RainWorld.ShowLogs"/> aware log request
         /// </summary>
         public static RejectionReason ShowLogsViolation()
         {
@@ -66,7 +66,7 @@ namespace LogUtils.Requests.Validation
     public interface IRequestValidator
     {
         /// <summary>
-        /// Evaluates a LogRequest object
+        /// Evaluates a <see cref="LogRequest"/> object
         /// </summary>
         /// <param name="request">The request to evaluate</param>
         /// <returns>The processed handle state based on logger specific validation rules</returns>

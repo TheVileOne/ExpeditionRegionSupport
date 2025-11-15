@@ -70,7 +70,7 @@ namespace LogUtils.Diagnostics
         }
 
         /// <summary>
-        /// Assigns a logger instance to the current object
+        /// Assigns an <see cref="ILogger"/> instance to the current object
         /// </summary>
         public void SetLogger(ILogger logger)
         {
@@ -84,7 +84,7 @@ namespace LogUtils.Diagnostics
         /// Process a condition result
         /// </summary>
         /// <param name="result">The result to evaluate</param>
-        /// <exception cref="AssertionException">Throws when AssertBehavior.Throw is set, and assert fails</exception>
+        /// <exception cref="AssertionException">Throws when <see cref="AssertBehavior.Throw"/> is set, and assert fails</exception>
         public virtual void Handle(Condition.Result result)
         {
             if (Behavior == AssertBehavior.DoNothing) return;
@@ -133,8 +133,6 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Creates a shallow copy of this instance with the provided behavior
         /// </summary>
-        /// <param name="behavior"></param>
-        /// <returns></returns>
         public AssertHandler Clone(AssertBehavior behavior)
         {
             var clone = (AssertHandler)Clone();

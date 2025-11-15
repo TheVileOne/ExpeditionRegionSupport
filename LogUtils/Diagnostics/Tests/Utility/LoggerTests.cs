@@ -103,7 +103,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         }
 
         /// <summary>
-        /// Tests related to ensuring that LogIDs with equivalent filename, but different paths make it to the correct Logger instances
+        /// Tests related to ensuring that <see cref="LogID"/> instances with an equivalent filename, but different paths make it to the correct <see cref="Logger"/> instances
         /// </summary>
         private void testConflictResolution()
         {

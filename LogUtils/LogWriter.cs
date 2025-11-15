@@ -502,7 +502,7 @@ namespace LogUtils
         /// <summary>
         /// Provides a procedure for adding a message to the WriteBuffer
         /// </summary>
-        /// <remarks>Bypasses the LogRequest system - intended to be used as a fallback message handling process</remarks>
+        /// <remarks>Bypasses the log request system - intended to be used as a fallback message handling process</remarks>
         void SendToBuffer(LogRequestEventArgs messageData);
 
         /// <summary>

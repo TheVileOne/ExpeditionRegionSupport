@@ -225,7 +225,7 @@ namespace LogUtils.Enums
         }
 
         /// <summary>
-        /// Indicates whether the current object is equal to another object of the same time (utilizes the base value hashcode comparison to determine equality)
+        /// Indicates whether the current object is equal to another object of the same type (utilizes the base value hashcode comparison to determine equality)
         /// </summary>
         public bool BaseEquals(T other)
         {
@@ -233,7 +233,7 @@ namespace LogUtils.Enums
         }
 
         /// <summary>
-        /// Indicates whether the current object is equal to another object of the same time (utilizes a customized value hashcode comparison to determine equality)
+        /// Indicates whether the current object is equal to another object of the same type (utilizes a customized value hashcode comparison to determine equality)
         /// </summary>
         public new bool Equals(T other)
         {

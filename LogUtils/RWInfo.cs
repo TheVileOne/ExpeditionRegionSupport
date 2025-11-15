@@ -29,7 +29,7 @@ namespace LogUtils
         public static RainWorld.BuildType Build => IsRainWorldRunning ? RainWorld.buildType : default;
 
         /// <summary>
-        /// Dictionary of last reported errors logged to a specific log file
+        /// Contains last reported errors logged to a specific log file
         /// </summary>
         public static Dictionary<LogID, ExceptionInfo> LastReportedException = new Dictionary<LogID, ExceptionInfo>();
 
@@ -47,7 +47,7 @@ namespace LogUtils
         /// <summary>
         /// The latest point in the initialization process that Rain World has reached since the application began
         /// </summary>
-        /// <remarks>Do not modify directly, use NotifyOnPeriodReached instead</remarks>
+        /// <remarks>Do not modify directly, use <see cref="NotifyOnPeriodReached"/> instead</remarks>
         public static SetupPeriod LatestSetupPeriodReached;
 
         public static void NotifyOnPeriodReached(SetupPeriod period)

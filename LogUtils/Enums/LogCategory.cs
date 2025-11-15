@@ -219,7 +219,7 @@ namespace LogUtils.Enums
         /// <summary>
         /// Determines if the logging context is general purpose, or targets an exception
         /// </summary>
-        /// <returns>The proper LogID for the provided logging context</returns>
+        /// <returns>The proper <see cref="LogID"/> for the provided logging context</returns>
         public static LogID GetUnityLogID(LogType logType)
         {
             return !IsErrorCategory(logType) ? LogID.Unity : LogID.Exception;

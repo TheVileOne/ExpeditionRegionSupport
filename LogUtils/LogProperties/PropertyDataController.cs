@@ -242,7 +242,7 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
-        /// Finds the first detected LogProperties instance associated with the given LogID, and relative filepath
+        /// Finds the first detected <see cref="LogProperties"/> instance associated with the given <see cref="LogID"/>, and relative filepath
         /// </summary>
         /// <param name="logID">The LogID to search for</param>
         /// <param name="relativePathNoFile">The filepath to search for. When set to null, any LogID match will be returned with custom root being prioritized</param>
@@ -358,7 +358,7 @@ namespace LogUtils.Properties
                 }
                 else
                 {
-                    //When a main process closes, it's state is written to file - in particular the current path for the file gets stored as the last known path.
+                    //When a main process closes, its state is written to file - in particular the current path for the file gets stored as the last known path.
                     //We need to restore this metadata so that the incoming process knows where to log new messages
                     if (existingProperties != null)
                     {

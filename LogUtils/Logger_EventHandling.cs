@@ -65,7 +65,7 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Event is invoked each time a LogRequest is submitted by the current logger
+        /// Event is invoked each time a <see cref="LogRequest"/> is submitted by the current logger
         /// </summary>
         protected virtual void OnNewRequest(LogRequest request)
         {

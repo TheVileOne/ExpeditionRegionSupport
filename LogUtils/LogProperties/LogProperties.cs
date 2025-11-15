@@ -60,7 +60,7 @@ namespace LogUtils.Properties
         protected virtual CompareOptions CompareMask => ~CompareOptions.None;
 
         /// <summary>
-        /// This field contains the last known LogRequest handle state for this LogID, particularly the rejection status, and the reason for rejection of the request
+        /// This field contains the last known <see cref="LogRequest"/> handle state for this <see cref="LogID"/>, particularly the rejection status, and the reason for rejection of the request
         /// </summary>
         public LogRequestRecord HandleRecord;
 
@@ -72,7 +72,7 @@ namespace LogUtils.Properties
         public bool LogSessionActive { get; internal set; }
 
         /// <summary>
-        /// The amount of messages logged to file, or stored in the WriteBuffer since the last logging session was started
+        /// The amount of messages logged to file, or stored in <see cref="WriteBuffer"/> since the last logging session was started
         /// </summary>
         public uint MessagesHandledThisSession;
 
@@ -176,7 +176,7 @@ namespace LogUtils.Properties
         private bool _overwriteLog = true;
 
         /// <summary>
-        /// The LogID associated with the log properties
+        /// The <see cref="LogID"/> representing this instance
         /// </summary>
         public LogID ID
         {
@@ -194,7 +194,7 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
-        /// Creates a new <see cref="LogID"/> instance usiong these properties
+        /// Creates a new <see cref="LogID"/> instance using these properties
         /// </summary>
         protected virtual LogID CreateID() => new LogID(this, false);
 
@@ -204,7 +204,7 @@ namespace LogUtils.Properties
         protected virtual int CreateIDHash() => CreateIDHash(_idValue, OriginalFolderPath);
 
         /// <summary>
-        /// List of targeted ConsoleIDs to send requests to when logging to file
+        /// Contains targeted <see cref="ConsoleID"/> instances that receive requests when logging to file
         /// </summary>
         public ValueCollection<ConsoleID> ConsoleIDs;
 

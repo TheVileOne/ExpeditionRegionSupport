@@ -25,7 +25,7 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Does this handler accept this LogRequest
+        /// Check that an <see cref="ILogHandler"/> is able to process the provided <see cref="LogRequest"/> instance
         /// </summary>
         public static bool CanHandle(this ILogHandler handler, LogRequest request)
         {
@@ -33,10 +33,10 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Finds a list of all logger instances that accepts log requests for a specified LogID
+        /// Finds all logger instances that accepts log requests for a specified <see cref="LogID"/> instance
         /// </summary>
         /// <param name="handlers"></param>
-        /// <param name="logFile">LogID to check</param>
+        /// <param name="logFile">The <see cref="LogID"/> to check</param>
         /// <param name="requestType">The request type expected</param>
         public static IEnumerable<ILogHandler> CompatibleWith(this IEnumerable<ILogHandler> handlers, LogID logFile, RequestType requestType)
         {
@@ -107,10 +107,10 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Find a logger instance that accepts log requests for a specified LogID
+        /// Find a logger instance that accepts log requests for a specified <see cref="LogID"/> instance
         /// </summary>
         /// <param name="handlers"></param>
-        /// <param name="logFile">LogID to check</param>
+        /// <param name="logFile">The <see cref="LogID"/> to check</param>
         /// <param name="requestType">The request type expected</param>
         internal static ILogHandler FindCompatible(this IEnumerable<ILogHandler> handlers, LogID logFile, RequestType requestType)
         {
@@ -156,7 +156,7 @@ namespace LogUtils
         /// <summary>
         /// Finds the best fit candidate in a target collection for a provided log file
         /// </summary>
-        /// <returns>A LogID contained in the target collection with a matching filename, and/or path (best fit)</returns>
+        /// <returns>A <see cref="LogID"/> contained in the target collection with a matching filename, and/or path (best fit)</returns>
         public static LogID NearestEquivalent(this IEnumerable<LogID> targets, LogID logFile)
         {
             LogID bestCandidate = null;
@@ -216,7 +216,7 @@ namespace LogUtils
         /// </summary>
         /// <param name="writer"></param>
         /// <param name="logFile">The file that contains the message buffer</param>
-        /// <param name="respectBufferState">When true no content will be written to file if MessageBuffer.IsBuffering property is set to true</param>
+        /// <param name="respectBufferState">When true no content will be written to file if <see cref="MessageBuffer.IsBuffering"/> property is set to true</param>
         public static void WriteFromBuffer(this ILogWriter writer, LogID logFile, bool respectBufferState = true)
         {
             writer.WriteFromBuffer(logFile, TimeSpan.Zero, respectBufferState);

@@ -71,7 +71,7 @@ namespace LogUtils.Helpers.Comparers
         }
 
         /// <summary>
-        /// Compare LogID instances when one, or both instances has a null properties field
+        /// Compare <see cref="LogID"/> instances when one, or both instances has a null properties field
         /// </summary>
         protected int CompareNullProperties(LogID id, LogID idOther)
         {

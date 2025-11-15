@@ -168,7 +168,7 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Returns all registered LogIDs representing log files within the current log directory or otherwise target it as a write path
+        /// Returns all registered <see cref="LogID"/> instances representing log files within the current log directory or otherwise target it as a write path
         /// </summary>
         public static IEnumerable<LogID> GetContainedLogFiles()
         {

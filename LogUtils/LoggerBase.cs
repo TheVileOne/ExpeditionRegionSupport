@@ -37,12 +37,12 @@ namespace LogUtils
         protected LogTargetCollection Targets = new LogTargetCollection();
 
         /// <summary>
-        /// Contains a list of LogIDs (both local and remote) that will be handled in the case of an untargeted log request
+        /// Contains <see cref="LogID"/> instances (both local and remote) that will be handled in the case of an untargeted log request
         /// </summary>
         public List<LogID> LogTargets => Targets.LogIDs;
 
         /// <summary>
-        /// Contains a list of ConsoleIDs that will be handled by any log request that can be handled by this logger
+        /// Contains <see cref="ConsoleID"/> instances that will be handled by any log request that can be handled by this logger
         /// </summary>
         public List<ConsoleID> ConsoleTargets => Targets.ConsoleIDs;
 
@@ -85,21 +85,21 @@ namespace LogUtils
         }
 
         /// <inheritdoc cref="LoggerBase(ILogSource)"/>
-        /// <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
+        /// <param name="preset">The <see cref="LogID"/>, or <see cref="ConsoleID"/> to target, or handle by request by this logger</param>
         protected LoggerBase(ILogTarget preset) : this(LoggingMode.Inherit, true, preset)
         {
         }
 
         /// <inheritdoc cref="LoggerBase(ILogSource)"/>
         /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
-        /// <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
+        /// <param name="preset">The <see cref="LogID"/>, or <see cref="ConsoleID"/> to target, or handle by request by this logger</param>
         protected LoggerBase(bool allowLogging, ILogTarget preset) : this(LoggingMode.Inherit, allowLogging, preset)
         {
         }
 
         /// <inheritdoc cref="LoggerBase(ILogSource)"/>
         /// <param name="mode">Changes the technique used to write messages to file</param>
-        /// <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
+        /// <param name="preset">The <see cref="LogID"/>, or <see cref="ConsoleID"/> to target, or handle by request by this logger</param>
         protected LoggerBase(LoggingMode mode, ILogTarget preset) : this(mode, true, preset)
         {
         }
@@ -107,27 +107,27 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerBase(ILogSource)"/>
         /// <param name="mode">Changes the technique used to write messages to file</param>
         /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
-        /// <param name="preset">The LogID, or ConsoleID to target, or handle by request by this logger</param>
+        /// <param name="preset">The <see cref="LogID"/>, or <see cref="ConsoleID"/> to target, or handle by request by this logger</param>
         protected LoggerBase(LoggingMode mode, bool allowLogging, ILogTarget preset) : this(mode, allowLogging, presets: preset)
         {
         }
 
         /// <inheritdoc cref="LoggerBase(ILogSource)"/>
-        /// <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
+        /// <param name="presets">Include any <see cref="LogID"/>, or <see cref="ConsoleID"/> instances that this logger targets, or handles on request</param>
         protected LoggerBase(params ILogTarget[] presets) : this(LoggingMode.Inherit, true, presets)
         {
         }
 
         /// <inheritdoc cref="LoggerBase(ILogSource)"/>
         /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
-        /// <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
+        /// <param name="presets">Include any <see cref="LogID"/>, or <see cref="ConsoleID"/> instances that this logger targets, or handles on request</param>
         protected LoggerBase(bool allowLogging, params ILogTarget[] presets) : this(LoggingMode.Inherit, allowLogging, presets)
         {
         }
 
         /// <inheritdoc cref="LoggerBase(ILogSource)"/>
         /// <param name="mode">Changes the technique used to write messages to file</param>
-        /// <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
+        /// <param name="presets">Include any <see cref="LogID"/>, or <see cref="ConsoleID"/> instances that this logger targets, or handles on request</param>
         protected LoggerBase(LoggingMode mode, params ILogTarget[] presets) : this(mode, true, presets)
         {
         }
@@ -135,7 +135,7 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerBase(ILogSource)"/>
         /// <param name="mode">Changes the technique used to write messages to file</param>
         /// <param name="allowLogging">Whether logger accepts logs by default, or has to be enabled first</param>
-        /// <param name="presets">Include any LogIDs, or ConsoleIDs that this logger targets, or handles on request</param>
+        /// <param name="presets">Include any <see cref="LogID"/>, or <see cref="ConsoleID"/> instances that this logger targets, or handles on request</param>
         protected LoggerBase(LoggingMode mode, bool allowLogging, params ILogTarget[] presets)
         {
             if (UtilitySetup.CurrentStep < UtilitySetup.InitializationStep.INITIALIZE_ENUMS)
@@ -320,7 +320,7 @@ namespace LogUtils
 #pragma warning restore CS1591 //Missing XML comment for publicly visible type or member
 
         /// <summary>
-        /// Determines if the specified LogID can be handled by this logger with the specified RequestType
+        /// Determines if the specified <see cref="LogID"/> can be handled by this logger with the specified <see cref="RequestType"/>
         /// </summary>
         public bool CanHandle(LogID logID, RequestType requestType)
         {

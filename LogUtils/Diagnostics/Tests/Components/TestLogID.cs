@@ -18,7 +18,7 @@ namespace LogUtils.Diagnostics.Tests.Components
         }
 
         /// <summary>
-        /// Cycle to the next LogAccess enum value
+        /// Cycle to the next <see cref="LogAccess"/> value
         /// </summary>
         public void CycleAccess()
         {

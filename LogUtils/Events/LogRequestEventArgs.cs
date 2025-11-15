@@ -4,6 +4,7 @@ using LogUtils.Console;
 using LogUtils.Enums;
 using LogUtils.Formatting;
 using LogUtils.Properties.Formatting;
+using LogUtils.Requests;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +35,7 @@ namespace LogUtils.Events
         private LogType? _categoryUnity;
 
         /// <summary>
-        /// The log category associated with the message (equivalent to LogType (Unity), and LogLevel (BepInEx))
+        /// The <see cref="LogCategory"/> instance associated with the message (equivalent to <see cref="LogType"/> (Unity), and <see cref="BepInEx.Logging.LogLevel"/> (BepInEx))
         /// </summary>
         public LogCategory Category
         {
@@ -152,7 +153,7 @@ namespace LogUtils.Events
         }
 
         /// <summary>
-        ///  Assigns a value to TotalMessagesLogged that will not change when new messages are logged 
+        ///  Assigns a value to <see cref="TotalMessagesLogged"/> that will not change when new messages are logged 
         /// </summary>
         public void CacheMessageTotal()
         {
@@ -160,7 +161,7 @@ namespace LogUtils.Events
         }
 
         /// <summary>
-        /// An enumerable containing ConsoleIDs that have yet to handle the message data
+        /// Retrieves all <see cref="ConsoleID"/> instances that have yet to handle the message data
         /// </summary>
         public IEnumerable<ConsoleID> PendingConsoleIDs
         {
@@ -189,12 +190,12 @@ namespace LogUtils.Events
 
         #region Constructors
         /// <summary>
-        /// Creates a new data storage instance for a LogRequest event
+        /// Creates a new data storage instance for a <see cref="LogRequest"/> event
         /// </summary>
-        /// <param name="logID">The targeted log file ID</param>
+        /// <param name="logID">The <see cref="LogID"/> to target</param>
         /// <param name="messageData">The message to log</param>
         /// <param name="category">The category associated with the message</param>
-        /// <exception cref="NullReferenceException">The LogID, or its properties field is null</exception>
+        /// <exception cref="NullReferenceException">The <see cref="LogID"/>, or its properties field is null</exception>
         public LogRequestEventArgs(LogID logID, object messageData, LogCategory category = null) : base(logID)
         {
             Category = category ?? LogCategory.Default;
@@ -221,9 +222,9 @@ namespace LogUtils.Events
         }
 
         /// <summary>
-        /// Creates a new data storage instance for a LogRequest event
+        /// Creates a new data storage instance for a <see cref="LogRequest"/> event
         /// </summary>
-        /// <param name="consoleID">The targeted console ID</param>
+        /// <param name="consoleID">The <see cref="ConsoleID"/> to target</param>
         /// <param name="messageData">The message to log</param>
         /// <param name="category">The category associated with the message</param>
         public LogRequestEventArgs(ConsoleID consoleID, object messageData, LogCategory category = null) : this(LogID.NotUsed, messageData, category)
