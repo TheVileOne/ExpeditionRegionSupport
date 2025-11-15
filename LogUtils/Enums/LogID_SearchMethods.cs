@@ -16,7 +16,7 @@ namespace LogUtils.Enums
             IEnumerable<LogProperties> entries = includeGroupIDs
                 ? LogProperties.PropertyManager.AllProperties
                 : LogProperties.PropertyManager.Properties;
-            return entries.Select(p => p.ID).ToArray();
+            return entries.GetIDs().ToArray();
         }
 
         /// <summary>

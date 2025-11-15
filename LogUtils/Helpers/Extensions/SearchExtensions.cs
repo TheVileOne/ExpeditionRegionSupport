@@ -20,7 +20,7 @@ namespace LogUtils
         /// <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
         public static LogID Find(this IEnumerable<LogID> values, string filename, string relativePathNoFile = null)
         {
-            return values.Select(id => id.Properties)
+            return values.GetProperties()
                          .Find(filename, relativePathNoFile);
         }
 
@@ -34,7 +34,7 @@ namespace LogUtils
         /// <param name="filename">The filename to search for</param>
         public static IEnumerable<LogID> FindAll(this IEnumerable<LogID> values, string filename)
         {
-            return values.Select(id => id.Properties)
+            return values.GetProperties()
                          .FindAll(filename, CompareOptions.Basic);
         }
 
@@ -46,7 +46,7 @@ namespace LogUtils
         /// <param name="compareOptions">Represents options that determine which fields to check against</param>
         public static IEnumerable<LogID> FindAll(this IEnumerable<LogID> values, string filename, CompareOptions compareOptions)
         {
-            return values.Select(id => id.Properties)
+            return values.GetProperties()
                          .FindAll(p => p.HasFilename(filename, compareOptions));
         }
 
@@ -57,7 +57,7 @@ namespace LogUtils
         /// <param name="predicate">The predicate to match</param>
         public static IEnumerable<LogID> FindAll(this IEnumerable<LogID> values, Func<LogProperties, bool> predicate)
         {
-            return values.Select(id => id.Properties)
+            return values.GetProperties()
                          .FindAll(predicate);
         }
 
@@ -68,7 +68,7 @@ namespace LogUtils
         /// <param name="tag">The tag to search for</param>
         public static IEnumerable<LogID> FindByTag(this IEnumerable<LogID> values, string tag)
         {
-            return values.Select(id => id.Properties)
+            return values.GetProperties()
                          .FindByTag(tag);
         }
 
@@ -102,21 +102,60 @@ namespace LogUtils
         internal static IEnumerable<LogID> FindAll(this IEnumerable<LogProperties> values, string filename, CompareOptions compareOptions)
         {
             return values.Where(p => p.HasFilename(filename, compareOptions))
-                         .Select(p => p.ID);
+                         .GetIDs();
         }
 
         /// <inheritdoc cref="FindAll(IEnumerable{LogID}, Func{LogProperties, bool})"/>
         internal static IEnumerable<LogID> FindAll(this IEnumerable<LogProperties> values, Func<LogProperties, bool> predicate)
         {
             return values.Where(predicate)
-                         .Select(p => p.ID);
+                         .GetIDs();
         }
 
         /// <inheritdoc cref="FindByTag(IEnumerable{LogID}, string)"/>
         internal static IEnumerable<LogID> FindByTag(this IEnumerable<LogProperties> values, string tag)
         {
             return values.Where(p => p.Tags.Contains(tag, ComparerUtils.StringComparerIgnoreCase))
-                         .Select(p => p.ID);
+                         .GetIDs();
+        }
+
+        /// <summary>
+        /// Returns all <see cref="LogID"/> instances belonging to entries in this enumeration
+        /// </summary>
+        public static IEnumerable<LogID> GetIDs(this IEnumerable<LogProperties> entries)
+        {
+            return entries.Select(entry => entry.ID);
+        }
+
+        /// <summary>
+        /// Returns all <see cref="LogProperties"/> instances belonging to entries in this enumeration
+        /// </summary>
+        public static IEnumerable<LogProperties> GetProperties(this IEnumerable<LogID> entries)
+        {
+            return entries.Select(entry => entry.Properties);
+        }
+
+        /// <inheritdoc cref="GetProperties(IEnumerable{LogID})"/>
+        public static IEnumerable<LogGroupProperties> GetProperties(this IEnumerable<LogGroupID> entries)
+        {
+            return entries.Select(entry => entry.Properties);
+        }
+
+        /// <summary>
+        /// Returns all group members belonging to entries in this enumeration
+        /// </summary>
+        public static IEnumerable<LogID> GetMembers(this IEnumerable<LogGroupProperties> entries)
+        {
+            return entries.SelectMany(entry => entry.Members);
+        }
+
+        /// <summary>
+        /// Returns all <see cref="LogProperties"/> instance belonging to group members of entries in this enumeration
+        /// </summary>
+        public static IEnumerable<LogProperties> GetMemberProperties(this IEnumerable<LogGroupProperties> entries)
+        {
+            return entries.GetMembers()
+                          .GetProperties();
         }
     }
 }
