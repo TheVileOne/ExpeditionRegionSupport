@@ -1094,6 +1094,23 @@ namespace LogUtils.Properties
             return Path.Combine(RainWorldPath.StreamingAssetsPath, relativePath);
         }
 
+        /// <summary>
+        /// Attempts to create a valid path associated with a log group. In certain situation, this may fail, and return the given path instead.
+        /// </summary>
+        public static string ApplyGroupPath(LogGroupID groupID, string folderPath)
+        {
+            //The provided path is empty, therefore we should return only the group path 
+            if (PathUtils.IsEmpty(folderPath))
+                return groupID.Properties.CurrentFolderPath;
+
+            //Path keywords represent absolute paths, or special circumstances not compatible with a group path
+            if (PathUtils.IsPathKeyword(folderPath))
+                return folderPath;
+
+            //When provided an absolute path, the absolute path will be used. When CurrentFolderPath is empty, folderPath will be unchanged.
+            return Path.Combine(groupID.Properties.CurrentFolderPath, folderPath);
+        }
+
         public static bool IsPathWildcard(string path)
         {
             return PathUtils.IsEmpty(path);

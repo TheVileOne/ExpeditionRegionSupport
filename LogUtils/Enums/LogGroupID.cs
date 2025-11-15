@@ -36,14 +36,22 @@ namespace LogUtils.Enums
             protected set => base.Properties = value;
         }
 
+        /// <inheritdoc cref="LogGroupID(string, string, bool)"/>
+        public LogGroupID(string value, bool register = false) : base(getProperties(value), register)
+        {
+        }
+
         /// <summary>
         /// Creates a new <see cref="LogGroupID"/> instance.
         /// </summary>
         /// <inheritdoc cref="LogID(string, LogAccess, bool)"/>
         /// <param name="value">The value that identifies the <see cref="LogGroupID"/> instance</param>
-        /// <param name="register"/>
-        public LogGroupID(string value, bool register = false) : base(getProperties(value), register)
+        /// <param name="path">An optional path that all group members will have in common</param>
+        /// <param name="register"></param>
+        public LogGroupID(string value, string path, bool register = false) : base(getProperties(value), register)
         {
+            Properties.FolderPath =
+            Properties.OriginalFolderPath = LogProperties.GetContainingPath(path);
         }
 
         internal LogGroupID(LogProperties properties, bool register) : base(properties, register)

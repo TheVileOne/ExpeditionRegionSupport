@@ -5,7 +5,9 @@ using LogUtils.Properties;
 using LogUtils.Properties.Formatting;
 using LogUtils.Requests;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 using BepInExPath = LogUtils.Helpers.Paths.BepInEx;
 
@@ -217,16 +219,27 @@ namespace LogUtils.Enums
             //Initialize properties
             var groupProperties = groupID.Properties;
 
-            if (PathUtils.IsEmpty(groupProperties.FolderPath))
+            bool hasGroupPath = !PathUtils.IsEmpty(groupProperties.FolderPath);
+            if (!hasGroupPath)
+            {
+                //When there is no group path, the provided path will be used as the log path, and property initialization will be handled like a typical LogID initialization
                 InitializeProperties(filename, relativePathNoFile);
+            }
             else
             {
-                var existingProperties = LogProperties.PropertyManager.GetProperties(this, relativePathNoFile);
+                //When there is a group path, the group path will be combined with the provided path as long as the two paths are compatible
+                string assignedFolderPath = LogProperties.ApplyGroupPath(groupID, relativePathNoFile);
+
+                //Check registered entries and members of registered log groups
+                IEnumerable<LogProperties> searchEntries =
+                    LogProperties.PropertyManager.Properties.Union(LogProperties.PropertyManager.GroupProperties.GetMemberProperties());
+
+                var existingProperties = LogProperties.PropertyManager.GetProperties(this, assignedFolderPath, searchEntries);
 
                 if (existingProperties != null)
                     Properties = existingProperties;
                 else
-                    Properties = groupID.Properties.Clone(filename, relativePathNoFile);
+                    Properties = groupProperties.Clone(filename, assignedFolderPath);
             }
 
             //Assign to group
@@ -344,6 +357,14 @@ namespace LogUtils.Enums
             //Check whether LogID should be handled as a local request, or an outgoing (remote) request. Not being recognized by the handler means that
             //the handler is processing a target specifically made through one of the logging method overloads
             return handlerID != null && handlerID.HasLocalAccess ? RequestType.Local : RequestType.Remote;
+        }
+
+        /// <summary>
+        /// Determine if <see cref="LogID"/> reference represents a file, or a log group
+        /// </summary>
+        public static bool IsGroupType(LogID logID)
+        {
+            return logID is LogGroupID || (logID is ComparisonLogID comparisonID && comparisonID.RepresentedType == LogIDType.Group);
         }
 
         internal static string CreateIDValue(string valueBase, LogIDType idType)

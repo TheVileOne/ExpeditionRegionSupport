@@ -10,8 +10,8 @@ namespace LogUtils.Properties
 {
     public class PropertyDataController : UtilityComponent
     {
-        private List<LogProperties> _properties = new List<LogProperties>();
-        private List<LogProperties> _groupProperties = new List<LogProperties>();
+        private readonly List<LogProperties> _properties = new List<LogProperties>();
+        private readonly List<LogProperties> _groupProperties = new List<LogProperties>();
 
         /// <summary>
         /// A cache for currently registered log file property entries
@@ -21,7 +21,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// A cache for currently registered log group property entries
         /// </summary>
-        public IEnumerable<LogProperties> GroupProperties => _groupProperties.ToArray();
+        public IEnumerable<LogGroupProperties> GroupProperties => _groupProperties.Cast<LogGroupProperties>();
 
         /// <summary>
         /// An enumeration containing currently registered log properties for files, and groups
@@ -235,25 +235,37 @@ namespace LogUtils.Properties
             return entries.Contains(properties);
         }
 
-        public IEnumerable<LogProperties> GetProperties(LogID logID)
+        public IEnumerable<LogProperties> GetProperties(LogID searchTarget)
         {
-            var entries = FindPropertyGroup(logID);
-            return entries.Where(p => p.ID.BaseEquals(logID));
+            var entries = FindPropertyGroup(searchTarget);
+            return entries.Where(p => p.ID.BaseEquals(searchTarget));
+        }
+
+        /// <inheritdoc cref="GetProperties(LogID, string, IEnumerable{LogProperties})"/>
+        public LogProperties GetProperties(LogID searchTarget, string searchPath)
+        {
+            return GetPropertiesInternal(searchPath, GetProperties(searchTarget));
         }
 
         /// <summary>
         /// Finds the first detected <see cref="LogProperties"/> instance associated with the given <see cref="LogID"/>, and relative filepath
         /// </summary>
-        /// <param name="logID">The LogID to search for</param>
-        /// <param name="relativePathNoFile">The filepath to search for. When set to null, any LogID match will be returned with custom root being prioritized</param>
-        public LogProperties GetProperties(LogID logID, string relativePathNoFile)
+        /// <param name="searchTarget">The <see cref="LogID"/> to search for</param>
+        /// <param name="searchPath">The filepath to search for. When set to null or an empty string, any <see cref="LogID"/> match will be returned with custom root being prioritized</param>
+        /// <param name="searchEntries">An enumeration of entries to search</param>
+        public LogProperties GetProperties(LogID searchTarget, string searchPath, IEnumerable<LogProperties> searchEntries)
         {
-            bool searchForAnyMatch = LogProperties.IsPathWildcard(relativePathNoFile); //This flag prioritizes the custom root over any other match
+            return GetPropertiesInternal(searchPath, searchEntries.Where(p => p.ID.BaseEquals(searchTarget)));
+        }
+
+        internal LogProperties GetPropertiesInternal(string searchPath, IEnumerable<LogProperties> searchEntries)
+        {
+            bool searchForAnyMatch = LogProperties.IsPathWildcard(searchPath); //This flag prioritizes the custom root over any other match
 
             LogProperties bestCandidate = null;
-            foreach (LogProperties properties in GetProperties(logID))
+            foreach (LogProperties properties in searchEntries)
             {
-                if (PathUtils.PathsAreEqual(properties.OriginalFolderPath, LogProperties.GetContainingPath(relativePathNoFile)))
+                if (PathUtils.PathsAreEqual(properties.OriginalFolderPath, LogProperties.GetContainingPath(searchPath)))
                 {
                     bestCandidate = properties;
                     break;
@@ -267,10 +279,7 @@ namespace LogUtils.Properties
 
         internal ICollection<LogProperties> FindPropertyGroup(LogID logID)
         {
-            //TODO: Can ComparisonLogID be deprecated? This check is ugly.
-            bool isGroupIdentifier = logID is LogGroupID || (logID is ComparisonLogID comparisonID && comparisonID.RepresentedType == LogIDType.Group);
-
-            if (isGroupIdentifier)
+            if (LogID.IsGroupType(logID))
                 return _groupProperties;
             return _properties;
         }
