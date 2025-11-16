@@ -3,11 +3,9 @@ using System;
 
 namespace LogUtils.Enums
 {
-    public class SharedExtEnum<T> : ExtEnum<T>, IComparable, IComparable<T>, IEquatable<T>, IShareable where T : SharedExtEnum<T>, IShareable
+    public class SharedExtEnum<T> : ExtEnum<T>, IComparable, IComparable<T>, IEquatable<T>, IShareable, IExtEnumBase where T : SharedExtEnum<T>, IShareable
     {
-        /// <summary>
-        /// Index position in values.entries list for this ExtEnum entry
-        /// </summary>
+        /// <inheritdoc cref="IExtEnumBase.Index"/>
         public override int Index
         {
             get
@@ -20,18 +18,16 @@ namespace LogUtils.Enums
         }
 
         /// <summary>
-        /// The underlying ExtEnum value index (used during the registration process when values are being synced)
+        /// The underlying <see cref="ExtEnum{T}"/> value index (used during the registration process when values are being synced)
         /// </summary>
         public int BaseIndex => base.Index;
 
         /// <summary>
-        /// A null-safe reference to the SharedExtEnum that any mod can access
+        /// A null-safe reference to the <see cref="SharedExtEnum{T}"/> shared instance that any mod can access
         /// </summary>
         public T ManagedReference;
 
-        /// <summary>
-        /// The managed reference associated with this ExtEnum instance has been assigned a valid ExtEnum value index
-        /// </summary>
+        /// <inheritdoc/>
         public bool Registered => Index >= 0;
 
         /// <inheritdoc/>
@@ -45,9 +41,8 @@ namespace LogUtils.Enums
             }
         }
 
-        /// <summary>
-        /// An identifying string assigned to each ExtEnum
-        /// </summary>
+
+        /// <inheritdoc/>
         public string Value
         {
             get => base.value;
@@ -90,7 +85,7 @@ namespace LogUtils.Enums
         }
 
         /// <summary>
-        /// Retrieves an ExtEnum instance at the specified index
+        /// Retrieves an <see cref="ExtEnum{T}"/> instance at the specified index
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException">The index provided is outside the bounds of the collection</exception>
         public static T EntryAt(int index)
@@ -157,9 +152,7 @@ namespace LogUtils.Enums
             _registrationCallback = null;
         }
 
-        /// <summary>
-        /// Registers the ExtEnum instance
-        /// </summary>
+        /// <inheritdoc/>
         public virtual void Register()
         {
             //The shared reference may already exist. Sync any value differences between the two references
@@ -189,9 +182,7 @@ namespace LogUtils.Enums
             }
         }
 
-        /// <summary>
-        /// Unregisters the ExtEnum instance
-        /// </summary>
+        /// <inheritdoc/>
         public new virtual void Unregister()
         {
             base.Unregister();

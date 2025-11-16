@@ -46,7 +46,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
         private void testLogRequestSubmissionFromLogger()
         {
-            Logger logger = createLogger(new TestLogID());
+            Logger logger = createLogger(TestLogID.Factory.Create());
             var testWriter = (FakeLogWriter)logger.Writer;
 
             LogRequest resultFromFullString,
@@ -84,11 +84,12 @@ namespace LogUtils.Diagnostics.Tests.Utility
             }
 
             logger.Dispose();
+            TestEnumFactory.DisposeObjects();
         }
 
         private void testLogRequestsObeyEnabledState()
         {
-            TestLogID testLogID = new TestLogID();
+            TestLogID testLogID = TestLogID.Factory.Create();
 
             testLogID.Properties.AllowLogging = false;
 
@@ -100,6 +101,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             //Enabled state should prevent any LogRequests from making it to the writer
             activeTestGroup.AssertThat(testWriter.LatestRequest).IsNull();
             logger.Dispose();
+            TestEnumFactory.DisposeObjects();
         }
 
         /// <summary>
@@ -108,8 +110,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
         private void testConflictResolution()
         {
             //Represent two log files with the same filename, but different paths
-            TestLogID targetA = TestLogID.FromPath(UtilityConsts.PathKeywords.ROOT),
-                      targetB = TestLogID.FromTarget(targetA, UtilityConsts.PathKeywords.STREAMING_ASSETS);
+            TestLogID targetA = TestLogID.Factory.FromPath(UtilityConsts.PathKeywords.ROOT),
+                      targetB = TestLogID.Factory.FromTarget(targetA, UtilityConsts.PathKeywords.STREAMING_ASSETS);
 
             Logger loggerA = createLogger(targetA),
                    loggerB = createLogger(targetB);
@@ -125,6 +127,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             loggerA.Dispose();
             loggerB.Dispose();
+            TestEnumFactory.DisposeObjects();
 
             void testCorrectLoggerIsChosen_SelfTarget()
             {

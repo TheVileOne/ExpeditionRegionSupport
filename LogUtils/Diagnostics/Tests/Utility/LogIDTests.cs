@@ -1,4 +1,5 @@
-﻿using LogUtils.Enums;
+﻿using LogUtils.Diagnostics.Tests.Components;
+using LogUtils.Enums;
 using LogUtils.Helpers.Comparers;
 using LogUtils.Properties;
 using System.Collections.Generic;
@@ -24,10 +25,11 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             private void testOnlyOnePropertiesInstancePerLogFile()
             {
-                LogID exampleA = createTestLogID("example"),
-                      exampleB = createTestLogID("example");
+                LogID exampleA = TestLogID.Factory.Create("example"),
+                      exampleB = TestLogID.Factory.FromTarget(exampleA);
 
                 AssertThat(exampleA.Properties).IsSameInstance(exampleB.Properties);
+                TestEnumFactory.DisposeObjects();
             }
 
             [PostTest]
@@ -59,18 +61,19 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             private void testInstanceEquality()
             {
+                TestLogIDFactory factory = TestLogID.Factory;
                 string rootPath = RainWorldPath.RootPath;
 
-                LogID control = createTestLogID("Test", rootPath);
+                LogID control = factory.Create("Test", rootPath);
 
                 #pragma warning disable IDE0055 //Fix formatting
                 LogID sameInstance = control,
-                      sameLogNameDifferentReference = createTestLogID("Test", rootPath),
-                      sameLogNameDifferentFilePath  = createTestLogID("Test", UtilityConsts.PathKeywords.STREAMING_ASSETS),
-                      sameLogNameDifferentCase      = createTestLogID("teSt", rootPath),
-                      sameLogPathDifferentCase      = createTestLogID("Test", rootPath.ToUpper()),
-                      sameLogPathUsesPathKeyword    = createTestLogID("Test", UtilityConsts.PathKeywords.ROOT),
-                      notSameInstance               = createTestLogID("NotTest", rootPath);
+                      sameLogNameDifferentReference = factory.Create("Test", rootPath),
+                      sameLogNameDifferentFilePath  = factory.Create("Test", UtilityConsts.PathKeywords.STREAMING_ASSETS),
+                      sameLogNameDifferentCase      = factory.Create("teSt", rootPath),
+                      sameLogPathDifferentCase      = factory.Create("Test", rootPath.ToUpper()),
+                      sameLogPathUsesPathKeyword    = factory.Create("Test", UtilityConsts.PathKeywords.ROOT),
+                      notSameInstance               = factory.Create("NotTest", rootPath);
                 #pragma warning restore IDE0055 //Fix formatting
 
                 //Collect entries for testing
@@ -85,7 +88,66 @@ namespace LogUtils.Diagnostics.Tests.Utility
                     new ValuePair<LogID>(control, notSameInstance)
                 };
 
-                var resultEnumerator = testEntries.Select(entries => getTestResults(entries.A, entries.B)).GetEnumerator();
+                processData(testEntries);
+                TestEnumFactory.DisposeObjects();
+            }
+
+            private void assertResults((bool EqualsCheck, bool NotEqualsCheck) results, bool expectEquality)
+            {
+                //Assert that we expect, or do not expect equality checks to pass
+                if (expectEquality)
+                {
+                    AssertThat(results.EqualsCheck).IsTrue();
+                    AssertThat(results.NotEqualsCheck).IsFalse();
+                }
+                else
+                {
+                    AssertThat(results.EqualsCheck).IsFalse();
+                    AssertThat(results.NotEqualsCheck).IsTrue();
+                }
+            }
+
+            private void testInstanceEqualityComparer()
+            {
+                CompareOptions compareOptions = CompareOptions.All;
+                LogIDComparer comparer = new LogIDComparer(compareOptions);
+                TestLogIDFactory factory = TestLogID.Factory;
+
+                LogID fileLog, groupLogA, groupLogB, groupLogC;
+
+                fileLog = factory.Create("Test");
+                fileLog.Properties.AltFilename = new LogFilename("AltTest");
+
+                groupLogA = factory.CreateLogGroup("Test");
+                groupLogB = factory.CreateLogGroup("Test B");
+                groupLogC = factory.CreateLogGroup("TEST");
+
+                AssertThat(comparer.Compare(fileLog, groupLogA)).IsNotZero();   //No match
+                AssertThat(comparer.Compare(groupLogA, groupLogB)).IsNotZero(); //No match
+                AssertThat(comparer.Compare(groupLogA, groupLogC)).IsZero();    //Match
+
+                AssertThat(comparer.Equals(fileLog, groupLogA)).IsFalse();   //No match
+                AssertThat(comparer.Equals(groupLogA, groupLogB)).IsFalse(); //No match
+                AssertThat(comparer.Equals(groupLogA, groupLogC)).IsTrue();  //Match
+
+                testCompareMasks();
+                TestEnumFactory.DisposeObjects();
+
+                void testCompareMasks()
+                {
+                    int resultLengthFile, resultLengthGroup;
+
+                    resultLengthFile = fileLog.Properties.GetValuesToCompare(compareOptions).Length;
+                    resultLengthGroup = groupLogA.Properties.GetValuesToCompare(compareOptions).Length;
+
+                    AssertThat(resultLengthFile).IsEqualTo(4);  //ID, Filename, CurrentFilename, AltFilename
+                    AssertThat(resultLengthGroup).IsEqualTo(1); //ID
+                }
+            }
+
+            private void processData(List<ValuePair<LogID>> data)
+            {
+                var resultEnumerator = data.Select(entries => getTestResults(entries.A, entries.B)).GetEnumerator();
 
                 resultEnumerator.MoveNext();
 
@@ -123,74 +185,17 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 assertResults(resultEnumerator.Current, expectEquality: false);
             }
 
-            private void assertResults((bool EqualsCheck, bool NotEqualsCheck) results, bool expectEquality)
-            {
-                //Assert that we expect, or do not expect equality checks to pass
-                if (expectEquality)
-                {
-                    AssertThat(results.EqualsCheck).IsTrue();
-                    AssertThat(results.NotEqualsCheck).IsFalse();
-                }
-                else
-                {
-                    AssertThat(results.EqualsCheck).IsFalse();
-                    AssertThat(results.NotEqualsCheck).IsTrue();
-                }
-            }
-
-            private void testInstanceEqualityComparer()
-            {
-                CompareOptions compareOptions = CompareOptions.All;
-                LogIDComparer comparer = new LogIDComparer(compareOptions);
-
-                LogID fileLog, groupLogA, groupLogB, groupLogC;
-
-                fileLog = new LogID("Test", false);
-                fileLog.Properties.AltFilename = new LogFilename("AltTest");
-
-                groupLogA = new LogGroupID("Test");
-                groupLogB = new LogGroupID("Test B");
-                groupLogC = new LogGroupID("TEST");
-
-                AssertThat(comparer.Compare(fileLog, groupLogA)).IsNotZero();   //No match
-                AssertThat(comparer.Compare(groupLogA, groupLogB)).IsNotZero(); //No match
-                AssertThat(comparer.Compare(groupLogA, groupLogC)).IsZero();    //Match
-
-                AssertThat(comparer.Equals(fileLog, groupLogA)).IsFalse();   //No match
-                AssertThat(comparer.Equals(groupLogA, groupLogB)).IsFalse(); //No match
-                AssertThat(comparer.Equals(groupLogA, groupLogC)).IsTrue();  //Match
-
-                testCompareMasks();
-
-                void testCompareMasks()
-                {
-                    int resultLengthFile, resultLengthGroup;
-
-                    resultLengthFile = fileLog.Properties.GetValuesToCompare(compareOptions).Length;
-                    resultLengthGroup = groupLogA.Properties.GetValuesToCompare(compareOptions).Length;
-
-                    AssertThat(resultLengthFile).IsEqualTo(4);  //ID, Filename, CurrentFilename, AltFilename
-                    AssertThat(resultLengthGroup).IsEqualTo(1); //ID
-                }
-            }
-
             private (bool EqualsCheck, bool NotEqualsCheck) getTestResults(LogID A, LogID B)
             {
                 return (A == B && A.Equals(B),
                         A != B && !A.Equals(B));
             }
-        }
 
-        private static LogID createTestLogID(string filename, string path = null)
-        {
-            //TODO: LogID instances need to be cleaned up through SharedDataHandler
-            return new LogID(filename, path, LogAccess.Private, false);
-        }
-
-        internal readonly struct ValuePair<T>(T A, T B)
-        {
-            public readonly T A = A;
-            public readonly T B = B;
+            private readonly struct ValuePair<T>(T A, T B)
+            {
+                public readonly T A = A;
+                public readonly T B = B;
+            }
         }
     }
 }

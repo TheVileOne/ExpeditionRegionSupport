@@ -12,8 +12,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
         private void testCaseInsensitiveValuesPropagateRegistrationStatus()
         {
-            TestEnum testEnumA = new TestEnum("test", register: false),
-                     testEnumB = new TestEnum("teSt", register: false);
+            TestEnum testEnumA = TestEnum.Factory.Create("test", register: false),
+                     testEnumB = TestEnum.Factory.Create("teSt", register: false);
 
             testEnumB.Register();
             AssertThat(testEnumA.Registered).IsTrue()
@@ -22,29 +22,25 @@ namespace LogUtils.Diagnostics.Tests.Utility
             testEnumA.Unregister();
             AssertThat(testEnumA.Registered).IsFalse()
                                             .IsEqualTo(testEnumB.Registered);
-
-            clearSharedData();
+            TestEnumFactory.DisposeObjects();
         }
 
         private void testCaseInsensitiveValuesHaveTheSameIndex()
         {
-            TestEnum testEnumA = new TestEnum("test", register: true),
-                     testEnumB = new TestEnum("teSt", register: true),
-                     testEnumC = new TestEnum("TEst", register: false); //Confirm that registration status is unimportant
+            TestEnum testEnumA = TestEnum.Factory.Create("test", register: true),
+                     testEnumB = TestEnum.Factory.Create("teSt", register: true),
+                     testEnumC = TestEnum.Factory.Create("TEst", register: false); //Confirm that registration status is unimportant
 
             AssertThat(testEnumA.Index).IsEqualTo(testEnumB.Index);
             AssertThat(testEnumC.Index).IsEqualTo(testEnumB.Index);
 
-            testEnumA.Unregister();
-            clearSharedData();
+            TestEnumFactory.DisposeObjects();
 
-            testEnumA = new TestEnum("another " + testEnumA.Value, register: false);
-            testEnumB = new TestEnum("another " + testEnumB.Value, register: true);
+            testEnumA = TestEnum.Factory.Create("another " + testEnumA.Value, register: false);
+            testEnumB = TestEnum.Factory.Create("another " + testEnumB.Value, register: true);
 
             AssertThat(testEnumA.Index).IsEqualTo(testEnumB.Index); //Registered index of B should tranfer to A
-
-            testEnumA.Unregister();
-            clearSharedData();
+            TestEnumFactory.DisposeObjects();
         }
     }
 }
