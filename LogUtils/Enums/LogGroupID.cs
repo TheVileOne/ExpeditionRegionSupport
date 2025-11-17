@@ -50,8 +50,7 @@ namespace LogUtils.Enums
         /// <param name="register"></param>
         public LogGroupID(string value, string path, bool register = false) : base(getProperties(value), register)
         {
-            Properties.FolderPath =
-            Properties.OriginalFolderPath = LogProperties.GetContainingPath(path);
+            Properties.SetInitialPath(path);
         }
 
         internal LogGroupID(LogProperties properties, bool register) : base(properties, register)

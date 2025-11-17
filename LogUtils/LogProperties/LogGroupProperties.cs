@@ -52,6 +52,12 @@ namespace LogUtils.Properties
             UtilityLogger.LogWarning($"This log group does not support this operation '{nameof(ChangePath)}'");
         }
 
+        internal void SetInitialPath(string path)
+        {
+            OriginalFolderPath = GetContainingPath(path);
+            CurrentFolderPath = FolderPath = OriginalFolderPath;
+        }
+
         internal override string GetLastKnownPath()
         {
             return LastKnownFolderPath;
