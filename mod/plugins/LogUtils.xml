@@ -3967,9 +3967,85 @@
             A bare-structured implementation of a SharedExtEnum
             </summary>
         </member>
+        <member name="F:LogUtils.Diagnostics.Tests.Components.TestEnum.Factory">
+            <summary>
+            Access factory methods for creating specific kinds of <see cref="T:LogUtils.Diagnostics.Tests.Components.TestEnum"/> instances 
+            </summary>
+        </member>
+        <member name="T:LogUtils.Diagnostics.Tests.Components.TestEnumFactory">
+            <summary>
+            Factory implementation
+            </summary>
+        </member>
+        <member name="F:LogUtils.Diagnostics.Tests.Components.TestEnumFactory.Objects">
+            <summary>
+            Objects that have been created by the factory that have yet to be cleaned up
+            </summary>
+        </member>
+        <member name="M:LogUtils.Diagnostics.Tests.Components.TestEnumFactory.Create(System.String,System.Boolean)">
+            <summary>
+            Creates a new <see cref="T:LogUtils.Diagnostics.Tests.Components.TestEnum"/> instance
+            </summary>
+        </member>
+        <member name="M:LogUtils.Diagnostics.Tests.Components.TestEnumFactory.FromTarget(LogUtils.Diagnostics.Tests.Components.TestEnum)">
+            <summary>
+            Creates a new <see cref="T:LogUtils.Diagnostics.Tests.Components.TestEnum"/> instance using the <see cref="P:LogUtils.Enums.SharedExtEnum`1.Value"/> of an existing instance
+            </summary>
+        </member>
+        <member name="M:LogUtils.Diagnostics.Tests.Components.TestEnumFactory.Add``1(``0)">
+            <summary>
+            Notify the factory class that an object should be managed
+            </summary>
+        </member>
+        <member name="M:LogUtils.Diagnostics.Tests.Components.TestEnumFactory.DisposeObjects">
+            <summary>
+            Ensure that <see cref="T:ExtEnum`1"/> entries used for testing are properly disposed, and will not affect runtime behavior
+            </summary>
+        </member>
+        <member name="F:LogUtils.Diagnostics.Tests.Components.TestLogID.Factory">
+            <inheritdoc cref="F:LogUtils.Enums.LogID.Factory"/>
+        </member>
         <member name="M:LogUtils.Diagnostics.Tests.Components.TestLogID.CycleAccess">
             <summary>
             Cycle to the next <see cref="T:LogUtils.Enums.LogAccess"/> value
+            </summary>
+        </member>
+        <member name="T:LogUtils.Diagnostics.Tests.Components.TestLogIDFactory">
+            <summary>
+            Factory implementation
+            </summary>
+        </member>
+        <member name="M:LogUtils.Diagnostics.Tests.Components.TestLogIDFactory.Create">
+            <summary>
+            Creates a new <see cref="T:LogUtils.Diagnostics.Tests.Components.TestLogID"/> instance with a randomized filename
+            </summary>
+        </member>
+        <member name="M:LogUtils.Diagnostics.Tests.Components.TestLogIDFactory.Create(System.String,System.String)">
+            <summary>
+            Creates a new <see cref="T:LogUtils.Diagnostics.Tests.Components.TestLogID"/> instance
+            </summary>
+        </member>
+        <member name="M:LogUtils.Diagnostics.Tests.Components.TestLogIDFactory.CreateLogGroup(System.String,System.String)">
+            <summary>
+            Creates a new <see cref="T:LogUtils.Enums.LogGroupID"/> instance
+            </summary>
+        </member>
+        <member name="M:LogUtils.Diagnostics.Tests.Components.TestLogIDFactory.CreateLogGroupMember(LogUtils.Enums.LogGroupID,System.String,System.String)">
+            <summary>
+            Assigns a new <see cref="T:LogUtils.Enums.LogID"/> member to a log group
+            </summary>
+        </member>
+        <member name="M:LogUtils.Diagnostics.Tests.Components.TestLogIDFactory.FromTarget(LogUtils.Enums.LogID)">
+            <summary>
+            Creates a new <see cref="T:LogUtils.Diagnostics.Tests.Components.TestLogID"/> instance using the <see cref="P:LogUtils.Enums.SharedExtEnum`1.Value"/> of an existing instance
+            </summary>
+        </member>
+        <member name="M:LogUtils.Diagnostics.Tests.Components.TestLogIDFactory.FromTarget(LogUtils.Enums.LogID,System.String)">
+            <inheritdoc cref="M:LogUtils.Diagnostics.Tests.Components.TestLogIDFactory.FromTarget(LogUtils.Enums.LogID)"/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.Tests.Components.TestLogIDFactory.FromPath(System.String)">
+            <summary>
+            Creates a new <see cref="T:LogUtils.Diagnostics.Tests.Components.TestLogID"/> instance with a randomized filename
             </summary>
         </member>
         <member name="T:LogUtils.Diagnostics.Tests.ITestable">
@@ -4155,11 +4231,6 @@
         <member name="M:LogUtils.Diagnostics.Tests.Utility.ExtEnumTests.testManagedReferenceIsDifferentPerLogPath">
             <summary>
             Test that a log filename can exist at two different paths without sharing the same managed reference
-            </summary>
-        </member>
-        <member name="M:LogUtils.Diagnostics.Tests.Utility.ExtEnumTests.clearSharedData">
-            <summary>
-            This should be called after each test that sets shared data to ensure that state transfer isn't a factor in between tests
             </summary>
         </member>
         <member name="T:LogUtils.Diagnostics.Tests.Utility.LogCategoryTests.TransferMode">
@@ -5384,12 +5455,17 @@
         <member name="F:LogUtils.Enums.ComparisonLogID.Factory">
             <inheritdoc cref="F:LogUtils.Enums.LogID.Factory"/>
         </member>
-        <member name="T:LogUtils.Enums.ComparisonLogID._Factory">
+        <member name="T:LogUtils.Enums.ComparisonLogID.FactoryImpl">
             <summary>
             Factory implementation
             </summary>
         </member>
-        <member name="M:LogUtils.Enums.ComparisonLogID._Factory.CreateID(System.String,System.String)">
+        <member name="T:LogUtils.Enums.ComparisonLogID.IFactory">
+            <summary>
+            Represents a type exposing <see cref="T:LogUtils.Enums.LogID"/> construction options
+            </summary>
+        </member>
+        <member name="M:LogUtils.Enums.ComparisonLogID.IFactory.CreateID(System.String,System.String)">
             <inheritdoc cref="M:LogUtils.Enums.ComparisonLogID.#ctor(System.String,System.String)"/>
         </member>
         <member name="T:LogUtils.Enums.CompositeLogCategory">
@@ -5487,6 +5563,38 @@
         </member>
         <member name="P:LogUtils.Enums.ConsoleID.IsEnabled">
             <inheritdoc/>
+        </member>
+        <member name="T:LogUtils.Enums.IExtEnumBase">
+            <summary>
+            The non-generic representation of a <see cref="T:LogUtils.Enums.SharedExtEnum`1"/> derived type
+            </summary>
+        </member>
+        <member name="P:LogUtils.Enums.IExtEnumBase.Index">
+            <summary>
+            Index position for this entry in the <see cref="F:ExtEnumType.entries"/> list
+            </summary>
+        </member>
+        <member name="P:LogUtils.Enums.IExtEnumBase.Registered">
+            <summary>
+            This <see cref="T:ExtEnum`1"/> entry is associated with a valid (non-negative) <see cref="P:ExtEnum`1.Index"/> value
+            </summary>
+        </member>
+        <member name="P:LogUtils.Enums.IExtEnumBase.Value">
+            <summary>
+            An identifying string assigned to each <see cref="T:ExtEnum`1"/> entry
+            </summary>
+        </member>
+        <member name="M:LogUtils.Enums.IExtEnumBase.Register">
+            <summary>
+            Registers the <see cref="T:ExtEnum`1"/> entry
+            </summary>
+            <remarks>This will register all other instances representing this entry</remarks>
+        </member>
+        <member name="M:LogUtils.Enums.IExtEnumBase.Unregister">
+            <summary>
+            Unregisters the <see cref="T:ExtEnum`1"/> entry
+            </summary>
+            <remarks>This will unregister all other instances representing this entry</remarks>
         </member>
         <member name="F:LogUtils.Enums.LogCategory.LOG_LEVEL_DEFAULT">
             <summary>
@@ -5623,12 +5731,16 @@
             <inheritdoc cref="P:LogUtils.Enums.LogID.Properties"/>
         </member>
         <member name="M:LogUtils.Enums.LogGroupID.#ctor(System.String,System.Boolean)">
+            <inheritdoc cref="M:LogUtils.Enums.LogGroupID.#ctor(System.String,System.String,System.Boolean)"/>
+        </member>
+        <member name="M:LogUtils.Enums.LogGroupID.#ctor(System.String,System.String,System.Boolean)">
             <summary>
             Creates a new <see cref="T:LogUtils.Enums.LogGroupID"/> instance.
             </summary>
             <inheritdoc cref="M:LogUtils.Enums.LogID.#ctor(System.String,LogUtils.Enums.LogAccess,System.Boolean)"/>
             <param name="value">The value that identifies the <see cref="T:LogUtils.Enums.LogGroupID"/> instance</param>
-            <param name="register"/>
+            <param name="path">An optional path that all group members will have in common</param>
+            <param name="register"></param>
         </member>
         <member name="M:LogUtils.Enums.LogGroupID.CheckTag(System.String)">
             <inheritdoc/>
@@ -5636,15 +5748,20 @@
         <member name="F:LogUtils.Enums.LogGroupID.Factory">
             <inheritdoc cref="F:LogUtils.Enums.LogID.Factory"/>
         </member>
-        <member name="T:LogUtils.Enums.LogGroupID._Factory">
+        <member name="T:LogUtils.Enums.LogGroupID.FactoryImpl">
             <summary>
             Factory implementation
             </summary>
         </member>
-        <member name="M:LogUtils.Enums.LogGroupID._Factory.CreateID(System.String,System.Boolean)">
+        <member name="T:LogUtils.Enums.LogGroupID.IFactory">
+            <summary>
+            Represents a type exposing <see cref="T:LogUtils.Enums.LogID"/> construction options
+            </summary>
+        </member>
+        <member name="M:LogUtils.Enums.LogGroupID.IFactory.CreateID(System.String,System.Boolean)">
             <inheritdoc cref="M:LogUtils.Enums.LogGroupID.#ctor(System.String,System.Boolean)"/>
         </member>
-        <member name="M:LogUtils.Enums.LogGroupID._Factory.CreateComparisonID(System.String)">
+        <member name="M:LogUtils.Enums.LogGroupID.IFactory.CreateComparisonID(System.String)">
             <inheritdoc cref="M:LogUtils.Enums.ComparisonLogID.#ctor(System.String,LogUtils.Enums.LogIDType)"/>
         </member>
         <member name="M:LogUtils.Enums.LogGroupMap.GetEquivalent(BepInEx.Logging.LogLevel@,System.Boolean)">
@@ -5807,6 +5924,11 @@
         <member name="M:LogUtils.Enums.LogID.GetHashCode">
             <inheritdoc/>
         </member>
+        <member name="M:LogUtils.Enums.LogID.IsGroupType(LogUtils.Enums.LogID)">
+            <summary>
+            Determine if <see cref="T:LogUtils.Enums.LogID"/> reference represents a file, or a log group
+            </summary>
+        </member>
         <member name="M:LogUtils.Enums.LogID.Sanitize(System.String)">
             <summary>
             Converts a filename input into a LogUtils supported filename
@@ -5821,32 +5943,37 @@
             Access factory methods for creating specific kinds of <see cref="T:LogUtils.Enums.LogID"/> instances 
             </summary>
         </member>
-        <member name="T:LogUtils.Enums.LogID._Factory">
+        <member name="T:LogUtils.Enums.LogID.FactoryImpl">
             <summary>
             Factory implementation
             </summary>
         </member>
-        <member name="M:LogUtils.Enums.LogID._Factory.CreateID(System.String,LogUtils.Enums.LogAccess,System.Boolean)">
+        <member name="T:LogUtils.Enums.LogID.IFactory">
+            <summary>
+            Represents a type exposing <see cref="T:LogUtils.Enums.LogID"/> construction options
+            </summary>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.IFactory.CreateID(System.String,LogUtils.Enums.LogAccess,System.Boolean)">
             <inheritdoc cref="M:LogUtils.Enums.LogID.#ctor(System.String,LogUtils.Enums.LogAccess,System.Boolean)"/>
         </member>
-        <member name="M:LogUtils.Enums.LogID._Factory.CreateID(System.String,System.String,LogUtils.Enums.LogAccess,System.Boolean)">
+        <member name="M:LogUtils.Enums.LogID.IFactory.CreateID(System.String,System.String,LogUtils.Enums.LogAccess,System.Boolean)">
             <inheritdoc cref="M:LogUtils.Enums.LogID.#ctor(System.String,System.String,LogUtils.Enums.LogAccess,System.Boolean)"/>
         </member>
-        <member name="M:LogUtils.Enums.LogID._Factory.CreateTemporaryID(System.String,System.String)">
+        <member name="M:LogUtils.Enums.LogID.IFactory.CreateTemporaryID(System.String,System.String)">
             <summary>
             Creates a <see cref="T:LogUtils.Enums.LogID"/> instance designed to accessed only in a local context
             </summary>
             <inheritdoc cref="M:LogUtils.Enums.LogID.#ctor(System.String,System.String,LogUtils.Enums.LogAccess,System.Boolean)" select="params"/>
             <exception cref="T:System.InvalidOperationException">A registered <see cref="T:LogUtils.Enums.LogID"/> instance already exists</exception>
         </member>
-        <member name="M:LogUtils.Enums.LogID._Factory.CreateComparisonID(System.String,System.String)">
+        <member name="M:LogUtils.Enums.LogID.IFactory.CreateComparisonID(System.String,System.String)">
             <inheritdoc cref="M:LogUtils.Enums.ComparisonLogID.#ctor(System.String,System.String)"/>
         </member>
-        <member name="M:LogUtils.Enums.LogID._Factory.CreateComparisonID(System.String,LogUtils.Enums.LogIDType)">
+        <member name="M:LogUtils.Enums.LogID.IFactory.CreateComparisonID(System.String,LogUtils.Enums.LogIDType)">
             <inheritdoc cref="M:LogUtils.Enums.ComparisonLogID.#ctor(System.String,LogUtils.Enums.LogIDType)"/>
         </member>
         <member name="M:LogUtils.Enums.LogID.CreateTemporaryID(System.String,System.String)">
-            <inheritdoc cref="M:LogUtils.Enums.LogID._Factory.CreateTemporaryID(System.String,System.String)"/>
+            <inheritdoc cref="M:LogUtils.Enums.LogID.IFactory.CreateTemporaryID(System.String,System.String)"/>
         </member>
         <member name="M:LogUtils.Enums.LogID.GetEntries(System.Boolean)">
             <summary>
@@ -6058,32 +6185,26 @@
             <inheritdoc/>
         </member>
         <member name="P:LogUtils.Enums.SharedExtEnum`1.Index">
-            <summary>
-            Index position in values.entries list for this ExtEnum entry
-            </summary>
+            <inheritdoc cref="P:LogUtils.Enums.IExtEnumBase.Index"/>
         </member>
         <member name="P:LogUtils.Enums.SharedExtEnum`1.BaseIndex">
             <summary>
-            The underlying ExtEnum value index (used during the registration process when values are being synced)
+            The underlying <see cref="T:ExtEnum`1"/> value index (used during the registration process when values are being synced)
             </summary>
         </member>
         <member name="F:LogUtils.Enums.SharedExtEnum`1.ManagedReference">
             <summary>
-            A null-safe reference to the SharedExtEnum that any mod can access
+            A null-safe reference to the <see cref="T:LogUtils.Enums.SharedExtEnum`1"/> shared instance that any mod can access
             </summary>
         </member>
         <member name="P:LogUtils.Enums.SharedExtEnum`1.Registered">
-            <summary>
-            The managed reference associated with this ExtEnum instance has been assigned a valid ExtEnum value index
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:LogUtils.Enums.SharedExtEnum`1.Tag">
             <inheritdoc/>
         </member>
         <member name="P:LogUtils.Enums.SharedExtEnum`1.Value">
-            <summary>
-            An identifying string assigned to each ExtEnum
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:LogUtils.Enums.SharedExtEnum`1.value">
             <inheritdoc cref="P:LogUtils.Enums.SharedExtEnum`1.Value"/>
@@ -6095,7 +6216,7 @@
         </member>
         <member name="M:LogUtils.Enums.SharedExtEnum`1.EntryAt(System.Int32)">
             <summary>
-            Retrieves an ExtEnum instance at the specified index
+            Retrieves an <see cref="T:ExtEnum`1"/> instance at the specified index
             </summary>
             <exception cref="T:System.ArgumentOutOfRangeException">The index provided is outside the bounds of the collection</exception>
         </member>
@@ -6121,14 +6242,10 @@
             </summary>
         </member>
         <member name="M:LogUtils.Enums.SharedExtEnum`1.Register">
-            <summary>
-            Registers the ExtEnum instance
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="M:LogUtils.Enums.SharedExtEnum`1.Unregister">
-            <summary>
-            Unregisters the ExtEnum instance
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="M:LogUtils.Enums.SharedExtEnum`1.CheckTag(System.String)">
             <inheritdoc/>
@@ -8635,6 +8752,11 @@
             Resolves a path, or path keyword into a usable log path
             </summary>
         </member>
+        <member name="M:LogUtils.Properties.LogProperties.ApplyGroupPath(LogUtils.Enums.LogGroupID,System.String)">
+            <summary>
+            Attempts to create a valid path associated with a log group. In certain situation, this may fail, and return the given path instead.
+            </summary>
+        </member>
         <member name="P:LogUtils.Properties.LogProperties.IsMetadataOptional">
             <summary>
             Indicates whether optional metadata is supported for this instance
@@ -8913,11 +9035,15 @@
             </summary>
         </member>
         <member name="M:LogUtils.Properties.PropertyDataController.GetProperties(LogUtils.Enums.LogID,System.String)">
+            <inheritdoc cref="M:LogUtils.Properties.PropertyDataController.GetProperties(LogUtils.Enums.LogID,System.String,System.Collections.Generic.IEnumerable{LogUtils.Properties.LogProperties})"/>
+        </member>
+        <member name="M:LogUtils.Properties.PropertyDataController.GetProperties(LogUtils.Enums.LogID,System.String,System.Collections.Generic.IEnumerable{LogUtils.Properties.LogProperties})">
             <summary>
             Finds the first detected <see cref="T:LogUtils.Properties.LogProperties"/> instance associated with the given <see cref="T:LogUtils.Enums.LogID"/>, and relative filepath
             </summary>
-            <param name="logID">The LogID to search for</param>
-            <param name="relativePathNoFile">The filepath to search for. When set to null, any LogID match will be returned with custom root being prioritized</param>
+            <param name="searchTarget">The <see cref="T:LogUtils.Enums.LogID"/> to search for</param>
+            <param name="searchPath">The filepath to search for. When set to null or an empty string, any <see cref="T:LogUtils.Enums.LogID"/> match will be returned with custom root being prioritized</param>
+            <param name="searchEntries">An enumeration of entries to search</param>
         </member>
         <member name="M:LogUtils.Properties.PropertyDataController.SetPropertiesFromFile">
             <summary>
