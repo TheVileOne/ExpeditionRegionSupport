@@ -62,6 +62,7 @@ namespace LogUtils.Enums
         {
             target.Properties.Group = this;
             Properties.Members.Add(target);
+            Properties.ReadOnly = true;
         }
 
         /// <inheritdoc/>
