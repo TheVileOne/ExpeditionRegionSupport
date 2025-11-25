@@ -1,8 +1,6 @@
 ﻿using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.FileHandling;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
 
 namespace LogUtils
@@ -151,114 +149,6 @@ namespace LogUtils
         public static string Locate(string path)
         {
             return PathFinder.FindMatch(path);
-        }
-
-        public static DirectoryInfo FindDirectory(string[] pathMap)
-        {
-            DirectoryInfo rootInfo = GetDirectoryInfo();
-            rootInfo.GetDirectories();
-            Result bestResult = default;
-
-            //Search the root directory first
-            bool isMatch = DirectoryUtils.IsDirectoryName(rootInfo.Name, pathMap[0]);
-
-            if (isMatch)
-            {
-                //Created in case root directory is the only match
-                bestResult = new Result()
-                {
-                    TotalMatches = 1,
-                    Info = rootInfo
-                };
-            }
-
-            Result result = checkDirectory(rootInfo, pathMap, isMatch ? 1 : 0);
-
-            if (result.TotalMatches > bestResult.TotalMatches)
-                bestResult = result;
-
-            return bestResult.Info;
-        }
-
-        private static Result checkDirectory(DirectoryInfo directory, string[] pathMap, int index)
-        {
-            // When the index reaches the end of the array, it means we have matched every value in the array
-            if (index == pathMap.Length)
-            {
-                return new Result
-                {
-                    TotalMatches = pathMap.Length,
-                    Info = directory
-                };
-            }
-
-            DirectoryInfo[] children = directory.GetDirectories("*", SearchOption.TopDirectoryOnly);
-
-            Result result;
-            Result bestResult = default;
-            foreach (DirectoryInfo child in children)
-            {
-                bool isMatch = DirectoryUtils.IsDirectoryName(child.Name, pathMap[index]);
-
-                if (isMatch)
-                {
-                    result = checkDirectory(child, pathMap, index + 1);
-                }
-                else
-                {
-                    isMatch = DirectoryUtils.IsDirectoryName(child.Name, pathMap[0]);
-                    result = checkDirectory(child, pathMap, isMatch ? 1 : 0);
-                }
-
-                if (result.TotalMatches > bestResult.TotalMatches)
-                {
-                    bestResult = result;
-
-                    if (result.TotalMatches == pathMap.Length) //We found a perfect match
-                        break;
-                }
-            }
-
-            if (bestResult.TotalMatches == 0 || bestResult.TotalMatches <= index)
-            {
-                if (index == 0)
-                    return default; //Does it make sense to always initialize, or return default as a special case?
-
-                bestResult = new Result()
-                {
-                    TotalMatches = index,
-                    Info = directory
-                };
-            }
-
-            return bestResult;
-        }
-
-        private struct Result
-        {
-            public int TotalMatches;
-            public DirectoryInfo Info;
-        }
-
-        internal static IEnumerable<DirectoryInfo> FindDirectoriesRecursive(DirectoryInfo directory, string dirName)
-        {
-            //Search the root directory first
-            if (DirectoryUtils.IsDirectoryName(directory.Name, dirName))
-                yield return directory;
-
-            DirectoryInfo[] subDirs = directory.GetDirectories();
-
-            //Search the topmost directories next
-            foreach (DirectoryInfo dir in subDirs.Where(dir => DirectoryUtils.IsDirectoryName(dir.Name, dirName)))
-                yield return dir;
-
-            foreach (DirectoryInfo dir in subDirs)
-            {
-                IEnumerable<DirectoryInfo> matches = FindDirectoriesRecursive(dir, dirName);
-
-                foreach (DirectoryInfo match in matches)
-                    yield return match;
-            }
         }
 
         /// <summary>
