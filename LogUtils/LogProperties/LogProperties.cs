@@ -1045,53 +1045,10 @@ namespace LogUtils.Properties
         /// <summary>
         /// Resolves a path, or path keyword into a usable log path
         /// </summary>
-        public static string GetContainingPath(string relativePath)
+        public static string GetContainingPath(string path)
         {
-            if (PathUtils.IsEmpty(relativePath))
-                return RainWorldPath.StreamingAssetsPath;
-
-            //Apply some preprocessing to the path based on whether it is a partial, or full path
-            string path;
-            if (Path.IsPathRooted(relativePath))
-            {
-                UtilityLogger.Log("Processing a rooted path when expecting a partial one");
-
-                if (Directory.Exists(relativePath)) //As long as it exists, we shouldn't care if it is rooted
-                    return relativePath;
-
-                UtilityLogger.Log("Rooted path could not be found. Unrooting...");
-
-                //Unrooting allows us to still find a possibly valid Rain World path
-                relativePath = PathUtils.Unroot(relativePath);
-
-                path = Path.GetFullPath(relativePath);
-
-                if (PathUtils.PathRootExists(path))
-                {
-                    UtilityLogger.Log("Unroot successful");
-                    return path;
-                }
-
-                path = relativePath; //We don't know where this path is, but we shouldn't default to the Rain World root here 
-            }
-            else
-            {
-                path = PathUtils.GetPathFromKeyword(relativePath);
-            }
-
-            if (PathUtils.PathRootExists(path)) //No need to change the path when it is already valid
-                return path;
-
-            UtilityLogger.Log("Attempting to resolve path");
-
-            //Resolve directory the game supported way if we're not too early to do so (most likely will be too early)
-            if (RWInfo.IsRainWorldRunning)
-                return AssetManager.ResolveDirectory(path);
-
-            UtilityLogger.Log("Defaulting to custom root. Path check run too early to resolve");
-
-            //This is what AssetManager.ResolveDirectory would have returned as a fallback path
-            return Path.Combine(RainWorldPath.StreamingAssetsPath, relativePath);
+            path = PathUtils.GetPathFromKeyword(path); //Filename is removed here, should not be handled in ResolvePath
+            return PathUtils.ResolvePath(path);
         }
 
         /// <summary>

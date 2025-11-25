@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 
 namespace LogUtils.Helpers.FileHandling
 {
@@ -132,6 +133,76 @@ namespace LogUtils.Helpers.FileHandling
                 }
             }
             TargetPath = path;
+        }
+
+        /// <summary>
+        /// Enumerates directory names parsed from the path string
+        /// </summary>
+        public IEnumerable<string> GetDirectories()
+        {
+            if (!HasPath)
+            {
+                if (HasDirectory)
+                    yield return Target.Name;
+                yield break;
+            }
+
+            int dirIndex = GetPrefixLength(),
+                lastDirIndex = dirIndex;
+
+            while (dirIndex < TargetPath.Length)
+            {
+                char c = TargetPath[dirIndex];
+
+                if (c == Path.DirectorySeparatorChar || c == Path.AltDirectorySeparatorChar)
+                {
+                    yield return TargetPath.Substring(lastDirIndex, dirIndex - lastDirIndex);
+                    lastDirIndex = dirIndex + 1; //Add one to account for separator
+                }
+                dirIndex++;
+            }
+
+            if (lastDirIndex != dirIndex)
+                yield return TargetPath.Substring(lastDirIndex, dirIndex - lastDirIndex);
+            yield break;
+        }
+
+        /// <summary>
+        /// Begins a new directory enumeration returning the enumerator
+        /// </summary>
+        public IEnumerator<string> GetDirectoryEnumerator()
+        {
+            return GetDirectories().GetEnumerator();
+        }
+
+        /// <summary>
+        /// Gets the length of the path root
+        /// </summary>
+        public int GetRootLength()
+        {
+            return TargetPath.Length - PathUtils.Unroot(TargetPath).Length;
+        }
+
+        /// <summary>
+        /// Gets the length of any relative, or root path information at the start of the path string
+        /// </summary>
+        public int GetPrefixLength()
+        {
+            if (PathUtils.IsAbsolute(TargetPath))
+                return GetRootLength();
+
+            int matchCount = 0;
+            while (matchCount < TargetPath.Length)
+            {
+                char c = TargetPath[matchCount];
+                if (c == '.' || c == Path.DirectorySeparatorChar || c == Path.AltDirectorySeparatorChar)
+                {
+                    matchCount++;
+                    continue;
+                }
+                break;
+            }
+            return matchCount;
         }
     }
 

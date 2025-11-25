@@ -17,6 +17,11 @@ namespace LogUtils.Helpers
         {
             public static string RootPath => BepInExPath.GameRootPath;
             public static string StreamingAssetsPath => Application.streamingAssetsPath;
+
+            /// <summary>
+            /// The name of the Rain World root folder
+            /// </summary>
+            public static readonly string ROOT_DIRECTORY = Path.GetFileName(RootPath);
         }
 
         internal static class Unity

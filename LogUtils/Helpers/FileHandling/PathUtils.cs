@@ -24,6 +24,26 @@ namespace LogUtils.Helpers.FileHandling
             return path.StartsWith(pathOther, StringComparison.InvariantCultureIgnoreCase);
         }
 
+        public static int CountLeadingSeparators(string path)
+        {
+            if (path == null) return 0;
+
+            int charCount = 0;
+            while (charCount < path.Length && (path[charCount] == Path.DirectorySeparatorChar || path[charCount] == Path.AltDirectorySeparatorChar))
+                charCount++;
+            return charCount;
+        }
+
+        public static int CountTrailingSeparators(string path)
+        {
+            if (path == null) return 0;
+
+            int charCount = 0;
+            while (charCount != path.Length && (path[path.Length - charCount] == Path.DirectorySeparatorChar || path[path.Length - charCount] == Path.AltDirectorySeparatorChar))
+                charCount++;
+            return charCount;
+        }
+
         /// <summary>
         /// Finds a path string that two provided paths have in common
         /// </summary>
@@ -75,6 +95,72 @@ namespace LogUtils.Helpers.FileHandling
         {
             string filename = Path.GetRandomFileName();
             return Path.ChangeExtension(filename, fileExt);
+        }
+
+        /// <summary>
+        /// Checks for and returns relative path syntax from the beginning of a path string
+        /// </summary>
+        /// <returns>Returns a string representing the relative path syntax or null if path string is not a relative path</returns>
+        public static bool IsRelative(string path)
+        {
+            if (IsEmpty(path)) return false;
+
+            //Count number of leading periods
+            int index = 0;
+            while (index < path.Length && path[index] == '.')
+            {
+                index++;
+            }
+
+            /*
+             * Valid formats
+             * @./ ../
+             * @.\ ..\
+             * @/  //   This is also considered a path root, but is not a fully qualified path
+             * @\  \\   This is also considered a path root, but is not a fully qualified path
+             */
+            if (index == path.Length) //All periods is not a valid relative path
+                return false;
+
+            return path[index] == Path.DirectorySeparatorChar || path[index] == Path.AltDirectorySeparatorChar;
+        }
+
+        /// <summary>
+        /// Converts a partial, or non-partial path into a fully qualified absolute path
+        /// </summary>
+        /// <remarks>Supports files and directories</remarks>
+        public static string ResolvePath(string path)
+        {
+            if (IsEmpty(path))
+                return RainWorldPath.StreamingAssetsPath;
+
+            if (tryExpandPath(ref path))
+                return path;
+
+            string result = RainWorldDirectory.Locate(path);
+
+            if (result != null)
+                return result;
+            return Path.Combine(RainWorldPath.StreamingAssetsPath, path); //Unrecognized partial paths default to StreamingAssets
+        }
+
+        private static bool tryExpandPath(ref string path)
+        {
+            if (Path.IsPathRooted(path))
+            {
+                if (path.StartsWith(@"\.") || path.StartsWith(@"/.")) //Path is relative to system root
+                {
+                    //TODO: Handle this case
+                }
+                return true;
+            }
+
+            if (path[0] == '.') //Path is relative to the root directory
+            {
+                path = Path.GetFullPath(path);
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
