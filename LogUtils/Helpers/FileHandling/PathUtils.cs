@@ -7,41 +7,11 @@ namespace LogUtils.Helpers.FileHandling
 {
     public static class PathUtils
     {
-        /// <summary>
-        /// Checks that a directory is contained within a path string
-        /// </summary>
-        /// <param name="path">The path to check</param>
-        /// <param name="dirName">The directory name to search for</param>
-        /// <param name="dirLevelsToCheck">The number of directory separators to check starting from the right</param>
-        public static bool ContainsDirectory(string path, string dirName, int dirLevelsToCheck)
-        {
-            if (IsEmpty(path)) return false;
+        /// <inheritdoc cref="DirectoryUtils.ContainsDirectory(string, string)"/>
+        public static bool ContainsDirectory(string path, string dirName) => DirectoryUtils.ContainsDirectory(path, dirName);
 
-            path = PathWithoutFilename(path);
-
-            bool dirFound = false;
-            while (dirLevelsToCheck > 0)
-            {
-                if (IsEmpty(path))
-                {
-                    dirLevelsToCheck = 0;
-                    break;
-                }
-
-                if (path.EndsWith(dirName, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    dirFound = true;
-                    dirLevelsToCheck = 0;
-                }
-                else
-                {
-                    //Keep stripping away directories, 
-                    path = Path.GetDirectoryName(path);
-                    dirLevelsToCheck--;
-                }
-            }
-            return dirFound;
-        }
+        /// <inheritdoc cref="DirectoryUtils.ContainsDirectory(string, string, int)"/>
+        public static bool ContainsDirectory(string path, string dirName, int dirLevelsToCheck) => DirectoryUtils.ContainsDirectory(path, dirName, dirLevelsToCheck);
 
         /// <summary>
         /// Checks the second path is contained with the first path
@@ -126,7 +96,7 @@ namespace LogUtils.Helpers.FileHandling
                 if (commonRoot.Length == absolutePathTarget.Length) //Same path
                 {
                     if (includeCommonDirectoryInResult)
-                        return Path.DirectorySeparatorChar + Path.GetFileName(absolutePathTarget);
+                        return PrependWithSeparator(Path.GetFileName(absolutePathTarget));
                     return string.Empty;
                 }
 
@@ -179,6 +149,9 @@ namespace LogUtils.Helpers.FileHandling
             if (IsEmpty(path))
                 return false;
 
+            if (!Path.IsPathRooted(path))
+                path = Path.GetFullPath(path);
+
             path = FindExistingPathRootRecursive(PathWithoutFilename(path), parentDirChecksAllowed);
             return path != null;
         }
@@ -192,13 +165,19 @@ namespace LogUtils.Helpers.FileHandling
             if (IsEmpty(path))
                 return null;
 
+            if (!Path.IsPathRooted(path))
+                path = Path.GetFullPath(path);
+
             path = FindExistingPathRootRecursive(PathWithoutFilename(path), parentDirChecksAllowed);
             return path;
         }
 
         internal static string FindExistingPathRootRecursive(string path, int parentDirChecksAllowed)
         {
-            if (IsEmpty(path) || Directory.Exists(path))
+            if (IsEmpty(path) || path.Length <= 3)
+                return null;
+
+            if (Directory.Exists(path))
                 return path;
 
             if (parentDirChecksAllowed > 1)
@@ -220,7 +199,7 @@ namespace LogUtils.Helpers.FileHandling
         public static string PathWithoutFilename(string path, out string filename)
         {
             filename = null;
-            if (Path.HasExtension(path))
+            if (Path.HasExtension(path)) //TODO: This needs to use the FileExtension helper class to avoid it detecting folder paths with periods
             {
                 filename = Path.GetFileName(path);
                 return Path.GetDirectoryName(path); //Gets the path of the containing directory of a file/directory path
@@ -246,10 +225,11 @@ namespace LogUtils.Helpers.FileHandling
             if (path == null)
                 return Array.Empty<string>();
 
-            //Leading, and trailing separator characters will create misleading results, trim them out
-            path = Normalize(path).Trim(Path.DirectorySeparatorChar);
+            char[] separators = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
 
-            return path.Split(Path.DirectorySeparatorChar);
+            //Leading, and trailing separator characters will create misleading results, trim them out
+            return path.Trim(separators)
+                       .Split(separators);
         }
 
         /// <summary>
@@ -293,7 +273,7 @@ namespace LogUtils.Helpers.FileHandling
 
         public static bool IsPathKeyword(string pathString)
         {
-            if (pathString == null) return false;
+            if (IsEmpty(pathString) || Path.IsPathRooted(pathString)) return false;
 
             pathString = pathString.ToLower();
 

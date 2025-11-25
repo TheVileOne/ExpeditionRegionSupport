@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogUtils.Helpers.Comparers;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,19 +9,88 @@ namespace LogUtils.Helpers.FileHandling
     public static class DirectoryUtils
     {
         /// <summary>
+        /// Checks that a directory is contained within a path string
+        /// </summary>
+        /// <param name="path">The path to check</param>
+        /// <param name="dirName">The directory name to search for</param>
+        public static bool ContainsDirectory(string path, string dirName)
+        {
+            if (PathUtils.IsEmpty(path)) return false;
+
+            string[] pathDirs = PathUtils.Separate(PathUtils.PathWithoutFilename(path));
+
+            return Array.Exists(pathDirs, dir => IsDirectoryName(dir, dirName));
+        }
+
+        /// <summary>
+        /// Checks that a directory is contained within a path string
+        /// </summary>
+        /// <param name="path">The path to check</param>
+        /// <param name="dirName">The directory name to search for</param>
+        /// <param name="dirLevelsToCheck">The number of directory separators to check starting from the right</param>
+        public static bool ContainsDirectory(string path, string dirName, int dirLevelsToCheck)
+        {
+            if (PathUtils.IsEmpty(path)) return false;
+
+            path = PathUtils.PathWithoutFilename(path);
+
+            bool dirFound = false;
+            while (dirLevelsToCheck > 0)
+            {
+                if (PathUtils.IsEmpty(path))
+                {
+                    dirLevelsToCheck = 0;
+                    break;
+                }
+
+                if (path.EndsWith(dirName, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    dirFound = true;
+                    dirLevelsToCheck = 0;
+                }
+                else
+                {
+                    //Keep stripping away directories, 
+                    path = Path.GetDirectoryName(path);
+                    dirLevelsToCheck--;
+                }
+            }
+            return dirFound;
+        }
+
+        /// <summary>
+        /// Compares the equality of two directory names
+        /// </summary>
+        /// <param name="dirName">The first directory name to check</param>
+        /// <param name="dirNameOther">The second directory name to check</param>
+        /// <param name="trimLeadingSeparators">Removes leading separator characters before matching</param>
+        /// <returns>Returns whether both directory names have an equivalent value (case insensitive)</returns>
+        public static bool IsDirectoryName(string dirName, string dirNameOther, bool trimLeadingSeparators = false)
+        {
+            if (dirName == null || dirNameOther == null)
+                return dirName == dirNameOther;
+
+            char[] separatorChars = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
+
+            //Trim out characters that can interfere with matching
+            if (trimLeadingSeparators)
+            {
+                dirName = dirName.TrimStart(separatorChars);
+                dirNameOther = dirNameOther.TrimStart(separatorChars);
+            }
+            dirName = dirName.TrimEnd(separatorChars);
+            dirNameOther = dirNameOther.TrimEnd(separatorChars);
+            return ComparerUtils.StringComparerIgnoreCase.Equals(dirName, dirNameOther);
+        }
+
+        /// <summary>
         /// Determines if the given path has an existing parent directory
         /// </summary>
         public static bool ParentExists(string path)
         {
-            if (PathUtils.IsEmpty(path) || path.Length <= 2) return false;
+            if (PathUtils.IsEmpty(path) || path.Length <= 3) return false;
 
             return Directory.Exists(Path.GetDirectoryName(path));
-
-            //if (Path.IsPathRooted(path))
-            //{
-            //    if (path[1] != Path.VolumeSeparatorChar) //This is not a full path
-            //        path = Path.GetFullPath(path);
-            //}
         }
 
         public static void SafeDelete(string path, bool deleteOnlyIfEmpty, string customErrorMsg = null)
