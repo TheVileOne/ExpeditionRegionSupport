@@ -175,7 +175,7 @@ namespace LogUtils
             return LogID.FindAll(properties => PathUtils.PathsAreEqual(properties.CurrentFolderPath, CurrentPath));
         }
 
-        public static void OnEligibilityChanged(LogEventArgs e)
+        internal static void OnEligibilityChanged(LogEventArgs e)
         {
             LogProperties properties = e.Properties;
 
