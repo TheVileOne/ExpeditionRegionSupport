@@ -7025,6 +7025,48 @@
             Find an immediate child node with a given value, otherwise null
             </summary>
         </member>
+        <member name="M:LogUtils.Helpers.FileHandling.DirectoryUtils.ContainsDirectory(System.String,System.String)">
+            <summary>
+            Checks that a directory is contained within a path string
+            </summary>
+            <param name="path">The path to check</param>
+            <param name="dirName">The directory name to search for</param>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.DirectoryUtils.ContainsDirectory(System.String,System.String,System.Int32)">
+            <summary>
+            Checks that a directory is contained within a path string
+            </summary>
+            <param name="path">The path to check</param>
+            <param name="dirName">The directory name to search for</param>
+            <param name="dirLevelsToCheck">The number of directory separators to check starting from the right</param>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.DirectoryUtils.IsDirectoryName(System.String,System.String,System.Boolean)">
+            <summary>
+            Compares the equality of two directory names
+            </summary>
+            <param name="dirName">The first directory name to check</param>
+            <param name="dirNameOther">The second directory name to check</param>
+            <param name="trimLeadingSeparators">Removes leading separator characters before matching</param>
+            <returns>Returns whether both directory names have an equivalent value (case insensitive)</returns>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.DirectoryUtils.GetLocationInPath(System.String,System.String)">
+            <summary>
+            Returns the char position of the first directory name matching a provided directory string 
+            </summary>
+            <param name="path">The path to check</param>
+            <param name="dirName">The directory name to search for</param>
+            <returns>Returns a char position, or -1 if a match is not found</returns>
+            <remarks>The returned index will be representative of the position of the first character in the directory string (separator characters are ignored)</remarks>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.DirectoryUtils.GetLocationInPath(LogUtils.Helpers.FileHandling.PathInfo,System.String)">
+            <summary>
+            Returns the char position of the first directory name matching a provided directory string 
+            </summary>
+            <param name="info">The <see cref="T:LogUtils.Helpers.FileHandling.PathInfo"/> instance to check</param>
+            <param name="dirName">The directory name to search for</param>
+            <returns>Returns a char position, or -1 if a match is not found</returns>
+            <remarks>The returned index will be representative of the position of the first character in the directory string (separator characters are ignored)</remarks>
+        </member>
         <member name="M:LogUtils.Helpers.FileHandling.DirectoryUtils.ParentExists(System.String)">
             <summary>
             Determines if the given path has an existing parent directory
@@ -7134,6 +7176,79 @@
             - Write lock is applied internally for thread safety, but is not safe to run from multiple processes.
             </remarks>
         </member>
+        <member name="M:LogUtils.Helpers.FileHandling.IFileSystemPathFinder.FindMatch(System.String)">
+            <summary>
+            Searches for a file, or directory path corresponding with a provided path, directory, or filename
+            </summary>
+            <param name="path">The path, directory, or filename to search for</param>
+            <returns>A file, or directory path corresponding with a provided path, directory, or filename, or null if match criteria was not found</returns>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.PathInfo.Target">
+            <summary>
+            Contains information about the last segment in the path string (typically refers to a filename, or directory)
+            </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.PathInfo.TargetPath">
+            <summary>
+            Contains path information extracted from the path string
+            </summary>
+            <value>Field will be empty when no path information was provided, or the path consisted of a single filename or directory</value>
+        </member>
+        <member name="P:LogUtils.Helpers.FileHandling.PathInfo.HasFilename">
+            <summary>
+            Checks that path string contains a filename target
+            </summary>
+        </member>
+        <member name="P:LogUtils.Helpers.FileHandling.PathInfo.HasDirectory">
+            <summary>
+            Checks that path string contains a directory target
+            </summary>
+        </member>
+        <member name="P:LogUtils.Helpers.FileHandling.PathInfo.HasPath">
+            <summary>
+            Checks that path string contained a partial, or full path
+            </summary>
+        </member>
+        <member name="P:LogUtils.Helpers.FileHandling.PathInfo.IsFilePath">
+            <summary>
+            Checks that there is path information pertaining to a filename
+            </summary>
+        </member>
+        <member name="P:LogUtils.Helpers.FileHandling.PathInfo.IsDirectoryPath">
+            <summary>
+            Checks that there is path information pertaining to a directory
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathInfo.GetDirectories">
+            <summary>
+            Enumerates directory names parsed from the path string
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathInfo.GetDirectoryEnumerator">
+            <summary>
+            Begins a new directory enumeration returning the enumerator
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathInfo.GetRootLength">
+            <summary>
+            Gets the length of the path root
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathInfo.GetPrefixLength">
+            <summary>
+            Gets the length of any relative, or root path information at the start of the path string
+            </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.PathTarget.Type">
+            <summary>
+            Describes the nature of the path information
+            </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.PathTarget.Name">
+            <summary>
+            Identifies a component of a path
+            </summary>
+        </member>
         <member name="T:LogUtils.Helpers.FileHandling.PathResolution">
             <summary>
             Performs helper functions similar to AssetManager path resolution
@@ -7164,13 +7279,11 @@
             Gets the complete resolved path
             </summary>
         </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.ContainsDirectory(System.String,System.String)">
+            <inheritdoc cref="M:LogUtils.Helpers.FileHandling.DirectoryUtils.ContainsDirectory(System.String,System.String)"/>
+        </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.ContainsDirectory(System.String,System.String,System.Int32)">
-            <summary>
-            Checks that a directory is contained within a path string
-            </summary>
-            <param name="path">The path to check</param>
-            <param name="dirName">The directory name to search for</param>
-            <param name="dirLevelsToCheck">The number of directory separators to check starting from the right</param>
+            <inheritdoc cref="M:LogUtils.Helpers.FileHandling.DirectoryUtils.ContainsDirectory(System.String,System.String,System.Int32)"/>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.ContainsOtherPath(System.String,System.String)">
             <summary>
@@ -7181,6 +7294,18 @@
             <summary>
             Finds a path string that two provided paths have in common
             </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.IsRelative(System.String)">
+            <summary>
+            Checks for and returns relative path syntax from the beginning of a path string
+            </summary>
+            <returns>Returns a string representing the relative path syntax or null if path string is not a relative path</returns>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.ResolvePath(System.String)">
+            <summary>
+            Converts a partial, or non-partial path into a fully qualified absolute path
+            </summary>
+            <remarks>Supports files and directories</remarks>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.GetRelativePath(System.String,System.String,System.Boolean)">
             <summary>
@@ -7262,6 +7387,11 @@
             Simple wrapper for a path string
             </summary>
         </member>
+        <member name="T:LogUtils.Helpers.FileHandling.RainWorldPathFinder">
+            <summary>
+            A class for searching for a best fit path match against one or multiple directories
+            </summary>
+        </member>
         <member name="M:LogUtils.Helpers.FlagUtils.HasConvertedFlags(System.Int32)">
             <summary>
             Check that the value is within what is considered the conversion value range
@@ -7328,6 +7458,11 @@
         <member name="M:LogUtils.Helpers.LogFile.GetPersistentLogFiles">
             <summary>
             Retrieves all file handles for log files with at least one persistent FileStream open (file is currently in use), or temporarily closed
+            </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.Paths.RainWorld.ROOT_DIRECTORY">
+            <summary>
+            The name of the Rain World root folder
             </summary>
         </member>
         <member name="T:LogUtils.ExtensionMethods">
@@ -9658,6 +9793,11 @@
             Writes all messages in the queue to file
             </summary>
         </member>
+        <member name="F:LogUtils.RainWorldDirectory.PathFinder">
+            <summary>
+            Converts partial, and non-partial Rain World file or directory paths into a normalized equivalent form within the Rain World directory  
+            </summary>
+        </member>
         <member name="F:LogUtils.RainWorldDirectory.FolderTree">
             <summary>
             Hardcoded tree of directory names associated with a vanilla Rain world installation 
@@ -9690,8 +9830,40 @@
         </member>
         <member name="F:LogUtils.PathCategory.ModSourced">
             <summary>
-            Path is not a game-installed directory, not associated with a mod's directory structure, and is defined within the Rain World direcotry or a mod-specific directory
+            Path is not a game-installed directory, not associated with a mod's directory structure, and is defined within the Rain World directory or a mod-specific directory
             </summary>
+        </member>
+        <member name="T:LogUtils.RainWorldInfo">
+            <summary>
+            A static class for storing Rain World associated data
+            </summary>
+        </member>
+        <member name="F:LogUtils.RainWorldInfo.SHOW_LOGS_ACTIVE_PERIOD">
+            <summary>
+            A period during which it is safe to evaluate RainWorld.ShowLogs because it is guaranteed to be initialized at this time
+            </summary>
+        </member>
+        <member name="F:LogUtils.RainWorldInfo.STARTUP_CUTOFF_PERIOD">
+            <summary>
+            The period during which it becomes too late to initiate the startup routine (such as for replacing log files)
+            </summary>
+        </member>
+        <member name="F:LogUtils.RainWorldInfo.LastReportedException">
+            <summary>
+            Contains last reported errors logged to a specific log file
+            </summary>
+        </member>
+        <member name="P:LogUtils.RainWorldInfo.MergeProcessComplete">
+            <summary>
+            A flag indicating merge folder is ready to access
+            TODO: Refine this check to be more accurate
+            </summary>
+        </member>
+        <member name="F:LogUtils.RainWorldInfo.LatestSetupPeriodReached">
+            <summary>
+            The latest point in the initialization process that Rain World has reached since the application began
+            </summary>
+            <remarks>Do not modify directly, use <see cref="M:LogUtils.RainWorldInfo.NotifyOnPeriodReached(LogUtils.SetupPeriod)"/> instead</remarks>
         </member>
         <member name="M:LogUtils.Requests.LinkedLogRequestCollection.SortRequests">
             <summary>
@@ -10037,38 +10209,6 @@
             </summary>
             <param name="request">The request to evaluate</param>
             <returns>The processed handle state based on logger specific validation rules</returns>
-        </member>
-        <member name="T:LogUtils.RWInfo">
-            <summary>
-            A static class for storing Rain World associated data
-            </summary>
-        </member>
-        <member name="F:LogUtils.RWInfo.SHOW_LOGS_ACTIVE_PERIOD">
-            <summary>
-            A period during which it is safe to evaluate RainWorld.ShowLogs because it is guaranteed to be initialized at this time
-            </summary>
-        </member>
-        <member name="F:LogUtils.RWInfo.STARTUP_CUTOFF_PERIOD">
-            <summary>
-            The period during which it becomes too late to initiate the startup routine (such as for replacing log files)
-            </summary>
-        </member>
-        <member name="F:LogUtils.RWInfo.LastReportedException">
-            <summary>
-            Contains last reported errors logged to a specific log file
-            </summary>
-        </member>
-        <member name="P:LogUtils.RWInfo.MergeProcessComplete">
-            <summary>
-            A flag indicating merge folder is ready to access
-            TODO: Refine this check to be more accurate
-            </summary>
-        </member>
-        <member name="F:LogUtils.RWInfo.LatestSetupPeriodReached">
-            <summary>
-            The latest point in the initialization process that Rain World has reached since the application began
-            </summary>
-            <remarks>Do not modify directly, use <see cref="M:LogUtils.RWInfo.NotifyOnPeriodReached(LogUtils.SetupPeriod)"/> instead</remarks>
         </member>
         <member name="T:LogUtils.SharedDataHandler">
             <summary>
