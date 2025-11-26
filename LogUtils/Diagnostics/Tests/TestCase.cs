@@ -1,4 +1,4 @@
-﻿using LogUtils.Enums;
+﻿using LogUtils.Helpers.FileHandling;
 using LogUtils.Policy;
 using System;
 using System.Collections.Generic;
@@ -116,6 +116,16 @@ namespace LogUtils.Diagnostics.Tests
             var condition = Assert.Test(value, this);
 
             condition.AddHandlers(ApplicableHandlers);
+            return condition;
+        }
+
+        public Condition<bool> AssertPathsAreEqual(string expectedPath, string actualPath)
+        {
+            Condition<bool> condition = AssertThat(PathUtils.PathsAreEqual(expectedPath, actualPath)).IsTrue();
+
+            //Logging for debugging purposes
+            if (!condition.Passed)
+                UtilityLogger.LogWarning("EXPECTED: " + expectedPath + "\nACTUAL: " + actualPath);
             return condition;
         }
 

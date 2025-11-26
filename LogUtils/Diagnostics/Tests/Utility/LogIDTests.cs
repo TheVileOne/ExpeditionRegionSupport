@@ -1,8 +1,10 @@
 ﻿using LogUtils.Diagnostics.Tests.Components;
 using LogUtils.Enums;
 using LogUtils.Helpers.Comparers;
+using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
 
@@ -195,6 +197,101 @@ namespace LogUtils.Diagnostics.Tests.Utility
             {
                 public readonly T A = A;
                 public readonly T B = B;
+            }
+        }
+
+        internal sealed class GroupTests : TestCase, ITestable
+        {
+            internal const string TEST_NAME = "Test - LogID Groups";
+
+            internal const string GROUP_NAME = "test";
+            internal const string MEMBER_NAME = "member";
+            internal const string MEMBER_PATH = MEMBER_NAME + " - path";
+
+            public GroupTests() : base(TEST_NAME)
+            {
+            }
+
+            public void Test()
+            {
+                testAssignmentIncreasesMemberCount();
+                testAssignmentForcesReadOnly();
+                testMemberPathCombinesWithGroupPath();
+                testMemberPathIsUnaffectedWhenGroupPathIsIncompatible();
+                testMemberPathInheritsGroupPathWhenEmpty();
+            }
+
+            private void testAssignmentIncreasesMemberCount()
+            {
+                LogGroupID testGroupEnum = TestLogID.Factory.CreateLogGroup(GROUP_NAME);
+                LogID testGroupEnumMember = TestLogID.Factory.CreateLogGroupMember(testGroupEnum, MEMBER_NAME);
+
+                AssertThat(testGroupEnum.Properties.Members).HasItems();
+                TestEnumFactory.DisposeObjects();
+            }
+
+            private void testAssignmentForcesReadOnly()
+            {
+                LogGroupID testGroupEnum = TestLogID.Factory.CreateLogGroup(GROUP_NAME);
+                LogID testGroupEnumMember = TestLogID.Factory.CreateLogGroupMember(testGroupEnum, MEMBER_NAME);
+
+                AssertThat(testGroupEnum.Properties.ReadOnly).IsTrue();
+                TestEnumFactory.DisposeObjects();
+            }
+
+            private void testMemberPathCombinesWithGroupPath()
+            {
+                string testGroupPath = RainWorldPath.RootPath;
+
+                LogGroupID testGroupEnum = TestLogID.Factory.CreateLogGroup(GROUP_NAME, testGroupPath);
+                LogID testGroupEnumMember = TestLogID.Factory.CreateLogGroupMember(testGroupEnum, MEMBER_NAME, MEMBER_PATH);
+
+                assertPathsAreEqual(expectedPath: Path.Combine(testGroupPath, MEMBER_PATH),
+                                      actualPath: testGroupEnumMember.Properties.FolderPath);
+                TestEnumFactory.DisposeObjects();
+            }
+
+            private void testMemberPathIsUnaffectedWhenGroupPathIsIncompatible()
+            {
+                //Test with a null group path
+                testPaths(null, MEMBER_PATH);
+
+                //Test with two absolute paths - the member path should be used instead of the group path in this case
+                testPaths(RainWorldPath.RootPath, Path.Combine(RainWorldPath.StreamingAssetsPath, MEMBER_PATH));
+
+                void testPaths(string testGroupPath, string testMemberPath)
+                {
+                    LogGroupID testGroupEnum = TestLogID.Factory.CreateLogGroup(GROUP_NAME, testGroupPath);
+                    LogID testGroupEnumMember = TestLogID.Factory.CreateLogGroupMember(testGroupEnum, MEMBER_NAME, testMemberPath);
+
+                    assertPathsAreEqual(expectedPath: LogProperties.GetContainingPath(testMemberPath),
+                                          actualPath: testGroupEnumMember.Properties.FolderPath);
+                    TestEnumFactory.DisposeObjects();
+                }
+            }
+
+            private void testMemberPathInheritsGroupPathWhenEmpty()
+            {
+                string testGroupPath = RainWorldPath.RootPath;
+
+                LogGroupID testGroupEnum = TestLogID.Factory.CreateLogGroup(GROUP_NAME, testGroupPath);
+                LogID testGroupEnumMember = TestLogID.Factory.CreateLogGroupMember(testGroupEnum, MEMBER_NAME);
+
+                assertPathsAreEqual(expectedPath: testGroupPath,
+                                      actualPath: testGroupEnumMember.Properties.FolderPath);
+                TestEnumFactory.DisposeObjects();
+            }
+
+            private void assertPathsAreEqual(string expectedPath, string actualPath)
+            {
+                if (AssertThat(PathUtils.PathsAreEqual(expectedPath, actualPath)).IsTrue() == false)
+                    UtilityLogger.LogWarning("EXPECTED: " + expectedPath + "\nACTUAL: " + actualPath);
+            }
+
+            [PostTest]
+            public void ShowResults()
+            {
+                TestLogger.LogDebug(CreateReport());
             }
         }
     }
