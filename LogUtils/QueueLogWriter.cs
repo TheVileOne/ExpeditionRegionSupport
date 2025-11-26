@@ -136,11 +136,11 @@ namespace LogUtils
         {
             ExceptionInfo exceptionInfo = new ExceptionInfo(exception);
 
-            if (!RWInfo.CheckExceptionMatch(logFile, exceptionInfo)) //Only log unreported exceptions
+            if (!RainWorldInfo.CheckExceptionMatch(logFile, exceptionInfo)) //Only log unreported exceptions
             {
                 var errorEntry = new LogRequestEventArgs(logFile, exception, LogCategory.Error);
 
-                RWInfo.ReportException(logFile, exceptionInfo);
+                RainWorldInfo.ReportException(logFile, exceptionInfo);
                 EnqueueMessage(errorEntry);
             }
 

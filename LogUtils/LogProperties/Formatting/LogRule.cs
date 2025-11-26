@@ -226,7 +226,7 @@ namespace LogUtils.Properties.Formatting
         }
 
         /// <summary>
-        /// Delegate signature for applying a LogRule
+        /// Delegate signature for applying a <see cref="LogRule"/>
         /// </summary>
         /// <param name="formatter">The applicable formatter instance</param>
         /// <param name="message">The message to format</param>

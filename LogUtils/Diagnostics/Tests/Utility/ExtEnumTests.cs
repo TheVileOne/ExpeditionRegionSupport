@@ -1,5 +1,5 @@
 ﻿using LogUtils.Diagnostics.Tests.Components;
-using System;
+using LogUtils.Enums;
 
 namespace LogUtils.Diagnostics.Tests.Utility
 {
@@ -20,6 +20,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             //ManagedReference should always be set on initialization
             testManagedReferenceIsInitialized();
             testManagedReferenceIsSharedBetweenInstances();
+            testManagedReferenceIsDifferentPerLogPath();
 
             testCaseInsensitivity();
         }
@@ -32,57 +33,54 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
         private void testIndexIsSetCorrectlyOnRegisterAndUnregister_Construction()
         {
-            TestEnum testEnum = new TestEnum("test", register: true);
+            TestEnum testEnum = TestEnum.Factory.Create("test", register: true);
 
             AssertThat(testEnum.Index).IsPositiveOrZero();
 
             testEnum.Unregister();
             AssertThat(testEnum.Index).IsNegative();
-
-            clearSharedData();
+            TestEnumFactory.DisposeObjects();
         }
 
         private void testIndexIsSetCorrectlyOnRegisterAndUnregister_Method()
         {
-            TestEnum testEnum = new TestEnum("test", register: false);
+            TestEnum testEnum = TestEnum.Factory.Create("test", register: false);
 
             testEnum.Register();
             AssertThat(testEnum.Index).IsPositiveOrZero();
 
             testEnum.Unregister();
             AssertThat(testEnum.Index).IsNegative();
-
-            clearSharedData();
+            TestEnumFactory.DisposeObjects();
         }
 
         private void testManagedReferenceIsInitialized()
         {
-            TestEnum testEnum = new TestEnum("test-managed", register: false); //It shouldn't matter if we register the enum, this should always work
+            TestEnum testEnum = TestEnum.Factory.Create("test-managed", register: false); //It shouldn't matter if we register the enum, this should always work
 
             AssertThat(testEnum.ManagedReference).IsSameInstance(testEnum);
-
-            testEnum.Unregister();
-            clearSharedData();
+            TestEnumFactory.DisposeObjects();
         }
 
         private void testManagedReferenceIsSharedBetweenInstances()
         {
-            TestEnum testEnumA = new TestEnum("test-managed", register: false), //It shouldn't matter if we register the enum, this should always work
-                     testEnumB = new TestEnum("test-managed", register: false);
+            TestEnum testEnumA = TestEnum.Factory.Create("test-managed", register: false), //It shouldn't matter if we register the enum, this should always work
+                     testEnumB = TestEnum.Factory.FromTarget(testEnumA);
 
             AssertThat(testEnumA.ManagedReference).IsSameInstance(testEnumB.ManagedReference);
-
-            testEnumA.Unregister();
-            clearSharedData();
+            TestEnumFactory.DisposeObjects();
         }
 
         /// <summary>
-        /// This should be called after each test that sets shared data to ensure that state transfer isn't a factor in between tests
+        /// Test that a log filename can exist at two different paths without sharing the same managed reference
         /// </summary>
-        private void clearSharedData()
+        private void testManagedReferenceIsDifferentPerLogPath()
         {
-            Type testEnumType = typeof(TestEnum);
-            UtilityCore.DataHandler.DataCollection[testEnumType].Clear();
+            LogID testEnumA = TestLogID.Factory.FromPath(UtilityConsts.PathKeywords.ROOT),
+                  testEnumB = TestLogID.Factory.FromTarget(testEnumA, UtilityConsts.PathKeywords.STREAMING_ASSETS);
+
+            AssertThat(testEnumA.ManagedReference).IsNotThisInstance(testEnumB.ManagedReference);
+            TestEnumFactory.DisposeObjects();
         }
     }
 }

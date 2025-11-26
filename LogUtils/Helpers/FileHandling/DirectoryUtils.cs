@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogUtils.Helpers.Comparers;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,19 +9,151 @@ namespace LogUtils.Helpers.FileHandling
     public static class DirectoryUtils
     {
         /// <summary>
+        /// Checks that a directory is contained within a path string
+        /// </summary>
+        /// <param name="path">The path to check</param>
+        /// <param name="dirName">The directory name to search for</param>
+        public static bool ContainsDirectory(string path, string dirName)
+        {
+            if (PathUtils.IsEmpty(path)) return false;
+
+            string[] pathDirs = PathUtils.Separate(PathUtils.PathWithoutFilename(path));
+
+            return Array.Exists(pathDirs, dir => IsDirectoryName(dir, dirName));
+        }
+
+        /// <summary>
+        /// Checks that a directory is contained within a path string
+        /// </summary>
+        /// <param name="path">The path to check</param>
+        /// <param name="dirName">The directory name to search for</param>
+        /// <param name="dirLevelsToCheck">The number of directory separators to check starting from the right</param>
+        public static bool ContainsDirectory(string path, string dirName, int dirLevelsToCheck)
+        {
+            if (PathUtils.IsEmpty(path)) return false;
+
+            path = PathUtils.PathWithoutFilename(path);
+
+            bool dirFound = false;
+            while (dirLevelsToCheck > 0)
+            {
+                if (PathUtils.IsEmpty(path))
+                {
+                    dirLevelsToCheck = 0;
+                    break;
+                }
+
+                if (path.EndsWith(dirName, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    dirFound = true;
+                    dirLevelsToCheck = 0;
+                }
+                else
+                {
+                    //Keep stripping away directories, 
+                    path = Path.GetDirectoryName(path);
+                    dirLevelsToCheck--;
+                }
+            }
+            return dirFound;
+        }
+
+        /// <summary>
+        /// Compares the equality of two directory names
+        /// </summary>
+        /// <param name="dirName">The first directory name to check</param>
+        /// <param name="dirNameOther">The second directory name to check</param>
+        /// <param name="trimLeadingSeparators">Removes leading separator characters before matching</param>
+        /// <returns>Returns whether both directory names have an equivalent value (case insensitive)</returns>
+        public static bool IsDirectoryName(string dirName, string dirNameOther, bool trimLeadingSeparators = false)
+        {
+            if (dirName == null || dirNameOther == null)
+                return dirName == dirNameOther;
+
+            char[] separatorChars = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
+
+            //Trim out characters that can interfere with matching
+            if (trimLeadingSeparators)
+            {
+                dirName = dirName.TrimStart(separatorChars);
+                dirNameOther = dirNameOther.TrimStart(separatorChars);
+            }
+            dirName = dirName.TrimEnd(separatorChars);
+            dirNameOther = dirNameOther.TrimEnd(separatorChars);
+            return ComparerUtils.StringComparerIgnoreCase.Equals(dirName, dirNameOther);
+        }
+
+        /// <summary>
+        /// Returns the char position of the first directory name matching a provided directory string 
+        /// </summary>
+        /// <param name="path">The path to check</param>
+        /// <param name="dirName">The directory name to search for</param>
+        /// <returns>Returns a char position, or -1 if a match is not found</returns>
+        /// <remarks>The returned index will be representative of the position of the first character in the directory string (separator characters are ignored)</remarks>
+        public static int GetLocationInPath(string path, string dirName)
+        {
+            if (PathUtils.IsEmpty(path)) return -1;
+
+            string[] pathDirs = PathUtils.Separate(PathUtils.PathWithoutFilename(path));
+
+            int charCount = PathUtils.CountLeadingSeparators(path);
+            int pathIndex;
+            for (pathIndex = 0; pathIndex < pathDirs.Length; pathIndex++)
+            {
+                if (pathIndex > 0)
+                    charCount++; //Account for the separator
+
+                if (IsDirectoryName(pathDirs[pathIndex], dirName)) //Break if we found a match
+                    break;
+
+                charCount += pathDirs[pathIndex].Length;
+            }
+
+            if (pathIndex == pathDirs.Length) //Directory is not included in the path string
+                return -1;
+            return charCount;
+        }
+
+        /// <summary>
+        /// Returns the char position of the first directory name matching a provided directory string 
+        /// </summary>
+        /// <param name="info">The <see cref="PathInfo"/> instance to check</param>
+        /// <param name="dirName">The directory name to search for</param>
+        /// <returns>Returns a char position, or -1 if a match is not found</returns>
+        /// <remarks>The returned index will be representative of the position of the first character in the directory string (separator characters are ignored)</remarks>
+        public static int GetLocationInPath(PathInfo info, string dirName)
+        {
+            if (!info.HasPath || info.Target.Type == PathType.Empty || info.Target.Type == PathType.Root)
+                return -1;
+
+            int dirIndex = info.GetPrefixLength();
+            using (var dirEnumerator = info.GetDirectoryEnumerator())
+            {
+                //Enumerate until we find a match
+                int dirCount = 0;
+                while (dirEnumerator.MoveNext() && !IsDirectoryName(dirEnumerator.Current, dirName))
+                {
+                    dirCount++;
+                    dirIndex += dirEnumerator.Current.Length + 1; //Add one to account for the separator
+                }
+
+                if (dirCount > 0) //We will overcount by one inside the while loop
+                    dirIndex--;
+            }
+
+            if (dirIndex == info.TargetPath.Length) //Was there a match?
+                return -1;
+            return dirIndex;
+        }
+
+        /// <summary>
         /// Determines if the given path has an existing parent directory
         /// </summary>
         public static bool ParentExists(string path)
         {
-            if (PathUtils.IsEmpty(path) || path.Length <= 2) return false;
+            if (PathUtils.IsEmpty(path) || path.Length <= 3) return false;
 
             return Directory.Exists(Path.GetDirectoryName(path));
-
-            //if (Path.IsPathRooted(path))
-            //{
-            //    if (path[1] != Path.VolumeSeparatorChar) //This is not a full path
-            //        path = Path.GetFullPath(path);
-            //}
         }
 
         public static void SafeDelete(string path, bool deleteOnlyIfEmpty, string customErrorMsg = null)

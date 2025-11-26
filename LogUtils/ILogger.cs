@@ -2,7 +2,6 @@
 using LogUtils.Enums;
 using LogUtils.Formatting;
 using LogUtils.Requests;
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using LoggerDocs = LogUtils.Documentation.LoggerDocumentation;
@@ -75,17 +74,17 @@ namespace LogUtils
         bool AllowRemoteLogging { get; }
 
         /// <summary>
-        /// Does this handler register with the LogRequest system
+        /// Does this handler register with the log request system
         /// </summary>
         bool AllowRegistration { get; }
 
         /// <summary>
-        /// Does this handler accept LogRequests of a specific log file and request type
+        /// Does this handler accept <see cref="LogRequest"/> instances of a specific log file and request type
         /// </summary>
         bool CanHandle(LogID logID, RequestType requestType);
 
         /// <summary>
-        /// Accepts and processes a LogRequest instance
+        /// Accepts and processes a <see cref="LogRequest"/> instance
         /// </summary>
         void HandleRequest(LogRequest request);
     }
@@ -104,7 +103,7 @@ namespace LogUtils
     }
 
     /// <summary>
-    /// Provides access to an ILogSource
+    /// Provides access to an <see cref="ILogSource"/> object
     /// </summary>
     public interface ILogSourceProvider
     {
@@ -115,17 +114,17 @@ namespace LogUtils
     }
 
     /// <summary>
-    /// Provides access to an ILogWriter
+    /// Provides access to an <see cref="ILogWriter"/> object
     /// </summary>
     public interface ILogWriterProvider
     {
         /// <summary>
-        /// Gets the log writer managed by the provider
+        /// Gets the <see cref="ILogWriter"/> instance managed by the provider
         /// </summary>
         ILogWriter GetWriter();
 
         /// <summary>
-        /// Gets the log writer associated with the provider for a specific log file
+        /// Gets the <see cref="ILogWriter"/> instance associated with the provider for a specific log file
         /// </summary>
         ILogWriter GetWriter(LogID logFile);
     }

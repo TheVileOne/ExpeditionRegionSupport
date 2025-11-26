@@ -12,7 +12,7 @@ namespace LogUtils.Requests
         }
 
         /// <summary>
-        /// Returns an enumerable that sorts LogRequests by LogID (by value and path)
+        /// Returns an <see cref="IOrderedEnumerable{T}"/> that sorts <see cref="LogRequest"/> instances by <see cref="LogID"/> (by value and path)
         /// </summary>
         public IOrderedEnumerable<LogRequest> SortRequests()
         {
@@ -20,7 +20,7 @@ namespace LogUtils.Requests
         }
 
         /// <summary>
-        /// Returns an enumerable that sorts LogRequests by LogID (by value and path) into partitioned groups for each different kind
+        /// Returns an <see cref="IEnumerable{T}"/> that sorts <see cref="LogRequest"/> instances by <see cref="LogID"/> (by value and path) into partitioned groups for each different kind
         /// </summary>
         public IEnumerable<IGrouping<LogID, LogRequest>> GroupRequests()
         {

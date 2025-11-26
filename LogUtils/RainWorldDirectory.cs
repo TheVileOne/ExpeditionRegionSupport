@@ -8,6 +8,11 @@ namespace LogUtils
     public static class RainWorldDirectory
     {
         /// <summary>
+        /// Converts partial, and non-partial Rain World file or directory paths into a normalized equivalent form within the Rain World directory  
+        /// </summary>
+        public static IFileSystemPathFinder PathFinder = new RainWorldPathFinder();
+
+        /// <summary>
         /// Hardcoded tree of directory names associated with a vanilla Rain world installation 
         /// </summary>
         public static DirectoryTree FolderTree;
@@ -136,6 +141,16 @@ namespace LogUtils
             #endregion
         }
 
+        public static DirectoryInfo GetDirectoryInfo()
+        {
+            return new DirectoryInfo(RainWorldPath.RootPath);
+        }
+
+        public static string Locate(string path)
+        {
+            return PathFinder.FindMatch(path);
+        }
+
         /// <summary>
         /// Evaluates a directory path, determining whether it belongs to the game, mod sourced, or unknown, and returns the result
         /// </summary>
@@ -155,7 +170,7 @@ namespace LogUtils
                 return category;
 
             //Path could still be a partial path that needs to be resolved
-            if (!RWInfo.MergeProcessComplete) //Too early to resolve paths
+            if (!RainWorldInfo.MergeProcessComplete) //Too early to resolve paths
             {
                 UtilityLogger.LogWarning("Path category could not be accurately determined");
                 return PathCategory.NotRooted;
@@ -252,7 +267,7 @@ namespace LogUtils
         /// </summary>
         ModRequiredFolder,
         /// <summary>
-        /// Path is not a game-installed directory, not associated with a mod's directory structure, and is defined within the Rain World direcotry or a mod-specific directory
+        /// Path is not a game-installed directory, not associated with a mod's directory structure, and is defined within the Rain World directory or a mod-specific directory
         /// </summary>
         ModSourced
     }

@@ -16,7 +16,7 @@ namespace LogUtils
     {
         public static bool HasDeployed;
 
-        private static ProcessManager currentProcess => RWInfo.RainWorld.processManager;
+        private static ProcessManager currentProcess => RainWorldInfo.RainWorld.processManager;
         private static Dialog currentDialog;
 
         public static void Initialize()
@@ -38,7 +38,7 @@ namespace LogUtils
                 return;
             }
 
-            if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.PreMods) //Late enough into init process to not have to schedule
+            if (RainWorldInfo.LatestSetupPeriodReached >= SetupPeriod.PreMods) //Late enough into init process to not have to schedule
                 AskForPermission();
             else
             {
@@ -129,7 +129,7 @@ namespace LogUtils
                     UtilityLogger.Log($"Current patcher version doesn't match resource - (Current {activeVersion})");
                     if (activeVersion < resourceVersion)
                     {
-                        if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.PreMods) //Late enough into init process to not have to schedule
+                        if (RainWorldInfo.LatestSetupPeriodReached >= SetupPeriod.PreMods) //Late enough into init process to not have to schedule
                             replaceWithNewVersion();
                         else
                         {

@@ -16,7 +16,7 @@ namespace LogUtils.Requests
     public class LogRequest : ICloneable
     {
         /// <summary>
-        /// Rejection codes up to and including this value are not recoverable. A LogRequest that is rejected in this range will not be handled again
+        /// Rejection codes up to and including this value are not recoverable. A <see cref="LogRequest"/> instance that is rejected in this range will not be handled again
         /// </summary>
         public const byte UNABLE_TO_RETRY_RANGE = 5;
 
@@ -64,7 +64,7 @@ namespace LogUtils.Requests
         public readonly RequestType Type;
 
         /// <summary>
-        /// Indicates that a ConsoleID is the current target for this request (of which there may be multiple targets)
+        /// Indicates that a <see cref="ConsoleID"/> instance is the current target for this request (of which there may be multiple targets)
         /// </summary>
         public bool IsTargetingConsole => Data.IsTargetingConsole;
 
@@ -89,7 +89,7 @@ namespace LogUtils.Requests
         public static LogRequestStringFormatter Formatter = new LogRequestStringFormatter();
 
         /// <summary>
-        /// Constructs a new LogRequest instance
+        /// Constructs a new <see cref="LogRequest"/> instance
         /// </summary>
         /// <param name="type">The identifying request category (affects how request is handled)</param>
         /// <param name="data">Data used to construct a log message</param>
@@ -222,7 +222,7 @@ namespace LogUtils.Requests
                 NotifyComplete(consoleContext);
             }
 
-            bool showLogsActive = RainWorld.ShowLogs || RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD;
+            bool showLogsActive = RainWorld.ShowLogs || RainWorldInfo.LatestSetupPeriodReached < RainWorldInfo.SHOW_LOGS_ACTIVE_PERIOD;
 
             if (LogRequestPolicy.ShowRejectionReasons && !UtilityLogger.PerformanceMode && showLogsActive && shouldBeReported(reason))
             {
@@ -266,7 +266,7 @@ namespace LogUtils.Requests
         }
 
         /// <summary>
-        /// Notify that the specified ConsoleID no longer needs to be processed
+        /// Notify that the specified <see cref="ConsoleID"/> instance no longer needs to be processed
         /// </summary>
         public void NotifyComplete(ConsoleID consoleID)
         {
@@ -281,7 +281,7 @@ namespace LogUtils.Requests
         }
 
         /// <summary>
-        /// Notify that a collection of ConsoleIDs no longer needs to be processed
+        /// Notify that these <see cref="ConsoleID"/> instances no longer needs to be processed
         /// </summary>
         public void NotifyComplete(IEnumerable<ConsoleID> consoleIDs)
         {
@@ -299,7 +299,7 @@ namespace LogUtils.Requests
         }
 
         /// <summary>
-        /// Raises an event when the LogRequest status, or the rejection reason changes. Currently does not raise when ResetStatus is invoked
+        /// Raises an event when the <see cref="LogRequest"/> status, or the rejection reason changes. Currently does not raise when <see cref="ResetStatus"/> is invoked
         /// </summary>
         protected void NotifyOnChange()
         {
@@ -344,14 +344,14 @@ namespace LogUtils.Requests
         }
 
         /// <summary>
-        /// A class for constructor helper methods, and method signatures for creating LogRequests
+        /// A class for constructor helper methods, and method signatures for creating <see cref="LogRequest"/> objects
         /// </summary>
         public static class Factory
         {
             /// <summary>
-            /// A delegate signature for creating a LogRequest instance
+            /// A delegate signature for creating a <see cref="LogRequest"/> instance
             /// </summary>
-            /// <param name="requestType">The type of LogRequest to make</param>
+            /// <param name="requestType">The type of <see cref="LogRequest"/> to make</param>
             /// <param name="target">The log destination identifier</param>
             /// <param name="category">The logging context to use</param>
             /// <param name="messageObj">The object representation of the logged message</param>
@@ -359,7 +359,7 @@ namespace LogUtils.Requests
             public delegate LogRequest Callback(RequestType requestType, ILogTarget target, LogCategory category, object messageObj, bool shouldFilter);
 
             /// <summary>
-            /// Constructs a new LogRequest instance
+            /// Constructs a new <see cref="LogRequest"/> instance
             /// </summary>
             /// <inheritdoc cref="Callback" section="param"/>
             public static LogRequest Create(RequestType requestType, ILogTarget target, LogCategory category, object messageObj, bool shouldFilter)
@@ -392,7 +392,7 @@ namespace LogUtils.Requests
             }
 
             /// <summary>
-            /// Creates a callback that will create a new LogRequest with the provided event data when invoked
+            /// Creates a callback that will create a new <see cref="LogRequest"/> instance with the provided event data when invoked
             /// </summary>
             public static Callback CreateDataCallback(EventArgs extraData)
             {
@@ -440,7 +440,7 @@ namespace LogUtils.Requests
     }
 
     /// <summary>
-    /// Describes the reason why a LogRequest could not be handled
+    /// Describes the reason why a <see cref="LogRequest"/> instance could not be handled
     /// </summary>
     public enum RejectionReason : byte
     {
@@ -449,11 +449,11 @@ namespace LogUtils.Requests
         /// </summary>
         None = 0,
         /// <summary>
-        /// Logger available to handle the log request is private
+        /// All loggers available to handle the log request are private
         /// </summary>
         AccessDenied = 1,
         /// <summary>
-        /// LogID is not enabled, Logger is not accepting logs, or LogID is ShowLogs aware and ShowLogs is false
+        /// The <see cref="LogID"/> is not enabled, <see cref="Logger"/> is not accepting log requests, or <see cref="LogID"/> is <see cref="RainWorld.ShowLogs"/> aware and the value is false
         /// </summary>
         LogDisabled = 2,
         /// <summary>
@@ -465,11 +465,11 @@ namespace LogUtils.Requests
         /// </summary>
         ExceptionAlreadyReported = 4,
         /// <summary>
-        /// Attempt to log a string that is stored in FilteredStrings
+        /// Attempt to log a string that is stored in <see cref="LogFilter.FilteredStrings"/>
         /// </summary>
         FilterMatch = 5,
         /// <summary>
-        /// The path information for the LogID accepted by the logger does not match the path information of the LogID in the request
+        /// The path information for the <see cref="LogID"/> accepted by a <see cref="Logger"/> does not match the path information of the <see cref="LogID"/> in the request
         /// </summary>
         PathMismatch = 6,
         /// <summary>
@@ -481,11 +481,11 @@ namespace LogUtils.Requests
         /// </summary>
         WaitingOnOtherRequests = 8,
         /// <summary>
-        /// No logger is available that accepts the LogID, or the logger accepts the LogID, but enforces a build period on the log file that is not yet satisfied
+        /// No logger is available that accepts the <see cref="LogID"/>, or the <see cref="Logger"/> accepts the <see cref="LogID"/>, but enforces a build period on the log file that is not yet satisfied
         /// </summary>
         LogUnavailable = 9,
         /// <summary>
-        /// Attempt to log to a ShowLogs aware log before ShowLogs is initialized
+        /// Attempt to log to a <see cref="RainWorld.ShowLogs"/> aware log before the property is initialized
         /// </summary>
         ShowLogsNotInitialized = 10
     }

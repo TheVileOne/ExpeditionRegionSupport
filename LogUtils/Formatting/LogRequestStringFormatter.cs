@@ -5,7 +5,7 @@ using System;
 namespace LogUtils.Formatting
 {
     /// <summary>
-    /// Provides format options for handling internally supported LogRequest fields as arguments
+    /// Provides format options for handling internally supported <see cref="LogRequest"/> fields as arguments
     /// </summary>
     public class LogRequestStringFormatter
     {

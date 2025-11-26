@@ -200,7 +200,7 @@ namespace LogUtils.Diagnostics
         /// <inheritdoc cref="AssertDocs.ObjectAssert.IsNotThisInstance{T}(Condition{T}, T)"/>
         public static Condition<T> IsNotThisInstance<T>(this Condition<T> condition, T compareObject) where T : class
         {
-            bool conditionPassed = ReferenceEquals(condition.Value, compareObject);
+            bool conditionPassed = !ReferenceEquals(condition.Value, compareObject);
 
             if (conditionPassed)
                 condition.Pass();

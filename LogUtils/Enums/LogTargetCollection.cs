@@ -36,7 +36,7 @@ namespace LogUtils.Enums
         }
 
         /// <summary>
-        /// Constructs a new target collection containing the elements of the provided IEnumerable
+        /// Constructs a new target collection containing the elements of the provided <see cref="IEnumerable{ILogTarget}"/>
         /// </summary>
         public LogTargetCollection(IEnumerable<ILogTarget> targets) : this()
         {

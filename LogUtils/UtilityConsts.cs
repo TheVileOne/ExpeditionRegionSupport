@@ -12,6 +12,7 @@ namespace LogUtils
         public static class DataFields
         {
             public const int EXPECTED_FIELD_COUNT = 21;
+            public const int EXPECTED_OPTIONAL_FIELD_COUNT = 5;
 
             public readonly static string[] OrderedFields;
 
@@ -84,6 +85,32 @@ namespace LogUtils
                     default:
                         return false;
                 }
+            }
+
+            public static bool IsOptionalField(string match)
+            {
+                switch (match)
+                {
+                    case FILENAME:
+                    case ALTFILENAME:
+                    case PATH:
+                    case ORIGINAL_PATH:
+                    case LAST_KNOWN_PATH:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
+            public static int CountOptionalFieldsAtThisIndex(int index)
+            {
+                int optionalFieldCount = 0;
+                while (index < OrderedFields.Length && IsOptionalField(OrderedFields[index]))
+                {
+                    optionalFieldCount++;
+                    index++;
+                }
+                return optionalFieldCount;
             }
 
             static DataFields()
@@ -255,6 +282,7 @@ namespace LogUtils
 
         public static class PropertyTag
         {
+            public const string LOG_GROUP = "group";
             public const string CONFLICT = "conflict";
         }
 

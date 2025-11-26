@@ -8,7 +8,7 @@ namespace LogUtils
     /// <summary>
     /// A static class for storing Rain World associated data
     /// </summary>
-    public static class RWInfo
+    public static class RainWorldInfo
     {
         /// <summary>
         /// A period during which it is safe to evaluate RainWorld.ShowLogs because it is guaranteed to be initialized at this time
@@ -29,7 +29,7 @@ namespace LogUtils
         public static RainWorld.BuildType Build => IsRainWorldRunning ? RainWorld.buildType : default;
 
         /// <summary>
-        /// Dictionary of last reported errors logged to a specific log file
+        /// Contains last reported errors logged to a specific log file
         /// </summary>
         public static Dictionary<LogID, ExceptionInfo> LastReportedException = new Dictionary<LogID, ExceptionInfo>();
 
@@ -39,7 +39,7 @@ namespace LogUtils
         /// </summary>
         public static bool MergeProcessComplete => LatestSetupPeriodReached > SetupPeriod.Pregame;
 
-        static RWInfo()
+        static RainWorldInfo()
         {
             UtilityCore.EnsureInitializedState();
         }
@@ -47,7 +47,7 @@ namespace LogUtils
         /// <summary>
         /// The latest point in the initialization process that Rain World has reached since the application began
         /// </summary>
-        /// <remarks>Do not modify directly, use NotifyOnPeriodReached instead</remarks>
+        /// <remarks>Do not modify directly, use <see cref="NotifyOnPeriodReached"/> instead</remarks>
         public static SetupPeriod LatestSetupPeriodReached;
 
         public static void NotifyOnPeriodReached(SetupPeriod period)

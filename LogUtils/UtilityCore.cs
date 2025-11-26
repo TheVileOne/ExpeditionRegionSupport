@@ -135,6 +135,20 @@ namespace LogUtils
 
             initializingInProgress = false;
             IsInitialized = true;
+
+            LogGroupID myGroup = new LogGroupID("Slugg log group", true);
+            LogID myLogIDConflict = new LogID("Slugg log group", LogAccess.FullAccess, true);
+            LogID myOtherLogIDConflict = new LogID("Slugg log group", "root", LogAccess.FullAccess, true);
+
+            myGroup.Properties.FolderPath = "Test";
+
+            LogCategory category = new LogCategory("LogPath", true);
+            UtilityLogger.LogWarning("Category: " + category.Value);
+            Logger logger = new Logger(LogID.BepInEx);
+            //UtilityLogger.DebugLog("Path 1 " + myLogIDConflict.Properties.OriginalFolderPath);
+            //UtilityLogger.DebugLog("Path 2 " + myOtherLogIDConflict.Properties.OriginalFolderPath);
+            logger.Log(category, "Path 1 " + myLogIDConflict.Properties.OriginalFolderPath ?? "NULL");
+            logger.Log(category, "Path 2 " + myOtherLogIDConflict.Properties.OriginalFolderPath ?? "NULL");
         }
 
         internal static UtilitySetup.InitializationStep ApplyStep(UtilitySetup.InitializationStep currentStep)
@@ -218,7 +232,7 @@ namespace LogUtils
                     {
                         LogFilterParser.ParseFile();
 
-                        if (RWInfo.LatestSetupPeriodReached < SetupPeriod.PostMods)
+                        if (RainWorldInfo.LatestSetupPeriodReached < SetupPeriod.PostMods)
                             LogFilter.ActivateKeyword(UtilityConsts.FilterKeywords.ACTIVATION_PERIOD_STARTUP);
 
                         nextStep = UtilitySetup.InitializationStep.ADAPT_LOGGING_SYSTEM;
@@ -273,13 +287,13 @@ namespace LogUtils
             //this factor, we have to infer using specific game fields to tell which part of the initialization period we are in
             SetupPeriod startupPeriod = SetupPeriod.Pregame;
 
-            if (RWInfo.IsRainWorldRunning)
+            if (RainWorldInfo.IsRainWorldRunning)
             {
                 if (Menu.Remix.OptionalText.engText == null) //This is set in PreModsInIt
                 {
                     startupPeriod = SetupPeriod.RWAwake;
                 }
-                else if (RWInfo.RainWorld.processManager?.currentMainLoop is InitializationScreen)
+                else if (RainWorldInfo.RainWorld.processManager?.currentMainLoop is InitializationScreen)
                 {
                     //All ExtEnumTypes are forcefully updated as part of the OnModsInit run routine. Look for initialized types
                     if (ExtEnumBase.valueDictionary.Count() < 50) //Somewhere between PreModsInIt and OnModsInit, we don't know where exactly
@@ -294,7 +308,7 @@ namespace LogUtils
             }
 
             UtilityEvents.OnSetupPeriodReached += onSetupPeriodReached;
-            RWInfo.LatestSetupPeriodReached = startupPeriod;
+            RainWorldInfo.LatestSetupPeriodReached = startupPeriod;
         }
 
         /// <summary>
@@ -315,9 +329,9 @@ namespace LogUtils
         {
             if (e.CurrentPeriod > e.LastPeriod)
             {
-                RWInfo.LatestSetupPeriodReached = e.CurrentPeriod;
+                RainWorldInfo.LatestSetupPeriodReached = e.CurrentPeriod;
 
-                if (RWInfo.LatestSetupPeriodReached == SetupPeriod.RWAwake)
+                if (RainWorldInfo.LatestSetupPeriodReached == SetupPeriod.RWAwake)
                 {
                     //When the game starts, we need to clean up old log files. Any mod that wishes to access these files
                     //must do so in their plugin's OnEnable, or Awake method

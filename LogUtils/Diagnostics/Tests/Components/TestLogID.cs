@@ -5,6 +5,9 @@ namespace LogUtils.Diagnostics.Tests.Components
 {
     public class TestLogID : LogID
     {
+        /// <inheritdoc cref="LogID.Factory"/>
+        public static new TestLogIDFactory Factory = new TestLogIDFactory();
+
         public TestLogID() : this(LogAccess.FullAccess)
         {
         }
@@ -18,7 +21,7 @@ namespace LogUtils.Diagnostics.Tests.Components
         }
 
         /// <summary>
-        /// Cycle to the next LogAccess enum value
+        /// Cycle to the next <see cref="LogAccess"/> value
         /// </summary>
         public void CycleAccess()
         {
@@ -34,21 +37,6 @@ namespace LogUtils.Diagnostics.Tests.Components
                     Access = LogAccess.FullAccess;
                     break;
             }
-        }
-
-        public static TestLogID Create(string filename, string path)
-        {
-            return new TestLogID(filename, path, LogAccess.FullAccess);
-        }
-
-        public static TestLogID FromTarget(LogID target, string path)
-        {
-            return new TestLogID(target.Value, path, LogAccess.FullAccess);
-        }
-
-        public static TestLogID FromPath(string path)
-        {
-            return new TestLogID(PathUtils.GetRandomFilename(FileExt.DEFAULT), path, LogAccess.FullAccess);
         }
     }
 }

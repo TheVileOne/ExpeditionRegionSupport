@@ -58,7 +58,7 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Designates a keyword as active by adding it to the ActiveKeywords list
+        /// Designates a keyword as active by adding it to <see cref="ActiveKeywords"/> collection
         /// </summary>
         public static void ActivateKeyword(string keyword)
         {
@@ -67,7 +67,7 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Removes keyword from the ActiveKeywords list
+        /// Removes keyword from <see cref="ActiveKeywords"/> collection
         /// </summary>
         public static void DeactivateKeyword(string keyword)
         {

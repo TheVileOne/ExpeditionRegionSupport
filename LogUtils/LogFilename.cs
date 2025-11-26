@@ -132,7 +132,7 @@ namespace LogUtils
         /// <summary>
         /// The filename as a string (including file extension)
         /// </summary>
-        public string WithExtension() => Value + Extension;
+        public string WithExtension() => IsValid ? Value + Extension : Value;
 
         /// <summary>
         /// The filename as a string (without file extension)

@@ -1,12 +1,11 @@
-﻿using System;
+﻿using LogUtils.Helpers.Comparers;
+using System;
 
 namespace LogUtils.Enums
 {
-    public class SharedExtEnum<T> : ExtEnum<T>, IComparable, IComparable<T>, IEquatable<T>, IShareable where T : SharedExtEnum<T>, IShareable
+    public class SharedExtEnum<T> : ExtEnum<T>, IComparable, IComparable<T>, IEquatable<T>, IShareable, IExtEnumBase where T : SharedExtEnum<T>, IShareable
     {
-        /// <summary>
-        /// Index position in values.entries list for this ExtEnum entry
-        /// </summary>
+        /// <inheritdoc cref="IExtEnumBase.Index"/>
         public override int Index
         {
             get
@@ -19,34 +18,31 @@ namespace LogUtils.Enums
         }
 
         /// <summary>
-        /// The underlying ExtEnum value index (used during the registration process when values are being synced)
+        /// The underlying <see cref="ExtEnum{T}"/> value index (used during the registration process when values are being synced)
         /// </summary>
         public int BaseIndex => base.Index;
 
         /// <summary>
-        /// A null-safe reference to the SharedExtEnum that any mod can access
+        /// A null-safe reference to the <see cref="SharedExtEnum{T}"/> shared instance that any mod can access
         /// </summary>
         public T ManagedReference;
 
-        /// <summary>
-        /// The managed reference associated with this ExtEnum instance has been assigned a valid ExtEnum value index
-        /// </summary>
+        /// <inheritdoc/>
         public bool Registered => Index >= 0;
 
         /// <inheritdoc/>
-        public string Tag
+        public virtual string Tag
         {
             get
             {
-                if (!ReferenceEquals(ManagedReference, this))
-                    return ManagedReference?.Tag ?? Value; //Can be null here when it is accessed through the constructor
+                if (RegistrationStage == RegistrationStatus.Completed && !ReferenceEquals(ManagedReference, this))
+                    return ManagedReference.Tag;
                 return Value;
             }
         }
 
-        /// <summary>
-        /// An identifying string assigned to each ExtEnum
-        /// </summary>
+
+        /// <inheritdoc/>
         public string Value
         {
             get => base.value;
@@ -58,24 +54,38 @@ namespace LogUtils.Enums
         [Obsolete("This property is from the base class. Use Value instead.")]
         public new string value => base.value;
 
+        private Action _registrationCallback;
+        private RegistrationStatus _registrationStage = RegistrationStatus.Ready;
+        /// <summary>
+        /// The current stage in assigning a registered state to this instance
+        /// </summary>
+        protected virtual RegistrationStatus RegistrationStage => _registrationStage;
+
         public SharedExtEnum(string value, bool register = false) : base(value, false)
         {
             ManagedReference = (T)UtilityCore.DataHandler.GetOrAssign(this);
 
-            if (register)
+            _registrationCallback = handleRegistration;
+            if (RegistrationStage == RegistrationStatus.Ready)
+                CompleteRegistration();
+
+            void handleRegistration()
             {
-                Register();
-            }
-            else if (!ReferenceEquals(ManagedReference, this) && ManagedReference.Registered) //Propagate field values from registered reference
-            {
-                Value = ManagedReference.Value;
-                valueHash = ManagedReference.valueHash;
-                index = ManagedReference.Index;
+                if (register)
+                {
+                    Register();
+                }
+                else if (!ReferenceEquals(ManagedReference, this) && ManagedReference.Registered) //Propagate field values from registered reference
+                {
+                    Value = ManagedReference.Value;
+                    valueHash = ManagedReference.valueHash;
+                    index = ManagedReference.Index;
+                }
             }
         }
 
         /// <summary>
-        /// Retrieves an ExtEnum instance at the specified index
+        /// Retrieves an <see cref="ExtEnum{T}"/> instance at the specified index
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException">The index provided is outside the bounds of the collection</exception>
         public static T EntryAt(int index)
@@ -127,8 +137,22 @@ namespace LogUtils.Enums
         }
 
         /// <summary>
-        /// Registers the ExtEnum instance
+        /// Completes the registration process
         /// </summary>
+        protected virtual void CompleteRegistration()
+        {
+            if (RegistrationStage != RegistrationStatus.Ready)
+            {
+                UtilityLogger.LogWarning($"Registration stage is unexpected - EXPECTED: {RegistrationStatus.Ready} ACTUAL: {RegistrationStage}");
+                return;
+            }
+
+            _registrationStage = RegistrationStatus.Completed; //This needs to be set before callback is invoked
+            _registrationCallback?.Invoke();
+            _registrationCallback = null;
+        }
+
+        /// <inheritdoc/>
         public virtual void Register()
         {
             //The shared reference may already exist. Sync any value differences between the two references
@@ -158,9 +182,7 @@ namespace LogUtils.Enums
             }
         }
 
-        /// <summary>
-        /// Unregisters the ExtEnum instance
-        /// </summary>
+        /// <inheritdoc/>
         public new virtual void Unregister()
         {
             base.Unregister();
@@ -169,7 +191,7 @@ namespace LogUtils.Enums
         /// <inheritdoc/>
         public virtual bool CheckTag(string tag)
         {
-            return string.Equals(Value, tag, StringComparison.InvariantCultureIgnoreCase);
+            return ComparerUtils.StringComparerIgnoreCase.Equals(Tag, tag);
         }
 
         /// <inheritdoc/>
@@ -194,7 +216,7 @@ namespace LogUtils.Enums
         }
 
         /// <summary>
-        /// Indicates whether the current object is equal to another object of the same time (utilizes the base value hashcode comparison to determine equality)
+        /// Indicates whether the current object is equal to another object of the same type (utilizes the base value hashcode comparison to determine equality)
         /// </summary>
         public bool BaseEquals(T other)
         {
@@ -202,7 +224,7 @@ namespace LogUtils.Enums
         }
 
         /// <summary>
-        /// Indicates whether the current object is equal to another object of the same time (utilizes a customized value hashcode comparison to determine equality)
+        /// Indicates whether the current object is equal to another object of the same type (utilizes a customized value hashcode comparison to determine equality)
         /// </summary>
         public new bool Equals(T other)
         {
@@ -251,6 +273,19 @@ namespace LogUtils.Enums
             int hashOther = right?.GetHashCode() ?? 0;
 
             return hash.CompareTo(hashOther);
+        }
+
+        /// <summary>
+        /// Represents the initialization state of the registration process
+        /// </summary>
+        protected enum RegistrationStatus
+        {
+            /// <summary>Registration can be completed anytime</summary>
+            Ready,
+            /// <summary>Registration is deferred until a child class signals it is ready to complete registration</summary>
+            WaitingOnSignal,
+            /// <summary>Registration has been completed</summary>
+            Completed
         }
     }
 

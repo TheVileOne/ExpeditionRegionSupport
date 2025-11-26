@@ -15,11 +15,12 @@ namespace LogUtils.Requests
     public class LogRequestHandler : UtilityComponent
     {
         /// <summary>
-        /// This lock object marshals control over submission of LogRequests, and processing requests stored in UnhandledRequests. When there is a need to
-        /// process LogRequests directly from UnhandledRequests, it is recommended to use this lock object to achieve thread safety
+        /// This lock object marshals control over submission of <see cref="LogRequest"/> instances, and the processing of requests stored in <see cref="UnhandledRequests"/>. When there is a need to
+        /// process a request directly from that collection, it is recommended to use this lock object to achieve thread safety
         /// </summary>
         public Lock RequestProcessLock = new Lock();
 
+        /// <inheritdoc/>
         public override string Tag => UtilityConsts.ComponentTags.REQUEST_DATA;
 
         private readonly WeakReferenceCollection<ILogHandler> availableLoggers = new WeakReferenceCollection<ILogHandler>();
@@ -32,12 +33,12 @@ namespace LogUtils.Requests
         public GameLogger GameLogger = new GameLogger();
 
         /// <summary>
-        /// Contains LogRequest objects that are submitted and waiting to be handled
+        /// Contains <see cref="LogRequest"/> objects that are submitted and waiting to be handled
         /// </summary>
         public LinkedLogRequestCollection UnhandledRequests;
 
         /// <summary>
-        /// Contains LogRequest objects that need to be submitted on the next available frame
+        /// Contains <see cref="LogRequest"/> objects that need to be submitted on the next available frame
         /// </summary>
         public Queue<LogRequest> HandleOnNextAvailableFrame = new Queue<LogRequest>();
 
@@ -111,7 +112,7 @@ namespace LogUtils.Requests
         public bool CheckForHandledRequests;
 
         /// <summary>
-        /// A counter used to prevent recursive LogRequest submissions
+        /// A counter used to prevent recursive <see cref="LogRequest"/> submissions
         /// </summary>
         public int RecursionCheckCounter;
 
@@ -122,7 +123,7 @@ namespace LogUtils.Requests
         }
 
         /// <summary>
-        /// Acquires the lock necessary for entering a critical state pertaining to LogRequest handling
+        /// Acquires the lock necessary for entering a critical state pertaining to <see cref="LogRequest"/> handling
         /// </summary>
         /// <returns>A disposable scope object purposed for leaving a critical state</returns>
         public Lock.Scope BeginCriticalSection()
@@ -171,18 +172,18 @@ namespace LogUtils.Requests
 
         public LogRequest[] GetRequests(LogID logFile)
         {
-            return UnhandledRequests.Where(req => req.Data.ID.Equals(logFile, doPathCheck: true)).ToArray();
+            return UnhandledRequests.Where(req => req.Data.ID.Equals(logFile)).ToArray();
         }
 
         /// <summary>
         /// Submit a request - Treated as an active pending log request unless the request itself did not qualify for submission. A request must meet the following conditions: 
         /// <br>I. No rejection reasons were found during initial processing of the request</br>
         /// <br>II. Under the situation that there is a reason to reject, that reason is not severe enough to prevent future attempts to process the request</br>
-        /// <br>Submitted request may be retrieved through CurrentRequest under the above conditions, or from the return value</br>
+        /// <br>Submitted request may be retrieved through <see cref="CurrentRequest"/> under the above conditions, or from the return value</br>
         /// </summary>
         /// <param name="request">The request to be processed</param>
         /// <param name="handleSubmission">Whether a log attempt should be made on the request</param>
-        /// <returns>This method returns the same request given to it under any condition. The return value is more reliable than checking CurrentRequest, which may be null</returns>
+        /// <returns>This method returns the same request given to it under any condition. The return value is more reliable than checking <see cref="CurrentRequest"/>, which may be null</returns>
         public LogRequest Submit(LogRequest request, bool handleSubmission)
         {
             using (BeginCriticalSection())
@@ -370,7 +371,7 @@ namespace LogUtils.Requests
         }
 
         /// <summary>
-        /// Attempts to handle all unhandled log requests belonging to one, or more LogIDs in the order they were submitted
+        /// Attempts to handle all unhandled log requests associated with the provided <see cref="LogID"/> instances in the order they were submitted
         /// </summary>
         public void ProcessRequests(CompositeLogTarget logFiles)
         {
@@ -379,7 +380,7 @@ namespace LogUtils.Requests
         }
 
         /// <summary>
-        /// Attempts to handle all unhandled log requests belonging to a single LogID in the order they were submitted
+        /// Attempts to handle all unhandled log requests associated with a single <see cref="LogID"/> instance in the order they were submitted
         /// </summary>
         public void ProcessRequests(LogID logFile)
         {
@@ -668,7 +669,7 @@ namespace LogUtils.Requests
         }
 
         /// <summary>
-        /// Checks all requests stored in UnhandledRequests, removing any that have been completed, or are no longer valid
+        /// Checks all requests stored in <see cref="UnhandledRequests"/>, removing any that have been completed, or are no longer valid
         /// </summary>
         public void DiscardHandledRequests()
         {
@@ -680,7 +681,7 @@ namespace LogUtils.Requests
         }
 
         /// <summary>
-        /// Ensures that CurrentRequest represents a pending unrejected request
+        /// Ensures that <see cref="CurrentRequest"/> represents a pending unrejected request
         /// </summary>
         public void SanitizeCurrentRequest()
         {
@@ -734,7 +735,7 @@ namespace LogUtils.Requests
 
             //Requests should not be regularly checked until after the game, mods, and associated logger instances have been given time to initialize
             //There is a separate process for handling log requests earlier in the setup process
-            if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.PostMods)
+            if (RainWorldInfo.LatestSetupPeriodReached >= SetupPeriod.PostMods)
                 ProcessRequests();
         }
 

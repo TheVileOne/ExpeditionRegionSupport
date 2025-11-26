@@ -39,7 +39,7 @@ namespace LogUtils.Console
         }
 
         /// <summary>
-        /// Finds the writer associated with a given ConsoleID
+        /// Finds the writer associated with a given <see cref="ConsoleID"/> instance
         /// </summary>
         public static ConsoleLogWriter FindWriter(ConsoleID target, bool enabledOnly)
         {
@@ -47,7 +47,7 @@ namespace LogUtils.Console
         }
 
         /// <summary>
-        /// Finds all writers associated with the given ConsoleIDs
+        /// Finds all writers associated with the given <see cref="ConsoleID"/> instances
         /// </summary>
         public static ConsoleLogWriter[] FindWriters(IEnumerable<ConsoleID> targets, bool enabledOnly)
         {

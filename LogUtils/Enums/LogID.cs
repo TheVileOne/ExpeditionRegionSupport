@@ -6,26 +6,81 @@ using LogUtils.Properties.Formatting;
 using LogUtils.Requests;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using BepInExPath = LogUtils.Helpers.Paths.BepInEx;
 
 namespace LogUtils.Enums
 {
-    public class LogID : SharedExtEnum<LogID>, ILogTarget, IEquatable<LogID>
+    /// <summary>
+    /// An <see cref="ExtEnum{LogID}"/> type representing a log file.
+    /// </summary>
+    /// <remarks>
+    /// Log file properties may be accessed, and changed through the <see cref="Properties"/> field.<br/>
+    /// Implements <see cref="ILogTarget"/> interface.<br/>
+    /// Note: This type serves as the base class for <see cref="LogGroupID"/>, which is designed for inheritance of log properties, not as a logging target.
+    /// </remarks>
+    public partial class LogID : SharedExtEnum<LogID>, ILogTarget, IEquatable<LogID>
     {
+        /// <summary>
+        /// Registration may be handled through the <see cref="SharedExtEnum{T}"/> constructor only when no other existing reference to this <see cref="LogID"/> value is present.  
+        /// </summary>
+        protected override RegistrationStatus RegistrationStage
+        {
+            get
+            {
+                RegistrationStatus stage = base.RegistrationStage;
+
+                //Inherit the status when registration is already completed
+                if (stage == RegistrationStatus.Completed)
+                    return RegistrationStatus.Completed;
+
+                //When we know this instance is the managed reference, signal to complete the registration process
+                if (ReferenceEquals(ManagedReference, this) || Properties != null)
+                    return RegistrationStatus.Ready;
+
+                //When it is not the same reference, and we know registration is not yet completed, we need to wait
+                return RegistrationStatus.WaitingOnSignal;
+            }
+        }
+
+        private LogProperties _properties;
         /// <summary>
         /// Contains path information, and other settings that affect logging behavior 
         /// </summary>
-        public LogProperties Properties { get; protected set; }
+        public LogProperties Properties
+        {
+            get => _properties;
+            protected set
+            {
+                _properties = value;
+                CompleteRegistration(); //LogID is a class that defers registration in certain situations until properties are assigned
+            }
+        }
+
+        /// <inheritdoc/>
+        public override string Tag
+        {
+            get
+            {
+                if (RegistrationStage == RegistrationStatus.Completed && !ReferenceEquals(ManagedReference, this))
+                    return ManagedReference.Tag;
+
+                if (Properties != null)
+                    return Path.Combine(Properties.OriginalFolderPath, Value);
+
+                return Value;
+            }
+        }
 
         /// <summary>
-        /// Acts as a permission flag that affects the behavior of loggers, and the handling of logging requests targeting this LogID
+        /// Acts as a permission flag that affects the behavior of loggers, and the handling of logging requests targeting this <see cref="LogID"/> instance
         /// </summary>
         public LogAccess Access;
 
         /// <summary>
-        /// Will this LogID be handled as having a local context when passed to a logger
+        /// Checks that <see cref="LogID"/> will be handled with a local context when passed to a logger
         /// </summary>
         internal bool HasLocalAccess => !IsGameControlled && (Access == LogAccess.FullAccess || Access == LogAccess.Private);
 
@@ -35,7 +90,7 @@ namespace LogUtils.Enums
         public bool IsEnabled => UtilityCore.IsControllingAssembly && IsInstanceEnabled && (Properties == null || Properties.AllowLogging);
 
         /// <summary>
-        /// A flag that controls whether logging should be permitted for this LogID instance
+        /// A flag that controls whether logging should be permitted for this <see cref="LogID"/> instance
         /// </summary>
         public bool IsInstanceEnabled = true;
 
@@ -44,22 +99,20 @@ namespace LogUtils.Enums
         /// </summary>
         public bool IsGameControlled;
 
-        public static LogID[] RegisteredEntries => LogProperties.PropertyManager.Properties.Select(p => p.ID).ToArray();
-
         /// <summary>
         /// Creates a new <see cref="LogID"/> instance.
         /// </summary>
         /// <param name="filename">The filename, and optional path to target and use for logging.<br/>
         /// The ExtEnum value will be equivalent to the filename portion of this parameter without the file extension.<br/>
-        /// A filename without a path will default to StreamingAssets directory as a path unless an existing LogID with the specified filename is already registered.
+        /// A filename without a path will default to StreamingAssets directory as a path unless an existing <see cref="LogID"/> with the specified filename is already registered.
         /// </param>
         /// <param name="access">Modifier that affects who may access and use the log file.<br/>
         /// To access a log file you control, use <b>Private/FullAccess</b>. To access a log file you do not control, use <b>RemoteAccessOnly</b>.
         /// </param>
         /// <param name="register">Sets registration state for the ExtEnum.<br/>
-        /// <para>Registration affects whether a LogID gets its own properties that write to file on game close. An unregistered LogID will still get its own properties,<br/>
+        /// <para>Registration affects whether a <see cref="LogID"/> gets its own properties that write to file on game close. An unregistered <see cref="LogID"/> will still get its own properties,<br/>
         /// but those properties, and changes to those properties wont be saved to file.</para>
-        /// <para>Avoid registering a LogID that is temporary, and your mod is designated for public release.</para>
+        /// <para>Avoid registering a <see cref="LogID"/> that is temporary, and your mod is designated for public release.</para>
         /// </param>
         /// <exception cref="ArgumentNullException">Filename provided is null</exception>
         public LogID(string filename, LogAccess access, bool register = false) : this(new PathWrapper(filename), access, register)
@@ -69,36 +122,38 @@ namespace LogUtils.Enums
         /// <summary>
         /// Creates a new <see cref="LogID"/> instance without attempting to create properties for it.
         /// </summary>
-        internal LogID(string filename) : base(Sanitize(filename), false) //Used by ComparisonLogID to bypass LogProperties creation
+        protected private LogID(string filename) : base(filename) //Used by ComparisonLogID to bypass LogProperties creation
         {
-            InitializeFields();
+            InitializeAccess(LogAccess.RemoteAccessOnly);
         }
 
         /// <summary>
         /// Creates a new <see cref="LogID"/> instance using a filename, and assuming a default/preexisting registered path.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Exists to satisfy Activator parameters for SharedExtEnum")]
-        internal LogID(string filename, bool register) : this(filename, null, LogAccess.RemoteAccessOnly)
+
+        internal LogID(string filename, bool register) : this(filename, null, LogAccess.RemoteAccessOnly, register)
         {
+            //Used for LogID tests and to satisfy Activator parameters for SharedExtEnum
         }
 
-        internal LogID(PathWrapper pathData, LogAccess access, bool register) : this(pathData.Filename, pathData.Path, access, register)
+        internal LogID(string filename, string fileExt, string path, bool register) : this(filename + fileExt, path, LogAccess.RemoteAccessOnly, register)
         {
+            //Used to initialize game-controlled LogIDs
         }
 
-        internal LogID(LogProperties properties, string filename, string fileExt, string path, bool register) : this(properties, filename + fileExt, path, register)
+        private LogID(PathWrapper pathData, LogAccess access, bool register) : this(pathData.Filename, pathData.Path, access, register)
         {
+            //Intermediary constructor overload
         }
 
-        internal LogID(LogProperties properties, string filename, string path, bool register) : base(Sanitize(filename), register)
+        internal LogID(LogProperties properties, bool register) : base(properties.GetRawID(), register)
         {
-            Access = LogAccess.RemoteAccessOnly;
-            InitializeFields();
+            Properties = properties; //Wont be null
 
-            Properties = properties;
+            if (Registered && !LogProperties.PropertyManager.Exists(properties))
+                LogProperties.PropertyManager.SetProperties(properties);
 
-            if (Properties == null)
-                InitializeProperties(filename, path);
+            InitializeAccess(LogAccess.RemoteAccessOnly); //Log access is presumed to be unavailable to loggers
         }
 
         /// <summary>
@@ -108,144 +163,177 @@ namespace LogUtils.Enums
         /// The ExtEnum value will be equivalent to the filename without the file extension.
         /// </param>
         /// <param name="relativePathNoFile">The path to the log file.<br/>
-        /// Setting to null will default to the StreamingAssets directory as a path unless an existing LogID with the specified filename is already registered.
+        /// Setting to null will default to the StreamingAssets directory as a path unless an existing <see cref="LogID"/> with the specified filename is already registered.
         /// </param>
         /// <param name="access">Modifier that affects who may access and use the log file.<br/>
         /// To access a log file you control, use <b>Private/FullAccess</b>. To access a log file you do not control, use <b>RemoteAccessOnly</b>.
         /// </param>
         /// <param name="register">Sets registration state for the ExtEnum.<br/>
-        /// <para>Registration affects whether a LogID gets its own properties that write to file on game close. An unregistered LogID will still get its own properties,<br/>
+        /// <para>Registration affects whether a <see cref="LogID"/> gets its own properties that write to file on game close. An unregistered <see cref="LogID"/> will still get its own properties,<br/>
         /// but those properties, and changes to those properties wont be saved to file.</para>
-        /// <para>Avoid registering a LogID that is temporary, and your mod is designated for public release.</para>
+        /// <para>Avoid registering a <see cref="LogID"/> that is temporary, and your mod is designated for public release.</para>
         /// </param>
         public LogID(string filename, string relativePathNoFile, LogAccess access, bool register = false) : base(Sanitize(filename), register)
         {
-            Access = access;
-
-            InitializeFields();
             InitializeProperties(filename, relativePathNoFile);
+            InitializeAccess(access);
         }
 
-        protected void InitializeFields()
+        /// <summary>
+        /// Creates a new unregistered <see cref="LogID"/> instance associated with a group identifier.
+        /// </summary>
+        /// <remarks>Log properties will be inherited by the group id <i>unless</i> the specified logging path is already associated with a registered <see cref="LogID"/> instance.</remarks>
+        /// <param name="groupID">The group to associate this instance with.</param>
+        /// <param name="filename">The filename, and optional path to target and use for logging.<br/>
+        /// The ExtEnum value will be equivalent to the filename portion of this parameter without the file extension.<br/>
+        /// A filename without a path will default to StreamingAssets directory as a path unless an existing <see cref="LogID"/> with the specified filename is already registered.
+        /// </param>
+        /// <param name="access">Modifier that affects who may access and use the log file.<br/>
+        /// To access a log file you control, use <b>Private/FullAccess</b>. To access a log file you do not control, use <b>RemoteAccessOnly</b>.
+        /// </param>
+        public LogID(LogGroupID groupID, string filename, LogAccess access) : this(groupID, new PathWrapper(filename), access)
+        {
+        }
+
+        private LogID(LogGroupID groupID, PathWrapper pathData, LogAccess access) : this(groupID, pathData.Filename, pathData.Path, access)
+        {
+            //Intermediary constructor overload
+        }
+
+        /// <summary>
+        /// Creates a new unregistered <see cref="LogID"/> instance associated with a group identifier.
+        /// </summary>
+        /// <remarks>Log properties will be inherited by the group id <i>unless</i> the specified logging path is already associated with a registered <see cref="LogID"/> instance.</remarks>
+        /// <param name="groupID">The group to associate this instance with.</param>
+        /// <param name="filename">The filename to target, and use for logging.<br/>
+        /// The ExtEnum value will be equivalent to the filename without the file extension.
+        /// </param>
+        /// <param name="relativePathNoFile">The path to the log file.<br/>
+        /// Setting to null will default to the StreamingAssets directory as a path unless an existing <see cref="LogID"/> with the specified filename is already registered.
+        /// </param>
+        /// <param name="access">Modifier that affects who may access and use the log file.<br/>
+        /// To access a log file you control, use <b>Private/FullAccess</b>. To access a log file you do not control, use <b>RemoteAccessOnly</b>.
+        /// </param>
+        public LogID(LogGroupID groupID, string filename, string relativePathNoFile, LogAccess access) : base(Sanitize(filename), false)
+        {
+            //Initialize properties
+            var groupProperties = groupID.Properties;
+
+            bool hasGroupPath = !PathUtils.IsEmpty(groupProperties.FolderPath);
+            if (!hasGroupPath)
+            {
+                //When there is no group path, the provided path will be used as the log path, and property initialization will be handled like a typical LogID initialization
+                InitializeProperties(filename, relativePathNoFile);
+            }
+            else
+            {
+                //When there is a group path, the group path will be combined with the provided path as long as the two paths are compatible
+                string assignedFolderPath = LogProperties.ApplyGroupPath(groupID, relativePathNoFile);
+
+                //Check registered entries and members of registered log groups
+                IEnumerable<LogProperties> searchEntries =
+                    LogProperties.PropertyManager.Properties.Union(LogProperties.PropertyManager.GroupProperties.GetMemberProperties());
+
+                var existingProperties = LogProperties.PropertyManager.GetProperties(this, assignedFolderPath, searchEntries);
+
+                if (existingProperties != null)
+                    Properties = existingProperties;
+                else
+                    Properties = groupProperties.Clone(filename, assignedFolderPath);
+            }
+
+            //Assign to group
+            UtilityLogger.Log("Assigning entry to group");
+            if (Properties.Group == null)
+            {
+                groupID.Assign(this);
+            }
+            else if (!Properties.Group.Equals(groupID))
+            {
+                UtilityLogger.LogWarning("Entry already assigned");
+            }
+
+            //Initialize log access
+            InitializeAccess(access);
+        }
+
+        protected void InitializeAccess(LogAccess initialAccess)
         {
             IsGameControlled = ManagedReference == this ? UtilityConsts.LogNames.NameMatch(Value) : ManagedReference.IsGameControlled;
-
-            if (IsGameControlled)
-                Access = LogAccess.FullAccess;
+            Access = IsGameControlled ? LogAccess.FullAccess : initialAccess;
         }
 
         protected void InitializeProperties(string filename, string logPath)
         {
-            Properties = LogProperties.PropertyManager.GetProperties(this, logPath);
+            var properties = LogProperties.PropertyManager.GetProperties(this, logPath);
 
-            if (Properties == null)
+            if (properties != null)
             {
-                Properties = new LogProperties(filename, logPath);
-
-                if (Registered)
-                    LogProperties.PropertyManager.SetProperties(Properties);
+                Properties = properties;
+                return;
             }
+
+            Properties = new LogProperties(filename, logPath);
+
+            if (Registered)
+                LogProperties.PropertyManager.SetProperties(Properties);
+        }
+
+        /// <inheritdoc/>
+        protected override void CompleteRegistration()
+        {
+            if (RegistrationStage == RegistrationStatus.Completed)
+                return;
+
+            if (!ReferenceEquals(ManagedReference, this)) //This reference cannot be trusted to be accurate unless we try to assign with path information available
+                ManagedReference = (LogID)UtilityCore.DataHandler.GetOrAssign(this);
+            base.CompleteRegistration();
+        }
+
+        /// <inheritdoc/>
+        public override bool CheckTag(string tag)
+        {
+            //Adding a file extension is required by the helper, and also protects file information that contains a period in the filename
+            string path = PathUtils.PathWithoutFilename(tag + ".txt", out string value);
+
+            bool hasPath = false;
+            if (!PathUtils.IsEmpty(path))
+            {
+                hasPath = true;
+                tag = FileExtension.Remove(value);
+            }
+
+            bool hasValue = ComparerUtils.StringComparerIgnoreCase.Equals(Value, tag);
+            bool checkPath = hasPath && Properties != null;
+
+            //Intentionally not checking Tag property here - it will be more efficient to check the metadata this way and use the Tag value exclusively for lookups
+            return hasValue && (!checkPath || PathUtils.PathsAreEqual(path, Properties.OriginalFolderPath));
+        }
+
+        /// <inheritdoc cref="Equals(LogID, bool)"/>
+        /// <remarks>The log path is included as part of the equality check</remarks>
+        public new bool Equals(LogID idOther)
+        {
+            //This should return an expected result even for implementations that do not include the path
+            return Equals(idOther, doPathCheck: true);
         }
 
         /// <summary>
-        /// Determines whether the specified LogID is equal to the current LogID
+        /// Determines whether the specified <see cref="LogID"/> instance is equal to the current instance
         /// </summary>
-        /// <param name="idOther">The LogID to compare with the current LogID</param>
+        /// <param name="idOther">The <see cref="LogID"/> instance to compare with the current instance</param>
         /// <param name="doPathCheck">Whether the folder path should also be considered in the equality check</param>
-        public bool Equals(LogID idOther, bool doPathCheck)
+        public virtual bool Equals(LogID idOther, bool doPathCheck)
         {
-            if (!Equals(idOther))
+            if (idOther == null)
                 return false;
 
-            //Let the null case here be considered a wildcard path match
-            if (Properties == null || idOther.Properties == null)
-                return true;
+            //Comparing through Equals will check the IDHash, which involves the path. BaseEquals compares the value part only.
+            //Properties being null is considered a wildcard check, and should always return true if there is a value match.
+            if (!doPathCheck || Properties == null || idOther.Properties == null)
+                return BaseEquals(idOther);
 
-            return !doPathCheck || Properties.HasFolderPath(idOther.Properties.FolderPath);
-        }
-
-        public static LogID CreateTemporaryID(string filename, string relativePathNoFile)
-        {
-            if (IsRegistered(filename, relativePathNoFile))
-                throw new InvalidOperationException("Temporary log ID could not be created; a registered log ID already exists.");
-
-            return new LogID(filename, relativePathNoFile, LogAccess.Private);
-        }
-
-        /// <summary>
-        /// Finds a registered LogID with the given filename, and path
-        /// </summary>
-        /// <remarks>Compares ID, Filename, and CurrentFilename fields</remarks>
-        /// <param name="filename">The filename to search for</param>
-        /// <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
-        public static LogID Find(string filename, string relativePathNoFile = null)
-        {
-            IEnumerable<LogID> results = FindAll(filename, CompareOptions.Basic);
-
-            if (!results.Any())
-                return null;
-
-            bool searchForAnyPath = LogProperties.IsPathWildcard(relativePathNoFile);
-            string searchPath = LogProperties.GetContainingPath(relativePathNoFile);
-
-            LogID bestCandidate = null;
-            foreach (LogID logID in results)
-            {
-                if (logID.Properties.HasFolderPath(searchPath))
-                {
-                    bestCandidate = logID;
-                    break; //Best match has been found
-                }
-
-                if (searchForAnyPath && bestCandidate == null) //First match is prioritized over any other match when all paths are valid
-                    bestCandidate = logID;
-            }
-            return bestCandidate;
-        }
-
-        /// <summary>
-        /// Finds all registered LogID with the given filename
-        /// </summary>
-        /// <remarks>Compares ID, Filename, and CurrentFilename fields</remarks>
-        /// <param name="filename">The filename to search for</param>
-        public static IEnumerable<LogID> FindAll(string filename)
-        {
-            return FindAll(filename, CompareOptions.Basic);
-        }
-
-        /// <summary>
-        /// Finds all registered LogID with the given filename
-        /// </summary>
-        /// <param name="filename">The filename to search for</param>
-        /// <param name="compareOptions">Represents options that determine which fields to check against</param>
-        public static IEnumerable<LogID> FindAll(string filename, CompareOptions compareOptions)
-        {
-            return LogProperties.PropertyManager.Properties.Where(p => p.HasFilename(filename, compareOptions)).Select(p => p.ID);
-        }
-
-        public static IEnumerable<LogID> FindAll(Func<LogProperties, bool> predicate)
-        {
-            return LogProperties.PropertyManager.Properties.Where(predicate).Select(p => p.ID);
-        }
-
-        /// <summary>
-        /// Finds all registered LogIDs with the given tags
-        /// </summary>
-        public static LogID[] FindByTag(params string[] tags)
-        {
-            return LogProperties.PropertyManager.Properties.Where(properties => properties.Tags.Any(tag => tags.Contains(tag, ComparerUtils.StringComparerIgnoreCase)))
-                                                           .Select(p => p.ID)
-                                                           .ToArray();
-        }
-
-        /// <summary>
-        /// Checks whether file, and path combination matches the file and path information of an existing registered LogID
-        /// </summary>
-        /// <param name="filename">The filename to search for</param>
-        /// <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
-        public static bool IsRegistered(string filename, string relativePathNoFile = null)
-        {
-            return Find(filename, relativePathNoFile) != null;
+            return base.Equals(idOther);
         }
 
         /// <inheritdoc/>
@@ -254,6 +342,36 @@ namespace LogUtils.Enums
             if (Properties != null)
                 return Properties.GetHashCode();
             return base.GetHashCode();
+        }
+
+        public RequestType GetRequestType(ILogHandler handler)
+        {
+            if (Properties == null)
+                return RequestType.Invalid;
+
+            if (IsGameControlled)
+                return RequestType.Game;
+
+            LogID handlerID = handler.FindEquivalentTarget(this);
+
+            //Check whether LogID should be handled as a local request, or an outgoing (remote) request. Not being recognized by the handler means that
+            //the handler is processing a target specifically made through one of the logging method overloads
+            return handlerID != null && handlerID.HasLocalAccess ? RequestType.Local : RequestType.Remote;
+        }
+
+        /// <summary>
+        /// Determine if <see cref="LogID"/> reference represents a file, or a log group
+        /// </summary>
+        public static bool IsGroupType(LogID logID)
+        {
+            return logID is LogGroupID || (logID is ComparisonLogID comparisonID && comparisonID.RepresentedType == LogIDType.Group);
+        }
+
+        internal static string CreateIDValue(string valueBase, LogIDType idType)
+        {
+            if (idType == LogIDType.Group)
+                return LogGroupID.ID_PREFIX + valueBase;
+            return Sanitize(valueBase);
         }
 
         internal static void InitializeEnums()
@@ -266,11 +384,11 @@ namespace LogUtils.Enums
 
 #pragma warning disable IDE0055 //Fix formatting
             //Game-defined LogIDs
-            BepInEx    = new LogID(null, UtilityConsts.LogNames.BepInEx,    FileExt.LOG,  BepInExPath.RootPath, true);
-            Exception  = new LogID(null, UtilityConsts.LogNames.Exception,  FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
-            Expedition = new LogID(null, UtilityConsts.LogNames.Expedition, FileExt.TEXT, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
-            JollyCoop  = new LogID(null, UtilityConsts.LogNames.JollyCoop,  FileExt.TEXT, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
-            Unity      = new LogID(null, UtilityConsts.LogNames.Unity,      FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
+            BepInEx    = new LogID(UtilityConsts.LogNames.BepInEx,    FileExt.LOG,  BepInExPath.RootPath, true);
+            Exception  = new LogID(UtilityConsts.LogNames.Exception,  FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
+            Expedition = new LogID(UtilityConsts.LogNames.Expedition, FileExt.TEXT, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
+            JollyCoop  = new LogID(UtilityConsts.LogNames.JollyCoop,  FileExt.TEXT, UtilityConsts.PathKeywords.STREAMING_ASSETS, true);
+            Unity      = new LogID(UtilityConsts.LogNames.Unity,      FileExt.TEXT, UtilityConsts.PathKeywords.ROOT, true);
 #pragma warning restore IDE0055 //Fix formatting
 
             //This log file should only be activated when there is data to log to it
@@ -349,21 +467,6 @@ namespace LogUtils.Enums
             return FileExtension.Remove(filename).Trim();
         }
 
-        public RequestType GetRequestType(ILogHandler handler)
-        {
-            if (Properties == null)
-                return RequestType.Invalid;
-
-            if (IsGameControlled)
-                return RequestType.Game;
-
-            LogID handlerID = handler.FindEquivalentTarget(this);
-
-            //Check whether LogID should be handled as a local request, or an outgoing (remote) request. Not being recognized by the handler means that
-            //the handler is processing a target specifically made through one of the logging method overloads
-            return handlerID != null && handlerID.HasLocalAccess ? RequestType.Local : RequestType.Remote;
-        }
-
         static LogID()
         {
             UtilityCore.EnsureInitializedState();
@@ -381,7 +484,7 @@ namespace LogUtils.Enums
         internal static LogID FileActivity;
         internal static LogID Patcher;
 
-        /// <summary>An unregistered LogID designed to be used as a throwaway parameter</summary>
+        /// <summary>An unregistered <see cref="LogID"/> designed to be used as a throwaway parameter</summary>
         public static LogID NotUsed;
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
@@ -392,21 +495,32 @@ namespace LogUtils.Enums
     }
 
     /// <summary>
-    /// Logger permission values - Assign to a LogID provided to a logger to influence how messages are logged, and handled by that logger
+    /// Logger permission values - Assign to a <see cref="LogID"/> provided to a logger to influence how messages are logged, and handled by that logger
     /// </summary>
     public enum LogAccess
     {
         /// <summary>
-        /// LogID can be handled by either local, or remote loggers
+        /// The <see cref="LogID"/> can be handled by either local, or remote loggers
         /// </summary>
         FullAccess = 0,
         /// <summary>
-        /// LogID is only able to be handled as a remote request from one logger to another
+        /// The <see cref="LogID"/> is only able to be handled as a remote request from one logger to another
         /// </summary>
         RemoteAccessOnly = 1,
         /// <summary>
-        /// LogID can only be handled through a local log request
+        /// The <see cref="LogID"/> can only be handled through a local log request
         /// </summary>
         Private = 2
+    }
+
+    /// <summary>
+    /// A context identifier that describes the purpose of a <see cref="LogID"/>
+    /// </summary>
+    public enum LogIDType
+    {
+        /// <summary>The context represents a log file</summary>
+        File,
+        /// <summary>The context represents a log group</summary>
+        Group
     }
 }

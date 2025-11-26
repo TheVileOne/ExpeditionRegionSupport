@@ -1,4 +1,5 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Helpers;
 using LogUtils.Helpers.FileHandling;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,11 @@ namespace LogUtils.Properties
 {
     public partial class LogProperties
     {
+        /// <summary>
+        /// Indicates whether optional metadata is supported for this instance
+        /// </summary>
+        public virtual bool IsMetadataOptional => false;
+
         private bool _fileExists;
         private LogFilename _filename;
         private LogFilename _altFilename;
@@ -64,12 +70,12 @@ namespace LogUtils.Properties
         /// <summary>
         /// The filename that will serve as the replacement filename if the alternate filename needs to be renamed due to a conflict
         /// </summary>
-        public LogFilename ReserveFilename { get; private set; }
+        public LogFilename ReserveFilename { get; protected set; }
 
         /// <summary>
         /// The active filename of the log file (without file extension)
         /// </summary>
-        public LogFilename CurrentFilename { get; private set; }
+        public LogFilename CurrentFilename { get; protected set; }
 
         /// <summary>
         /// The active filepath of the log file (with filename)
@@ -84,7 +90,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// The active full path of the directory containing the log file
         /// </summary>
-        public string CurrentFolderPath { get; private set; }
+        public string CurrentFolderPath { get; protected set; }
 
         /// <summary>
         /// The full path to the directory containing the log file as recorded from the properties file
@@ -121,7 +127,47 @@ namespace LogUtils.Properties
         /// <summary>
         /// The path of the last known location of the log file
         /// </summary>
-        public string LastKnownFilePath { get; internal set; }
+        /// <value>Default value is an empty string when not storing a path</value>
+        public string LastKnownFilePath { get; private set; }
+
+        internal void InitializeMetadata(LogPropertyMetadata metadata)
+        {
+            //AltFilename, and LastKnownPath do not need to be set - fields are null safe
+            if (metadata == null)
+            {
+                Filename = new LogFilename(string.Empty);
+                FolderPath = string.Empty;
+
+                CurrentFilename = ReserveFilename = Filename;
+                CurrentFolderPath = OriginalFolderPath = FolderPath;
+                return;
+            }
+
+            Filename = (LogFilename)metadata.Filename;
+            AltFilename = (LogFilename)metadata.AltFilename;
+
+            if (Filename == null)
+            {
+                if (!IsMetadataOptional)
+                    throw new ArgumentException("Filename shouldn't be null on property initialization");
+                Filename = new LogFilename(string.Empty);
+            }
+
+            //Determines how empty path data should be handled on initialization (class implementation specific)
+            bool shouldAssignPath = !PathUtils.IsEmpty(metadata.Path) || !IsMetadataOptional;
+
+            if (shouldAssignPath)
+                FolderPath = GetContainingPath(metadata.Path);
+
+            CurrentFilename = ReserveFilename = Filename;
+            CurrentFolderPath = OriginalFolderPath = FolderPath;
+
+            if (!PathUtils.IsEmpty(metadata.OriginalPath))
+                OriginalFolderPath = GetContainingPath(metadata.OriginalPath);
+
+            EnsurePathDoesNotConflict();
+            SetLastKnownPath(metadata.LastKnownPath);
+        }
 
         /// <summary>
         /// Given the last available current filename, and the property assign AltFilename, this method returns the option not represented as the current path
@@ -159,6 +205,8 @@ namespace LogUtils.Properties
         /// </summary>
         internal void EnsurePathDoesNotConflict()
         {
+            if (!CurrentFilename.IsValid) return;
+
             string filename = CurrentFilename;
 
             if (ContainsTag(UtilityConsts.PropertyTag.CONFLICT))
@@ -210,7 +258,7 @@ namespace LogUtils.Properties
                 if (!byte.TryParse(bracketInfo, out byte currentDesignation))
                 {
                     UtilityLogger.LogWarning("Unable to parse conflict designation from filename");
-                    UtilityLogger.LogWarning("FilePath: " + logFile.Properties.CurrentFilename + " INFO: " + bracketInfo);
+                    UtilityLogger.LogWarning("FILENAME: " + logFile.Properties.CurrentFilename + " INFO: " + bracketInfo);
                     continue;
                 }
                 takenDesignations.Add(currentDesignation);
@@ -261,12 +309,12 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
-        /// Allows the filename, or file extension to be changed
+        /// Sets the current filename to a specified value.
         /// </summary>
-        /// <remarks>This will not initiate a file move, or rename any file</remarks>
+        /// <inheritdoc cref="ChangePath" select="remarks"/>
         /// <param name="newFilename">The new filename</param>
         /// <exception cref="ArgumentException">The filename is null, empty, or contains invalid characters</exception>
-        public void ChangeFilename(string newFilename)
+        public virtual void ChangeFilename(string newFilename)
         {
             if (PathUtils.IsEmpty(FileExtension.Remove(newFilename)))
                 throw new ArgumentException("Filename cannot be null, or empty", nameof(newFilename));
@@ -275,12 +323,23 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
-        /// Allows the filepath (filename optional) to be changed
+        /// Sets the current path to a specified value. Filename field will also be changed if provided.
         /// </summary>
-        /// <remarks>This will not initiate a file move, or rename any file</remarks>
+        /// <remarks>
+        /// <para>
+        /// For log files:<br/>
+        /// - This will not initiate a file move, or rename any file.
+        /// <br/>
+        /// To move, or rename a log file, use <see cref="LogFile.Move(LogID, string)"/> instead.
+        /// </para>
+        /// <para>
+        /// For log groups:<br/>
+        /// - This method does nothing.
+        /// </para>
+        /// </remarks>
         /// <param name="newPath">The new path</param>
         /// <exception cref="ArgumentException">The directory is null, empty, or contains invalid characters</exception>
-        public void ChangePath(string newPath)
+        public virtual void ChangePath(string newPath)
         {
             newPath = PathUtils.PathWithoutFilename(newPath, out string filename);
 
@@ -292,6 +351,26 @@ namespace LogUtils.Properties
             newFilename = filename == null ? CurrentFilename : new LogFilename(filename);
 
             UpdateCurrentPath(newPath, newFilename);
+        }
+
+        internal virtual string GetLastKnownPath()
+        {
+            return LastKnownFilePath;
+        }
+
+        internal virtual void SetLastKnownPath(string path)
+        {
+            if (PathUtils.IsEmpty(path) || (IsMetadataOptional && !PathUtils.IsFilePath(path))) //The filename, or directory information may be missing
+            {
+                LastKnownFilePath = string.Empty;
+                return;
+            }
+            LastKnownFilePath = path;
+        }
+
+        internal void UpdateLastKnownPath()
+        {
+            SetLastKnownPath(CurrentFilePath);
         }
 
         internal void UpdateCurrentPath(string path, LogFilename filename)
@@ -339,7 +418,7 @@ namespace LogUtils.Properties
                 if (changesPresent)
                 {
                     FileExists = File.Exists(CurrentFilePath);
-                    LastKnownFilePath = CurrentFilePath;
+                    UpdateLastKnownPath();
                     NotifyPathChanged();
                 }
             }
@@ -347,7 +426,7 @@ namespace LogUtils.Properties
 
         internal void UpdateReserveFilename()
         {
-            if (CurrentFilename == null) return; //ReserveFilename wont be assigned yet
+            if (CurrentFilename == null || !CurrentFilename.IsValid) return; //CurrentFilename must be valid before we continue
 
             bool hasConflictDetails = ContainsTag(UtilityConsts.PropertyTag.CONFLICT);
 
@@ -363,5 +442,71 @@ namespace LogUtils.Properties
             if (AltFilename == null || !AltFilename.Equals(currentFilenameBase))
                 ReserveFilename = new LogFilename(currentFilenameBase, CurrentFilename.Extension);
         }
+    }
+
+    internal class LogPropertyMetadata
+    {
+        internal bool IsOptional;
+
+        public string Filename;
+        public string AltFilename;
+        public string Path;
+        public string OriginalPath;
+        public string LastKnownPath;
+
+        public MetadataPathResult PopulateMissingPathValues()
+        {
+            bool hasPath =  !PathUtils.IsEmpty(Path);
+            bool hasOriginalPath = !PathUtils.IsEmpty(OriginalPath);
+
+            if (hasPath)
+                return pathIsFound();
+
+            return pathIsMissing();
+
+            MetadataPathResult pathIsFound()
+            {
+                if (IsOptional)
+                    return MetadataPathResult.NoChanges;
+
+                //Inherit from the current path when original path is missing
+                if (!hasOriginalPath)
+                {
+                    OriginalPath = Path;
+                    return MetadataPathResult.MissingPathResolved;
+                }
+                return MetadataPathResult.NoChanges;
+            }
+
+            MetadataPathResult pathIsMissing()
+            {
+                //Inherit path from other path fields when available
+                if (hasOriginalPath)
+                {
+                    Path = OriginalPath;
+                    return MetadataPathResult.MissingPathResolved;
+                }
+
+                bool hasLastKnownPath = !PathUtils.IsEmpty(LastKnownPath);
+
+                if (hasLastKnownPath)
+                {
+                    Path = OriginalPath = PathUtils.PathWithoutFilename(LastKnownPath);
+                    return MetadataPathResult.MissingPathResolved;
+                }
+
+                if (!IsOptional)
+                    return MetadataPathResult.UnableToResolve;
+
+                return MetadataPathResult.NoChanges;
+            }
+        }
+    }
+
+    internal enum MetadataPathResult
+    {
+        NoChanges,
+        MissingPathResolved,
+        UnableToResolve
     }
 }

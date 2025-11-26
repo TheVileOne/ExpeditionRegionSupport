@@ -37,7 +37,7 @@ namespace LogUtils.Templates
             }
 
             /// <summary>
-            /// Wrapper class for a LogUtils logger instance
+            /// Wrapper class for a LogUtils Logger instance
             /// </summary>
             internal class LogUtilsAdapter : IMyLogger
             {

@@ -1,10 +1,11 @@
-﻿using LogUtils.Collections;
-using LogUtils.Enums;
+﻿using LogUtils.Enums;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
 using System.Runtime.Serialization;
-using DataFields = LogUtils.UtilityConsts.DataFields;
+using static LogUtils.UtilityConsts;
 
 namespace LogUtils.Properties
 {
@@ -30,15 +31,16 @@ namespace LogUtils.Properties
             LogPropertyStringDictionary dataFields = data.Fields;
 
             bool processedWithErrors = false;
+            bool hasGroupTag = processTags(out string[] tags);
+
+            LogPropertyMetadata metadata = extractMetadata(dataFields);
 
             string id = dataFields[DataFields.LOGID];
-            string filename = dataFields[DataFields.FILENAME];
-            string path = dataFields[DataFields.PATH];
 
             bool hasID = !string.IsNullOrEmpty(id);
-            bool hasFilename = !string.IsNullOrEmpty(filename);
+            bool hasFilename = !string.IsNullOrEmpty(metadata.Filename);
 
-            processedWithErrors = !hasID || !hasFilename || path == null;
+            processedWithErrors = !hasID || (!hasGroupTag && !hasFilename);
 
             if (processedWithErrors)
             {
@@ -46,30 +48,42 @@ namespace LogUtils.Properties
                 if (!hasID && !hasFilename)
                 {
                     UtilityLogger.LogWarning("Malformed data in properties file");
-                    processedWithErrors = true;
                     Results = null;
                     return;
                 }
 
                 //Inherit from the other value if one value happens to be invalid
                 if (!hasID)
-                    id = filename;
+                    id = LogID.Sanitize(metadata.Filename);
                 else if (!hasFilename)
-                    filename = id;
+                    metadata.Filename = id;
             }
 
-            LogProperties properties = new LogProperties(id, filename, path);
+            var result = metadata.PopulateMissingPathValues();
+
+            if (result == MetadataPathResult.MissingPathResolved || result == MetadataPathResult.UnableToResolve)
+            {
+                processedWithErrors = true; //Even for log groups this indicates a problem with the property entries
+                UtilityLogger.LogWarning("Malformed path data in properties file");
+            }
+
+            LogProperties properties;
+            if (!hasGroupTag)
+                properties = new LogProperties(id, metadata);
+            else
+            {
+                id = LogID.CreateIDValue(id, LogIDType.Group);
+                properties = new LogGroupProperties(id, metadata);
+            }
+
+            properties.Tags = tags;
 
             #pragma warning disable IDE0055 //Fix formatting
             //Property setters are inaccesible. Define delegate wrappers for each one, and store in a dictionary
             OrderedDictionary fieldAssignments = new OrderedDictionary
             {
                 [DataFields.VERSION]              = new Action(() => properties.Version            = Version.Parse(dataFields[DataFields.VERSION])),
-                [DataFields.ALTFILENAME]          = new Action(() => properties.AltFilename        = (LogFilename)dataFields[DataFields.ALTFILENAME]),
-                [DataFields.ORIGINAL_PATH]        = new Action(() => properties.OriginalFolderPath = dataFields[DataFields.ORIGINAL_PATH]),
-                [DataFields.LAST_KNOWN_PATH]      = new Action(() => properties.LastKnownFilePath  = dataFields[DataFields.LAST_KNOWN_PATH]),
-                [DataFields.CONSOLEIDS]           = new Action(() => properties.ConsoleIDs         = parseConsoleIDs(properties, dataFields[DataFields.CONSOLEIDS].Split(','))),
-                [DataFields.TAGS]                 = new Action(() => properties.Tags               = dataFields[DataFields.TAGS].Split(',')),
+                [DataFields.CONSOLEIDS]           = new Action(() => properties.ConsoleIDs         .AddRange(parseConsoleIDs(dataFields[DataFields.CONSOLEIDS]))),
                 [DataFields.LOGS_FOLDER_AWARE]    = new Action(() => properties.LogsFolderAware    = bool.Parse(dataFields[DataFields.LOGS_FOLDER_AWARE])),
                 [DataFields.LOGS_FOLDER_ELIGIBLE] = new Action(() => properties.LogsFolderEligible = bool.Parse(dataFields[DataFields.LOGS_FOLDER_ELIGIBLE])),
                 [DataFields.SHOW_LOGS_AWARE]      = new Action(() => properties.ShowLogsAware      = bool.Parse(dataFields[DataFields.SHOW_LOGS_AWARE])),
@@ -99,40 +113,81 @@ namespace LogUtils.Properties
                 }
                 catch (Exception ex) when (ex is ArgumentNullException || ex is NullReferenceException || ex is FormatException)
                 {
-                    if (dataField == DataFields.TAGS)
-                        properties.Tags = Array.Empty<string>();
-
-                    UtilityLogger.LogWarning($"Expected data field '{dataField}' was missing or malformatted");
-                    processedWithErrors = true;
+                    onProcessError(dataField);
                 }
             }
 
             properties.ProcessedWithErrors = processedWithErrors;
 
             if (properties.ProcessedWithErrors)
-                UtilityLogger.LogWarning("There were issues while processing LogID " + id);
+            {
+                string reportMessage;
+                if (!hasGroupTag)
+                    reportMessage = "There were issues while processing LogID " + id;
+                else
+                    reportMessage = "There were issues while processing GroupID " + id;
+                UtilityLogger.LogWarning(reportMessage);
+            }
 
             Results = properties;
+
+            LogPropertyMetadata extractMetadata(LogPropertyStringDictionary dataFields)
+            {
+                return new LogPropertyMetadata()
+                {
+                    IsOptional = hasGroupTag,
+
+                    Filename = dataFields[DataFields.FILENAME],
+                    AltFilename = dataFields[DataFields.ALTFILENAME],
+                    Path = dataFields[DataFields.PATH],
+                    OriginalPath = dataFields[DataFields.ORIGINAL_PATH],
+                    LastKnownPath = dataFields[DataFields.LAST_KNOWN_PATH]
+                };
+            }
+
+            bool processTags(out string[] tags)
+            {
+                tags = parseTags(dataFields[DataFields.TAGS]);
+
+                if (tags == null)
+                {
+                    tags = [];
+                    onProcessError(DataFields.TAGS);
+                }
+                return tags.Contains(PropertyTag.LOG_GROUP);
+            }
+
+            void onProcessError(string dataField)
+            {
+                UtilityLogger.LogWarning($"Expected data field '{dataField}' was missing or malformatted");
+                processedWithErrors = true;
+            }
         }
 
-        private static ValueCollection<ConsoleID> parseConsoleIDs(LogProperties properties, string[] data)
+        private static IEnumerable<ConsoleID> parseConsoleIDs(string dataEntry)
         {
-            var consoleIDs = new ValueCollection<ConsoleID>(() => properties.ReadOnly);
-            foreach (string idValue in data)
+            foreach (string idValue in dataEntry.Split(','))
             {
                 ConsoleID.TryParse(idValue, out ConsoleID id);
 
                 if (id != null)
-                    consoleIDs.Add(new ConsoleID(idValue, register: false));
+                    yield return new ConsoleID(idValue, register: false);
             }
-            return consoleIDs;
+            yield break;
         }
 
-        private static DateTimeFormat parseDateTimeFormat(string format)
+        private static DateTimeFormat parseDateTimeFormat(string dataEntry)
         {
-            if (string.IsNullOrEmpty(format))
+            if (string.IsNullOrEmpty(dataEntry))
                 return null;
-            return new DateTimeFormat(format);
+            return new DateTimeFormat(dataEntry);
+        }
+
+        private static string[] parseTags(string dataEntry)
+        {
+            if (dataEntry == null) //Avoid hiding that data field was null
+                return null;
+            return dataEntry.Split(',');
         }
     }
 }

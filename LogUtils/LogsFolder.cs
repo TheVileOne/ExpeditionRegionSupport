@@ -168,18 +168,18 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Returns all registered LogIDs representing log files within the current log directory or otherwise target it as a write path
+        /// Returns all registered <see cref="LogID"/> instances representing log files within the current log directory or otherwise target it as a write path
         /// </summary>
         public static IEnumerable<LogID> GetContainedLogFiles()
         {
             return LogID.FindAll(properties => PathUtils.PathsAreEqual(properties.CurrentFolderPath, CurrentPath));
         }
 
-        public static void OnEligibilityChanged(LogEventArgs e)
+        internal static void OnEligibilityChanged(LogEventArgs e)
         {
             LogProperties properties = e.Properties;
 
-            if (!properties.IsNewInstance || !Exists) return; //Eligibility only applies to newly created log properties
+            if (!properties.IsNewInstance || properties is LogGroupProperties || !Exists) return; //Eligibility only applies to newly created log properties
 
             if (properties.LogsFolderEligible && properties.LogsFolderAware)
                 AddToFolder(properties);

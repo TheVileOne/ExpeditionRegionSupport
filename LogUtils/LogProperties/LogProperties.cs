@@ -50,7 +50,17 @@ namespace LogUtils.Properties
         public FileLock FileLock;
 
         /// <summary>
-        /// This field contains the last known LogRequest handle state for this LogID, particularly the rejection status, and the reason for rejection of the request
+        /// The id of the log group associated with this instance (null by default)
+        /// </summary>
+        public LogGroupID Group { get; internal set; }
+
+        /// <summary>
+        /// Value is used to filter invalid compare options
+        /// </summary>
+        protected virtual CompareOptions CompareMask => ~CompareOptions.None;
+
+        /// <summary>
+        /// This field contains the last known <see cref="LogRequest"/> handle state for this <see cref="LogID"/>, particularly the rejection status, and the reason for rejection of the request
         /// </summary>
         public LogRequestRecord HandleRecord;
 
@@ -62,7 +72,7 @@ namespace LogUtils.Properties
         public bool LogSessionActive { get; internal set; }
 
         /// <summary>
-        /// The amount of messages logged to file, or stored in the WriteBuffer since the last logging session was started
+        /// The amount of messages logged to file, or stored in <see cref="WriteBuffer"/> since the last logging session was started
         /// </summary>
         public uint MessagesHandledThisSession;
 
@@ -122,6 +132,8 @@ namespace LogUtils.Properties
         /// </summary>
         public bool IsNewInstance { get; private set; }
 
+        internal bool InitializationInProgress;
+
         /// <summary>
         /// Indicates that the startup routine for this log file should not be run
         /// </summary>
@@ -147,7 +159,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// A flag that indicates whether a log session can be, or already is established
         /// </summary>
-        public bool CanBeAccessed => LogSessionActive || RWInfo.LatestSetupPeriodReached >= AccessPeriod;
+        public bool CanBeAccessed => LogSessionActive || RainWorldInfo.LatestSetupPeriodReached >= AccessPeriod;
 
         private LogID _id;
         private string _idValue;
@@ -164,7 +176,7 @@ namespace LogUtils.Properties
         private bool _overwriteLog = true;
 
         /// <summary>
-        /// The LogID associated with the log properties
+        /// The <see cref="LogID"/> representing this instance
         /// </summary>
         public LogID ID
         {
@@ -175,14 +187,24 @@ namespace LogUtils.Properties
                 {
                     if (_idValue == null)
                         return null;
-                    _id = new LogID(this, _idValue, OriginalFolderPath, false);
+                    _id = CreateID();
                 }
                 return _id;
             }
         }
 
         /// <summary>
-        /// List of targeted ConsoleIDs to send requests to when logging to file
+        /// Creates a new <see cref="LogID"/> instance using these properties
+        /// </summary>
+        protected virtual LogID CreateID() => new LogID(this, false);
+
+        /// <summary>
+        /// Creates a value hash for comparison purposes
+        /// </summary>
+        protected virtual int CreateIDHash() => CreateIDHash(_idValue, OriginalFolderPath);
+
+        /// <summary>
+        /// Contains targeted <see cref="ConsoleID"/> instances that receive requests when logging to file
         /// </summary>
         public ValueCollection<ConsoleID> ConsoleIDs;
 
@@ -382,12 +404,42 @@ namespace LogUtils.Properties
         public LogRule ShowLogTimestamp => Rules.FindByType<LogTimestampRule>();
         #endregion
 
+        //TODO: Check that FileExtension.Remove behavior here doesn't tamper with log filenames with periods
         public LogProperties(string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS) : this(FileExtension.Remove(filename), filename, relativePathNoFile)
         {
         }
 
         internal LogProperties(string propertyID, string filename, string relativePathNoFile = UtilityConsts.PathKeywords.STREAMING_ASSETS)
         {
+            _idValue = propertyID;
+            Initialize(new LogPropertyMetadata
+            {
+                Filename = filename,
+                Path = relativePathNoFile
+            });
+        }
+
+        internal LogProperties(string propertyID, LogPropertyMetadata metadata)
+        {
+            _idValue = propertyID;
+            Initialize(metadata);
+        }
+
+        internal void Initialize(LogPropertyMetadata metadata)
+        {
+            BeginInit();
+            InitializeMetadata(metadata);
+            EndInit();
+        }
+
+        /// <summary>
+        /// Initialization processes that run before metadata is initialized
+        /// </summary>
+        internal void BeginInit()
+        {
+            string propertyID = GetRawID();
+
+            InitializationInProgress = true;
             FileLock = new FileLock(new Lock.ContextProvider(() => ID));
 
             ReadOnlyProvider readOnlyProvider = new ReadOnlyProvider(() => ReadOnly);
@@ -395,25 +447,34 @@ namespace LogUtils.Properties
             Rules = new LogRuleCollection(readOnlyProvider);
             ConsoleIDs = new ValueCollection<ConsoleID>(readOnlyProvider);
 
-            UtilityLogger.DebugLog("Generating properties for " + propertyID);
-            UtilityLogger.Log("Generating properties for " + propertyID);
-            _idValue = propertyID;
+            //Report log groups slightly differently than other types of log id. The value will contain prefix formatting that we don't want to report to the user.
+            if (!propertyID.StartsWith(LogGroupID.ID_PREFIX))
+            {
+                string reportMessage = "Generating properties for " + propertyID;
+                UtilityLogger.DebugLog(reportMessage);
+                UtilityLogger.Log(reportMessage);
+            }
+            else
+            {
+                string actualPropertyID = propertyID.Substring(LogGroupID.ID_PREFIX.Length);
+                string reportMessage = "Generating properties for group " + actualPropertyID;
+                UtilityLogger.DebugLog(reportMessage);
+                UtilityLogger.Log(reportMessage);
+            }
 
-            Filename = new LogFilename(filename);
-            FolderPath = GetContainingPath(relativePathNoFile);
+        }
 
-            CurrentFilename = ReserveFilename = Filename;
-            CurrentFolderPath = OriginalFolderPath = FolderPath;
+        /// <summary>
+        /// Initialization processes that run after metadata is initialized
+        /// </summary>
+        internal void EndInit()
+        {
+            string propertyID = GetRawID();
 
-            EnsurePathDoesNotConflict();
-            LastKnownFilePath = CurrentFilePath;
-
-            IDHash = CreateIDHash(_idValue, OriginalFolderPath);
-
-            const int framesUntilCutoff = 10; //Number of frames before instance is no longer considered a 'new' instance
-
+            IDHash = CreateIDHash();
             IsNewInstance = true;
 
+            const int framesUntilCutoff = 10; //Number of frames before instance is no longer considered a 'new' instance
             Action onCreationCutoffReached = new Action(() =>
             {
                 IsNewInstance = false;
@@ -443,12 +504,14 @@ namespace LogUtils.Properties
             {
                 OnLogSessionStart += (LogStreamEventArgs e) =>
                 {
-                    e.Writer.WriteLine("############################################\n Jolly Coop Log [DEBUG LEVEL: {0}]\n", RWInfo.Build);
+                    e.Writer.WriteLine("############################################\n Jolly Coop Log [DEBUG LEVEL: {0}]\n", RainWorldInfo.Build);
                 };
             }
 
             OnLogSessionStart += onLogSessionStart;
             OnLogSessionFinish += onLogSessionFinish;
+
+            InitializationInProgress = false;
         }
 
         private void onCustomPropertyAdded(CustomLogProperty property)
@@ -561,7 +624,7 @@ namespace LogUtils.Properties
         /// </summary>
         public void BeginLogSession()
         {
-            if (LogSessionActive || RWInfo.IsShuttingDown) return;
+            if (LogSessionActive || RainWorldInfo.IsShuttingDown) return;
 
             LogID logID = ID;
             UtilityLogger.Log($"Attempting to start log session [{logID}]");
@@ -589,7 +652,7 @@ namespace LogUtils.Properties
                                 writer.Close();
 
                                 LogSessionActive = true;
-                                LastKnownFilePath = CurrentFilePath;
+                                UpdateLastKnownPath();
                             }
                         }
                     }
@@ -660,7 +723,7 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
-        /// Triggers the UtilityEvents.OnPathChanged event for this instance
+        /// Triggers the <see cref="UtilityEvents.OnPathChanged"/> event
         /// </summary>
         public void NotifyPathChanged()
         {
@@ -689,7 +752,7 @@ namespace LogUtils.Properties
         /// The hashcode representing the log filepath at the time of instantiation
         /// </summary>
         /// <remarks>This value is intended to be a unique identifier for this LogProperties instance, and will not change even if the file metadata changes</remarks>
-        internal readonly int IDHash = 0;
+        internal int IDHash = 0;
 
         /// <summary>
         /// The hashcode produced by the write string cached when properties are read from file
@@ -721,6 +784,29 @@ namespace LogUtils.Properties
             WriteHash = writeString.GetHashCode();
         }
 
+        /// <summary>
+        /// Creates a new <see cref="LogProperties"/> instance inheriting all log independent property values for the current instance
+        /// </summary>
+        public LogProperties Clone(string filename, string path)
+        {
+            LogProperties properties = new LogProperties(filename, path)
+            {
+                Version            = this.Version,
+                LogsFolderAware    = this.LogsFolderAware,
+                LogsFolderEligible = this.LogsFolderEligible,
+                ShowLogsAware      = this.ShowLogsAware,
+                IntroMessage       = this.IntroMessage,
+                ShowIntroTimestamp = this.ShowIntroTimestamp,
+                OutroMessage       = this.OutroMessage,
+                ShowOutroTimestamp = this.ShowOutroTimestamp,
+                DateTimeFormat     = this.DateTimeFormat,
+            };
+
+            properties.ConsoleIDs.AddRange(this.ConsoleIDs);
+            properties.Rules = this.Rules;
+            return properties;
+        }
+
         /// <inheritdoc/>
         public bool Equals(LogProperties other)
         {
@@ -746,6 +832,11 @@ namespace LogUtils.Properties
             };
         }
 
+        internal string GetRawID()
+        {
+            return _idValue;
+        }
+
         public LogPropertyData ToData(List<CommentEntry> comments = null)
         {
             return new LogPropertyData(ToDictionary(), comments);
@@ -762,10 +853,14 @@ namespace LogUtils.Properties
             string[] dataTags = Tags;
             Tags = oldTags;
 
+            string idValue = ID.Value;
+            if (idValue.StartsWith(LogGroupID.ID_PREFIX))
+                idValue = idValue.Substring(LogGroupID.ID_PREFIX.Length); //Strips out the prefix
+
             #pragma warning disable IDE0055 //Fix formatting
             var fields = new LogPropertyStringDictionary
             {
-                [DataFields.LOGID]                = ID.Value,
+                [DataFields.LOGID]                = idValue,
                 [DataFields.FILENAME]             = Filename.WithExtension(),
                 [DataFields.ALTFILENAME]          = AltFilename?.WithExtension(),
                 [DataFields.VERSION]              = Version.ToString(),
@@ -776,7 +871,7 @@ namespace LogUtils.Properties
                 [DataFields.SHOW_LOGS_AWARE]      = ShowLogsAware.ToString(),
                 [DataFields.PATH]                 = PathUtils.GetPathKeyword(FolderPath) ?? FolderPath,
                 [DataFields.ORIGINAL_PATH]        = PathUtils.GetPathKeyword(OriginalFolderPath) ?? OriginalFolderPath,
-                [DataFields.LAST_KNOWN_PATH]      = LastKnownFilePath,
+                [DataFields.LAST_KNOWN_PATH]      = GetLastKnownPath(),
                 [DataFields.TIMESTAMP_FORMAT]     = DateTimeFormat.FormatString != "G" ? DateTimeFormat.FormatString : string.Empty,
                 [DataFields.Intro.MESSAGE]        = IntroMessage,
                 [DataFields.Intro.TIMESTAMP]      = ShowIntroTimestamp.ToString(),
@@ -785,6 +880,26 @@ namespace LogUtils.Properties
 
                 [DataFields.Rules.HEADER]         = string.Empty //Not an actual property field
             };
+
+            if (IsMetadataOptional)
+            {
+                List<string> fieldsToRemove = new List<string>();
+
+                handleOptionalField(DataFields.FILENAME);
+                handleOptionalField(DataFields.ALTFILENAME);
+                handleOptionalField(DataFields.PATH);
+                handleOptionalField(DataFields.ORIGINAL_PATH);
+                handleOptionalField(DataFields.LAST_KNOWN_PATH);
+
+                foreach (string target in fieldsToRemove)
+                    fields.Remove(target);
+
+                void handleOptionalField(string dataField)
+                {
+                    if (string.IsNullOrEmpty(fields[dataField]))
+                        fieldsToRemove.Add(dataField);
+                }
+            }
             #pragma warning restore IDE0055 //Fix formatting
 
             foreach (LogRule rule in GetPackagedRuleEntries())
@@ -832,8 +947,10 @@ namespace LogUtils.Properties
             return GetWriteString();
         }
 
-        internal string[] GetFilenamesToCompare(CompareOptions compareOptions)
+        internal string[] GetValuesToCompare(CompareOptions compareOptions)
         {
+            compareOptions &= CompareMask;
+
             List<string> compareStrings = new List<string>();
 
             if ((compareOptions & CompareOptions.ID) != 0)
@@ -878,7 +995,7 @@ namespace LogUtils.Properties
             if (filename != null)
             {
                 filename = FileExtension.Remove(filename);
-                return filename.MatchAny(ComparerUtils.StringComparerIgnoreCase, GetFilenamesToCompare(compareOptions));
+                return filename.MatchAny(ComparerUtils.StringComparerIgnoreCase, GetValuesToCompare(compareOptions));
             }
             return false;
         }
@@ -905,6 +1022,9 @@ namespace LogUtils.Properties
         /// <returns>Returns whether a match was found</returns>
         public bool HasFolderPath(string relativePathNoFile)
         {
+            if (PathUtils.IsEmpty(relativePathNoFile)) //Path should be valid before we can compare it
+                return false;
+
             return PathUtils.PathsAreEqual(relativePathNoFile, OriginalFolderPath)
                 || PathUtils.PathsAreEqual(relativePathNoFile, CurrentFolderPath);
         }
@@ -925,58 +1045,32 @@ namespace LogUtils.Properties
         /// <summary>
         /// Resolves a path, or path keyword into a usable log path
         /// </summary>
-        public static string GetContainingPath(string relativePath)
+        public static string GetContainingPath(string path)
         {
-            if (relativePath == null)
-                return RainWorldPath.StreamingAssetsPath;
+            path = PathUtils.GetPathFromKeyword(path); //Filename is removed here, should not be handled in ResolvePath
+            return PathUtils.ResolvePath(path);
+        }
 
-            //Apply some preprocessing to the path based on whether it is a partial, or full path
-            string path;
-            if (Path.IsPathRooted(relativePath))
-            {
-                UtilityLogger.Log("Processing a rooted path when expecting a partial one");
+        /// <summary>
+        /// Attempts to create a valid path associated with a log group. In certain situation, this may fail, and return the given path instead.
+        /// </summary>
+        public static string ApplyGroupPath(LogGroupID groupID, string folderPath)
+        {
+            //The provided path is empty, therefore we should return only the group path 
+            if (PathUtils.IsEmpty(folderPath))
+                return groupID.Properties.CurrentFolderPath;
 
-                if (Directory.Exists(relativePath)) //As long as it exists, we shouldn't care if it is rooted
-                    return relativePath;
+            //Path keywords represent absolute paths, or special circumstances not compatible with a group path
+            if (PathUtils.IsPathKeyword(folderPath))
+                return folderPath;
 
-                UtilityLogger.Log("Rooted path could not be found. Unrooting...");
-
-                //Unrooting allows us to still find a possibly valid Rain World path
-                relativePath = PathUtils.Unroot(relativePath);
-
-                path = Path.GetFullPath(relativePath);
-
-                if (PathUtils.PathRootExists(path))
-                {
-                    UtilityLogger.Log("Unroot successful");
-                    return path;
-                }
-
-                path = relativePath; //We don't know where this path is, but we shouldn't default to the Rain World root here 
-            }
-            else
-            {
-                path = PathUtils.GetPathFromKeyword(relativePath);
-            }
-
-            if (PathUtils.PathRootExists(path)) //No need to change the path when it is already valid
-                return path;
-
-            UtilityLogger.Log("Attempting to resolve path");
-
-            //Resolve directory the game supported way if we're not too early to do so (most likely will be too early)
-            if (RWInfo.IsRainWorldRunning)
-                return AssetManager.ResolveDirectory(path);
-
-            UtilityLogger.Log("Defaulting to custom root. Path check run too early to resolve");
-
-            //This is what AssetManager.ResolveDirectory would have returned as a fallback path
-            return Path.Combine(RainWorldPath.StreamingAssetsPath, relativePath);
+            //When provided an absolute path, the absolute path will be used. When CurrentFolderPath is empty, folderPath will be unchanged.
+            return Path.Combine(groupID.Properties.CurrentFolderPath, folderPath);
         }
 
         public static bool IsPathWildcard(string path)
         {
-            return path == null;
+            return PathUtils.IsEmpty(path);
         }
 
         public static string ToPropertyString(string name, string value = "")

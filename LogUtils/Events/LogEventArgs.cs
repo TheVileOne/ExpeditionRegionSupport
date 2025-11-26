@@ -19,7 +19,7 @@ namespace LogUtils.Events
         }
 
         /// <summary>
-        /// Clones the current EventArgs assigned with the provided LogID
+        /// Clones the current <see cref="EventArgs"/> assigning it the provided <see cref="LogID"/> instance
         /// </summary>
         public virtual LogEventArgs Clone(LogID newID)
         {

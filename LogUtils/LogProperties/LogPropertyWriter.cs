@@ -50,34 +50,36 @@ namespace LogUtils.Properties
             {
                 string dataID = data.GetID();
 
-                if (dataID != null) //Invalid entry when dataID is null - do not include it in write string 
+                if (data == null) continue; //Invalid entry when dataID is null - do not include it in write string
+
+                //Find all matching comparisons
+                IEnumerable<LogProperties> availableEntries = LogProperties.PropertyManager.GetProperties(new ComparisonLogID(dataID, data.GetContext()));
+
+                int idHash = data.GetHashCode();
+
+                //UtilityLogger.Log(idHash);
+
+                //Find a hashcode match - We need to avoid overwriting log properties that do not belong to this instance
+                availableEntries = updateEntries.Intersect(availableEntries)
+                                                .Where(p => idHash == p.GetHashCode());
+
+                LogProperties properties = availableEntries.FirstOrDefault();
+
+                //We found a duplicate entry - don't handle it
+                if (processedHashes.Contains(idHash))
+                    continue;
+
+                processedHashes.Add(idHash);
+
+                //Determine if data should be added to the write string as is, or if updates are required
+                if (properties == null)
+                    sb.AppendLine(data.GetWriteString(true));
+                else
                 {
-                    //Find all matching comparisons
-                    IEnumerable<LogProperties> availableProperties = LogProperties.PropertyManager.GetProperties(new ComparisonLogID(dataID));
+                    properties.UpdateWriteHash();
+                    sb.AppendLine(properties.GetWriteString(data.Comments));
 
-                    //Find a comparison match that is contained within updateList
-                    LogProperties properties = updateEntries.Intersect(availableProperties).FirstOrDefault();
-
-                    int idHash = properties != null ? properties.IDHash : data.GetHashCode();
-
-                    //UtilityLogger.DebugLog(idHash);
-
-                    //We found a duplicate entry - don't handle it
-                    if (processedHashes.Contains(idHash))
-                        continue;
-
-                    processedHashes.Add(idHash);
-
-                    //Determine if data should be added to the write string as is, or if updates are required
-                    if (properties == null)
-                        sb.AppendLine(data.GetWriteString(true));
-                    else
-                    {
-                        properties.UpdateWriteHash();
-                        sb.AppendLine(properties.GetWriteString(data.Comments));
-
-                        updateEntries.Remove(properties);
-                    }
+                    updateEntries.Remove(properties);
                 }
             }
 

@@ -21,10 +21,10 @@ namespace LogUtils.Helpers.FileHandling
 
         internal static ResolveResults ResolvePath(string path, Func<string, bool> existCallback)
         {
-            if (!RWInfo.MergeProcessComplete)
+            if (!RainWorldInfo.MergeProcessComplete)
                 UtilityLogger.LogWarning("Resolving path before mod merging has completed");
 
-            if (string.IsNullOrWhiteSpace(path))
+            if (PathUtils.IsEmpty(path))
             {
                 return new ResolveResults()
                 {

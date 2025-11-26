@@ -9,12 +9,12 @@ namespace LogUtils.Events
     public class ConsoleRequestEventArgs : EventArgs
     {
         /// <summary>
-        /// List of ConsoleIDs that were transfered from pending status
+        /// List of <see cref="ConsoleID"/> instances that were transfered from pending status
         /// </summary>
         public List<ConsoleID> Handled = new List<ConsoleID>();
 
         /// <summary>
-        /// List of ConsoleIDs waiting to be handled
+        /// List of <see cref="ConsoleID"/> instances waiting to be handled
         /// </summary>
         public List<ConsoleID> Pending = new List<ConsoleID>();
 
