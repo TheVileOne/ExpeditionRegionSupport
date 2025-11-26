@@ -146,21 +146,17 @@ namespace LogUtils.Helpers.FileHandling
 
         private static bool tryExpandPath(ref string path)
         {
-            if (Path.IsPathRooted(path))
-            {
-                if (path.StartsWith(@"\.") || path.StartsWith(@"/.")) //Path is relative to system root
-                {
-                    //TODO: Handle this case
-                }
-                return true;
-            }
+            bool isExpanded = false;
 
-            if (path[0] == '.') //Path is relative to the root directory
+            //Expand if path is a relative path, or lacks drive information
+            if (path[0] == '.' || path[0] == Path.DirectorySeparatorChar || path[0] == Path.AltDirectorySeparatorChar)
             {
                 path = Path.GetFullPath(path);
-                return true;
+                isExpanded = true;
             }
-            return false;
+
+            isExpanded |= Path.IsPathRooted(path);
+            return isExpanded;
         }
 
         /// <summary>
@@ -334,11 +330,11 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <summary>
-        /// Checks that the path given is an absolute path
+        /// Checks that the path given contains drive letter information
         /// </summary>
         public static bool IsAbsolute(string path)
         {
-            return Path.IsPathRooted(path) && !(path[0] == Path.DirectorySeparatorChar || path[0] == Path.AltDirectorySeparatorChar);
+            return Path.IsPathRooted(path) && path[0] != Path.DirectorySeparatorChar && path[0] != Path.AltDirectorySeparatorChar;
         }
 
         public static bool IsEmpty(string path)

@@ -24,8 +24,11 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
         public void Test()
         {
-            testRootFolderExistenceChecks();
-            testSubrootFolderExistenceChecks();
+            /*
+             * Test Notes
+             * A path must be a full path for an exists check to pass.
+             * Path.GetFullPath expands relative paths if they exist and always appends working directory when not an absolute path. It will not fill in the missing gaps in the path. 
+             */
             testPathConversion();
             testPathDetection();
             activeTestGroup = null;
@@ -40,21 +43,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
             testEmptyPathsReturnCorrectPath();
             testAbsolutePathReturnsCorrectPath();
             testRelativePaths();
-            testRelativePathsCaseInsensitive();
-        }
-
-        private void testRootFolderExistenceChecks()
-        {
-            //Confirm that the root directory itself fails the directory exists check
-            AssertThat(Directory.Exists(RainWorldPath.ROOT_DIRECTORY)).IsFalse();
-            AssertThat(Directory.Exists(PathUtils.PrependWithSeparator(RainWorldPath.ROOT_DIRECTORY))).IsFalse();
-        }
-
-        private void testSubrootFolderExistenceChecks()
-        {
-            //Confirm that the root directory itself fails the directory exists check
-            AssertThat(Directory.Exists("StreamingAssets")).IsFalse();
-            AssertThat(Directory.Exists(PathUtils.PrependWithSeparator("StreamingAssets"))).IsFalse();
+            testPartialPaths();
+            testPartialPathsCaseInsensitive();
         }
 
         private void testPathDetection()
@@ -105,11 +95,43 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
         private void testRelativePaths()
         {
+            Condition.Result.ResetCount();
             TestCase testCase = new TestCase(activeTestGroup, "Test: Relative paths");
 
-            string relativeRoot = "Rain World",
-                   relativeCustomRoot = "StreamingAssets",
-                   relativeBepInExRoot = "BepInEx"; //This is actually RainWorld/BepInEx
+            string testFolderName = "SomeFolder"; //Value represents any arbitrary directory that does not exist
+            string expectedTestFolderPath = Path.Combine(RainWorldPath.RootPath, testFolderName);
+
+            testPath(@"./"  , RainWorldPath.RootPath);
+            testPath(@".\"  , RainWorldPath.RootPath);
+            testPath(@"././", RainWorldPath.RootPath);
+
+            testPath(@"./" + testFolderName, expectedTestFolderPath);
+            testPath(@".\" + testFolderName, expectedTestFolderPath);
+            testPath(@"././" + testFolderName, expectedTestFolderPath);
+
+            testPath(@"/./", Environment.SystemDirectory);
+
+            void testPath(string testInput, string expectedOutput)
+            {
+                UtilityLogger.Log("Input: " + testInput);
+                string pathResult = getPathConversion(testInput);
+                testCase.AssertPathsAreEqual(expectedPath: expectedOutput,
+                                               actualPath: pathResult);
+            }
+        }
+
+        private void testPartialPaths()
+        {
+            Condition.Result.ResetCount();
+            TestCase testCase = new TestCase(activeTestGroup, "Test: Partial paths");
+
+            string[] testData = createTestData();
+
+            #pragma warning disable IDE0055 //Fix formatting
+            string relativeRoot        = testData[(int)PathIndex.RAIN_WORLD],
+                   relativeCustomRoot  = testData[(int)PathIndex.STREAMING_ASSETS],
+                   relativeBepInExRoot = testData[(int)PathIndex.BEPINEX];
+            #pragma warning restore IDE0055 //Fix formatting
 
             string testFolderName = "SomeFolder"; //Value represents any arbitrary directory that does not exist
 
@@ -133,13 +155,17 @@ namespace LogUtils.Diagnostics.Tests.Utility
             }
         }
 
-        private void testRelativePathsCaseInsensitive()
+        private void testPartialPathsCaseInsensitive()
         {
             TestCase testCase = new TestCase(activeTestGroup, "Test: Relative paths (Case insensitive)");
 
-            string relativeRoot = "Rain World",
-                   relativeCustomRoot = "StreamingAssets",
-                   relativeBepInExRoot = "BepInEx"; //This is actually RainWorld/BepInEx
+            string[] testData = createTestData();
+
+            #pragma warning disable IDE0055 //Fix formatting
+            string relativeRoot        = testData[(int)PathIndex.RAIN_WORLD],
+                   relativeCustomRoot  = testData[(int)PathIndex.STREAMING_ASSETS],
+                   relativeBepInExRoot = testData[(int)PathIndex.BEPINEX];
+            #pragma warning restore IDE0055 //Fix formatting
 
             string testFolderName = "SomeFolder"; //Value represents any arbitrary directory that does not exist
 
@@ -166,6 +192,15 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 testCase.AssertPathsAreEqual(expectedPath: expectedOutput,
                                                actualPath: pathResult);
             }
+        }
+
+        private static string[] createTestData() => ["Rain World", "StreamingAssets", "BepInEx"];
+
+        private enum PathIndex
+        {
+            RAIN_WORLD = 0,
+            STREAMING_ASSETS = 1,
+            BEPINEX
         }
 
         internal static void LogPaths()
