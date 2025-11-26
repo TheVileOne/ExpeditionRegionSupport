@@ -179,7 +179,7 @@ namespace LogUtils
         {
             LogProperties properties = e.Properties;
 
-            if (!properties.IsNewInstance || !Exists) return; //Eligibility only applies to newly created log properties
+            if (!properties.IsNewInstance || properties is LogGroupProperties || !Exists) return; //Eligibility only applies to newly created log properties
 
             if (properties.LogsFolderEligible && properties.LogsFolderAware)
                 AddToFolder(properties);
