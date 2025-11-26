@@ -8,7 +8,7 @@ namespace LogUtils
     /// <summary>
     /// A static class for storing Rain World associated data
     /// </summary>
-    public static class RWInfo
+    public static class RainWorldInfo
     {
         /// <summary>
         /// A period during which it is safe to evaluate RainWorld.ShowLogs because it is guaranteed to be initialized at this time
@@ -39,7 +39,7 @@ namespace LogUtils
         /// </summary>
         public static bool MergeProcessComplete => LatestSetupPeriodReached > SetupPeriod.Pregame;
 
-        static RWInfo()
+        static RainWorldInfo()
         {
             UtilityCore.EnsureInitializedState();
         }

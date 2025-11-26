@@ -159,7 +159,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// A flag that indicates whether a log session can be, or already is established
         /// </summary>
-        public bool CanBeAccessed => LogSessionActive || RWInfo.LatestSetupPeriodReached >= AccessPeriod;
+        public bool CanBeAccessed => LogSessionActive || RainWorldInfo.LatestSetupPeriodReached >= AccessPeriod;
 
         private LogID _id;
         private string _idValue;
@@ -504,7 +504,7 @@ namespace LogUtils.Properties
             {
                 OnLogSessionStart += (LogStreamEventArgs e) =>
                 {
-                    e.Writer.WriteLine("############################################\n Jolly Coop Log [DEBUG LEVEL: {0}]\n", RWInfo.Build);
+                    e.Writer.WriteLine("############################################\n Jolly Coop Log [DEBUG LEVEL: {0}]\n", RainWorldInfo.Build);
                 };
             }
 
@@ -624,7 +624,7 @@ namespace LogUtils.Properties
         /// </summary>
         public void BeginLogSession()
         {
-            if (LogSessionActive || RWInfo.IsShuttingDown) return;
+            if (LogSessionActive || RainWorldInfo.IsShuttingDown) return;
 
             LogID logID = ID;
             UtilityLogger.Log($"Attempting to start log session [{logID}]");

@@ -73,7 +73,7 @@ namespace LogUtils.Properties
 
         public PropertyDataController()
         {
-            IsEditGracePeriod = RWInfo.LatestSetupPeriodReached < SetupPeriod.PostMods;
+            IsEditGracePeriod = RainWorldInfo.LatestSetupPeriodReached < SetupPeriod.PostMods;
 
             CustomLogProperties.OnPropertyAdded += onCustomPropertyAdded;
             CustomLogProperties.OnPropertyRemoved += onCustomPropertyRemoved;
@@ -81,7 +81,7 @@ namespace LogUtils.Properties
 
         internal void ProcessLogFiles()
         {
-            bool shouldRunStartupRoutine = UtilityCore.IsControllingAssembly && RWInfo.LatestSetupPeriodReached < RWInfo.STARTUP_CUTOFF_PERIOD;
+            bool shouldRunStartupRoutine = UtilityCore.IsControllingAssembly && RainWorldInfo.LatestSetupPeriodReached < RainWorldInfo.STARTUP_CUTOFF_PERIOD;
 
             if (shouldRunStartupRoutine)
                 StartupRoutineActive = true; //Notify that startup process might be happening early
@@ -91,12 +91,12 @@ namespace LogUtils.Properties
 
             //It is important for normal function of the utility for it to initialize before the game does. The following code handles the situation when
             //the utility is initialized too late, and the game has been allowed to intialize the log files without the necessary utility hooks active
-            if (RWInfo.LatestSetupPeriodReached > SetupPeriod.Pregame)
+            if (RainWorldInfo.LatestSetupPeriodReached > SetupPeriod.Pregame)
             {
                 ProcessLateInitializedLogFile(LogID.Unity);
                 ProcessLateInitializedLogFile(LogID.Exception);
 
-                if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.ModsInit) //Expedition, and JollyCoop
+                if (RainWorldInfo.LatestSetupPeriodReached >= SetupPeriod.ModsInit) //Expedition, and JollyCoop
                 {
                     ProcessLateInitializedLogFile(LogID.Expedition);
                     ProcessLateInitializedLogFile(LogID.JollyCoop);

@@ -21,7 +21,7 @@ namespace LogUtils.IPC
         {
             connectTask = new Task(() =>
             {
-                if (RWInfo.IsShuttingDown)
+                if (RainWorldInfo.IsShuttingDown)
                 {
                     UtilityLogger.Logger.LogMessage($"Connection attempts canceled due to process shutdown [{Process.GetCurrentProcess().Id}]");
                     Disconnect();

@@ -95,7 +95,7 @@ namespace LogUtils
                 if (request.Data.PendingConsoleIDs.Any())
                     WriteToConsole(request);
 
-                if (!RWInfo.IsShuttingDown)
+                if (!RainWorldInfo.IsShuttingDown)
                 {
                     /*
                      * In order to get back into a write qualifying range, we run a new calculation with zero new accumulated messages until the average logging rate
@@ -169,7 +169,7 @@ namespace LogUtils
                 if (!request.IsCompleteOrRejected) //Something horribly went wrong for this code to run
                     request.Reject(RejectionReason.FailedToWrite);
 
-                if (!writeBuffer.IsBuffering || RWInfo.IsShuttingDown)
+                if (!writeBuffer.IsBuffering || RainWorldInfo.IsShuttingDown)
                     profiler.MessagesSinceLastSampling++;
                 UtilityCore.RequestHandler.RequestMayBeCompleteOrInvalid(request);
             }
@@ -455,7 +455,7 @@ namespace LogUtils
 
             writer.WriteLine(message);
 
-            if (RWInfo.IsShuttingDown)
+            if (RainWorldInfo.IsShuttingDown)
                 writer.Flush();
 
             messageData.Properties.MessagesHandledThisSession++;

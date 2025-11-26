@@ -146,9 +146,9 @@ namespace LogUtils.Compatibility.Unity
                             ExceptionInfo exceptionInfo = new ExceptionInfo(message, stackTrace);
 
                             //Check that the last exception reported matches information stored
-                            if (!RWInfo.CheckExceptionMatch(LogID.Exception, exceptionInfo))
+                            if (!RainWorldInfo.CheckExceptionMatch(LogID.Exception, exceptionInfo))
                             {
-                                RWInfo.ReportException(LogID.Exception, exceptionInfo);
+                                RainWorldInfo.ReportException(LogID.Exception, exceptionInfo);
                                 request = UtilityCore.RequestHandler.Submit(new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.Exception, exceptionInfo, category)), false);
                             }
                             return;

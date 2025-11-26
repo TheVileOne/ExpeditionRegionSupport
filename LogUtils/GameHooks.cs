@@ -132,7 +132,7 @@ namespace LogUtils
             //Utility bypasses attempts to define this from the game code. Avoid any potential null references 
             JollyCoop.JollyCustom.logCache = new Queue<JollyCoop.LogElement>();
 
-            RWInfo.NotifyOnPeriodReached(SetupPeriod.RWAwake);
+            RainWorldInfo.NotifyOnPeriodReached(SetupPeriod.RWAwake);
             orig(self);
         }
 
@@ -160,7 +160,7 @@ namespace LogUtils
             cursor.EmitDelegate(() =>
             {
                 //The game will take over handling of Unity log requests shortly after - unsubscribe listener
-                if (RWInfo.LatestSetupPeriodReached == SetupPeriod.RWAwake)
+                if (RainWorldInfo.LatestSetupPeriodReached == SetupPeriod.RWAwake)
                 {
                     UtilityCore.RequestHandler.ProcessRequests();
                     UnityLogger.ReceiveUnityLogEvents = false;
@@ -170,7 +170,7 @@ namespace LogUtils
 
         private static void RainWorld_OnDestroy(On.RainWorld.orig_OnDestroy orig, RainWorld self)
         {
-            RWInfo.IsShuttingDown = true;
+            RainWorldInfo.IsShuttingDown = true;
 
             try
             {
@@ -191,13 +191,13 @@ namespace LogUtils
 
         private static void RainWorld_PreModsInit(On.RainWorld.orig_PreModsInit orig, RainWorld self)
         {
-            RWInfo.NotifyOnPeriodReached(SetupPeriod.PreMods);
+            RainWorldInfo.NotifyOnPeriodReached(SetupPeriod.PreMods);
             orig(self);
         }
 
         private static void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
         {
-            RWInfo.NotifyOnPeriodReached(SetupPeriod.ModsInit);
+            RainWorldInfo.NotifyOnPeriodReached(SetupPeriod.ModsInit);
 
             disableLogClearing = true;
             orig(self);
@@ -209,7 +209,7 @@ namespace LogUtils
         /// </summary>
         private static void RainWorld_PostModsInit(On.RainWorld.orig_PostModsInit orig, RainWorld self)
         {
-            RWInfo.NotifyOnPeriodReached(SetupPeriod.PostMods);
+            RainWorldInfo.NotifyOnPeriodReached(SetupPeriod.PostMods);
             orig(self);
 
             //TODO: It could be guaranteed that this runs after all hooks by setting a flag here, that is checked in ModManager.CheckInitIssues, or we could possibly use the scheduler
@@ -284,7 +284,7 @@ namespace LogUtils
                     ExceptionInfo exceptionInfo = new ExceptionInfo(logString, stackTrace);
 
                     //Check that the last exception reported matches information stored
-                    if (RWInfo.CheckExceptionMatch(LogID.Exception, exceptionInfo))
+                    if (RainWorldInfo.CheckExceptionMatch(LogID.Exception, exceptionInfo))
                     {
                         if (request != null && request.Data.ID == LogID.Exception)
                         {
@@ -295,7 +295,7 @@ namespace LogUtils
                         return;
                     }
 
-                    RWInfo.ReportException(LogID.Exception, exceptionInfo);
+                    RainWorldInfo.ReportException(LogID.Exception, exceptionInfo);
 
                     //The game is no longer able to set these accurately, and probably better to handle off the stack anyways
                     self.lastLoggedException = logString;

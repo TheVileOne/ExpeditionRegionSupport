@@ -57,7 +57,7 @@ namespace LogUtils.Requests.Validation
         /// </summary>
         public static RejectionReason ShowLogsViolation()
         {
-            if (RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD)
+            if (RainWorldInfo.LatestSetupPeriodReached < RainWorldInfo.SHOW_LOGS_ACTIVE_PERIOD)
                 return RejectionReason.ShowLogsNotInitialized;
             return RejectionReason.LogDisabled;
         }

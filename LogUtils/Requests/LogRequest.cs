@@ -222,7 +222,7 @@ namespace LogUtils.Requests
                 NotifyComplete(consoleContext);
             }
 
-            bool showLogsActive = RainWorld.ShowLogs || RWInfo.LatestSetupPeriodReached < RWInfo.SHOW_LOGS_ACTIVE_PERIOD;
+            bool showLogsActive = RainWorld.ShowLogs || RainWorldInfo.LatestSetupPeriodReached < RainWorldInfo.SHOW_LOGS_ACTIVE_PERIOD;
 
             if (LogRequestPolicy.ShowRejectionReasons && !UtilityLogger.PerformanceMode && showLogsActive && shouldBeReported(reason))
             {

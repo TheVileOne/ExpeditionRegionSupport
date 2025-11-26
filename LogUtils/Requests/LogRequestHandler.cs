@@ -735,7 +735,7 @@ namespace LogUtils.Requests
 
             //Requests should not be regularly checked until after the game, mods, and associated logger instances have been given time to initialize
             //There is a separate process for handling log requests earlier in the setup process
-            if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.PostMods)
+            if (RainWorldInfo.LatestSetupPeriodReached >= SetupPeriod.PostMods)
                 ProcessRequests();
         }
 

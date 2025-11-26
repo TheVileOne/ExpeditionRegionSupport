@@ -170,7 +170,7 @@ namespace LogUtils
                 return category;
 
             //Path could still be a partial path that needs to be resolved
-            if (!RWInfo.MergeProcessComplete) //Too early to resolve paths
+            if (!RainWorldInfo.MergeProcessComplete) //Too early to resolve paths
             {
                 UtilityLogger.LogWarning("Path category could not be accurately determined");
                 return PathCategory.NotRooted;
