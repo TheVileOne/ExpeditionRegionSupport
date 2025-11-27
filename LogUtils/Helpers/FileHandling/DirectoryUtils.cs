@@ -9,56 +9,6 @@ namespace LogUtils.Helpers.FileHandling
     public static class DirectoryUtils
     {
         /// <summary>
-        /// Checks that a directory is contained within a path string
-        /// </summary>
-        /// <param name="path">The path to check</param>
-        /// <param name="dirName">The directory name to search for</param>
-        public static bool ContainsDirectory(string path, string dirName)
-        {
-            if (PathUtils.IsEmpty(path)) return false;
-
-            string[] pathDirs = PathUtils.SplitPath(PathUtils.PathWithoutFilename(path));
-
-            return Array.Exists(pathDirs, dir => IsDirectoryName(dir, dirName));
-        }
-
-        /// <summary>
-        /// Checks that a directory is contained within a path string
-        /// </summary>
-        /// <param name="path">The path to check</param>
-        /// <param name="dirName">The directory name to search for</param>
-        /// <param name="dirLevelsToCheck">The number of directory separators to check starting from the right</param>
-        public static bool ContainsDirectory(string path, string dirName, int dirLevelsToCheck)
-        {
-            if (PathUtils.IsEmpty(path)) return false;
-
-            path = PathUtils.PathWithoutFilename(path);
-
-            bool dirFound = false;
-            while (dirLevelsToCheck > 0)
-            {
-                if (PathUtils.IsEmpty(path))
-                {
-                    dirLevelsToCheck = 0;
-                    break;
-                }
-
-                if (path.EndsWith(dirName, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    dirFound = true;
-                    dirLevelsToCheck = 0;
-                }
-                else
-                {
-                    //Keep stripping away directories, 
-                    path = Path.GetDirectoryName(path);
-                    dirLevelsToCheck--;
-                }
-            }
-            return dirFound;
-        }
-
-        /// <summary>
         /// Compares the equality of two directory names
         /// </summary>
         /// <param name="dirName">The first directory name to check</param>

@@ -12,11 +12,55 @@ namespace LogUtils.Helpers.FileHandling
         /// </summary>
         public const int PATH_VOLUME_LENGTH = 3;
 
-        /// <inheritdoc cref="DirectoryUtils.ContainsDirectory(string, string)"/>
-        public static bool ContainsDirectory(string path, string dirName) => DirectoryUtils.ContainsDirectory(path, dirName);
+        /// <summary>
+        /// Checks that a directory is contained within a path string
+        /// </summary>
+        /// <param name="path">The path to check</param>
+        /// <param name="dirName">The directory name to search for</param>
+        public static bool ContainsDirectory(string path, string dirName)
+        {
+            if (IsEmpty(path)) return false;
 
-        /// <inheritdoc cref="DirectoryUtils.ContainsDirectory(string, string, int)"/>
-        public static bool ContainsDirectory(string path, string dirName, int dirLevelsToCheck) => DirectoryUtils.ContainsDirectory(path, dirName, dirLevelsToCheck);
+            string[] pathDirs = SplitPath(PathWithoutFilename(path));
+
+            return Array.Exists(pathDirs, dir => DirectoryUtils.IsDirectoryName(dir, dirName));
+        }
+
+        /// <summary>
+        /// Checks that a directory is contained within a path string
+        /// </summary>
+        /// <param name="path">The path to check</param>
+        /// <param name="dirName">The directory name to search for</param>
+        /// <param name="dirLevelsToCheck">The number of directory separators to check starting from the right</param>
+        public static bool ContainsDirectory(string path, string dirName, int dirLevelsToCheck)
+        {
+            if (IsEmpty(path)) return false;
+
+            path = PathWithoutFilename(path);
+
+            bool dirFound = false;
+            while (dirLevelsToCheck > 0)
+            {
+                if (IsEmpty(path))
+                {
+                    dirLevelsToCheck = 0;
+                    break;
+                }
+
+                if (path.EndsWith(dirName, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    dirFound = true;
+                    dirLevelsToCheck = 0;
+                }
+                else
+                {
+                    //Keep stripping away directories, 
+                    path = Path.GetDirectoryName(path);
+                    dirLevelsToCheck--;
+                }
+            }
+            return dirFound;
+        }
 
         /// <summary>
         /// Checks the second path is contained with the first path
