@@ -142,59 +142,16 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <summary>
-        /// Takes two paths and determines how one of the paths relates to the other path
-        /// </summary>
-        /// <param name="targetPath">The path to evaluate</param>
-        /// <param name="relativeTo">The path to check against</param>
-        /// <param name="includeCommonDirectoryInResult">A flag indicating whether to include the most relevant directory in common between the given paths</param>
-        public static string GetRelativePath(string targetPath, string relativeTo, bool includeCommonDirectoryInResult)
-        {
-            //Convert to a common comparable format
-            string absolutePathBase = Path.GetFullPath(relativeTo); //Path we want to associate with
-            string absolutePathTarget = Path.GetFullPath(targetPath); //Path we want to associate relative to a base path
-
-            string commonRoot = FindCommonRootNoChecks(absolutePathBase, absolutePathTarget);
-
-            if (commonRoot.Length == absolutePathBase.Length) //The two paths share the base path as a common root
-            {
-                if (commonRoot.Length == absolutePathTarget.Length) //Same path
-                {
-                    if (includeCommonDirectoryInResult)
-                        return Path.GetFileName(absolutePathTarget);
-                    return string.Empty;
-                }
-
-                if (includeCommonDirectoryInResult) //Take last directory out of the common root, so that it will be included in the result
-                    commonRoot = Path.GetDirectoryName(commonRoot);
-                return absolutePathTarget.Remove(0, commonRoot.Length); //Remove the root from the target path
-            }
-
-            if (commonRoot.Length > 0 || Path.IsPathRooted(targetPath)) //The two paths are incompatible
-                return targetPath;
-
-            //Non-absolute paths can be combined with the base path
-            if (includeCommonDirectoryInResult)
-                targetPath = Path.Combine(Path.GetFileName(absolutePathBase), targetPath);
-
-            targetPath = Normalize(targetPath);
-            return targetPath;
-        }
-
-        /// <summary>
         /// Replace all directory separator characters with the default platform-specific directory separator character 
         /// </summary>
         public static string Normalize(string path)
         {
-            //Path.GetFullPath will replace Path.DirectorySeparatorChar '//' for us, but not Path.Combine
-            return path?.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-        }
+            if (IsEmpty(path))
+                return path;
 
-        /// <summary>
-        /// Replace all directory separator characters with the default platform-specific directory separator character removing any trailing separator characters
-        /// </summary>
-        public static string NormalizeAndTrim(string path)
-        {
-            return Normalize(path)?.TrimEnd(Path.DirectorySeparatorChar);
+            //TODO: Decide if this should trim trailing separator characters
+            //Path.GetFullPath will replace Path.DirectorySeparatorChar '//' for us, but not Path.Combine
+            return path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
         }
 
         /// <summary>
@@ -203,44 +160,6 @@ namespace LogUtils.Helpers.FileHandling
         public static string Trim(string path)
         {
             return path?.TrimEnd(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-        }
-
-        /// <summary>
-        /// Checks the path directory and parents of that directory for an existing directory
-        /// </summary>
-        public static bool PathRootExists(string path, int parentDirChecksAllowed = 3)
-        {
-            if (IsEmpty(path))
-                return false;
-
-            path = FindExistingPathRootRecursive(PathWithoutFilename(path), parentDirChecksAllowed);
-            return path != null;
-        }
-
-        /// <summary>
-        /// Checks the path directory and parents of that directory for an existing directory
-        /// </summary>
-        /// <returns>The portion of the path that exists</returns>
-        public static string FindExistingPathRoot(string path, int parentDirChecksAllowed = 3)
-        {
-            if (IsEmpty(path))
-                return null;
-
-            path = FindExistingPathRootRecursive(PathWithoutFilename(path), parentDirChecksAllowed);
-            return path;
-        }
-
-        internal static string FindExistingPathRootRecursive(string path, int parentDirChecksAllowed)
-        {
-            if (IsEmpty(path) || path.Length <= PATH_VOLUME_LENGTH)
-                return null;
-
-            if (Directory.Exists(path))
-                return path;
-
-            if (parentDirChecksAllowed > 1)
-                return FindExistingPathRootRecursive(Path.GetDirectoryName(path), parentDirChecksAllowed - 1);
-            return null;
         }
 
         /// <summary>
