@@ -109,7 +109,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             testPath(@".\" + testFolderName, expectedTestFolderPath);
             testPath(@"././" + testFolderName, expectedTestFolderPath);
 
-            testPath(@"/./", Environment.SystemDirectory);
+            testPath(@"/./", @"C:/");
 
             void testPath(string testInput, string expectedOutput)
             {
@@ -251,11 +251,6 @@ namespace LogUtils.Diagnostics.Tests.Utility
         public void ShowResults()
         {
             TestLogger.LogDebug(CreateReport());
-        }
-
-        private static class Helper
-        {
-
         }
     }
 }

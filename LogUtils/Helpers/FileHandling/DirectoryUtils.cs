@@ -17,7 +17,7 @@ namespace LogUtils.Helpers.FileHandling
         {
             if (PathUtils.IsEmpty(path)) return false;
 
-            string[] pathDirs = PathUtils.Separate(PathUtils.PathWithoutFilename(path));
+            string[] pathDirs = PathUtils.SplitPath(PathUtils.PathWithoutFilename(path));
 
             return Array.Exists(pathDirs, dir => IsDirectoryName(dir, dirName));
         }
@@ -94,9 +94,9 @@ namespace LogUtils.Helpers.FileHandling
         {
             if (PathUtils.IsEmpty(path)) return -1;
 
-            string[] pathDirs = PathUtils.Separate(PathUtils.PathWithoutFilename(path));
+            string[] pathDirs = PathUtils.SplitPath(PathUtils.PathWithoutFilename(path));
 
-            int charCount = PathUtils.CountLeadingSeparators(path);
+            int charCount = PathUtils.GetPrefixLength(path);
             int pathIndex;
             for (pathIndex = 0; pathIndex < pathDirs.Length; pathIndex++)
             {
@@ -151,7 +151,7 @@ namespace LogUtils.Helpers.FileHandling
         /// </summary>
         public static bool ParentExists(string path)
         {
-            if (PathUtils.IsEmpty(path) || path.Length <= 3) return false;
+            if (PathUtils.IsEmpty(path) || path.Length <= PathUtils.PATH_VOLUME_LENGTH) return false;
 
             return Directory.Exists(Path.GetDirectoryName(path));
         }

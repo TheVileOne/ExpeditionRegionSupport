@@ -7,6 +7,11 @@ namespace LogUtils.Helpers.FileHandling
 {
     public static class PathUtils
     {
+        /// <summary>
+        /// The length of a Windows path volume
+        /// </summary>
+        public const int PATH_VOLUME_LENGTH = 3;
+
         /// <inheritdoc cref="DirectoryUtils.ContainsDirectory(string, string)"/>
         public static bool ContainsDirectory(string path, string dirName) => DirectoryUtils.ContainsDirectory(path, dirName);
 
@@ -22,26 +27,6 @@ namespace LogUtils.Helpers.FileHandling
             pathOther = Path.GetFullPath(pathOther);
 
             return path.StartsWith(pathOther, StringComparison.InvariantCultureIgnoreCase);
-        }
-
-        public static int CountLeadingSeparators(string path)
-        {
-            if (path == null) return 0;
-
-            int charCount = 0;
-            while (charCount < path.Length && (path[charCount] == Path.DirectorySeparatorChar || path[charCount] == Path.AltDirectorySeparatorChar))
-                charCount++;
-            return charCount;
-        }
-
-        public static int CountTrailingSeparators(string path)
-        {
-            if (path == null) return 0;
-
-            int charCount = 0;
-            while (charCount != path.Length && (path[path.Length - charCount] == Path.DirectorySeparatorChar || path[path.Length - charCount] == Path.AltDirectorySeparatorChar))
-                charCount++;
-            return charCount;
         }
 
         /// <summary>
@@ -98,34 +83,6 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <summary>
-        /// Checks for and returns relative path syntax from the beginning of a path string
-        /// </summary>
-        /// <returns>Returns a string representing the relative path syntax or null if path string is not a relative path</returns>
-        public static bool IsRelative(string path)
-        {
-            if (IsEmpty(path)) return false;
-
-            //Count number of leading periods
-            int index = 0;
-            while (index < path.Length && path[index] == '.')
-            {
-                index++;
-            }
-
-            /*
-             * Valid formats
-             * @./ ../
-             * @.\ ..\
-             * @/  //   This is also considered a path root, but is not a fully qualified path
-             * @\  \\   This is also considered a path root, but is not a fully qualified path
-             */
-            if (index == path.Length) //All periods is not a valid relative path
-                return false;
-
-            return path[index] == Path.DirectorySeparatorChar || path[index] == Path.AltDirectorySeparatorChar;
-        }
-
-        /// <summary>
         /// Converts a partial, or non-partial path into a fully qualified absolute path
         /// </summary>
         /// <remarks>Supports files and directories</remarks>
@@ -160,6 +117,31 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <summary>
+        /// Gets the length of any relative, or root path information at the start of the path string
+        /// </summary>
+        public static int GetPrefixLength(string path)
+        {
+            if (IsEmpty(path))
+                return path == null ? 0 : path.Length;
+
+            if (IsAbsolute(path))
+                return PATH_VOLUME_LENGTH;
+
+            int matchCount = 0;
+            while (matchCount < path.Length)
+            {
+                char c = path[matchCount];
+                if (c == '.' || c == Path.DirectorySeparatorChar || c == Path.AltDirectorySeparatorChar)
+                {
+                    matchCount++;
+                    continue;
+                }
+                break;
+            }
+            return matchCount;
+        }
+
+        /// <summary>
         /// Takes two paths and determines how one of the paths relates to the other path
         /// </summary>
         /// <param name="targetPath">The path to evaluate</param>
@@ -178,7 +160,7 @@ namespace LogUtils.Helpers.FileHandling
                 if (commonRoot.Length == absolutePathTarget.Length) //Same path
                 {
                     if (includeCommonDirectoryInResult)
-                        return PrependWithSeparator(Path.GetFileName(absolutePathTarget));
+                        return Path.GetFileName(absolutePathTarget);
                     return string.Empty;
                 }
 
@@ -187,7 +169,7 @@ namespace LogUtils.Helpers.FileHandling
                 return absolutePathTarget.Remove(0, commonRoot.Length); //Remove the root from the target path
             }
 
-            if (commonRoot.Length > 0 || IsAbsolute(targetPath)) //The two paths are incompatible
+            if (commonRoot.Length > 0 || Path.IsPathRooted(targetPath)) //The two paths are incompatible
                 return targetPath;
 
             //Non-absolute paths can be combined with the base path
@@ -195,7 +177,7 @@ namespace LogUtils.Helpers.FileHandling
                 targetPath = Path.Combine(Path.GetFileName(absolutePathBase), targetPath);
 
             targetPath = Normalize(targetPath);
-            return PrependWithSeparator(targetPath);
+            return targetPath;
         }
 
         /// <summary>
@@ -231,9 +213,6 @@ namespace LogUtils.Helpers.FileHandling
             if (IsEmpty(path))
                 return false;
 
-            if (!Path.IsPathRooted(path))
-                path = Path.GetFullPath(path);
-
             path = FindExistingPathRootRecursive(PathWithoutFilename(path), parentDirChecksAllowed);
             return path != null;
         }
@@ -247,16 +226,13 @@ namespace LogUtils.Helpers.FileHandling
             if (IsEmpty(path))
                 return null;
 
-            if (!Path.IsPathRooted(path))
-                path = Path.GetFullPath(path);
-
             path = FindExistingPathRootRecursive(PathWithoutFilename(path), parentDirChecksAllowed);
             return path;
         }
 
         internal static string FindExistingPathRootRecursive(string path, int parentDirChecksAllowed)
         {
-            if (IsEmpty(path) || path.Length <= 3)
+            if (IsEmpty(path) || path.Length <= PATH_VOLUME_LENGTH)
                 return null;
 
             if (Directory.Exists(path))
@@ -302,15 +278,19 @@ namespace LogUtils.Helpers.FileHandling
         /// <summary>
         /// Separates a path into its directory and/or file components
         /// </summary>
-        public static string[] Separate(string path)
+        public static string[] SplitPath(string path)
         {
-            if (path == null)
+            if (IsEmpty(path))
                 return Array.Empty<string>();
 
             char[] separators = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
 
-            //Leading, and trailing separator characters will create misleading results, trim them out
-            return path.Trim(separators)
+            int prefixLength = GetPrefixLength(path);
+
+            if (prefixLength > 0)
+                path = path.Substring(prefixLength);
+
+            return path.TrimEnd(separators) //Trimming avoids empty data making it into the results
                        .Split(separators);
         }
 
@@ -321,8 +301,8 @@ namespace LogUtils.Helpers.FileHandling
         {
             if (Path.IsPathRooted(path))
             {
-                if (path.Length > 2 && path[1] == Path.VolumeSeparatorChar) //Path begins with a drive map
-                    return path.Substring(2);
+                if (path.Length >= PATH_VOLUME_LENGTH && path[1] == Path.VolumeSeparatorChar) //Path begins with a drive map
+                    return path.Substring(PATH_VOLUME_LENGTH);
 
                 return path.Substring(1);
             }
