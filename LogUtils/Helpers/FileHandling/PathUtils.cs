@@ -1,6 +1,7 @@
 ﻿using LogUtils.Helpers.Comparers;
 using System;
 using System.IO;
+using System.Text;
 using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
 
 namespace LogUtils.Helpers.FileHandling
@@ -74,50 +75,39 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <summary>
-        /// Finds a path string that two provided paths have in common
+        /// Finds a path string that two provided paths have in common. When a partial path is provided, the path will be resolved to a fully qualified path targeting
+        /// either Rain World, StreamingAssets, or BepInEx directory paths, defaulting to StreamingAssets when no match is found. 
         /// </summary>
         public static string FindCommonRoot(string path, string pathOther)
         {
-            if (!Path.IsPathRooted(path)) //Check that we are dealing with a full path
-                path = Path.GetFullPath(path);
+            //Find the best fit
+            path = ResolvePath(path);
+            pathOther = ResolvePath(pathOther);
 
-            if (!Path.IsPathRooted(pathOther))
-                pathOther = Path.GetFullPath(pathOther);
-            return FindCommonRootNoChecks(path, pathOther);
-        }
+            PathInfo info = new PathInfo(path);
+            PathInfo infoOther = new PathInfo(pathOther);
 
-        internal static string FindCommonRootNoChecks(string path, string pathOther)
-        {
-            int charsMatched, charsMatchedThisDir = 0;
-            for (charsMatched = 0; charsMatched < Math.Min(path.Length, pathOther.Length); charsMatched++)
+            //Root should never be empty here
+            string pathRoot = info.GetRoot();
+            string pathRootOther = infoOther.GetRoot();
+
+            if (!pathRoot.Equals(pathRootOther, StringComparison.OrdinalIgnoreCase)) //Path root doesn't match
+                return string.Empty;
+
+            var dirEnumerator = info.GetDirectoryEnumerator();
+            var dirEnumeratorOther = infoOther.GetDirectoryEnumerator();
+
+            StringBuilder pathBuilder = new StringBuilder();
+
+            pathBuilder.Append(pathRoot);
+
+            //Find a string of directories that are shared between the two paths here 
+            while (dirEnumerator.MoveNext() && dirEnumeratorOther.MoveNext() && DirectoryUtils.IsDirectoryName(dirEnumerator.Current, dirEnumeratorOther.Current))
             {
-                char pathChar = path[charsMatched];
-                char pathCharOther = pathOther[charsMatched];
-
-                //Ensure that directory separators can be compared
-                if (pathChar == Path.AltDirectorySeparatorChar)
-                    pathChar = Path.DirectorySeparatorChar;
-
-                if (pathCharOther == Path.AltDirectorySeparatorChar)
-                    pathCharOther = Path.DirectorySeparatorChar;
-
-                if (pathChar == pathCharOther)
-                {
-                    //Register that another char has been matched for the current directory, or set back to zero for the next directory
-                    charsMatchedThisDir = pathChar == Path.DirectorySeparatorChar ? 0 : charsMatchedThisDir + 1;
-                }
-                else
-                {
-                    //Chars matched should only include full directory matches - exclude partial matches
-                    if (pathChar == Path.DirectorySeparatorChar || pathCharOther == Path.DirectorySeparatorChar)
-                        charsMatched -= charsMatchedThisDir;
-                    break;
-                }
+                pathBuilder.Append(dirEnumerator.Current)
+                           .Append(Path.DirectorySeparatorChar);
             }
-
-            if (charsMatched <= path.Length)
-                return path.Substring(0, charsMatched);
-            return pathOther.Substring(0, charsMatched);
+            return pathBuilder.ToString().TrimEnd(Path.DirectorySeparatorChar);
         }
 
         public static string GetRandomFilename(string fileExt)

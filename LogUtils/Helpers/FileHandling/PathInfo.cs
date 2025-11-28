@@ -50,6 +50,13 @@ namespace LogUtils.Helpers.FileHandling
                 return;
             }
 
+            //TODO: Handle relative paths properly
+            //if (path[0] == '.')
+            //{
+            //    UtilityLogger.Log("Resolving short path");
+            //    path = Path.GetFullPath(path);
+            //}
+
             string pathTarget;
             if (includeFilenameInPath)
             {
@@ -173,6 +180,23 @@ namespace LogUtils.Helpers.FileHandling
         public IEnumerator<string> GetDirectoryEnumerator()
         {
             return GetDirectories().GetEnumerator();
+        }
+
+        /// <summary>
+        /// Extracts the path root from the path string
+        /// </summary>
+        /// <remarks>Returns an empty string if no root information is present</remarks>
+        public string GetRoot()
+        {
+            if (TargetPath == string.Empty)
+                return string.Empty;
+
+            if (TargetPath[0] == '.' || TargetPath[0] == Path.DirectorySeparatorChar || TargetPath[0] == Path.AltDirectorySeparatorChar)
+                return Directory.GetDirectoryRoot(TargetPath); //Let .NET API resolve the relative path for us
+
+            //For the general case, we resolve the root manually - .NET helper will do a full path check if we use it
+            return TargetPath.Substring(0, GetRootLength())
+                             .Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
         }
 
         /// <summary>

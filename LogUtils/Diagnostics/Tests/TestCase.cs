@@ -125,7 +125,11 @@ namespace LogUtils.Diagnostics.Tests
 
             //Logging for debugging purposes
             if (!condition.Passed)
-                UtilityLogger.LogWarning("EXPECTED: " + expectedPath + "\nACTUAL: " + actualPath);
+            {
+                UtilityLogger.LogWarning("Path equality check failed" +
+                    "\nEXPECTED: " + expectedPath +
+                    "\nACTUAL  : " + actualPath);
+            }
             return condition;
         }
 

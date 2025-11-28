@@ -246,7 +246,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 LogGroupID testGroupEnum = TestLogID.Factory.CreateLogGroup(GROUP_NAME, testGroupPath);
                 LogID testGroupEnumMember = TestLogID.Factory.CreateLogGroupMember(testGroupEnum, MEMBER_NAME, MEMBER_PATH);
 
-                assertPathsAreEqual(expectedPath: Path.Combine(testGroupPath, MEMBER_PATH),
+                AssertPathsAreEqual(expectedPath: Path.Combine(testGroupPath, MEMBER_PATH),
                                       actualPath: testGroupEnumMember.Properties.FolderPath);
                 TestEnumFactory.DisposeObjects();
             }
@@ -264,7 +264,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
                     LogGroupID testGroupEnum = TestLogID.Factory.CreateLogGroup(GROUP_NAME, testGroupPath);
                     LogID testGroupEnumMember = TestLogID.Factory.CreateLogGroupMember(testGroupEnum, MEMBER_NAME, testMemberPath);
 
-                    assertPathsAreEqual(expectedPath: LogProperties.GetContainingPath(testMemberPath),
+                    AssertPathsAreEqual(expectedPath: LogProperties.GetContainingPath(testMemberPath),
                                           actualPath: testGroupEnumMember.Properties.FolderPath);
                     TestEnumFactory.DisposeObjects();
                 }
@@ -277,15 +277,9 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 LogGroupID testGroupEnum = TestLogID.Factory.CreateLogGroup(GROUP_NAME, testGroupPath);
                 LogID testGroupEnumMember = TestLogID.Factory.CreateLogGroupMember(testGroupEnum, MEMBER_NAME);
 
-                assertPathsAreEqual(expectedPath: testGroupPath,
+                AssertPathsAreEqual(expectedPath: testGroupPath,
                                       actualPath: testGroupEnumMember.Properties.FolderPath);
                 TestEnumFactory.DisposeObjects();
-            }
-
-            private void assertPathsAreEqual(string expectedPath, string actualPath)
-            {
-                if (AssertThat(PathUtils.PathsAreEqual(expectedPath, actualPath)).IsTrue() == false)
-                    UtilityLogger.LogWarning("EXPECTED: " + expectedPath + "\nACTUAL: " + actualPath);
             }
 
             [PostTest]

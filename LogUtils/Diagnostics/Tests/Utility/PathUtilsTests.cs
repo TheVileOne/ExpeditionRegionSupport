@@ -1,6 +1,7 @@
 ﻿using LogUtils.Helpers.FileHandling;
 using System;
 using System.IO;
+using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
 
 namespace LogUtils.Diagnostics.Tests.Utility
 {
@@ -14,6 +15,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
         public void Test()
         {
+            testFindCommonRoot();
             testGetPrefixLength();
             testSplitPath();
             testLocationInPath();
@@ -23,6 +25,52 @@ namespace LogUtils.Diagnostics.Tests.Utility
         public void ShowResults()
         {
             TestLogger.LogDebug(CreateReport());
+        }
+
+        private void testFindCommonRoot()
+        {
+            //Two partial paths
+            testFindCommonRoot("one", "two", RainWorldPath.StreamingAssetsPath);
+            
+            //Two partial paths - subfolder matches other path 
+            testFindCommonRoot("one/two", "two", RainWorldPath.StreamingAssetsPath);
+
+            //Two partial paths - leading folder matches other path
+            testFindCommonRoot("one", "one/two", Path.Combine(RainWorldPath.StreamingAssetsPath, "one"));
+
+            //One partial path, and one fully qualified path
+            testFindCommonRoot("one", Path.Combine(RainWorldPath.RootPath, "one"), RainWorldPath.RootPath); //Rain World\RainWorld_Data\StreamingAssets\one | Rain World\one
+
+            //Two fully qualified matching paths
+            testFindCommonRoot(Path.Combine(RainWorldPath.RootPath, "one"),
+                               Path.Combine(RainWorldPath.RootPath, "one"),
+                               Path.Combine(RainWorldPath.RootPath, "one")); //Rain World\one | Rain World\one
+
+            //One relative path, and one fully qualified path
+            testFindCommonRoot(@"./", RainWorldPath.RootPath, RainWorldPath.RootPath);
+
+            //Test case insensitivity
+
+            //Two partial paths - leading folder matches other path
+            testFindCommonRoot("one", "ONE/two", Path.Combine(RainWorldPath.StreamingAssetsPath, "one")); //Expectation: First case choice will be selected
+
+            //Two fully qualified matching paths
+            testFindCommonRoot(Path.Combine(RainWorldPath.RootPath, "one"),
+                               Path.Combine(RainWorldPath.RootPath, "ONE"),
+                               Path.Combine(RainWorldPath.RootPath, "one")); //Rain World\one | Rain World\one
+
+            void testFindCommonRoot(string path, string pathOther, string expectation)
+            {
+                string result = PathUtils.FindCommonRoot(path, pathOther);
+                if (!AssertPathsAreEqual(expectation, result))
+                {
+                    UtilityLogger.Log("Common root doesn't match:" +
+                        "\nPATH " + path +
+                        "\nPATH OTHER " + pathOther +
+                        "\nEXPECTATION " + expectation +
+                        "\nACTUAL " + result);
+                }
+            }
         }
 
         private void testGetPrefixLength()
