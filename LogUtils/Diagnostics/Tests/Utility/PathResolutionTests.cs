@@ -51,18 +51,31 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             Condition.Result.ResetCount();
             activeTestGroup = pathDetectionTests;
+
+            //Test that we can walk along the dir tree and find the correct node
+            testPositionLookup("AssetBundles", Path.Combine(RainWorldPath.StreamingAssetsPath, "AssetBundles"));
+            testPositionLookup("StreamingAssets/music", Path.Combine(RainWorldPath.StreamingAssetsPath, "music"));
+            testPositionLookup("StreamingAssets/world/ds", Path.Combine(RainWorldPath.StreamingAssetsPath, "world", "ds"));
+            testPositionLookup("Rain World/SomeFolder", RainWorldPath.RootPath);
+            testPositionLookup("BepInEx", BepInExPath.RootPath);
+
+            void testPositionLookup(string path, string expectation)
+            {
+                var dirNode = RainWorldDirectory.FolderTree.FindPositionInTree(path);
+                activeTestGroup.AssertPathsAreEqual(expectation, dirNode.DirPath);
+            }
         }
 
         private void testKeywordsReturnCorrectPath()
         {
             string pathResult = getPathConversion(UtilityConsts.PathKeywords.ROOT);
 
-            AssertPathsAreEqual(expectedPath: RainWorldPath.RootPath,
+            activeTestGroup.AssertPathsAreEqual(expectedPath: RainWorldPath.RootPath,
                                   actualPath: pathResult);
 
             pathResult = getPathConversion(UtilityConsts.PathKeywords.STREAMING_ASSETS);
 
-            AssertPathsAreEqual(expectedPath: RainWorldPath.StreamingAssetsPath,
+            activeTestGroup.AssertPathsAreEqual(expectedPath: RainWorldPath.StreamingAssetsPath,
                                   actualPath: pathResult);
         }
 
@@ -74,7 +87,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             {
                 string pathResult = getPathConversion(input);
 
-                AssertPathsAreEqual(expectedPath: RainWorldPath.StreamingAssetsPath,
+                activeTestGroup.AssertPathsAreEqual(expectedPath: RainWorldPath.StreamingAssetsPath,
                                       actualPath: pathResult);
             }
         }
@@ -88,7 +101,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             void testPath(string testInput)
             {
                 string pathResult = getPathConversion(testInput); //Output should be the same as the input
-                AssertPathsAreEqual(expectedPath: testInput,
+                activeTestGroup.AssertPathsAreEqual(expectedPath: testInput,
                                       actualPath: pathResult);
             }
         }

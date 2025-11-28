@@ -201,6 +201,8 @@ namespace LogUtils
             if (node == null)
                 return PathCategory.NotRooted;
 
+            path = PathUtils.ResolvePath(path);
+
             //The possible states include the path being a game directory, or a directory inside a game directory 
             if (PathUtils.PathsAreEqual(node.DirPath, path))
                 return PathCategory.Game;

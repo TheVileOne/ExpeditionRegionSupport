@@ -1,4 +1,5 @@
 ﻿using LogUtils.Helpers.Comparers;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -24,15 +25,14 @@ namespace LogUtils.Helpers.FileHandling
         /// </summary>
         public DirectoryTreeNode FindPositionInTree(string path)
         {
-            string fullPath = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar); //Ensure that we are comparing two normalized full paths
-
+            string fullPath = PathUtils.ResolvePath(path); //Ensure that we are comparing two normalized full paths
             string commonRoot = PathUtils.FindCommonRoot(fullPath, RootPath);
 
             if (commonRoot.Length < RootPath.Length) //Path isn't part of tree
                 return null;
 
             //Get the part of the path we are interested in relative to the root directory
-            string adjustedPath = fullPath.Substring(commonRoot.Length);
+            string adjustedPath = fullPath.Substring(Math.Min(commonRoot.Length + 1, fullPath.Length)); //Add one to account for separator
 
             return Root.FindMostRelativeNode(adjustedPath);
         }
@@ -122,11 +122,15 @@ namespace LogUtils.Helpers.FileHandling
             /// </summary>
             public DirectoryTreeNode FindChild(string childDirName)
             {
+                UtilityLogger.DebugLog("Finding child");
+                UtilityLogger.DebugLog(childDirName);
                 return Children.Find(child => ComparerUtils.StringComparerIgnoreCase.Equals(child.DirName, childDirName));
             }
 
             internal DirectoryTreeNode FindMostRelativeNode(string path)
             {
+                UtilityLogger.DebugLog("Finding most relevant node");
+                UtilityLogger.DebugLog(path);
                 int dirIndex = path.IndexOf(Path.DirectorySeparatorChar);
 
                 if (dirIndex == -1)
@@ -138,9 +142,10 @@ namespace LogUtils.Helpers.FileHandling
 
                 if (child != null)
                 {
-                    if (dirIndex + dirNameToCheck.Length < path.Length)
+                    UtilityLogger.DebugLog("Child found");
+                    if (dirIndex < path.Length)
                     {
-                        path = path.Substring(dirIndex + 1);
+                        path = path.Substring(dirIndex + 1); //Add one to account for separator
                         return child.FindMostRelativeNode(path);
                     }
                     return child;
