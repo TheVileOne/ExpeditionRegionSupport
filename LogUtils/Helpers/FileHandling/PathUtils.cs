@@ -125,6 +125,7 @@ namespace LogUtils.Helpers.FileHandling
             if (IsEmpty(path))
                 return RainWorldPath.StreamingAssetsPath;
 
+            path = Normalize(path);
             if (tryExpandPath(ref path))
                 return path;
 

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using LogUtils.Helpers.FileHandling;
+using System.IO;
 using UnityEngine;
 using BepInExPath = BepInEx.Paths;
 
@@ -15,8 +16,8 @@ namespace LogUtils.Helpers
 
         internal static class RainWorld
         {
-            public static string RootPath => BepInExPath.GameRootPath;
-            public static string StreamingAssetsPath => Application.streamingAssetsPath;
+            public static readonly string RootPath = PathUtils.Normalize(BepInExPath.GameRootPath);
+            public static readonly string StreamingAssetsPath = PathUtils.Normalize(Application.streamingAssetsPath);
 
             /// <summary>
             /// The name of the Rain World root folder
