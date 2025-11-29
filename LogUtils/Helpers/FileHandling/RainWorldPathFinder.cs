@@ -49,12 +49,13 @@ namespace LogUtils.Helpers.FileHandling
                 return result;
             return null;
 
-            bool tryMatch(string searchPath, string filename, out string result)
+            static bool tryMatch(string searchPath, string filename, out string result)
             {
                 result = null;
-                if (filenameExists(searchPath, filename))
+                searchPath = Path.Combine(searchPath, filename);
+                if (File.Exists(searchPath))
                 {
-                    result = Path.Combine(searchPath, filename);
+                    result = searchPath;
                     return true;
                 }
                 return false;
@@ -74,7 +75,7 @@ namespace LogUtils.Helpers.FileHandling
                 return result;
             return null;
 
-            bool tryMatch(string searchPath, string directory, out string result)
+            static bool tryMatch(string searchPath, string directory, out string result)
             {
                 result = null;
                 if (searchPath.EndsWith(directory, StringComparison.InvariantCultureIgnoreCase))
@@ -83,9 +84,10 @@ namespace LogUtils.Helpers.FileHandling
                     return true;
                 }
 
-                if (directoryExists(searchPath, directory))
+                searchPath = Path.Combine(searchPath, directory);
+                if (Directory.Exists(searchPath))
                 {
-                    result = Path.Combine(searchPath, directory);
+                    result = searchPath;
                     return true;
                 }
                 return false;
@@ -150,18 +152,6 @@ namespace LogUtils.Helpers.FileHandling
                 //The partial path doesn't exist in this directory - no match was found
                 return false;
             }
-        }
-
-        private bool filenameExists(string searchPath, string filename)
-        {
-            string targetPath = Path.Combine(searchPath, filename);
-            return File.Exists(targetPath);
-        }
-
-        private bool directoryExists(string searchPath, string directory)
-        {
-            string targetPath = Path.Combine(searchPath, directory);
-            return Directory.Exists(targetPath);
         }
     }
 }
