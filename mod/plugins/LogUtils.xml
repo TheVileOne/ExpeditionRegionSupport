@@ -7025,21 +7025,6 @@
             Find an immediate child node with a given value, otherwise null
             </summary>
         </member>
-        <member name="M:LogUtils.Helpers.FileHandling.DirectoryUtils.ContainsDirectory(System.String,System.String)">
-            <summary>
-            Checks that a directory is contained within a path string
-            </summary>
-            <param name="path">The path to check</param>
-            <param name="dirName">The directory name to search for</param>
-        </member>
-        <member name="M:LogUtils.Helpers.FileHandling.DirectoryUtils.ContainsDirectory(System.String,System.String,System.Int32)">
-            <summary>
-            Checks that a directory is contained within a path string
-            </summary>
-            <param name="path">The path to check</param>
-            <param name="dirName">The directory name to search for</param>
-            <param name="dirLevelsToCheck">The number of directory separators to check starting from the right</param>
-        </member>
         <member name="M:LogUtils.Helpers.FileHandling.DirectoryUtils.IsDirectoryName(System.String,System.String,System.Boolean)">
             <summary>
             Compares the equality of two directory names
@@ -7229,6 +7214,12 @@
             Begins a new directory enumeration returning the enumerator
             </summary>
         </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathInfo.GetRoot">
+            <summary>
+            Extracts the path root from the path string
+            </summary>
+            <remarks>Returns an empty string if no root information is present</remarks>
+        </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathInfo.GetRootLength">
             <summary>
             Gets the length of the path root
@@ -7279,11 +7270,25 @@
             Gets the complete resolved path
             </summary>
         </member>
+        <member name="F:LogUtils.Helpers.FileHandling.PathUtils.PATH_VOLUME_LENGTH">
+            <summary>
+            The length of a Windows path volume
+            </summary>
+        </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.ContainsDirectory(System.String,System.String)">
-            <inheritdoc cref="M:LogUtils.Helpers.FileHandling.DirectoryUtils.ContainsDirectory(System.String,System.String)"/>
+            <summary>
+            Checks that a directory is contained within a path string
+            </summary>
+            <param name="path">The path to check</param>
+            <param name="dirName">The directory name to search for</param>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.ContainsDirectory(System.String,System.String,System.Int32)">
-            <inheritdoc cref="M:LogUtils.Helpers.FileHandling.DirectoryUtils.ContainsDirectory(System.String,System.String,System.Int32)"/>
+            <summary>
+            Checks that a directory is contained within a path string
+            </summary>
+            <param name="path">The path to check</param>
+            <param name="dirName">The directory name to search for</param>
+            <param name="dirLevelsToCheck">The number of directory separators to check starting from the right</param>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.ContainsOtherPath(System.String,System.String)">
             <summary>
@@ -7292,14 +7297,9 @@
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.FindCommonRoot(System.String,System.String)">
             <summary>
-            Finds a path string that two provided paths have in common
+            Finds a path string that two provided paths have in common. When a partial path is provided, the path will be resolved to a fully qualified path targeting
+            either Rain World, StreamingAssets, or BepInEx directory paths, defaulting to StreamingAssets when no match is found. 
             </summary>
-        </member>
-        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.IsRelative(System.String)">
-            <summary>
-            Checks for and returns relative path syntax from the beginning of a path string
-            </summary>
-            <returns>Returns a string representing the relative path syntax or null if path string is not a relative path</returns>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.ResolvePath(System.String)">
             <summary>
@@ -7307,39 +7307,20 @@
             </summary>
             <remarks>Supports files and directories</remarks>
         </member>
-        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.GetRelativePath(System.String,System.String,System.Boolean)">
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.GetPrefixLength(System.String)">
             <summary>
-            Takes two paths and determines how one of the paths relates to the other path
+            Gets the length of any relative, or root path information at the start of the path string
             </summary>
-            <param name="targetPath">The path to evaluate</param>
-            <param name="relativeTo">The path to check against</param>
-            <param name="includeCommonDirectoryInResult">A flag indicating whether to include the most relevant directory in common between the given paths</param>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.Normalize(System.String)">
             <summary>
             Replace all directory separator characters with the default platform-specific directory separator character 
             </summary>
         </member>
-        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.NormalizeAndTrim(System.String)">
-            <summary>
-            Replace all directory separator characters with the default platform-specific directory separator character removing any trailing separator characters
-            </summary>
-        </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.Trim(System.String)">
             <summary>
             Removes any trailing directory separator characters
             </summary>
-        </member>
-        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.PathRootExists(System.String,System.Int32)">
-            <summary>
-            Checks the path directory and parents of that directory for an existing directory
-            </summary>
-        </member>
-        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.FindExistingPathRoot(System.String,System.Int32)">
-            <summary>
-            Checks the path directory and parents of that directory for an existing directory
-            </summary>
-            <returns>The portion of the path that exists</returns>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.PathWithoutFilename(System.String)">
             <summary>
@@ -7357,7 +7338,7 @@
             </summary>
             <remarks>This method will remove any existing separator characters at the start of the path</remarks>
         </member>
-        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.Separate(System.String)">
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.SplitPath(System.String)">
             <summary>
             Separates a path into its directory and/or file components
             </summary>
@@ -7369,7 +7350,7 @@
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.IsAbsolute(System.String)">
             <summary>
-            Checks that the path given is an absolute path
+            Checks that the path given contains drive letter information
             </summary>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.IsFilePath(System.String)">
@@ -7391,6 +7372,9 @@
             <summary>
             A class for searching for a best fit path match against one or multiple directories
             </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.RainWorldPathFinder.FindMatch(System.String)">
+            <inheritdoc/>
         </member>
         <member name="M:LogUtils.Helpers.FlagUtils.HasConvertedFlags(System.Int32)">
             <summary>
@@ -9815,7 +9799,7 @@
         </member>
         <member name="F:LogUtils.PathCategory.NotRooted">
             <summary>
-            Path is not part of RainWorld folder
+            Path is not part of Rain World folder
             </summary>
         </member>
         <member name="F:LogUtils.PathCategory.Game">
