@@ -68,8 +68,8 @@ namespace LogUtils.Helpers.FileHandling
         /// </summary>
         public static bool ContainsOtherPath(string path, string pathOther)
         {
-            path = Path.GetFullPath(path);
-            pathOther = Path.GetFullPath(pathOther);
+            path = ResolvePath(path);
+            pathOther = ResolvePath(pathOther);
 
             return path.StartsWith(pathOther, StringComparison.InvariantCultureIgnoreCase);
         }
