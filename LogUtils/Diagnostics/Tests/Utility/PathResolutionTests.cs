@@ -37,8 +37,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
         private void testPathConversion()
         {
             Condition.Result.ResetCount();
-
             activeTestGroup = pathConversionTests;
+
             testKeywordsReturnCorrectPath();
             testEmptyPathsReturnCorrectPath();
             testAbsolutePathReturnsCorrectPath();
@@ -59,24 +59,76 @@ namespace LogUtils.Diagnostics.Tests.Utility
             testPositionLookup("Rain World/SomeFolder", RainWorldPath.RootPath);
             testPositionLookup("BepInEx", BepInExPath.RootPath);
 
+            //Game path detection
+            testDirectoryCategory("./", PathCategory.Game);
+            testDirectoryCategory("Rain World", PathCategory.Game);
+            testDirectoryCategory("StreamingAssets", PathCategory.Game);
+            testDirectoryCategory("scenes/dream - iggy", PathCategory.Game);     //Located in StreamingAssets
+            testDirectoryCategory("BepInEx", PathCategory.Game);
+            testDirectoryCategory(RainWorldPath.RootPath, PathCategory.Game);
+            testDirectoryCategory(RainWorldPath.StreamingAssetsPath, PathCategory.Game);
+            testDirectoryCategory(BepInExPath.RootPath, PathCategory.Game);
+
+            //Arbitrary folder within one of the designated root directories
+            testDirectoryCategory("Rain World/SomeFolder", PathCategory.ModSourced);
+            testDirectoryCategory("StreamingAssets/SomeFolder", PathCategory.ModSourced);
+            testDirectoryCategory("BepInEx/SomeFolder", PathCategory.ModSourced);
+            testDirectoryCategory(Path.Combine(RainWorldPath.RootPath, "SomeFolder"), PathCategory.ModSourced);
+            testDirectoryCategory(Path.Combine(RainWorldPath.StreamingAssetsPath, "SomeFolder"), PathCategory.ModSourced);
+            testDirectoryCategory(Path.Combine(BepInExPath.RootPath, "SomeFolder"), PathCategory.ModSourced);
+
+            //Confirm that certain folders such as scenes are always considered a game folder even when it is unrecognized
+            testDirectoryCategory("scenes/SomeFolder", PathCategory.Game);
+
+            //A similar folder without such a restriction will be detected as Modsourced as expected
+            testDirectoryCategory("decals/SomeFolder", PathCategory.ModSourced);
+
+            //Mod path detection
+            testDirectoryCategory("mods", PathCategory.Game);
+            testDirectoryCategory("mods/SomeFolder", PathCategory.ModRequiredFolder);
+
+            //Existing mod path
+            string testModPath = "mods/expeditionregionsupport";
+
+            testDirectoryCategory(testModPath, PathCategory.ModRequiredFolder);
+            testDirectoryCategory(Path.Combine(testModPath, "plugins"), PathCategory.ModRequiredFolder);
+            testDirectoryCategory(Path.Combine(testModPath, "newest"), PathCategory.ModRequiredFolder);
+            testDirectoryCategory(Path.Combine(testModPath, "newest/modify"), PathCategory.ModRequiredFolder);
+
+            //Arbitrary folder inside mod path that isn't a recognized mod folder path
+            testDirectoryCategory(Path.Combine(testModPath, "SomeFolder"), PathCategory.ModSourced);
+            testDirectoryCategory(Path.Combine(testModPath, "plugins/SomeFolder"), PathCategory.ModSourced);
+            testDirectoryCategory(Path.Combine(testModPath, "newest/SomeFolder"), PathCategory.ModSourced);
+            testDirectoryCategory(Path.Combine(testModPath, "newest/modify/SomeFolder"), PathCategory.ModSourced);
+
+            //External path
+            testDirectoryCategory(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), PathCategory.NotRooted);
+
             void testPositionLookup(string path, string expectation)
             {
                 var dirNode = RainWorldDirectory.FolderTree.FindPositionInTree(path);
                 activeTestGroup.AssertPathsAreEqual(expectation, dirNode.DirPath);
+            }
+
+            void testDirectoryCategory(string path, PathCategory expectation)
+            {
+                PathCategory category = RainWorldDirectory.GetDirectoryCategory(path);
+                var condition = activeTestGroup.AssertThat(category).IsEqualTo(expectation);
+
+                if (!condition)
+                    UtilityLogger.LogWarning($"Path category unexpected EXPECTED ({expectation}) ACTUAL ({condition.Value})");
             }
         }
 
         private void testKeywordsReturnCorrectPath()
         {
             string pathResult = getPathConversion(UtilityConsts.PathKeywords.ROOT);
-
             activeTestGroup.AssertPathsAreEqual(expectedPath: RainWorldPath.RootPath,
-                                  actualPath: pathResult);
+                                                  actualPath: pathResult);
 
             pathResult = getPathConversion(UtilityConsts.PathKeywords.STREAMING_ASSETS);
-
             activeTestGroup.AssertPathsAreEqual(expectedPath: RainWorldPath.StreamingAssetsPath,
-                                  actualPath: pathResult);
+                                                  actualPath: pathResult);
         }
 
         private void testEmptyPathsReturnCorrectPath()
@@ -86,9 +138,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
             foreach (string input in pathInputs)
             {
                 string pathResult = getPathConversion(input);
-
                 activeTestGroup.AssertPathsAreEqual(expectedPath: RainWorldPath.StreamingAssetsPath,
-                                      actualPath: pathResult);
+                                                      actualPath: pathResult);
             }
         }
 
@@ -102,7 +153,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             {
                 string pathResult = getPathConversion(testInput); //Output should be the same as the input
                 activeTestGroup.AssertPathsAreEqual(expectedPath: testInput,
-                                      actualPath: pathResult);
+                                                      actualPath: pathResult);
             }
         }
 

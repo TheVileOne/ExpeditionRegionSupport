@@ -164,36 +164,7 @@ namespace LogUtils
             if (pathNode == null)
                 UtilityLogger.Log("Path not part of Rain World directory");
 
-            PathCategory category = getDirectoryCategory(pathNode, path);
-
-            if (category != PathCategory.NotRooted)
-                return category;
-
-            //Path could still be a partial path that needs to be resolved
-            if (!RainWorldInfo.MergeProcessComplete) //Too early to resolve paths
-            {
-                UtilityLogger.LogWarning("Path category could not be accurately determined");
-                return PathCategory.NotRooted;
-            }
-
-            ResolveResults results = PathResolution.ResolveDirectory(path);
-
-            if (!results.Exists)
-                return PathCategory.NotRooted; //Don't consider the resolved path as the true path, treat it as a foreign path
-
-            //This will never target the mod containing folder itself, nor will it target any version folders
-            if (results.ModOwner != null)
-            {
-                if (isRequiredModDirectory(results.CombinedResult))
-                {
-                    UtilityLogger.Log("Path belongs to a mod required directory");
-                    return PathCategory.ModRequiredFolder;
-                }
-                return PathCategory.ModSourced;
-            }
-
-            //Check if directory is game-installed - Path result is guaranteed to be within StreamingAssets
-            return category = getDirectoryCategory(customRoot, results.CombinedResult);
+            return getDirectoryCategory(pathNode, path);
         }
 
         private static PathCategory getDirectoryCategory(DirectoryTree.DirectoryTreeNode node, string path)
@@ -257,7 +228,7 @@ namespace LogUtils
     public enum PathCategory : byte
     {
         /// <summary>
-        /// Path is not part of RainWorld folder
+        /// Path is not part of Rain World folder
         /// </summary>
         NotRooted,
         /// <summary>

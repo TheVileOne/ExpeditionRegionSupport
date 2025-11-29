@@ -11,6 +11,7 @@ namespace LogUtils.Helpers.FileHandling
     /// </summary>
     public class RainWorldPathFinder : IFileSystemPathFinder
     {
+        /// <inheritdoc/>
         public string FindMatch(string path)
         {
             PathInfo info = new PathInfo(path);
@@ -118,7 +119,7 @@ namespace LogUtils.Helpers.FileHandling
                 result = null;
 
                 string searchDir = Path.GetFileName(searchPath);
-                UtilityLogger.DebugLog("Searching for " + searchDir + " in " + info.TargetPath);
+                UtilityLogger.DebugLog($"Searching for {searchDir} in {info.TargetPath}");
 
                 int dirIndex = DirectoryUtils.GetLocationInPath(info, searchDir);
 
@@ -154,25 +155,13 @@ namespace LogUtils.Helpers.FileHandling
         private bool filenameExists(string searchPath, string filename)
         {
             string targetPath = Path.Combine(searchPath, filename);
-
-            if (File.Exists(targetPath))
-            {
-                UtilityLogger.Log(filename + " found");
-                return true;
-            }
-            return false;
+            return File.Exists(targetPath);
         }
 
         private bool directoryExists(string searchPath, string directory)
         {
             string targetPath = Path.Combine(searchPath, directory);
-
-            if (Directory.Exists(targetPath))
-            {
-                UtilityLogger.Log(directory + " found");
-                return true;
-            }
-            return false;
+            return Directory.Exists(targetPath);
         }
     }
 }
