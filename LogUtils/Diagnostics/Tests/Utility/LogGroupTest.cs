@@ -1,0 +1,54 @@
+﻿using LogUtils.Enums;
+using System.IO;
+
+namespace LogUtils.Diagnostics.Tests.Utility
+{
+    internal static class LogGroupTest
+    {
+        private static LogGroupID testGroup;
+
+        internal static void InitializeGroup()
+        {
+            //Register log group to get properties for it, and to maximize LogUtils support for your group.
+            //Registration is not necessary if you plan to fully manage your log files independently of LogUtils, and you do not wish files being moved around.
+            testGroup = LogGroupID.Factory.CreateID(UtilityConsts.UTILITY_NAME, register: true);
+
+            //Add members to group
+            LogAccess defaultAccess = LogAccess.FullAccess;
+            _ = new LogID(testGroup, formatLogName(SlugcatStats.Name.White), defaultAccess);
+            _ = new LogID(testGroup, formatLogName(SlugcatStats.Name.Yellow), defaultAccess);
+            _ = new LogID(testGroup, formatLogName(SlugcatStats.Name.Red), defaultAccess);
+
+            //Put this member in a custom folder
+            _ = new LogID(testGroup, Path.Combine("custom", formatLogName(new SlugcatStats.Name("TestSlugcat"))), defaultAccess);
+
+            using (Logger logger = new Logger(LogID.Unity))
+            {
+                logger.Log("Initialization of test group complete");
+
+                var groupMembers = testGroup.Properties.Members;
+                logger.Log("Member Count: " + groupMembers.Count);
+
+                foreach (LogID member in groupMembers)
+                {
+                    logger.Log("Member: " + member.Value);
+
+                    using (Logger memberLogger = new Logger(member))
+                    {
+                        memberLogger.Log("Hello World");
+                    }
+                }
+            }
+        }
+
+        internal static void CloseGroup()
+        {
+            testGroup.Unregister();
+        }
+
+        private static string formatLogName(SlugcatStats.Name slugcatName)
+        {
+            return UtilityConsts.UTILITY_NAME + "-" + slugcatName;
+        }
+    }
+}
