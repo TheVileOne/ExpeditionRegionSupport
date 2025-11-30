@@ -36,6 +36,24 @@ namespace LogUtils.Helpers.FileHandling
             return null;
         }
 
+        public virtual string FindRootMatch(string path)
+        {
+            path = FindMatch(path);
+
+            if (path == null)
+                return null;
+
+            //Order of these checks is important - do not change
+            if (path.StartsWith(RainWorldPath.StreamingAssetsPath)) //Case does not matter
+                return RainWorldPath.StreamingAssetsPath;
+
+            if (path.StartsWith(BepInExPath.RootPath))
+                return BepInExPath.RootPath;
+
+            //By process of elimination - it must be this path
+            return RainWorldPath.RootPath;
+        }
+
         private string matchFilenameNoPath(string filename)
         {
             //Custom root

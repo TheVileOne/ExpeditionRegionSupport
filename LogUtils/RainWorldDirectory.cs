@@ -2,6 +2,7 @@
 using LogUtils.Helpers.FileHandling;
 using System.IO;
 using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
+using System;
 
 namespace LogUtils
 {
@@ -168,6 +169,16 @@ namespace LogUtils
         public static string Locate(string path)
         {
             return PathFinder.FindMatch(path);
+        }
+
+        /// <summary>
+        /// Locates the fully qualified root path associated with a provided path
+        /// </summary>
+        /// <param name="path">The path to check</param>
+        /// <returns>Value returned will either be the Rain World root path, StreamingAssets path, BepInEx root path, or null if path does not belong to a Rain World root path</returns>
+        public static string LocateRoot(string path)
+        {
+            return PathFinder.FindRootMatch(path);
         }
 
         /// <summary>
