@@ -27,7 +27,8 @@ namespace LogUtils
 
         public void Log(object messageObj)
         {
-            LogBase(LogLevel.Info, messageObj);
+            //This could potentially be accessed before LogCategory has initialized
+            LogBase(LogCategory.LOG_LEVEL_DEFAULT, messageObj);
         }
 
         public void LogDebug(object messageObj)
@@ -84,7 +85,8 @@ namespace LogUtils
 
         public void Log(InterpolatedStringHandler messageObj)
         {
-            LogBase(LogLevel.Info, messageObj);
+            //This could potentially be accessed before LogCategory has initialized
+            LogBase(LogCategory.LOG_LEVEL_DEFAULT, messageObj);
         }
 
         public void LogDebug(InterpolatedStringHandler messageObj)

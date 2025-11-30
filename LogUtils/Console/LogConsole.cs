@@ -197,7 +197,7 @@ namespace LogUtils.Console
         /// <inheritdoc cref="WriteLine(LogCategory, string)"/>
         public static void WriteLine(string message)
         {
-            WriteLine(LogCategory.Info, message);
+            WriteLine(LogCategory.Default, message);
         }
 
         public static void WriteLine(ILogSource source, LogCategory category, string message)

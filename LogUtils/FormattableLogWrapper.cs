@@ -24,7 +24,7 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object)"/>
         public void Log(object messageObj)
         {
-            Value.Log(LogLevel.Info, messageObj);
+            Value.Log(LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object)"/>
@@ -92,7 +92,7 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Standard.Log(object)"/>
         public void Log(InterpolatedStringHandler messageObj)
         {
-            Value.Log(LogLevel.Info, messageObj);
+            Value.Log(LogCategory.Default, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object)"/>

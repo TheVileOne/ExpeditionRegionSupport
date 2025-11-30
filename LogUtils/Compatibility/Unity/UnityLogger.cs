@@ -50,7 +50,12 @@ namespace LogUtils.Compatibility.Unity
         /// <remarks>Utilizes Unity's logging API</remarks>
         public void Log(object messageObj)
         {
-            Debug.Log(messageObj);
+            if (LogCategory.Default != null)
+            {
+                Log(LogCategory.Default.UnityCategory, messageObj);
+                return;
+            }
+            Log(LogCategory.LOG_TYPE_DEFAULT, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Standard.LogDebug(object)"/>

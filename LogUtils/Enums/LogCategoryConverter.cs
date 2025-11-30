@@ -56,7 +56,7 @@ namespace LogUtils.Enums
             {
                 LogType flag = flags[0];
 
-                if (flag == LogType.Log)
+                if (flag == LOG_TYPE_DEFAULT)
                     return Default;
 
                 if (flag == All.UnityCategory)

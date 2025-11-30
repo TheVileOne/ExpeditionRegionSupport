@@ -126,7 +126,13 @@ namespace LogUtils
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(object)"/>
         public void LogBepEx(object messageObj)
         {
-            LogBepEx(null, LogLevel.Info, messageObj);
+            LogBepEx(null, LogCategory.Default.BepInExCategory, messageObj);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(ILogSource, BepInEx.Logging.LogLevel, object)"/>
+        public void LogBepEx(ILogSource source, LogCategory category, object messageObj)
+        {
+            LogBepEx(source, category.BepInExCategory, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(ILogSource, BepInEx.Logging.LogLevel, object)"/>
@@ -154,35 +160,16 @@ namespace LogUtils
             }
         }
 
-        /// <inheritdoc cref="LoggerDocs.Game.LogBepEx(ILogSource, BepInEx.Logging.LogLevel, object)"/>
-        public void LogBepEx(ILogSource source, LogCategory category, object messageObj)
-        {
-            Process(LogID.BepInEx, processLog);
-
-            void processLog()
-            {
-                if (source is ManualLogSource)
-                {
-                    ManualLogSource sourceLogger = (ManualLogSource)source;
-                    sourceLogger.Log(category.BepInExCategory, messageObj);
-                    return;
-                }
-                else
-                {
-                    IExtendedLogSource sourceLogger = source as IExtendedLogSource;
-
-                    if (sourceLogger == null)
-                        sourceLogger = UtilityLogger.Logger;
-
-                    sourceLogger.Log(category.BepInExCategory, messageObj);
-                }
-            }
-        }
-
         /// <inheritdoc cref="LoggerDocs.Game.LogUnity(object)"/>
         public void LogUnity(object messageObj)
         {
-            LogUnity(LogCategory.Default, messageObj);
+            LogUnity(LogCategory.Default.UnityCategory, messageObj);
+        }
+
+        /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, object)"/>
+        public void LogUnity(LogCategory category, object messageObj)
+        {
+            LogUnity(category.UnityCategory, messageObj);
         }
 
         /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, object)"/>
@@ -193,17 +180,6 @@ namespace LogUtils
             void processLog()
             {
                 Debug.unityLogger.Log(category, messageObj);
-            }
-        }
-
-        /// <inheritdoc cref="LoggerDocs.Game.LogUnity(LogType, object)"/>
-        public void LogUnity(LogCategory category, object messageObj)
-        {
-            Process(LogCategory.GetUnityLogID(category.UnityCategory), processLog);
-
-            void processLog()
-            {
-                Debug.unityLogger.Log(category.UnityCategory, messageObj);
             }
         }
 
