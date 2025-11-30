@@ -19,6 +19,11 @@ namespace LogUtils.Helpers
             public static readonly string RootPath = PathUtils.Normalize(BepInExPath.GameRootPath);
             public static readonly string StreamingAssetsPath = PathUtils.Normalize(Application.streamingAssetsPath);
 
+            public static readonly string[] ModContainingDirectories = new string[]
+            {
+                Path.Combine(StreamingAssetsPath, "mods")
+            };
+
             /// <summary>
             /// The name of the Rain World root folder
             /// </summary>

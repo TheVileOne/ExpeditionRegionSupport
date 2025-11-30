@@ -146,6 +146,25 @@ namespace LogUtils
             return new DirectoryInfo(RainWorldPath.RootPath);
         }
 
+        internal static bool IsIllegalLogPath(string path)
+        {
+            //Mod containing directories are always invalid
+            if (Array.Exists(RainWorldPath.ModContainingDirectories, dirPath => PathUtils.PathsAreEqual(path, dirPath)))
+                return true;
+
+            if (path.StartsWith(RainWorldPath.StreamingAssetsPath))
+            {
+                string[] illegalPaths =
+                {
+                    "mergedmods",
+                    "scenes",
+                    "text"
+                };
+                return Path.GetFileName(path).MatchAny(ComparerUtils.StringComparerIgnoreCase, illegalPaths);
+            }
+            return false;
+        }
+
         public static string Locate(string path)
         {
             return PathFinder.FindMatch(path);
