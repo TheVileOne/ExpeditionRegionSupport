@@ -1,17 +1,23 @@
 ﻿using LogUtils.Enums;
+using System.Collections.Generic;
 using System.IO;
 
 namespace LogUtils.Diagnostics.Tests.Utility
 {
     internal static class LogGroupTest
     {
+        private const string FOLDER_NAME = "LogUtilsTestGroup";
+
         private static LogGroupID testGroup;
+        private static readonly List<Logger> memberLoggers = new List<Logger>();
+        private static readonly bool storeMemberLoggers = true;
 
         internal static void InitializeGroup()
         {
             //Register log group to get properties for it, and to maximize LogUtils support for your group.
             //Registration is not necessary if you plan to fully manage your log files independently of LogUtils, and you do not wish files being moved around.
-            testGroup = LogGroupID.Factory.CreateID(UtilityConsts.UTILITY_NAME, register: true);
+            //testGroup = LogGroupID.Factory.CreateID(UtilityConsts.UTILITY_NAME, register: true);
+            testGroup = LogGroupID.Factory.FromPath(FOLDER_NAME);
 
             //Add members to group
             LogAccess defaultAccess = LogAccess.FullAccess;
@@ -33,17 +39,36 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 {
                     logger.Log("Member: " + member.Value);
 
-                    using (Logger memberLogger = new Logger(member))
+                    Logger memberLogger = new Logger(member);
+                    if (storeMemberLoggers)
                     {
+                        memberLoggers.Add(memberLogger);
                         memberLogger.Log("Hello World");
+                    }
+                    else
+                    {
+                        using (memberLogger)
+                        {
+                            memberLogger.Log("Hello World");
+                        }
                     }
                 }
             }
         }
 
+        internal static void CreateGroupFolder()
+        {
+            Directory.CreateDirectory(testGroup.Properties.CurrentFolderPath);
+            Directory.CreateDirectory(Path.Combine(testGroup.Properties.CurrentFolderPath, "custom"));
+        }
+
         internal static void CloseGroup()
         {
             testGroup.Unregister();
+            foreach (string file in Directory.GetFiles(testGroup.Properties.CurrentFolderPath))
+                File.Delete(file);
+
+            Directory.Delete(testGroup.Properties.CurrentFolderPath);
         }
 
         private static string formatLogName(SlugcatStats.Name slugcatName)
