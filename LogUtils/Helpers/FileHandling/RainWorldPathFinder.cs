@@ -9,10 +9,10 @@ namespace LogUtils.Helpers.FileHandling
     /// <summary>
     /// A class for searching for a best fit path match against one or multiple directories
     /// </summary>
-    public class RainWorldPathFinder : IFileSystemPathFinder
+    public class RainWorldPathFinder : FileSystemPathFinder
     {
         /// <inheritdoc/>
-        public string FindMatch(string path)
+        public override string FindMatch(string path)
         {
             PathInfo info = new PathInfo(path);
 

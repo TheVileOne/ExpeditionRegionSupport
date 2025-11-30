@@ -10,7 +10,7 @@ namespace LogUtils
         /// <summary>
         /// Converts partial, and non-partial Rain World file or directory paths into a normalized equivalent form within the Rain World directory  
         /// </summary>
-        public static IFileSystemPathFinder PathFinder = new RainWorldPathFinder();
+        public static RainWorldPathFinder PathFinder = new RainWorldPathFinder();
 
         /// <summary>
         /// Hardcoded tree of directory names associated with a vanilla Rain world installation 
