@@ -147,13 +147,31 @@ namespace LogUtils.Enums
                 return;
             }
 
-            _registrationStage = RegistrationStatus.Completed; //This needs to be set before callback is invoked
-            _registrationCallback?.Invoke();
-            _registrationCallback = null;
+            try
+            {
+                _registrationCallback?.Invoke();
+                _registrationCallback = null;
+            }
+            finally
+            {
+                _registrationStage = RegistrationStatus.Completed;
+            }
         }
 
         /// <inheritdoc/>
         public virtual void Register()
+        {
+            RegisterCore();
+        }
+
+        /// <inheritdoc/>
+        public new virtual void Unregister()
+        {
+            UnregisterCore();
+        }
+
+        /// <inheritdoc cref="Register"/>
+        protected void RegisterCore()
         {
             //The shared reference may already exist. Sync any value differences between the two references
             if (!ReferenceEquals(ManagedReference, this))
@@ -182,8 +200,8 @@ namespace LogUtils.Enums
             }
         }
 
-        /// <inheritdoc/>
-        public new virtual void Unregister()
+        /// <inheritdoc cref="Unregister"/>
+        protected void UnregisterCore()
         {
             base.Unregister();
         }

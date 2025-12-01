@@ -58,5 +58,21 @@ namespace LogUtils.Enums
                 Properties = availableProperties.FirstOrDefault();
             }
         }
+
+        /// <summary>
+        /// Unsupported operation on this type
+        /// </summary>
+        public override void Register()
+        {
+            UtilityLogger.LogWarning($"Registering {nameof(ComparisonLogID)} is unsupported");
+        }
+
+        /// <summary>
+        /// Unsupported operation on this type
+        /// </summary>
+        public override void Unregister()
+        {
+            UtilityLogger.LogWarning($"Unregistering {nameof(ComparisonLogID)} is unsupported");
+        }
     }
 }

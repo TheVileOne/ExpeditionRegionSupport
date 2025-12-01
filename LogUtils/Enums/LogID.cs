@@ -359,6 +359,49 @@ namespace LogUtils.Enums
             return handlerID != null && handlerID.HasLocalAccess ? RequestType.Local : RequestType.Remote;
         }
 
+        /// <inheritdoc/>
+        public override void Register()
+        {
+            bool lastKnownState = Registered;
+            base.Register();
+
+            if (lastKnownState != Registered)
+                OnRegistrationChanged(!lastKnownState);
+        }
+
+        /// <inheritdoc/>
+        public override void Unregister()
+        {
+            bool lastKnownState = Registered;
+            base.Unregister();
+
+            if (lastKnownState != Registered)
+                OnRegistrationChanged(!lastKnownState);
+        }
+
+        internal void OnRegistrationChanged(bool registered)
+        {
+            /*
+             * Conditions for secondary registration changes
+             * I  - Must be the managed reference - this is to avoid this code applying more than once (through the calling instance, or the managed reference).
+             * It makes the most sense to give this responsibility to the managed reference. Inheritors of shared state are aware of their reference state instance,
+             * but the opposite is not true. In addition to that reason, the managed reference state will be updated before any shared inheritors would. 
+             * II - Must not be run during primary registration - this is indicated by the registration stage set as Completed.
+             */
+            if (RegistrationStage != RegistrationStatus.Completed || !ReferenceEquals(ManagedReference, this))
+                return;
+
+            LogProperties properties = Properties; //Better null safety
+
+            if (properties == null) //Null properties cannot be registered
+                return;
+
+            if (registered)
+                LogProperties.PropertyManager.SetProperties(Properties);
+            else
+                LogProperties.PropertyManager.RemoveProperties(Properties);
+        }
+
         /// <summary>
         /// Determine if <see cref="LogID"/> reference represents a file, or a log group
         /// </summary>

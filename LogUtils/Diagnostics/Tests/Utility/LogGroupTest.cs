@@ -17,7 +17,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             //Register log group to get properties for it, and to maximize LogUtils support for your group.
             //Registration is not necessary if you plan to fully manage your log files independently of LogUtils, and you do not wish files being moved around.
             //testGroup = LogGroupID.Factory.CreateID(UtilityConsts.UTILITY_NAME, register: true);
-            testGroup = LogGroupID.Factory.FromPath(FOLDER_NAME);
+            testGroup = LogGroupID.Factory.FromPath(FOLDER_NAME, register: true);
 
             //Add members to group
             LogAccess defaultAccess = LogAccess.FullAccess;
