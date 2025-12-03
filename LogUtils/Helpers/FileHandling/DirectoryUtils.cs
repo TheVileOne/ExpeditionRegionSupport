@@ -106,24 +106,54 @@ namespace LogUtils.Helpers.FileHandling
             return Directory.Exists(Path.GetDirectoryName(path));
         }
 
-        public static void SafeDelete(string path, bool deleteOnlyIfEmpty, string customErrorMsg = null)
+        /// <inheritdoc cref="DeletePermanently(string, DirectoryDeletionScope, string)"/>
+        public static bool DeletePermanently(string path)
+        {
+            return DeleteInternal(path);
+        }
+
+        /// <inheritdoc cref="DeletePermanently(string, DirectoryDeletionScope, string)"/>
+        public static bool DeletePermanently(string path, bool deleteOnlyIfEmpty = true)
+        {
+            return DeleteInternal(path, deleteOnlyIfEmpty ? DirectoryDeletionScope.OnlyIfEmpty : DirectoryDeletionScope.AllFilesAndFolders);
+        }
+
+        /// <inheritdoc cref="DeletePermanently(string, DirectoryDeletionScope, string)"/>
+        public static bool DeletePermanently(string path, DirectoryDeletionScope deleteOption)
+        {
+            return DeleteInternal(path, deleteOption);
+        }
+
+        /// <summary>
+        /// Permanently deletes a directory at the specified path
+        /// </summary>
+        /// <param name="path">Location of the directory</param>
+        /// <param name="deleteOption">Condition that must be met for deletion operation to complete successfully</param>
+        /// <param name="customErrorMsg">Message that will be logged in the event of an exception</param>
+        /// <returns>true, if the operation was successful, false if an exception was throw, or condition for deletion was not met</returns>
+        public static bool DeletePermanently(string path, DirectoryDeletionScope deleteOption = DirectoryDeletionScope.OnlyIfEmpty, string customErrorMsg = null)
+        {
+            return DeleteInternal(path, deleteOption, customErrorMsg);
+        }
+
+        internal static bool DeleteInternal(string path, DirectoryDeletionScope deleteOption = DirectoryDeletionScope.OnlyIfEmpty, string customErrorMsg = null)
         {
             try
             {
-                if (Directory.Exists(path) && (!deleteOnlyIfEmpty || !Directory.EnumerateFiles(path).Any()))
-                {
+                if (!Directory.Exists(path)) //Return value is consistent with how files are handled
+                    return true;
+
+                bool canDelete = deleteOption == DirectoryDeletionScope.AllFilesAndFolders || !Directory.EnumerateFiles(path).Any();
+
+                if (canDelete)
                     Directory.Delete(path, true);
-                }
+                return canDelete; //Consider not meeting deletion conditions as a failed operation
             }
             catch (Exception ex)
             {
                 UtilityLogger.LogError(customErrorMsg ?? "Unable to delete directory", ex);
+                return false;
             }
-        }
-
-        public static void SafeDelete(string path, string customErrorMsg = null)
-        {
-            SafeDelete(path, false, customErrorMsg);
         }
 
         public static int DirectoryFileCount(string path)
@@ -177,5 +207,20 @@ namespace LogUtils.Helpers.FileHandling
             foreach (string file in failedToCopy)
                 UtilityLogger.Log(file);
         }
+    }
+
+    /// <summary>
+    /// Specifies a condition that must be met for delete operation to complete
+    /// </summary>
+    public enum DirectoryDeletionScope
+    {
+        /// <summary>
+        /// Directory is only touched if there are no files, or other directories inside
+        /// </summary>
+        OnlyIfEmpty = 0,
+        /// <summary>
+        /// Directory, and all of its contents will be deleted
+        /// </summary>
+        AllFilesAndFolders = 1,
     }
 }
