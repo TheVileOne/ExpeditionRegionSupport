@@ -5452,6 +5452,16 @@
             <param name="value">The value that identifies the <see cref="T:LogUtils.Enums.ComparisonLogID"/> instance</param>
             <param name="representedType">The type of <see cref="T:LogUtils.Enums.LogID"/> represented by this instance</param>
         </member>
+        <member name="M:LogUtils.Enums.ComparisonLogID.Register">
+            <summary>
+            Unsupported operation on this type
+            </summary>
+        </member>
+        <member name="M:LogUtils.Enums.ComparisonLogID.Unregister">
+            <summary>
+            Unsupported operation on this type
+            </summary>
+        </member>
         <member name="F:LogUtils.Enums.ComparisonLogID.Factory">
             <inheritdoc cref="F:LogUtils.Enums.LogID.Factory"/>
         </member>
@@ -5761,8 +5771,21 @@
         <member name="M:LogUtils.Enums.LogGroupID.IFactory.CreateID(System.String,System.Boolean)">
             <inheritdoc cref="M:LogUtils.Enums.LogGroupID.#ctor(System.String,System.Boolean)"/>
         </member>
+        <member name="M:LogUtils.Enums.LogGroupID.IFactory.CreateID(System.String,System.String,System.Boolean)">
+            <inheritdoc cref="M:LogUtils.Enums.LogGroupID.#ctor(System.String,System.String,System.Boolean)"/>
+        </member>
         <member name="M:LogUtils.Enums.LogGroupID.IFactory.CreateComparisonID(System.String)">
             <inheritdoc cref="M:LogUtils.Enums.ComparisonLogID.#ctor(System.String,LogUtils.Enums.LogIDType)"/>
+        </member>
+        <member name="M:LogUtils.Enums.LogGroupID.IFactory.FromPath(System.String,System.Boolean)">
+            <summary>
+            Creates a <see cref="T:LogUtils.Enums.LogGroupID"/> using a folder path as an identifier
+            </summary>
+            <param name="path">The path to set as the target log path for log group members</param>
+            <inheritdoc cref="M:LogUtils.Enums.LogGroupID.#ctor(System.String,System.String,System.Boolean)">
+            <param name="register"></param>
+            </inheritdoc>
+            <exception cref="T:System.ArgumentException">Root paths, certain game directories, and mod containing directories are not allowed to be selected by this factory method</exception>
         </member>
         <member name="M:LogUtils.Enums.LogGroupMap.GetEquivalent(BepInEx.Logging.LogLevel@,System.Boolean)">
             <summary>
@@ -5922,6 +5945,12 @@
             <param name="doPathCheck">Whether the folder path should also be considered in the equality check</param>
         </member>
         <member name="M:LogUtils.Enums.LogID.GetHashCode">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.Register">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.Unregister">
             <inheritdoc/>
         </member>
         <member name="M:LogUtils.Enums.LogID.IsGroupType(LogUtils.Enums.LogID)">
@@ -6246,6 +6275,12 @@
         </member>
         <member name="M:LogUtils.Enums.SharedExtEnum`1.Unregister">
             <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Enums.SharedExtEnum`1.RegisterCore">
+            <inheritdoc cref="M:LogUtils.Enums.SharedExtEnum`1.Register"/>
+        </member>
+        <member name="M:LogUtils.Enums.SharedExtEnum`1.UnregisterCore">
+            <inheritdoc cref="M:LogUtils.Enums.SharedExtEnum`1.Unregister"/>
         </member>
         <member name="M:LogUtils.Enums.SharedExtEnum`1.CheckTag(System.String)">
             <inheritdoc/>
@@ -6867,19 +6902,19 @@
         <member name="M:LogUtils.GameLogger.LogBepEx(System.Object)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Game.LogBepEx(System.Object)"/>
         </member>
-        <member name="M:LogUtils.GameLogger.LogBepEx(BepInEx.Logging.ILogSource,BepInEx.Logging.LogLevel,System.Object)">
+        <member name="M:LogUtils.GameLogger.LogBepEx(BepInEx.Logging.ILogSource,LogUtils.Enums.LogCategory,System.Object)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Game.LogBepEx(BepInEx.Logging.ILogSource,BepInEx.Logging.LogLevel,System.Object)"/>
         </member>
-        <member name="M:LogUtils.GameLogger.LogBepEx(BepInEx.Logging.ILogSource,LogUtils.Enums.LogCategory,System.Object)">
+        <member name="M:LogUtils.GameLogger.LogBepEx(BepInEx.Logging.ILogSource,BepInEx.Logging.LogLevel,System.Object)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Game.LogBepEx(BepInEx.Logging.ILogSource,BepInEx.Logging.LogLevel,System.Object)"/>
         </member>
         <member name="M:LogUtils.GameLogger.LogUnity(System.Object)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Game.LogUnity(System.Object)"/>
         </member>
-        <member name="M:LogUtils.GameLogger.LogUnity(UnityEngine.LogType,System.Object)">
+        <member name="M:LogUtils.GameLogger.LogUnity(LogUtils.Enums.LogCategory,System.Object)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Game.LogUnity(UnityEngine.LogType,System.Object)"/>
         </member>
-        <member name="M:LogUtils.GameLogger.LogUnity(LogUtils.Enums.LogCategory,System.Object)">
+        <member name="M:LogUtils.GameLogger.LogUnity(UnityEngine.LogType,System.Object)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Game.LogUnity(UnityEngine.LogType,System.Object)"/>
         </member>
         <member name="M:LogUtils.GameLogger.LogExp(System.Object)">
@@ -7057,6 +7092,36 @@
             Determines if the given path has an existing parent directory
             </summary>
         </member>
+        <member name="M:LogUtils.Helpers.FileHandling.DirectoryUtils.DeletePermanently(System.String,System.Boolean)">
+            <inheritdoc cref="M:LogUtils.Helpers.FileHandling.DirectoryUtils.DeletePermanently(System.String,LogUtils.Helpers.FileHandling.DirectoryDeletionScope,System.String)"/>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.DirectoryUtils.DeletePermanently(System.String,LogUtils.Helpers.FileHandling.DirectoryDeletionScope)">
+            <inheritdoc cref="M:LogUtils.Helpers.FileHandling.DirectoryUtils.DeletePermanently(System.String,LogUtils.Helpers.FileHandling.DirectoryDeletionScope,System.String)"/>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.DirectoryUtils.DeletePermanently(System.String,LogUtils.Helpers.FileHandling.DirectoryDeletionScope,System.String)">
+            <summary>
+            Permanently deletes a directory at the specified path
+            </summary>
+            <param name="path">Location of the directory</param>
+            <param name="deleteOption">Condition that must be met for deletion operation to complete successfully</param>
+            <param name="customErrorMsg">Message that will be logged in the event of an exception</param>
+            <returns>true, if the operation was successful, false if an exception was throw, or condition for deletion was not met</returns>
+        </member>
+        <member name="T:LogUtils.Helpers.FileHandling.DirectoryDeletionScope">
+            <summary>
+            Specifies a condition that must be met for delete operation to complete
+            </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.DirectoryDeletionScope.OnlyIfEmpty">
+            <summary>
+            Directory is only touched if there are no files, or other directories inside
+            </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.DirectoryDeletionScope.AllFilesAndFolders">
+            <summary>
+            Directory, and all of its contents will be deleted
+            </summary>
+        </member>
         <member name="T:LogUtils.Helpers.FileHandling.FileExtension">
             <summary>
             A helper class for manipulating file extension information
@@ -7112,6 +7177,13 @@
             <returns>The filename (or path) with the applied file extension</returns>
             <remarks>Filenames with long extensions may be unaffected by this operation</remarks>
         </member>
+        <member name="M:LogUtils.Helpers.FileHandling.FileSystemPathFinder.FindMatch(System.String)">
+            <summary>
+            Searches for a file, or directory path corresponding with a provided path, directory, or filename
+            </summary>
+            <param name="path">The path, directory, or filename to search for</param>
+            <returns>A file, or directory path corresponding with a provided path, directory, or filename, or null if match criteria was not found</returns>
+        </member>
         <member name="T:LogUtils.Helpers.FileHandling.FileUtils">
             <summary>
             Helper class for interacting with the file system that is safe and supported by LogUtils
@@ -7160,13 +7232,6 @@
             <remarks>
             - Write lock is applied internally for thread safety, but is not safe to run from multiple processes.
             </remarks>
-        </member>
-        <member name="M:LogUtils.Helpers.FileHandling.IFileSystemPathFinder.FindMatch(System.String)">
-            <summary>
-            Searches for a file, or directory path corresponding with a provided path, directory, or filename
-            </summary>
-            <param name="path">The path, directory, or filename to search for</param>
-            <returns>A file, or directory path corresponding with a provided path, directory, or filename, or null if match criteria was not found</returns>
         </member>
         <member name="F:LogUtils.Helpers.FileHandling.PathInfo.Target">
             <summary>
@@ -7375,6 +7440,91 @@
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.RainWorldPathFinder.FindMatch(System.String)">
             <inheritdoc/>
+        </member>
+        <member name="T:LogUtils.Helpers.FileHandling.RecycleBin.FileOperationFlags">
+            <summary>
+            Possible flags for the SHFileOperation method.
+            </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.RecycleBin.FileOperationFlags.FOF_SILENT">
+            <summary>
+            Do not show a dialog during the process
+            </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.RecycleBin.FileOperationFlags.FOF_NOCONFIRMATION">
+            <summary>
+            Do not ask the user to confirm selection
+            </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.RecycleBin.FileOperationFlags.FOF_ALLOWUNDO">
+            <summary>
+            Delete the file to the recycle bin.  (Required flag to send a file to the bin
+            </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.RecycleBin.FileOperationFlags.FOF_SIMPLEPROGRESS">
+            <summary>
+            Do not show the names of the files or folders that are being recycled.
+            </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.RecycleBin.FileOperationFlags.FOF_NOERRORUI">
+            <summary>
+            Surpress errors, if any occur during the process.
+            </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.RecycleBin.FileOperationFlags.FOF_WANTNUKEWARNING">
+            <summary>
+            Warn if files are too big to fit in the recycle bin and will need
+            to be deleted completely.
+            </summary>
+        </member>
+        <member name="T:LogUtils.Helpers.FileHandling.RecycleBin.FileOperationType">
+            <summary>
+            File Operation Function Type for SHFileOperation
+            </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.RecycleBin.FileOperationType.FO_MOVE">
+            <summary>
+            Move the objects
+            </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.RecycleBin.FileOperationType.FO_COPY">
+            <summary>
+            Copy the objects
+            </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.RecycleBin.FileOperationType.FO_DELETE">
+            <summary>
+            Delete (or recycle) the objects
+            </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.RecycleBin.FileOperationType.FO_RENAME">
+            <summary>
+            Rename the object(s)
+            </summary>
+        </member>
+        <member name="T:LogUtils.Helpers.FileHandling.RecycleBin.SHFILEOPSTRUCT">
+            <summary>
+            SHFILEOPSTRUCT for SHFileOperation from COM
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.RecycleBin.Send(System.String,LogUtils.Helpers.FileHandling.RecycleBin.FileOperationFlags)">
+            <summary>
+            Send directory, or file to recycle bin
+            </summary>
+            <param name="path">Location of directory or file to recycle</param>
+            <param name="flags">FileOperationFlags to add in addition to FOF_ALLOWUNDO</param>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.RecycleBin.Send(System.String)">
+            <summary>
+            Send directory, or file to recycle bin.  Display dialog, display warning if files are too big to fit (FOF_WANTNUKEWARNING)
+            </summary>
+            <param name="path">Location of directory or file to recycle</param>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.RecycleBin.MoveToRecycleBin(System.String)">
+            <summary>
+            Send directory, or file silently to recycle bin.  Suppresses dialog, suppresses errors, deletes permanently if too large.
+            </summary>
+            <param name="path">Location of directory or file to recycle</param>
         </member>
         <member name="M:LogUtils.Helpers.FlagUtils.HasConvertedFlags(System.Int32)">
             <summary>
@@ -9791,6 +9941,13 @@
             <summary>
             Shortcut accessor for StreamingAssets path
             </summary>
+        </member>
+        <member name="M:LogUtils.RainWorldDirectory.LocateRoot(System.String)">
+            <summary>
+            Locates the fully qualified root path associated with a provided path
+            </summary>
+            <param name="path">The path to check</param>
+            <returns>Value returned will either be the Rain World root path, StreamingAssets path, BepInEx root path, or null if path does not belong to a Rain World root path</returns>
         </member>
         <member name="M:LogUtils.RainWorldDirectory.GetDirectoryCategory(System.String)">
             <summary>
