@@ -107,12 +107,6 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <inheritdoc cref="DeletePermanently(string, DirectoryDeletionScope, string)"/>
-        public static bool DeletePermanently(string path)
-        {
-            return DeleteInternal(path);
-        }
-
-        /// <inheritdoc cref="DeletePermanently(string, DirectoryDeletionScope, string)"/>
         public static bool DeletePermanently(string path, bool deleteOnlyIfEmpty = true)
         {
             return DeleteInternal(path, deleteOnlyIfEmpty ? DirectoryDeletionScope.OnlyIfEmpty : DirectoryDeletionScope.AllFilesAndFolders);
@@ -131,7 +125,7 @@ namespace LogUtils.Helpers.FileHandling
         /// <param name="deleteOption">Condition that must be met for deletion operation to complete successfully</param>
         /// <param name="customErrorMsg">Message that will be logged in the event of an exception</param>
         /// <returns>true, if the operation was successful, false if an exception was throw, or condition for deletion was not met</returns>
-        public static bool DeletePermanently(string path, DirectoryDeletionScope deleteOption = DirectoryDeletionScope.OnlyIfEmpty, string customErrorMsg = null)
+        public static bool DeletePermanently(string path, DirectoryDeletionScope deleteOption, string customErrorMsg = null)
         {
             return DeleteInternal(path, deleteOption, customErrorMsg);
         }

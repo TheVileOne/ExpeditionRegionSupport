@@ -1,4 +1,5 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Helpers.FileHandling;
 using System.Collections.Generic;
 using System.IO;
 
@@ -65,10 +66,15 @@ namespace LogUtils.Diagnostics.Tests.Utility
         internal static void CloseGroup()
         {
             testGroup.Unregister();
-            foreach (string file in Directory.GetFiles(testGroup.Properties.CurrentFolderPath))
-                File.Delete(file);
 
-            Directory.Delete(testGroup.Properties.CurrentFolderPath);
+            string groupPath = testGroup.Properties.CurrentFilePath;
+
+            //Good code practice
+            //RecycleBin.MoveToRecycleBin(groupPath);
+
+            //Bad code practice
+            //But since this is a test folder - it is okay to delete 
+            DirectoryUtils.DeletePermanently(groupPath, deleteOnlyIfEmpty: false);
         }
 
         private static string formatLogName(SlugcatStats.Name slugcatName)
