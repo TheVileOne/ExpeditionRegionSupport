@@ -67,7 +67,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             testGroup.Unregister();
 
-            string groupPath = testGroup.Properties.CurrentFilePath;
+            string groupPath = testGroup.Properties.CurrentFolderPath;
 
             //Good code practice
             //RecycleBin.MoveToRecycleBin(groupPath);
