@@ -621,8 +621,9 @@
         </member>
         <member name="M:LogUtils.Compatibility.DotNet.LoggerUtils.GetEquivalentCategory(Microsoft.Extensions.Logging.LogLevel)">
             <summary>
-            Converts a LogLevel enum to its LogCategory equivalent value
+            Converts a <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> value to its equivalent <see cref="T:LogUtils.Enums.LogCategory"/> instance
             </summary>
+            <returns>Default <see cref="T:LogUtils.Enums.LogCategory"/> instance will be returned if value provided is not a recognized <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> value</returns>
         </member>
         <member name="M:LogUtils.Compatibility.Unity.UnityAdapter.Run">
             <summary>
@@ -2429,7 +2430,7 @@
         </member>
         <member name="T:LogUtils.Console.ConsoleColorMap">
             <summary>
-            This class provides helper methods for converting ConsoleColor enums to their corresponding Unity color, and vice versa
+            This class provides helper methods for converting <see cref="T:System.ConsoleColor"/> enums to their corresponding <see cref="T:UnityEngine.Color"/> value, and vice versa
             </summary>
         </member>
         <member name="F:LogUtils.Console.ConsoleColorMap.DefaultConsoleColor">
@@ -2444,29 +2445,29 @@
         </member>
         <member name="F:LogUtils.Console.ConsoleColorMap.ColorMap">
             <summary>
-            A map of ConsoleColor values to their associated Unity color
+            A map of <see cref="T:System.ConsoleColor"/> values to their associated <see cref="T:UnityEngine.Color"/> value
             </summary>
         </member>
         <member name="M:LogUtils.Console.ConsoleColorMap.GetColor(System.ConsoleColor)">
             <summary>
-            Gets the Unity color mapped to a specified ConsoleColor code
+            Gets the <see cref="T:UnityEngine.Color"/> value mapped to a specified <see cref="T:System.ConsoleColor"/> code
             </summary>
         </member>
-        <member name="M:LogUtils.Console.ConsoleColorMap.GetColor(LogUtils.Enums.LogGroup)">
+        <member name="M:LogUtils.Console.ConsoleColorMap.GetColor(LogUtils.Enums.LogCategoryLevels)">
             <summary>
-            Gets the Unity color mapped to a specified LogGroup
+            Gets the <see cref="T:UnityEngine.Color"/> value mapped to a specified <see cref="T:LogUtils.Enums.LogCategoryLevels"/> value
             </summary>
-            <remarks>Aligned with the colors assigned for BepInEx.LogLevel</remarks>
+            <remarks>Aligned with the colors assigned for <see cref="T:BepInEx.Logging.LogLevel"/></remarks>
         </member>
-        <member name="M:LogUtils.Console.ConsoleColorMap.GetConsoleColor(LogUtils.Enums.LogGroup)">
+        <member name="M:LogUtils.Console.ConsoleColorMap.GetConsoleColor(LogUtils.Enums.LogCategoryLevels)">
             <summary>
-            Gets the ConsoleColor mapped to a specified LogGroup
+            Gets the <see cref="T:System.ConsoleColor"/> value mapped to a specified <see cref="T:LogUtils.Enums.LogCategoryLevels"/> value
             </summary>
-            <remarks>Aligned with the colors assigned for BepInEx.LogLevel</remarks>
+            <remarks>Aligned with the colors assigned for <see cref="T:BepInEx.Logging.LogLevel"/></remarks>
         </member>
         <member name="M:LogUtils.Console.ConsoleColorMap.ClosestConsoleColor(UnityEngine.Color)">
             <summary>
-            Finds the nearest compatible ConsoleColor for the given color
+            Finds the nearest compatible <see cref="T:System.ConsoleColor"/> value for the given color
             </summary>
         </member>
         <member name="M:LogUtils.Console.ConsoleColorMap.ClosestConsoleColor(System.Drawing.Color)">
@@ -5480,38 +5481,53 @@
         </member>
         <member name="T:LogUtils.Enums.CompositeLogCategory">
             <summary>
-            A type of LogCategory featuring properties of enum bitflags
+            A type of <see cref="T:LogUtils.Enums.LogCategory"/> featuring properties of enum bitflags
             </summary>
-            <remarks>LogCategory instances can be combined using overloaded bitflag operators to create a composite instance</remarks>
+            <remarks><see cref="T:LogUtils.Enums.LogCategory"/> instances can be combined using overloaded bitflag operators to create a composite instance</remarks>
         </member>
         <member name="F:LogUtils.Enums.CompositeLogCategory.Set">
             <summary>
             Contains the flags that represent the composite instance
             </summary>
         </member>
+        <member name="P:LogUtils.Enums.CompositeLogCategory.BepInExCategory">
+            <inheritdoc/>
+        </member>
+        <member name="P:LogUtils.Enums.CompositeLogCategory.UnityCategory">
+            <inheritdoc/>
+        </member>
         <member name="P:LogUtils.Enums.CompositeLogCategory.FlagValue">
             <summary>
             The combined bitflag translation of all contained flags within this instance
             </summary>
         </member>
+        <member name="P:LogUtils.Enums.CompositeLogCategory.Level">
+            <inheritdoc/>
+        </member>
+        <member name="P:LogUtils.Enums.CompositeLogCategory.ConsoleColor">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Enums.CompositeLogCategory.Register">
+            <inheritdoc/>
+        </member>
         <member name="M:LogUtils.Enums.CompositeLogCategory.Deconstruct">
             <summary>
-            Breaks the composite ExtEnum back into its component elements
+            Returns the <see cref="T:LogUtils.Enums.LogCategory"/> instances that make up the composite set
             </summary>
         </member>
         <member name="M:LogUtils.Enums.CompositeLogCategory.FromFlags(BepInEx.Logging.LogLevel[])">
             <summary>
-            Combines any number of enum values into a composite LogCategory
+            Combines any number of enum values into a composite <see cref="T:LogUtils.Enums.LogCategory"/> instance
             </summary>
         </member>
         <member name="M:LogUtils.Enums.CompositeLogCategory.FromFlags(UnityEngine.LogType[])">
             <summary>
-            Combines any number of enum values into a composite LogCategory
+            Combines any number of enum values into a composite <see cref="T:LogUtils.Enums.LogCategory"/> instance
             </summary>
         </member>
         <member name="M:LogUtils.Enums.CompositeLogCategory.GetMostRelevantFlags">
             <summary>
-            Finds all flags contained within the most relevant LogGroup for the composite instance
+            Finds all flags that match the most relevant category level
             </summary>
         </member>
         <member name="M:LogUtils.Enums.CompositeLogCategory.Contains(LogUtils.Enums.LogCategory)">
@@ -5542,12 +5558,12 @@
             <param name="flags">Contains a set of flags to look for</param>
             <returns>true, if at least one flag element is contained by this instance; otherwise, false</returns>
         </member>
-        <member name="M:LogUtils.Enums.CompositeLogCategory.HasFlag(LogUtils.Enums.LogCategory,LogUtils.Enums.CompositeLogCategory.FlagSearchOptions)">
+        <member name="M:LogUtils.Enums.CompositeLogCategory.HasFlag(LogUtils.Enums.LogCategory,LogUtils.Helpers.FlagSearchOption)">
             <summary>
             Checks whether this instance contains a flag as a whole value, or elements of the flag based on a specified search behavior 
             </summary>
             <param name="flag">Contains a flag, or set of flags to look for</param>
-            <param name="searchOptions">Specifies the search behavior when the flag represents multiple elements, has no effect when there is only one element</param>
+            <param name="searchOption">Specifies the search behavior when the flag represents multiple elements, has no effect when there is only one element</param>
             <returns>true, when an element has been matched based on the provided search criteria</returns>
         </member>
         <member name="M:LogUtils.Enums.CompositeLogCategory.GetHashCode">
@@ -5608,12 +5624,12 @@
         </member>
         <member name="F:LogUtils.Enums.LogCategory.LOG_LEVEL_DEFAULT">
             <summary>
-            The default conversion type for LogLevel enum
+            The default conversion type for <see cref="T:BepInEx.Logging.LogLevel"/> enum type
             </summary>
         </member>
         <member name="F:LogUtils.Enums.LogCategory.LOG_TYPE_DEFAULT">
             <summary>
-            The default conversion type for LogType enum
+            The default conversion type for <see cref="T:UnityEngine.LogType"/> enum type
             </summary>
         </member>
         <member name="P:LogUtils.Enums.LogCategory.BepInExCategory">
@@ -5628,10 +5644,10 @@
         </member>
         <member name="P:LogUtils.Enums.LogCategory.FlagValue">
             <summary>
-            The bitflag translation representing this LogCategory
+            The bitflag translation representing this instance
             </summary>
         </member>
-        <member name="P:LogUtils.Enums.LogCategory.Group">
+        <member name="P:LogUtils.Enums.LogCategory.Level">
             <summary>
             The overall logging group defined for this category - used for tasks such as filtering by one or more categories
             </summary>
@@ -5643,24 +5659,24 @@
         </member>
         <member name="M:LogUtils.Enums.LogCategory.#ctor(System.String,System.Nullable{BepInEx.Logging.LogLevel},System.Nullable{UnityEngine.LogType})">
             <summary>
-            Constructs a registered LogCategory instance
+            Constructs a registered <see cref="T:LogUtils.Enums.LogCategory"/> instance
             </summary>
-            <param name="value">The ExtEnum value associated with this instance</param>
+            <param name="value">The <see cref="T:ExtEnum`1"/> value associated with this instance</param>
             <param name="bepInExEquivalent">
-            The enum value to be used when this category is used by the BepInEx logger
-            Set to null assigns a custom LogLevel, otherwise will take the value of the LogLevel provided
+            The enum value to be used when this category is used by the BepInEx logger<br/>
+            Setting to null assigns a custom <see cref="T:BepInEx.Logging.LogLevel"/>, otherwise will take the value of the <see cref="T:BepInEx.Logging.LogLevel"/> provided
             </param>
             <param name="unityEquivalent">
-            The enum value to be used when this category is used by the Unity logger
-            Set to null assigns a custom LogType, otherwise will take the value of the LogType provided
+            The enum value to be used when this category is used by the Unity logger<br/>
+            Setting to null assigns a custom <see cref="T:UnityEngine.LogType"/>, otherwise will take the value of the <see cref="T:UnityEngine.LogType"/> provided
             </param>
         </member>
         <member name="M:LogUtils.Enums.LogCategory.#ctor(System.String,System.Boolean)">
             <summary>
-            Constructs a LogCategory instance
+            Constructs a <see cref="T:LogUtils.Enums.LogCategory"/> instance
             </summary>
-            <param name="value">The ExtEnum value associated with this instance</param>
-            <param name="register">Whether or not this instance should be registered as a unique ExtEnum entry</param>
+            <param name="value">The <see cref="T:ExtEnum`1"/> value associated with this instance</param>
+            <param name="register">Whether or not this instance should be registered as a unique <see cref="T:ExtEnum`1"/> entry</param>
         </member>
         <member name="M:LogUtils.Enums.LogCategory.Register">
             <inheritdoc/>
@@ -5673,14 +5689,37 @@
         </member>
         <member name="F:LogUtils.Enums.LogCategory.CONVERSION_OFFSET">
             <summary>
-            The bit-oriented value position of an enum value (LogLevel or LogType) reserved for custom conversions of LogCategory values
+            The bit-oriented value position of an enum value (<see cref="T:BepInEx.Logging.LogLevel"/> or <see cref="T:UnityEngine.LogType"/>) reserved for custom conversions of <see cref="T:LogUtils.Enums.LogCategory"/> values
             </summary>
-            <remarks>Value must be compliant with BepInEx.LogType, which assigns a max value of 63.
+            <remarks>Value must be compliant with <see cref="T:BepInEx.Logging.LogLevel"/>, which assigns a max value of 63.
             This value must be at least 64 or greater for compatibility purposes</remarks>
         </member>
         <member name="F:LogUtils.Enums.LogCategory.CONVERSION_OFFSET_POWER">
             <summary>
             The power of two used to produce the conversion offset
+            </summary>
+        </member>
+        <member name="M:LogUtils.Enums.LogCategory.ToCategory(System.String)">
+            <summary>
+            Converts a <see cref="T:System.String"/> to its equivalent <see cref="T:LogUtils.Enums.LogCategory"/> instance
+            </summary>
+            <returns><see cref="T:LogUtils.Enums.LogCategory"/> instance will be unregistered if no registered equivalent exists</returns>
+        </member>
+        <member name="M:LogUtils.Enums.LogCategory.ToCategory(BepInEx.Logging.LogLevel)">
+            <summary>
+            Converts a <see cref="T:BepInEx.Logging.LogLevel"/> value to its equivalent <see cref="T:LogUtils.Enums.LogCategory"/> instance
+            </summary>
+            <returns><see cref="T:LogUtils.Enums.LogCategory"/> instance will be unregistered if no registered equivalent exists</returns>
+        </member>
+        <member name="M:LogUtils.Enums.LogCategory.ToCategory(UnityEngine.LogType)">
+            <summary>
+            Converts a <see cref="T:UnityEngine.LogType"/> value to its equivalent <see cref="T:LogUtils.Enums.LogCategory"/> instance
+            </summary>
+            <returns><see cref="T:LogUtils.Enums.LogCategory"/> instance will be unregistered if no registered equivalent exists</returns>
+        </member>
+        <member name="M:LogUtils.Enums.LogCategory.ToCategoryLevel(BepInEx.Logging.LogLevel)">
+            <summary>
+            Converts a <see cref="T:BepInEx.Logging.LogLevel"/> value to its equivalent <see cref="T:LogUtils.Enums.LogCategoryLevels"/> flags
             </summary>
         </member>
         <member name="M:LogUtils.Enums.LogCategory.GetEquivalent(BepInEx.Logging.LogLevel)">
@@ -5703,23 +5742,80 @@
             Extract the component elements from the provided category
             </summary>
         </member>
+        <member name="T:LogUtils.Enums.LogCategoryFilter">
+            <summary>
+            <see cref="T:LogUtils.Enums.LogCategoryFilter.ByCategory"/><br/>
+            Supports matching against specific <see cref="T:LogUtils.Enums.LogCategory"/> entries, and can function as a whitelist, or blacklist.<br/>
+            This is the best option when you want to limit to a single <see cref="T:LogUtils.Enums.LogCategory"/> entry.<br/>
+            <see cref="T:LogUtils.Enums.LogCategoryFilter.ByLevel"/><br/>
+            Supports matching against, and up to a specific <see cref="T:LogUtils.Enums.LogCategoryLevels"/> value, the means to which logging categories are organized based on their importance<br/>
+            or "severity" of the message. For instance, setting the filter to <see cref="F:LogUtils.Enums.LogCategoryLevels.Warning"/> will filter <see cref="F:LogUtils.Enums.LogCategoryLevels.Info"/> messages,
+            but not <see cref="F:LogUtils.Enums.LogCategoryLevels.Error"/> messages.<br/>
+            Supports matching against a specific <see cref="T:LogUtils.Enums.LogCategoryLevels"/> which contains all <see cref="T:LogUtils.Enums.LogCategory"/> instances belonging to that level.
+            </summary>
+        </member>
+        <member name="T:LogUtils.Enums.LogCategoryFilter.ByCategory">
+            <summary>
+            See <see cref="T:LogUtils.Enums.LogCategoryFilter"/> for class description
+            </summary>
+        </member>
         <member name="M:LogUtils.Enums.LogCategoryFilter.ByCategory.IsAllowed(LogUtils.Enums.LogCategory)">
             <inheritdoc/>
         </member>
         <member name="M:LogUtils.Enums.LogCategoryFilter.ByCategory.CompareTo(LogUtils.Enums.LogCategory)">
             <inheritdoc/>
         </member>
-        <member name="M:LogUtils.Enums.LogCategoryFilter.ByGroup.IsAllowed(LogUtils.Enums.LogCategory)">
+        <member name="T:LogUtils.Enums.LogCategoryFilter.ByLevel">
+            <summary>
+            See <see cref="T:LogUtils.Enums.LogCategoryFilter"/> for class description
+            </summary>
+        </member>
+        <member name="M:LogUtils.Enums.LogCategoryFilter.ByLevel.IsAllowed(LogUtils.Enums.LogCategory)">
             <inheritdoc/>
         </member>
-        <member name="M:LogUtils.Enums.LogCategoryFilter.ByGroup.CompareTo(LogUtils.Enums.LogCategory)">
+        <member name="M:LogUtils.Enums.LogCategoryFilter.ByLevel.CompareTo(LogUtils.Enums.LogCategory)">
             <inheritdoc/>
         </member>
-        <member name="M:LogUtils.Enums.LogCategoryFilter.BySpecificGroup.IsAllowed(LogUtils.Enums.LogCategory)">
+        <member name="T:LogUtils.Enums.LogCategoryFilter.BySpecificLevel">
+            <summary>
+            Allow filtering by one, or more specific category levels. Unlock <see cref="T:LogUtils.Enums.LogCategoryFilter.ByLevel"/> filtering, this filter does not operate on a range of values
+            </summary>
+        </member>
+        <member name="M:LogUtils.Enums.LogCategoryFilter.BySpecificLevel.IsAllowed(LogUtils.Enums.LogCategory)">
             <inheritdoc/>
         </member>
-        <member name="M:LogUtils.Enums.LogCategoryFilter.BySpecificGroup.CompareTo(LogUtils.Enums.LogCategory)">
+        <member name="M:LogUtils.Enums.LogCategoryFilter.BySpecificLevel.CompareTo(LogUtils.Enums.LogCategory)">
             <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Enums.IFilter`1.IsAllowed(`0)">
+            <summary>
+            Check that an entry is allowed according to defined filter criteria
+            </summary>
+        </member>
+        <member name="T:LogUtils.Enums.LogCategoryLevelMap">
+            <summary>
+            Class for accessing the default <see cref="T:LogUtils.Enums.LogCategoryLevels"/>, and other internal functions for mapping <see cref="T:BepInEx.Logging.LogLevel"/> to an associated <see cref="T:LogUtils.Enums.LogCategoryLevels"/>
+            </summary>
+        </member>
+        <member name="F:LogUtils.Enums.LogCategoryLevelMap.DefaultLevel">
+            <summary>
+            The value that is assigned before a more specific category level is applied
+            </summary>
+        </member>
+        <member name="M:LogUtils.Enums.LogCategoryLevelMap.GetEquivalent(BepInEx.Logging.LogLevel@,System.Boolean)">
+            <summary>
+            Implementation doesn't account for composites
+            </summary>
+        </member>
+        <member name="M:LogUtils.Enums.LogCategoryLevelMap.GetEquivalentSlow(BepInEx.Logging.LogLevel@)">
+            <summary>
+            Implementation accounts for composites
+            </summary>
+        </member>
+        <member name="T:LogUtils.Enums.LogCategoryLevels">
+            <summary>
+            A slightly modified set of values based on <see cref="T:BepInEx.Logging.LogLevel"/>
+            </summary>
         </member>
         <member name="T:LogUtils.Enums.LogGroupID">
             <summary>
@@ -5786,21 +5882,6 @@
             <param name="register"></param>
             </inheritdoc>
             <exception cref="T:System.ArgumentException">Root paths, certain game directories, and mod containing directories are not allowed to be selected by this factory method</exception>
-        </member>
-        <member name="M:LogUtils.Enums.LogGroupMap.GetEquivalent(BepInEx.Logging.LogLevel@,System.Boolean)">
-            <summary>
-            Implementation doesn't account for composites
-            </summary>
-        </member>
-        <member name="M:LogUtils.Enums.LogGroupMap.GetEquivalentSlow(BepInEx.Logging.LogLevel@)">
-            <summary>
-            Implementation accounts for composites
-            </summary>
-        </member>
-        <member name="T:LogUtils.Enums.LogGroup">
-            <summary>
-            A slightly modified set of values based on BepInEx.Logging.LogLevel
-            </summary>
         </member>
         <member name="T:LogUtils.Enums.LogID">
             <summary>
@@ -7534,6 +7615,21 @@
         <member name="M:LogUtils.Helpers.FlagUtils.HasMultipleFlags(System.Int32)">
             <summary>
             Check that value satisfies a bitflag value requirement - only evaluates positive integers
+            </summary>
+        </member>
+        <member name="T:LogUtils.Helpers.FlagSearchOption">
+            <summary>
+            Enum type representing options for matching flag enums, or composite <see cref="T:ExtEnum`1"/> types
+            </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FlagSearchOption.MatchAll">
+            <summary>
+            All specified flags need to be present to qualify as a match
+            </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FlagSearchOption.MatchAny">
+            <summary>
+            Any specified flag needs to be present to qualify as a match
             </summary>
         </member>
         <member name="T:LogUtils.Helpers.LogFile">
