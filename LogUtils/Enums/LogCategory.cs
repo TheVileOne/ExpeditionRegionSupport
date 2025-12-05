@@ -9,24 +9,23 @@ namespace LogUtils.Enums
     public partial class LogCategory : SharedExtEnum<LogCategory>
     {
         /// <summary>
-        /// The default conversion type for LogLevel enum
+        /// The default conversion type for <see cref="BepInEx.Logging.LogLevel"/> enum type
         /// </summary>
         public const LogLevel LOG_LEVEL_DEFAULT = LogLevel.Info;
 
         /// <summary>
-        /// The default conversion type for LogType enum
+        /// The default conversion type for <see cref="LogType"/> enum type
         /// </summary>
         public const LogType LOG_TYPE_DEFAULT = LogType.Log;
 
-#pragma warning disable IDE0055 //Fix formatting
-        private LogLevel  _bepInExConversion = LOG_LEVEL_DEFAULT;
-        private LogType   _unityConversion = LOG_TYPE_DEFAULT;
-        private LogGroup  _defaultGroup = LogGroupMap.DefaultGroup;
-        private Color     _defaultConsoleColor = ConsoleColorMap.DefaultColor;
-        private LogGroup? _userDefinedGroup;
-        private LogGroup? _userDefinedColorGroup;
-        private Color?    _userDefinedConsoleColor;
-#pragma warning restore IDE0055 //Fix formatting
+        #pragma warning disable IDE0055 //Fix formatting
+        private LogLevel           _bepInExConversion = LOG_LEVEL_DEFAULT;
+        private LogType            _unityConversion   = LOG_TYPE_DEFAULT;
+        private LogCategoryLevels  _defaultLevel        = LogCategoryLevelMap.DefaultLevel;
+        private Color              _defaultConsoleColor = ConsoleColorMap.DefaultColor;
+        private LogCategoryLevels? _userDefinedLevel;
+        private Color?             _userDefinedConsoleColor;
+        #pragma warning restore IDE0055 //Fix formatting
 
         private bool conversionFieldsNeedUpdating;
         private bool defaultsNeedUpdating;
@@ -58,27 +57,27 @@ namespace LogUtils.Enums
         }
 
         /// <summary>
-        /// The bitflag translation representing this LogCategory
+        /// The bitflag translation representing this instance
         /// </summary>
         public virtual int FlagValue => indexToConversionValue();
 
         /// <summary>
         /// The overall logging group defined for this category - used for tasks such as filtering by one or more categories
         /// </summary>
-        public virtual LogGroup Group
+        public virtual LogCategoryLevels Level
         {
             get
             {
                 if (!ReferenceEquals(ManagedReference, this))
-                    return ManagedReference.Group;
+                    return ManagedReference.Level;
 
-                return _userDefinedGroup.HasValue ? _userDefinedGroup.Value : _defaultGroup;
+                return _userDefinedLevel.HasValue ? _userDefinedLevel.Value : _defaultLevel;
             }
             set
             {
                 if (!ReferenceEquals(ManagedReference, this))
-                    ManagedReference.Group = value;
-                _userDefinedGroup = value;
+                    ManagedReference.Level = value;
+                _userDefinedLevel = value;
             }
         }
 
@@ -111,16 +110,16 @@ namespace LogUtils.Enums
         public static IFilter<LogCategory> GlobalFilter;
 
         /// <summary>
-        /// Constructs a registered LogCategory instance
+        /// Constructs a registered <see cref="LogCategory"/> instance
         /// </summary>
-        /// <param name="value">The ExtEnum value associated with this instance</param>
+        /// <param name="value">The <see cref="ExtEnum{T}"/> value associated with this instance</param>
         /// <param name="bepInExEquivalent">
-        /// The enum value to be used when this category is used by the BepInEx logger
-        /// Set to null assigns a custom LogLevel, otherwise will take the value of the LogLevel provided
+        /// The enum value to be used when this category is used by the BepInEx logger<br/>
+        /// Setting to null assigns a custom <see cref="BepInEx.Logging.LogLevel"/>, otherwise will take the value of the <see cref="BepInEx.Logging.LogLevel"/> provided
         /// </param>
         /// <param name="unityEquivalent">
-        /// The enum value to be used when this category is used by the Unity logger
-        /// Set to null assigns a custom LogType, otherwise will take the value of the LogType provided
+        /// The enum value to be used when this category is used by the Unity logger<br/>
+        /// Setting to null assigns a custom <see cref="LogType"/>, otherwise will take the value of the <see cref="LogType"/> provided
         /// </param>
         public LogCategory(string value, LogLevel? bepInExEquivalent, LogType? unityEquivalent) : base(value, true)
         {
@@ -146,10 +145,10 @@ namespace LogUtils.Enums
         }
 
         /// <summary>
-        /// Constructs a LogCategory instance
+        /// Constructs a <see cref="LogCategory"/> instance
         /// </summary>
-        /// <param name="value">The ExtEnum value associated with this instance</param>
-        /// <param name="register">Whether or not this instance should be registered as a unique ExtEnum entry</param>
+        /// <param name="value">The <see cref="ExtEnum{T}"/> value associated with this instance</param>
+        /// <param name="register">Whether or not this instance should be registered as a unique <see cref="ExtEnum{T}"/> entry</param>
         public LogCategory(string value, bool register = false) : base(value, register)
         {
             //We can only give custom conversions to registered instances because these instances have a valid index assigned
@@ -210,8 +209,8 @@ namespace LogUtils.Enums
             if (defaultsNeedUpdating)
             {
                 LogLevel category = BepInExCategory;
-                _defaultGroup = LogGroupMap.GetEquivalent(category, true);
-                _defaultConsoleColor = ConsoleColorMap.GetColor(_defaultGroup);
+                _defaultLevel = LogCategoryLevelMap.GetEquivalent(category, true);
+                _defaultConsoleColor = ConsoleColorMap.GetColor(_defaultLevel);
             }
             defaultsNeedUpdating = false;
         }

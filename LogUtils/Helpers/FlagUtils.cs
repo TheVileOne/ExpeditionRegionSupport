@@ -90,4 +90,19 @@ namespace LogUtils.Helpers
             yield break;
         }
     }
+
+    /// <summary>
+    /// Enum type representing options for matching flag enums, or composite <see cref="ExtEnum{T}"/> types
+    /// </summary>
+    public enum FlagSearchOption
+    {
+        /// <summary>
+        /// All specified flags need to be present to qualify as a match
+        /// </summary>
+        MatchAll,
+        /// <summary>
+        /// Any specified flag needs to be present to qualify as a match
+        /// </summary>
+        MatchAny
+    }
 }

@@ -3,18 +3,22 @@ using System;
 
 namespace LogUtils.Enums
 {
+    /// <summary>
+    /// <see cref="ByCategory"/><br/>
+    /// Supports matching against specific <see cref="LogCategory"/> entries, and can function as a whitelist, or blacklist.<br/>
+    /// This is the best option when you want to limit to a single <see cref="LogCategory"/> entry.<br/>
+    /// <see cref="ByLevel"/><br/>
+    /// Supports matching against, and up to a specific <see cref="LogCategoryLevels"/> value, the means to which logging categories are organized based on their importance<br/>
+    /// or "severity" of the message. For instance, setting the filter to <see cref="LogCategoryLevels.Warning"/> will filter <see cref="LogCategoryLevels.Info"/> messages,
+    /// but not <see cref="LogCategoryLevels.Error"/> messages.<br/>
+    /// Supports matching against a specific <see cref="LogCategoryLevels"/> which contains all <see cref="LogCategory"/> instances belonging to that level.
+    /// </summary>
     public static class LogCategoryFilter
     {
-        /*
-         * ByCategory
-         * Supports matching against specific LogCategory entries, and can function as a whitelist, or blacklist
-         * This is the best option when you want to limit to a single LogCategory entry
-         * ByGroup
-         * Supports matching against, and up to a specific LogGroup value, the means to which logging categories are organized based on their importance
-         * or "severity" of the message. For instance, setting the filter to LogGroup.Warning will filter LogGroup.Info messages. but not LogGroup.Error
-         * messages. 
-         * Supports matching against a specific LogGroup which contains all LogCategory instances belonging to that group.
-         */
+        
+        /// <summary>
+        /// See <see cref="LogCategoryFilter"/> for class description
+        /// </summary>
         public class ByCategory : IFilter<LogCategory>
         {
             public CompositeLogCategory Flags;
@@ -30,7 +34,7 @@ namespace LogUtils.Enums
             /// <inheritdoc/>
             public bool IsAllowed(LogCategory entry)
             {
-                return allowEntryOnMatch == Flags.HasFlag(entry, CompositeLogCategory.FlagSearchOptions.MatchAny);
+                return allowEntryOnMatch == Flags.HasFlag(entry, FlagSearchOption.MatchAny);
             }
 
             /// <inheritdoc/>
@@ -40,60 +44,69 @@ namespace LogUtils.Enums
             }
         }
 
-        public class ByGroup : IFilter<LogCategory>
+        /// <summary>
+        /// See <see cref="LogCategoryFilter"/> for class description
+        /// </summary>
+        public class ByLevel : IFilter<LogCategory>
         {
-            public LogGroup AllowedGroups;
+            public LogCategoryLevels AllowedLevels;
 
-            public ByGroup(LogGroup allowedGroups)
+            public ByLevel(LogCategoryLevels allowedLevels)
             {
-                if (FlagUtils.HasMultipleFlags((int)allowedGroups))
+                if (FlagUtils.HasMultipleFlags((int)allowedLevels))
                     UtilityLogger.Log("Chosen filter implementation does not support flagged options");
 
-                //This logic ensures that AllowedGroups contains every flag less than it
-                LogGroup filterMask = ~allowedGroups;
-                AllowedGroups = allowedGroups ^ filterMask;
+                //This logic ensures that AllowedLevels contains every flag less than it
+                LogCategoryLevels filterMask = ~allowedLevels;
+                AllowedLevels = allowedLevels ^ filterMask;
             }
 
             /// <inheritdoc/>
             public bool IsAllowed(LogCategory entry)
             {
-                //Check that AllowedGroups contains a flag also contained in the entry group
-                return (AllowedGroups & entry.Group) != 0;
+                //Check that AllowedLevels contains a flag also contained in the entry group
+                return (AllowedLevels & entry.Level) != 0;
             }
 
             /// <inheritdoc/>
             public int CompareTo(LogCategory entry)
             {
-                return (int)(AllowedGroups & entry.Group);
+                return (int)(AllowedLevels & entry.Level);
             }
         }
 
-        public class BySpecificGroup : IFilter<LogCategory>
+        /// <summary>
+        /// Allow filtering by one, or more specific category levels. Unlock <see cref="ByLevel"/> filtering, this filter does not operate on a range of values
+        /// </summary>
+        public class BySpecificLevel : IFilter<LogCategory>
         {
-            public LogGroup AllowedGroups;
+            public LogCategoryLevels AllowedLevels;
 
-            public BySpecificGroup(LogGroup allowedGroups)
+            public BySpecificLevel(LogCategoryLevels allowedLevels)
             {
-                AllowedGroups = allowedGroups;
+                AllowedLevels = allowedLevels;
             }
 
             /// <inheritdoc/>
             public bool IsAllowed(LogCategory entry)
             {
-                //Check that AllowedGroups contains a flag also contained in the entry group
-                return (AllowedGroups & entry.Group) != 0;
+                //Check that AllowedLevels contains a flag also contained in the entry group
+                return (AllowedLevels & entry.Level) != 0;
             }
 
             /// <inheritdoc/>
             public int CompareTo(LogCategory entry)
             {
-                return (int)(AllowedGroups & entry.Group);
+                return (int)(AllowedLevels & entry.Level);
             }
         }
     }
 
     public interface IFilter<T> : IComparable<T>
     {
+        /// <summary>
+        /// Check that an entry is allowed according to defined filter criteria
+        /// </summary>
         bool IsAllowed(T entry);
     }
 }

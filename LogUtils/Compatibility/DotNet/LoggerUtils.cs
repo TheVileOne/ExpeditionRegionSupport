@@ -6,8 +6,9 @@ namespace LogUtils.Compatibility.DotNet
     public static class LoggerUtils
     {
         /// <summary>
-        /// Converts a LogLevel enum to its LogCategory equivalent value
+        /// Converts a <see cref="LogLevel"/> value to its equivalent <see cref="LogCategory"/> instance
         /// </summary>
+        /// <returns>Default <see cref="LogCategory"/> instance will be returned if value provided is not a recognized <see cref="LogLevel"/> value</returns>
         public static LogCategory GetEquivalentCategory(LogLevel category)
         {
             switch (category)
@@ -26,7 +27,7 @@ namespace LogUtils.Compatibility.DotNet
                 case LogLevel.None:
                     return LogCategory.None;
                 default:
-                    return LogCategory.All; //Is this good behavior?
+                    return LogCategory.Default;
             }
         }
     }

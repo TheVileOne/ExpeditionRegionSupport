@@ -6,7 +6,7 @@ using UnityEngine;
 namespace LogUtils.Console
 {
     /// <summary>
-    /// This class provides helper methods for converting ConsoleColor enums to their corresponding Unity color, and vice versa
+    /// This class provides helper methods for converting <see cref="ConsoleColor"/> enums to their corresponding <see cref="Color"/> value, and vice versa
     /// </summary>
     public static class ConsoleColorMap
     {
@@ -22,7 +22,7 @@ namespace LogUtils.Console
         public static Color DefaultColor => GetColor(DefaultConsoleColor);
 
         /// <summary>
-        /// A map of ConsoleColor values to their associated Unity color
+        /// A map of <see cref="ConsoleColor"/> values to their associated <see cref="Color"/> value
         /// </summary>
         #pragma warning disable IDE0055 //Fix formatting
         public static (ConsoleColor ConsoleColor, Color UnityColor)[] ColorMap =
@@ -47,7 +47,7 @@ namespace LogUtils.Console
         #pragma warning restore IDE0055 //Fix formatting
 
         /// <summary>
-        /// Gets the Unity color mapped to a specified ConsoleColor code
+        /// Gets the <see cref="Color"/> value mapped to a specified <see cref="ConsoleColor"/> code
         /// </summary>
         public static Color GetColor(ConsoleColor consoleColor)
         {
@@ -63,41 +63,41 @@ namespace LogUtils.Console
         }
 
         /// <summary>
-        /// Gets the Unity color mapped to a specified LogGroup
+        /// Gets the <see cref="Color"/> value mapped to a specified <see cref="LogCategoryLevels"/> value
         /// </summary>
-        /// <remarks>Aligned with the colors assigned for BepInEx.LogLevel</remarks>
-        public static Color GetColor(LogGroup group)
+        /// <remarks>Aligned with the colors assigned for <see cref="BepInEx.Logging.LogLevel"/></remarks>
+        public static Color GetColor(LogCategoryLevels level)
         {
-            LogGroup mostRelevantGroup = group != LogGroup.All ? (LogGroup)FlagUtils.GetHighestBit((int)group) : group;
+            LogCategoryLevels mostRelevantLevel = level != LogCategoryLevels.All ? (LogCategoryLevels)FlagUtils.GetHighestBit((int)level) : level;
 
-            ConsoleColor consoleColor = GetConsoleColor(mostRelevantGroup);
+            ConsoleColor consoleColor = GetConsoleColor(mostRelevantLevel);
             return GetColor(consoleColor);
         }
 
         /// <summary>
-        /// Gets the ConsoleColor mapped to a specified LogGroup
+        /// Gets the <see cref="ConsoleColor"/> value mapped to a specified <see cref="LogCategoryLevels"/> value
         /// </summary>
-        /// <remarks>Aligned with the colors assigned for BepInEx.LogLevel</remarks>
+        /// <remarks>Aligned with the colors assigned for <see cref="BepInEx.Logging.LogLevel"/></remarks>
         #pragma warning disable IDE0055 //Fix formatting
-        internal static ConsoleColor GetConsoleColor(LogGroup group)
+        internal static ConsoleColor GetConsoleColor(LogCategoryLevels level)
         {
-            return group switch
+            return level switch
             {
-                LogGroup.Fatal     => ConsoleColor.Red,
-                LogGroup.Error     => ConsoleColor.DarkRed,
-                LogGroup.Warning   => ConsoleColor.Yellow,
-                LogGroup.Assert    => ConsoleColor.Yellow,
-                LogGroup.Message   => ConsoleColor.White,
-                LogGroup.Important => ConsoleColor.White,
-                LogGroup.Debug     => ConsoleColor.DarkGray,
-                LogGroup.All       => ConsoleColor.Cyan,
-                _                  => DefaultConsoleColor
+                LogCategoryLevels.Fatal     => ConsoleColor.Red,
+                LogCategoryLevels.Error     => ConsoleColor.DarkRed,
+                LogCategoryLevels.Warning   => ConsoleColor.Yellow,
+                LogCategoryLevels.Assert    => ConsoleColor.Yellow,
+                LogCategoryLevels.Message   => ConsoleColor.White,
+                LogCategoryLevels.Important => ConsoleColor.White,
+                LogCategoryLevels.Debug     => ConsoleColor.DarkGray,
+                LogCategoryLevels.All       => ConsoleColor.Cyan,
+                _                          => DefaultConsoleColor
             };
         }
         #pragma warning restore IDE0055 //Fix formatting
 
         /// <summary>
-        /// Finds the nearest compatible ConsoleColor for the given color
+        /// Finds the nearest compatible <see cref="ConsoleColor"/> value for the given color
         /// </summary>
         public static ConsoleColor ClosestConsoleColor(Color color)
         {

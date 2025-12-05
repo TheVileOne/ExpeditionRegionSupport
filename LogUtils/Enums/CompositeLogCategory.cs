@@ -8,9 +8,9 @@ using UnityEngine;
 namespace LogUtils.Enums
 {
     /// <summary>
-    /// A type of LogCategory featuring properties of enum bitflags
+    /// A type of <see cref="LogCategory"/> featuring properties of enum bitflags
     /// </summary>
-    /// <remarks>LogCategory instances can be combined using overloaded bitflag operators to create a composite instance</remarks>
+    /// <remarks><see cref="LogCategory"/> instances can be combined using overloaded bitflag operators to create a composite instance</remarks>
     public sealed class CompositeLogCategory : LogCategory
     {
         private static CompositeLogCategory _empty;
@@ -44,6 +44,7 @@ namespace LogUtils.Enums
 
         private readonly bool isInitialized;
 
+        /// <inheritdoc/>
         public override LogLevel BepInExCategory
         {
             get
@@ -85,6 +86,7 @@ namespace LogUtils.Enums
             }
         }
 
+        /// <inheritdoc/>
         public override LogType UnityCategory
         {
             get
@@ -157,23 +159,25 @@ namespace LogUtils.Enums
             }
         }
 
-        public override LogGroup Group
+        /// <inheritdoc/>
+        public override LogCategoryLevels Level
         {
             get
             {
                 if (!isInitialized)
-                    return base.Group;
+                    return base.Level;
 
                 //TODO: Make sure that it isn't possible to desync this output since this code doesn't reference ManagedReference
-                LogGroup flags = LogGroup.None;
+                LogCategoryLevels flags = LogCategoryLevels.None;
                 foreach (LogCategory category in Set)
                 {
-                    flags |= category.Group;
+                    flags |= category.Level;
                 }
                 return flags;
             }
         }
 
+        /// <inheritdoc/>
         public override Color ConsoleColor
         {
             get
@@ -187,7 +191,7 @@ namespace LogUtils.Enums
 
                 LogCategory[] mostRelevantFlags = GetMostRelevantFlags();
 
-                //Flags with a non-default color set have priority over flags that inherit the default color for their specific LogGroup
+                //Flags with a non-default color set have priority over flags that inherit the default color for their specific category level
                 LogCategory flagWithColorOverride = Array.Find(mostRelevantFlags, flag => flag.HasColorOverride);
 
                 if (flagWithColorOverride != null)
@@ -220,6 +224,7 @@ namespace LogUtils.Enums
             isInitialized = true;
         }
 
+        /// <inheritdoc/>
         public override void Register()
         {
             if (isInitialized)
@@ -231,7 +236,7 @@ namespace LogUtils.Enums
         }
 
         /// <summary>
-        /// Breaks the composite ExtEnum back into its component elements
+        /// Returns the <see cref="LogCategory"/> instances that make up the composite set
         /// </summary>
         public LogCategory[] Deconstruct()
         {
@@ -241,7 +246,7 @@ namespace LogUtils.Enums
         }
 
         /// <summary>
-        /// Combines any number of enum values into a composite LogCategory
+        /// Combines any number of enum values into a composite <see cref="LogCategory"/> instance
         /// </summary>
         internal static CompositeLogCategory FromFlags(params LogLevel[] flags)
         {
@@ -273,7 +278,7 @@ namespace LogUtils.Enums
         }
 
         /// <summary>
-        /// Combines any number of enum values into a composite LogCategory
+        /// Combines any number of enum values into a composite <see cref="LogCategory"/> instance
         /// </summary>
         internal static CompositeLogCategory FromFlags(params LogType[] flags)
         {
@@ -307,7 +312,7 @@ namespace LogUtils.Enums
         #region Search methods
 
         /// <summary>
-        /// Finds all flags contained within the most relevant LogGroup for the composite instance
+        /// Finds all flags that match the most relevant category level
         /// </summary>
         public LogCategory[] GetMostRelevantFlags()
         {
@@ -317,10 +322,10 @@ namespace LogUtils.Enums
             if (FlagCount == 1)
                 return [Set.First()];
 
-            //The broadest LogGroup is considered the most relevant
-            LogGroup mostRelevantGroup = (LogGroup)FlagUtils.GetHighestBit((int)Group);
+            //The broadest category value is considered the most relevant
+            LogCategoryLevels mostRelevantLevel = (LogCategoryLevels)FlagUtils.GetHighestBit((int)Level);
 
-            return Set.Where(flag => (flag.Group & mostRelevantGroup) != 0).ToArray();
+            return Set.Where(flag => (flag.Level & mostRelevantLevel) != 0).ToArray();
         }
 
         /// <summary>
@@ -383,14 +388,14 @@ namespace LogUtils.Enums
         /// Checks whether this instance contains a flag as a whole value, or elements of the flag based on a specified search behavior 
         /// </summary>
         /// <param name="flag">Contains a flag, or set of flags to look for</param>
-        /// <param name="searchOptions">Specifies the search behavior when the flag represents multiple elements, has no effect when there is only one element</param>
+        /// <param name="searchOption">Specifies the search behavior when the flag represents multiple elements, has no effect when there is only one element</param>
         /// <returns>true, when an element has been matched based on the provided search criteria</returns>
-        public bool HasFlag(LogCategory flag, FlagSearchOptions searchOptions = FlagSearchOptions.MatchAll)
+        public bool HasFlag(LogCategory flag, FlagSearchOption searchOption = FlagSearchOption.MatchAll)
         {
             if (IsEmpty) return false;
 
             //It is highly unlikely we are comparing against another composite
-            if (Set.Contains(flag) || (searchOptions == FlagSearchOptions.MatchAny && flag == All))
+            if (Set.Contains(flag) || (searchOption == FlagSearchOption.MatchAny && flag == All))
                 return true;
 
             CompositeLogCategory flags = flag as CompositeLogCategory;
@@ -399,18 +404,12 @@ namespace LogUtils.Enums
                 return false;
 
             //Check whether we want to match a single flag, or every flag
-            return searchOptions switch
+            return searchOption switch
             {
-                FlagSearchOptions.MatchAll => HasAll(flags),
-                FlagSearchOptions.MatchAny => HasAny(flags),
+                FlagSearchOption.MatchAll => HasAll(flags),
+                FlagSearchOption.MatchAny => HasAny(flags),
                 _ => false
             };
-        }
-
-        public enum FlagSearchOptions
-        {
-            MatchAll,
-            MatchAny
         }
         #endregion
         #region Object inherited methods

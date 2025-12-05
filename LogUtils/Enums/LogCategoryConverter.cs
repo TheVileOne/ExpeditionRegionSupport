@@ -8,9 +8,9 @@ namespace LogUtils.Enums
     public partial class LogCategory
     {
         /// <summary>
-        /// The bit-oriented value position of an enum value (LogLevel or LogType) reserved for custom conversions of LogCategory values
+        /// The bit-oriented value position of an enum value (<see cref="BepInEx.Logging.LogLevel"/> or <see cref="LogType"/>) reserved for custom conversions of <see cref="LogCategory"/> values
         /// </summary>
-        /// <remarks>Value must be compliant with BepInEx.LogType, which assigns a max value of 63.
+        /// <remarks>Value must be compliant with <see cref="BepInEx.Logging.LogLevel"/>, which assigns a max value of 63.
         /// This value must be at least 64 or greater for compatibility purposes</remarks>
         public const short CONVERSION_OFFSET = 256;
 
@@ -19,11 +19,19 @@ namespace LogUtils.Enums
         /// </summary>
         public const byte CONVERSION_OFFSET_POWER = 8;
 
+        /// <summary>
+        /// Converts a <see cref="string"/> to its equivalent <see cref="LogCategory"/> instance
+        /// </summary>
+        /// <returns><see cref="LogCategory"/> instance will be unregistered if no registered equivalent exists</returns>
         public static LogCategory ToCategory(string value)
         {
             return new LogCategory(value);
         }
 
+        /// <summary>
+        /// Converts a <see cref="BepInEx.Logging.LogLevel"/> value to its equivalent <see cref="LogCategory"/> instance
+        /// </summary>
+        /// <returns><see cref="LogCategory"/> instance will be unregistered if no registered equivalent exists</returns>
         public static LogCategory ToCategory(LogLevel logLevel)
         {
             var flags = logLevel.Deconstruct();
@@ -44,6 +52,10 @@ namespace LogUtils.Enums
             return CompositeLogCategory.FromFlags(flags);
         }
 
+        /// <summary>
+        /// Converts a <see cref="LogType"/> value to its equivalent <see cref="LogCategory"/> instance
+        /// </summary>
+        /// <returns><see cref="LogCategory"/> instance will be unregistered if no registered equivalent exists</returns>
         public static LogCategory ToCategory(LogType logType)
         {
             var flags = logType.Deconstruct();
@@ -67,9 +79,12 @@ namespace LogUtils.Enums
             return CompositeLogCategory.FromFlags(flags);
         }
 
-        public static LogGroup ToLogGroup(LogLevel logLevel)
+        /// <summary>
+        /// Converts a <see cref="BepInEx.Logging.LogLevel"/> value to its equivalent <see cref="LogCategoryLevels"/> flags
+        /// </summary>
+        public static LogCategoryLevels ToCategoryLevel(LogLevel logLevel)
         {
-            return LogGroupMap.GetEquivalentSlow(logLevel);
+            return LogCategoryLevelMap.GetEquivalentSlow(logLevel);
         }
 
         /// <summary>
