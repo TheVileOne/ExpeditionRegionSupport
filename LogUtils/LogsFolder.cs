@@ -7,7 +7,6 @@ using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
 
 namespace LogUtils
@@ -345,7 +344,7 @@ namespace LogUtils
         {
             var logFilesInFolder = GetContainedLogFiles();
 
-            ThreadSafeWorker worker = new ThreadSafeWorker(logFilesInFolder.Select(logFile => logFile.Properties.FileLock));
+            ThreadSafeWorker worker = new ThreadSafeWorker(logFilesInFolder.GetLocks());
 
             worker.DoWork(() =>
             {

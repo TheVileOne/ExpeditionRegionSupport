@@ -18,11 +18,10 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using DataFields = LogUtils.UtilityConsts.DataFields;
-using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
 
 namespace LogUtils.Properties
 {
-    public partial class LogProperties : IEquatable<LogProperties>
+    public partial class LogProperties : IEquatable<LogProperties>, ILockable
     {
         /// <summary>
         /// The latest properties version recognized by LogUtils
@@ -584,6 +583,12 @@ namespace LogUtils.Properties
         public bool ContainsTag(string tag)
         {
             return Tags != null && Tags.Contains(tag);
+        }
+
+        /// <inheritdoc/>
+        public Lock GetLock()
+        {
+            return FileLock;
         }
 
         public FileStatus CreateTempFile(bool copyOnly = false)
