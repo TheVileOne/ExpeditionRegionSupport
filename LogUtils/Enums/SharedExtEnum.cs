@@ -246,7 +246,10 @@ namespace LogUtils.Enums
         /// </summary>
         public new bool Equals(T other)
         {
-            return CompareByHash(this, other) == 0;
+            if (other == null)
+                return false;
+
+            return ExtEnumValueComparer<T>.CompareByHash(this, other) == 0;
         }
 
         //These operator overloads will affect the equality checks used in base ExtEnum comparisons. The hashing being different for LogIDs with multiple paths
@@ -283,14 +286,6 @@ namespace LogUtils.Enums
         public static bool operator >=(SharedExtEnum<T> left, T right)
         {
             return left?.CompareTo(right) >= 0;
-        }
-
-        protected static int CompareByHash(SharedExtEnum<T> left, T right)
-        {
-            int hash = left?.GetHashCode() ?? 0;
-            int hashOther = right?.GetHashCode() ?? 0;
-
-            return hash.CompareTo(hashOther);
         }
 
         /// <summary>

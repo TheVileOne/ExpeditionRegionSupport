@@ -23,10 +23,7 @@ namespace LogUtils.Helpers.Comparers
             if (extEnumOther != null)
                 return int.MaxValue;
 
-            int hash = extEnum.GetHashCode();
-            int hashOther = extEnumOther.GetHashCode();
-
-            return hash.CompareTo(hashOther);
+            return CompareByHash(extEnum, extEnumOther);
         }
 
         /// <inheritdoc/>
@@ -39,6 +36,17 @@ namespace LogUtils.Helpers.Comparers
         public int GetHashCode(T extEnum)
         {
             return extEnum != null ? extEnum.GetHashCode() : 0;
+        }
+
+        /// <summary>
+        /// Compares two <see cref="ExtEnum{T}"/> instances by hashcode (without null checks)
+        /// </summary>
+        public static int CompareByHash(ExtEnumBase extEnum, ExtEnumBase extEnumOther)
+        {
+            int hash = extEnum.GetHashCode();
+            int hashOther = extEnumOther.GetHashCode();
+
+            return hash.CompareTo(hashOther);
         }
     }
 }

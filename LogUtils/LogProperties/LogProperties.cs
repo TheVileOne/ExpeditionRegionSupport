@@ -954,6 +954,9 @@ namespace LogUtils.Properties
 
         internal string[] GetValuesToCompare(CompareOptions compareOptions)
         {
+            if (compareOptions == CompareOptions.None)
+                return [];
+
             compareOptions &= CompareMask;
 
             List<string> compareStrings = new List<string>();

@@ -66,38 +66,42 @@ namespace LogUtils.Helpers.Comparers
             compareFields = properties.GetValuesToCompare(CompareOptions);
             compareFieldsOther = propertiesOther.GetValuesToCompare(CompareOptions);
 
+            //The most common reason this will be empty is when no compare options were specified
+            if (compareFields.Length == 0 || compareFieldsOther.Length == 0)
+            {
+                //There are no common fields to compare between these two instances - compare by hash instead
+                return CompareByHash(properties.ID, propertiesOther.ID);
+            }
+
             int compareValue = -1;
             bool hasAtLeastOneNonEmptyPair = false;
 
-            //Empty arrays, or field data is very unlikely - handle it anyways just in case
-            if (compareFields.Length > 0)
+            //Attempt to find equal strings belonging to both arrays. Any other string comparison values will also be recorded, the results of which
+            //may be sporadic. Comparing more than one CompareOption at a time is not recommended
+            foreach (string idField in compareFields)
             {
-                //Attempt to find equal strings belonging to both arrays. Any other string comparison values will also be recorded, the results of which
-                //may be sporadic. Comparing more than one CompareOption at a time is not recommended
-                foreach (string idField in compareFields)
+                if (idField == string.Empty) continue; //Avoids comparing two empty fields
+
+                foreach (string idFieldOther in compareFieldsOther)
                 {
-                    if (idField == string.Empty) continue; //Avoids comparing two empty fields
-
-                    foreach (string idFieldOther in compareFieldsOther)
+                    if (idFieldOther == string.Empty) //Comparing non-empty field to empty field
                     {
-                        if (idFieldOther == string.Empty) //Comparing non-empty field to empty field
-                        {
-                            compareValue = 1;
-                            continue;
-                        }
-
-                        hasAtLeastOneNonEmptyPair = true;
-                        compareValue = base.Compare(idField, idFieldOther);
-
-                        if (compareValue == 0) goto end;
+                        compareValue = 1;
+                        continue;
                     }
+
+                    hasAtLeastOneNonEmptyPair = true;
+                    compareValue = base.Compare(idField, idFieldOther);
+
+                    if (compareValue == 0) goto end;
                 }
             }
 
-            if (!hasAtLeastOneNonEmptyPair) //Arrays are either empty, or only contain empty strings - consider as equal
-                compareValue = 0;
-            end:
-            return compareValue;
+
+            if (!hasAtLeastOneNonEmptyPair)
+                compareValue = CompareByHash(properties.ID, propertiesOther.ID);
+
+            end: return compareValue;
         }
 
         /// <summary>
