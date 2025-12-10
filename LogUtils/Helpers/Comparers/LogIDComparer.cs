@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace LogUtils.Helpers.Comparers
 {
-    public class LogIDComparer : ExtEnumValueComparer<LogID>, IComparer<LogID>, IEqualityComparer<LogID>
+    public class LogIDComparer : ExtEnumValueComparer<LogID>, IComparer<LogID>, IEqualityComparer<LogID>, IComparer<LogProperties>, IEqualityComparer<LogProperties>
     {
         protected CompareOptions CompareOptions;
 
@@ -31,10 +31,27 @@ namespace LogUtils.Helpers.Comparers
             if (id.Properties == null || idOther.Properties == null)
                 return CompareNullProperties(id, idOther);
 
+            return CompareNormal(id.Properties, idOther.Properties);
+        }
+
+        /// <inheritdoc/>
+        public int Compare(LogProperties properties, LogProperties propertiesOther)
+        {
+            if (properties == null)
+                return propertiesOther != null ? int.MinValue : 0;
+
+            if (propertiesOther == null)
+                return int.MaxValue;
+
+            return CompareNormal(properties, propertiesOther);
+        }
+
+        internal int CompareNormal(LogProperties properties, LogProperties propertiesOther)
+        {
             string[] compareFields, compareFieldsOther;
 
-            compareFields = id.Properties.GetValuesToCompare(CompareOptions);
-            compareFieldsOther = idOther.Properties.GetValuesToCompare(CompareOptions);
+            compareFields = properties.GetValuesToCompare(CompareOptions);
+            compareFieldsOther = propertiesOther.GetValuesToCompare(CompareOptions);
 
             int compareValue = -1;
             bool hasAtLeastOneNonEmptyPair = false;
@@ -71,7 +88,7 @@ namespace LogUtils.Helpers.Comparers
         }
 
         /// <summary>
-        /// Compare <see cref="LogID"/> instances when one, or both instances has a null properties field
+        /// A special comparison case where one, or both <see cref="LogProperties"/> instances is a null value
         /// </summary>
         protected int CompareNullProperties(LogID id, LogID idOther)
         {
@@ -102,6 +119,24 @@ namespace LogUtils.Helpers.Comparers
                     compareValue = base.Compare(value, id.Value);
             }
             return compareValue;
+        }
+
+        /// <inheritdoc/>
+        public bool Equals(LogProperties properties, LogProperties propertiesOther)
+        {
+            if (properties == null)
+                return properties == propertiesOther;
+
+            if (propertiesOther == null)
+                return false;
+
+            return base.Equals(properties.ID, propertiesOther.ID);
+        }
+
+        /// <inheritdoc/>
+        public int GetHashCode(LogProperties obj)
+        {
+            return obj != null ? obj.GetHashCode() : 0;
         }
     }
 }
