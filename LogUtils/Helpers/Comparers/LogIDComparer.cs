@@ -139,15 +139,15 @@ namespace LogUtils.Helpers.Comparers
         }
 
         /// <inheritdoc/>
+        public override bool Equals(LogID id, LogID idOther)
+        {
+            return Compare(id, idOther) == 0;
+        }
+
+        /// <inheritdoc/>
         public bool Equals(LogProperties properties, LogProperties propertiesOther)
         {
-            if (properties == null)
-                return properties == propertiesOther;
-
-            if (propertiesOther == null)
-                return false;
-
-            return base.Equals(properties.ID, propertiesOther.ID);
+            return Compare(properties, propertiesOther) == 0;
         }
 
         /// <inheritdoc/>
