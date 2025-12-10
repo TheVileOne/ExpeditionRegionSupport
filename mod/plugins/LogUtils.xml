@@ -5590,6 +5590,11 @@
         <member name="P:LogUtils.Enums.ConsoleID.IsEnabled">
             <inheritdoc/>
         </member>
+        <member name="T:LogUtils.Enums.FolderPermissions">
+            <summary>
+            Represents permission flags that apply to a folder
+            </summary>
+        </member>
         <member name="T:LogUtils.Enums.IExtEnumBase">
             <summary>
             The non-generic representation of a <see cref="T:LogUtils.Enums.SharedExtEnum`1"/> derived type
@@ -6044,6 +6049,9 @@
             Converts a filename input into a LogUtils supported filename
             </summary>
             <exception cref="T:System.ArgumentNullException">Filename provided is null</exception>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.GetLock">
+            <inheritdoc/>
         </member>
         <member name="F:LogUtils.Enums.LogID.NotUsed">
             <summary>An unregistered <see cref="T:LogUtils.Enums.LogID"/> designed to be used as a throwaway parameter</summary>
@@ -7070,6 +7078,11 @@
         <member name="M:LogUtils.Helpers.Comparers.ExtEnumValueComparer`1.GetHashCode(`0)">
             <inheritdoc/>
         </member>
+        <member name="M:LogUtils.Helpers.Comparers.ExtEnumValueComparer`1.CompareByHash(ExtEnumBase,ExtEnumBase)">
+            <summary>
+            Compares two <see cref="T:ExtEnum`1"/> instances by hashcode (without null checks)
+            </summary>
+        </member>
         <member name="M:LogUtils.Helpers.Comparers.FilenameComparer.Compare(System.String,System.String,System.Boolean)">
             <inheritdoc cref="M:LogUtils.Helpers.Comparers.ComparerBase`1.Compare(`0,`0)"/>
         </member>
@@ -7082,13 +7095,40 @@
         <member name="M:LogUtils.Helpers.Comparers.FilenameComparer.Equals(System.String,System.String)">
             <inheritdoc/>
         </member>
+        <member name="M:LogUtils.Helpers.Comparers.LogIDComparer.#ctor">
+            <summary>
+            Constructs a new <see cref="T:LogUtils.Helpers.Comparers.LogIDComparer"/> instance with default comparison options
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.Comparers.LogIDComparer.#ctor(LogUtils.Properties.CompareOptions)">
+            <inheritdoc cref="M:LogUtils.Helpers.Comparers.LogIDComparer.#ctor(LogUtils.Properties.CompareOptions,System.StringComparison)"/>
+        </member>
+        <member name="M:LogUtils.Helpers.Comparers.LogIDComparer.#ctor(LogUtils.Properties.CompareOptions,System.StringComparison)">
+            <summary>
+            Constructs a new <see cref="T:LogUtils.Helpers.Comparers.LogIDComparer"/> instance
+            </summary>
+            <param name="compareOptions">Options for influencing comparison and equality results. Set as <see cref="F:LogUtils.Properties.CompareOptions.None"/> </param>
+            <param name="stringComparison">Defines the case sensitivity, and culture rules when comparing string values</param>
+        </member>
         <member name="M:LogUtils.Helpers.Comparers.LogIDComparer.Compare(LogUtils.Enums.LogID,LogUtils.Enums.LogID)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Helpers.Comparers.LogIDComparer.Compare(LogUtils.Properties.LogProperties,LogUtils.Properties.LogProperties)">
             <inheritdoc/>
         </member>
         <member name="M:LogUtils.Helpers.Comparers.LogIDComparer.CompareNullProperties(LogUtils.Enums.LogID,LogUtils.Enums.LogID)">
             <summary>
-            Compare <see cref="T:LogUtils.Enums.LogID"/> instances when one, or both instances has a null properties field
+            A special comparison case where one, or both <see cref="T:LogUtils.Properties.LogProperties"/> instances is a null value
             </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.Comparers.LogIDComparer.Equals(LogUtils.Enums.LogID,LogUtils.Enums.LogID)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Helpers.Comparers.LogIDComparer.Equals(LogUtils.Properties.LogProperties,LogUtils.Properties.LogProperties)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Helpers.Comparers.LogIDComparer.GetHashCode(LogUtils.Properties.LogProperties)">
+            <inheritdoc/>
         </member>
         <member name="M:LogUtils.Helpers.Comparers.PathComparer.CompareFilenameAndPath(System.String,System.String,System.Boolean)">
             <summary>
@@ -7897,6 +7937,11 @@
             </summary>
             <returns>The number of removed entries</returns>
         </member>
+        <member name="M:LogUtils.ExtensionMethods.GetLocks(System.Collections.Generic.IEnumerable{LogUtils.ILockable})">
+            <summary>
+            Selects all acquirable lock objects from the enumeration
+            </summary>
+        </member>
         <member name="F:LogUtils.FileExtensionInfo.MIN_LONG_EXTENSION_LENGTH">
             <summary>
             The minimum amount of characters (including the period) to satisfy the long file extension property
@@ -7972,6 +8017,16 @@
         <member name="M:LogUtils.IFlushable.Flush">
             <summary>
             Flushes out the log buffer
+            </summary>
+        </member>
+        <member name="T:LogUtils.ILockable">
+            <summary>
+            A type that provides an acquirable lock object
+            </summary>
+        </member>
+        <member name="M:LogUtils.ILockable.GetLock">
+            <summary>
+            Gets an acquirable lock object
             </summary>
         </member>
         <member name="T:LogUtils.ILogger">
@@ -9023,6 +9078,9 @@
             <summary>
             Initialization processes that run after metadata is initialized
             </summary>
+        </member>
+        <member name="M:LogUtils.Properties.LogProperties.GetLock">
+            <inheritdoc/>
         </member>
         <member name="M:LogUtils.Properties.LogProperties.BeginLogSession">
             <summary>
