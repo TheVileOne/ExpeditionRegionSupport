@@ -9,11 +9,24 @@ namespace LogUtils.Helpers.Comparers
     {
         protected CompareOptions CompareOptions;
 
+        /// <summary>
+        /// Constructs a new <see cref="LogIDComparer"/> instance with default comparison options
+        /// </summary>
+        public LogIDComparer() : this(CompareOptions.None)
+        {
+        }
+
+        /// <inheritdoc cref="LogIDComparer(CompareOptions, StringComparison)"/>
         public LogIDComparer(CompareOptions compareOptions) : this(compareOptions, StringComparison.InvariantCultureIgnoreCase)
         {
         }
 
-        public LogIDComparer(CompareOptions compareOptions, StringComparison comparisonOption) : base(comparisonOption)
+        /// <summary>
+        /// Constructs a new <see cref="LogIDComparer"/> instance
+        /// </summary>
+        /// <param name="compareOptions">Options for influencing comparison and equality results. Set as <see cref="CompareOptions.None"/> </param>
+        /// <param name="stringComparison">Defines the case sensitivity, and culture rules when comparing string values</param>
+        public LogIDComparer(CompareOptions compareOptions, StringComparison stringComparison) : base(stringComparison)
         {
             CompareOptions = compareOptions;
         }
