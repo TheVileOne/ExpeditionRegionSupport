@@ -3,7 +3,6 @@ using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties;
-using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -315,16 +314,16 @@ namespace LogUtils
             return Path.Combine(logPath, preferredFilename.WithExtension());
         }
 
-        internal static bool TryMove(string path)
+        internal static bool TryMove(string newPath)
         {
-            if (!UtilityCore.IsControllingAssembly || !Exists || !DirectoryUtils.ParentExists(path) || PathUtils.ContainsOtherPath(CurrentPath, path))
+            if (!UtilityCore.IsControllingAssembly || !Exists || !DirectoryUtils.ParentExists(newPath) || PathUtils.ContainsOtherPath(CurrentPath, newPath))
                 return false;
             try
             {
                 UtilityLogger.Log("Attempting to move log directory");
                 UtilityLogger.DebugLog("Attempting to move log directory");
                 OnMovePending?.Invoke();
-                Move(path);
+                LogGroup.MoveFolder(GetContainedLogFiles(), CurrentPath, newPath);
 
                 UtilityLogger.Log("Move successful");
                 UtilityLogger.DebugLog("Move successful");
@@ -338,57 +337,6 @@ namespace LogUtils
                 OnMoveAborted?.Invoke();
                 return false;
             }
-        }
-
-        internal static void Move(string path)
-        {
-            var logFilesInFolder = GetContainedLogFiles();
-
-            ThreadSafeWorker worker = new ThreadSafeWorker(logFilesInFolder.GetLocks());
-
-            worker.DoWork(() =>
-            {
-                bool moveCompleted = false;
-
-                List<MessageBuffer> activeBuffers = new List<MessageBuffer>();
-                List<StreamResumer> streamsToResume = new List<StreamResumer>();
-                try
-                {
-                    UtilityCore.RequestHandler.BeginCriticalSection();
-                    foreach (LogID logFile in logFilesInFolder)
-                    {
-                        MessageBuffer writeBuffer = logFile.Properties.WriteBuffer;
-
-                        writeBuffer.SetState(true, BufferContext.CriticalArea);
-                        activeBuffers.Add(writeBuffer);
-
-                        logFile.Properties.FileLock.SetActivity(FileAction.Move); //Lock activated by ThreadSafeWorker
-                        logFile.Properties.NotifyPendingMove(path);
-
-                        //The move operation requires that all persistent file activity be closed until move is complete
-                        streamsToResume.AddRange(logFile.Properties.PersistentStreamHandles.InterruptAll());
-                    }
-                    Directory.Move(CurrentPath, path);
-                    moveCompleted = true;
-
-                    //Update path info for affected log files
-                    foreach (LogID logFile in logFilesInFolder)
-                        logFile.Properties.ChangePath(path);
-                }
-                finally
-                {
-                    if (!moveCompleted)
-                    {
-                        foreach (LogID logFile in logFilesInFolder)
-                            logFile.Properties.NotifyPendingMoveAborted();
-                    }
-
-                    //Reopen the streams
-                    streamsToResume.ResumeAll();
-                    activeBuffers.ForEach(buffer => buffer.SetState(false, BufferContext.CriticalArea));
-                    UtilityCore.RequestHandler.EndCriticalSection();
-                }
-            });
         }
 
         /// <summary>
