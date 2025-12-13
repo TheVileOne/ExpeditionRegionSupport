@@ -8,15 +8,15 @@ namespace LogUtils.Enums
     public partial class LogID
     {
         /// <summary>
-        /// Gets an array of registered <see cref="LogID"/> instances
+        /// Iterates through a collection of registered <see cref="LogID"/> instances
         /// </summary>
         /// <param name="includeGroupIDs">A flag that allows log group identifiers to be included in the results</param>
-        public static LogID[] GetEntries(bool includeGroupIDs = false)
+        public static IEnumerable<LogID> GetEntries(bool includeGroupIDs = false)
         {
             IEnumerable<LogProperties> entries = includeGroupIDs
                 ? LogProperties.PropertyManager.AllProperties
                 : LogProperties.PropertyManager.Properties;
-            return entries.GetIDs().ToArray();
+            return entries.GetIDs();
         }
 
         /// <summary>
