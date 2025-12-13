@@ -96,6 +96,11 @@ namespace LogUtils.Helpers.FileHandling
             return dirIndex;
         }
 
+        public static bool IsSafeToMove(string folderPath)
+        {
+            return RainWorldDirectory.GetDirectoryCategory(folderPath) == PathCategory.ModSourced;
+        }
+
         /// <summary>
         /// Determines if the given path has an existing parent directory
         /// </summary>

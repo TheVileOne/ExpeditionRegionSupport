@@ -1,9 +1,12 @@
 ﻿using LogUtils.Diagnostics;
 using LogUtils.Enums;
 using LogUtils.Helpers.FileHandling;
+using LogUtils.Properties;
 using LogUtils.Threading;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace LogUtils.Helpers
 {
@@ -15,6 +18,64 @@ namespace LogUtils.Helpers
 
         public static void MoveFolder(LogGroupID group, string newPath)
         {
+            UtilityLogger.Log("Attempting to move folder");
+            if (group == null)
+                throw new ArgumentNullException(nameof(group));
+
+            if (PathUtils.IsEmpty(newPath))
+                throw new ArgumentNullException(nameof(newPath), "Path cannot be null, or empty");
+
+            if (PathUtils.IsFilePath(newPath))
+                throw new ArgumentException("Path cannot contain a filename");
+
+            Lock groupLock = group.Properties.GetLock();
+
+            using (groupLock.Acquire())
+            {
+                throwOnValidationFailed(group, FolderPermissions.Move);
+
+                string currentPath = group.Properties.CurrentFolderPath;
+
+                if (PathUtils.PathsAreEqual(currentPath, newPath))
+                {
+                    UtilityLogger.Log("No move necessary");
+                    return;
+                }
+
+                IEnumerable<LogGroupProperties> groupsSharingThisFolder =
+                    LogProperties.PropertyManager.GroupProperties
+                    .WithFolder()
+                    .HasPath(currentPath);
+
+                //If unregistered groups get added to PropertiesManager, this line needs to be removed
+                if (!group.Registered)
+                    groupsSharingThisFolder = groupsSharingThisFolder.Prepend(group.Properties);
+
+                IEnumerable<LogGroupProperties> allOtherGroups =
+                    LogProperties.PropertyManager.GroupProperties
+                    .Except(groupsSharingThisFolder);
+
+                //All known log file entries located within the group path
+                IEnumerable<LogID> containedLogFiles = groupsSharingThisFolder
+                    .SelectMany(group => group.GetFolderMembers()) //Members targeting a folder, or subfolder of the group path
+                    .Union(allOtherGroups
+                           .GetMembers()               //Members belonging to each of the other groups
+                           .Concat(LogID.GetEntries()) //Individual log files (may or may not belong to a group)
+                           .FindAll(p => PathUtils.ContainsOtherPath(currentPath, p.CurrentFolderPath))
+                          );
+
+                ThreadSafeWorker worker = new ThreadSafeWorker(groupsSharingThisFolder.GetLocks());
+
+                worker.DoWork(() =>
+                {
+                    foreach (LogGroupProperties group in groupsSharingThisFolder)
+                    {
+                        //Make sure that all groups that are assigned to this folder allow it to be moved
+                        DemandPermission((LogGroupID)group.ID, FolderPermissions.Move);
+                    }
+                    MoveFolder(containedLogFiles, currentPath, newPath);
+                });
+            }
         }
 
         /// <summary>
@@ -109,6 +170,32 @@ namespace LogUtils.Helpers
                     hasTriedToMoveFolder = true;
                     goto retry;
                 }
+            }
+        }
+
+        private static void throwOnValidationFailed(LogGroupID group, FolderPermissions validationContext)
+        {
+            if (!group.Properties.IsFolderGroup)
+                throw new ArgumentException("Group is not associated with a folder path");
+
+            string groupPath = group.Properties.CurrentFolderPath;
+
+            //The folder might be a game directory
+            if (!DirectoryUtils.IsSafeToMove(groupPath))
+            {
+                string exceptionMessage = null;
+                switch (validationContext)
+                {
+                    case FolderPermissions.Delete:
+                        exceptionMessage = "Unable to delete folder at source path\n" +
+                                           "REASON: Folder path is restricted";
+                        break;
+                    case FolderPermissions.Move:
+                        exceptionMessage = "Unable to move folder at source path\n" +
+                                           "REASON: Folder path is restricted";
+                        break;
+                }
+                throw new IOException(exceptionMessage);
             }
         }
 

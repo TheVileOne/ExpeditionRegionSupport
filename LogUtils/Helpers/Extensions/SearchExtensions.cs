@@ -1,5 +1,6 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Helpers.Comparers;
+using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ namespace LogUtils
 {
     public static partial class ExtensionMethods
     {
+        #region Search methods (LogID/LogProperties)
         /// <summary>
         /// Finds a <see cref="LogID"/> instance with the given metadata in the provided collection
         /// </summary>
@@ -134,6 +136,8 @@ namespace LogUtils
         {
             return entries.Select(entry => entry.Properties);
         }
+        #endregion
+        #region Search methods (LogGroupID/LogGroupProperties)
 
         /// <inheritdoc cref="GetProperties(IEnumerable{LogID})"/>
         public static IEnumerable<LogGroupProperties> GetProperties(this IEnumerable<LogGroupID> entries)
@@ -157,5 +161,21 @@ namespace LogUtils
             return entries.GetMembers()
                           .GetProperties();
         }
+
+        public static IEnumerable<LogGroupProperties> WithFolder(this IEnumerable<LogGroupProperties> entries)
+        {
+            return entries.Where(entry => entry.IsFolderGroup);
+        }
+
+        public static IEnumerable<LogGroupProperties> HasPath(this IEnumerable<LogGroupProperties> entries, string searchPath)
+        {
+            return entries.Where(entry => PathUtils.ContainsOtherPath(searchPath, entry.CurrentFolderPath));
+        }
+
+        public static IEnumerable<LogGroupProperties> HasPathExact(this IEnumerable<LogGroupProperties> entries, string searchPath)
+        {
+            return entries.Where(entry => PathUtils.PathsAreEqual(searchPath, entry.CurrentFolderPath));
+        }
+        #endregion
     }
 }

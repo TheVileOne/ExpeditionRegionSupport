@@ -1,6 +1,8 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Helpers.FileHandling;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using static LogUtils.UtilityConsts;
 
 namespace LogUtils.Properties
@@ -11,6 +13,11 @@ namespace LogUtils.Properties
         /// A set of flags indicating activities that are safe, and permissible to happen to a defined group folder
         /// </summary>
         public FolderPermissions FolderPermissions = FolderPermissions.None;
+
+        /// <summary>
+        /// Indicates whether log group is associated with a folder path
+        /// </summary>
+        public bool IsFolderGroup => !PathUtils.IsEmpty(CurrentFolderPath);
 
         /// <inheritdoc/>
         public override bool IsMetadataOptional => true;
@@ -84,6 +91,18 @@ namespace LogUtils.Properties
                 path = CurrentFolderPath; //The last known path can be extracted from the current path
 
             LastKnownFolderPath = path;
+        }
+
+        /// <summary>
+        /// Searches for all group members that are physically located inside the group folder, or otherwise target it
+        /// </summary>
+        /// <remarks>It is possible for a group member to target a different folder path. The easiest way to encounter this behavior is when a log file is already defined at the time of assignment.</remarks>
+        public IEnumerable<LogID> GetFolderMembers()
+        {
+            if (!IsFolderGroup)
+                throw new InvalidOperationException("Group does not support folder operations");
+
+            return Members.Where(member => PathUtils.ContainsOtherPath(CurrentFolderPath, member.Properties.CurrentFolderPath));
         }
 
         /// <summary>
