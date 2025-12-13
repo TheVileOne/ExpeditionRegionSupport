@@ -74,12 +74,13 @@ namespace LogUtils.Helpers
                     return FileStatus.NoActionRequired;
                 }
 
+                logFile.Properties.WriteBuffer.SetState(true, BufferContext.CriticalArea);
+
                 fileLock.SetActivity(FileAction.Move);
+                logFile.Properties.NotifyPendingMove(newLogPath);
 
                 //The move operation requires that all persistent file activity be closed until move is complete
                 var streamsToResume = logFile.Properties.PersistentStreamHandles.InterruptAll();
-
-                logFile.Properties.WriteBuffer.SetState(true, BufferContext.CriticalArea);
 
                 FileStatus moveResult = Move(logFile.Properties.CurrentFilePath, newLogPath, false);
 
@@ -106,6 +107,7 @@ namespace LogUtils.Helpers
 
                             //We have no choice, but to restore the original filename and path
                             logFile.Properties.ChangePath(lastFilePath);
+                            logFile.Properties.NotifyPendingMoveAborted();
                         }
                     }
                 }
