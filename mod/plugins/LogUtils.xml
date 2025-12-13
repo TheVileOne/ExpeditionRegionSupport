@@ -6095,7 +6095,7 @@
         </member>
         <member name="M:LogUtils.Enums.LogID.GetEntries(System.Boolean)">
             <summary>
-            Gets an array of registered <see cref="T:LogUtils.Enums.LogID"/> instances
+            Iterates through a collection of registered <see cref="T:LogUtils.Enums.LogID"/> instances
             </summary>
             <param name="includeGroupIDs">A flag that allows log group identifiers to be included in the results</param>
         </member>
@@ -7728,6 +7728,16 @@
         <member name="M:LogUtils.Helpers.LogFile.GetPersistentLogFiles">
             <summary>
             Retrieves all file handles for log files with at least one persistent FileStream open (file is currently in use), or temporarily closed
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.LogGroup.MoveFolder(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String,System.String)">
+            <summary>
+            Process for moving a directory containing log files - assumes folder path is valid, and log files are located within the folder
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.LogGroup.MoveFolderExample">
+            <summary>
+            Example showing how API can be used by a mod to move their group folder, or its contents around
             </summary>
         </member>
         <member name="F:LogUtils.Helpers.Paths.RainWorld.ROOT_DIRECTORY">
