@@ -7,6 +7,11 @@ namespace LogUtils.Properties
 {
     public class LogGroupProperties : LogProperties
     {
+        /// <summary>
+        /// A set of flags indicating activities that are safe, and permissible to happen to a defined group folder
+        /// </summary>
+        public FolderPermissions FolderPermissions = FolderPermissions.None;
+
         /// <inheritdoc/>
         public override bool IsMetadataOptional => true;
 
@@ -79,6 +84,14 @@ namespace LogUtils.Properties
                 path = CurrentFolderPath; //The last known path can be extracted from the current path
 
             LastKnownFolderPath = path;
+        }
+
+        /// <summary>
+        /// Verify that group has been given the provided folder permissions
+        /// </summary>
+        public bool VerifyPermissions(FolderPermissions permissions)
+        {
+            return permissions == FolderPermissions.None || (FolderPermissions & permissions) == permissions;
         }
     }
 }

@@ -111,5 +111,27 @@ namespace LogUtils.Helpers
                 }
             }
         }
+
+        internal static void DemandPermission(LogGroupID group, FolderPermissions permission)
+        {
+            bool hasPermission = group.Properties.VerifyPermissions(permission);
+
+            if (!hasPermission)
+            {
+                string action = string.Empty;
+                switch (permission)
+                {
+                    case FolderPermissions.Delete:
+                        action = "delete group folder";
+                        break;
+                    case FolderPermissions.Move:
+                        action = "move group folder";
+                        break;
+                    default:
+                        throw new PermissionDeniedException("Unknown permission error");
+                }
+                throw new PermissionDeniedException($"Permission was not given to {action}.");
+            }
+        }
     }
 }
