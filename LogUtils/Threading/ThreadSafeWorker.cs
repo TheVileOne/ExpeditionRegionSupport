@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 
 namespace LogUtils.Threading
 {
@@ -28,17 +27,16 @@ namespace LogUtils.Threading
 
         public void DoWork(Action work)
         {
-            var locksEnumerable = safeGetLocks();
+            IEnumerable<Lock> locksEnumerable = selectLocks();
             int locksEntered = 0;
 
             bool allLocksEntered = false;
-
             try
             {
                 //Activate all locks before doing any work
-                foreach (object lockObj in locksEnumerable)
+                foreach (Lock lockObj in locksEnumerable)
                 {
-                    AcquireLock(lockObj);
+                    lockObj.Acquire();
                     locksEntered++;
                 }
 
@@ -58,35 +56,49 @@ namespace LogUtils.Threading
                     locksEntered--;
                     locksEnumerator.MoveNext();
 
-                    ReleaseLock(locksEnumerator.Current);
+                    locksEnumerator.Current.Release();
                 }
             }
         }
 
-        internal void AcquireLock(object lockObj)
-        {
-            Lock lockCast = lockObj as Lock;
+        //internal void AcquireLock(object lockObj)
+        //{
+        //    Lock lockCast = lockObj as Lock;
 
-            if (lockCast != null)
-            {
-                lockCast.Acquire();
-                return;
-            }
-            Monitor.Enter(lockObj);
-        }
+        //    if (lockCast != null)
+        //    {
+        //        lockCast.Acquire();
+        //        return;
+        //    }
+        //    Monitor.Enter(lockObj);
+        //}
 
-        internal void ReleaseLock(object lockObj)
-        {
-            Lock lockCast = lockObj as Lock;
+        //internal void ReleaseLock(object lockObj)
+        //{
+        //    Lock lockCast = lockObj as Lock;
 
-            if (lockCast != null)
-            {
-                lockCast.Release();
-                return;
-            }
-            Monitor.Exit(lockObj);
-        }
+        //    if (lockCast != null)
+        //    {
+        //        lockCast.Release();
+        //        return;
+        //    }
+        //    Monitor.Exit(lockObj);
+        //}
 
         private IEnumerable<object> safeGetLocks() => (UseEnumerableWrapper ? _locks.ToArray() : _locks).Where(o => o != null);
+
+        private IEnumerable<Lock> selectLocks()
+        {
+            var locks = safeGetLocks();
+
+            return locks.Select(obj =>
+            {
+                Lock lockCast = obj as Lock;
+
+                if (lockCast != null)
+                    return lockCast;
+                return new AdapterLock(obj);
+            });
+        }
     }
 }

@@ -40,6 +40,8 @@ namespace LogUtils.Threading
 
         private readonly Scope lockScope;
 
+        protected object LockObject;
+
         #region Event Handling
         private static readonly ThreadSafeEvent<Lock, EventID> lockEvent = new ThreadSafeEvent<Lock, EventID>();
 
@@ -75,7 +77,7 @@ namespace LogUtils.Threading
         /// <exception cref="LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
         public Lock()
         {
-            lockScope = new Scope(this);
+            LockObject = lockScope = new Scope(this);
             RaiseEvent(EventID.LockCreated);
         }
 
@@ -105,15 +107,15 @@ namespace LogUtils.Threading
         /// <exception cref="LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
         public Scope Acquire()
         {
-            //Blockless attempt to enter scope
-            bool lockEntered = Monitor.TryEnter(lockScope, 1);
+            //Blockless attempt to enter lock
+            bool lockEntered = Monitor.TryEnter(LockObject, 1);
 
             RaiseEvent(lockEntered ? EventID.LockAcquired : EventID.WaitingToAcquire);
 
             if (!lockEntered)
             {
-                //Block until scope is entered
-                Monitor.Enter(lockScope);
+                //Block until lock is entered
+                Monitor.Enter(LockObject);
                 RaiseEvent(EventID.LockAcquired);
             }
 
@@ -137,13 +139,13 @@ namespace LogUtils.Threading
             if (ActiveCount == 0) return;
 
             ActiveCount--;
-            Monitor.Exit(lockScope);
+            Monitor.Exit(LockObject);
             RaiseEvent(EventID.LockReleased);
         }
 
         internal void BindToRainWorld()
         {
-            //RainWorld._loggingLock = lockScope;
+            //RainWorld._loggingLock = LockObject;
         }
 
         /// <summary>
