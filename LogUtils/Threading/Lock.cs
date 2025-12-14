@@ -40,48 +40,92 @@ namespace LogUtils.Threading
 
         private readonly Scope lockScope;
 
+        #region Event Handling
         private static readonly ThreadSafeEvent<Lock, EventID> lockEvent = new ThreadSafeEvent<Lock, EventID>();
 
+        /// <summary>
+        /// Listens to lock monitoring events, (such as a lock being created, acquired, or released)
+        /// </summary>
         public static event EventHandler<Lock, EventID> OnEvent
         {
             add => lockEvent.Handler += value;
             remove => lockEvent.Handler -= value;
         }
 
+        internal void RaiseEvent(EventID eventID)
+        {
+            try
+            {
+                lockEvent.Raise(this, eventID);
+            }
+            catch (LockInvocationException)
+            {
+                throw;
+            }
+            catch (Exception ex) //Wrap other exceptions into an expected type
+            {
+                throw new LockInvocationException(this, eventID, ex);
+            }
+        }
+        #endregion
+
+        /// <summary>
+        /// Constructs a new <see cref="Lock"/> object
+        /// </summary>
+        /// <exception cref="LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
         public Lock()
         {
             lockScope = new Scope(this);
-            lockEvent.Raise(this, EventID.LockCreated);
+            RaiseEvent(EventID.LockCreated);
         }
 
+        /// <summary>
+        /// Constructs a new <see cref="Lock"/> object
+        /// </summary>
+        /// <param name="context">An object that identifies this instance</param>
+        /// <exception cref="LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
         public Lock(object context) : this()
         {
             _context = context;
         }
 
+        /// <summary>
+        /// Constructs a new <see cref="Lock"/> object
+        /// </summary>
+        /// <param name="contextProvider">A callback that returns a context on demand</param>
+        /// <exception cref="LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
         public Lock(ContextProvider contextProvider) : this()
         {
             _contextProvider = contextProvider;
         }
 
+        /// <summary>
+        /// Acquires a lock on the current thread
+        /// </summary>
+        /// <exception cref="LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
         public Scope Acquire()
         {
             //Blockless attempt to enter scope
             bool lockEntered = Monitor.TryEnter(lockScope, 1);
 
-            lockEvent.Raise(this, lockEntered ? EventID.LockAcquired : EventID.WaitingToAcquire);
+            RaiseEvent(lockEntered ? EventID.LockAcquired : EventID.WaitingToAcquire);
 
             if (!lockEntered)
             {
                 //Block until scope is entered
                 Monitor.Enter(lockScope);
-                lockEvent.Raise(this, EventID.LockAcquired);
+                RaiseEvent(EventID.LockAcquired);
             }
 
             ActiveCount++;
             return lockScope;
         }
 
+        /// <summary>
+        /// Releases a lock monitored on the current thread
+        /// </summary>
+        /// <exception cref="LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
+        /// <exception cref="SynchronizationLockException">"The current thread does not own the lock for the specified object."</exception>
         public void Release()
         {
             if (SuppressNextRelease)
@@ -94,7 +138,7 @@ namespace LogUtils.Threading
 
             ActiveCount--;
             Monitor.Exit(lockScope);
-            lockEvent.Raise(this, EventID.LockReleased);
+            RaiseEvent(EventID.LockReleased);
         }
 
         internal void BindToRainWorld()
@@ -102,6 +146,9 @@ namespace LogUtils.Threading
             //RainWorld._loggingLock = lockScope;
         }
 
+        /// <summary>
+        /// A disposable type that will release a lock on the current thread on dispose
+        /// </summary>
         public sealed class Scope : IDisposable
         {
             private readonly Lock _lock;
@@ -123,6 +170,7 @@ namespace LogUtils.Threading
 
         public enum EventID
         {
+            Unknown,
             LockCreated,
             LockReleased,
             LockAcquired,
@@ -130,7 +178,7 @@ namespace LogUtils.Threading
         }
 
         /// <summary>
-        /// A provided delegate used to provide a context on demand
+        /// A callback used to provide a context on demand
         /// </summary>
         public delegate object ContextProvider();
     }
