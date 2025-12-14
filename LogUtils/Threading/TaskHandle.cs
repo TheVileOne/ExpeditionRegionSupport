@@ -45,8 +45,10 @@ namespace LogUtils.Threading
         protected void RevokeAccess()
         {
             if (accessCount == 0)
+            {
                 UtilityLogger.LogWarning("Abnormal amount of revoke access attempts made");
-
+                return;
+            }
             accessCount--;
         }
 
