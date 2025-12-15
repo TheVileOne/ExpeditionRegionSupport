@@ -16,6 +16,11 @@ namespace LogUtils.Threading
         /// <remarks>May be set to false if underlying enumerable is unlikely to be modified during work</remarks>
         public bool UseEnumerableWrapper = true;
 
+        /// <summary>
+        /// Wait time to retry acquiring the locks (in the case of lock contention) 
+        /// </summary>
+        public TimeSpan RetryInterval = TimeSpan.FromMilliseconds(5);
+
         public ThreadSafeWorker(object lockObject)
         {
             UseEnumerableWrapper = false;
@@ -118,8 +123,7 @@ namespace LogUtils.Threading
                         foreach (Lock lockObj in acquiredLocks)
                             lockObj.Release();
 
-                        //This will be a configurable option in ThreadSafeWorker for the retry lock interval
-                        Thread.Sleep(5);
+                        Thread.Sleep(_worker.RetryInterval);
                     }
                 }
                 Lock.OnEvent -= onLockEvent;
