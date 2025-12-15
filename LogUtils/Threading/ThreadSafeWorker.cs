@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace LogUtils.Threading
 {
@@ -27,78 +29,123 @@ namespace LogUtils.Threading
 
         public void DoWork(Action work)
         {
-            IEnumerable<Lock> locksEnumerable = selectLocks();
-            int locksEntered = 0;
+            LockEnumerator locks = GetEnumerator();
 
-            bool allLocksEntered = false;
+            locks.Acquire();
             try
             {
-                //Activate all locks before doing any work
-                foreach (Lock lockObj in locksEnumerable)
-                {
-                    lockObj.Acquire();
-                    locksEntered++;
-                }
-
-                allLocksEntered = true;
                 work.Invoke();
             }
             finally
             {
-                if (!allLocksEntered)
-                    UtilityLogger.LogWarning("LogUtils was unable to enter all locks. Work was aborted");
-
-                var locksEnumerator = locksEnumerable.GetEnumerator();
-
-                //Release them when work is finished
-                while (locksEntered != 0)
-                {
-                    locksEntered--;
-                    locksEnumerator.MoveNext();
-
-                    locksEnumerator.Current.Release();
-                }
+                locks.Release();
             }
         }
 
-        //internal void AcquireLock(object lockObj)
-        //{
-        //    Lock lockCast = lockObj as Lock;
-
-        //    if (lockCast != null)
-        //    {
-        //        lockCast.Acquire();
-        //        return;
-        //    }
-        //    Monitor.Enter(lockObj);
-        //}
-
-        //internal void ReleaseLock(object lockObj)
-        //{
-        //    Lock lockCast = lockObj as Lock;
-
-        //    if (lockCast != null)
-        //    {
-        //        lockCast.Release();
-        //        return;
-        //    }
-        //    Monitor.Exit(lockObj);
-        //}
-
-        private IEnumerable<object> safeGetLocks() => (UseEnumerableWrapper ? _locks.ToArray() : _locks).Where(o => o != null);
-
-        private IEnumerable<Lock> selectLocks()
+        internal LockEnumerator GetEnumerator()
         {
-            var locks = safeGetLocks();
-
-            return locks.Select(obj =>
-            {
-                Lock lockCast = obj as Lock;
-
-                if (lockCast != null)
-                    return lockCast;
-                return new AdapterLock(obj);
-            });
+            return new LockEnumerator(this, _locks);
         }
+
+        internal readonly struct LockEnumerator : IEnumerator<Lock>
+        {
+            private readonly ThreadSafeWorker _worker;
+            private readonly IEnumerable<Lock> _locks;
+
+            private readonly IEnumerator<Lock> _innerEnumerator;
+
+            public LockEnumerator(ThreadSafeWorker worker, IEnumerable<object> locks)
+            {
+                _worker = worker;
+                _locks = (_worker.UseEnumerableWrapper ? locks.ToArray() : locks)
+                         .Where(obj => obj != null)
+                         .Select(obj =>
+                         {
+                             Lock lockCast = obj as Lock;
+                             return lockCast ?? new AdapterLock(obj);
+
+                         });
+
+                _innerEnumerator = _locks.GetEnumerator();
+            }
+
+            public Lock Current => _innerEnumerator.Current;
+
+            object IEnumerator.Current => Current;
+
+            public void Dispose()
+            {
+                Reset();
+            }
+
+            public bool MoveNext()
+            {
+                return _innerEnumerator.MoveNext();
+            }
+
+            public void Reset()
+            {
+                _innerEnumerator.Reset();
+            }
+
+            /// <summary>
+            /// Acquires all locks stored in the enumerable
+            /// </summary>
+            /// <exception cref="LockInvocationException"></exception>
+            internal readonly void Acquire()
+            {
+                Lock.OnEvent += onLockEvent;
+
+                bool allLocksAcquired = false;
+                while (!allLocksAcquired)
+                {
+                    int locksEntered = 0;
+                    try
+                    {
+                        while (MoveNext())
+                        {
+                            accessedLock = Current;
+                            Current.Acquire();
+                            locksEntered++;
+                        }
+                        allLocksAcquired = true;
+                    }
+                    catch (LockInvocationException) //Lock acquire event was canceled
+                    {
+                        Reset();
+                        IEnumerable<Lock> acquiredLocks = _locks.Take(locksEntered);
+
+                        foreach (Lock lockObj in acquiredLocks)
+                            lockObj.Release();
+
+                        //This will be a configurable option in ThreadSafeWorker for the retry lock interval
+                        Thread.Sleep(5);
+                    }
+                }
+                Lock.OnEvent -= onLockEvent;
+                Reset();
+
+                static void onLockEvent(Lock source, Lock.EventID data)
+                {
+                    if (data != Lock.EventID.WaitingToAcquire)
+                        return;
+
+                    if (source == accessedLock)
+                    {
+                        accessedLock = null; //Clean up thread local state before we abort
+                        throw new LockInvocationException(source, data);
+                    }
+                }
+            }
+
+            internal void Release()
+            {
+                foreach (Lock lockObj in _locks)
+                    lockObj.Release();
+            }
+        }
+
+        [ThreadStatic]
+        private static Lock accessedLock;
     }
 }
