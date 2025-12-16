@@ -5,7 +5,6 @@ using LogUtils.Helpers.FileHandling;
 using LogUtils.Policy;
 using LogUtils.Threading;
 using System;
-using System.IO;
 using System.Linq;
 
 namespace LogUtils

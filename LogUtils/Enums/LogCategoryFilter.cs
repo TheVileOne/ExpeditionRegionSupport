@@ -15,7 +15,7 @@ namespace LogUtils.Enums
     /// </summary>
     public static class LogCategoryFilter
     {
-        
+
         /// <summary>
         /// See <see cref="LogCategoryFilter"/> for class description
         /// </summary>

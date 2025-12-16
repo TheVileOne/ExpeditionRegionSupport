@@ -799,6 +799,7 @@ namespace LogUtils.Properties
         /// </summary>
         public LogProperties Clone(string filename, string path)
         {
+            #pragma warning disable IDE0055 //Fix formatting
             LogProperties properties = new LogProperties(filename, path)
             {
                 Version            = this.Version,
@@ -811,6 +812,7 @@ namespace LogUtils.Properties
                 ShowOutroTimestamp = this.ShowOutroTimestamp,
                 DateTimeFormat     = this.DateTimeFormat,
             };
+            #pragma warning restore IDE0055 //Fix formatting
 
             properties.ConsoleIDs.AddRange(this.ConsoleIDs);
             properties.Rules = this.Rules;

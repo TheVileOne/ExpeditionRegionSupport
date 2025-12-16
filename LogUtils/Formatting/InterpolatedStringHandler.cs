@@ -266,7 +266,7 @@ namespace LogUtils.Formatting
             public readonly string Value = value;
         }
 
-        private readonly struct ArgumentInfo(object argument, int position, [Optional]int range, [Optional]string format)
+        private readonly struct ArgumentInfo(object argument, int position, [Optional] int range, [Optional] string format)
         {
             /// <summary>
             /// An object, or value to be inserted into the builder string

@@ -3315,7 +3315,7 @@ namespace LogUtils
             LogBase(new LogTargetCollection(targets), category, format, true);
         }
         #endregion
-        
+
         #region Log Overloads (string, object[])
 
         /// <inheritdoc cref="LoggerDocs.Standard.Log(string, object[])"/>

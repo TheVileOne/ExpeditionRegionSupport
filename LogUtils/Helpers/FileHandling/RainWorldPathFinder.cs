@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
-using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
-using BepInExPath = LogUtils.Helpers.Paths.BepInEx;
 using System.Linq;
+using BepInExPath = LogUtils.Helpers.Paths.BepInEx;
+using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
 
 namespace LogUtils.Helpers.FileHandling
 {

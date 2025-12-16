@@ -1,10 +1,8 @@
-﻿using BepInEx;
-using BepInEx.Logging;
+﻿using BepInEx.Logging;
 using BepInEx.MultiFolderLoader;
 using Mono.Cecil;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Reflection;
 using AssemblyCandidate = (System.Version Version, string Path);
 

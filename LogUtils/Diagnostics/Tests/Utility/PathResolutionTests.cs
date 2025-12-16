@@ -165,8 +165,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
             string testFolderName = "SomeFolder"; //Value represents any arbitrary directory that does not exist
             string expectedTestFolderPath = Path.Combine(RainWorldPath.RootPath, testFolderName);
 
-            testPath(@"./"  , RainWorldPath.RootPath);
-            testPath(@".\"  , RainWorldPath.RootPath);
+            testPath(@"./", RainWorldPath.RootPath);
+            testPath(@".\", RainWorldPath.RootPath);
             testPath(@"././", RainWorldPath.RootPath);
 
             testPath(@"./" + testFolderName, expectedTestFolderPath);

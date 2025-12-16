@@ -97,7 +97,6 @@ namespace LogUtils.Helpers.Comparers
                 }
             }
 
-
             if (!hasAtLeastOneNonEmptyPair)
                 compareValue = CompareByHash(properties.ID, propertiesOther.ID);
 

@@ -64,7 +64,7 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <summary>
-        /// Checks the second path is contained with the first path
+        /// Checks the second path is contained by the first path
         /// </summary>
         public static bool ContainsOtherPath(string path, string pathOther)
         {

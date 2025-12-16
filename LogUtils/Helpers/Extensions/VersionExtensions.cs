@@ -45,7 +45,7 @@ namespace LogUtils
                 };
             }
             throw new NotSupportedException();
-        }   
+        }
     }
     public enum VersionCode
     {

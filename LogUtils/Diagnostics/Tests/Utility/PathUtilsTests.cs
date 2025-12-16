@@ -31,7 +31,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             //Two partial paths
             testFindCommonRoot("one", "two", RainWorldPath.StreamingAssetsPath);
-            
+
             //Two partial paths - subfolder matches other path 
             testFindCommonRoot("one/two", "two", RainWorldPath.StreamingAssetsPath);
 

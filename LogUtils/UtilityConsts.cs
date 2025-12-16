@@ -19,7 +19,7 @@ namespace LogUtils
             public const string LOGID = "logid";
             public const string FILENAME = "filename";
             public const string ALTFILENAME = "altfilename";
-            public const string CONSOLEIDS = "consoletargets"; 
+            public const string CONSOLEIDS = "consoletargets";
             public const string TAGS = "tags";
             public const string VERSION = "version";
             public const string PATH = "path";

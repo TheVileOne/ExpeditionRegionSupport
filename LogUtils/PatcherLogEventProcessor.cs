@@ -87,7 +87,7 @@ namespace LogUtils
             /// <inheritdoc/>
             /// <value>Always returns false</value>
             public override bool AllowRemoteLogging => false;
-            
+
             /// <inheritdocs/>
             public EventLogger() : base(LogID.Patcher)
             {

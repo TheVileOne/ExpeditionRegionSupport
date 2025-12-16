@@ -71,7 +71,6 @@ public static class RecycleBin
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
     private struct SHFILEOPSTRUCT
     {
-
         public IntPtr hwnd;
         [MarshalAs(UnmanagedType.U4)]
         public FileOperationType wFunc;

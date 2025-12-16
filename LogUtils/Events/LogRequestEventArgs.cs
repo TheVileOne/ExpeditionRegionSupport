@@ -100,7 +100,7 @@ namespace LogUtils.Events
         /// <summary>
         /// Returns targeted message object as an <see cref="IFormattable"/>
         /// </summary>
-        public IFormattable FormattableMessage => MessageObject as IFormattable; 
+        public IFormattable FormattableMessage => MessageObject as IFormattable;
 
         /// <summary>
         /// The color to be used by default for a message

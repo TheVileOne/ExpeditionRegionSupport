@@ -65,14 +65,14 @@ namespace LogUtils.Timers
         /// </summary>
         /// <param name="action">The delegate to invoke</param>
         /// <param name="frameInterval">The number of frames in between event invocations</param>
-        /// <param name="syncToRainWorld">When true, event will be handled in MainLoopProcess.Update instead of through EventSceduler.Update</param>
+        /// <param name="syncToRainWorld">When true, event will be handled in MainLoopProcess.Update instead of through EventScheduler.Update</param>
         /// <param name="invokeLimit">The maximum number of invocations to attempt</param>
         /// <returns>An object containing the event state</returns>
         /// <exception cref="ArgumentOutOfRangeException">The frame interval is an invalid value</exception>
         public ScheduledEvent Schedule(Action action, int frameInterval, bool syncToRainWorld, int invokeLimit = -1)
         {
             if (frameInterval < 0)
-                throw new ArgumentOutOfRangeException(nameof(frameInterval),  "Value must be greater than zero");
+                throw new ArgumentOutOfRangeException(nameof(frameInterval), "Value must be greater than zero");
 
             ScheduledEvent pendingEvent = new ScheduledEvent(action, frameInterval, syncToRainWorld, invokeLimit);
 

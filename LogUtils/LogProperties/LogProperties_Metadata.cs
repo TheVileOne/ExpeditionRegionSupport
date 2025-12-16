@@ -456,7 +456,7 @@ namespace LogUtils.Properties
 
         public MetadataPathResult PopulateMissingPathValues()
         {
-            bool hasPath =  !PathUtils.IsEmpty(Path);
+            bool hasPath = !PathUtils.IsEmpty(Path);
             bool hasOriginalPath = !PathUtils.IsEmpty(OriginalPath);
 
             if (hasPath)

@@ -1,8 +1,8 @@
 ﻿using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.FileHandling;
+using System;
 using System.IO;
 using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
-using System;
 
 namespace LogUtils
 {

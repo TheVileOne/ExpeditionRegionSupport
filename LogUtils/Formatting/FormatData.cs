@@ -1,5 +1,4 @@
 ﻿using LogUtils.Console;
-using LogUtils.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;

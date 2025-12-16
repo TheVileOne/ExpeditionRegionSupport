@@ -1,7 +1,6 @@
 ﻿using LogUtils.Diagnostics.Tests.Components;
 using LogUtils.Enums;
 using LogUtils.Helpers.Comparers;
-using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties;
 using System.Collections.Generic;
 using System.IO;

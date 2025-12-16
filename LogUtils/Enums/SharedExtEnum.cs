@@ -41,7 +41,6 @@ namespace LogUtils.Enums
             }
         }
 
-
         /// <inheritdoc/>
         public string Value
         {
