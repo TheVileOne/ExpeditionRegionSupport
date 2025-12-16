@@ -122,15 +122,11 @@ namespace LogUtils.Helpers.FileHandling
             /// </summary>
             public DirectoryTreeNode FindChild(string childDirName)
             {
-                UtilityLogger.DebugLog("Finding child");
-                UtilityLogger.DebugLog(childDirName);
                 return Children.Find(child => ComparerUtils.StringComparerIgnoreCase.Equals(child.DirName, childDirName));
             }
 
             internal DirectoryTreeNode FindMostRelativeNode(string path)
             {
-                UtilityLogger.DebugLog("Finding most relevant node");
-                UtilityLogger.DebugLog(path);
                 int dirIndex = path.IndexOf(Path.DirectorySeparatorChar);
 
                 if (dirIndex == -1)
@@ -142,7 +138,6 @@ namespace LogUtils.Helpers.FileHandling
 
                 if (child != null)
                 {
-                    UtilityLogger.DebugLog("Child found");
                     if (dirIndex < path.Length)
                     {
                         path = path.Substring(dirIndex + 1); //Add one to account for separator
