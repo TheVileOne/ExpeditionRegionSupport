@@ -18,6 +18,8 @@ namespace LogUtils.Helpers
 
         public static void MoveFolder(LogGroupID group, string newPath)
         {
+            //TODO: This code is not fully thread safe. It is vulnerable to new files being added to the group folder after entries are processed.
+            //It is also vulnerable to the paths being retargeted before locks have been applied.
             UtilityLogger.Log("Attempting to move folder");
             if (group == null)
                 throw new ArgumentNullException(nameof(group));
@@ -51,6 +53,9 @@ namespace LogUtils.Helpers
                 if (!group.Registered)
                     groupsSharingThisFolder = groupsSharingThisFolder.Prepend(group.Properties);
 
+                //Collect the results. It will avoid having unnecessary executions
+                groupsSharingThisFolder = groupsSharingThisFolder.ToArray();
+
                 IEnumerable<LogGroupProperties> allOtherGroups =
                     LogProperties.PropertyManager.GroupProperties
                     .Except(groupsSharingThisFolder);
@@ -73,7 +78,7 @@ namespace LogUtils.Helpers
                         //Make sure that all groups that are assigned to this folder allow it to be moved
                         DemandPermission((LogGroupID)group.ID, FolderPermissions.Move);
                     }
-                    MoveFolder(containedLogFiles, currentPath, newPath);
+                    MoveFolder(containedLogFiles.ToArray(), currentPath, newPath);
                 });
             }
         }
