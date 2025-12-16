@@ -398,7 +398,14 @@ namespace LogUtils.Enums
                 return;
 
             if (registered)
+            {
+                //This addresses a quirk with how properties are handled when reading from file. They are added to the properties collection despite it being too early
+                //to properly establish a registration state.
+                if (Properties.InitializedFromFile && LogProperties.PropertyManager.Exists(Properties))
+                    return;
+
                 LogProperties.PropertyManager.SetProperties(Properties);
+            }
             else
                 LogProperties.PropertyManager.RemoveProperties(Properties);
         }

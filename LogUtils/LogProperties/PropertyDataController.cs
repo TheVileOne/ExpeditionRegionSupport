@@ -339,6 +339,7 @@ namespace LogUtils.Properties
 
                 properties.UpdateWriteHash();
                 properties.ReadOnly = true;
+                properties.InitializedFromFile = true;
 
                 entries.Add(properties);
             }
@@ -384,6 +385,7 @@ namespace LogUtils.Properties
 
                 properties.UpdateWriteHash();
                 properties.ReadOnly = true;
+                properties.InitializedFromFile = true;
 
                 entries.Add(properties);
             }

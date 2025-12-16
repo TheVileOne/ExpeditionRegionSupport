@@ -134,6 +134,11 @@ namespace LogUtils.Properties
         internal bool InitializationInProgress;
 
         /// <summary>
+        /// Indicates that properties once originated from the properties file
+        /// </summary>
+        internal bool InitializedFromFile;
+
+        /// <summary>
         /// Indicates that the startup routine for this log file should not be run
         /// </summary>
         internal bool SkipStartupRoutine;
