@@ -4254,6 +4254,11 @@
             These tests check that the Logger API translate user input into the correct logging overload
             </summary>
         </member>
+        <member name="M:LogUtils.Diagnostics.Tests.Utility.StressTests.TestThreadSafeWorker">
+            <summary>
+            Shows that <see cref="T:LogUtils.Threading.ThreadSafeWorker"/> can lock an arbitrary number of locks without being at risk of causing a deadlock
+            </summary>
+        </member>
         <member name="F:LogUtils.Diagnostics.Tools.LogProfiler.AverageLogRate">
             <summary>
             The average window of time in between write requests
@@ -7478,7 +7483,7 @@
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.ContainsOtherPath(System.String,System.String)">
             <summary>
-            Checks the second path is contained with the first path
+            Checks the second path is contained by the first path
             </summary>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.FindCommonRoot(System.String,System.String)">
@@ -8857,6 +8862,16 @@
         <member name="M:LogUtils.Properties.Formatting.LogTimestampRule.GetPriority">
             <inheritdoc/>
         </member>
+        <member name="F:LogUtils.Properties.LogGroupProperties.FolderPermissions">
+            <summary>
+            A set of flags indicating activities that are safe, and permissible to happen to a defined group folder
+            </summary>
+        </member>
+        <member name="P:LogUtils.Properties.LogGroupProperties.IsFolderGroup">
+            <summary>
+            Indicates whether log group is associated with a folder path
+            </summary>
+        </member>
         <member name="P:LogUtils.Properties.LogGroupProperties.IsMetadataOptional">
             <inheritdoc/>
         </member>
@@ -8885,6 +8900,17 @@
         </member>
         <member name="M:LogUtils.Properties.LogGroupProperties.ChangePath(System.String)">
             <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Properties.LogGroupProperties.GetFolderMembers">
+            <summary>
+            Searches for all group members that are physically located inside the group folder, or otherwise target it
+            </summary>
+            <remarks>It is possible for a group member to target a different folder path. The easiest way to encounter this behavior is when a log file is already defined at the time of assignment.</remarks>
+        </member>
+        <member name="M:LogUtils.Properties.LogGroupProperties.VerifyPermissions(LogUtils.Enums.FolderPermissions)">
+            <summary>
+            Verify that group has been given the provided folder permissions
+            </summary>
         </member>
         <member name="F:LogUtils.Properties.LogProperties.LatestVersion">
             <summary>
@@ -8950,6 +8976,11 @@
         <member name="P:LogUtils.Properties.LogProperties.IsNewInstance">
             <summary>
             A flag that indicates that a low amount of frames (less than or equal to 10) have passed since instance was created
+            </summary>
+        </member>
+        <member name="F:LogUtils.Properties.LogProperties.InitializedFromFile">
+            <summary>
+            Indicates that properties once originated from the properties file
             </summary>
         </member>
         <member name="F:LogUtils.Properties.LogProperties.SkipStartupRoutine">
@@ -9757,6 +9788,18 @@
         </member>
         <member name="M:LogUtils.PatcherLogEventProcessor.EventLogger.#ctor">
             <inheritdocs/>
+        </member>
+        <member name="T:LogUtils.PermissionDeniedException">
+            <summary>
+            An exception type used when insufficient permission conditions are present
+            </summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:LogUtils.PermissionDeniedException.#ctor(System.String)">
+            <summary>
+            An exception type used when insufficient permission conditions are present
+            </summary>
+            <param name="message">The message that describes the error.</param>
         </member>
         <member name="P:LogUtils.PersistenceManager.Tag">
             <inheritdoc/>
@@ -10642,6 +10685,37 @@
             Interface provides a safe boundary with and a compatible interface for a LogUtils logger instance
             </summary>
         </member>
+        <member name="T:LogUtils.Threading.AdapterLock">
+            <summary>
+            A lock type that acts as a wrapper around a provided lock object
+            </summary>
+        </member>
+        <member name="M:LogUtils.Threading.AdapterLock.#ctor(System.Object)">
+            <summary>
+            Constructs a new <see cref="T:LogUtils.Threading.AdapterLock"/> object
+            </summary>
+            <param name="lockObject">An object that will be used for locking</param>
+            <exception cref="T:System.ArgumentNullException">Lock object is a null value.</exception>
+            <exception cref="T:LogUtils.Threading.LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
+        </member>
+        <member name="M:LogUtils.Threading.AdapterLock.#ctor(System.Object,System.Object)">
+            <summary>
+            Constructs a new <see cref="T:LogUtils.Threading.AdapterLock"/> object
+            </summary>
+            <param name="lockObject">An object that will be used for locking</param>
+            <param name="context">An object that identifies this instance</param>
+            <exception cref="T:System.ArgumentNullException">Lock object is a null value.</exception>
+            <exception cref="T:LogUtils.Threading.LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
+        </member>
+        <member name="M:LogUtils.Threading.AdapterLock.#ctor(System.Object,LogUtils.Threading.Lock.ContextProvider)">
+            <summary>
+            Constructs a new <see cref="T:LogUtils.Threading.AdapterLock"/> object
+            </summary>
+            <param name="lockObject">An object that will be used for locking</param>
+            <param name="contextProvider">A callback that returns a context on demand</param>
+            <exception cref="T:System.ArgumentNullException">Lock object is a null value.</exception>
+            <exception cref="T:LogUtils.Threading.LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
+        </member>
         <member name="P:LogUtils.Threading.FileLock.FileContext">
             <summary>
             The associated log file context
@@ -10675,6 +10749,49 @@
             Suppresses the next Release attempt made on this lock 
             </summary>
         </member>
+        <member name="E:LogUtils.Threading.Lock.OnEvent">
+            <summary>
+            Listens to lock monitoring events, (such as a lock being created, acquired, or released)
+            </summary>
+        </member>
+        <member name="M:LogUtils.Threading.Lock.#ctor">
+            <summary>
+            Constructs a new <see cref="T:LogUtils.Threading.Lock"/> object
+            </summary>
+            <exception cref="T:LogUtils.Threading.LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
+        </member>
+        <member name="M:LogUtils.Threading.Lock.#ctor(System.Object)">
+            <summary>
+            Constructs a new <see cref="T:LogUtils.Threading.Lock"/> object
+            </summary>
+            <param name="context">An object that identifies this instance</param>
+            <exception cref="T:LogUtils.Threading.LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
+        </member>
+        <member name="M:LogUtils.Threading.Lock.#ctor(LogUtils.Threading.Lock.ContextProvider)">
+            <summary>
+            Constructs a new <see cref="T:LogUtils.Threading.Lock"/> object
+            </summary>
+            <param name="contextProvider">A callback that returns a context on demand</param>
+            <exception cref="T:LogUtils.Threading.LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
+        </member>
+        <member name="M:LogUtils.Threading.Lock.Acquire">
+            <summary>
+            Acquires a lock on the current thread
+            </summary>
+            <exception cref="T:LogUtils.Threading.LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
+        </member>
+        <member name="M:LogUtils.Threading.Lock.Release">
+            <summary>
+            Releases a lock monitored on the current thread
+            </summary>
+            <exception cref="T:LogUtils.Threading.LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
+            <exception cref="T:System.Threading.SynchronizationLockException">"The current thread does not own the lock for the specified object."</exception>
+        </member>
+        <member name="T:LogUtils.Threading.Lock.Scope">
+            <summary>
+            A disposable type that will release a lock on the current thread on dispose
+            </summary>
+        </member>
         <member name="M:LogUtils.Threading.Lock.Scope.Dispose">
             <summary>
             Releases a lock acquired by the calling thread
@@ -10683,7 +10800,12 @@
         </member>
         <member name="T:LogUtils.Threading.Lock.ContextProvider">
             <summary>
-            A provided delegate used to provide a context on demand
+            A callback used to provide a context on demand
+            </summary>
+        </member>
+        <member name="T:LogUtils.Threading.LockInvocationException">
+            <summary>
+            An <see cref="T:System.Exception"/> type that is thrown when an exception is captured from a lock monitoring event
             </summary>
         </member>
         <member name="P:LogUtils.Threading.LogTasker.ThreadID">
@@ -10863,6 +10985,17 @@
             </summary>
             <remarks>May be set to false if underlying enumerable is unlikely to be modified during work</remarks>
         </member>
+        <member name="F:LogUtils.Threading.ThreadSafeWorker.RetryInterval">
+            <summary>
+            Wait time to retry acquiring the locks (in the case of lock contention) 
+            </summary>
+        </member>
+        <member name="M:LogUtils.Threading.ThreadSafeWorker.LockEnumerator.Acquire">
+            <summary>
+            Acquires all locks stored in the enumerable
+            </summary>
+            <exception cref="T:LogUtils.Threading.LockInvocationException"></exception>
+        </member>
         <member name="F:LogUtils.TimedLogWriter.WriteTask">
             <summary>
             This task handles writing to file, on a fixed interval off the main thread
@@ -10951,7 +11084,7 @@
             </summary>
             <param name="action">The delegate to invoke</param>
             <param name="frameInterval">The number of frames in between event invocations</param>
-            <param name="syncToRainWorld">When true, event will be handled in MainLoopProcess.Update instead of through EventSceduler.Update</param>
+            <param name="syncToRainWorld">When true, event will be handled in MainLoopProcess.Update instead of through EventScheduler.Update</param>
             <param name="invokeLimit">The maximum number of invocations to attempt</param>
             <returns>An object containing the event state</returns>
             <exception cref="T:System.ArgumentOutOfRangeException">The frame interval is an invalid value</exception>
