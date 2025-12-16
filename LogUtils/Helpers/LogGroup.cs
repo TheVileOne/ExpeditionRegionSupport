@@ -118,8 +118,20 @@ namespace LogUtils.Helpers
                     //Update path info for affected log files
                     foreach (LogID logFile in logFilesInFolder)
                     {
-                        //TODO: This is wrong and doesn't account for subfolders
-                        logFile.Properties.ChangePath(newPath);
+                        string currentFolderPath = logFile.Properties.CurrentFolderPath;
+
+                        bool isTopLevel = currentFolderPath.Length == currentPath.Length;
+                        if (isTopLevel)
+                        {
+                            //Top-level files can directly be assigned the new path (most common case)
+                            logFile.Properties.ChangePath(newPath);
+                        }
+                        else
+                        {
+                            //Take the subfolder part of the path and assign it a new root
+                            string subFolderPath = currentFolderPath.Substring(0, currentPath.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                            logFile.Properties.ChangePath(Path.Combine(newPath, subFolderPath));
+                        }
                     }
                 }
                 finally
