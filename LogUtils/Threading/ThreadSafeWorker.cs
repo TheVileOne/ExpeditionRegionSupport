@@ -49,55 +49,56 @@ namespace LogUtils.Threading
 
         internal LockEnumerator GetEnumerator()
         {
-            return new LockEnumerator(this, _locks);
+            return new LockEnumerator(this, UseEnumerableWrapper ? _locks.ToArray() : _locks);
         }
 
-        internal readonly struct LockEnumerator : IEnumerator<Lock>
+        internal struct LockEnumerator : IEnumerator<Lock>
         {
             private readonly ThreadSafeWorker _worker;
-            private readonly IEnumerable<Lock> _locks;
+            private readonly SortedSet<Lock> _locks;
 
-            private readonly IEnumerator<Lock> _innerEnumerator;
+            private IEnumerator<Lock> _innerEnumerator;
 
             public LockEnumerator(ThreadSafeWorker worker, IEnumerable<object> locks)
             {
                 _worker = worker;
-                _locks = (_worker.UseEnumerableWrapper ? locks.ToArray() : locks)
-                         .Where(obj => obj != null)
-                         .Select(obj =>
-                         {
-                             Lock lockCast = obj as Lock;
-                             return lockCast ?? new AdapterLock(obj);
-
-                         });
+                _locks =
+                [
+                    .. locks.Where(obj => obj != null)
+                            .Select(obj =>
+                            {
+                                Lock lockCast = obj as Lock;
+                                return lockCast ?? new AdapterLock(obj);
+                            }),
+                ];
 
                 _innerEnumerator = _locks.GetEnumerator();
             }
 
-            public Lock Current => _innerEnumerator.Current;
+            public readonly Lock Current => _innerEnumerator.Current;
 
-            object IEnumerator.Current => Current;
+            readonly object IEnumerator.Current => Current;
 
             public void Dispose()
             {
                 Reset();
             }
 
-            public bool MoveNext()
+            public readonly bool MoveNext()
             {
                 return _innerEnumerator.MoveNext();
             }
 
             public void Reset()
             {
-                _innerEnumerator.Reset();
+                _innerEnumerator = _locks.GetEnumerator();
             }
 
             /// <summary>
             /// Acquires all locks stored in the enumerable
             /// </summary>
             /// <exception cref="LockInvocationException"></exception>
-            internal readonly void Acquire()
+            internal void Acquire()
             {
                 Lock.OnEvent += onLockEvent;
 
@@ -111,13 +112,23 @@ namespace LogUtils.Threading
                         {
                             accessedLock = Current;
                             Current.Acquire();
+
+                            accessedLock = null;
                             locksEntered++;
                         }
                         allLocksAcquired = true;
                     }
                     catch (LockInvocationException) //Lock acquire event was canceled
                     {
-                        Reset();
+                        //UtilityLogger.DebugLog($"Aborting with {locksEntered} processed");
+                        try
+                        {
+                            Reset();
+                        }
+                        catch (Exception ex)
+                        {
+                            UtilityLogger.DebugLog(ex);
+                        }
                         IEnumerable<Lock> acquiredLocks = _locks.Take(locksEntered);
 
                         foreach (Lock lockObj in acquiredLocks)
@@ -134,6 +145,7 @@ namespace LogUtils.Threading
                     if (data != Lock.EventID.WaitingToAcquire)
                         return;
 
+                    //UtilityLogger.DebugLog("Waiting for access");
                     if (source == accessedLock)
                     {
                         accessedLock = null; //Clean up thread local state before we abort
@@ -142,7 +154,7 @@ namespace LogUtils.Threading
                 }
             }
 
-            internal void Release()
+            internal readonly void Release()
             {
                 foreach (Lock lockObj in _locks)
                     lockObj.Release();

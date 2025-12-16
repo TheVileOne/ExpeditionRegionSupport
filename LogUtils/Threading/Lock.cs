@@ -7,15 +7,12 @@ namespace LogUtils.Threading
     /// <summary>
     /// A wrapper class for a locked object implementation. API exposes a lockable Scope designed to work with with 'using' keyword, does not work well with 'lock'
     /// </summary>
-    public class Lock
+    public class Lock : IComparable<Lock>
     {
         /// <summary>
         /// The number of acquired locks yet to be released
         /// </summary>
         public int ActiveCount;
-
-        private object _context;
-        private ContextProvider _contextProvider;
 
         /// <summary>
         /// Information assigned to identify the lock instance
@@ -38,6 +35,11 @@ namespace LogUtils.Threading
         /// </summary>
         public bool SuppressNextRelease;
 
+        private static int _nextID;
+        private object _context;
+        private readonly ContextProvider _contextProvider;
+
+        private readonly int _lockID;
         private readonly Scope lockScope;
 
         protected object LockObject;
@@ -77,6 +79,8 @@ namespace LogUtils.Threading
         /// <exception cref="LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
         public Lock()
         {
+            _lockID = Interlocked.Increment(ref _nextID);
+
             LockObject = lockScope = new Scope(this);
             RaiseEvent(EventID.LockCreated);
         }
@@ -146,6 +150,13 @@ namespace LogUtils.Threading
         internal void BindToRainWorld()
         {
             //RainWorld._loggingLock = LockObject;
+        }
+
+        int IComparable<Lock>.CompareTo(Lock other)
+        {
+            if (other == null)
+                return int.MaxValue;
+            return _lockID.CompareTo(other._lockID);
         }
 
         /// <summary>

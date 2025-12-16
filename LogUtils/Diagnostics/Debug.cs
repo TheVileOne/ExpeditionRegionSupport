@@ -48,6 +48,7 @@ namespace LogUtils.Diagnostics
             //StressTests.TestLoggerDisposal();
             //StressTests.LogEveryFrame(LogID.Unity, messageFrequency: 1, logUntilThisFrame: 100000, messagesPerFrame: 100);
             //TestLogsFolder();
+            //StressTests.TestThreadSafeWorker();
         }
 
         /// <summary>

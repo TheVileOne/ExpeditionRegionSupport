@@ -1,8 +1,11 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Threading;
 using LogUtils.Timers;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading.Tasks;
+using System.Threading;
+using DotNetTask = System.Threading.Tasks.Task;
 
 namespace LogUtils.Diagnostics.Tests.Utility
 {
@@ -68,7 +71,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             loggers = null;
         }
 
-        public static async Task TestMultithreadedLogging()
+        public static async DotNetTask TestMultithreadedLogging()
         {
             const int MESSAGE_COUNT = 250;
 
@@ -87,7 +90,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             }
         }
 
-        internal static async Task TestMultithreadedLogging(LogID target, LoggingMode mode, int messageCount)
+        internal static async DotNetTask TestMultithreadedLogging(LogID target, LoggingMode mode, int messageCount)
         {
             //TODO: This needs to be changed into an async implementation. Currently the logger ends up disposing before all requests are processed.
             //For context, log requests run from other threads may end up triggering a recursion flag on submission, pushing the request to be logged on the next frame.
@@ -96,17 +99,94 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             logger.LogDebug($"Logging mode {mode}");
             logger.LogDebug($"Logging {messageCount} messages");
-            Task[] tasks = new Task[messageCount];
+            DotNetTask[] tasks = new DotNetTask[messageCount];
 
             //Schedule a lot of scheduled log requests to ensure messages log properly to file in a multithreaded environment
             for (int i = 0; i < messageCount; i++)
             {
                 int tIndex = i;
-                tasks[tIndex] = Task.Run(() => logger.LogDebug($"Log #[{tIndex}]"));
+                tasks[tIndex] = DotNetTask.Run(() => logger.LogDebug($"Log #[{tIndex}]"));
             }
-            await Task.WhenAll(tasks);
+            await DotNetTask.WhenAll(tasks);
             logger.LogDebug("TEST COMPLETE");
             logger.Dispose();
+        }
+
+        /// <summary>
+        /// Shows that <see cref="ThreadSafeWorker"/> can lock an arbitrary number of locks without being at risk of causing a deadlock
+        /// </summary>
+        internal static void TestThreadSafeWorker()
+        {
+            const int THREAD_COUNT = 4;
+            const int LOCK_COUNT = 10;
+            const int MAX_EXECUTIONS = 200; //Not expected to reach this
+            const int MAX_EXECUTION_TIME = 10; //seconds
+            const int WORK_DURATION = 15; //milliseconds
+
+            List<object> locks = createLocks(LOCK_COUNT);
+
+            int threadCount = 0;
+            Action captureLocks = new Action(() =>
+            {
+                int threadID = Interlocked.Increment(ref threadCount);
+
+                //Make sure that each thread is capturing the locks in a different order
+                locks.Shuffle();
+
+                //Order is preserved by storing in a local variable
+                object[] _locks = locks.ToArray();
+
+                ThreadSafeWorker worker = new ThreadSafeWorker(_locks)
+                {
+                    UseEnumerableWrapper = false
+                };
+
+                int executionCount = 0;
+                Stopwatch timer = new Stopwatch();
+
+                long lastTimeElapsed = 0;
+                //Loop until a specific number of executions complete, or timeout is reached
+                Action doNothing = new Action(() => { Thread.Sleep(WORK_DURATION); });
+                while (true)
+                {
+                    try
+                    {
+                        timer.Start();
+                        worker.DoWork(doNothing);
+                        timer.Stop();
+
+                        long timeElapsed = timer.ElapsedMilliseconds - lastTimeElapsed;
+                        lastTimeElapsed = timer.ElapsedMilliseconds;
+                        executionCount++;
+                        UtilityLogger.DebugLog($"Task Result: THREAD: {threadID} TIME TAKEN: {timeElapsed} ms");
+                    }
+                    catch (Exception ex)
+                    {
+                        UtilityLogger.DebugLog(ex);
+                    }
+
+                    if (executionCount == MAX_EXECUTIONS || timer.Elapsed >= TimeSpan.FromSeconds(MAX_EXECUTION_TIME))
+                    {
+                        UtilityLogger.DebugLog($"Task running on thread {threadID} finished after {timer.ElapsedMilliseconds / 1000} seconds.");
+                        break;
+                    }
+                }
+
+                if (executionCount != MAX_EXECUTIONS)
+                    UtilityLogger.DebugLog($"Task thread failed to reach maximum executions. TOTAL EXECUTIONS: {executionCount}");
+            });
+
+            //Capture locks on background threads to test potential deadlock conditions
+            for (int i = 0; i < THREAD_COUNT; i++)
+                DotNetTask.Run(captureLocks);
+
+            static List<object> createLocks(int locksWanted)
+            {
+                List<object> objects = new List<object>(locksWanted);
+                while (locksWanted > objects.Count)
+                    objects.Add(new object());
+                return objects;
+            }
         }
     }
 }
