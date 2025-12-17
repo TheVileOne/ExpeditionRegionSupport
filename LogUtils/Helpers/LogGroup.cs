@@ -12,6 +12,28 @@ namespace LogUtils.Helpers
 {
     public static class LogGroup
     {
+        internal static void ChangePath(IEnumerable<LogID> logFilesInFolder, string currentPath, string newPath)
+        {
+            //Update path info for affected log files
+            foreach (LogID logFile in logFilesInFolder)
+            {
+                string currentFolderPath = logFile.Properties.CurrentFolderPath;
+
+                bool isTopLevel = currentFolderPath.Length == currentPath.Length;
+                if (isTopLevel)
+                {
+                    //Top-level files can directly be assigned the new path (most common case)
+                    logFile.Properties.ChangePath(newPath);
+                }
+                else
+                {
+                    //Take the subfolder part of the path and assign it a new root
+                    string subFolderPath = currentFolderPath.Substring(currentPath.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                    logFile.Properties.ChangePath(Path.Combine(newPath, subFolderPath));
+                }
+            }
+        }
+
         public static void DeleteFolder(LogGroupID group)
         {
         }
@@ -66,7 +88,7 @@ namespace LogUtils.Helpers
                     .Union(allOtherGroups
                            .GetMembers()               //Members belonging to each of the other groups
                            .Concat(LogID.GetEntries()) //Individual log files (may or may not belong to a group)
-                           .FindAll(p => PathUtils.ContainsOtherPath(currentPath, p.CurrentFolderPath))
+                           .FindAll(p => PathUtils.ContainsOtherPath(p.CurrentFolderPath, currentPath))
                           );
 
                 ThreadSafeWorker worker = new ThreadSafeWorker(groupsSharingThisFolder.GetLocks());
@@ -79,6 +101,12 @@ namespace LogUtils.Helpers
                         DemandPermission((LogGroupID)group.ID, FolderPermissions.Move);
                     }
                     MoveFolder(containedLogFiles.ToArray(), currentPath, newPath);
+
+                    foreach (LogGroupProperties group in groupsSharingThisFolder)
+                    {
+                        //Members were handled in the helper method above
+                        group.ChangePath(newPath, applyToMembers: false);
+                    }
                 });
             }
         }

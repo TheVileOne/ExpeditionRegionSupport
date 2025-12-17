@@ -316,7 +316,7 @@ namespace LogUtils
 
         internal static bool TryMove(string newPath)
         {
-            if (!UtilityCore.IsControllingAssembly || !Exists || !DirectoryUtils.ParentExists(newPath) || PathUtils.ContainsOtherPath(CurrentPath, newPath))
+            if (!UtilityCore.IsControllingAssembly || !Exists || !DirectoryUtils.ParentExists(newPath) || PathUtils.ContainsOtherPath(newPath, CurrentPath))
                 return false;
             try
             {

@@ -66,6 +66,9 @@ namespace LogUtils.Helpers.FileHandling
         /// <summary>
         /// Checks the second path is contained by the first path
         /// </summary>
+        /// <example>
+        /// ContainsOtherPath("path/FolderA/FolderB", "path/FolderA") returns true, because the second path is a substring to the first path.
+        /// </example>
         public static bool ContainsOtherPath(string path, string pathOther)
         {
             path = ResolvePath(path);

@@ -1,5 +1,8 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Helpers;
 using LogUtils.Helpers.FileHandling;
+using LogUtils.Properties;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -19,6 +22,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             //Registration is not necessary if you plan to fully manage your log files independently of LogUtils, and you do not wish files being moved around.
             //testGroup = LogGroupID.Factory.CreateID(UtilityConsts.UTILITY_NAME, register: true);
             testGroup = LogGroupID.Factory.FromPath(FOLDER_NAME, register: true);
+            testGroup.Properties.FolderPermissions = FolderPermissions.Move;
 
             //Add members to group
             LogAccess defaultAccess = LogAccess.FullAccess;
@@ -75,6 +79,22 @@ namespace LogUtils.Diagnostics.Tests.Utility
             //Bad code practice
             //But since this is a test folder - it is okay to delete 
             DirectoryUtils.DeletePermanently(groupPath, deleteOnlyIfEmpty: false);
+        }
+
+        internal static void MoveGroupFolder()
+        {
+            //The group folder is expected to have this path if the move is successful 
+            string newGroupPath = LogProperties.GetContainingPath("MyLogFiles");
+
+            try
+            {
+                //This method can throw exceptions
+                LogGroup.MoveFolder(testGroup, newGroupPath);
+            }
+            catch (Exception ex)
+            {
+                UtilityLogger.LogError(ex);
+            }
         }
 
         private static string formatLogName(SlugcatStats.Name slugcatName)

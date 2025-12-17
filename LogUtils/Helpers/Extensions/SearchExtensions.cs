@@ -169,12 +169,12 @@ namespace LogUtils
 
         public static IEnumerable<LogGroupProperties> HasPath(this IEnumerable<LogGroupProperties> entries, string searchPath)
         {
-            return entries.Where(entry => PathUtils.ContainsOtherPath(searchPath, entry.CurrentFolderPath));
+            return entries.Where(entry => PathUtils.ContainsOtherPath(entry.CurrentFolderPath, searchPath));
         }
 
         public static IEnumerable<LogGroupProperties> HasPathExact(this IEnumerable<LogGroupProperties> entries, string searchPath)
         {
-            return entries.Where(entry => PathUtils.PathsAreEqual(searchPath, entry.CurrentFolderPath));
+            return entries.Where(entry => PathUtils.PathsAreEqual(entry.CurrentFolderPath, searchPath));
         }
         #endregion
     }

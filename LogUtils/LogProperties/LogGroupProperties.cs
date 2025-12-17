@@ -1,4 +1,5 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Helpers;
 using LogUtils.Helpers.FileHandling;
 using System;
 using System.Collections.Generic;
@@ -61,7 +62,19 @@ namespace LogUtils.Properties
         /// <inheritdoc/>
         public override void ChangePath(string newPath)
         {
-            UtilityLogger.LogWarning($"This log group does not support this operation '{nameof(ChangePath)}'");
+            if (Members.Count > 0 && !IsFolderGroup)
+            {
+                UtilityLogger.LogWarning("Group path may not be assigned after members are set");
+                return;
+            }
+            ChangePath(GetContainingPath(newPath), true);
+        }
+
+        internal void ChangePath(string newPath, bool applyToMembers)
+        {
+            if (applyToMembers && Members.Count > 0)
+                LogGroup.ChangePath(GetFolderMembers(), CurrentFolderPath, newPath);
+            CurrentFolderPath = newPath;
         }
 
         internal void SetInitialPath(string path)
@@ -102,7 +115,7 @@ namespace LogUtils.Properties
             if (!IsFolderGroup)
                 throw new InvalidOperationException("Group does not support folder operations");
 
-            return Members.Where(member => PathUtils.ContainsOtherPath(CurrentFolderPath, member.Properties.CurrentFolderPath));
+            return Members.Where(member => PathUtils.ContainsOtherPath(member.Properties.CurrentFolderPath, CurrentFolderPath));
         }
 
         /// <summary>
