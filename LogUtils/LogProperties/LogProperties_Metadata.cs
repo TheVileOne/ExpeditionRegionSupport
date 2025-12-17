@@ -182,7 +182,7 @@ namespace LogUtils.Properties
                 filename = FileUtils.RemoveBracketInfo(filename);
 
             LogFilename result = null;
-            if (AltFilename != null)
+            if (!string.IsNullOrEmpty(AltFilename))
             {
                 //When the current filename is equal to the alternate filename, the reserve filename becomes the target
                 if (AltFilename.Equals(filename))
@@ -390,7 +390,7 @@ namespace LogUtils.Properties
                     LogFilename reserveFilename = null;
 
                     //Avoid assigning AltFilename as a reserve filename
-                    if (AltFilename != null)
+                    if (!string.IsNullOrEmpty(AltFilename))
                     {
                         if (!AltFilename.Equals(currentFilenameBase)) //Assign existing filename as the reserve
                             reserveFilename = new LogFilename(currentFilenameBase, CurrentFilename.Extension);
