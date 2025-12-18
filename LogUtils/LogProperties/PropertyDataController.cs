@@ -170,20 +170,26 @@ namespace LogUtils.Properties
 
         internal void BeginStartupRoutine()
         {
-            bool logsFolderExists = LogsFolder.Exists;
-
             StartupRoutineActive = true;
-            foreach (LogProperties properties in Properties)
+            LogsFolder.CacheExistsState();
+            try
             {
-                if (!properties.OverwriteLog)
-                    properties.SkipStartupRoutine = true; //Persistent log files should not be renamed and replaced
+                foreach (LogProperties properties in Properties)
+                {
+                    if (!properties.OverwriteLog)
+                        properties.SkipStartupRoutine = true; //Persistent log files should not be renamed and replaced
 
-                if (!properties.SkipStartupRoutine && !properties.LogSessionActive)
-                    properties.CreateTempFile();
+                    if (!properties.SkipStartupRoutine && !properties.LogSessionActive)
+                        properties.CreateTempFile();
 
-                //When the Logs folder is available, favor that path over the original path to the log file
-                if (logsFolderExists && properties.LogsFolderAware)
-                    LogsFolder.AddToFolder(properties);
+                    //When the Logs folder is available, favor that path over the original path to the log file
+                    if (LogsFolder.Exists && properties.LogsFolderAware)
+                        LogsFolder.AddToFolder(properties);
+                }
+            }
+            finally
+            {
+                LogsFolder.ResetExistsCache();
             }
         }
 

@@ -52,10 +52,14 @@ namespace LogUtils
         /// </summary>
         public static string Name { get; private set; }
 
+        private static bool? _existsCache;
         /// <summary>
         /// Checks that log directory exists at its currently set path
         /// </summary>
-        public static bool Exists => Directory.Exists(CurrentPath);
+        public static bool Exists => _existsCache ?? Directory.Exists(CurrentPath);
+
+        internal static void CacheExistsState() => _existsCache = Exists;
+        internal static void ResetExistsCache() => _existsCache = null;
 
         /// <summary>
         /// Checks a path against the current log directory path
