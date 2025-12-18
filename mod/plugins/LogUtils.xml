@@ -7485,6 +7485,9 @@
             <summary>
             Checks the second path is contained by the first path
             </summary>
+            <example>
+            ContainsOtherPath("path/FolderA/FolderB", "path/FolderA") returns true, because the second path is a substring to the first path.
+            </example>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.FindCommonRoot(System.String,System.String)">
             <summary>
@@ -8983,9 +8986,9 @@
             Indicates that properties once originated from the properties file
             </summary>
         </member>
-        <member name="F:LogUtils.Properties.LogProperties.SkipStartupRoutine">
+        <member name="F:LogUtils.Properties.LogProperties.StartupRoutineRequired">
             <summary>
-            Indicates that the startup routine for this log file should not be run
+            Indicates that the startup routine for this log file needs to be run when true, and has already run when false
             </summary>
         </member>
         <member name="F:LogUtils.Properties.LogProperties.WriteBuffer">
@@ -9044,6 +9047,11 @@
             Affects whether new messages targeting this log file will be appended to an existing file instead of the existing file being removed when LogUtils startup routine activates 
             </summary>
             <remarks>As a result of this feature being active, backups for this file may not be available (depending on how the mod that handles backups is configured)</remarks>
+        </member>
+        <member name="P:LogUtils.Properties.LogProperties.ShouldOverwrite">
+            <summary>
+            Indicates whether the current log file should be replaced with a new file
+            </summary>
         </member>
         <member name="F:LogUtils.Properties.LogProperties.IsWriteRestricted">
             <summary>
@@ -9496,6 +9504,11 @@
         <member name="F:LogUtils.Properties.PropertyDataController.StartupRoutineActive">
             <summary>
             A flag that indicates the log replacement process has started and has yet to finish
+            </summary>
+        </member>
+        <member name="F:LogUtils.Properties.PropertyDataController.PendingCleanup">
+            <summary>
+            A list of log files that require a cleanup process to run
             </summary>
         </member>
         <member name="M:LogUtils.Properties.PropertyDataController.GetProperties(LogUtils.Enums.LogID,System.String)">
