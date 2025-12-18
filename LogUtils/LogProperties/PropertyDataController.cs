@@ -2,6 +2,8 @@
 using LogUtils.Helpers;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties.Custom;
+using LogUtils.Threading;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -66,6 +68,13 @@ namespace LogUtils.Properties
         /// </summary>
         internal bool StartupRoutineActive;
 
+        /// <summary>
+        /// A list of log files that require a cleanup process to run
+        /// </summary>
+        internal List<LogProperties> PendingCleanup = new List<LogProperties>();
+
+        private Task cleanupTask;
+
         static PropertyDataController()
         {
             UtilityCore.EnsureInitializedState();
@@ -111,9 +120,6 @@ namespace LogUtils.Properties
         {
             LogProperties properties = logFile.Properties;
 
-            if (!properties.OverwriteLog)
-                properties.SkipStartupRoutine = true; //Persistent log files should not be renamed and replaced
-
             //The original filename is stored without its original file extension in the value field of the LogID
             string originalFilePath = LogFile.FindExistingPath(properties.OriginalFolderPath, logFile.Value);
 
@@ -130,16 +136,16 @@ namespace LogUtils.Properties
 
                 //Moving files on other processes is not supported
                 moveFileFromOriginalPath = false;
-                properties.SkipStartupRoutine = true;
+                properties.StartupRoutineRequired = false;
             }
 
             if (moveFileFromOriginalPath)
             {
                 //Set up the temp file for this log file if it isn't too late to do so
-                if (!lastKnownFileOverwritten && !properties.SkipStartupRoutine && StartupRoutineActive)
+                if (!lastKnownFileOverwritten && properties.ShouldOverwrite && StartupRoutineActive)
                 {
                     properties.CreateTempFile();
-                    properties.SkipStartupRoutine = true;
+                    properties.StartupRoutineRequired = false;
                 }
 
                 using (properties.FileLock.Acquire())
@@ -165,7 +171,9 @@ namespace LogUtils.Properties
                     properties.LogSessionActive = true;
                 }
             }
-            properties.SkipStartupRoutine |= lastKnownFileOverwritten;
+
+            if (lastKnownFileOverwritten)
+                properties.StartupRoutineRequired = false;
         }
 
         internal void BeginStartupRoutine()
@@ -175,17 +183,7 @@ namespace LogUtils.Properties
             try
             {
                 foreach (LogProperties properties in Properties)
-                {
-                    if (!properties.OverwriteLog)
-                        properties.SkipStartupRoutine = true; //Persistent log files should not be renamed and replaced
-
-                    if (!properties.SkipStartupRoutine && !properties.LogSessionActive)
-                        properties.CreateTempFile();
-
-                    //When the Logs folder is available, favor that path over the original path to the log file
-                    if (LogsFolder.Exists && properties.LogsFolderAware)
-                        LogsFolder.AddToFolder(properties);
-                }
+                    properties.OnStartup();
             }
             finally
             {
@@ -197,11 +195,64 @@ namespace LogUtils.Properties
         {
             if (!StartupRoutineActive) return;
 
-            //All created temp files are removed on game start
-            foreach (LogProperties properties in Properties)
-                properties.RemoveTempFile();
-
+            ForceCleanup(); //Forcing here - just to have it run in a consistent place, and on the main thread
             StartupRoutineActive = false;
+        }
+
+        internal void OnCleanupRequired(LogProperties properties)
+        {
+            PendingCleanup.Add(properties);
+
+            //Signal that a cleanup process needs to be run, and initialize that process here.
+            //For the shutdown procedure, this task must happen immediately.
+            if (RainWorldInfo.IsShuttingDown)
+            {
+                cleanupTask?.Cancel();
+                cleanupTask = null;
+
+                foreach (LogProperties target in PendingCleanup)
+                    target.RemoveTempFile();
+                PendingCleanup.Clear();
+                return;
+            }
+
+            if (cleanupTask == null)
+            {
+                const SetupPeriod CLEANUP_ALLOWED = SetupPeriod.RWAwake;
+
+                Action callback = new Action(() =>
+                {
+                    if (RainWorldInfo.LatestSetupPeriodReached < CLEANUP_ALLOWED)
+                        return;
+
+                    cleanupTask.Complete();
+                    cleanupTask = null; //Allow a new task to be assigned in case a new entry is added to the list from another thread
+                    LogProperties[] pendingCleanup = PendingCleanup.ToArray();
+
+                    foreach (LogProperties target in pendingCleanup)
+                    {
+                        target.RemoveTempFile();
+                        PendingCleanup.RemoveAt(0);
+                    }
+                });
+
+                cleanupTask = LogTasker.Schedule(new Task(callback, TimeSpan.FromMilliseconds(20))
+                {
+                    IsContinuous = true
+                });
+            }
+        }
+
+        internal void ForceCleanup()
+        {
+            try
+            {
+                cleanupTask?.RunOnce();
+            }
+            catch
+            {
+                UtilityLogger.LogWarning("Cleanup task encountered an error");
+            }
         }
 
         private void onCustomPropertyAdded(CustomLogProperty property)

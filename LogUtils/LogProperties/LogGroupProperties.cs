@@ -46,11 +46,13 @@ namespace LogUtils.Properties
         public LogGroupProperties(string propertyID) : base(propertyID, metadata: null)
         {
             AddTag(PropertyTag.LOG_GROUP);
+            StartupRoutineRequired = false;
         }
 
         internal LogGroupProperties(string propertyID, LogPropertyMetadata metadata) : base(propertyID, metadata)
         {
             AddTag(PropertyTag.LOG_GROUP);
+            StartupRoutineRequired = false;
         }
 
         /// <inheritdoc/>

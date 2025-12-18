@@ -139,9 +139,9 @@ namespace LogUtils.Properties
         internal bool InitializedFromFile;
 
         /// <summary>
-        /// Indicates that the startup routine for this log file should not be run
+        /// Indicates that the startup routine for this log file needs to be run when true, and has already run when false
         /// </summary>
-        internal bool SkipStartupRoutine;
+        internal bool StartupRoutineRequired = true;
 
         /// <summary>
         /// Contains messages that have passed all validation checks, and are waiting to be written to file
@@ -263,6 +263,11 @@ namespace LogUtils.Properties
                 _overwriteLog = value;
             }
         }
+
+        /// <summary>
+        /// Indicates whether the current log file should be replaced with a new file
+        /// </summary>
+        public bool ShouldOverwrite => OverwriteLog && StartupRoutineRequired && !LogSessionActive;
 
         /// <summary>
         /// A flag, when true, indicates it is not safe to attempt to receive write access, or write directly to the log file
@@ -481,6 +486,10 @@ namespace LogUtils.Properties
             const int framesUntilCutoff = 10; //Number of frames before instance is no longer considered a 'new' instance
             Action onCreationCutoffReached = new Action(() =>
             {
+                //Checking initialization state here because this routine is already handled during initialization
+                if (UtilityCore.IsInitialized && StartupRoutineRequired)
+                    OnStartup();
+
                 IsNewInstance = false;
                 recentlyCreatedCutoffEvent = null;
             });
@@ -516,6 +525,23 @@ namespace LogUtils.Properties
             OnLogSessionFinish += onLogSessionFinish;
 
             InitializationInProgress = false;
+        }
+
+        internal void OnStartup()
+        {
+            if (!StartupRoutineRequired)
+            {
+                UtilityLogger.Log("Startup routine initiated, but LogID does not require it");
+                return;
+            }
+
+            if (ShouldOverwrite) //Persistent log files should not be renamed and replaced
+                CreateTempFile();
+
+            //When the Logs folder is available, favor that path over the original path to the log file
+            if (LogsFolderAware && LogsFolder.Exists)
+                LogsFolder.AddToFolder(this);
+            StartupRoutineRequired = false;
         }
 
         private void onCustomPropertyAdded(CustomLogProperty property)
@@ -620,6 +646,9 @@ namespace LogUtils.Properties
                 if (status == FileStatus.MoveComplete || status == FileStatus.CopyComplete)
                     BackupListener.OnTempFileCreated(ID);
 
+                //Even though move may not have completed, these temp files have their way of persisting.
+                //Attempt to cleanup anyways just to be sure.
+                PropertyManager.OnCleanupRequired(this);
                 return status;
             }
         }
@@ -641,6 +670,12 @@ namespace LogUtils.Properties
 
             try
             {
+                if (UtilityCore.IsInitialized && StartupRoutineRequired)
+                {
+                    UtilityLogger.Log("Startup routine not initiated yet");
+                    OnStartup();
+                }
+
                 using (FileLock.Acquire())
                 {
                     FileLock.SetActivity(FileAction.SessionStart);
