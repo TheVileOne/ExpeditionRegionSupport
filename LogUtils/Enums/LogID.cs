@@ -220,8 +220,7 @@ namespace LogUtils.Enums
             //Initialize properties
             var groupProperties = groupID.Properties;
 
-            bool hasGroupPath = !PathUtils.IsEmpty(groupProperties.FolderPath);
-            if (!hasGroupPath)
+            if (!groupProperties.IsFolderGroup)
             {
                 //When there is no group path, the provided path will be used as the log path, and property initialization will be handled like a typical LogID initialization
                 InitializeProperties(filename, relativePathNoFile);
