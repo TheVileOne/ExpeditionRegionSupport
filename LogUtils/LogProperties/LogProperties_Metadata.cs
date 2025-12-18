@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace LogUtils.Properties
 {
@@ -167,6 +168,9 @@ namespace LogUtils.Properties
 
             EnsurePathDoesNotConflict();
             SetLastKnownPath(metadata.LastKnownPath);
+
+            if (PathUtils.IsEmpty(GetLastKnownPath()))
+                UpdateLastKnownPath();
         }
 
         /// <summary>
@@ -368,7 +372,7 @@ namespace LogUtils.Properties
             LastKnownFilePath = path;
         }
 
-        internal void UpdateLastKnownPath()
+        internal virtual void UpdateLastKnownPath()
         {
             SetLastKnownPath(CurrentFilePath);
         }
@@ -444,7 +448,7 @@ namespace LogUtils.Properties
         }
     }
 
-    internal class LogPropertyMetadata
+    internal sealed class LogPropertyMetadata
     {
         internal bool IsOptional;
 
@@ -500,6 +504,21 @@ namespace LogUtils.Properties
 
                 return MetadataPathResult.NoChanges;
             }
+        }
+
+        public override string ToString()
+        {
+            StringBuilder builder = new StringBuilder();
+
+            #pragma warning disable IDE0055 //Fix formatting
+            builder.Append("Filename     : ").AppendLine(!string.IsNullOrEmpty(Filename)      ? Filename : "<empty>")
+                   .Append("AltFilename  : ").AppendLine(!string.IsNullOrEmpty(AltFilename)   ? AltFilename : "<empty>")
+                   .Append("Path         : ").AppendLine(!string.IsNullOrEmpty(Path)          ? Path : "<empty>")
+                   .Append("OriginalPath : ").AppendLine(!string.IsNullOrEmpty(OriginalPath)  ? OriginalPath : "<empty>")
+                   .Append("LastKnownPath: ").AppendLine(!string.IsNullOrEmpty(LastKnownPath) ? LastKnownPath : "<empty>");
+            #pragma warning restore IDE0055 //Fix formatting
+
+            return builder.ToString();
         }
     }
 

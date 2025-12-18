@@ -988,6 +988,19 @@ namespace LogUtils.Properties
             return fields;
         }
 
+        internal LogPropertyMetadata ToMetadata()
+        {
+            return new LogPropertyMetadata()
+            {
+                IsOptional = IsMetadataOptional,
+                Filename = Filename,
+                AltFilename = AltFilename,
+                Path = CurrentFolderPath,
+                OriginalPath = OriginalFolderPath,
+                LastKnownPath = GetLastKnownPath()
+            };
+        }
+
         /// <inheritdoc/>
         public override string ToString()
         {

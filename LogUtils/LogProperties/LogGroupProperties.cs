@@ -108,6 +108,11 @@ namespace LogUtils.Properties
             LastKnownFolderPath = path;
         }
 
+        internal override void UpdateLastKnownPath()
+        {
+            SetLastKnownPath(CurrentFolderPath);
+        }
+
         /// <summary>
         /// Searches for all group members that are physically located inside the group folder, or otherwise target it
         /// </summary>
