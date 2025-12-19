@@ -267,7 +267,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// Indicates whether the current log file should be replaced with a new file
         /// </summary>
-        public bool ShouldOverwrite => OverwriteLog && StartupRoutineRequired && !LogSessionActive;
+        public bool ShouldOverwrite => OverwriteLog && !LogSessionActive;
 
         /// <summary>
         /// A flag, when true, indicates it is not safe to attempt to receive write access, or write directly to the log file
