@@ -527,6 +527,15 @@ namespace LogUtils.Properties
             InitializationInProgress = false;
         }
 
+        internal void EnsureStartupHasRun()
+        {
+            if (!StartupRoutineRequired) return;
+
+            if (!UtilityCore.IsInitialized)
+                UtilityLogger.LogWarning("Too early to run this operation");
+            OnStartup();
+        }
+
         internal void OnStartup()
         {
             if (!StartupRoutineRequired)
@@ -534,14 +543,17 @@ namespace LogUtils.Properties
                 UtilityLogger.Log("Startup routine initiated, but LogID does not require it");
                 return;
             }
+            StartupRoutineRequired = false; //Be careful when moving this. It signals that this method should not be called again (possibly recursively)
 
             if (ShouldOverwrite) //Persistent log files should not be renamed and replaced
                 CreateTempFile();
 
+            if (!OverwriteLog)
+                FileExists = File.Exists(CurrentFilePath);
+
             //When the Logs folder is available, favor that path over the original path to the log file
             if (LogsFolderAware && LogsFolder.Exists)
                 LogsFolder.AddToFolder(this);
-            StartupRoutineRequired = false;
         }
 
         private void onCustomPropertyAdded(CustomLogProperty property)

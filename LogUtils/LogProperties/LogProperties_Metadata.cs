@@ -22,9 +22,18 @@ namespace LogUtils.Properties
         private string _folderPath = string.Empty;
         private string _originalFolderPath = string.Empty;
 
+        /// <summary>
+        /// Indicates whether log file currently exists
+        /// </summary>
+        /// <remarks>Only applies to a log file belonging to a current log session, or a log file with the <see cref="OverwriteLog"/> property set to false</remarks>
         public bool FileExists
         {
-            get => _fileExists;
+            get
+            {
+                if (!_fileExists)
+                    EnsureStartupHasRun(); //Value is not accurate before startup routine runs
+                return _fileExists;
+            }
             set
             {
                 if (_fileExists == value) return;
@@ -379,6 +388,7 @@ namespace LogUtils.Properties
 
         internal void UpdateCurrentPath(string path, LogFilename filename)
         {
+            EnsureStartupHasRun();
             using (FileLock.Acquire())
             {
                 bool hasConflictDetails = ContainsTag(UtilityConsts.PropertyTag.CONFLICT);
