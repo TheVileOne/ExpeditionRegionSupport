@@ -256,10 +256,10 @@ namespace LogUtils
                     }
                 case UtilitySetup.InitializationStep.POST_LOGID_PROCESSING:
                     {
+                        PropertyManager.ProcessLogFiles();
+
                         if (PatcherPolicy.ShowPatcherLog)
                             PatcherLogEventProcessor.LogResults();
-
-                        PropertyManager.ProcessLogFiles();
 
                         //Listen for Unity log requests while the log file is unavailable
                         if (!LogID.Unity.Properties.CanBeAccessed)
