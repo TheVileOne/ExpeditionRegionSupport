@@ -308,6 +308,11 @@ namespace LogUtils
             }
 
             UtilityEvents.OnSetupPeriodReached += onSetupPeriodReached;
+
+            //We should invoke at least one setup period event. Use a special case enum value to reflect this special situation.
+            if (startupPeriod == SetupPeriod.PostMods)
+                RainWorldInfo.NotifyOnPeriodReached(SetupPeriod.LatePostMods);
+
             RainWorldInfo.LatestSetupPeriodReached = startupPeriod;
         }
 
@@ -327,14 +332,14 @@ namespace LogUtils
 
         private static void onSetupPeriodReached(SetupPeriodEventArgs e)
         {
-            if (e.CurrentPeriod > e.LastPeriod)
+            if (e.CurrentPeriod > e.LastPeriod) //Init methods may be called more than once
             {
-                RainWorldInfo.LatestSetupPeriodReached = e.CurrentPeriod;
+                RainWorldInfo.LatestSetupPeriodReached = getPeriod(e.CurrentPeriod);
 
-                if (RainWorldInfo.LatestSetupPeriodReached == SetupPeriod.RWAwake)
+                if (PropertyManager.StartupRoutineActive)
                 {
-                    //When the game starts, we need to clean up old log files. Any mod that wishes to access these files
-                    //must do so in their plugin's OnEnable, or Awake method
+                    //When the game starts, we need to clean up old log files. Any mod that wishes to access these files must do so in
+                    //their plugin's OnEnable, or Awake method
                     PropertyManager.CompleteStartupRoutine();
                 }
                 else
@@ -342,6 +347,23 @@ namespace LogUtils
                     //In every other situation the period changes, we process requests that may have gone unhandled since the last setup period
                     RequestHandler.ProcessRequests();
                 }
+            }
+
+            static SetupPeriod getPeriod(SetupPeriod currentPeriod)
+            {
+                if (currentPeriod <= SetupPeriod.PostMods)
+                    return currentPeriod;
+
+                if (currentPeriod == SetupPeriod.LatePostMods)
+                {
+                    //LogUtils operates best when it is initialized early - this is too late to recover all log files
+                    UtilityLogger.LogWarning("Extra late initialization");
+                    return SetupPeriod.PostMods;
+                }
+
+                //Custom setup periods should be okay if a mod wishes to define additional setup states
+                UtilityLogger.Log("Unrecognized setup period");
+                return currentPeriod;
             }
         }
 

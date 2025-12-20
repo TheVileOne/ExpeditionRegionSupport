@@ -69,12 +69,22 @@ namespace LogUtils
         }
     }
 
+    /// <summary>
+    /// A stage in the Rain World initialization process
+    /// </summary>
     public enum SetupPeriod
     {
-        Pregame,
-        RWAwake,
-        PreMods,
-        ModsInit,
-        PostMods
+        /// <summary>The period of time before Rain World initializes</summary>
+        Pregame = 0,
+        /// <summary>The period of time when RainWorld.Awake is called</summary>
+        RWAwake = 1,
+        /// <summary>The period of time when PreModsInit is called</summary>
+        PreMods = 2,
+        /// <summary>The period of time when ModsInit is called</summary>
+        ModsInit = 3,
+        /// <summary>The period of time when PostModsInit is called</summary>
+        PostMods = 4,
+        /// <summary>A special case period beyond PostModsInit that is invoked only when no other periods states are applicable when LogUtils initializes</summary>
+        LatePostMods = 5
     }
 }
