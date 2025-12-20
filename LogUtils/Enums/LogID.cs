@@ -282,11 +282,18 @@ namespace LogUtils.Enums
         /// <inheritdoc/>
         protected override void CompleteRegistration()
         {
-            if (RegistrationStage == RegistrationStatus.Completed)
-                return;
+            try
+            {
+                if (RegistrationStage == RegistrationStatus.Completed)
+                    return;
 
-            if (!ReferenceEquals(ManagedReference, this)) //This reference cannot be trusted to be accurate unless we try to assign with path information available
-                ManagedReference = (LogID)UtilityCore.DataHandler.GetOrAssign(this);
+                if (!ReferenceEquals(ManagedReference, this)) //This reference cannot be trusted to be accurate unless we try to assign with path information available
+                    ManagedReference = (LogID)UtilityCore.DataHandler.GetOrAssign(this);
+            }
+            finally
+            {
+                Properties?.RefreshID(this);
+            }
             base.CompleteRegistration();
         }
 
