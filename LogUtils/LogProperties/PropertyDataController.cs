@@ -90,9 +90,9 @@ namespace LogUtils.Properties
 
         internal void ProcessLogFiles()
         {
-            bool shouldRunStartupRoutine = UtilityCore.IsControllingAssembly && RainWorldInfo.LatestSetupPeriodReached < RainWorldInfo.STARTUP_CUTOFF_PERIOD;
+            bool shouldRunStartupEarly = UtilityCore.IsControllingAssembly && RainWorldInfo.LatestSetupPeriodReached < RainWorldInfo.STARTUP_CUTOFF_PERIOD;
 
-            if (shouldRunStartupRoutine)
+            if (shouldRunStartupEarly)
                 StartupRoutineActive = true; //Notify that startup process might be happening early
 
             UtilityLogger.Log("Creating temporary log files");
@@ -111,9 +111,7 @@ namespace LogUtils.Properties
                     ProcessLateInitializedLogFile(LogID.JollyCoop);
                 }
             }
-
-            if (shouldRunStartupRoutine) //Sanity check in case we are initializing extra late
-                BeginStartupRoutine();
+            BeginStartupRoutine();
         }
 
         internal void ProcessLateInitializedLogFile(LogID logFile)
@@ -183,7 +181,13 @@ namespace LogUtils.Properties
             try
             {
                 foreach (LogProperties properties in Properties)
+                {
+                    if (!properties.StartupRoutineRequired)
+                        continue;
+
+                    properties.ID.Register(); //Probably the first time ID is referenced - ID will be lazy constructed here
                     properties.OnStartup();
+                }
             }
             finally
             {

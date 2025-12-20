@@ -208,17 +208,6 @@ namespace LogUtils.Properties
         protected virtual int CreateIDHash() => CreateIDHash(_idValue, OriginalFolderPath);
 
         /// <summary>
-        /// Ensure that instance contains the managed reference of associated <see cref="LogID"/> instances
-        /// </summary>
-        internal void RefreshID(LogID recentlyCreated)
-        {
-            if (_id == null || !ReferenceEquals(_id.ManagedReference, recentlyCreated.ManagedReference))
-            {
-                _id = recentlyCreated.ManagedReference; //Overwrite an unregistered LogID with a managed registered ID 
-            }
-        }
-
-        /// <summary>
         /// Contains targeted <see cref="ConsoleID"/> instances that receive requests when logging to file
         /// </summary>
         public ValueCollection<ConsoleID> ConsoleIDs;
