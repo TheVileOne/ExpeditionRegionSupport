@@ -297,7 +297,7 @@ namespace LogUtils.Properties
         /// </summary>
         public bool LogsFolderEligible
         {
-            get => _logsFolderEligible;
+            get => _logsFolderEligible && (!UtilityCore.IsInitialized || ID.Registered); //Registration state is inaccurate during initialization
             set
             {
                 if (_logsFolderEligible == value || ReadOnly) return;
