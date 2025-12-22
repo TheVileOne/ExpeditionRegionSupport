@@ -1,6 +1,7 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Helpers;
 using LogUtils.Helpers.FileHandling;
+using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -117,12 +118,40 @@ namespace LogUtils.Properties
         /// Searches for all group members that are physically located inside the group folder, or otherwise target it
         /// </summary>
         /// <remarks>It is possible for a group member to target a different folder path. The easiest way to encounter this behavior is when a log file is already defined at the time of assignment.</remarks>
+        /// <exception cref="InvalidOperationException">The log group is not associated with a folder</exception>
         public IEnumerable<LogID> GetFolderMembers()
         {
             if (!IsFolderGroup)
                 throw new InvalidOperationException("Group does not support folder operations");
 
             return Members.Where(member => PathUtils.ContainsOtherPath(member.Properties.CurrentFolderPath, CurrentFolderPath));
+        }
+
+        /// <summary>
+        /// Blocks until current thread has exclusive access to groups sharing the current group path, or a subdirectory of the group path (also includes current instance)
+        /// </summary>
+        /// <exception cref="InvalidOperationException">The log group is not associated with a folder</exception>
+        public IScopedCollection<LogGroupProperties> DemandFolderAccess()
+        {
+            if (!IsFolderGroup)
+                throw new InvalidOperationException("Group does not support folder operations");
+
+            LogGroupLock folderLock = new LogGroupLock(AllGroupsSharingMyFolder());
+            return folderLock.Acquire();
+        }
+
+        internal IEnumerable<LogGroupProperties> AllGroupsSharingMyFolder()
+        {
+            IEnumerable<LogGroupProperties> groupsSharingThisFolder =
+            PropertyManager.GroupProperties
+            .WithFolder()
+            .HasPath(CurrentFolderPath);
+
+            //TODO: This only applies to the current instance - it is possible for other unregistered groups to interfere with a critical operation
+            //If unregistered groups get added to PropertiesManager, this line needs to be removed
+            if (!ID.Registered)
+                groupsSharingThisFolder = groupsSharingThisFolder.Prepend(this);
+            return groupsSharingThisFolder;
         }
 
         /// <summary>

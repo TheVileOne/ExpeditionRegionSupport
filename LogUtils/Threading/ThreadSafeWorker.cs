@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using DotNetTask = System.Threading.Tasks.Task;
 
 namespace LogUtils.Threading
 {
@@ -40,6 +41,21 @@ namespace LogUtils.Threading
             try
             {
                 work.Invoke();
+            }
+            finally
+            {
+                locks.Release();
+            }
+        }
+
+        public async DotNetTask DoWorkAsync(Func<DotNetTask> work)
+        {
+            LockEnumerator locks = GetEnumerator();
+
+            locks.Acquire();
+            try
+            {
+                await work.Invoke().ConfigureAwait(true); //We need to finish on the same thread we started
             }
             finally
             {

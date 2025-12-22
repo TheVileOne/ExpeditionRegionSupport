@@ -66,48 +66,36 @@ namespace LogUtils.Helpers
                     return;
                 }
 
-                IEnumerable<LogGroupProperties> groupsSharingThisFolder =
-                    LogProperties.PropertyManager.GroupProperties
-                    .WithFolder()
-                    .HasPath(currentPath);
-
-                //If unregistered groups get added to PropertiesManager, this line needs to be removed
-                if (!group.Registered)
-                    groupsSharingThisFolder = groupsSharingThisFolder.Prepend(group.Properties);
-
-                //Collect the results. It will avoid having unnecessary executions
-                groupsSharingThisFolder = groupsSharingThisFolder.ToArray();
-
-                IEnumerable<LogGroupProperties> allOtherGroups =
-                    LogProperties.PropertyManager.GroupProperties
-                    .Except(groupsSharingThisFolder);
-
-                //All known log file entries located within the group path
-                IEnumerable<LogID> containedLogFiles = groupsSharingThisFolder
-                    .SelectMany(group => group.GetFolderMembers()) //Members targeting a folder, or subfolder of the group path
-                    .Union(allOtherGroups
-                           .GetMembers()               //Members belonging to each of the other groups
-                           .Concat(LogID.GetEntries()) //Individual log files (may or may not belong to a group)
-                           .FindAll(p => PathUtils.ContainsOtherPath(p.CurrentFolderPath, currentPath))
-                          );
-
-                ThreadSafeWorker worker = new ThreadSafeWorker(groupsSharingThisFolder.GetLocks());
-
-                worker.DoWork(() =>
+                using (var scope = group.Properties.DemandFolderAccess())
                 {
-                    foreach (LogGroupProperties group in groupsSharingThisFolder)
+                    IReadOnlyCollection<LogGroupProperties> groupsSharingThisFolder = scope.Items;
+
+                    IEnumerable<LogGroupProperties> allOtherGroups =
+                        LogProperties.PropertyManager.GroupProperties
+                        .Except(groupsSharingThisFolder);
+
+                    //All known log file entries located within the group path
+                    IEnumerable<LogID> containedLogFiles = groupsSharingThisFolder
+                        .SelectMany(group => group.GetFolderMembers()) //Members targeting a folder, or subfolder of the group path
+                        .Union(allOtherGroups
+                               .GetMembers()               //Members belonging to each of the other groups
+                               .Concat(LogID.GetEntries()) //Individual log files (may or may not belong to a group)
+                               .FindAll(p => PathUtils.ContainsOtherPath(p.CurrentFolderPath, currentPath))
+                              );
+
+                    foreach (LogGroupProperties entry in groupsSharingThisFolder)
                     {
                         //Make sure that all groups that are assigned to this folder allow it to be moved
-                        DemandPermission((LogGroupID)group.ID, FolderPermissions.Move);
+                        DemandPermission((LogGroupID)entry.ID, FolderPermissions.Move);
                     }
                     MoveFolder(containedLogFiles.ToArray(), currentPath, newPath);
 
-                    foreach (LogGroupProperties group in groupsSharingThisFolder)
+                    foreach (LogGroupProperties entry in groupsSharingThisFolder)
                     {
                         //Members were handled in the helper method above
-                        group.ChangePath(newPath, applyToMembers: false);
+                        entry.ChangePath(newPath, applyToMembers: false);
                     }
-                });
+                }
             }
         }
 
