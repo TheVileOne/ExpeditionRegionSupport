@@ -162,6 +162,10 @@ namespace LogUtils
                 UtilityLogger.Log("Moving all group members");
                 foreach (var member in target.Members)
                 {
+                    //This log file was already handled when files were processed, or earlier by another group
+                    if (member.Registered || PathUtils.ContainsOtherPath(member.Properties.CurrentFolderPath, CurrentPath))
+                        continue;
+
                     FileStatus moveResult = LogFile.Move(member, movePath);
 
                     if (moveResult != FileStatus.MoveComplete && moveResult != FileStatus.NoActionRequired)
