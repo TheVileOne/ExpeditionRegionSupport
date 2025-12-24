@@ -1,4 +1,5 @@
-﻿using LogUtils.Enums;
+﻿using LogUtils.Diagnostics;
+using LogUtils.Enums;
 using LogUtils.Helpers.FileHandling;
 using System;
 using System.IO;
@@ -8,6 +9,8 @@ namespace LogUtils
     public class LogFileMover
     {
         private readonly string sourcePath, destPath;
+
+        internal ExceptionHandler ExceptionHandler = new LogFileMoverExceptionHandler();
 
         /// <summary>
         /// Move attempt will replace a file at the destination path when true; fail to move when false
@@ -50,7 +53,7 @@ namespace LogUtils
                 }
                 catch (Exception ex)
                 {
-                    UtilityLogger.LogError(getErrorMessage(ErrorContext.Move), ex);
+                    ExceptionHandler.OnError(ex, ErrorContext.Move);
                     status = CopyFile(logValidator);
                 }
 
@@ -79,7 +82,7 @@ namespace LogUtils
                 }
                 catch (Exception ex)
                 {
-                    UtilityLogger.LogError(getErrorMessage(ErrorContext.Copy), ex);
+                    ExceptionHandler.OnError(ex, ErrorContext.Copy);
                     status = FileStatus.Error;
                 }
 
@@ -102,7 +105,7 @@ namespace LogUtils
             }
             catch (Exception ex)
             {
-                UtilityLogger.LogError(getErrorMessage(ErrorContext.Copy), ex);
+                ExceptionHandler.OnError(ex, ErrorContext.Copy);
                 status = FileStatus.Error;
             }
 
@@ -149,13 +152,24 @@ namespace LogUtils
             return FileStatus.MoveRequired;
         }
 
-        private string getErrorMessage(ErrorContext context)
+        internal sealed class LogFileMoverExceptionHandler : ExceptionHandler
         {
-            if (context == ErrorContext.Move)
-                return "Unable to move file. Attempting to copy instead";
-            else if (context == ErrorContext.Copy)
-                return "Unable to copy file";
-            return null;
+            public override void OnError(Exception exception)
+            {
+                ErrorContext value = (ErrorContext)exception.Data["Context"];
+
+                string message = getErrorMessage(value);
+                UtilityLogger.LogError(message, exception);
+            }
+
+            private string getErrorMessage(ErrorContext context)
+            {
+                if (context == ErrorContext.Move)
+                    return "Unable to move file. Attempting to copy instead";
+                else if (context == ErrorContext.Copy)
+                    return "Unable to copy file";
+                return null;
+            }
         }
 
         private enum ErrorContext
