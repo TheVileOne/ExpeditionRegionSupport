@@ -10,8 +10,6 @@ namespace LogUtils
     {
         private readonly string sourcePath, destPath;
 
-        internal ExceptionHandler ExceptionHandler = new LogFileMoverExceptionHandler();
-
         /// <summary>
         /// Move attempt will replace a file at the destination path when true; fail to move when false
         /// </summary>
@@ -53,7 +51,9 @@ namespace LogUtils
                 }
                 catch (Exception ex)
                 {
-                    ExceptionHandler.OnError(ex, ErrorContext.Move);
+                    var handler = CreateExceptionHandler();
+
+                    handler.OnError(ex, ErrorContext.Move);
                     status = CopyFile(logValidator);
                 }
 
@@ -82,7 +82,9 @@ namespace LogUtils
                 }
                 catch (Exception ex)
                 {
-                    ExceptionHandler.OnError(ex, ErrorContext.Copy);
+                    var handler = CreateExceptionHandler();
+
+                    handler.OnError(ex, ErrorContext.Copy);
                     status = FileStatus.Error;
                 }
 
@@ -105,7 +107,9 @@ namespace LogUtils
             }
             catch (Exception ex)
             {
-                ExceptionHandler.OnError(ex, ErrorContext.Copy);
+                var handler = CreateExceptionHandler();
+
+                handler.OnError(ex, ErrorContext.Copy);
                 status = FileStatus.Error;
             }
 
@@ -150,6 +154,11 @@ namespace LogUtils
             }
 
             return FileStatus.MoveRequired;
+        }
+
+        protected virtual ExceptionHandler CreateExceptionHandler()
+        {
+            return new LogFileMoverExceptionHandler();
         }
 
         internal sealed class LogFileMoverExceptionHandler : ExceptionHandler
