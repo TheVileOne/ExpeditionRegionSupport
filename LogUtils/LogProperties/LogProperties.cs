@@ -279,7 +279,13 @@ namespace LogUtils.Properties
         /// </summary>
         public bool LogsFolderAware
         {
-            get => _logsFolderAware;
+            get
+            {
+                if (!UtilityCore.IsInitialized || ID.Registered) //Registration state is inaccurate during initialization
+                    return _logsFolderAware;
+
+                return _logsFolderAware || (Group != null && Group.Properties.LogsFolderAware);
+            }
             set
             {
                 if (_logsFolderAware == value || ReadOnly) return;
@@ -297,7 +303,13 @@ namespace LogUtils.Properties
         /// </summary>
         public bool LogsFolderEligible
         {
-            get => _logsFolderEligible && (!UtilityCore.IsInitialized || ID.Registered); //Registration state is inaccurate during initialization
+            get
+            {
+                if (!UtilityCore.IsInitialized || ID.Registered) //Registration state is inaccurate during initialization
+                    return _logsFolderEligible;
+
+                return Group != null && Group.Properties.LogsFolderEligible;
+            }
             set
             {
                 if (_logsFolderEligible == value || ReadOnly) return;
