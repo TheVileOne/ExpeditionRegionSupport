@@ -163,7 +163,7 @@ namespace LogUtils
 
         internal sealed class LogFileMoverExceptionHandler : ExceptionHandler
         {
-            public override void OnError(Exception exception)
+            protected override void LogError(Exception exception)
             {
                 ErrorContext value = (ErrorContext)exception.Data["Context"];
 
