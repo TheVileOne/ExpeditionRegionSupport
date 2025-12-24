@@ -47,13 +47,22 @@ namespace LogUtils.Properties
         public LogGroupProperties(string propertyID) : base(propertyID, metadata: null)
         {
             AddTag(PropertyTag.LOG_GROUP);
-            StartupRoutineRequired = false;
         }
 
         internal LogGroupProperties(string propertyID, LogPropertyMetadata metadata) : base(propertyID, metadata)
         {
             AddTag(PropertyTag.LOG_GROUP);
+        }
+
+        internal override void OnStartup()
+        {
+            if (!StartupRoutineRequired)
+            {
+                base.OnStartup();
+                return;
+            }
             StartupRoutineRequired = false;
+            LogsFolder.ProcessGroup(this);
         }
 
         /// <inheritdoc/>
@@ -128,6 +137,19 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
+        /// Searches for all group members that do not share the same path as the group
+        /// </summary>
+        /// <remarks>It is possible for a group member to target a different folder path. The easiest way to encounter this behavior is when a log file is already defined at the time of assignment.</remarks>
+        /// <exception cref="InvalidOperationException">The log group is not associated with a folder</exception>
+        public IEnumerable<LogID> GetNonConformingMembers()
+        {
+            if (!IsFolderGroup)
+                throw new InvalidOperationException("Group does not support folder operations");
+
+            return Members.Where(member => !PathUtils.ContainsOtherPath(member.Properties.CurrentFolderPath, CurrentFolderPath));
+        }
+
+        /// <summary>
         /// Blocks until current thread has exclusive access to groups sharing the current group path, or a subdirectory of the group path (also includes current instance)
         /// </summary>
         /// <exception cref="InvalidOperationException">The log group is not associated with a folder</exception>
@@ -160,6 +182,46 @@ namespace LogUtils.Properties
         public bool VerifyPermissions(FolderPermissions permissions)
         {
             return permissions == FolderPermissions.None || (FolderPermissions & permissions) == permissions;
+        }
+
+        /// <summary>
+        /// Verify that group has been given the provided folder permissions
+        /// </summary>
+        public bool VerifyPermissionsRecursive(FolderPermissions permissions, HashSet<LogGroupProperties> checkedEntries)
+        {
+            UtilityLogger.Log($"Processing permissions for log group [{ID}]");
+            checkedEntries.Add(this);
+            if (!VerifyPermissions(permissions))
+                return false;
+
+            IEnumerable<LogGroupProperties> groupsSharingThisFolder =
+                        PropertyManager.GroupProperties
+                        .WithFolder()
+                        .HasPath(CurrentFolderPath);
+
+            foreach (LogGroupProperties relatedGroup in groupsSharingThisFolder)
+            {
+                if (checkedEntries.Contains(relatedGroup)) //Entries should only be processed once
+                    continue;
+
+                //A group that is part of a subfolder will contain more characters
+                bool isTopLevelGroup = CurrentFolderPath.Length != relatedGroup.CurrentFolderPath.Length;
+
+                //When processing a group at the same level - no subfolders need to be checked
+                if (isTopLevelGroup)
+                {
+                    UtilityLogger.Log($"Processing permissions for log group [{relatedGroup.ID}]");
+                    checkedEntries.Add(relatedGroup);
+                    if (!relatedGroup.VerifyPermissions(permissions))
+                        return false;
+                    continue;
+                }
+
+                UtilityLogger.Log($"Processing permissions for log subgroup [{relatedGroup.ID}]");
+                if (!relatedGroup.VerifyPermissionsRecursive(permissions, checkedEntries))
+                    return false;
+            }
+            return true;
         }
     }
 }

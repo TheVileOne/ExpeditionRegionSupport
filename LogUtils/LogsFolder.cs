@@ -10,7 +10,7 @@ using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
 
 namespace LogUtils
 {
-    public static class LogsFolder
+    public static partial class LogsFolder
     {
         /// <summary>
         /// Event signals that the log directory is about to be moved, or renamed
@@ -70,6 +70,11 @@ namespace LogUtils
         /// A flag that indicates whether the log directory contains eligible log files
         /// </summary>
         public static bool IsManagingFiles { get; private set; }
+
+        /// <summary>
+        /// Manages subfolders and their associated log groups within the log directory
+        /// </summary>
+        internal static FolderProcessor Processor = new FolderProcessor();
 
         static LogsFolder()
         {
@@ -181,7 +186,7 @@ namespace LogUtils
         {
             LogProperties properties = e.Properties;
 
-            if (!properties.IsNewInstance || properties is LogGroupProperties || !Exists) return; //Eligibility only applies to newly created log properties
+            if (!properties.IsNewInstance || !Exists) return; //Eligibility only applies to newly created log properties
 
             if (properties.LogsFolderEligible && properties.LogsFolderAware)
                 AddToFolder(properties);
@@ -240,8 +245,9 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Transfers a log file to the Logs folder (when it exists)
+        /// Transfers log files, and folders associated with the properties instance to the Logs folder
         /// </summary>
+        /// <remarks>Avoid calling when Logs folder doesn't exist. This method is not meant to be called without checking first.</remarks>
         internal static void AddToFolder(LogProperties properties)
         {
             if (!UtilityCore.IsControllingAssembly) return;
@@ -422,6 +428,13 @@ namespace LogUtils
             /// The result is associated with an accurate path record
             /// </summary>
             public bool IsResultFromPathHistory;
+        }
+
+        public enum EligibilityResult
+        {
+            Success,
+            InsufficientPermissions,
+            PathIneligible,
         }
     }
 }

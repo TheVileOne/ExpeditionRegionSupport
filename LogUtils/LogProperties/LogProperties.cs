@@ -548,7 +548,7 @@ namespace LogUtils.Properties
             OnStartup();
         }
 
-        internal void OnStartup()
+        internal virtual void OnStartup()
         {
             if (!StartupRoutineRequired)
             {
@@ -563,8 +563,10 @@ namespace LogUtils.Properties
             if (!OverwriteLog)
                 FileExists = File.Exists(CurrentFilePath);
 
+            bool isGroupDeferred = Group != null && !ID.Registered;
+
             //When the Logs folder is available, favor that path over the original path to the log file
-            if (LogsFolderAware && LogsFolder.Exists)
+            if (LogsFolderAware && isGroupDeferred && LogsFolder.Exists)
                 LogsFolder.AddToFolder(this);
         }
 

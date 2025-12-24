@@ -167,6 +167,11 @@ namespace LogUtils
             return entries.Where(entry => entry.IsFolderGroup);
         }
 
+        public static IEnumerable<LogGroupProperties> WithoutFolder(this IEnumerable<LogGroupProperties> entries)
+        {
+            return entries.Where(entry => !entry.IsFolderGroup);
+        }
+
         public static IEnumerable<LogGroupProperties> HasPath(this IEnumerable<LogGroupProperties> entries, string searchPath)
         {
             return entries.Where(entry => PathUtils.ContainsOtherPath(entry.CurrentFolderPath, searchPath));
