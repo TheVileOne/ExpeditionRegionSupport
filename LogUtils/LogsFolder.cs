@@ -71,11 +71,6 @@ namespace LogUtils
         /// </summary>
         public static bool IsManagingFiles { get; private set; }
 
-        /// <summary>
-        /// Manages subfolders and their associated log groups within the log directory
-        /// </summary>
-        internal static FolderProcessor Processor = new FolderProcessor();
-
         static LogsFolder()
         {
             UtilityCore.EnsureInitializedState();

@@ -13,44 +13,68 @@ using PermissionSet = (bool CanMove, bool IsAware, bool IsEligible);
 
 namespace LogUtils
 {
-    public partial class LogsFolder
+    public static partial class LogsFolder
     {
-        internal static void ProcessGroup(LogGroupProperties group)
-        {
-            Processor.Process(group);
-        }
+        /// <summary>
+        /// Manages subfolders and their associated log groups within the log directory
+        /// </summary>
+        internal static FolderProcessor Processor = new FolderProcessor();
 
+        /// <summary>
+        /// Attempts to move eligible log groups to Logs folder
+        /// </summary>
         internal static void AddGroupsToFolder()
         {
             if (!Exists) return;
 
-            LogGroupProperties[] untargetedGroups = null;
-
-            ThreadSafeWorker worker = new ThreadSafeWorker(Processor.TopLevelEntries.GetLocks());
-
-            worker.DoWork(() =>
-            {
-                //When the Logs folder is available, favor that path over the original path to the log file
-                foreach (IEnumerable<LogGroupProperties> entryGroup in Processor.GroupTopLevelEntries())
-                {
-                    //Don't handle untargeted groups until after all folder groups are handled first
-                    if (untargetedGroups == null && !entryGroup.First().IsFolderGroup)
-                    {
-                        untargetedGroups = entryGroup.ToArray();
-                        continue;
-                    }
-
-                    AddGroupsToFolder(entryGroup);
-                }
-
-                //Figure out which log files need to be handled from the untargeted groups here
-            });
+            AddGroupsToFolder(Processor.GroupTopLevelEntries());
         }
 
-        internal static void AddGroupsToFolder(IEnumerable<LogGroupProperties> entries)
+        internal static void AddGroupsToFolder(IEnumerable<IEnumerable<LogGroupProperties>> entryGroups)
         {
-            entries = entries.ToArray();
+            LogGroupProperties[] untargetedGroups = null;
 
+            //When the Logs folder is available, favor that path over the original path to the log file
+            foreach (IEnumerable<LogGroupProperties> entryGroup in entryGroups)
+            {
+                //Don't handle untargeted groups until after all folder groups are handled first
+                if (isUntargetedGroup(entryGroup))
+                {
+                    untargetedGroups = entryGroup.ToArray();
+                    continue;
+                }
+
+                ThreadSafeWorker worker = new ThreadSafeWorker(entryGroup.GetLocks());
+
+                worker.DoWork(() =>
+                {
+                    AddGroupsToFolder(entryGroup.ToArray());
+                });
+            }
+
+            //Figure out which log files need to be handled from the untargeted groups here
+            if (untargetedGroups != null)
+            {
+                UtilityLogger.Log("Processing untargeted log groups"); //This should only log once
+                UtilityLogger.Log($"Detected {untargetedGroups.Length} group(s)");
+
+                foreach (LogGroupProperties group in untargetedGroups)
+                {
+                    
+
+                }
+            }
+
+            bool isUntargetedGroup(IEnumerable<LogGroupProperties> entryGroup)
+            {
+                if (untargetedGroups != null) //Only one of the groups can be the untargeted group
+                    return false;
+                return !entryGroup.First().IsFolderGroup;
+            }
+        }
+
+        internal static void AddGroupsToFolder(LogGroupProperties[] entries)
+        {
             LogGroupProperties firstEntry = entries.First();
 
             if (!firstEntry.IsFolderGroup)
@@ -69,11 +93,16 @@ namespace LogUtils
 
             processEntries(moveGroupIntoSubFolder);
 
+            //Since we could not move the entire folder - we need to check each subgroup
+            AddGroupsToFolder(Processor.GroupTopLevelEntries(firstEntry));
+
             void processEntries(Action<LogGroupProperties> moveAction)
             {
                 Dictionary<LogID, Exception> errors = null;
                 foreach (LogGroupProperties target in entries)
                 {
+                    UtilityLogger.Log($"Processing {target.ID} with {target.Members.Count} entries");
+
                     //The first obtained result involves potential embedded subgroups, and other independent log files. This check is exclusive to this
                     //group's members in particular. An unsuccessful result indicates we should not move any members in this log group.
                     EligibilityResult result = checkEligibilityRequirementsThisEntry(target);
@@ -160,7 +189,7 @@ namespace LogUtils
             LogGroupMover groupMover = new LogGroupMover(newGroupPath)
             {
                 FailProtocol = ExceptionHandler.FailProtocol.Throw,
-                FolderCreationProtocol = FolderCreationProtocol.CreateFolder,
+                FolderCreationProtocol = target.IsFolderGroup ? FolderCreationProtocol.CreateFolder : FolderCreationProtocol.FailToCreate,
                 Conditions = requiresMoveCheck
             };
             groupMover.Move((LogGroupID)target.ID, MoveBehavior.FilesOnly);
@@ -296,79 +325,71 @@ namespace LogUtils
 
         internal class FolderProcessor
         {
-            private HashSet<LogGroupProperties> checkedEntries;
-            internal List<LogGroupProperties> TopLevelEntries;
-
-            /// <summary>
-            /// Identify where this entry belongs in a group folder structure (i.e. is it a toplevel group, or nested within some other group) 
-            /// </summary>
-            internal void Process(LogGroupProperties entry)
-            {
-                if (!entry.IsFolderGroup)
-                {
-                    checkedEntries.Add(entry);
-                    TopLevelEntries.Add(entry); //For lack of a better place for it, store it with the other toplevel groups
-                    return;
-                }
-
-                //Replace toplevel entries contained by the current group path 
-                checkedEntries.RemoveWhere(entryBelongsToGroup);
-
-                foreach (var relatedEntry in entry.AllGroupsSharingMyFolder())
-                {
-                    if (!checkedEntries.Add(relatedEntry))
-                        continue;
-
-                    if (relatedEntry.CurrentFolderPath.Length > entry.CurrentFolderPath.Length) //Shared folder paths can only be equal, or greater in length
-                    {
-                        UtilityLogger.Log("Group entry contained within another group's folder");
-                        continue;
-                    }
-
-                    //Entry here could be a new group path, or be an existing duplicate toplevel group 
-                    TopLevelEntries.Add(entry);
-                }
-
-                bool entryBelongsToGroup(LogGroupProperties otherEntry)
-                {
-                    int currentPathLength = entry.CurrentFilePath.Length;
-                    int otherPathLength = otherEntry.CurrentFolderPath.Length;
-
-                    if (currentPathLength <= otherPathLength) //Entry belongs to group when it belongs to a subpath
-                        return false;
-                    return PathUtils.ContainsOtherPath(entry.CurrentFilePath, otherEntry.CurrentFilePath);
-                }
-            }
-
-            /// <summary>
-            /// Filters out all toplevel entries that qualify as sharing a filepath with another entry
-            /// </summary>
-            internal IEnumerable<LogGroupProperties> GetUniqueTopLevelEntries()
-            {
-                List<string> checkedPaths = new List<string>();
-                foreach (var entry in TopLevelEntries)
-                {
-                    if (!entry.IsFolderGroup || checkedPaths.Exists(path => PathUtils.PathsAreEqual(path, entry.CurrentFolderPath)))
-                        continue;
-
-                    checkedPaths.Add(entry.CurrentFolderPath);
-                    yield return entry;
-                }
-                yield break;
-            }
-
-            internal LogGroupProperties[] GetDuplicateTopLevelEntries(LogGroupProperties entry)
-            {
-                var duplicateEntries = TopLevelEntries.Where(otherEntry => PathUtils.PathsAreEqual(entry.CurrentFolderPath, otherEntry.CurrentFolderPath));
-                return duplicateEntries.ToArray();
-            }
-
             /// <summary>
             /// Groups entries that should be processed together (because they share the same path, or don't have a path)
             /// </summary>
             internal IEnumerable<IEnumerable<LogGroupProperties>> GroupTopLevelEntries()
             {
-                return TopLevelEntries.GroupBy(p => p.CurrentFolderPath, ComparerUtils.PathComparer);
+                List<LogGroupProperties> topLevelEntries = getTopLevelEntries();
+
+                return topLevelEntries.GroupBy(p => p.CurrentFolderPath, ComparerUtils.PathComparer);
+            }
+
+            internal IEnumerable<IEnumerable<LogGroupProperties>> GroupTopLevelEntries(LogGroupProperties target)
+            {
+                List<LogGroupProperties> topLevelEntries = getTopLevelEntries(target);
+
+                return topLevelEntries.GroupBy(p => p.CurrentFolderPath, ComparerUtils.PathComparer);
+            }
+
+            private List<LogGroupProperties> getTopLevelEntries()
+            {
+                return getTopLevelEntries(LogProperties.PropertyManager.GroupProperties);
+            }
+
+            private List<LogGroupProperties> getTopLevelEntries(LogGroupProperties target)
+            {
+                return getTopLevelEntries(target.AllGroupsSharingMyFolder());
+            }
+
+            private List<LogGroupProperties> getTopLevelEntries(IEnumerable<LogGroupProperties> entriesToCheck)
+            {
+                List<LogGroupProperties> topLevelEntries = new List<LogGroupProperties>();
+                foreach (LogGroupProperties uncheckedEntry in entriesToCheck)
+                {
+                    if (!uncheckedEntry.IsFolderGroup)
+                    {
+                        //For lack of a better place for them, consider untargeted groups as toplevel
+                        topLevelEntries.Add(uncheckedEntry);
+                        continue;
+                    }
+
+                    if (isTopLevel(uncheckedEntry))
+                    {
+                        //Remove any entries that belong to the unchecked entry
+                        topLevelEntries.RemoveAll(entry => entryBelongsToGroup(uncheckedEntry, entry));
+                        topLevelEntries.Add(uncheckedEntry);
+                    }
+                }
+                return topLevelEntries;
+
+                bool isTopLevel(LogGroupProperties uncheckedEntry)
+                {
+                    return topLevelEntries.All(entry => !entryBelongsToGroup(entry, uncheckedEntry));
+                }
+            }
+
+            internal bool entryBelongsToGroup(LogGroupProperties entry, LogGroupProperties entryOther)
+            {
+                if (!entry.IsFolderGroup || !entryOther.IsFolderGroup)
+                    return false;
+
+                int currentPathLength = entry.CurrentFolderPath.Length;
+                int otherPathLength = entryOther.CurrentFolderPath.Length;
+
+                if (currentPathLength <= otherPathLength) //Entry belongs to group when it belongs to a subpath
+                    return false;
+                return PathUtils.ContainsOtherPath(entry.CurrentFolderPath, entryOther.CurrentFolderPath);
             }
         }
     }

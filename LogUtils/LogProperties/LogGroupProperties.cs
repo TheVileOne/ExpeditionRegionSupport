@@ -62,7 +62,8 @@ namespace LogUtils.Properties
                 return;
             }
             StartupRoutineRequired = false;
-            LogsFolder.ProcessGroup(this);
+            //TODO: New log files need to handle this
+            //LogsFolder.ProcessGroup(this);
         }
 
         /// <inheritdoc/>
