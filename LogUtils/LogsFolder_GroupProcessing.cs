@@ -27,10 +27,10 @@ namespace LogUtils
         {
             if (!Exists) return;
 
-            AddGroupsToFolder(Processor.GroupTopLevelEntries());
+            addGroupsToFolder(Processor.GroupTopLevelEntries());
         }
 
-        internal static void AddGroupsToFolder(IEnumerable<IEnumerable<LogGroupProperties>> entryGroups)
+        private static void addGroupsToFolder(IEnumerable<IEnumerable<LogGroupProperties>> entryGroups)
         {
             LogGroupProperties[] untargetedGroups = null;
 
@@ -48,7 +48,7 @@ namespace LogUtils
 
                 worker.DoWork(() =>
                 {
-                    AddGroupsToFolder(entryGroup.ToArray());
+                    addGroupsToFolder(entryGroup.ToArray());
                 });
             }
 
@@ -73,7 +73,7 @@ namespace LogUtils
             }
         }
 
-        internal static void AddGroupsToFolder(LogGroupProperties[] entries)
+        private static void addGroupsToFolder(LogGroupProperties[] entries)
         {
             LogGroupProperties firstEntry = entries.First();
 
@@ -94,14 +94,14 @@ namespace LogUtils
             processEntries(moveGroupIntoSubFolder);
 
             //Since we could not move the entire folder - we need to check each subgroup
-            AddGroupsToFolder(Processor.GroupTopLevelEntries(firstEntry));
+            addGroupsToFolder(Processor.GroupTopLevelEntries(firstEntry));
 
             void processEntries(Action<LogGroupProperties> moveAction)
             {
                 Dictionary<LogID, Exception> errors = null;
                 foreach (LogGroupProperties target in entries)
                 {
-                    UtilityLogger.Log($"Processing {target.ID} with {target.Members.Count} entries");
+                    UtilityLogger.Log($"Processing {target.ID} with {target.Members.Count} members");
 
                     //The first obtained result involves potential embedded subgroups, and other independent log files. This check is exclusive to this
                     //group's members in particular. An unsuccessful result indicates we should not move any members in this log group.
@@ -163,8 +163,7 @@ namespace LogUtils
             }
             catch (Exception ex)
             {
-                UtilityLogger.LogWarning("Failed to move folder");
-                UtilityLogger.LogError(ex);
+                UtilityLogger.LogError("Failed to move folder", ex);
             }
             return false;
         }
