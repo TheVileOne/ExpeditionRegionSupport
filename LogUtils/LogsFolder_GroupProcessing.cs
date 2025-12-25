@@ -1,4 +1,5 @@
-﻿using LogUtils.Enums;
+﻿using LogUtils.Diagnostics;
+using LogUtils.Enums;
 using LogUtils.Helpers;
 using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.FileHandling;
@@ -141,62 +142,44 @@ namespace LogUtils
 
         private static void moveGroupIntoSubFolder(LogGroupProperties target)
         {
-            UtilityLogger.Log("Checking for existing group folder");
-            string newGroupPath = EnsureGroupFolderExists(target);
-            moveGroupFiles(target, newGroupPath);
+            string newGroupPath = getDestinationPath(target);
+
+            LogGroupMover groupMover = new LogGroupMover(newGroupPath)
+            {
+                FailProtocol = ExceptionHandler.FailProtocol.Throw,
+                FolderCreationProtocol = FolderCreationProtocol.EnsurePathExists,
+                Conditions = requiresMoveCheck
+            };
+            groupMover.Move((LogGroupID)target.ID, MoveBehavior.FilesOnly);
         }
 
         private static void moveGroupFilesOnly(LogGroupProperties target)
         {
-            UtilityLogger.Log("Moving files in progress");
-            moveGroupFiles(target, CurrentPath);
-        }
+            string newGroupPath = getDestinationPath(target);
 
-        private static void moveGroupFiles(LogGroupProperties target, string movePath)
-        {
-            ThreadSafeWorker worker = new ThreadSafeWorker(target.Members.GetLocks());
-
-            worker.DoWork(() =>
+            LogGroupMover groupMover = new LogGroupMover(newGroupPath)
             {
-                bool allFilesMoved = true;
-                UtilityLogger.Log("Moving all group members");
-                foreach (var member in target.Members)
-                {
-                    //This log file was already handled when files were processed, or earlier by another group
-                    if (member.Registered || PathUtils.ContainsOtherPath(member.Properties.CurrentFolderPath, CurrentPath))
-                        continue;
-
-                    FileStatus moveResult = LogFile.Move(member, movePath);
-
-                    if (moveResult != FileStatus.MoveComplete && moveResult != FileStatus.NoActionRequired)
-                        allFilesMoved = false;
-                }
-
-                if (!allFilesMoved)
-                {
-                    UtilityLogger.LogWarning("Unable to move all group files");
-                }
-                else
-                {
-                    UtilityLogger.Log("All files moved successfully");
-                }
-            });
+                FailProtocol = ExceptionHandler.FailProtocol.Throw,
+                FolderCreationProtocol = FolderCreationProtocol.CreateFolder,
+                Conditions = requiresMoveCheck
+            };
+            groupMover.Move((LogGroupID)target.ID, MoveBehavior.FilesOnly);
         }
 
-        internal static string EnsureGroupFolderExists(LogGroupProperties target)
+        static bool requiresMoveCheck(LogID logID)
         {
+            return !logID.Registered && !PathUtils.ContainsOtherPath(logID.Properties.CurrentFolderPath, CurrentPath);
+        }
+
+        private static string getDestinationPath(LogGroupProperties target)
+        {
+            if (!target.IsFolderGroup)
+                return CurrentPath;
+
             string targetDirName = Path.GetFileName(target.CurrentFilePath);
 
             //Take the parent directory of the group, and make it the new destination inside Logs folder
-            string newTargetPath = Path.Combine(CurrentPath, targetDirName);
-
-            if (!Directory.Exists(newTargetPath))
-            {
-                UtilityLogger.Log("Creating new group folder");
-                UtilityLogger.Log(newTargetPath);
-                Directory.CreateDirectory(newTargetPath);
-            }
-            return newTargetPath;
+            return Path.Combine(CurrentPath, targetDirName);
         }
 
         private static EligibilityResult checkEligibilityRequirementsThisEntry(LogGroupProperties target)

@@ -153,6 +153,66 @@ namespace LogUtils.Helpers
         {
         }
 
+        private static void moveGroupIntoSubFolder(LogGroupProperties target)
+        {
+            UtilityLogger.Log("Checking for existing group folder");
+            string newGroupPath = EnsureGroupFolderExists(target);
+            moveGroupFiles(target, newGroupPath);
+        }
+
+        private static void moveGroupFilesOnly(LogGroupProperties target)
+        {
+            UtilityLogger.Log("Moving files in progress");
+            moveGroupFiles(target, CurrentPath);
+        }
+
+        private static void moveGroupFiles(LogGroupProperties target, string movePath)
+        {
+            ThreadSafeWorker worker = new ThreadSafeWorker(target.Members.GetLocks());
+
+            worker.DoWork(() =>
+            {
+                bool allFilesMoved = true;
+                UtilityLogger.Log("Moving all group members");
+                foreach (var member in target.Members)
+                {
+                    //This log file was already handled when files were processed, or earlier by another group
+                    if (member.Registered || PathUtils.ContainsOtherPath(member.Properties.CurrentFolderPath, CurrentPath))
+                        continue;
+
+                    FileStatus moveResult = LogFile.Move(member, movePath);
+
+                    if (moveResult != FileStatus.MoveComplete && moveResult != FileStatus.NoActionRequired)
+                        allFilesMoved = false;
+                }
+
+                if (!allFilesMoved)
+                {
+                    UtilityLogger.LogWarning("Unable to move all group files");
+                }
+                else
+                {
+                    UtilityLogger.Log("All files moved successfully");
+                }
+            });
+        }
+
+        internal static string EnsureGroupFolderExists(LogGroupProperties target)
+        {
+            string targetDirName = Path.GetFileName(target.CurrentFilePath);
+
+            //Take the parent directory of the group, and make it the new destination inside Logs folder
+            string newTargetPath = Path.Combine(CurrentPath, targetDirName);
+
+            if (!Directory.Exists(newTargetPath))
+            {
+                UtilityLogger.Log("Creating new group folder");
+                UtilityLogger.Log(newTargetPath);
+                Directory.CreateDirectory(newTargetPath);
+            }
+            return newTargetPath;
+        }
+
         /// <summary>
         /// Example showing how API can be used by a mod to move their group folder, or its contents around
         /// </summary>
