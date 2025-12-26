@@ -40,7 +40,7 @@ namespace LogUtils.Helpers
             else
             {
                 //Take the subfolder part of the path and assign it a new root
-                string subFolderPath = currentFolderPath.Substring(currentPath.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                string subFolderPath = currentFolderPath.Substring(Math.Min(currentPath.Length, currentFolderPath.Length)).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                 return Path.Combine(newPath, subFolderPath);
             }
         }
