@@ -236,5 +236,11 @@ namespace LogUtils.Helpers
                 throw new PermissionDeniedException($"Permission was not given to {action}.");
             }
         }
+
+        public static IEnumerable<LogGroupID> GroupsSharingThisPath(string path)
+        {
+            LogGroupID groupID = LogGroupID.Factory.CreateID("LogUtils", path);
+            return groupID.Properties.AllGroupsSharingMyFolder().GetIDs();
+        }
     }
 }

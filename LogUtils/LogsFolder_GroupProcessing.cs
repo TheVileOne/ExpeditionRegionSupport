@@ -33,8 +33,6 @@ namespace LogUtils
         private static void addGroupsToFolder(IEnumerable<IEnumerable<LogGroupProperties>> entryGroups)
         {
             LogGroupProperties[] untargetedGroups = null;
-
-            //When the Logs folder is available, favor that path over the original path to the log file
             foreach (IEnumerable<LogGroupProperties> entryGroup in entryGroups)
             {
                 //Don't handle untargeted groups until after all folder groups are handled first
@@ -52,17 +50,43 @@ namespace LogUtils
                 });
             }
 
-            //Figure out which log files need to be handled from the untargeted groups here
+            //Handle all groups that do not specify a folder path
             if (untargetedGroups != null)
             {
                 UtilityLogger.Log("Processing untargeted log groups"); //This should only log once
-                UtilityLogger.Log($"Detected {untargetedGroups.Length} group(s)");
+                UtilityLogger.Log($"Detected {untargetedGroups.Count()} group(s)");
 
-                foreach (LogGroupProperties group in untargetedGroups)
+                ThreadSafeWorker worker = new ThreadSafeWorker(untargetedGroups.GetLocks())
                 {
-                    
+                    UseEnumerableWrapper = false
+                };
 
-                }
+                worker.DoWork(() =>
+                {
+                    addGroupsToFolder(untargetedGroups);
+                });
+
+                //foreach (LogGroupProperties target in untargetedGroups)
+                //{
+                //    UtilityLogger.Log($"Processing {target.ID} with {target.Members.Count} members");
+
+                //    EligibilityResult result = checkEligibilityRequirementsThisEntry(target);
+
+                //    if (result == EligibilityResult.InsufficientPermissions)
+                //    {
+                //        UtilityLogger.Log($"{target.ID} is currently ineligible to be moved to Logs folder");
+                //        continue;
+                //    }
+
+                //    foreach (LogID logID in target.Members)
+                //    {
+                //        //Registered log files are handled individually, and log files with groups were handled before this method was called
+                //        if (logID.Registered || LogGroup.GroupsSharingThisPath(logID.Properties.CurrentFolderPath).Any())
+                //            continue;
+
+                //        //All other entries are eligible to be moved
+                //    }
+                //}
             }
 
             bool isUntargetedGroup(IEnumerable<LogGroupProperties> entryGroup)
@@ -176,7 +200,7 @@ namespace LogUtils
             {
                 FailProtocol = ExceptionHandler.FailProtocol.Throw,
                 FolderCreationProtocol = FolderCreationProtocol.EnsurePathExists,
-                Conditions = requiresMoveCheck
+                Conditions = getMoveRequirements(target)
             };
             groupMover.Move((LogGroupID)target.ID, MoveBehavior.FilesOnly);
         }
@@ -189,14 +213,25 @@ namespace LogUtils
             {
                 FailProtocol = ExceptionHandler.FailProtocol.Throw,
                 FolderCreationProtocol = target.IsFolderGroup ? FolderCreationProtocol.CreateFolder : FolderCreationProtocol.FailToCreate,
-                Conditions = requiresMoveCheck
+                Conditions = getMoveRequirements(target)
             };
             groupMover.Move((LogGroupID)target.ID, MoveBehavior.FilesOnly);
         }
 
-        static bool requiresMoveCheck(LogID logID)
+        private static MoveCondition getMoveRequirements(LogGroupProperties target)
         {
-            return !logID.Registered && !PathUtils.ContainsOtherPath(logID.Properties.CurrentFolderPath, CurrentPath);
+            return requiresMoveCheck;
+
+            bool requiresMoveCheck(LogID logID)
+            {
+                //Conditions explanation
+                //I.   Registered log files are handled when properties file is read. Log groups should not have registered members under normal circumstances anyways.
+                //II.  Untargeted log groups are handled last. We need this extra check to ensure that group files are not handled more than once
+                //III. The current path of the log file is already inside the Logs folder
+                return !logID.Registered
+                    && (target.IsFolderGroup || !LogGroup.GroupsSharingThisPath(logID.Properties.CurrentFolderPath).Any())
+                    && !PathUtils.ContainsOtherPath(logID.Properties.CurrentFolderPath, CurrentPath);
+            }
         }
 
         private static string getDestinationPath(LogGroupProperties target)
@@ -222,7 +257,7 @@ namespace LogUtils
             Lock groupLock = target.GetLock();
             using (groupLock.Acquire())
             {
-                permissionSet.CanMove = target.VerifyPermissions(FolderPermissions.Move);
+                permissionSet.CanMove = !target.IsFolderGroup || target.VerifyPermissions(FolderPermissions.Move);
                 permissionSet.IsAware = target.LogsFolderAware;
                 permissionSet.IsEligible = target.LogsFolderEligible;
             }

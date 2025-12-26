@@ -138,6 +138,14 @@ namespace LogUtils
         }
         #endregion
         #region Search methods (LogGroupID/LogGroupProperties)
+        /// <summary>
+        /// Returns all <see cref="LogGroupID"/> instances belonging to entries in this enumeration
+        /// </summary>
+        public static IEnumerable<LogGroupID> GetIDs(this IEnumerable<LogGroupProperties> entries)
+        {
+            return entries.Select(entry => entry.ID)
+                          .Cast<LogGroupID>();
+        }
 
         /// <inheritdoc cref="GetProperties(IEnumerable{LogID})"/>
         public static IEnumerable<LogGroupProperties> GetProperties(this IEnumerable<LogGroupID> entries)
