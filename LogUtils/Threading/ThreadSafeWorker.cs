@@ -22,15 +22,17 @@ namespace LogUtils.Threading
         /// </summary>
         public TimeSpan RetryInterval = TimeSpan.FromMilliseconds(5);
 
-        public ThreadSafeWorker(object lockObject)
+        public ThreadSafeWorker(params object[] locks)
         {
-            UseEnumerableWrapper = false;
-            _locks = [lockObject];
+            _locks = locks;
+            UseEnumerableWrapper = false; //Even if the user passes in an array, it should be safe from collection enumeration issues 
         }
 
         public ThreadSafeWorker(IEnumerable<object> locks)
         {
             _locks = locks;
+            if (_locks is object[])
+                UseEnumerableWrapper = false;
         }
 
         public void DoWork(Action work)
