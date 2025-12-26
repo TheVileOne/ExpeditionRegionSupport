@@ -181,7 +181,7 @@ namespace LogUtils
 
         private string getDestinationPath(LogID target, LogGroupID groupTarget)
         {
-            if (!PreserveFolderStructure)
+            if (!PreserveFolderStructure || !groupTarget.Properties.IsFolderGroup)
                 return TargetPath;
 
             string subFolderPath = PathUtils.TrimCommonRoot(target.Properties.CurrentFolderPath, groupTarget.Properties.CurrentFolderPath);
