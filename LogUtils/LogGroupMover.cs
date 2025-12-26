@@ -28,14 +28,37 @@ namespace LogUtils
         public FolderCreationProtocol FolderCreationProtocol = FolderCreationProtocol.FailToCreate;
 
         /// <summary>
-        /// The behavior when attempting to move a group without members
+        /// When false the mover will avoid creating an empty folder when given no files to move 
         /// </summary>
         public bool AllowEmptyFolders;
 
         /// <summary>
+        /// The structure of the folder hierarchy of a folder group will be kept
+        /// </summary>
+        public bool PreserveFolderStructure = true;
+
+        /// <summary>
+        /// Controls whether or not the move operation applies to group files targetting a path other than the group folder path
+        /// </summary>
+        public bool IgnoreOutOfFolderFiles;
+
+        private MoveCondition _condition;
+        /// <summary>
         /// Optional conditions to check before a file is moved
         /// </summary>
-        public MoveCondition Conditions;
+        public MoveCondition Conditions
+        {
+            get => _condition;
+            set
+            {
+                if (value == null)
+                {
+                    _condition = null;
+                    return;
+                }
+                _condition += value;
+            }
+        }
 
         /// <summary>
         /// Create a object for moving groups of log files
@@ -99,8 +122,8 @@ namespace LogUtils
                         LogGroupID groupTarget = target;
                         foreach (LogID target in moveTargets)
                         {
-                            string subFolderPath = PathUtils.TrimCommonRoot(target.Properties.CurrentFolderPath, groupTarget.Properties.CurrentFolderPath);
-                            FileStatus moveResult = LogFile.Move(target, Path.Combine(TargetPath, subFolderPath));
+                            string newPath = getDestinationPath(target, groupTarget);
+                            FileStatus moveResult = LogFile.Move(target, newPath);
 
                             if (moveResult != FileStatus.MoveComplete && moveResult != FileStatus.NoActionRequired)
                             {
@@ -130,12 +153,39 @@ namespace LogUtils
             }
         }
 
+        /// <summary>
+        /// Applies filter conditions to group members
+        /// </summary>
         private LogID[] getFilesToMove(LogGroupID target)
         {
-            if (Conditions == null)
-                return target.Properties.Members.ToArray();
+            var members = target.Properties.Members;
 
-            return target.Properties.Members.Where(new Func<LogID, bool>(Conditions)).ToArray();
+            if (members.Count == 0)
+                return [];
+
+            //There is no such thing as external members for non-folder groups
+            bool ignoreExternalMembers = target.Properties.IsFolderGroup && IgnoreOutOfFolderFiles;
+
+            LogID[] folderMembers = null;
+            if (ignoreExternalMembers) //Avoids unnecessary execution
+                folderMembers = target.Properties.GetFolderMembers().ToArray();
+
+            return members.Where(logID =>
+            {
+                if (ignoreExternalMembers && !folderMembers.Contains(logID))
+                    return false;
+
+                return Conditions?.Invoke(logID) == true;
+            }).ToArray();
+        }
+
+        private string getDestinationPath(LogID target, LogGroupID groupTarget)
+        {
+            if (!PreserveFolderStructure)
+                return TargetPath;
+
+            string subFolderPath = PathUtils.TrimCommonRoot(target.Properties.CurrentFolderPath, groupTarget.Properties.CurrentFolderPath);
+            return Path.Combine(TargetPath, subFolderPath);
         }
 
         private void prepareDestinationFolder(LogID[] moveTargets)
