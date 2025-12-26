@@ -12,25 +12,36 @@ namespace LogUtils.Helpers
 {
     public static class LogGroup
     {
+        internal static void ChangePath(LogGroupID group, string currentPath, string newPath)
+        {
+            string newFolderPath = getUpdatedPath(group, currentPath, newPath);
+            group.Properties.ChangePath(newFolderPath, applyToMembers: false);
+        }
+
         internal static void ChangePath(IEnumerable<LogID> logFilesInFolder, string currentPath, string newPath)
         {
-            //Update path info for affected log files
             foreach (LogID logFile in logFilesInFolder)
             {
-                string currentFolderPath = logFile.Properties.CurrentFolderPath;
+                string newFolderPath = getUpdatedPath(logFile, currentPath, newPath);
+                logFile.Properties.ChangePath(newFolderPath);
+            }
+        }
 
-                bool isTopLevel = currentFolderPath.Length == currentPath.Length;
-                if (isTopLevel)
-                {
-                    //Top-level files can directly be assigned the new path (most common case)
-                    logFile.Properties.ChangePath(newPath);
-                }
-                else
-                {
-                    //Take the subfolder part of the path and assign it a new root
-                    string subFolderPath = currentFolderPath.Substring(currentPath.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                    logFile.Properties.ChangePath(Path.Combine(newPath, subFolderPath));
-                }
+        private static string getUpdatedPath(LogID logID, string currentPath, string newPath)
+        {
+            string currentFolderPath = logID.Properties.CurrentFolderPath;
+
+            bool isTopLevel = currentFolderPath.Length == currentPath.Length;
+            if (isTopLevel)
+            {
+                //Top-level files can directly be assigned the new path (most common case)
+                return newPath;
+            }
+            else
+            {
+                //Take the subfolder part of the path and assign it a new root
+                string subFolderPath = currentFolderPath.Substring(currentPath.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                return Path.Combine(newPath, subFolderPath);
             }
         }
 
@@ -59,7 +70,6 @@ namespace LogUtils.Helpers
                 throwOnValidationFailed(group, FolderPermissions.Move);
 
                 string currentPath = group.Properties.CurrentFolderPath;
-
                 if (PathUtils.PathsAreEqual(currentPath, newPath))
                 {
                     UtilityLogger.Log("No move necessary");
@@ -93,7 +103,7 @@ namespace LogUtils.Helpers
                     foreach (LogGroupProperties entry in groupsSharingThisFolder)
                     {
                         //Members were handled in the helper method above
-                        entry.ChangePath(newPath, applyToMembers: false);
+                        ChangePath((LogGroupID)entry.ID, currentPath, newPath);
                     }
                 }
             }

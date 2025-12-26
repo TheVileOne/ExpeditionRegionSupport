@@ -71,30 +71,39 @@ namespace LogUtils
                 //Prepare the folder - the destination must exist before we can move files there
                 prepareDestinationFolder(moveTargets);
 
-                if (moveTargets.Length == 0)
-                    return;
-                UtilityLogger.Log($"Attempting to move {moveTargets.Length} log file(s)");
-
                 ThreadSafeWorker worker = new ThreadSafeWorker(moveTargets.GetLocks());
 
                 worker.DoWork(() =>
                 {
-                    bool allFilesMoved = true;
-                    foreach (LogID target in moveTargets)
+                    int filesMoved = 0;
+                    try
                     {
-                        FileStatus moveResult = LogFile.Move(target, TargetPath);
+                        if (moveTargets.Length == 0)
+                            return;
 
-                        if (moveResult != FileStatus.MoveComplete && moveResult != FileStatus.NoActionRequired)
-                            allFilesMoved = false;
-                    }
+                        UtilityLogger.Log($"Attempting to move {moveTargets.Length} log file(s)");
 
-                    if (!allFilesMoved)
-                    {
-                        UtilityLogger.LogWarning("Unable to move all group files");
+                        LogGroupID groupTarget = target;
+                        foreach (LogID target in moveTargets)
+                        {
+                            string subFolderPath = PathUtils.TrimCommonRoot(target.Properties.CurrentFolderPath, groupTarget.Properties.CurrentFolderPath);
+                            FileStatus moveResult = LogFile.Move(target, Path.Combine(TargetPath, subFolderPath));
+
+                            if (moveResult != FileStatus.MoveComplete && moveResult != FileStatus.NoActionRequired)
+                            {
+                                UtilityLogger.LogWarning("Move operation failed");
+                                continue;
+                            }
+                            filesMoved++;
+                        }
                     }
-                    else
+                    finally
                     {
-                        UtilityLogger.Log("All files moved successfully");
+                        if (moveBehavior == MoveBehavior.FilesAndGroup)
+                            target.Properties.ChangePath(TargetPath, applyToMembers: false);
+
+                        if (filesMoved == moveTargets.Length)
+                            UtilityLogger.Log("All files moved successfully");
                     }
                 });
             }

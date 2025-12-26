@@ -89,7 +89,14 @@ namespace LogUtils.Helpers.FileHandling
 
             PathInfo info = new PathInfo(path);
             PathInfo infoOther = new PathInfo(pathOther);
+            return FindCommonRoot(info, infoOther);
+        }
 
+        /// <summary>
+        /// Finds a path string that two provided paths have in common.
+        /// </summary>
+        public static string FindCommonRoot(PathInfo info, PathInfo infoOther)
+        {
             //Root should never be empty here
             string pathRoot = info.GetRoot();
             string pathRootOther = infoOther.GetRoot();
@@ -111,6 +118,25 @@ namespace LogUtils.Helpers.FileHandling
                            .Append(Path.DirectorySeparatorChar);
             }
             return pathBuilder.ToString().TrimEnd(Path.DirectorySeparatorChar);
+        }
+
+        /// <summary>
+        /// Trims the common difference between the first path and the second path from the first path. If the common difference will consume the path, an empty string
+        /// with be returned.
+        /// </summary>
+        /// <param name="path">First path to evaluate</param>
+        /// <param name="pathOther">Second path to evaluate</param>
+        public static string TrimCommonRoot(string path, string pathOther)
+        {
+            //Find the best fit
+            path = ResolvePath(path);
+            pathOther = ResolvePath(pathOther);
+
+            PathInfo info = new PathInfo(path);
+            PathInfo infoOther = new PathInfo(pathOther);
+            string commonRoot = FindCommonRoot(info, infoOther);
+
+            return path.Substring(Math.Min(commonRoot.Length + 1, path.Length));
         }
 
         public static string GetRandomFilename(string fileExt)
