@@ -68,13 +68,12 @@ namespace LogUtils
 
                 LogID[] moveTargets = getFilesToMove(target);
 
-                if (moveTargets.Length == 0)
-                    return;
-
-                UtilityLogger.Log($"Attempting to move {moveTargets.Length} log file(s)");
-
                 //Prepare the folder - the destination must exist before we can move files there
                 prepareDestinationFolder(moveTargets);
+
+                if (moveTargets.Length == 0)
+                    return;
+                UtilityLogger.Log($"Attempting to move {moveTargets.Length} log file(s)");
 
                 ThreadSafeWorker worker = new ThreadSafeWorker(moveTargets.GetLocks());
 
