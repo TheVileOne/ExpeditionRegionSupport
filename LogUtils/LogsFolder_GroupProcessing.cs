@@ -198,7 +198,7 @@ namespace LogUtils
 
             LogGroupMover groupMover = new LogGroupMover(newGroupPath)
             {
-                FailProtocol = ExceptionHandler.FailProtocol.Throw,
+                FailProtocol = FailProtocol.Throw,
                 FolderCreationProtocol = FolderCreationProtocol.EnsurePathExists,
                 Conditions = getMoveRequirements(target)
             };
@@ -211,7 +211,7 @@ namespace LogUtils
 
             LogGroupMover groupMover = new LogGroupMover(newGroupPath)
             {
-                FailProtocol = ExceptionHandler.FailProtocol.Throw,
+                FailProtocol = FailProtocol.Throw,
                 FolderCreationProtocol = target.IsFolderGroup ? FolderCreationProtocol.CreateFolder : FolderCreationProtocol.FailToCreate,
                 Conditions = getMoveRequirements(target)
             };

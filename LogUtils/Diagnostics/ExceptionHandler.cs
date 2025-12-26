@@ -55,18 +55,18 @@ namespace LogUtils.Diagnostics
         {
             exception.Data[DATA_CONTEXT] = context;
         }
+    }
 
-        /// <summary>
-        /// Represents common <see cref="Exception"/> handling procedures
-        /// </summary>
-        public enum FailProtocol
-        {
-            /// <summary>An <see cref="Exception"/> will log on a move error; expect return</summary>
-            LogAndIgnore,
-            /// <summary>No message will log on a move error; expect a silent return</summary>
-            FailSilently,
-            /// <summary>No message will log on a move error; expect an exception to be thrown</summary>
-            Throw,
-        }
+    /// <summary>
+    /// Represents common <see cref="Exception"/> handling procedures
+    /// </summary>
+    public enum FailProtocol
+    {
+        /// <summary>An <see cref="Exception"/> will log on a move error; expect return</summary>
+        LogAndIgnore,
+        /// <summary>No message will log on a move error; expect a silent return</summary>
+        FailSilently,
+        /// <summary>No message will log on a move error; expect an exception to be thrown</summary>
+        Throw,
     }
 }

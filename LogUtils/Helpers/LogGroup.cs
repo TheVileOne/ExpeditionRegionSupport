@@ -1,12 +1,10 @@
 ﻿using LogUtils.Diagnostics;
 using LogUtils.Enums;
 using LogUtils.Helpers.FileHandling;
-using LogUtils.Properties;
 using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace LogUtils.Helpers
 {
@@ -63,7 +61,7 @@ namespace LogUtils.Helpers
         {
             LogGroupMover groupMover = new LogGroupMover(newPath)
             {
-                FailProtocol = ExceptionHandler.FailProtocol.Throw
+                FailProtocol = FailProtocol.Throw
             };
 
             try
@@ -82,7 +80,7 @@ namespace LogUtils.Helpers
         {
             LogGroupMover groupMover = new LogGroupMover(newPath)
             {
-                FailProtocol = ExceptionHandler.FailProtocol.Throw
+                FailProtocol = FailProtocol.Throw
             };
             groupMover.Move(group);
         }
