@@ -202,7 +202,7 @@ namespace LogUtils
                 FolderCreationProtocol = FolderCreationProtocol.EnsurePathExists,
                 Conditions = getMoveRequirements(target)
             };
-            groupMover.Move((LogGroupID)target.ID, MoveBehavior.FilesAndGroup);
+            groupMover.Move((LogGroupID)target.ID);
         }
 
         private static void moveGroupFilesOnly(LogGroupProperties target)
@@ -215,7 +215,7 @@ namespace LogUtils
                 FolderCreationProtocol = target.IsFolderGroup ? FolderCreationProtocol.CreateFolder : FolderCreationProtocol.FailToCreate,
                 Conditions = getMoveRequirements(target)
             };
-            groupMover.Move((LogGroupID)target.ID, MoveBehavior.FilesAndGroup);
+            groupMover.Move((LogGroupID)target.ID);
         }
 
         private static MoveCondition getMoveRequirements(LogGroupProperties target)

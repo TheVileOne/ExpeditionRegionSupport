@@ -54,8 +54,18 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Move a log group to a target path
+        /// Moves log group files to a target path. If required, group path will be updated to reflect the new path.
         /// </summary>
+        /// <exception cref="InvalidOperationException">Target path isn't set, or is invalid</exception>
+        public void Move(LogGroupID target)
+        {
+            Move(target, target.Properties.IsFolderGroup ? MoveBehavior.FilesAndGroup : MoveBehavior.FilesOnly);
+        }
+
+        /// <summary>
+        /// Moves log group files to a target path. If specified, group path will be updated to reflect the new path.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Target path isn't set, or is invalid - OR - group does not support specified move operation</exception>
         public void Move(LogGroupID target, MoveBehavior moveBehavior)
         {
             try
@@ -64,7 +74,10 @@ namespace LogUtils
                     throw new InvalidOperationException("Target path isn't specified");
 
                 if (!target.Properties.IsFolderGroup)
-                    throw new InvalidOperationException("Group does not support folder operations");
+                {
+                    if (moveBehavior == MoveBehavior.FilesAndGroup)
+                        throw new InvalidOperationException("Group does not support folder operations");
+                }
 
                 LogID[] moveTargets = getFilesToMove(target);
 
