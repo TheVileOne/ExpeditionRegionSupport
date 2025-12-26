@@ -2,8 +2,10 @@
 using LogUtils.Enums;
 using LogUtils.Helpers;
 using LogUtils.Helpers.FileHandling;
+using LogUtils.Properties;
 using LogUtils.Threading;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using static LogUtils.Diagnostics.ExceptionHandler;
@@ -79,7 +81,10 @@ namespace LogUtils
         /// <summary>
         /// Moves log group files to a target path. If required, group path will be updated to reflect the new path.
         /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="target"/> is null</exception>
         /// <exception cref="InvalidOperationException">Target path isn't set, or is invalid</exception>
+        /// <exception cref="DirectoryNotFoundException">The directory was unable to be created</exception>
+        /// <exception cref="IOException">General IO exceptions (probably file is in use, or directory not found)</exception>
         public void Move(LogGroupID target)
         {
             Move(target, target.Properties.IsFolderGroup ? MoveBehavior.FilesAndGroup : MoveBehavior.FilesOnly);
@@ -88,11 +93,17 @@ namespace LogUtils
         /// <summary>
         /// Moves log group files to a target path. If specified, group path will be updated to reflect the new path.
         /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="target"/> is null</exception>
         /// <exception cref="InvalidOperationException">Target path isn't set, or is invalid - OR - group does not support specified move operation</exception>
+        /// <exception cref="DirectoryNotFoundException">The directory was unable to be created</exception>
+        /// <exception cref="IOException">General IO exceptions (probably file is in use, or directory not found)</exception>
         public void Move(LogGroupID target, MoveBehavior moveBehavior)
         {
             try
             {
+                if (target == null)
+                    throw new ArgumentNullException(nameof(target));
+
                 if (PathUtils.IsEmpty(TargetPath))
                     throw new InvalidOperationException("Target path isn't specified");
 
@@ -151,6 +162,145 @@ namespace LogUtils
                 };
                 handler.OnError(ex);
             }
+        }
+
+        /// <summary>
+        /// Moves a log group folder, and its contents to a target path
+        /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="target"/> is null</exception>
+        /// <exception cref="InvalidOperationException">Target path isn't set, or is invalid - OR - group does not support specified move operation</exception>
+        /// <exception cref="DirectoryNotFoundException">The directory was unable to be created</exception>
+        /// <exception cref="IOException">General IO exceptions (probably file is in use, or directory not found)</exception>
+        /// <exception cref="PermissionDeniedException">
+        /// LogUtils does not have permission from the log controller to move this folder
+        /// - OR - It is unsafe to move this folder</exception>
+        public void MoveFolder(LogGroupID target)
+        {
+            //TODO: This code is not fully thread safe. It is vulnerable to new files being added to the group folder after entries are processed.
+            //It is also vulnerable to the paths being retargeted before locks have been applied.
+            try
+            {
+                UtilityLogger.Log("Attempting to move folder");
+                if (target == null)
+                    throw new ArgumentNullException(nameof(target));
+
+                if (PathUtils.IsEmpty(TargetPath))
+                    throw new InvalidOperationException("Target path isn't specified");
+
+                if (PathUtils.IsEmpty(TargetPath))
+                    throw new InvalidOperationException("Target path cannot be null, or empty");
+
+                if (PathUtils.IsFilePath(TargetPath))
+                    throw new InvalidOperationException("Target path cannot contain a filename");
+
+                moveFolder(target);
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler handler = new LogGroupMoverExceptionHandler()
+                {
+                    Protocol = FailProtocol
+                };
+                handler.OnError(ex);
+            }
+        }
+
+        private void moveFolder(LogGroupID target)
+        {
+            Lock groupLock = target.Properties.GetLock();
+
+            using (groupLock.Acquire())
+            {
+                LogGroup.ThrowOnValidationFailed(target, FolderPermissions.Move);
+
+                string currentPath = target.Properties.CurrentFolderPath;
+                if (PathUtils.PathsAreEqual(currentPath, TargetPath))
+                {
+                    UtilityLogger.Log("No move necessary");
+                    return;
+                }
+
+                using (var scope = target.Properties.DemandFolderAccess())
+                {
+                    IReadOnlyCollection<LogGroupProperties> groupsSharingThisFolder = scope.Items;
+
+                    IEnumerable<LogGroupProperties> allOtherGroups =
+                        LogProperties.PropertyManager.GroupProperties
+                        .Except(groupsSharingThisFolder);
+
+                    //All known log file entries located within the group path
+                    IEnumerable<LogID> containedLogFiles = groupsSharingThisFolder
+                        .SelectMany(group => group.GetFolderMembers()) //Members targeting a folder, or subfolder of the group path
+                        .Union(allOtherGroups
+                               .GetMembers()               //Members belonging to each of the other groups
+                               .Concat(LogID.GetEntries()) //Individual log files (may or may not belong to a group)
+                               .FindAll(p => PathUtils.ContainsOtherPath(p.CurrentFolderPath, currentPath))
+                              );
+
+                    foreach (LogGroupProperties entry in groupsSharingThisFolder)
+                    {
+                        //Make sure that all groups that are assigned to this folder allow it to be moved
+                        LogGroup.DemandPermission((LogGroupID)entry.ID, FolderPermissions.Move);
+                    }
+                    MoveFolder(containedLogFiles.ToArray(), currentPath, TargetPath);
+
+                    foreach (LogGroupProperties entry in groupsSharingThisFolder)
+                    {
+                        //Members were handled in the helper method above
+                        LogGroup.ChangePath((LogGroupID)entry.ID, currentPath, TargetPath);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Process for moving a directory containing log files - assumes folder path is valid, and log files are located within the folder
+        /// </summary>
+        internal static void MoveFolder(IEnumerable<LogID> logFilesInFolder, string currentPath, string newPath)
+        {
+            ThreadSafeWorker worker = new ThreadSafeWorker(logFilesInFolder.GetLocks());
+
+            worker.DoWork(() =>
+            {
+                bool moveCompleted = false;
+
+                List<MessageBuffer> activeBuffers = new List<MessageBuffer>();
+                List<StreamResumer> streamsToResume = new List<StreamResumer>();
+                try
+                {
+                    UtilityCore.RequestHandler.BeginCriticalSection();
+                    foreach (LogID logFile in logFilesInFolder)
+                    {
+                        MessageBuffer writeBuffer = logFile.Properties.WriteBuffer;
+
+                        writeBuffer.SetState(true, BufferContext.CriticalArea);
+                        activeBuffers.Add(writeBuffer);
+
+                        logFile.Properties.FileLock.SetActivity(FileAction.Move); //Lock activated by ThreadSafeWorker
+                        logFile.Properties.NotifyPendingMove(newPath);
+
+                        //The move operation requires that all persistent file activity be closed until move is complete
+                        streamsToResume.AddRange(logFile.Properties.PersistentStreamHandles.InterruptAll());
+                    }
+                    Directory.Move(currentPath, newPath);
+                    moveCompleted = true;
+
+                    LogGroup.ChangePath(logFilesInFolder, currentPath, newPath);
+                }
+                finally
+                {
+                    if (!moveCompleted)
+                    {
+                        foreach (LogID logFile in logFilesInFolder)
+                            logFile.Properties.NotifyPendingMoveAborted();
+                    }
+
+                    //Reopen the streams
+                    streamsToResume.ResumeAll();
+                    activeBuffers.ForEach(buffer => buffer.SetState(false, BufferContext.CriticalArea));
+                    UtilityCore.RequestHandler.EndCriticalSection();
+                }
+            });
         }
 
         /// <summary>

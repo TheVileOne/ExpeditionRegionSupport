@@ -1,4 +1,5 @@
-﻿using LogUtils.Enums;
+﻿using LogUtils.Diagnostics;
+using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Helpers.FileHandling;
@@ -328,7 +329,9 @@ namespace LogUtils
                 UtilityLogger.Log("Attempting to move log directory");
                 UtilityLogger.DebugLog("Attempting to move log directory");
                 OnMovePending?.Invoke();
-                LogGroup.MoveFolder(GetContainedLogFiles(), CurrentPath, newPath);
+
+                //TODO: Can this static reference be avoided?
+                LogGroupMover.MoveFolder(GetContainedLogFiles(), CurrentPath, newPath);
 
                 UtilityLogger.Log("Move successful");
                 UtilityLogger.DebugLog("Move successful");
