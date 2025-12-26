@@ -40,7 +40,7 @@ namespace LogUtils
         /// <summary>
         /// Controls whether or not the move operation applies to group files targetting a path other than the group folder path
         /// </summary>
-        public bool IgnoreOutOfFolderFiles;
+        public bool IgnoreOutOfFolderFiles = true;
 
         private MoveCondition _condition;
         /// <summary>
