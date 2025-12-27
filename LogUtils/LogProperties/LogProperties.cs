@@ -469,20 +469,18 @@ namespace LogUtils.Properties
             ConsoleIDs = new ValueCollection<ConsoleID>(readOnlyProvider);
 
             //Report log groups slightly differently than other types of log id. The value will contain prefix formatting that we don't want to report to the user.
+            string reportMessage;
             if (!propertyID.StartsWith(LogGroupID.ID_PREFIX))
             {
-                string reportMessage = "Generating properties for " + propertyID;
-                UtilityLogger.DebugLog(reportMessage);
-                UtilityLogger.Log(reportMessage);
+                reportMessage = "Generating properties for " + propertyID;
             }
             else
             {
                 string actualPropertyID = propertyID.Substring(LogGroupID.ID_PREFIX.Length);
-                string reportMessage = "Generating properties for group " + actualPropertyID;
-                UtilityLogger.DebugLog(reportMessage);
-                UtilityLogger.Log(reportMessage);
+                reportMessage = "Generating properties for group " + actualPropertyID;
             }
-
+            UtilityLogger.DebugLog(reportMessage);
+            UtilityLogger.Log(reportMessage);
         }
 
         /// <summary>
@@ -1138,6 +1136,14 @@ namespace LogUtils.Properties
         {
             path = PathUtils.GetPathFromKeyword(path); //Filename is removed here, should not be handled in ResolvePath
             return PathUtils.ResolvePath(path);
+        }
+
+        public static string GetNewBasePath(LogID logID, string currentBasePath, string newBasePath)
+        {
+            string currentFolderPath = logID.Properties.CurrentFolderPath;
+            return PathUtils.Rebase(subPath: currentFolderPath,
+                                   basePath: currentBasePath,
+                                newBasePath: newBasePath);
         }
 
         /// <summary>

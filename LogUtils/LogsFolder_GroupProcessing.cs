@@ -316,7 +316,7 @@ namespace LogUtils
                     return EligibilityResult.InsufficientPermissions;
 
                 //Step 3: Check for LogIDs not part of any group for eligibility requirements
-                checkEligibilityRequirements(LogID.GetEntries(), targetPath, ref permissionSet);
+                checkEligibilityRequirements(LogGroup.NonGroupMembersSharingThisPath(targetPath), targetPath, ref permissionSet);
 
                 if (!canMoveEntireFolder)
                     return EligibilityResult.InsufficientPermissions;

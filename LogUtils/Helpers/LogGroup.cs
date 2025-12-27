@@ -1,6 +1,7 @@
 ﻿using LogUtils.Diagnostics;
 using LogUtils.Enums;
 using LogUtils.Helpers.FileHandling;
+using LogUtils.Properties;
 using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
@@ -10,36 +11,18 @@ namespace LogUtils.Helpers
 {
     public static class LogGroup
     {
-        internal static void ChangePath(LogGroupID group, string currentPath, string newPath)
+        internal static void ChangePath(LogGroupID group, string currentPath, string newPath, bool applyToMembers = false)
         {
-            string newFolderPath = getUpdatedPath(group, currentPath, newPath);
-            group.Properties.ChangePath(newFolderPath, applyToMembers: false);
+            string newFolderPath = LogProperties.GetNewBasePath(group, currentPath, newPath);
+            group.Properties.ChangePath(newFolderPath, applyToMembers);
         }
 
         internal static void ChangePath(IEnumerable<LogID> logFilesInFolder, string currentPath, string newPath)
         {
             foreach (LogID logFile in logFilesInFolder)
             {
-                string newFolderPath = getUpdatedPath(logFile, currentPath, newPath);
+                string newFolderPath = LogProperties.GetNewBasePath(logFile, currentPath, newPath);
                 logFile.Properties.ChangePath(newFolderPath);
-            }
-        }
-
-        private static string getUpdatedPath(LogID logID, string currentPath, string newPath)
-        {
-            string currentFolderPath = logID.Properties.CurrentFolderPath;
-
-            bool isTopLevel = currentFolderPath.Length == currentPath.Length;
-            if (isTopLevel)
-            {
-                //Top-level files can directly be assigned the new path (most common case)
-                return newPath;
-            }
-            else
-            {
-                //Take the subfolder part of the path and assign it a new root
-                string subFolderPath = currentFolderPath.Substring(Math.Min(currentPath.Length, currentFolderPath.Length)).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                return Path.Combine(newPath, subFolderPath);
             }
         }
 
@@ -171,8 +154,18 @@ namespace LogUtils.Helpers
 
         public static IEnumerable<LogGroupID> GroupsSharingThisPath(string path)
         {
-            LogGroupID groupID = LogGroupID.Factory.CreateID("LogUtils", path);
-            return groupID.Properties.AllGroupsSharingMyFolder().GetIDs();
+            IEnumerable<LogGroupProperties> groupsSharingThisPath =
+                LogProperties.PropertyManager.GroupProperties
+                             .WithFolder()
+                             .HasPath(LogProperties.GetContainingPath(path));
+            return groupsSharingThisPath.GetIDs();
+        }
+
+        public static IEnumerable<LogID> NonGroupMembersSharingThisPath(string path)
+        {
+            IEnumerable<LogProperties> nonGroupMembers =
+                LogID.FindAll(properties => properties.Group != null).GetProperties();
+            return nonGroupMembers.HasPath(LogProperties.GetContainingPath(path)).GetIDs();
         }
     }
 }

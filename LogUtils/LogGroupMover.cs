@@ -333,8 +333,8 @@ namespace LogUtils
             if (!PreserveFolderStructure || !groupTarget.Properties.IsFolderGroup)
                 return TargetPath;
 
-            string subFolderPath = PathUtils.TrimCommonRoot(target.Properties.CurrentFolderPath, groupTarget.Properties.CurrentFolderPath);
-            return Path.Combine(TargetPath, subFolderPath);
+            string currentBasePath = groupTarget.Properties.CurrentFolderPath;
+            return LogProperties.GetNewBasePath(target, currentBasePath, TargetPath);
         }
 
         private void prepareDestinationFolder(LogID[] moveTargets)

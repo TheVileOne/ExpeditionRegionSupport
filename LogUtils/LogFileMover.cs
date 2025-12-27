@@ -187,4 +187,6 @@ namespace LogUtils
             Copy
         }
     }
+
+    internal delegate LogFileMover LogFileMoverProvider(string sourceLogPath, string destLogPath);
 }

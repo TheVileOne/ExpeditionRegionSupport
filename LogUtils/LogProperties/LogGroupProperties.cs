@@ -165,15 +165,13 @@ namespace LogUtils.Properties
 
         internal IEnumerable<LogGroupProperties> AllGroupsSharingMyFolder()
         {
-            IEnumerable<LogGroupProperties> groupsSharingThisFolder =
-            PropertyManager.GroupProperties
-            .WithFolder()
-            .HasPath(CurrentFolderPath);
+            IEnumerable<LogGroupProperties> groupsSharingThisFolder = LogGroup.GroupsSharingThisPath(CurrentFolderPath).GetProperties();
 
             //TODO: This only applies to the current instance - it is possible for other unregistered groups to interfere with a critical operation
             //If unregistered groups get added to PropertiesManager, this line needs to be removed
             if (!ID.Registered)
-                groupsSharingThisFolder = groupsSharingThisFolder.Prepend(this);
+                return groupsSharingThisFolder.Prepend(this);
+
             return groupsSharingThisFolder;
         }
 

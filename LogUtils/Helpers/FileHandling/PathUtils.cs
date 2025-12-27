@@ -367,6 +367,19 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <summary>
+        /// Takes a current path, and transfers a subpath to a new containing path
+        /// </summary>
+        /// <param name="basePath">A path that contains <paramref name="subPath"/></param>
+        /// <param name="newBasePath">A new path that should contain <paramref name="subPath"/></param>
+        /// <param name="subPath">A path that is part of <paramref name="basePath"/></param>
+        /// <returns>A path that is the combination of <paramref name="subPath"/>, and <paramref name="newBasePath"/></returns>
+        public static string Rebase(string subPath, string basePath, string newBasePath)
+        {
+            subPath = TrimCommonRoot(subPath, basePath); //Remove current path from subpath
+            return Path.Combine(newBasePath, subPath);                 //Combine it with new path
+        }
+
+        /// <summary>
         /// Evaluates whether paths are logically equivalent
         /// </summary>
         public static bool PathsAreEqual(string path, string pathOther)
