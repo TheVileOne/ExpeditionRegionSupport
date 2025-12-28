@@ -139,6 +139,15 @@ namespace LogUtils.Helpers
         }
 
         /// <summary>
+        /// Process for moving a directory containing log files - assumes folder path is valid
+        /// </summary>
+        public static void MoveFolder(string currentPath, string newPath)
+        {
+            LogFolderInfo folderInfo = new LogFolderInfo(currentPath);
+            folderInfo.Move(newPath, checkPermissions: true);
+        }
+
+        /// <summary>
         /// Opens a FileStream instance for a log file
         /// </summary>
         /// <param name="logFile">The <see cref="LogID"/> that accesses the log file path</param>

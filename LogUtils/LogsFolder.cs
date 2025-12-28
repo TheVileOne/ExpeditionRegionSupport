@@ -175,7 +175,15 @@ namespace LogUtils
         /// </summary>
         public static IEnumerable<LogID> GetContainedLogFiles()
         {
-            return LogID.FindAll(properties => PathUtils.PathsAreEqual(properties.CurrentFolderPath, CurrentPath));
+            return LogID.FindAll(properties => PathUtils.ContainsOtherPath(properties.CurrentFolderPath, CurrentPath));
+        }
+
+        /// <summary>
+        /// Returns all registered <see cref="LogGroupID"/> instances representing log groups targeting the current log directory or otherwise target it as a write path
+        /// </summary>
+        public static IEnumerable<LogGroupID> GetContainedLogGroups()
+        {
+            return LogGroup.GroupsSharingThisPath(CurrentPath);
         }
 
         internal static void OnEligibilityChanged(LogEventArgs e)
@@ -265,7 +273,7 @@ namespace LogUtils
                 return;
             }
 
-            bool isMoveRequired = !PathUtils.PathsAreEqual(properties.CurrentFolderPath, newPath);
+            bool isMoveRequired = !PathUtils.ContainsOtherPath(properties.CurrentFolderPath, CurrentPath);
 
             if (isMoveRequired)
             {
@@ -330,8 +338,8 @@ namespace LogUtils
                 UtilityLogger.DebugLog("Attempting to move log directory");
                 OnMovePending?.Invoke();
 
-                //TODO: Can this static reference be avoided?
-                LogGroupMover.MoveFolder(GetContainedLogFiles(), CurrentPath, newPath);
+                LogFolderInfo folderInfo = new LogFolderInfo(CurrentPath);
+                folderInfo.Move(newPath, checkPermissions: false); //Enforcing permissions inside Logs folder is unsupported
 
                 UtilityLogger.Log("Move successful");
                 UtilityLogger.DebugLog("Move successful");

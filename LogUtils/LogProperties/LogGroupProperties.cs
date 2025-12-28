@@ -159,7 +159,7 @@ namespace LogUtils.Properties
             if (!IsFolderGroup)
                 throw new InvalidOperationException("Group does not support folder operations");
 
-            LogGroupLock folderLock = new LogGroupLock(AllGroupsSharingMyFolder());
+            CombinationLock<LogGroupProperties> folderLock = new CombinationLock<LogGroupProperties>(AllGroupsSharingMyFolder());
             return folderLock.Acquire();
         }
 

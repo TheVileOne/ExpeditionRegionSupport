@@ -20,7 +20,7 @@ namespace LogUtils
         /// <summary>
         /// Selects all acquirable lock objects from the enumeration
         /// </summary>
-        public static IEnumerable<Lock> GetLocks(this IEnumerable<ILockable> lockProvider)
+        public static IEnumerable<Lock> GetLocks<T>(this IEnumerable<T> lockProvider) where T : ILockable
         {
             return lockProvider.Select(provider => provider.GetLock());
         }

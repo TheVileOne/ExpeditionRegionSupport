@@ -2,7 +2,6 @@
 using LogUtils.Enums;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties;
-using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -31,13 +30,10 @@ namespace LogUtils.Helpers
             if (group == null)
                 throw new ArgumentNullException(nameof(group));
 
-            Lock groupLock = group.Properties.GetLock();
+            LogFolderInfo folderInfo = new LogFolderInfo(group.Properties.CurrentFolderPath);
 
-            using (groupLock.Acquire())
-            {
-                ThrowOnValidationFailed(group, FolderPermissions.Delete);
-                //TODO: Delete code here
-            }
+            if (folderInfo.Exists)
+                return;
         }
 
         public static void MoveFolder(LogGroupID group, string newPath)
@@ -109,35 +105,28 @@ namespace LogUtils.Helpers
             bool hasPermission = group.Properties.VerifyPermissions(permission);
 
             if (!hasPermission)
-            {
-                string action = string.Empty;
-                switch (permission)
-                {
-                    case FolderPermissions.Delete:
-                        action = "delete group folder";
-                        break;
-                    case FolderPermissions.Move:
-                        action = "move group folder";
-                        break;
-                    default:
-                        throw new PermissionDeniedException("Unknown permission error");
-                }
-                throw new PermissionDeniedException($"Permission was not given to {action}.");
-            }
+                OnPermissionDenied(group.Properties.CurrentFolderPath, permission);
         }
 
-        internal static void ThrowOnValidationFailed(LogGroupID group, FolderPermissions validationContext)
+        /// <summary>
+        /// Throws an exception based on a permission violation
+        /// </summary>
+        /// <param name="folderPath">The path that caused the violation</param>
+        /// <param name="permission">The permission violation</param>
+        /// <exception cref="InvalidOperationException">Log group does not have a folder path specified</exception>
+        /// <exception cref="IOException">Folder operation was unsafe, or attempted on a protected path</exception>
+        /// <exception cref="PermissionDeniedException">Insufficient permission to complete folder operation</exception>
+        internal static void OnPermissionDenied(string folderPath, FolderPermissions permission)
         {
-            if (!group.Properties.IsFolderGroup)
-                throw new ArgumentException("Group is not associated with a folder path");
+            if (PathUtils.IsEmpty(folderPath))
+                throw new InvalidOperationException("Group does not support folder operations");
 
-            string groupPath = group.Properties.CurrentFolderPath;
+            bool pathWasUnsafe = !DirectoryUtils.IsSafeToMove(folderPath);
 
-            //The folder might be a game directory
-            if (!DirectoryUtils.IsSafeToMove(groupPath))
+            if (pathWasUnsafe)
             {
                 string exceptionMessage = null;
-                switch (validationContext)
+                switch (permission)
                 {
                     case FolderPermissions.Delete:
                         exceptionMessage = "Unable to delete folder at source path\n" +
@@ -147,9 +136,26 @@ namespace LogUtils.Helpers
                         exceptionMessage = "Unable to move folder at source path\n" +
                                            "REASON: Folder path is restricted";
                         break;
+                    default:
+                        exceptionMessage = "Unable to move folder at source path";
+                        break;
                 }
                 throw new IOException(exceptionMessage);
             }
+
+            string action = string.Empty;
+            switch (permission)
+            {
+                case FolderPermissions.Delete:
+                    action = "delete group folder";
+                    break;
+                case FolderPermissions.Move:
+                    action = "move group folder";
+                    break;
+                default:
+                    throw new PermissionDeniedException("Unknown permission error");
+            }
+            throw new PermissionDeniedException($"Permission was not given to {action}. Check mod permissions.");
         }
 
         public static IEnumerable<LogGroupID> GroupsSharingThisPath(string path)

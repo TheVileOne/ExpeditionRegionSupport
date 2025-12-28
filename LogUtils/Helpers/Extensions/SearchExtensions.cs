@@ -180,12 +180,12 @@ namespace LogUtils
             return entries.Where(entry => !entry.IsFolderGroup);
         }
 
-        public static IEnumerable<LogGroupProperties> HasPath(this IEnumerable<LogGroupProperties> entries, string searchPath)
+        public static IEnumerable<T> HasPath<T>(this IEnumerable<T> entries, string searchPath) where T : LogProperties
         {
             return entries.Where(entry => PathUtils.ContainsOtherPath(entry.CurrentFolderPath, searchPath));
         }
 
-        public static IEnumerable<LogGroupProperties> HasPathExact(this IEnumerable<LogGroupProperties> entries, string searchPath)
+        public static IEnumerable<T> HasPathExact<T>(this IEnumerable<T> entries, string searchPath) where T : LogProperties
         {
             return entries.Where(entry => PathUtils.PathsAreEqual(entry.CurrentFolderPath, searchPath));
         }

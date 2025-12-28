@@ -7,19 +7,19 @@ using DotNetTask = System.Threading.Tasks.Task;
 
 namespace LogUtils.Threading
 {
-    internal class LogGroupLock : Lock, IScopedCollection<LogGroupProperties>
+    internal class CombinationLock<T> : Lock, IScopedCollection<T> where T : ILockable
     {
-        public IReadOnlyCollection<LogGroupProperties> Items { get; }
+        public IReadOnlyCollection<T> Items { get; }
 
         private DotNetTask workTask;
         private bool workCompleted;
 
-        public LogGroupLock(IEnumerable<LogGroupProperties> groupProvider)
+        public CombinationLock(IEnumerable<T> groupProvider)
         {
-            Items = new ReadOnlyCollection<LogGroupProperties>(groupProvider.ToList());
+            Items = new ReadOnlyCollection<T>(groupProvider.ToList());
         }
 
-        public new IScopedCollection<LogGroupProperties> Acquire()
+        public new IScopedCollection<T> Acquire()
         {
             ThreadSafeWorker worker = new ThreadSafeWorker(Items.GetLocks());
 
@@ -60,6 +60,6 @@ namespace LogUtils.Threading
 
     public interface IScopedCollection<T> : IDisposable
     {
-        IReadOnlyCollection<LogGroupProperties> Items { get; }
+        IReadOnlyCollection<T> Items { get; }
     }
 }
