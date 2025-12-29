@@ -1,5 +1,4 @@
-﻿using LogUtils.Properties;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -11,8 +10,8 @@ namespace LogUtils.Threading
     {
         public IReadOnlyCollection<T> Items { get; }
 
-        private DotNetTask workTask;
         private bool workCompleted;
+        private TaskFinalizer workFinalizer;
 
         public CombinationLock(IEnumerable<T> groupProvider)
         {
@@ -23,28 +22,29 @@ namespace LogUtils.Threading
         {
             ThreadSafeWorker worker = new ThreadSafeWorker(Items.GetLocks());
 
-            workTask = worker.DoWorkAsync(waitForCompletion);
+            workFinalizer = worker.DoWorkAsync(waitForCompletion);
             return this;
         }
 
+       private DotNetTask waitTask;
         private async DotNetTask waitForCompletion()
         {
-            await Task.WaitUntil(() => workCompleted);
+            waitTask = Task.WaitUntil(() =>
+            {
+                return workCompleted;
+            });
+            await waitTask.ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public void Dispose()
         {
-            if (workTask == null)
-            {
-                UtilityLogger.LogWarning("Lock was disposed without any work");
-                return;
-            }
-
+            DotNetTask localWaitTask = waitTask;
             workCompleted = true;
             try
             {
-                workTask.Wait(); //Wait for task to actually complete
+                localWaitTask.Wait(); //Wait for task to actually complete
+                localWaitTask.Dispose();
             }
             catch (Exception ex)
             {
@@ -52,8 +52,7 @@ namespace LogUtils.Threading
             }
             finally
             {
-                workTask.Dispose();
-                workTask = null;
+                workFinalizer.CompleteTask();
             }
         }
     }

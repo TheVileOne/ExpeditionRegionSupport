@@ -50,14 +50,20 @@ namespace LogUtils.Threading
             }
         }
 
-        public async DotNetTask DoWorkAsync(Func<DotNetTask> work)
+        /// <summary>
+        /// Perform work that must be run asynchronously on a background thread
+        /// </summary>
+        /// <param name="work">Work to be performed</param>
+        /// <param name="cancellationToken">A token for cancelling the task</param>
+        /// <returns>An enumerator to signal the end of work</returns>
+        public TaskFinalizer DoWorkAsync(Func<DotNetTask> work, CancellationToken cancellationToken = default)
         {
             LockEnumerator locks = GetEnumerator();
 
             locks.Acquire();
             try
             {
-                await work.Invoke().ConfigureAwait(true); //We need to finish on the same thread we started
+                return TaskFinalizer.CreateFinalizer(DotNetTask.Run(work, cancellationToken));
             }
             finally
             {
