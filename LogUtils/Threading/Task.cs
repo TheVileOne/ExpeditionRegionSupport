@@ -328,14 +328,17 @@ namespace LogUtils.Threading
             //Code sourced from https://stackoverflow.com/a/52357854/30273286
             var waitTask = DotNetTask.Run(async () =>
             {
-                while (!condition()) await DotNetTask.Delay(frequency);
+                while (!condition())
+                {
+                    await DotNetTask.Delay(frequency).ConfigureAwait(false);
+                }
             });
 
             using (CancellationTokenSource cancelSource = new CancellationTokenSource())
             {
                 var task = DotNetTask.WhenAny(waitTask, DotNetTask.Delay(timeout, cancelSource.Token));
 
-                await task;
+                await task.ConfigureAwait(false);
 
                 if (task.Result != waitTask)
                     throw new TimeoutException();
