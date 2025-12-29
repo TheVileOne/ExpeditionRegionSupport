@@ -8,18 +8,17 @@ namespace LogUtils.Threading
     /// <summary>
     /// A struct wrapper for walking through a multi-step asynchronous process
     /// </summary>
-    public readonly struct TaskFinalizer : IEnumerable<DotNetTask>
+    public readonly struct TaskFinalizer
     {
-        private readonly DotNetTask task;
         private readonly IEnumerator taskEnumerator;
 
-        private TaskFinalizer(DotNetTask task)
+        private TaskFinalizer(IEnumerator enumerator)
         {
-            this.task = task;
+            taskEnumerator = enumerator;          
+        }
 
-            IEnumerable enumerable = this;
-
-            taskEnumerator = enumerable.GetEnumerator();
+        internal void Initialize()
+        {
             taskEnumerator.MoveNext(); //Ensures that task is stored in Current
         }
 
@@ -32,19 +31,9 @@ namespace LogUtils.Threading
             taskEnumerator.MoveNext();
         }
 
-        IEnumerator<DotNetTask> IEnumerable<DotNetTask>.GetEnumerator()
+        public static TaskFinalizer CreateFinalizer(IEnumerator taskEnumerator)
         {
-            yield return task; //We need to finish on the same thread we started
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            yield return task; //We need to finish on the same thread we started
-        }
-
-        public static TaskFinalizer CreateFinalizer(DotNetTask task)
-        {
-            return new TaskFinalizer(task);
+            return new TaskFinalizer(taskEnumerator);
         }
     }
 }

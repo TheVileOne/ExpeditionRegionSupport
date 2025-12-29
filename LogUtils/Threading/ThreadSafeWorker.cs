@@ -59,15 +59,22 @@ namespace LogUtils.Threading
         public TaskFinalizer DoWorkAsync(Func<DotNetTask> work, CancellationToken cancellationToken = default)
         {
             LockEnumerator locks = GetEnumerator();
+            TaskFinalizer finalizer = TaskFinalizer.CreateFinalizer(taskEnumerator());
 
             locks.Acquire();
-            try
+            finalizer.Initialize();
+            return finalizer;
+
+            IEnumerator taskEnumerator()
             {
-                return TaskFinalizer.CreateFinalizer(DotNetTask.Run(work, cancellationToken));
-            }
-            finally
-            {
-                locks.Release();
+                try
+                {
+                    yield return DotNetTask.Run(work, cancellationToken);
+                }
+                finally
+                {
+                    locks.Release();
+                }
             }
         }
 
