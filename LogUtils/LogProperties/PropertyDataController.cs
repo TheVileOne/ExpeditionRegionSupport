@@ -180,7 +180,7 @@ namespace LogUtils.Properties
             LogsFolder.CacheExistsState();
             try
             {
-                foreach (LogProperties properties in Properties)
+                foreach (LogProperties properties in AllProperties)
                 {
                     if (!properties.StartupRoutineRequired)
                         continue;
