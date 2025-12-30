@@ -96,9 +96,7 @@ namespace LogUtils.Compatibility.BepInEx.Listeners
                 return;
             }
 
-            //TODO: Check thread safety
             utilityRequestsInProcess.Add(request);
-
             try
             {
                 //LogUtils is given logging priority and must not be handled through the request submission process like other log requests. This makes
