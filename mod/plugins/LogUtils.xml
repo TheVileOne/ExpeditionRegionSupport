@@ -3933,6 +3933,50 @@
             </summary>
             <remarks>When delegate returns true, result is handled normally, when false result is discarded</remarks>
         </member>
+        <member name="F:LogUtils.Diagnostics.ExceptionHandler.DATA_CONTEXT">
+            <summary>
+            Data key to access LogUtils <see cref="P:System.Exception.Data"/> for exceptions that support it
+            </summary>
+        </member>
+        <member name="F:LogUtils.Diagnostics.ExceptionHandler.Protocol">
+            <summary>
+            The behavior that results from handling an exception
+            </summary>
+        </member>
+        <member name="M:LogUtils.Diagnostics.ExceptionHandler.OnError(System.Exception)">
+            <inheritdoc cref="M:LogUtils.Diagnostics.ExceptionHandler.OnError(System.Exception,System.Object)"/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.ExceptionHandler.OnError(System.Exception,System.Object)">
+            <summary>
+            The behavior that will happen when an <see cref="T:System.Exception"/> occurs
+            </summary>
+            <param name="exception">An unhandled exception</param>
+            <param name="context">Optional contextual information to attach to an <see cref="T:System.Exception"/> object</param>
+        </member>
+        <member name="M:LogUtils.Diagnostics.ExceptionHandler.LogError(System.Exception)">
+            <summary>
+            Logs a message when an <see cref="T:System.Exception"/> is handled
+            </summary>
+        </member>
+        <member name="M:LogUtils.Diagnostics.ExceptionHandler.AttachContextToException(System.Exception,System.Object)">
+            <summary>
+            Attach contextual information to an <see cref="T:System.Exception"/> object
+            </summary>
+        </member>
+        <member name="T:LogUtils.Diagnostics.FailProtocol">
+            <summary>
+            Represents common <see cref="T:System.Exception"/> handling procedures
+            </summary>
+        </member>
+        <member name="F:LogUtils.Diagnostics.FailProtocol.LogAndIgnore">
+            <summary>An <see cref="T:System.Exception"/> will log on a move error; expect return</summary>
+        </member>
+        <member name="F:LogUtils.Diagnostics.FailProtocol.FailSilently">
+            <summary>No message will log on a move error; expect a silent return</summary>
+        </member>
+        <member name="F:LogUtils.Diagnostics.FailProtocol.Throw">
+            <summary>No message will log on a move error; expect an exception to be thrown</summary>
+        </member>
         <member name="P:LogUtils.Diagnostics.IConditionHandler.IsEnabled">
             <summary>
             Determines whether result should be handled or ignored
@@ -4252,6 +4296,11 @@
         <member name="T:LogUtils.Diagnostics.Tests.Utility.LogOverloadTests">
             <summary>
             These tests check that the Logger API translate user input into the correct logging overload
+            </summary>
+        </member>
+        <member name="M:LogUtils.Diagnostics.Tests.Utility.LogsFolderTests.TestMoveAndRestore">
+            <summary>
+            Moves eligible files to Logs folder and moves them back to their original location 
             </summary>
         </member>
         <member name="M:LogUtils.Diagnostics.Tests.Utility.StressTests.TestThreadSafeWorker">
@@ -7495,6 +7544,19 @@
             either Rain World, StreamingAssets, or BepInEx directory paths, defaulting to StreamingAssets when no match is found. 
             </summary>
         </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.FindCommonRoot(LogUtils.Helpers.FileHandling.PathInfo,LogUtils.Helpers.FileHandling.PathInfo)">
+            <summary>
+            Finds a path string that two provided paths have in common.
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.TrimCommonRoot(System.String,System.String)">
+            <summary>
+            Trims the common difference between the first path and the second path from the first path. If the common difference will consume the path, an empty string
+            with be returned.
+            </summary>
+            <param name="path">First path to evaluate</param>
+            <param name="pathOther">Second path to evaluate</param>
+        </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.ResolvePath(System.String)">
             <summary>
             Converts a partial, or non-partial path into a fully qualified absolute path
@@ -7551,6 +7613,15 @@
             <summary>
             Checks that the path string contains both directory and file information
             </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.Rebase(System.String,System.String,System.String)">
+            <summary>
+            Takes a current path, and transfers a subpath to a new containing path
+            </summary>
+            <param name="basePath">A path that contains <paramref name="subPath"/></param>
+            <param name="newBasePath">A new path that should contain <paramref name="subPath"/></param>
+            <param name="subPath">A path that is part of <paramref name="basePath"/></param>
+            <returns>A path that is the combination of <paramref name="subPath"/>, and <paramref name="newBasePath"/></returns>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.PathsAreEqual(System.String,System.String)">
             <summary>
@@ -7708,6 +7779,11 @@
             <param name="destLogPath">The full path to the destination of the log file. Log filename is optional</param>
             <param name="overwriteExisting">Specifies the behavior that happens when the file already exists at the destination path</param>
         </member>
+        <member name="M:LogUtils.Helpers.LogFile.MoveFolder(System.String,System.String)">
+            <summary>
+            Process for moving a directory containing log files - assumes folder path is valid
+            </summary>
+        </member>
         <member name="M:LogUtils.Helpers.LogFile.Open(LogUtils.Enums.LogID)">
             <summary>
             Opens a FileStream instance for a log file
@@ -7738,15 +7814,20 @@
             Retrieves all file handles for log files with at least one persistent FileStream open (file is currently in use), or temporarily closed
             </summary>
         </member>
-        <member name="M:LogUtils.Helpers.LogGroup.MoveFolder(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String,System.String)">
-            <summary>
-            Process for moving a directory containing log files - assumes folder path is valid, and log files are located within the folder
-            </summary>
-        </member>
         <member name="M:LogUtils.Helpers.LogGroup.MoveFolderExample">
             <summary>
             Example showing how API can be used by a mod to move their group folder, or its contents around
             </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.LogGroup.OnPermissionDenied(System.String,LogUtils.Enums.FolderPermissions)">
+            <summary>
+            Throws an exception based on a permission violation
+            </summary>
+            <param name="folderPath">The path that caused the violation</param>
+            <param name="permission">The permission violation</param>
+            <exception cref="T:System.InvalidOperationException">Log group does not have a folder path specified</exception>
+            <exception cref="T:System.IO.IOException">Folder operation was unsafe, or attempted on a protected path</exception>
+            <exception cref="T:LogUtils.PermissionDeniedException">Insufficient permission to complete folder operation</exception>
         </member>
         <member name="F:LogUtils.Helpers.Paths.RainWorld.ROOT_DIRECTORY">
             <summary>
@@ -7896,6 +7977,11 @@
             Returns all <see cref="T:LogUtils.Properties.LogProperties"/> instances belonging to entries in this enumeration
             </summary>
         </member>
+        <member name="M:LogUtils.ExtensionMethods.GetIDs(System.Collections.Generic.IEnumerable{LogUtils.Properties.LogGroupProperties})">
+            <summary>
+            Returns all <see cref="T:LogUtils.Enums.LogGroupID"/> instances belonging to entries in this enumeration
+            </summary>
+        </member>
         <member name="M:LogUtils.ExtensionMethods.GetProperties(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogGroupID})">
             <inheritdoc cref="M:LogUtils.ExtensionMethods.GetProperties(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID})"/>
         </member>
@@ -7955,7 +8041,7 @@
             </summary>
             <returns>The number of removed entries</returns>
         </member>
-        <member name="M:LogUtils.ExtensionMethods.GetLocks(System.Collections.Generic.IEnumerable{LogUtils.ILockable})">
+        <member name="M:LogUtils.ExtensionMethods.GetLocks``1(System.Collections.Generic.IEnumerable{``0})">
             <summary>
             Selects all acquirable lock objects from the enumeration
             </summary>
@@ -8341,6 +8427,55 @@
             Parses out data necessary to process the filter
             </summary>
         </member>
+        <member name="T:LogUtils.LogFolderInfo">
+            <summary>
+            Collects info about log groups and log files, and provides basic folder operation support
+            </summary>
+        </member>
+        <member name="P:LogUtils.LogFolderInfo.FolderPath">
+            <summary>
+            A fully qualified path that contains log groups or files
+            </summary>
+        </member>
+        <member name="P:LogUtils.LogFolderInfo.Exists">
+            <summary>
+            Checks that folder path exists
+            </summary>
+        </member>
+        <member name="P:LogUtils.LogFolderInfo.Groups">
+            <summary>
+            A snapshot of any groups that target this folder path
+            </summary>
+        </member>
+        <member name="P:LogUtils.LogFolderInfo.AllFiles">
+            <summary>
+            A snapshot of any files that target this folder path (as part of a group, or otherwise)
+            </summary>
+        </member>
+        <member name="P:LogUtils.LogFolderInfo.FilesNotFromFolderGroups">
+            <summary>
+            A snapshot of any files not found in a folder group that targets this folder path
+            (includes both non-folder group files, and files from folder groups that do not target this folder path)
+            </summary>
+        </member>
+        <member name="M:LogUtils.LogFolderInfo.GetPermissions">
+            <summary>
+            Returns the folder permissions associated with this folder path
+            </summary>
+        </member>
+        <member name="M:LogUtils.LogFolderInfo.Move(System.String,System.Boolean)">
+            <summary>
+            Attempts to move this folder and its contents to a new path
+            </summary>
+            <param name="newPath">A fully qualified folder path, or path keyword</param>
+            <param name="checkPermissions">Flag helps enhance safe folder operations. Keep value set to true (Recommended)</param>
+        </member>
+        <member name="M:LogUtils.LogFolderInfo.demandAllLocks">
+            <summary>
+            Acquire locks for all groups and files
+            </summary>
+            <returns>A lock scope containing the source of each lock object</returns>
+        </member>
         <member name="M:LogUtils.LoggerExtensions.Log(LogUtils.IFormatLogger,System.String,System.Object[])">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.String,System.Object[])"/>
         </member>
@@ -8581,6 +8716,102 @@
             Specifies that a <see cref="T:LogUtils.TimedLogWriter"/> should be used
             </summary>
             <remarks>Emulates BepInEx logging</remarks>
+        </member>
+        <member name="F:LogUtils.LogGroupMover.TargetPath">
+            <summary>
+            The path that files will be moved to
+            </summary>
+        </member>
+        <member name="F:LogUtils.LogGroupMover.FailProtocol">
+            <summary>
+            The behavior that results from being unable to complete a move operation
+            </summary>
+        </member>
+        <member name="F:LogUtils.LogGroupMover.FolderCreationProtocol">
+            <summary>
+            The behavior that results from encountering a path that doesn't exist
+            </summary>
+        </member>
+        <member name="F:LogUtils.LogGroupMover.AllowEmptyFolders">
+            <summary>
+            When false the mover will avoid creating an empty folder when given no files to move 
+            </summary>
+        </member>
+        <member name="F:LogUtils.LogGroupMover.PreserveFolderStructure">
+            <summary>
+            The structure of the folder hierarchy of a folder group will be kept
+            </summary>
+        </member>
+        <member name="F:LogUtils.LogGroupMover.IgnoreOutOfFolderFiles">
+            <summary>
+            Controls whether or not the move operation applies to group files targetting a path other than the group folder path
+            </summary>
+        </member>
+        <member name="P:LogUtils.LogGroupMover.Conditions">
+            <summary>
+            Optional conditions to check before a file is moved
+            </summary>
+        </member>
+        <member name="M:LogUtils.LogGroupMover.#ctor">
+            <summary>
+            Create a object for moving groups of log files
+            </summary>
+        </member>
+        <member name="M:LogUtils.LogGroupMover.#ctor(System.String)">
+            <summary>
+            Create a object for moving groups of log files
+            </summary>
+            <param name="targetPath">The path that files will be moved to</param>
+        </member>
+        <member name="M:LogUtils.LogGroupMover.Move(LogUtils.Enums.LogGroupID)">
+            <summary>
+            Moves log group files to a target path. If required, group path will be updated to reflect the new path.
+            </summary>
+            <exception cref="T:System.ArgumentNullException"><paramref name="target"/> is null</exception>
+            <exception cref="T:System.InvalidOperationException">Target path isn't set, or is invalid</exception>
+            <exception cref="T:System.IO.DirectoryNotFoundException">The directory was unable to be created</exception>
+            <exception cref="T:System.IO.IOException">General IO exceptions (probably file is in use, or directory not found)</exception>
+        </member>
+        <member name="M:LogUtils.LogGroupMover.Move(LogUtils.Enums.LogGroupID,LogUtils.MoveBehavior)">
+            <summary>
+            Moves log group files to a target path. If specified, group path will be updated to reflect the new path.
+            </summary>
+            <exception cref="T:System.ArgumentNullException"><paramref name="target"/> is null</exception>
+            <exception cref="T:System.InvalidOperationException">Target path isn't set, or is invalid - OR - group does not support specified move operation</exception>
+            <exception cref="T:System.IO.DirectoryNotFoundException">The directory was unable to be created</exception>
+            <exception cref="T:System.IO.IOException">General IO exceptions (probably file is in use, or directory not found)</exception>
+        </member>
+        <member name="M:LogUtils.LogGroupMover.MoveFolder(LogUtils.Enums.LogGroupID)">
+            <summary>
+            Moves a log group folder, and its contents to a target path
+            </summary>
+            <exception cref="T:System.ArgumentNullException"><paramref name="target"/> is null</exception>
+            <exception cref="T:System.InvalidOperationException">Target path isn't set, or is invalid - OR - group does not support specified move operation</exception>
+            <exception cref="T:System.IO.DirectoryNotFoundException">The directory was unable to be created</exception>
+            <exception cref="T:System.IO.IOException">General IO exceptions (probably file is in use, or directory not found)</exception>
+            <exception cref="T:LogUtils.PermissionDeniedException">
+            LogUtils does not have permission from the log controller to move this folder
+            - OR - It is unsafe to move this folder</exception>
+        </member>
+        <member name="M:LogUtils.LogGroupMover.getFilesToMove(LogUtils.Enums.LogGroupID)">
+            <summary>
+            Applies filter conditions to group members
+            </summary>
+        </member>
+        <member name="F:LogUtils.MoveBehavior.FilesAndGroup">
+            <summary>The current path of all files, and the group will be changed</summary>
+        </member>
+        <member name="F:LogUtils.MoveBehavior.FilesOnly">
+            <summary>The current path of all files will be changed; group metadata will be unaffected</summary>
+        </member>
+        <member name="F:LogUtils.FolderCreationProtocol.FailToCreate">
+            <summary>Fail procedure activates when some part of the path doesn't exist</summary>
+        </member>
+        <member name="F:LogUtils.FolderCreationProtocol.EnsurePathExists">
+            <summary>Attempt to create missing directories when some part of the path doesn't exist</summary>
+        </member>
+        <member name="F:LogUtils.FolderCreationProtocol.CreateFolder">
+            <summary>Creates the parent directory only. Fail procedure activates when more than one directory specified in the the path doesn't exist</summary>
         </member>
         <member name="F:LogUtils.Properties.Custom.CustomLogProperty.IsLogRule">
             <summary>
@@ -8909,8 +9140,27 @@
             Searches for all group members that are physically located inside the group folder, or otherwise target it
             </summary>
             <remarks>It is possible for a group member to target a different folder path. The easiest way to encounter this behavior is when a log file is already defined at the time of assignment.</remarks>
+            <exception cref="T:System.InvalidOperationException">The log group is not associated with a folder</exception>
+        </member>
+        <member name="M:LogUtils.Properties.LogGroupProperties.GetNonConformingMembers">
+            <summary>
+            Searches for all group members that do not share the same path as the group
+            </summary>
+            <remarks>It is possible for a group member to target a different folder path. The easiest way to encounter this behavior is when a log file is already defined at the time of assignment.</remarks>
+            <exception cref="T:System.InvalidOperationException">The log group is not associated with a folder</exception>
+        </member>
+        <member name="M:LogUtils.Properties.LogGroupProperties.DemandFolderAccess">
+            <summary>
+            Blocks until current thread has exclusive access to groups sharing the current group path, or a subdirectory of the group path (also includes current instance)
+            </summary>
+            <exception cref="T:System.InvalidOperationException">The log group is not associated with a folder</exception>
         </member>
         <member name="M:LogUtils.Properties.LogGroupProperties.VerifyPermissions(LogUtils.Enums.FolderPermissions)">
+            <summary>
+            Verify that group has been given the provided folder permissions
+            </summary>
+        </member>
+        <member name="M:LogUtils.Properties.LogGroupProperties.VerifyPermissionsRecursive(LogUtils.Enums.FolderPermissions,System.Collections.Generic.HashSet{LogUtils.Properties.LogGroupProperties})">
             <summary>
             Verify that group has been given the provided folder permissions
             </summary>
@@ -9233,6 +9483,12 @@
             <summary>
             Indicates whether optional metadata is supported for this instance
             </summary>
+        </member>
+        <member name="P:LogUtils.Properties.LogProperties.FileExists">
+            <summary>
+            Indicates whether log file currently exists
+            </summary>
+            <remarks>Only applies to a log file belonging to a current log session, or a log file with the <see cref="P:LogUtils.Properties.LogProperties.OverwriteLog"/> property set to false</remarks>
         </member>
         <member name="P:LogUtils.Properties.LogProperties.Filename">
             <summary>
@@ -9636,6 +9892,11 @@
             Returns all registered <see cref="T:LogUtils.Enums.LogID"/> instances representing log files within the current log directory or otherwise target it as a write path
             </summary>
         </member>
+        <member name="M:LogUtils.LogsFolder.GetContainedLogGroups">
+            <summary>
+            Returns all registered <see cref="T:LogUtils.Enums.LogGroupID"/> instances representing log groups targeting the current log directory or otherwise target it as a write path
+            </summary>
+        </member>
         <member name="M:LogUtils.LogsFolder.MoveFilesToFolder">
             <summary>
             Moves eligible log files to current log directory
@@ -9648,7 +9909,7 @@
         </member>
         <member name="M:LogUtils.LogsFolder.AddToFolder(LogUtils.Properties.LogProperties)">
             <summary>
-            Transfers a log file to the Logs folder (when it exists)
+            Transfers log files, and folders associated with the properties instance to the Logs folder
             </summary>
         </member>
         <member name="M:LogUtils.LogsFolder.RemoveFromFolder(LogUtils.Properties.LogProperties)">
@@ -9687,6 +9948,26 @@
         <member name="F:LogUtils.LogsFolder.PathResult.IsResultFromPathHistory">
             <summary>
             The result is associated with an accurate path record
+            </summary>
+        </member>
+        <member name="F:LogUtils.LogsFolder.Processor">
+            <summary>
+            Manages subfolders and their associated log groups within the log directory
+            </summary>
+        </member>
+        <member name="M:LogUtils.LogsFolder.AddGroupsToFolder">
+            <summary>
+            Attempts to move eligible log groups to Logs folder
+            </summary>
+        </member>
+        <member name="M:LogUtils.LogsFolder.tryAddFolderGroupFirstPass(LogUtils.Properties.LogGroupProperties)">
+            <summary>
+            This method is only responsible with moving the existing group folder to the Logs folder directory, or a subfolder within it
+            </summary>
+        </member>
+        <member name="M:LogUtils.LogsFolder.FolderProcessor.GroupTopLevelEntries">
+            <summary>
+            Groups entries that should be processed together (because they share the same path, or don't have a path)
             </summary>
         </member>
         <member name="F:LogUtils.LogWriter.Writer">
@@ -10226,6 +10507,29 @@
             </summary>
             <remarks>Do not modify directly, use <see cref="M:LogUtils.RainWorldInfo.NotifyOnPeriodReached(LogUtils.SetupPeriod)"/> instead</remarks>
         </member>
+        <member name="T:LogUtils.SetupPeriod">
+            <summary>
+            A stage in the Rain World initialization process
+            </summary>
+        </member>
+        <member name="F:LogUtils.SetupPeriod.Pregame">
+            <summary>The period of time before Rain World initializes</summary>
+        </member>
+        <member name="F:LogUtils.SetupPeriod.RWAwake">
+            <summary>The period of time when RainWorld.Awake is called</summary>
+        </member>
+        <member name="F:LogUtils.SetupPeriod.PreMods">
+            <summary>The period of time when PreModsInit is called</summary>
+        </member>
+        <member name="F:LogUtils.SetupPeriod.ModsInit">
+            <summary>The period of time when ModsInit is called</summary>
+        </member>
+        <member name="F:LogUtils.SetupPeriod.PostMods">
+            <summary>The period of time when PostModsInit is called</summary>
+        </member>
+        <member name="F:LogUtils.SetupPeriod.LatePostMods">
+            <summary>A special case period beyond PostModsInit that is invoked only when no other periods states are applicable when LogUtils initializes</summary>
+        </member>
         <member name="M:LogUtils.Requests.LinkedLogRequestCollection.SortRequests">
             <summary>
             Returns an <see cref="T:System.Linq.IOrderedEnumerable`1"/> that sorts <see cref="T:LogUtils.Requests.LogRequest"/> instances by <see cref="T:LogUtils.Enums.LogID"/> (by value and path)
@@ -10729,6 +11033,9 @@
             <exception cref="T:System.ArgumentNullException">Lock object is a null value.</exception>
             <exception cref="T:LogUtils.Threading.LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
         </member>
+        <member name="M:LogUtils.Threading.CombinationLock`1.Dispose">
+            <inheritdoc/>
+        </member>
         <member name="P:LogUtils.Threading.FileLock.FileContext">
             <summary>
             The associated log file context
@@ -10957,6 +11264,17 @@
             <param name="timeout">The timeout in milliseconds</param>
             <exception cref="T:System.TimeoutException">Timeout expired</exception>
         </member>
+        <member name="T:LogUtils.Threading.TaskFinalizer">
+            <summary>
+            A struct wrapper for walking through a multi-step asynchronous process
+            </summary>
+        </member>
+        <member name="M:LogUtils.Threading.TaskFinalizer.CompleteTask">
+            <summary>
+            Invoke finalizer code on an enumerated task
+            </summary>
+            <exception cref="T:System.InvalidOperationException">Task execution finalizer has already run</exception>
+        </member>
         <member name="P:LogUtils.Threading.TaskHandle.IsValid">
             <summary>
             
@@ -11002,6 +11320,14 @@
             <summary>
             Wait time to retry acquiring the locks (in the case of lock contention) 
             </summary>
+        </member>
+        <member name="M:LogUtils.Threading.ThreadSafeWorker.DoWorkAsync(System.Func{System.Threading.Tasks.Task},System.Threading.CancellationToken)">
+            <summary>
+            Perform work that must be run asynchronously on a background thread
+            </summary>
+            <param name="work">Work to be performed</param>
+            <param name="cancellationToken">A token for cancelling the task</param>
+            <returns>An enumerator to signal the end of work</returns>
         </member>
         <member name="M:LogUtils.Threading.ThreadSafeWorker.LockEnumerator.Acquire">
             <summary>
