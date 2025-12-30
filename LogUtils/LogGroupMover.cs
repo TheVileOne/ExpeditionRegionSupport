@@ -82,7 +82,11 @@ namespace LogUtils
         /// <exception cref="ArgumentNullException"><paramref name="target"/> is null</exception>
         /// <exception cref="InvalidOperationException">Target path isn't set, or is invalid</exception>
         /// <exception cref="DirectoryNotFoundException">The directory was unable to be created</exception>
-        /// <exception cref="IOException">General IO exceptions (probably file is in use, or directory not found)</exception>
+        /// <exception cref="IOException">General IO exceptions (probably directory not found)</exception>
+        /// <exception cref="UnauthorizedAccessException">
+        /// File is in use within the group folder that LogUtils cannot move
+        /// - OR - LogUtils does not have permission to perform this operation
+        /// </exception>
         public void Move(LogGroupID target)
         {
             Move(target, target.Properties.IsFolderGroup ? MoveBehavior.FilesAndGroup : MoveBehavior.FilesOnly);
@@ -94,7 +98,11 @@ namespace LogUtils
         /// <exception cref="ArgumentNullException"><paramref name="target"/> is null</exception>
         /// <exception cref="InvalidOperationException">Target path isn't set, or is invalid - OR - group does not support specified move operation</exception>
         /// <exception cref="DirectoryNotFoundException">The directory was unable to be created</exception>
-        /// <exception cref="IOException">General IO exceptions (probably file is in use, or directory not found)</exception>
+        /// <exception cref="IOException">General IO exceptions (probably directory not found)</exception>
+        /// <exception cref="UnauthorizedAccessException">
+        /// File is in use within the group folder that LogUtils cannot move
+        /// - OR - LogUtils does not have permission to perform this operation
+        /// </exception>
         public void Move(LogGroupID target, MoveBehavior moveBehavior)
         {
             try
@@ -168,10 +176,14 @@ namespace LogUtils
         /// <exception cref="ArgumentNullException"><paramref name="target"/> is null</exception>
         /// <exception cref="InvalidOperationException">Target path isn't set, or is invalid - OR - group does not support specified move operation</exception>
         /// <exception cref="DirectoryNotFoundException">The directory was unable to be created</exception>
-        /// <exception cref="IOException">General IO exceptions (probably file is in use, or directory not found)</exception>
+        /// <exception cref="IOException">General IO exceptions (probably directory not found)</exception>
         /// <exception cref="PermissionDeniedException">
         /// LogUtils does not have permission from the log controller to move this folder
         /// - OR - It is unsafe to move this folder</exception>
+        /// <exception cref="UnauthorizedAccessException">
+        /// File is in use within the group folder that LogUtils cannot move
+        /// - OR - LogUtils does not have permission to perform this operation
+        /// </exception>
         public void MoveFolder(LogGroupID target)
         {
             //TODO: This code is not fully thread safe. It is vulnerable to new files being added to the group folder after entries are processed.
