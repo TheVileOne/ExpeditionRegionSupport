@@ -408,8 +408,22 @@ namespace LogUtils
             UtilityLogger.Log("Disabling log files");
 
             //End all active log sessions
-            foreach (LogProperties properties in LogProperties.PropertyManager.Properties)
+            foreach (LogProperties properties in LogProperties.PropertyManager.AllProperties)
             {
+                if (properties is LogGroupProperties groupProperties)
+                {
+                    foreach (LogID member in groupProperties.Members.Where(logID => !logID.Registered))
+                    {
+                        using (member.Properties.FileLock.Acquire())
+                        {
+                            member.Properties.EndLogSession();
+                            member.Properties.AllowLogging = false; //No new logs should happen beyond this point
+                        }
+                    }
+                    properties.AllowLogging = false;
+                    continue;
+                }
+
                 if (properties.ID.Equals(LogID.BepInEx))
                     continue;
 
