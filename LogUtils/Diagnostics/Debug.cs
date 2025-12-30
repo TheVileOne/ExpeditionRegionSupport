@@ -2,7 +2,6 @@
 using LogUtils.Diagnostics.Tests.Utility;
 using LogUtils.Enums;
 using LogUtils.Requests;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -47,7 +46,7 @@ namespace LogUtils.Diagnostics
             //Task.Run(StressTests.TestMultithreadedLogging);
             //StressTests.TestLoggerDisposal();
             //StressTests.LogEveryFrame(LogID.Unity, messageFrequency: 1, logUntilThisFrame: 100000, messagesPerFrame: 100);
-            //TestLogsFolder();
+            //LogsFolderTests.TestMoveAndRestore();
             //StressTests.TestThreadSafeWorker();
         }
 
@@ -95,31 +94,6 @@ namespace LogUtils.Diagnostics
             t2.Log("Message logged using queue writer");
             t3.Log("Message logged using standard writer");
             t1.Log("This message will break LogUtils");
-        }
-
-        internal static void TestLogsFolder()
-        {
-            UtilityCore.Scheduler.Schedule(() =>
-            {
-                try
-                {
-                    //Alternate between having log files in the Logs folder, and having them at their original location
-                    if (!LogsFolder.IsManagingFiles)
-                    {
-                        UtilityLogger.DebugLog("Enabled");
-                        LogsFolder.MoveFilesToFolder();
-                    }
-                    else
-                    {
-                        UtilityLogger.DebugLog("Disabled");
-                        LogsFolder.RestoreFiles();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    UtilityLogger.DebugLog(ex);
-                }
-            }, frameInterval: 200);
         }
     }
 }
