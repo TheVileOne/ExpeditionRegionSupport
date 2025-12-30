@@ -170,7 +170,7 @@ namespace LogUtils.Helpers
         public static IEnumerable<LogID> NonGroupMembersSharingThisPath(string path)
         {
             IEnumerable<LogProperties> nonGroupMembers =
-                LogID.FindAll(properties => properties.Group != null).GetProperties();
+                LogID.FindAll(properties => properties.Group == null).GetProperties();
             return nonGroupMembers.HasPath(LogProperties.GetContainingPath(path)).GetIDs();
         }
     }
