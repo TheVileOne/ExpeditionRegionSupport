@@ -336,6 +336,9 @@ namespace LogUtils
             {
                 RainWorldInfo.LatestSetupPeriodReached = getPeriod(e.CurrentPeriod);
 
+                if (RainWorldInfo.LatestSetupPeriodReached == SetupPeriod.PostMods)
+                    LogsFolder.AddGroupsToFolder();
+
                 if (PropertyManager.StartupRoutineActive)
                 {
                     //When the game starts, we need to clean up old log files. Any mod that wishes to access these files must do so in
@@ -393,7 +396,7 @@ namespace LogUtils
             Config.ReloadFromProcessSwitch();
             PropertyManager.ReloadFromProcessSwitch();
 
-            //Refresh PropertyFile stream - It is currently has read only permissions
+            //Refresh PropertyFile stream - It currently has read only permissions
             PropertyManager.PropertyFile.RefreshStream();
         }
 
