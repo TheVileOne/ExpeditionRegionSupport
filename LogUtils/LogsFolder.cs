@@ -1,5 +1,4 @@
-﻿using LogUtils.Diagnostics;
-using LogUtils.Enums;
+﻿using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Helpers.FileHandling;
@@ -225,8 +224,11 @@ namespace LogUtils
 
             UtilityLogger.Log("Moving eligible log files");
             IsManagingFiles = true;
-            foreach (LogProperties properties in LogProperties.PropertyManager.Properties)
+
+            CacheExistsState();
+            foreach (LogProperties properties in LogProperties.PropertyManager.AllProperties)
                 AddToFolder(properties);
+            ResetExistsCache();
         }
 
         /// <summary>
@@ -248,25 +250,50 @@ namespace LogUtils
                 return;
             }
             IsManagingFiles = false;
-            foreach (LogProperties properties in LogProperties.PropertyManager.Properties)
+            foreach (LogProperties properties in LogProperties.PropertyManager.AllProperties)
                 RemoveFromFolder(properties);
         }
 
+        private static bool suppressGroupMemberEligibilityLogging = false;
         /// <summary>
         /// Transfers log files, and folders associated with the properties instance to the Logs folder
         /// </summary>
-        /// <remarks>Avoid calling when Logs folder doesn't exist. This method is not meant to be called without checking first.</remarks>
         internal static void AddToFolder(LogProperties properties)
         {
             if (!UtilityCore.IsControllingAssembly) return;
 
             LogID logFile = properties.ID;
 
+            if (!logFile.Registered)
+            {
+                if (properties.Group == null) //Only group managed instances are allowed to be unregistered
+                    return;
+
+                //Defer handling of unregistered group files to be handled with their respective groups
+                if (RainWorldInfo.LatestSetupPeriodReached < SetupPeriod.PostMods)
+                    return;
+            }
+
+            //TODO: This needs to support moving the whole folder
+            if (properties is LogGroupProperties groupProperties)
+            {
+                suppressGroupMemberEligibilityLogging = true;
+                foreach (LogProperties memberProperties in groupProperties.Members.GetProperties())
+                    AddToFolder(memberProperties);
+                suppressGroupMemberEligibilityLogging = false;
+                return;
+            }
+
+            if (!suppressGroupMemberEligibilityLogging && properties.Group != null)
+                UtilityLogger.Log("Checking eligibility of log group member");
+
             if (!properties.LogsFolderEligible)
             {
                 UtilityLogger.Log($"{logFile} is currently ineligible to be moved to Logs folder");
                 return;
             }
+
+            if (!Exists) return;
 
             //When moving a file into this folder, we should rename it to its alternate filename if it has one set
             string newPath = getMovePath(properties.CurrentFilename, properties.AltFilename, CurrentPath);
@@ -292,6 +319,17 @@ namespace LogUtils
         internal static void RemoveFromFolder(LogProperties properties)
         {
             if (!UtilityCore.IsControllingAssembly) return;
+
+            if (properties is LogGroupProperties)
+            {
+                if (UtilityCore.Build == UtilitySetup.Build.RELEASE)
+                {
+                    UtilityLogger.LogWarning("Restoring group files is not yet supported");
+                    return;
+                }
+                //TODO: This needs to be handled
+                throw new NotImplementedException();
+            }
 
             LogID logFile = properties.ID;
 

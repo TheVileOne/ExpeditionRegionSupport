@@ -561,10 +561,7 @@ namespace LogUtils.Properties
             if (!OverwriteLog)
                 FileExists = File.Exists(CurrentFilePath);
 
-            bool isGroupDeferred = Group != null && !ID.Registered;
-
-            //When the Logs folder is available, favor that path over the original path to the log file
-            if (LogsFolderAware && isGroupDeferred && LogsFolder.Exists)
+            if (LogsFolderAware)
                 LogsFolder.AddToFolder(this);
         }
 
