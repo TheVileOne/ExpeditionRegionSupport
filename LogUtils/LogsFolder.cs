@@ -192,10 +192,14 @@ namespace LogUtils
 
             if (!properties.IsNewInstance || !Exists) return; //Eligibility only applies to newly created log properties
 
-            if (properties.LogsFolderEligible && properties.LogsFolderAware)
+            if (!properties.LogsFolderEligible)
+            {
+                RemoveFromFolder(properties);
+                return;
+            }
+
+            if (properties.LogsFolderAware)
                 AddToFolder(properties);
-            else
-                RemoveFromFolder(properties); //TODO: Need a way to ignore this when LogsFolderAware is set to false
         }
 
         /// <summary>
