@@ -35,6 +35,8 @@ namespace LogUtils.Properties
 
             LogPropertyMetadata metadata = extractMetadata(dataFields);
 
+            metadata.ReplaceIllegalCharacters();
+
             string id = dataFields[DataFields.LOGID];
 
             bool hasID = !string.IsNullOrEmpty(id);

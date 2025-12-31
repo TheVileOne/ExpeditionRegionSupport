@@ -516,6 +516,19 @@ namespace LogUtils.Properties
             }
         }
 
+        public void ReplaceIllegalCharacters()
+        {
+            const char REPLACE_CHAR = '_';
+            char[] illegalFilenameChars = System.IO.Path.GetInvalidFileNameChars();
+            char[] illegalPathChars = System.IO.Path.GetInvalidPathChars();
+
+            Filename = Filename.ReplaceAll(illegalFilenameChars, REPLACE_CHAR);
+            AltFilename = AltFilename.ReplaceAll(illegalFilenameChars, REPLACE_CHAR);
+            Path = Path.ReplaceAll(illegalPathChars, REPLACE_CHAR);
+            OriginalPath = OriginalPath.ReplaceAll(illegalPathChars, REPLACE_CHAR);
+            LastKnownPath = LastKnownPath.ReplaceAll(illegalPathChars, REPLACE_CHAR);
+        }
+
         public override string ToString()
         {
             StringBuilder builder = new StringBuilder();
