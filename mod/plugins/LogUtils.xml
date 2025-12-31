@@ -3987,6 +3987,15 @@
             Apply post-processing logic to a condition result
             </summary>
         </member>
+        <member name="F:LogUtils.Diagnostics.ResultAnalyzer.TotalResults">
+            <summary/>
+        </member>
+        <member name="F:LogUtils.Diagnostics.ResultAnalyzer.TotalPassedResults">
+            <summary/>
+        </member>
+        <member name="F:LogUtils.Diagnostics.ResultAnalyzer.TotalFailedResults">
+            <summary/>
+        </member>
         <member name="M:LogUtils.Diagnostics.Tests.Components.LogPropertyFactory.Create(System.String,System.Boolean)">
             <summary>
             Create an instance of a LogProperties for testing purposes
@@ -4184,6 +4193,36 @@
             Checks that any test cases under the group have failed outcomes, as well as its own asserts
             </summary>
         </member>
+        <member name="T:LogUtils.Diagnostics.Tests.TestInput">
+            <summary>
+            Contains test values for use in unit tests
+            </summary>
+        </member>
+        <member name="T:LogUtils.Diagnostics.Tests.TestInput.Strings">
+            <summary>
+            Test string constants
+            </summary>
+        </member>
+        <member name="F:LogUtils.Diagnostics.Tests.TestInput.Strings.FULL">
+            <summary>
+            Test value representing a non-empty string
+            </summary>
+        </member>
+        <member name="F:LogUtils.Diagnostics.Tests.TestInput.Strings.EMPTY">
+            <summary>
+            Test value representing a zero length string
+            </summary>
+        </member>
+        <member name="F:LogUtils.Diagnostics.Tests.TestInput.Strings.NULL">
+            <summary>
+            Test value representing a null string
+            </summary>
+        </member>
+        <member name="F:LogUtils.Diagnostics.Tests.TestInput.OBJECT">
+            <summary>
+            Test value for an object
+            </summary>
+        </member>
         <member name="T:LogUtils.Diagnostics.Tests.TestSuite">
             <summary>
             Simple utility object for storing and running tests
@@ -4306,6 +4345,11 @@
         <member name="M:LogUtils.Diagnostics.Tests.Utility.StressTests.TestThreadSafeWorker">
             <summary>
             Shows that <see cref="T:LogUtils.Threading.ThreadSafeWorker"/> can lock an arbitrary number of locks without being at risk of causing a deadlock
+            </summary>
+        </member>
+        <member name="T:LogUtils.Diagnostics.Tools.DeadlockTester">
+            <summary>
+            Basic type for checking deadlock conditions
             </summary>
         </member>
         <member name="F:LogUtils.Diagnostics.Tools.LogProfiler.AverageLogRate">
@@ -5673,13 +5717,13 @@
             <summary>
             Registers the <see cref="T:ExtEnum`1"/> entry
             </summary>
-            <remarks>This will register all other instances representing this entry</remarks>
+            <remarks>Note: Registration status is propagated to all other created instances sharing the value of this instance.</remarks>
         </member>
         <member name="M:LogUtils.Enums.IExtEnumBase.Unregister">
             <summary>
             Unregisters the <see cref="T:ExtEnum`1"/> entry
             </summary>
-            <remarks>This will unregister all other instances representing this entry</remarks>
+            <remarks>Note: Registration status is propagated to all other created instances sharing the value of this instance.</remarks>
         </member>
         <member name="F:LogUtils.Enums.LogCategory.LOG_LEVEL_DEFAULT">
             <summary>
@@ -5889,6 +5933,11 @@
             This prefix differentiates log group entries from log file entries
             </summary>
         </member>
+        <member name="P:LogUtils.Enums.LogGroupID.RegistrationStage">
+            <summary>
+            Registration may be handled through the <see cref="T:LogUtils.Enums.SharedExtEnum`1"/> constructor only when no other existing reference to this <see cref="T:LogUtils.Enums.LogID"/> value is present.  
+            </summary>
+        </member>
         <member name="P:LogUtils.Enums.LogGroupID.Tag">
             <inheritdoc/>
         </member>
@@ -5907,6 +5956,10 @@
             <param name="path">An optional path that all group members will have in common</param>
             <param name="register"></param>
         </member>
+        <member name="M:LogUtils.Enums.LogGroupID.Register">
+            <inheritdoc/>
+            <exception cref="T:System.InvalidOperationException">Log group is anonymous</exception>
+        </member>
         <member name="M:LogUtils.Enums.LogGroupID.CheckTag(System.String)">
             <inheritdoc/>
         </member>
@@ -5918,29 +5971,62 @@
             Factory implementation
             </summary>
         </member>
+        <member name="M:LogUtils.Enums.LogGroupID.FactoryImpl.CreateNamedGroup(System.String,System.Boolean)">
+            <inheritdoc cref="M:LogUtils.Enums.LogGroupID.FactoryImpl.CreateNamedGroup(System.String,System.String,System.String,System.Boolean)"/>
+        </member>
+        <member name="M:LogUtils.Enums.LogGroupID.FactoryImpl.CreateNamedGroup(System.String,System.String,System.Boolean)">
+            <inheritdoc cref="M:LogUtils.Enums.LogGroupID.FactoryImpl.CreateNamedGroup(System.String,System.String,System.String,System.Boolean)"/>
+        </member>
+        <member name="M:LogUtils.Enums.LogGroupID.FactoryImpl.CreateNamedGroup(System.String,System.String,System.String,System.Boolean)">
+            <summary>
+            Creates a <see cref="T:LogUtils.Enums.LogGroupID"/> instance with an identifying name value.
+            </summary>
+            <param name="name">Unique identifying value for the group.</param>
+            <param name="path">Default folder location (including folder name) of log group files.</param>
+            <param name="modIDHint">The plugin ID that identifies a mod specific folder location to associate with the group path.</param>
+            <inheritdoc cref="M:LogUtils.Enums.LogGroupID.#ctor(System.String,System.String,System.Boolean)"/>
+            <param name="register"></param>
+        </member>
+        <member name="M:LogUtils.Enums.LogGroupID.FactoryImpl.CreateAnonymousGroup">
+            <summary>
+            Creates a <see cref="T:LogUtils.Enums.LogGroupID"/> instance without an identifying name or path.
+            </summary>
+        </member>
+        <member name="M:LogUtils.Enums.LogGroupID.FactoryImpl.CreateAnonymousGroup(System.String)">
+            <inheritdoc cref="M:LogUtils.Enums.LogGroupID.FactoryImpl.CreateAnonymousGroup(System.String,System.String)"/>
+        </member>
+        <member name="M:LogUtils.Enums.LogGroupID.FactoryImpl.CreateAnonymousGroup(System.String,System.String)">
+            <summary>
+            Creates a <see cref="T:LogUtils.Enums.LogGroupID"/> instance without an identifying name value.
+            </summary>
+            <param name="path">Default folder location (including folder name) of log group files.</param>
+            <param name="modIDHint">The plugin ID that identifies a mod specific folder location to associate with the group path.</param>
+        </member>
         <member name="T:LogUtils.Enums.LogGroupID.IFactory">
             <summary>
             Represents a type exposing <see cref="T:LogUtils.Enums.LogID"/> construction options
             </summary>
         </member>
-        <member name="M:LogUtils.Enums.LogGroupID.IFactory.CreateID(System.String,System.Boolean)">
-            <inheritdoc cref="M:LogUtils.Enums.LogGroupID.#ctor(System.String,System.Boolean)"/>
-        </member>
-        <member name="M:LogUtils.Enums.LogGroupID.IFactory.CreateID(System.String,System.String,System.Boolean)">
-            <inheritdoc cref="M:LogUtils.Enums.LogGroupID.#ctor(System.String,System.String,System.Boolean)"/>
-        </member>
         <member name="M:LogUtils.Enums.LogGroupID.IFactory.CreateComparisonID(System.String)">
             <inheritdoc cref="M:LogUtils.Enums.ComparisonLogID.#ctor(System.String,LogUtils.Enums.LogIDType)"/>
         </member>
-        <member name="M:LogUtils.Enums.LogGroupID.IFactory.FromPath(System.String,System.Boolean)">
-            <summary>
-            Creates a <see cref="T:LogUtils.Enums.LogGroupID"/> using a folder path as an identifier
-            </summary>
-            <param name="path">The path to set as the target log path for log group members</param>
-            <inheritdoc cref="M:LogUtils.Enums.LogGroupID.#ctor(System.String,System.String,System.Boolean)">
-            <param name="register"></param>
-            </inheritdoc>
-            <exception cref="T:System.ArgumentException">Root paths, certain game directories, and mod containing directories are not allowed to be selected by this factory method</exception>
+        <member name="M:LogUtils.Enums.LogGroupID.IFactory.CreateNamedGroup(System.String,System.Boolean)">
+            <inheritdoc cref="M:LogUtils.Enums.LogGroupID.FactoryImpl.CreateNamedGroup(System.String,System.String,System.String,System.Boolean)"/>
+        </member>
+        <member name="M:LogUtils.Enums.LogGroupID.IFactory.CreateNamedGroup(System.String,System.String,System.Boolean)">
+            <inheritdoc cref="M:LogUtils.Enums.LogGroupID.FactoryImpl.CreateNamedGroup(System.String,System.String,System.String,System.Boolean)"/>
+        </member>
+        <member name="M:LogUtils.Enums.LogGroupID.IFactory.CreateNamedGroup(System.String,System.String,System.String,System.Boolean)">
+            <inheritdoc cref="M:LogUtils.Enums.LogGroupID.FactoryImpl.CreateNamedGroup(System.String,System.String,System.String,System.Boolean)"/>
+        </member>
+        <member name="M:LogUtils.Enums.LogGroupID.IFactory.CreateAnonymousGroup">
+            <inheritdoc cref="M:LogUtils.Enums.LogGroupID.FactoryImpl.CreateAnonymousGroup"/>
+        </member>
+        <member name="M:LogUtils.Enums.LogGroupID.IFactory.CreateAnonymousGroup(System.String)">
+            <inheritdoc cref="M:LogUtils.Enums.LogGroupID.FactoryImpl.CreateAnonymousGroup(System.String,System.String)"/>
+        </member>
+        <member name="M:LogUtils.Enums.LogGroupID.IFactory.CreateAnonymousGroup(System.String,System.String)">
+            <inheritdoc cref="M:LogUtils.Enums.LogGroupID.FactoryImpl.CreateAnonymousGroup(System.String,System.String)"/>
         </member>
         <member name="T:LogUtils.Enums.LogID">
             <summary>
@@ -8717,6 +8803,35 @@
             </summary>
             <remarks>Emulates BepInEx logging</remarks>
         </member>
+        <member name="F:LogUtils.LogGroupBuilder.Name">
+            <summary>
+            Unique identifying value for the group.
+            </summary>
+            <value>If this field is not set, the log group may not by registered.</value>
+        </member>
+        <member name="F:LogUtils.LogGroupBuilder.Path">
+            <summary>
+            Default folder location (including folder name) of log group files.
+            </summary>
+            <value>This should be a fully qualified, relative, or partial path where group files will be stored. Leave empty to not associate with any path.</value>
+        </member>
+        <member name="F:LogUtils.LogGroupBuilder.ModIDHint">
+            <summary>
+            The plugin ID that identifies a mod specific folder location to associate with the group path. 
+            </summary>
+            <value>This should be set if you want to log to a location inside the Mods directory. Leave empty for any other location.</value>
+        </member>
+        <member name="M:LogUtils.LogGroupBuilder.GetID">
+            <summary>
+            Creates a new unregistered <see cref="T:LogUtils.Enums.LogGroupID"/> instance based on set build parameters.
+            </summary>
+        </member>
+        <member name="M:LogUtils.LogGroupBuilder.GetRegisteredID">
+            <summary>
+            Creates a new registered <see cref="T:LogUtils.Enums.LogGroupID"/> instance based on set build parameters.
+            </summary>
+            <exception cref="T:System.InvalidOperationException">"Name field was not set."</exception>
+        </member>
         <member name="F:LogUtils.LogGroupMover.TargetPath">
             <summary>
             The path that files will be moved to
@@ -8770,7 +8885,11 @@
             <exception cref="T:System.ArgumentNullException"><paramref name="target"/> is null</exception>
             <exception cref="T:System.InvalidOperationException">Target path isn't set, or is invalid</exception>
             <exception cref="T:System.IO.DirectoryNotFoundException">The directory was unable to be created</exception>
-            <exception cref="T:System.IO.IOException">General IO exceptions (probably file is in use, or directory not found)</exception>
+            <exception cref="T:System.IO.IOException">General IO exceptions (probably directory not found)</exception>
+            <exception cref="T:System.UnauthorizedAccessException">
+            File is in use within the group folder that LogUtils cannot move
+            - OR - LogUtils does not have permission to perform this operation
+            </exception>
         </member>
         <member name="M:LogUtils.LogGroupMover.Move(LogUtils.Enums.LogGroupID,LogUtils.MoveBehavior)">
             <summary>
@@ -8779,7 +8898,11 @@
             <exception cref="T:System.ArgumentNullException"><paramref name="target"/> is null</exception>
             <exception cref="T:System.InvalidOperationException">Target path isn't set, or is invalid - OR - group does not support specified move operation</exception>
             <exception cref="T:System.IO.DirectoryNotFoundException">The directory was unable to be created</exception>
-            <exception cref="T:System.IO.IOException">General IO exceptions (probably file is in use, or directory not found)</exception>
+            <exception cref="T:System.IO.IOException">General IO exceptions (probably directory not found)</exception>
+            <exception cref="T:System.UnauthorizedAccessException">
+            File is in use within the group folder that LogUtils cannot move
+            - OR - LogUtils does not have permission to perform this operation
+            </exception>
         </member>
         <member name="M:LogUtils.LogGroupMover.MoveFolder(LogUtils.Enums.LogGroupID)">
             <summary>
@@ -8788,10 +8911,14 @@
             <exception cref="T:System.ArgumentNullException"><paramref name="target"/> is null</exception>
             <exception cref="T:System.InvalidOperationException">Target path isn't set, or is invalid - OR - group does not support specified move operation</exception>
             <exception cref="T:System.IO.DirectoryNotFoundException">The directory was unable to be created</exception>
-            <exception cref="T:System.IO.IOException">General IO exceptions (probably file is in use, or directory not found)</exception>
+            <exception cref="T:System.IO.IOException">General IO exceptions (probably directory not found)</exception>
             <exception cref="T:LogUtils.PermissionDeniedException">
             LogUtils does not have permission from the log controller to move this folder
             - OR - It is unsafe to move this folder</exception>
+            <exception cref="T:System.UnauthorizedAccessException">
+            File is in use within the group folder that LogUtils cannot move
+            - OR - LogUtils does not have permission to perform this operation
+            </exception>
         </member>
         <member name="M:LogUtils.LogGroupMover.getFilesToMove(LogUtils.Enums.LogGroupID)">
             <summary>
@@ -9128,6 +9255,11 @@
         </member>
         <member name="M:LogUtils.Properties.LogGroupProperties.CreateIDHash">
             <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Properties.LogGroupProperties.#ctor(System.String)">
+            <summary>
+            Creates a new <see cref="T:LogUtils.Properties.LogGroupProperties"/> instance
+            </summary>
         </member>
         <member name="M:LogUtils.Properties.LogGroupProperties.ChangeFilename(System.String)">
             <inheritdoc/>
@@ -11267,6 +11399,11 @@
         <member name="T:LogUtils.Threading.TaskFinalizer">
             <summary>
             A struct wrapper for walking through a multi-step asynchronous process
+            </summary>
+        </member>
+        <member name="P:LogUtils.Threading.TaskFinalizer.Current">
+            <summary>
+            Gets the currently running, or completed <see cref="T:System.Threading.Tasks.Task"/> object
             </summary>
         </member>
         <member name="M:LogUtils.Threading.TaskFinalizer.CompleteTask">
