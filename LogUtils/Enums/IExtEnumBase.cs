@@ -23,13 +23,13 @@
         /// <summary>
         /// Registers the <see cref="ExtEnum{T}"/> entry
         /// </summary>
-        /// <remarks>This will register all other instances representing this entry</remarks>
+        /// <remarks>Note: Registration status is propagated to all other created instances sharing the value of this instance.</remarks>
         public void Register();
 
         /// <summary>
         /// Unregisters the <see cref="ExtEnum{T}"/> entry
         /// </summary>
-        /// <remarks>This will unregister all other instances representing this entry</remarks>
+        /// <remarks>Note: Registration status is propagated to all other created instances sharing the value of this instance.</remarks>
         public void Unregister();
     }
 }

@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 namespace LogUtils.Diagnostics.Tools
 {
+    /// <summary>
+    /// Basic type for checking deadlock conditions
+    /// </summary>
     public class DeadlockTester
     {
         internal static DeadlockTester Instance;

@@ -8,8 +8,11 @@ namespace LogUtils.Diagnostics
     {
         private readonly IEnumerable<Condition.Result> resultData;
 
+        /// <summary/>
         public int TotalResults;
+        /// <summary/>
         public int TotalPassedResults;
+        /// <summary/>
         public int TotalFailedResults;
 
         private Condition.Result _currentResult;
