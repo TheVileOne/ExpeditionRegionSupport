@@ -65,7 +65,7 @@ namespace LogUtils.Threading
             finalizer.Initialize();
             return finalizer;
 
-            IEnumerator taskEnumerator()
+            IEnumerator<DotNetTask> taskEnumerator()
             {
                 try
                 {

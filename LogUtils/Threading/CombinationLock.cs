@@ -26,10 +26,9 @@ namespace LogUtils.Threading
             return this;
         }
 
-       private DotNetTask waitTask;
         private async DotNetTask waitForCompletion()
         {
-            waitTask = Task.WaitUntil(() =>
+            DotNetTask waitTask = Task.WaitUntil(() =>
             {
                 return workCompleted;
             });
@@ -39,7 +38,7 @@ namespace LogUtils.Threading
         /// <inheritdoc/>
         public void Dispose()
         {
-            DotNetTask localWaitTask = waitTask;
+            DotNetTask localWaitTask = workFinalizer.Current;
             workCompleted = true;
             try
             {

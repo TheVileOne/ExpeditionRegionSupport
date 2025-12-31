@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using DotNetTask = System.Threading.Tasks.Task;
 
@@ -10,9 +9,14 @@ namespace LogUtils.Threading
     /// </summary>
     public readonly struct TaskFinalizer
     {
-        private readonly IEnumerator taskEnumerator;
+        private readonly IEnumerator<DotNetTask> taskEnumerator;
 
-        private TaskFinalizer(IEnumerator enumerator)
+        /// <summary>
+        /// Gets the currently running, or completed <see cref="DotNetTask"/> object
+        /// </summary>
+        public readonly DotNetTask Current => taskEnumerator.Current;
+
+        private TaskFinalizer(IEnumerator<DotNetTask> enumerator)
         {
             taskEnumerator = enumerator;          
         }
@@ -31,7 +35,7 @@ namespace LogUtils.Threading
             taskEnumerator.MoveNext();
         }
 
-        public static TaskFinalizer CreateFinalizer(IEnumerator taskEnumerator)
+        public static TaskFinalizer CreateFinalizer(IEnumerator<DotNetTask> taskEnumerator)
         {
             return new TaskFinalizer(taskEnumerator);
         }
