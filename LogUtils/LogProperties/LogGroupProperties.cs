@@ -16,6 +16,8 @@ namespace LogUtils.Properties
         /// </summary>
         public FolderPermissions FolderPermissions = FolderPermissions.None;
 
+        public bool IsAnonymous { get; internal set; }
+
         /// <summary>
         /// Indicates whether log group is associated with a folder path
         /// </summary>
@@ -44,6 +46,9 @@ namespace LogUtils.Properties
         /// <inheritdoc/>
         protected override int CreateIDHash() => CreateIDHash(GetRawID(), string.Empty);
 
+        /// <summary>
+        /// Creates a new <see cref="LogGroupProperties"/> instance
+        /// </summary>
         public LogGroupProperties(string propertyID) : base(propertyID, metadata: null)
         {
             AddTag(PropertyTag.LOG_GROUP);
@@ -101,7 +106,7 @@ namespace LogUtils.Properties
             if (!IsNewInstance) return;
 
             path = !PathUtils.IsEmpty(path) //For groups, there is little value to having a default path when we can define the group as not having a folder
-                   ? GetContainingPath(path)
+                   ? ValidatePath(path)
                    : string.Empty;
 
             OriginalFolderPath = path;

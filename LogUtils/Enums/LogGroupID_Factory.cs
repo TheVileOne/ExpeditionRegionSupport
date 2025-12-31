@@ -14,44 +14,60 @@ namespace LogUtils.Enums
         /// </summary>
         private sealed class FactoryImpl : IFactory
         {
-            public LogGroupID CreateID(string value, bool register)
-            {
-                return new LogGroupID(value, register);
-            }
-
-            public LogGroupID CreateID(string value, string path, bool register)
-            {
-                return new LogGroupID(value, path, register);
-            }
-
             public LogID CreateComparisonID(string value)
             {
                 return new ComparisonLogID(value, LogIDType.Group);
             }
 
-            public LogGroupID FromPath(string path, bool register = false)
+            /// <inheritdoc cref="CreateNamedGroup(string, string, string, bool)"/>
+            public LogGroupID CreateNamedGroup(string name, bool register = false)
             {
-                path = LogProperties.GetContainingPath(path);
+                return CreateNamedGroup(name, null, null, register);
+            }
 
-                string rootPath = RainWorldDirectory.LocateRoot(path);
+            /// <inheritdoc cref="CreateNamedGroup(string, string, string, bool)"/>
+            public LogGroupID CreateNamedGroup(string name, string path, bool register = false)
+            {
+                return CreateNamedGroup(name, path, null, register);
+            }
 
-                string idValue;
-                if (rootPath != null)
-                {
-                    if (path.Length == rootPath.Length) //Direct match to a root path
-                        throw new ArgumentException($"{nameof(FromPath)} does not accept a Rain World root path as a valid id");
+            /// <summary>
+            /// Creates a <see cref="LogGroupID"/> instance with an identifying name value.
+            /// </summary>
+            /// <param name="name">Unique identifying value for the group.</param>
+            /// <param name="path">Default folder location (including folder name) of log group files.</param>
+            /// <param name="modIDHint">The plugin ID that identifies a mod specific folder location to associate with the group path.</param>
+            /// <inheritdoc cref="LogGroupID(string, string, bool)"/>
+            /// <param name="register"></param>
+            public LogGroupID CreateNamedGroup(string name, string path, string modIDHint, bool register = false)
+            {
+                //TODO: Implement mod hintpaths
+                return new LogGroupID(name, path, register);
+            }
 
-                    if (RainWorldDirectory.IsIllegalLogPath(path))
-                        throw new ArgumentException($"{nameof(FromPath)} does not allow logging to this path\n" + path);
+            /// <summary>
+            /// Creates a <see cref="LogGroupID"/> instance without an identifying name or path.
+            /// </summary>
+            public LogGroupID CreateAnonymousGroup()
+            {
+                return CreateAnonymousGroup(null, null);
+            }
 
-                    //Remove root portion of the path string
-                    idValue = path.Substring(rootPath.Length);
-                }
-                else //Path is not part of the Rain World folder - the best we can do is to make it path volume independent
-                {
-                    idValue = PathUtils.PrependWithSeparator(PathUtils.Unroot(path));
-                }
-                return new LogGroupID(idValue, path, register);
+            /// <inheritdoc cref="CreateAnonymousGroup(string, string)"/>
+            public LogGroupID CreateAnonymousGroup(string path)
+            {
+                return CreateAnonymousGroup(path, null);
+            }
+
+            /// <summary>
+            /// Creates a <see cref="LogGroupID"/> instance without an identifying name value.
+            /// </summary>
+            /// <param name="path">Default folder location (including folder name) of log group files.</param>
+            /// <param name="modIDHint">The plugin ID that identifies a mod specific folder location to associate with the group path.</param>
+            public LogGroupID CreateAnonymousGroup(string path, string modIDHint)
+            {
+                //TODO: Implement mod hintpaths
+                return new LogGroupID(null, path);
             }
         }
 
@@ -60,24 +76,26 @@ namespace LogUtils.Enums
         /// </summary>
         public new interface IFactory
         {
-            /// <inheritdoc cref="LogGroupID(string, bool)"/>
-            LogGroupID CreateID(string value, bool register = false);
-
-            /// <inheritdoc cref="LogGroupID(string, string, bool)"/>
-            LogGroupID CreateID(string value, string path, bool register = false);
-
             /// <inheritdoc cref="ComparisonLogID(string, LogIDType)"/>
             LogID CreateComparisonID(string value);
 
-            /// <summary>
-            /// Creates a <see cref="LogGroupID"/> using a folder path as an identifier
-            /// </summary>
-            /// <param name="path">The path to set as the target log path for log group members</param>
-            /// <inheritdoc cref="LogGroupID(string, string, bool)">
-            /// <param name="register"></param>
-            /// </inheritdoc>
-            /// <exception cref="ArgumentException">Root paths, certain game directories, and mod containing directories are not allowed to be selected by this factory method</exception>
-            LogGroupID FromPath(string path, bool register = false);
+            /// <inheritdoc cref="FactoryImpl.CreateNamedGroup(string, string, string, bool)"/>
+            LogGroupID CreateNamedGroup(string name, bool register = false);
+
+            /// <inheritdoc cref="FactoryImpl.CreateNamedGroup(string, string, string, bool)"/>
+            LogGroupID CreateNamedGroup(string name, string path, bool register = false);
+
+            /// <inheritdoc cref="FactoryImpl.CreateNamedGroup(string, string, string, bool)"/>
+            LogGroupID CreateNamedGroup(string name, string path, string modIDHint, bool register = false);
+
+            /// <inheritdoc cref="FactoryImpl.CreateAnonymousGroup()"/>
+            LogGroupID CreateAnonymousGroup();
+
+            /// <inheritdoc cref="FactoryImpl.CreateAnonymousGroup(string, string)"/>
+            LogGroupID CreateAnonymousGroup(string path);
+
+            /// <inheritdoc cref="FactoryImpl.CreateAnonymousGroup(string, string)"/>
+            LogGroupID CreateAnonymousGroup(string path, string modIDHint);
         }
     }
 }

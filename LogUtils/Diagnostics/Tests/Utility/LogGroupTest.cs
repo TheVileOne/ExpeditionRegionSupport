@@ -20,8 +20,16 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             //Register log group to get properties for it, and to maximize LogUtils support for your group.
             //Registration is not necessary if you plan to fully manage your log files independently of LogUtils, and you do not wish files being moved around.
-            //testGroup = LogGroupID.Factory.CreateID(UtilityConsts.UTILITY_NAME, register: true);
-            testGroup = LogGroupID.Factory.FromPath(FOLDER_NAME, register: true);
+            
+            //Build parameters may be set before creating the ID instance. All fields are optional, but some will be required to register the ID.
+            //Perfectly functional log groups can be created with an unregistered ID.
+            LogGroupBuilder builder = new LogGroupBuilder()
+            {
+                Name = UtilityConsts.UTILITY_NAME + "TestGroup",
+                Path = FOLDER_NAME
+            };
+
+            testGroup = builder.GetRegisteredID();
             testGroup.Properties.FolderPermissions = FolderPermissions.Move;
 
             //Add members to group

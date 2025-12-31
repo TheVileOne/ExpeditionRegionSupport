@@ -1160,6 +1160,18 @@ namespace LogUtils.Properties
             return Path.Combine(groupID.Properties.CurrentFolderPath, folderPath);
         }
 
+        //TODO: Validate in more places
+        internal static string ValidatePath(string path)
+        {
+            if (RainWorldDirectory.IsIllegalLogPath(path))
+            {
+                //throw new InvalidOperationException("LogUtils does not allow logging to this path\n" + path);
+                UtilityLogger.LogWarning("LogUtils does not allow logging directly to this path. Using fallback path instead\n" + path);
+                path = null;
+            }
+            return GetContainingPath(path);
+        }
+
         public static bool IsPathWildcard(string path)
         {
             return PathUtils.IsEmpty(path);
