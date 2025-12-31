@@ -76,12 +76,17 @@ namespace LogUtils.Properties
         /// <inheritdoc/>
         public override void ChangePath(string newPath)
         {
-            if (Members.Count > 0 && !IsFolderGroup)
+            UtilityLogger.Log("Assigning new folder to group");
+            if (!IsFolderGroup)
             {
-                UtilityLogger.LogWarning("Group path may not be assigned after members are set");
-                return;
+                if (Members.Count > 0)
+                {
+                    UtilityLogger.LogWarning("Group path may not be assigned after members are set");
+                    return;
+                }
+                UtilityLogger.Log("First time assignment");
             }
-            ChangePath(GetContainingPath(newPath), true);
+            ChangePath(GetContainingPath(newPath), applyToMembers: false);
         }
 
         internal void ChangePath(string newPath, bool applyToMembers)
@@ -93,7 +98,13 @@ namespace LogUtils.Properties
 
         internal void SetInitialPath(string path)
         {
-            OriginalFolderPath = GetContainingPath(path);
+            if (!IsNewInstance) return;
+
+            path = !PathUtils.IsEmpty(path) //For groups, there is little value to having a default path when we can define the group as not having a folder
+                   ? GetContainingPath(path)
+                   : string.Empty;
+
+            OriginalFolderPath = path;
             CurrentFolderPath = FolderPath = OriginalFolderPath;
         }
 
