@@ -9611,6 +9611,11 @@
             Attempts to create a valid path associated with a log group. In certain situation, this may fail, and return the given path instead.
             </summary>
         </member>
+        <member name="M:LogUtils.Properties.LogProperties.ApplyGroupPath(LogUtils.Enums.LogGroupID,System.String,System.Func{LogUtils.Enums.LogGroupID,System.String})">
+            <summary>
+            Attempts to create a valid path associated with a log group. In certain situation, this may fail, and return the given path instead.
+            </summary>
+        </member>
         <member name="P:LogUtils.Properties.LogProperties.IsMetadataOptional">
             <summary>
             Indicates whether optional metadata is supported for this instance
