@@ -22,7 +22,7 @@ namespace LogUtils.Helpers
         {
             if (logFile is LogGroupID)
             {
-                UtilityLogger.LogWarning($"Improper use of {nameof(LogFile)} API detected.");
+                UtilityLogger.LogWarning("This feature does not apply to log groups");
                 return FileStatus.NoActionRequired;
             }
             return Copy(logFile.Properties.CurrentFilePath, copyPath, false);
@@ -58,7 +58,7 @@ namespace LogUtils.Helpers
         {
             if (logFile is LogGroupID)
             {
-                UtilityLogger.LogWarning($"Improper use of {nameof(LogFile)} API detected.");
+                UtilityLogger.LogWarning("This feature does not apply to log groups");
                 return FileStatus.NoActionRequired;
             }
 
@@ -74,6 +74,7 @@ namespace LogUtils.Helpers
                     return FileStatus.NoActionRequired;
                 }
 
+                logFile.Properties.EnsureStartupHasRun();
                 logFile.Properties.WriteBuffer.SetState(true, BufferContext.CriticalArea);
 
                 fileLock.SetActivity(FileAction.Move);

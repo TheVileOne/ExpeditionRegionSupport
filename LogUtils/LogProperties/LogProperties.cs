@@ -660,23 +660,41 @@ namespace LogUtils.Properties
 
         public FileStatus CreateTempFile(bool copyOnly = false)
         {
-            if (!File.Exists(LastKnownFilePath))
+            if (this is LogGroupProperties)
+            {
+                UtilityLogger.LogWarning("This feature does not apply to log groups");
                 return FileStatus.NoActionRequired;
-
-            ReplacementFilePath = Path.ChangeExtension(LastKnownFilePath, FileExt.TEMP);
+            }
 
             using (FileLock.Acquire())
             {
+                string lastKnownPath = LastKnownFilePath;
+                if (!File.Exists(lastKnownPath))
+                {
+                    bool actionRequired = false;
+                    if (Group != null && !ID.Registered && !string.IsNullOrEmpty(AltFilename))
+                    {
+                        //This file could be named its original, or its alt filename - check both
+                        lastKnownPath = Path.Combine(PathUtils.PathWithoutFilename(lastKnownPath), AltFilename.WithExtension());
+                        actionRequired = File.Exists(lastKnownPath);
+                    }
+
+                    if (!actionRequired)
+                        return FileStatus.NoActionRequired;
+                }
+
+                ReplacementFilePath = Path.ChangeExtension(lastKnownPath, FileExt.TEMP);
+
                 FileStatus status;
                 if (copyOnly)
                 {
                     FileLock.SetActivity(FileAction.Copy);
-                    status = LogFile.Copy(LastKnownFilePath, ReplacementFilePath, true);
+                    status = LogFile.Copy(lastKnownPath, ReplacementFilePath, true);
                 }
                 else
                 {
                     FileLock.SetActivity(FileAction.Move);
-                    status = LogFile.Move(LastKnownFilePath, ReplacementFilePath, true);
+                    status = LogFile.Move(lastKnownPath, ReplacementFilePath, true);
                 }
 
                 if (status == FileStatus.MoveComplete || status == FileStatus.CopyComplete)
@@ -691,6 +709,11 @@ namespace LogUtils.Properties
 
         public void RemoveTempFile()
         {
+            if (this is LogGroupProperties)
+            {
+                UtilityLogger.LogWarning("This feature does not apply to log groups");
+                return;
+            }
             FileUtils.TryDelete(ReplacementFilePath, "Unable to delete temporary file");
         }
 
@@ -1163,16 +1186,26 @@ namespace LogUtils.Properties
         /// </summary>
         public static string ApplyGroupPath(LogGroupID groupID, string folderPath)
         {
+            return ApplyGroupPath(groupID, folderPath, group => group.Properties.CurrentFolderPath);
+        }
+
+        /// <summary>
+        /// Attempts to create a valid path associated with a log group. In certain situation, this may fail, and return the given path instead.
+        /// </summary>
+        public static string ApplyGroupPath(LogGroupID groupID, string folderPath, Func<LogGroupID, string> pathSelector)
+        {
+            string groupPath = pathSelector.Invoke(groupID);
+
             //The provided path is empty, therefore we should return only the group path 
             if (PathUtils.IsEmpty(folderPath))
-                return groupID.Properties.CurrentFolderPath;
+                return groupPath;
 
             //Path keywords represent absolute paths, or special circumstances not compatible with a group path
             if (PathUtils.IsPathKeyword(folderPath))
                 return folderPath;
 
             //When provided an absolute path, the absolute path will be used. When CurrentFolderPath is empty, folderPath will be unchanged.
-            return Path.Combine(groupID.Properties.CurrentFolderPath, folderPath);
+            return Path.Combine(groupPath, folderPath);
         }
 
         //TODO: Validate in more places

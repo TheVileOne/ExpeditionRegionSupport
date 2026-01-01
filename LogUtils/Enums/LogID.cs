@@ -247,7 +247,22 @@ namespace LogUtils.Enums
             if (Properties.Group == null)
             {
                 groupID.Assign(this);
-            }
+
+                if (!Registered) //This info is already updated when the log file is registered
+                {
+                    //This path should be accurate as long as this filename wasn't moved independently of its group (or renamed) in a past game session
+                    string probableLastKnownPath = LogProperties.ApplyGroupPath(groupID, relativePathNoFile, group =>
+                    {
+                        string lastKnownPath = group.Properties.LastKnownFolderPath;
+
+                        if (PathUtils.IsEmpty(lastKnownPath))
+                            return Properties.CurrentFolderPath; //Fallback to a probably known file location
+
+                        return group.Properties.LastKnownFolderPath;
+                    });
+                    Properties.SetLastKnownPath(Path.Combine(probableLastKnownPath, Properties.Filename.WithExtension()));
+                }
+            } 
             else if (!Properties.Group.Equals(groupID))
             {
                 UtilityLogger.LogWarning("Entry already assigned");

@@ -128,6 +128,7 @@ namespace LogUtils
                     UtilityCore.RequestHandler.BeginCriticalSection();
                     foreach (LogID logFile in AllFiles)
                     {
+                        logFile.Properties.EnsureStartupHasRun();
                         MessageBuffer writeBuffer = logFile.Properties.WriteBuffer;
 
                         writeBuffer.SetState(true, BufferContext.CriticalArea);

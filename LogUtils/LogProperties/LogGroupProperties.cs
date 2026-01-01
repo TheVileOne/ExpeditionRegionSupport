@@ -99,6 +99,7 @@ namespace LogUtils.Properties
             if (applyToMembers && Members.Count > 0)
                 LogGroup.ChangePath(GetFolderMembers(), CurrentFolderPath, newPath);
             CurrentFolderPath = newPath;
+            UpdateLastKnownPath();
         }
 
         internal void SetInitialPath(string path)
