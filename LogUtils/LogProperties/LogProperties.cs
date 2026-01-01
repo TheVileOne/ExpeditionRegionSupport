@@ -274,6 +274,7 @@ namespace LogUtils.Properties
         /// </summary>
         public bool IsWriteRestricted;
 
+        private Task eventTask;
         /// <summary>
         /// When the log file properties are first initialized, the log file can have its path changed to target the Logs folder if it exists, disabled by default
         /// </summary>
@@ -293,8 +294,15 @@ namespace LogUtils.Properties
                 _logsFolderAware = value;
 
                 //During post initialization changes can still be recognized and handled for a short period of time
-                if (UtilityCore.IsInitialized)
-                    LogsFolder.OnEligibilityChanged(new Events.LogEventArgs(this));
+                if (UtilityCore.IsInitialized && eventTask == null)
+                {
+                    Action eventAction = new Action(() =>
+                    {
+                        LogsFolder.OnEligibilityChanged(new Events.LogEventArgs(this));
+                        eventTask = null;
+                    });
+                    eventTask = LogTasker.Schedule(new Task(eventAction, 0));
+                }
             }
         }
 
@@ -317,8 +325,15 @@ namespace LogUtils.Properties
                 _logsFolderEligible = value;
 
                 //During post initialization changes can still be recognized and handled for a short period of time
-                if (UtilityCore.IsInitialized)
-                    LogsFolder.OnEligibilityChanged(new Events.LogEventArgs(this));
+                if (UtilityCore.IsInitialized && eventTask == null)
+                {
+                    Action eventAction = new Action(() =>
+                    {
+                        LogsFolder.OnEligibilityChanged(new Events.LogEventArgs(this));
+                        eventTask = null;
+                    });
+                    eventTask = LogTasker.Schedule(new Task(eventAction, 0));
+                }
             }
         }
 
