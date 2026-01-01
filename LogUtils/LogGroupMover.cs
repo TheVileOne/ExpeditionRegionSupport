@@ -155,6 +155,8 @@ namespace LogUtils
                         if (moveBehavior == MoveBehavior.FilesAndGroup)
                             target.Properties.ChangePath(TargetPath, applyToMembers: false);
 
+                        target.Properties.SetLastKnownPath(TargetPath); //Required for LogUtils to properly detect last known file locations
+
                         if (filesMoved == moveTargets.Length)
                             UtilityLogger.Log("All files moved successfully");
                     }
