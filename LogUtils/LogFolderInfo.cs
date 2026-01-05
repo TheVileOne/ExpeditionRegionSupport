@@ -3,10 +3,12 @@ using LogUtils.Helpers;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties;
 using LogUtils.Threading;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using FileMoveRecord = (System.IO.FileSystemInfo Info, LogUtils.Enums.LogID LogID);
 
 namespace LogUtils
 {
@@ -112,14 +114,44 @@ namespace LogUtils
                 return;
 
             newPath = LogProperties.GetContainingPath(newPath);
+
             bool canMoveFiles = Exists;
 
             if (!canMoveFiles)
             {
-                MoveFilesToPath(newPath);
+                moveFilesToPath(newPath);
                 return;
             }
 
+            bool canMoveFolderToPath = !Directory.Exists(newPath);
+
+            if (canMoveFolderToPath)
+            {
+                moveFolderToPath(newPath);
+            }
+            else
+            {
+                mergeFolder(newPath);
+            }
+        }
+
+        private void moveFilesToPath(string newPath)
+        {
+            string currentPath = FolderPath;
+
+            ThreadSafeWorker worker = new ThreadSafeWorker(Groups.GetLocks())
+            {
+                UseEnumerableWrapper = false
+            };
+
+            worker.DoWork(() =>
+            {
+                UpdateAllPaths(newPath);
+            });
+        }
+
+        private void moveFolderToPath(string newPath)
+        {
             using (var scope = demandAllLocks())
             {
                 bool moveCompleted = false;
@@ -128,10 +160,17 @@ namespace LogUtils
                 List<StreamResumer> streamsToResume = new List<StreamResumer>();
                 try
                 {
+                    int expectedFileMoves = AllFiles.Count;
+                    int currentFile = 0;
+                    UtilityLogger.Log($"Moving {expectedFileMoves} files");
+
                     UtilityCore.RequestHandler.BeginCriticalSection();
-                    foreach (LogID logFile in AllFiles)
+                    while (currentFile != expectedFileMoves)
                     {
+                        LogID logFile = AllFiles[currentFile];
+
                         logFile.Properties.EnsureStartupHasRun();
+
                         MessageBuffer writeBuffer = logFile.Properties.WriteBuffer;
 
                         writeBuffer.SetState(true, BufferContext.CriticalArea);
@@ -142,6 +181,7 @@ namespace LogUtils
 
                         //The move operation requires that all persistent file activity be closed until move is complete
                         streamsToResume.AddRange(logFile.Properties.PersistentStreamHandles.InterruptAll());
+                        currentFile++;
                     }
                     string currentPath = FolderPath;
 
@@ -154,7 +194,6 @@ namespace LogUtils
                 {
                     if (!moveCompleted)
                     {
-                        //TODO: Sanity check the number of aborted entries
                         foreach (LogID logFile in AllFiles)
                             logFile.Properties.NotifyPendingMoveAborted();
                     }
@@ -167,18 +206,168 @@ namespace LogUtils
             }
         }
 
-        internal void MoveFilesToPath(string newPath)
+        private void mergeFolder(string newPath)
         {
-            string currentPath = FolderPath;
+            //TODO: Group paths are not updated
+            MergeRecord record;
+            mergeFolderRecursive(null, newPath, record = new MergeRecord());
 
-            ThreadSafeWorker worker = new ThreadSafeWorker(Groups.GetLocks())
+            if (record.HasFailed)
             {
-                UseEnumerableWrapper = false
-            };
+                UtilityLogger.LogError("Failed to merge folder", record.Exception);
+                cancelMerge(newPath, record);
+                return;
+            }
+            //Handle collisions here
+            collectFeedbackFromUser(record);
+        }
 
-            worker.DoWork(() =>
+        private void cancelMerge(string mergePath, MergeRecord record)
+        {
+            foreach (FileMoveRecord moveRecord in record.FilesMoved)
             {
-                UpdateAllPaths(newPath);
+                if (moveRecord.LogID != null)
+                {
+                    LogFile.Move(moveRecord.LogID, moveRecord.LogID.Properties.LastKnownFilePath);
+                    continue;
+                }
+                FileUtils.TryMove(moveRecord.Info.FullName, Path.Combine(FolderPath, moveRecord.Info.Name));
+            }
+
+            foreach (FileMoveRecord moveRecord in record.FoldersMoved)
+            {
+                //Slugg, but what if this folder had a collision problem???
+                if (record.FolderConflicts.Contains(moveRecord))
+                {
+                    //var filesWithResolvedConflicts = record.FileConflicts.Where(r =>
+                    //            PathUtils.ContainsOtherPath(PathUtils.PathWithoutFilename(r.Info.FullName), moveRecord.Info.FullName));
+                    var filesToRestore = record.FilesMoved.Where(r =>
+                                PathUtils.ContainsOtherPath(PathUtils.PathWithoutFilename(r.Info.FullName), moveRecord.Info.FullName));
+
+                    //TODO: Introduce handle behavior for conflicted files (probably through a temp path)
+
+                }
+
+                //FileUtils.TryMove(moveRecord.Info.FullName, Path.Combine(FolderPath, moveRecord.Info.Name));
+            }
+        }
+
+        private void mergeFolderRecursive(DirectoryInfo source, string destinationPath, MergeRecord record)
+        {
+            try
+            {
+                DirectoryInfo destination = new DirectoryInfo(destinationPath);
+                if (source == null) //The toplevel directory is handled differently than the rest
+                {
+                    source = new DirectoryInfo(FolderPath);
+                }
+                else
+                {
+                    if (destination.Exists) //Collisions should not qualify as errors
+                    {
+                        record.FolderConflicts.Add(new FileMoveRecord(destination, null));
+                        return;
+                    }
+                    source.MoveTo(destination.FullName);
+                    record.FoldersMoved.Add(new FileMoveRecord(source, null));
+                }
+                mergeFileHelper(source, destination, record);
+
+                if (record.HasFailed)
+                    return;
+
+                foreach (DirectoryInfo subFolder in source.GetDirectories())
+                {
+                    string newSubFolderPath = Path.Combine(destinationPath, subFolder.Name);
+                    mergeFolderRecursive(subFolder, newSubFolderPath, record);
+                }
+            }
+            catch (Exception ex) //Exceptional states will be handled by the caller
+            {
+                record.HasFailed = true;
+                record.Exception = ex;
+            }
+        }
+
+        private void mergeFileHelper(DirectoryInfo source, DirectoryInfo destination, MergeRecord record)
+        {
+            bool fileMoveError = false;
+
+            //The folder at the destination should exist at this point
+            foreach (FileInfo file in source.GetFiles())
+            {
+                LogID logFile = AllFiles.Find(file.Name, file.DirectoryName);
+
+                string fileDestination = Path.Combine(destination.FullName, file.Name);
+
+                if (File.Exists(fileDestination)) //Collisions should not qualify as errors
+                {
+                    record.FileConflicts.Add(new FileMoveRecord(file, logFile));
+                    continue;
+                }
+
+                fileMoveError = false;
+                if (logFile != null)
+                {
+                    FileStatus status = LogFile.Move(logFile, fileDestination); //File must necessarily exist here - a path only change wouldn't apply
+                    if (status != FileStatus.MoveComplete)
+                    {
+                        UtilityLogger.DebugLog($"Encountered status code [{status}]");
+                        fileMoveError = true;
+                    }
+                }
+                else //This is an unrecognized file being moved
+                {
+                    fileMoveError = !FileUtils.TryMove(file.FullName, fileDestination);
+                }
+
+                if (fileMoveError) break;//There was an issue processing a log file - abort process
+
+                record.FilesMoved.Add(new FileMoveRecord(new FileInfo(fileDestination), logFile));
+            }
+
+            if (fileMoveError)
+                record.HasFailed = true;
+        }
+
+        private CollisionResolutionFeedback[] collectFeedbackFromUser(MergeRecord record)
+        {
+            CollisionResolutionFeedback[] feedback = new CollisionResolutionFeedback[record.FileConflicts.Count];
+            for (int i = 0; i < feedback.Length; i++)
+            {
+                feedback[i] = askUserForFeedback(record.FileConflicts[i]);
+            }
+
+            bool hasUnresolvedConflicts = true;
+            while (hasUnresolvedConflicts)
+            {
+                hasUnresolvedConflicts = false;
+                for (int i = 0; i < feedback.Length; i++)
+                {
+                    if (feedback[i] == CollisionResolutionFeedback.SaveForLater)
+                    {
+                        feedback[i] = askUserForFeedback(record.FileConflicts[i]);
+
+                        if (feedback[i] == CollisionResolutionFeedback.SaveForLater)
+                            hasUnresolvedConflicts = true;
+                    }
+                }
+            }
+            return feedback;
+            CollisionResolutionFeedback askUserForFeedback(FileMoveRecord conflict)
+            {
+                //TODO: Create feedback dialog
+                return CollisionResolutionFeedback.KeepBoth;
+            }
+        }
+
+        internal IEnumerable<KeyValuePair<string, LogID>> GroupByFolder(ICollection<LogID> logFiles)
+        {
+            string[] files = Directory.GetFiles(FolderPath);
+            return files.Select(f =>
+            {
+                string path = PathUtils.PathWithoutFilename(f, out string filename);
+                return new KeyValuePair<string, LogID>(f, logFiles.Find(filename, path));
             });
         }
 
@@ -206,5 +395,43 @@ namespace LogUtils
         {
             return new ReadOnlyCollection<T>(list);
         }
+
+        private class MergeRecord
+        {
+            public List<FileMoveRecord> FilesMoved,
+                                        FoldersMoved,
+                                        FileConflicts,
+                                        FolderConflicts;
+            public bool HasFailed;
+            public Exception Exception;
+
+            public MergeRecord()
+            {
+                FilesMoved = new List<FileMoveRecord>();
+                FoldersMoved = new List<FileMoveRecord>();
+                FileConflicts = new List<FileMoveRecord>();
+                FolderConflicts = new List<FileMoveRecord>();
+            }
+        }
+    }
+
+    public enum CollisionResolutionFeedback
+    {
+        /// <summary>
+        /// The file at destination will be replaced
+        /// </summary>
+        Overwrite,
+        /// <summary>
+        /// The new filename will be renamed to avoid filename collisions
+        /// </summary>
+        KeepBoth,
+        /// <summary>
+        /// File move will not be permitted
+        /// </summary>
+        CancelMove,
+        /// <summary>
+        /// Result will be ignored, and asked again at the end
+        /// </summary>
+        SaveForLater,
     }
 }
