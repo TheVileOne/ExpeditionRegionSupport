@@ -48,15 +48,24 @@ namespace LogUtils
             FolderPath = LogProperties.GetContainingPath(folderPath);
         }
 
+        private LogFolderInfo(string folderPath, LogFolderInfo parentInfo) : this(folderPath)
+        {
+            RefreshInfoInternal(parentInfo.Groups.GetProperties(), parentInfo.FilesNotFromFolderGroups);
+        }
+
         public void RefreshInfo()
         {
-            Groups = createCollection(LogGroup.GroupsSharingThisPath(FolderPath).ToList());
+            RefreshInfoInternal(LogProperties.PropertyManager.GroupProperties, LogID.GetEntries());
+        }
 
-            IEnumerable<LogGroupProperties> allOtherGroups =
-                LogProperties.PropertyManager.GroupProperties
+        internal void RefreshInfoInternal(IEnumerable<LogGroupProperties> searchGroups, IEnumerable<LogID> searchFiles)
+        {
+            Groups = createCollection(LogGroup.GroupsSharingThisPath(FolderPath, searchGroups).ToList());
+
+            IEnumerable<LogGroupProperties> allOtherGroups = searchGroups
                              .Except(Groups.GetProperties());
 
-            var nonGroupMembers = LogGroup.NonGroupMembersSharingThisPath(FolderPath)
+            var nonGroupMembers = LogGroup.NonGroupMembersSharingThisPath(FolderPath, searchFiles)
                                           .Concat(allOtherGroups.SelectMany(group =>
                                           {
                                               var membersToCheck = group.IsFolderGroup ? group.GetNonConformingMembers() : group.Members;
@@ -72,6 +81,17 @@ namespace LogUtils
         public bool IsSafeToMove()
         {
             return UtilityCore.IsControllingAssembly && DirectoryUtils.IsSafeToMove(FolderPath);
+        }
+
+        /// <summary>
+        /// Gets a slice of folder information that applies to a specified subfolder
+        /// </summary>
+        /// <exception cref="ArgumentException">Folder path provided is not a part of the current folder path</exception>
+        public LogFolderInfo GetFolder(string folderPath)
+        {
+            if (!PathUtils.ContainsOtherPath(folderPath, FolderPath))
+                throw new ArgumentException("Path must be a subdirectory");
+            return new LogFolderInfo(folderPath, this);
         }
 
         /// <summary>
