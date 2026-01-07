@@ -40,11 +40,8 @@ namespace LogUtils.Helpers.Comparers
         /// <inheritdoc/>
         public bool Equals(ExceptionInfo exception, ExceptionInfo exceptionOther)
         {
-            if (exception == null)
-                return exceptionOther == null;
-
-            if (exceptionOther == null)
-                return false;
+            if (exception == null || exceptionOther == null)
+                return exception == exceptionOther;
 
             if (MaxLinesToCheck > 0)
                 return checkMatchLineByLine(exception, exceptionOther);

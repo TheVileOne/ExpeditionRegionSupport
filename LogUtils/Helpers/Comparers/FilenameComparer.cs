@@ -28,11 +28,13 @@ namespace LogUtils.Helpers.Comparers
         /// <inheritdoc/>
         public override int Compare(string filename, string filenameOther)
         {
-            if (filename == null)
-                return filenameOther != null ? int.MinValue : 0;
+            if (filename == null || filenameOther == null)
+            {
+                if (filename == filenameOther)
+                    return 0;
 
-            if (filenameOther == null)
-                return int.MaxValue;
+                return filename == null ? int.MinValue : int.MaxValue;
+            }
 
             //The path is unimportant, this function is designed to evaluate the filename only
             filename = Path.GetFileName(filename);
@@ -55,11 +57,8 @@ namespace LogUtils.Helpers.Comparers
         /// <inheritdoc/>
         public override bool Equals(string filename, string filenameOther)
         {
-            if (filename == null)
-                return filenameOther == null;
-
-            if (filenameOther == null)
-                return false;
+            if (filename == null || filenameOther == null)
+                return filename == filenameOther;
 
             //The path is unimportant, this function is designed to evaluate the filename only
             filename = Path.GetFileName(filename);
