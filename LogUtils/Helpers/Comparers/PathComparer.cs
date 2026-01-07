@@ -66,8 +66,8 @@ namespace LogUtils.Helpers.Comparers
             if (PathUtils.IsEmpty(pathOther))
                 return int.MaxValue;
 
-            path = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar);
-            pathOther = Path.GetFullPath(pathOther).TrimEnd(Path.DirectorySeparatorChar);
+            path = prepareValue(path);
+            pathOther = prepareValue(pathOther);
 
             return base.Compare(path, pathOther);
         }
@@ -83,10 +83,22 @@ namespace LogUtils.Helpers.Comparers
             if (PathUtils.IsEmpty(pathOther))
                 return false;
 
-            path = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar);
-            pathOther = Path.GetFullPath(pathOther).TrimEnd(Path.DirectorySeparatorChar);
+            path = prepareValue(path);
+            pathOther = prepareValue(pathOther);
 
             return base.Equals(path, pathOther);
         }
+
+        /// <inheritdoc/>
+        public override int GetHashCode(string obj)
+        {
+            if (PathUtils.IsEmpty(obj))
+                return 0;
+
+            obj = prepareValue(obj);
+            return base.GetHashCode(obj);
+        }
+
+        private static string prepareValue(string path) => Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar);
     }
 }

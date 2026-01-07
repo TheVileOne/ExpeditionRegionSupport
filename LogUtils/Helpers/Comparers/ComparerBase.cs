@@ -37,7 +37,7 @@ namespace LogUtils.Helpers.Comparers
         /// <inheritdoc/>
         public virtual int GetHashCode(T obj)
         {
-            return InnerEqualityComparer.GetHashCode(obj);
+            return ComparerUtils.GetNullSafeHashCode(obj, InnerEqualityComparer);
         }
     }
 }

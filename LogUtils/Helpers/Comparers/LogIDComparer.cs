@@ -34,11 +34,13 @@ namespace LogUtils.Helpers.Comparers
         /// <inheritdoc/>
         public override int Compare(LogID id, LogID idOther)
         {
-            if (id == null)
-                return idOther != null ? int.MinValue : 0;
+            if (id == null || idOther == null)
+            {
+                if (id == idOther)
+                    return 0;
 
-            if (idOther == null)
-                return int.MaxValue;
+                return id == null ? int.MinValue : int.MaxValue;
+            }
 
             //Properties field may be null when comparing against ComparisonLogID instances
             if (id.Properties == null || idOther.Properties == null)
@@ -50,11 +52,13 @@ namespace LogUtils.Helpers.Comparers
         /// <inheritdoc/>
         public int Compare(LogProperties properties, LogProperties propertiesOther)
         {
-            if (properties == null)
-                return propertiesOther != null ? int.MinValue : 0;
+            if (properties == null || propertiesOther == null)
+            {
+                if (properties == propertiesOther)
+                    return 0;
 
-            if (propertiesOther == null)
-                return int.MaxValue;
+                return properties == null ? int.MinValue : int.MaxValue;
+            }
 
             return CompareNormal(properties, propertiesOther);
         }
