@@ -18,6 +18,7 @@ namespace LogUtils
     /// </summary>
     public sealed class LogFolderInfo
     {
+        private bool hasInitialized;
         private string folderPathCache;
 
         /// <summary>
@@ -65,6 +66,7 @@ namespace LogUtils
         public LogFolderInfo(string folderPath)
         {
             FolderPathInfo = new DirectoryInfo(LogProperties.GetContainingPath(folderPath));
+            hasInitialized = true;
         }
 
         /// <summary>
@@ -79,22 +81,27 @@ namespace LogUtils
             if (folderInfo == null)
                 throw new ArgumentNullException(nameof(folderInfo));
             FolderPathInfo = folderInfo;
+            hasInitialized = true;
         }
 
         private LogFolderInfo(string folderPath, LogFolderInfo parentInfo) : this(folderPath)
         {
+            hasInitialized = false;
             if (!PathUtils.ContainsOtherPath(FolderPath, parentInfo.FolderPath))
                 throw new ArgumentException("Path must be a subdirectory");
 
             RefreshInfoInternal(parentInfo.Groups.GetProperties(), parentInfo.FilesNotFromFolderGroups);
+            hasInitialized = true;
         }
 
         private LogFolderInfo(DirectoryInfo folderInfo, LogFolderInfo parentInfo) : this(folderInfo)
         {
+            hasInitialized = false;
             if (!PathUtils.ContainsOtherPath(FolderPath, parentInfo.FolderPath))
                 throw new ArgumentException("Path must be a subdirectory");
 
             RefreshInfoInternal(parentInfo.Groups.GetProperties(), parentInfo.FilesNotFromFolderGroups);
+            hasInitialized = true;
         }
 
         public void RefreshInfo()
@@ -104,7 +111,8 @@ namespace LogUtils
 
         internal void RefreshInfoInternal(IEnumerable<LogGroupProperties> searchGroups, IEnumerable<LogID> searchFiles)
         {
-            folderPathCache = null;
+            if (hasInitialized)
+                folderPathCache = null;
             Groups = createCollection(LogGroup.GroupsSharingThisPath(FolderPath, searchGroups).ToList());
 
             IEnumerable<LogGroupProperties> allOtherGroups = searchGroups
