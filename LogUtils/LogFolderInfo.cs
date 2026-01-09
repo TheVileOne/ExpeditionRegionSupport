@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using FileMoveRecord = (System.IO.FileSystemInfo Info, LogUtils.Enums.LogID LogID);
+using System.Security;
 
 namespace LogUtils
 {
@@ -17,15 +18,27 @@ namespace LogUtils
     /// </summary>
     public sealed class LogFolderInfo
     {
+        private string folderPathCache;
+
         /// <summary>
         /// A fully qualified path that contains log groups or files
         /// </summary>
-        public string FolderPath { get; private set; }
+        public string FolderPath
+        {
+            get
+            {
+                if (folderPathCache == null)
+                    folderPathCache = FolderPathInfo.FullName;
+                return folderPathCache;
+            }
+        }
 
         /// <summary>
         /// Checks that folder path exists
         /// </summary>
-        public bool Exists => Directory.Exists(FolderPath);
+        public bool Exists => FolderPathInfo.Exists;
+
+        internal DirectoryInfo FolderPathInfo;
 
         /// <summary>
         /// A snapshot of any groups that target this folder path
@@ -43,13 +56,44 @@ namespace LogUtils
         /// </summary>
         public ReadOnlyCollection<LogID> FilesNotFromFolderGroups { get; private set; }
 
+        /// <summary>
+        /// Creates an object for manipulating folders containing log files
+        /// </summary>
+        /// <param name="folderPath">A path (absolute, relative, or partial) to a folder to access information from</param>
+        /// <exception cref="SecurityException">Insufficient access to specified path</exception>
+        /// <exception cref="PathTooLongException">Path exceeded allowed maximum character length</exception>
         public LogFolderInfo(string folderPath)
         {
-            FolderPath = LogProperties.GetContainingPath(folderPath);
+            FolderPathInfo = new DirectoryInfo(LogProperties.GetContainingPath(folderPath));
+        }
+
+        /// <summary>
+        /// Creates an object for manipulating folders containing log files
+        /// </summary>
+        /// <param name="folderInfo">A directory object pointing to a desired folder path</param>
+        /// <exception cref="ArgumentNullException">Folder info was a null value</exception>
+        /// <exception cref="SecurityException">Insufficient access to specified path</exception>
+        /// <exception cref="PathTooLongException">Path exceeded allowed maximum character length</exception>
+        public LogFolderInfo(DirectoryInfo folderInfo)
+        {
+            if (folderInfo == null)
+                throw new ArgumentNullException(nameof(folderInfo));
+            FolderPathInfo = folderInfo;
         }
 
         private LogFolderInfo(string folderPath, LogFolderInfo parentInfo) : this(folderPath)
         {
+            if (!PathUtils.ContainsOtherPath(FolderPath, parentInfo.FolderPath))
+                throw new ArgumentException("Path must be a subdirectory");
+
+            RefreshInfoInternal(parentInfo.Groups.GetProperties(), parentInfo.FilesNotFromFolderGroups);
+        }
+
+        private LogFolderInfo(DirectoryInfo folderInfo, LogFolderInfo parentInfo) : this(folderInfo)
+        {
+            if (!PathUtils.ContainsOtherPath(FolderPath, parentInfo.FolderPath))
+                throw new ArgumentException("Path must be a subdirectory");
+
             RefreshInfoInternal(parentInfo.Groups.GetProperties(), parentInfo.FilesNotFromFolderGroups);
         }
 
@@ -60,6 +104,7 @@ namespace LogUtils
 
         internal void RefreshInfoInternal(IEnumerable<LogGroupProperties> searchGroups, IEnumerable<LogID> searchFiles)
         {
+            folderPathCache = null;
             Groups = createCollection(LogGroup.GroupsSharingThisPath(FolderPath, searchGroups).ToList());
 
             IEnumerable<LogGroupProperties> allOtherGroups = searchGroups
@@ -87,11 +132,22 @@ namespace LogUtils
         /// Gets a slice of folder information that applies to a specified subfolder
         /// </summary>
         /// <exception cref="ArgumentException">Folder path provided is not a part of the current folder path</exception>
-        public LogFolderInfo GetFolder(string folderPath)
+        /// <exception cref="SecurityException">Insufficient access to specified path</exception>
+        /// <exception cref="PathTooLongException">Path exceeded allowed maximum character length</exception>
+        public LogFolderInfo GetSubFolderInfo(string folderPath)
         {
-            if (!PathUtils.ContainsOtherPath(folderPath, FolderPath))
-                throw new ArgumentException("Path must be a subdirectory");
             return new LogFolderInfo(folderPath, this);
+        }
+
+        /// <summary>
+        /// Gets a slice of folder information that applies to a specified subfolder
+        /// </summary>
+        /// <exception cref="ArgumentException">Folder path provided is not a part of the current folder path</exception>
+        /// <exception cref="ArgumentNullException">Folder info is a null value</exception>
+        /// <exception cref="SecurityException">Insufficient access to specified path</exception>
+        public LogFolderInfo GetSubFolderInfo(DirectoryInfo folderInfo)
+        {
+            return new LogFolderInfo(folderInfo, this);
         }
 
         /// <summary>
@@ -398,7 +454,7 @@ namespace LogUtils
                 LogGroup.ChangePath(groupEntry, currentPath, newPath, applyToMembers: true);
 
             LogGroup.ChangePath(FilesNotFromFolderGroups, currentPath, newPath);
-            FolderPath = newPath; //Info cache will be stale and should be refreshed before next access
+            FolderPathInfo = new DirectoryInfo(newPath); //Info cache will be stale and should be refreshed before next access
         }
 
         /// <summary>
