@@ -60,6 +60,12 @@ namespace LogUtils
                 return status;
             }
 
+            Exception validationException = logValidator.GetLastException();
+            if (validationException != null)
+            {
+                var handler = CreateExceptionHandler();
+                handler.OnError(validationException, ErrorContext.Validation);
+            }
             return FileStatus.ValidationFailed;
         }
 
@@ -87,10 +93,15 @@ namespace LogUtils
                     handler.OnError(ex, ErrorContext.Copy);
                     status = FileStatus.Error;
                 }
-
                 return status;
             }
 
+            Exception validationException = logValidator.GetLastException();
+            if (validationException != null)
+            {
+                var handler = CreateExceptionHandler();
+                handler.OnError(validationException, ErrorContext.Validation);
+            }
             return FileStatus.ValidationFailed;
         }
 
@@ -112,7 +123,6 @@ namespace LogUtils
                 handler.OnError(ex, ErrorContext.Copy);
                 status = FileStatus.Error;
             }
-
             return status;
         }
 
@@ -179,18 +189,21 @@ namespace LogUtils
 
             private string getErrorMessage(ErrorContext context)
             {
-                if (context == ErrorContext.Move)
-                    return "Unable to move file. Attempting to copy instead";
-                else if (context == ErrorContext.Copy)
-                    return "Unable to copy file";
-                return null;
+                return context switch
+                {
+                    ErrorContext.Move => "Unable to move file. Attempting to copy instead",
+                    ErrorContext.Copy => "Unable to copy file",
+                    ErrorContext.Validation => "Unabled to validate file",
+                    _ => null,
+                };
             }
         }
 
         private enum ErrorContext
         {
             Move,
-            Copy
+            Copy,
+            Validation,
         }
     }
 
