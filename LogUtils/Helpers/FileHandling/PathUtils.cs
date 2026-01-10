@@ -266,6 +266,28 @@ namespace LogUtils.Helpers.FileHandling
             if (IsEmpty(path))
                 return Array.Empty<string>();
 
+            return SplitPathInternal(path);
+        }
+
+        /// <summary>
+        /// Separates a path into its directory and/or file components
+        /// </summary>
+        /// <param name="path">Path to target</param>
+        /// <param name="startAt">The character position in the string to start beging the split</param>
+        /// <exception cref="ArgumentOutOfRangeException">Index position given was negative or greater than the length of the path string</exception>
+        public static string[] SplitPath(string path, int startAt = 0)
+        {
+            if (startAt < 0 || (startAt > 0 && (path == null || startAt > path.Length)))
+                throw new ArgumentOutOfRangeException(nameof(startAt));
+
+            if (IsEmpty(path) || startAt == path.Length)
+                return Array.Empty<string>();
+
+            return SplitPathInternal(path.Substring(startAt));
+        }
+
+        internal static string[] SplitPathInternal(string path)
+        {
             char[] separators = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
 
             int prefixLength = GetPrefixLength(path);
@@ -273,7 +295,7 @@ namespace LogUtils.Helpers.FileHandling
             if (prefixLength > 0)
                 path = path.Substring(prefixLength);
 
-            return path.TrimEnd(separators) //Trimming avoids empty data making it into the results
+            return path.Trim(separators) //Trimming avoids empty data making it into the results
                        .Split(separators);
         }
 
@@ -376,7 +398,7 @@ namespace LogUtils.Helpers.FileHandling
         public static string Rebase(string subPath, string basePath, string newBasePath)
         {
             subPath = TrimCommonRoot(subPath, basePath); //Remove current path from subpath
-            return Path.Combine(newBasePath, subPath);                 //Combine it with new path
+            return Path.Combine(newBasePath, subPath);   //Combine it with new path
         }
 
         /// <summary>
