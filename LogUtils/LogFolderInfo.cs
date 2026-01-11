@@ -339,12 +339,14 @@ namespace LogUtils
                 if (mergeInfo.History.HasFailed)
                     return;
 
-                //Check subdirectories next
+                //Merge current subfolders
                 DirectoryInfo[] subFolders = mergeInfo.CurrentSource.GetDirectories();
-                for (int i = 0; i < subFolders.Length; i++)
+                foreach (LogFolderInfo subFolderInfo in subFolders.Select(GetSubFolderInfo))
                 {
-                    LogFolderInfo subFolderInfo = GetSubFolderInfo(subFolders[i]);
                     subFolderInfo.mergeCurrentFolder(mergeInfo);
+
+                    if (mergeInfo.History.HasFailed)
+                        break;
                 }
             }
             catch (Exception ex) //Exceptional states will be handled by the caller
