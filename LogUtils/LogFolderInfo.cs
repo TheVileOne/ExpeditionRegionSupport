@@ -362,56 +362,65 @@ namespace LogUtils
         private IEnumerable<MergeRecord> changePathOfNonExistingFilesAndFolders(string destinationPath)
         {
             List<LogGroupID> handledGroups = new List<LogGroupID>();
-            IEnumerable<LogGroupID> groupsWithoutRepresentation = Groups.Where(isUnrepresentedGroup);
-            IEnumerable<LogID> filesWithoutRepresentation = FilesNotFromFolderGroups.Where(isUnrepresentedFile);
-
-            var pathComparer = new LogPathComparer();
 
             IEnumerable<MergeRecord> records = [];
-            foreach (LogGroupID logGroup in groupsWithoutRepresentation)
+            processNonExistingFolderGroups();
+            processNonExistingLogFiles();
+
+            void processNonExistingFolderGroups()
             {
-                if (handledGroups.Contains(logGroup, pathComparer))
-                    continue;
+                var pathComparer = new LogPathComparer();
 
-                LogFolderInfo folderInfo = GetSubFolderInfo(logGroup.Properties.CurrentFolderPath);
+                IEnumerable<LogGroupID> groups = Groups.Where(isNonExistingFolderGroup);
+                foreach (LogGroupID logGroup in groups)
+                {
+                    if (handledGroups.Contains(logGroup, pathComparer))
+                        continue;
 
-                records.Concat(folderInfo.rebaseAllPaths(destinationPath));
-                handledGroups.Add(logGroup);
+                    LogFolderInfo folderInfo = GetSubFolderInfo(logGroup.Properties.CurrentFolderPath);
+
+                    records.Concat(folderInfo.rebaseAllPaths(destinationPath));
+                    handledGroups.Add(logGroup);
+                }
             }
 
-            //TODO: Write LogID handling
+            void processNonExistingLogFiles()
+            {
+                IEnumerable<LogID> files = FilesNotFromFolderGroups.Where(isNonExistingLogFile);
+                foreach (LogID logFile in files)
+                {
+                    MergeRecord record = MergeRecordFactory.Create(logFile, canHandle: false);
 
+                    bool locatedInCurrentFolder = logFile.Properties.CurrentFolderPath.Length == FolderPath.Length;
+
+                    if (locatedInCurrentFolder)
+                        logFile.Properties.ChangePath(destinationPath);
+                    else
+                        logFile.Properties.ChangeBasePath(FolderPath, destinationPath);
+
+                    record.CurrentPath = logFile.Properties.CurrentFolderPath;
+                    records.Append(record);
+                }
+            }
             return records;
-            bool isUnrepresentedFile(LogID logFile)
+
+            bool isNonExistingLogFile(LogID logFile)
             {
                 if (logFile.Properties.FileExists) //This field shouldn't be stale in the context of a merge
                     return false;
 
-                bool fileAlreadyHandled = handledGroups.Exists(entry => PathUtils.ContainsOtherPath(logFile.Properties.CurrentFolderPath, entry.Properties.CurrentFolderPath));
+                bool fileAlreadyHandled = handledGroups.Any(entry => PathUtils.ContainsOtherPath(logFile.Properties.CurrentFolderPath, entry.Properties.CurrentFolderPath));
 
                 if (fileAlreadyHandled)
                     return false;
 
-                bool locatedInCurrentFolder = PathUtils.PathsAreEqual(FolderPath, logFile.Properties.CurrentFolderPath);
-
-                if (locatedInCurrentFolder) //This doesn't necessarily mean they are unrepresented, but in the context of a merge, this folder should exist
-                    return false;
-
-                return true;
+                //The folder must not be associated with an existing subpath - those cases will be handled with the subfolder is handled
+                return !PathUtils.SubPathExists(logFile.Properties.CurrentFolderPath, FolderPath.Length);
             }
 
-            bool isUnrepresentedGroup(LogGroupID logGroup)
+            bool isNonExistingFolderGroup(LogGroupID logGroup)
             {
-                string[] pathDirs = PathUtils.SplitPath(logGroup.Properties.CurrentFolderPath, FolderPath.Length);
-
-                if (pathDirs.Length == 0) //Path is equivalent to current folder path
-                    return false;
-
-                //Check only one folder depth beyond the currently checked folder path
-                string checkPath = Path.Combine(FolderPath, pathDirs[0]);
-
-                //We want examples that aren't represented by a folder that currently exists
-                return !Directory.Exists(checkPath);
+                return !PathUtils.SubPathExists(logGroup.Properties.CurrentFolderPath, FolderPath.Length);
             }
         }
 
@@ -431,20 +440,16 @@ namespace LogUtils
             int currentIndex = -1;
             foreach (LogGroupID target in Groups)
             {
-                MergeRecord record = records[++currentIndex] = new LogGroupMoveRecord()
-                {
-                    OriginalPath = target.Properties.CurrentFolderPath,
-                };
+                MergeRecord record = records[++currentIndex] = MergeRecordFactory.Create(target);
+
                 target.Properties.ChangeBasePath(currentBasePath: FolderPath, newBasePath);
                 record.CurrentPath = target.Properties.CurrentFolderPath;
             }
 
             foreach (LogID target in AllFiles)
             {
-                MergeRecord record = records[++currentIndex] = new FileMoveRecord()
-                {
-                    OriginalPath = target.Properties.CurrentFolderPath,
-                };
+                MergeRecord record = records[++currentIndex] = MergeRecordFactory.Create(target, canHandle: false);
+
                 target.Properties.ChangeBasePath(currentBasePath: FolderPath, newBasePath);
                 record.CurrentPath = target.Properties.CurrentFolderPath;
             }
@@ -457,12 +462,18 @@ namespace LogUtils
             foreach (FileInfo file in mergeInfo.CurrentSource.GetFiles())
             {
                 LogID logFile = AllFiles.Find(file.Name, file.DirectoryName); //TODO: It is possible that this finds the wrong instance
-                FileMoveRecord record = new FileMoveRecord()
+                
+                MergeRecord record;
+                if (logFile != null)
+                    record = MergeRecordFactory.Create(logFile, canHandle: true);
+                else
                 {
-                    OriginalPath = file.FullName,
-                    Target = logFile, //May be null
-                    CanHandleFile = true //We know it must exist
-                };
+                    record = new FileMoveRecord()
+                    {
+                        OriginalPath = file.FullName,
+                        CanHandleFile = true, //We know it must exist
+                    };
+                }
 
                 string fileDestination = Path.Combine(mergeInfo.DestinationPath, file.Name);
                 bool hasConflict = File.Exists(fileDestination);

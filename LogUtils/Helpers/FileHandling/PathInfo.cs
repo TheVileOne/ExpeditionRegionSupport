@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace LogUtils.Helpers.FileHandling
 {
@@ -140,6 +141,27 @@ namespace LogUtils.Helpers.FileHandling
                 }
             }
             TargetPath = path;
+        }
+
+        /// <summary>
+        /// Incrementally adds directory names from the target path until the entire target path is returned 
+        /// </summary>
+        public IEnumerable<string> GetFullDirectoryNames()
+        {
+            if (!HasPath)
+            {
+                if (HasDirectory)
+                    yield return Target.Name;
+                yield break;
+            }
+
+            string path = GetRoot();
+            foreach (string directoryName in GetDirectories())
+            {
+                path = Path.Combine(path, directoryName);
+                yield return path;
+            }
+            yield break;
         }
 
         /// <summary>

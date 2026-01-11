@@ -102,21 +102,16 @@ namespace LogUtils
 
         public MergeRecord AddRecord(LogID logFile, bool canHandle)
         {
-            MergeRecord record = new FileMoveRecord()
-            {
-                OriginalPath = logFile.Properties.CurrentFolderPath,
-                CanHandleFile = canHandle,
-            };
+            MergeRecord record = MergeRecordFactory.Create(logFile, canHandle);
+
             FileRecords.Push(record);
             return record;
         }
 
         public MergeRecord AddRecord(LogGroupID logGroup)
         {
-            MergeRecord record = new LogGroupMoveRecord()
-            {
-                OriginalPath = logGroup.Properties.CurrentFolderPath
-            };
+            MergeRecord record = MergeRecordFactory.Create(logGroup);
+
             GroupRecords.Push(record);
             return record;
         }

@@ -121,6 +121,38 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <summary>
+        /// Accepts a path, and checks if there is an existing subdirectory after a given length of the path string
+        /// </summary>
+        /// <param name="checkPath">Path to evaluate</param>
+        /// <param name="startAfter">Checks for an existing directory path after a specified character position in the <paramref name="checkPath"/> string</param>
+        /// <returns><see langword="true"/>, when an subpath exists, <see langword="false"/> otherwise.
+        /// Also returns <see langword="false"/> when <paramref name="startAfter"/> is equal to the length of the checked path.</returns>
+        /// <exception cref="ArgumentNullException">A path given was null or empty</exception>
+        /// <exception cref="ArgumentOutOfRangeException">The index was negative, or greater than the path length</exception>
+        public static bool SubPathExists(string checkPath, int startAfter)
+        {
+            if (IsEmpty(checkPath))
+                throw new ArgumentNullException(nameof(checkPath));
+
+            if (startAfter < 0 || startAfter > checkPath.Length)
+                throw new ArgumentOutOfRangeException(nameof(startAfter));
+
+            if (startAfter == checkPath.Length) //A subdirectory cannot exists
+                return false;
+
+            bool pathExists = false;
+            PathInfo pathInfo = new PathInfo(checkPath);
+            foreach (string path in pathInfo.GetFullDirectoryNames())
+            {
+                if (path.Length <= startAfter) //We don't care about the path until we reach the desired path length
+                    continue;
+                pathExists = Directory.Exists(path);
+                break;
+            }
+            return pathExists;
+        }
+
+        /// <summary>
         /// Trims the common difference between the first path and the second path from the first path. If the common difference will consume the path, an empty string
         /// with be returned.
         /// </summary>

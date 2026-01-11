@@ -20,8 +20,7 @@ namespace LogUtils.Helpers
         {
             foreach (LogID logFile in logFilesInFolder)
             {
-                string newFolderPath = LogProperties.GetNewBasePath(logFile, currentPath, newPath);
-                logFile.Properties.ChangePath(newFolderPath);
+                logFile.Properties.ChangeBasePath(currentPath, newPath);
             }
         }
 
