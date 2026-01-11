@@ -22,7 +22,7 @@ namespace LogUtils.Enums
     /// Implements <see cref="ILogTarget"/> interface.<br/>
     /// Note: This type serves as the base class for <see cref="LogGroupID"/>, which is designed for inheritance of log properties, not as a logging target.
     /// </remarks>
-    public partial class LogID : SharedExtEnum<LogID>, ILogTarget, IEquatable<LogID>, ILockable
+    public partial class LogID : SharedExtEnum<LogID>, ILogTarget, IPropertyHolder, IEquatable<LogID>, ILockable
     {
         /// <summary>
         /// Registration may be handled through the <see cref="SharedExtEnum{T}"/> constructor only when no other existing reference to this <see cref="LogID"/> value is present.  
@@ -47,9 +47,7 @@ namespace LogUtils.Enums
         }
 
         private LogProperties _properties;
-        /// <summary>
-        /// Contains path information, and other settings that affect logging behavior 
-        /// </summary>
+        /// <inheritdoc/>
         public LogProperties Properties
         {
             get => _properties;
@@ -349,6 +347,18 @@ namespace LogUtils.Enums
                 return BaseEquals(idOther);
 
             return base.Equals(idOther);
+        }
+
+        /// <summary>
+        /// Determines whether the current <see cref="LogID"/> instance is associated with an equivalent <see cref="LogProperties"/> instance
+        /// </summary>
+        public virtual bool Equals(LogProperties other)
+        {
+            LogProperties properties = Properties;
+            if (other == null)
+                return properties == null;
+
+            return properties.Equals(other);
         }
 
         /// <inheritdoc/>

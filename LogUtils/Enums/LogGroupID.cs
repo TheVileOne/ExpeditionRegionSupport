@@ -52,7 +52,7 @@ namespace LogUtils.Enums
             }
         }
 
-        /// <inheritdoc cref="LogID.Properties"/>
+        /// <inheritdoc cref="IPropertyHolder.Properties"/>
         public new LogGroupProperties Properties
         {
             get => (LogGroupProperties)base.Properties;
