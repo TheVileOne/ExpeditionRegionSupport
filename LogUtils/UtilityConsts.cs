@@ -8,6 +8,7 @@ namespace LogUtils
     {
         public const int CUSTOM_LOGTYPE_LIMIT = int.MaxValue;
         public const string UTILITY_NAME = "LogUtils";
+        public const string TEMP_FOLDER_NAME = "RainWorld." + UTILITY_NAME;
 
         public static class DataFields
         {

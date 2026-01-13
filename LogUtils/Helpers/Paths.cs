@@ -7,6 +7,11 @@ namespace LogUtils.Helpers
 {
     internal static class Paths
     {
+        public static string GetTempDirectory()
+        {
+            return Path.Combine(Path.GetTempPath(), UtilityConsts.TEMP_FOLDER_NAME);
+        }
+
         internal static class BepInEx
         {
             public static string BackupPath = Path.Combine(RootPath, "backup");

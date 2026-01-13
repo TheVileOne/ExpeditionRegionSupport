@@ -61,6 +61,17 @@ namespace LogUtils.Helpers.FileHandling
             return filename.Substring(0, bracketIndex) + (useExtension ? extInfo.Extension : string.Empty);
         }
 
+        public static string GetCollisionFriendlyName(string filePath)
+        {
+            if (filePath == null)
+                throw new ArgumentNullException(nameof(filePath));
+
+            int pathHash = filePath.GetHashCode();
+
+            filePath = FileExtension.Remove(filePath, out string fileExt) + '_' + pathHash + fileExt;
+            return filePath;
+        }
+
         /// <summary>
         /// Attempts to delete a file at the specified path
         /// </summary>
@@ -200,6 +211,78 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sourcePath"></param>
+        /// <param name="destPath"></param>
+        /// <param name="attemptsAllowed"></param>
+        /// <param name="option"></param>
+        /// <returns></returns>
+        public static bool TryMove(string sourcePath, string destPath, int attemptsAllowed, FileMoveOption option)
+        {
+        }
+
+        public static bool TryReplace(string sourcePath, string destPath)
+        {
+            UtilityLogger.Log("Replacing file");
+
+            if (PathUtils.IsEmpty(sourcePath) || PathUtils.IsEmpty(destPath))
+            {
+                UtilityLogger.LogError("Source or destination path is null");
+                return false;
+            }
+
+            string tempFolderPath = Paths.GetTempDirectory();
+            try
+            {
+                Directory.CreateDirectory(tempFolderPath);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                UtilityLogger.LogWarning("Unable to replace file. Temp directory could not be created.");
+                return false;
+            }
+
+            bool destEmpty = !File.Exists(destPath);
+            if (destEmpty)
+            {
+                UtilityLogger.Log("No file located at destination path");
+
+                //Attempt to move source file to destination
+                if (!TryMove(sourcePath, destPath))
+                {
+                    UtilityLogger.LogWarning("Unable to move source file");
+                    return false;
+                }
+            }
+            else
+            {
+                string tempFilePath = Path.Combine(tempFolderPath, Path.GetFileName(destPath));
+
+                //Attempt to move file at destination
+                if (!TryMove(destPath, tempFilePath))
+                    return false;
+
+                //Attempt to move source file to destination
+                if (!TryMove(sourcePath, destPath))
+                {
+                    UtilityLogger.LogWarning("Unable to move source file");
+
+                    //If it fails, we move file at destination back - maybe it doesn't exist though
+                    if (!TryMove(tempFilePath, destPath))
+                    {
+                        UtilityLogger.LogWarning("Unable to restore destination file");
+                    }
+                    return false;
+                }
+            }
+
+            //TODO: Temp folder should be cleaned up, but we can't do it right away
+            UtilityLogger.Log("Move successful");
+            return true;
+        }
+
+        /// <summary>
         /// Attempts to write one or more strings to file
         /// </summary>
         /// <remarks>File is created, its contents are overwritten if it already exists</remarks>
@@ -256,5 +339,12 @@ namespace LogUtils.Helpers.FileHandling
                 File.AppendAllText(path, contents);
             }
         }
+    }
+
+    public enum FileMoveOption
+    {
+        None,
+        OverwriteDestination,
+        RenameSourceIfNecessary
     }
 }

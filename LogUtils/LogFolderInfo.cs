@@ -299,7 +299,6 @@ namespace LogUtils
                 History = new MergeHistory()
             };
 
-            //TODO: Group paths are not updated
             mergeCurrentFolder(mergeInfo);
 
             MergeHistory record = mergeInfo.History;
@@ -309,8 +308,23 @@ namespace LogUtils
                 cancelMerge(record);
                 return;
             }
-            //Handle collisions here
-            collectFeedbackFromUser(record);
+
+            //Handle unresolved file conflicts
+            ConflictResolutionHandler handler = new ConflictResolutionHandler(mergeInfo.History.FileConflicts);
+            try
+            {
+                handler.CollectFeedbackFromUser();
+                handler.ResolveAll();
+            }
+            catch (OperationCanceledException ex) //User chose to cancel merge, or there was a failure to resolve
+            {
+                mergeInfo.History.HasFailed = true;
+                mergeInfo.History.Exception = ex;
+            }
+            finally
+            {
+                //TODO: Empty temp folder here
+            }
         }
 
         /// <summary>
@@ -588,37 +602,6 @@ namespace LogUtils
             mergeInfo.History.AddRecord(record);
         }
 
-        private CollisionResolutionFeedback[] collectFeedbackFromUser(MergeHistory history)
-        {
-            CollisionResolutionFeedback[] feedback = new CollisionResolutionFeedback[history.FileConflicts.Count];
-            for (int i = 0; i < feedback.Length; i++)
-            {
-                feedback[i] = askUserForFeedback(history.FileConflicts[i]);
-            }
-
-            bool hasUnresolvedConflicts = true;
-            while (hasUnresolvedConflicts)
-            {
-                hasUnresolvedConflicts = false;
-                for (int i = 0; i < feedback.Length; i++)
-                {
-                    if (feedback[i] == CollisionResolutionFeedback.SaveForLater)
-                    {
-                        feedback[i] = askUserForFeedback(history.FileConflicts[i]);
-
-                        if (feedback[i] == CollisionResolutionFeedback.SaveForLater)
-                            hasUnresolvedConflicts = true;
-                    }
-                }
-            }
-            return feedback;
-            CollisionResolutionFeedback askUserForFeedback(MergeRecord conflict)
-            {
-                //TODO: Create feedback dialog
-                return CollisionResolutionFeedback.KeepBoth;
-            }
-        }
-
         internal void UpdateAllPaths(string newPath)
         {
             string currentPath = FolderPath;
@@ -643,25 +626,5 @@ namespace LogUtils
         {
             return new ReadOnlyCollection<T>(list);
         }
-    }
-
-    public enum CollisionResolutionFeedback
-    {
-        /// <summary>
-        /// The file at destination will be replaced
-        /// </summary>
-        Overwrite,
-        /// <summary>
-        /// The new filename will be renamed to avoid filename collisions
-        /// </summary>
-        KeepBoth,
-        /// <summary>
-        /// File move will not be permitted
-        /// </summary>
-        CancelMove,
-        /// <summary>
-        /// Result will be ignored, and asked again at the end
-        /// </summary>
-        SaveForLater,
     }
 }
