@@ -16,6 +16,12 @@ namespace LogUtils
             feedback = new Queue<ConflictResolutionFeedback>();
         }
 
+        public void CollectFeedbackAndResolve()
+        {
+            CollectFeedbackFromUser();
+            ResolveAll();
+        }
+
         public void CollectFeedbackFromUser()
         {
             if (conflicts.Count == 0)

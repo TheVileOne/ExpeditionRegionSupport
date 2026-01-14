@@ -301,30 +301,20 @@ namespace LogUtils
 
             mergeCurrentFolder(mergeInfo);
 
-            MergeHistory record = mergeInfo.History;
-            if (record.HasFailed)
+            MergeHistory history = mergeInfo.History;
+            if (history.HasFailed)
             {
-                UtilityLogger.LogError("Failed to merge folder", record.Exception);
-                cancelMerge(record);
+                onMergeFailed(history);
                 return;
             }
 
-            //Handle unresolved file conflicts
-            ConflictResolutionHandler handler = new ConflictResolutionHandler(mergeInfo.History.Conflicts);
-            try
+            history.ResolveConflicts();
+            if (history.HasFailed)
             {
-                handler.CollectFeedbackFromUser();
-                handler.ResolveAll();
+                onMergeFailed(history);
+                return;
             }
-            catch (OperationCanceledException ex) //User chose to cancel merge, or there was a failure to resolve
-            {
-                mergeInfo.History.HasFailed = true;
-                mergeInfo.History.Exception = ex;
-            }
-            finally
-            {
-                //TODO: Empty temp folder here
-            }
+            UtilityLogger.Log("Merge operation on all files successful");
         }
 
         /// <summary>
@@ -368,6 +358,12 @@ namespace LogUtils
                 mergeInfo.History.HasFailed = true;
                 mergeInfo.History.Exception = ex;
             }
+        }
+
+        private void onMergeFailed(MergeHistory history)
+        {
+            UtilityLogger.LogError("Failed to merge folder", history.Exception);
+            cancelMerge(history);
         }
 
         private void cancelMerge(MergeHistory history)

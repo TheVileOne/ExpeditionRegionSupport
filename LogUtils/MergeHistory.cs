@@ -16,6 +16,11 @@ namespace LogUtils
         public Queue<MergeRecord> Conflicts = new Queue<MergeRecord>();
 
         /// <summary>
+        /// Handles all merge conflicts
+        /// </summary>
+        internal ConflictResolutionHandler ConflictHandler;
+
+        /// <summary>
         /// Indicates whether merge process ran to completion
         /// </summary>
         public bool HasFailed;
@@ -27,6 +32,7 @@ namespace LogUtils
 
         public MergeHistory()
         {
+            ConflictHandler = new ConflictResolutionHandler(Conflicts);
         }
 
         public void AddRecord(MergeRecord record)
@@ -38,6 +44,25 @@ namespace LogUtils
         {
             foreach (MergeRecord record in records)
                 Entries.Enqueue(record);
+        }
+
+        public void ResolveConflicts()
+        {
+            //Handle unresolved file conflicts
+            ConflictResolutionHandler handler = ConflictHandler;
+            try
+            {
+                handler.CollectFeedbackAndResolve();
+            }
+            catch (OperationCanceledException ex) //User chose to cancel merge, or there was a failure to resolve
+            {
+                HasFailed = true;
+                Exception = ex;
+            }
+            finally
+            {
+                //TODO: Empty temp folder here
+            }
         }
 
         /// <summary>
