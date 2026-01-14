@@ -93,7 +93,7 @@ namespace LogUtils.Threading
                 throw new ArgumentNullException(nameof(task));
 
             if (task.State != TaskState.NotSubmitted)
-                throw new InvalidStateException(nameof(task));
+                throw new InvalidStateException(task);
 
             bool isBatched = IsBatching;
             InternalSchedule(task, addTask);
@@ -128,7 +128,7 @@ namespace LogUtils.Threading
                 throw new ArgumentException("Tasks refer to the same instance when expecting different instances", nameof(task));
 
             if (task.State != TaskState.NotSubmitted)
-                throw new InvalidStateException(nameof(task));
+                throw new InvalidStateException(task);
 
             bool isBatched = IsBatching;
             InternalSchedule(task, addTaskBefore);
@@ -175,7 +175,7 @@ namespace LogUtils.Threading
                 throw new ArgumentException("Tasks refer to the same instance when expecting different instances", nameof(task));
 
             if (task.State != TaskState.NotSubmitted)
-                throw new InvalidStateException(nameof(task));
+                throw new InvalidStateException(task);
 
             bool isBatched = IsBatching;
             InternalSchedule(task, addTaskAfter);
