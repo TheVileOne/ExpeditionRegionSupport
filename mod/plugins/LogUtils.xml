@@ -11312,9 +11312,49 @@
             Sets the task state to Aborted, or Complete
             </summary>
         </member>
+        <member name="F:LogUtils.Threading.Task.Name">
+            <summary>
+            A string used to identify a task in logging events
+            </summary>
+        </member>
+        <member name="F:LogUtils.Threading.Task.ID">
+            <summary>
+            A value assigned to a task during initialization to distinguish it from other tasks
+            </summary>
+        </member>
         <member name="F:LogUtils.Threading.Task.Handle">
             <summary>
-            Useful for awaiting on this task asynchronously
+            Exposes the <see cref="T:System.Threading.Tasks.Task"/> used in asynchronous task operation
+            </summary>
+        </member>
+        <member name="F:LogUtils.Threading.Task.Run">
+            <summary>
+            Task operation invoked by this task
+            </summary>
+        </member>
+        <member name="P:LogUtils.Threading.Task.State">
+            <summary>
+            The current task completion state
+            </summary>
+        </member>
+        <member name="P:LogUtils.Threading.Task.IsRunning">
+            <summary>
+            Checks whether an async task operation has been scheduled and has yet to be completed
+            </summary>
+        </member>
+        <member name="P:LogUtils.Threading.Task.IsSynchronous">
+            <summary>
+            Checks whether task operation runs synchronously with other tasks
+            </summary>
+        </member>
+        <member name="P:LogUtils.Threading.Task.IsCompleteOrCanceled">
+            <summary>
+            Checks whether a task is in a completion state
+            </summary>
+        </member>
+        <member name="P:LogUtils.Threading.Task.PossibleToRun">
+            <summary>
+            Checks whether task operation is possible to run based on the current task state
             </summary>
         </member>
         <member name="F:LogUtils.Threading.Task.WaitTimeInterval">
@@ -11324,7 +11364,7 @@
         </member>
         <member name="P:LogUtils.Threading.Task.HasRunOnce">
             <summary>
-            A flag that indicates whether task has run at least once
+            Checks whether task has run at least once
             </summary>
         </member>
         <member name="F:LogUtils.Threading.Task.IsContinuous">
@@ -11334,18 +11374,30 @@
         </member>
         <member name="M:LogUtils.Threading.Task.#ctor(System.Action,System.Int32)">
             <summary>
-            Constructs a Task object - Pass this object into LogTasker to run a task on a background thread
+            Constructs a new <see cref="T:LogUtils.Threading.Task"/> object
             </summary>
+            <param name="runTask">Task operation to store and execute later</param>
+            <param name="waitTimeInMS">Timespan to wait to execute task operation when scheduled</param>
+            <exception cref="T:System.ArgumentNullException">Task operation is null</exception>
+            <remarks>Pass this object into <see cref="T:LogUtils.Threading.LogTasker"/> to run a task on a background thread</remarks>
         </member>
         <member name="M:LogUtils.Threading.Task.#ctor(System.Action,System.TimeSpan)">
             <summary>
-            Constructs a Task object - Pass this object into LogTasker to run a task on a background thread
+            Constructs a new <see cref="T:LogUtils.Threading.Task"/> object
             </summary>
+            <param name="runTask">Task operation to store and execute later</param>
+            <param name="waitTime">Timespan to wait to execute task operation when scheduled</param>
+            <exception cref="T:System.ArgumentNullException">Task operation is null</exception>
+            <remarks>Pass this object into <see cref="T:LogUtils.Threading.LogTasker"/> to run a task on a background thread</remarks>
         </member>
         <member name="M:LogUtils.Threading.Task.#ctor(LogUtils.Threading.TaskProvider,System.TimeSpan)">
             <summary>
-            Constructs a Task object - Pass this object into LogTasker to run a task on a background thread
+            Constructs a new <see cref="T:LogUtils.Threading.Task"/> object
             </summary>
+            <param name="runTaskAsync">A delegate that provides a <see cref="T:System.Threading.Tasks.Task"/> operation to store and execute later</param>
+            <param name="waitTime">Timespan to wait to execute task operation when scheduled</param>
+            <exception cref="T:System.ArgumentNullException">Task operation is null</exception>
+            <remarks>Pass this object into <see cref="T:LogUtils.Threading.LogTasker"/> to run a task on a background thread</remarks>
         </member>
         <member name="M:LogUtils.Threading.Task.GetAsyncHandle">
             <summary>

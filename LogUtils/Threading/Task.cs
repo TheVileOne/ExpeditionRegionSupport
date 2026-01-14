@@ -7,19 +7,24 @@ namespace LogUtils.Threading
 {
     public class Task
     {
+        /// <summary>
+        /// A string used to identify a task in logging events
+        /// </summary>
         public string Name = "Unknown";
 
+        /// <summary>
+        /// A value assigned to a task during initialization to distinguish it from other tasks
+        /// </summary>
         public int ID;
 
-        public bool IsRunning => State == TaskState.Running;
-
-        public bool IsSynchronous => RunAsync == null;
-
         /// <summary>
-        /// Useful for awaiting on this task asynchronously
+        /// Exposes the <see cref="DotNetTask"/> used in asynchronous task operation
         /// </summary>
         internal TaskHandle Handle;
 
+        /// <summary>
+        /// Task operation invoked by this task
+        /// </summary>
         protected readonly Action Run;
 
         private TaskProvider _runTaskAsync;
@@ -36,6 +41,31 @@ namespace LogUtils.Threading
             }
         }
 
+        /// <summary>
+        /// The current task completion state
+        /// </summary>
+        public TaskState State { get; protected set; }
+
+        /// <summary>
+        /// Checks whether an async task operation has been scheduled and has yet to be completed
+        /// </summary>
+        public bool IsRunning => State == TaskState.Running;
+
+        /// <summary>
+        /// Checks whether task operation runs synchronously with other tasks
+        /// </summary>
+        public bool IsSynchronous => RunAsync == null;
+
+        /// <summary>
+        /// Checks whether a task is in a completion state
+        /// </summary>
+        public bool IsCompleteOrCanceled => State == TaskState.Complete || State == TaskState.Aborted;
+
+        /// <summary>
+        /// Checks whether task operation is possible to run based on the current task state
+        /// </summary>
+        public bool PossibleToRun => !IsCompleteOrCanceled;
+
         public TimeSpan InitialTime = TimeSpan.Zero;
 
         public TimeSpan LastActivationTime = TimeSpan.Zero;
@@ -48,7 +78,7 @@ namespace LogUtils.Threading
         public TimeSpan WaitTimeInterval = TimeSpan.Zero;
 
         /// <summary>
-        /// A flag that indicates whether task has run at least once
+        /// Checks whether task has run at least once
         /// </summary>
         public bool HasRunOnce => LastActivationTime > TimeSpan.Zero;
 
@@ -57,13 +87,13 @@ namespace LogUtils.Threading
         /// </summary>
         public bool IsContinuous;
 
-        public bool PossibleToRun => !IsCompleteOrCanceled;
-
-        public TaskState State { get; protected set; }
-
         /// <summary>
-        /// Constructs a Task object - Pass this object into LogTasker to run a task on a background thread
+        /// Constructs a new <see cref="Task"/> object
         /// </summary>
+        /// <param name="runTask">Task operation to store and execute later</param>
+        /// <param name="waitTimeInMS">Timespan to wait to execute task operation when scheduled</param>
+        /// <exception cref="ArgumentNullException">Task operation is null</exception>
+        /// <remarks>Pass this object into <see cref="LogTasker"/> to run a task on a background thread</remarks>
         public Task(Action runTask, int waitTimeInMS)
         {
             if (runTask == null)
@@ -75,8 +105,12 @@ namespace LogUtils.Threading
         }
 
         /// <summary>
-        /// Constructs a Task object - Pass this object into LogTasker to run a task on a background thread
+        /// Constructs a new <see cref="Task"/> object
         /// </summary>
+        /// <param name="runTask">Task operation to store and execute later</param>
+        /// <param name="waitTime">Timespan to wait to execute task operation when scheduled</param>
+        /// <exception cref="ArgumentNullException">Task operation is null</exception>
+        /// <remarks>Pass this object into <see cref="LogTasker"/> to run a task on a background thread</remarks>
         public Task(Action runTask, TimeSpan waitTime)
         {
             if (runTask == null)
@@ -88,8 +122,12 @@ namespace LogUtils.Threading
         }
 
         /// <summary>
-        /// Constructs a Task object - Pass this object into LogTasker to run a task on a background thread
+        /// Constructs a new <see cref="Task"/> object
         /// </summary>
+        /// <param name="runTaskAsync">A delegate that provides a <see cref="DotNetTask"/> operation to store and execute later</param>
+        /// <param name="waitTime">Timespan to wait to execute task operation when scheduled</param>
+        /// <exception cref="ArgumentNullException">Task operation is null</exception>
+        /// <remarks>Pass this object into <see cref="LogTasker"/> to run a task on a background thread</remarks>
         public Task(TaskProvider runTaskAsync, TimeSpan waitTime)
         {
             if (runTaskAsync == null)
@@ -143,8 +181,6 @@ namespace LogUtils.Threading
                 });
             }
         }
-
-        public bool IsCompleteOrCanceled => State == TaskState.Complete || State == TaskState.Aborted;
 
         public TaskResult TryRun()
         {
