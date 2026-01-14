@@ -310,7 +310,7 @@ namespace LogUtils
             }
 
             //Handle unresolved file conflicts
-            ConflictResolutionHandler handler = new ConflictResolutionHandler(mergeInfo.History.FileConflicts);
+            ConflictResolutionHandler handler = new ConflictResolutionHandler(mergeInfo.History.Conflicts);
             try
             {
                 handler.CollectFeedbackFromUser();
@@ -501,7 +501,7 @@ namespace LogUtils
                     if (!conflictResolved) //Unable to resolve conflict
                     {
                         record.CurrentPath = fileDestination; //Not actual current path, but we need a reference point
-                        mergeInfo.History.FileConflicts.Add(record);
+                        mergeInfo.History.Conflicts.Enqueue(record);
                         continue;
                     }
                     record.CurrentPath = logFile.Properties.CurrentFilePath;

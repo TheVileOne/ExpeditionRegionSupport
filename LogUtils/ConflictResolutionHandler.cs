@@ -1,43 +1,58 @@
 ﻿using LogUtils.Helpers.FileHandling;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace LogUtils
 {
     internal class ConflictResolutionHandler
     {
-        private readonly List<MergeRecord> conflicts;
-        private ConflictResolutionFeedback[] feedback;
+        private readonly Queue<MergeRecord> conflicts;
+        private readonly Queue<ConflictResolutionFeedback> feedback;
 
-        public ConflictResolutionHandler(List<MergeRecord> mergeConflicts)
+        public ConflictResolutionHandler(Queue<MergeRecord> mergeConflicts)
         {
-            conflicts = mergeConflicts;
+            conflicts = mergeConflicts; //Reference updated through MergeHistory instance
+            feedback = new Queue<ConflictResolutionFeedback>();
         }
 
         public void CollectFeedbackFromUser()
         {
-            feedback = new ConflictResolutionFeedback[conflicts.Count];
-
             if (conflicts.Count == 0)
                 return;
 
-            for (int i = 0; i < feedback.Length; i++)
-                feedback[i] = askUserForFeedback(conflicts[i]);
+            ConflictResolutionFeedback[] tempArray = new ConflictResolutionFeedback[conflicts.Count];
+            int currentIndex = 0;
 
-            bool hasUnresolvedConflicts = true;
-            while (hasUnresolvedConflicts)
+            //Populate feedback for each unresolved conflict
+            foreach (MergeRecord current in conflicts)
             {
-                hasUnresolvedConflicts = false;
-                for (int i = 0; i < feedback.Length; i++)
-                {
-                    if (feedback[i] == ConflictResolutionFeedback.SaveForLater)
-                    {
-                        feedback[i] = askUserForFeedback(conflicts[i]);
+                tempArray[currentIndex] = askUserForFeedback(current);
+                currentIndex++;
+            }
 
-                        if (feedback[i] == ConflictResolutionFeedback.SaveForLater)
-                            hasUnresolvedConflicts = true;
-                    }
+            currentIndex = 0;
+            while (currentIndex < tempArray.Length)
+            {
+                //Each pass we build up the feedback queue in order
+                if (currentIndex == feedback.Count && tempArray[currentIndex] != ConflictResolutionFeedback.SaveForLater)
+                {
+                    feedback.Enqueue(tempArray[currentIndex]);
+                    currentIndex++;
+                    continue;
                 }
+
+                if (tempArray[currentIndex] == ConflictResolutionFeedback.SaveForLater)
+                {
+                    //This record was not decided on during any previous pass - ask again for feedback
+                    tempArray[currentIndex] = askUserForFeedback(conflicts.ElementAt(currentIndex));
+                }
+                currentIndex++;
+
+                //After all entries have been processed, set index to the last entry we had to reask for feedback. The process should not end
+                //until all entries in the SaveforLater state receive a valid resolution option.
+                if (currentIndex == tempArray.Length)
+                    currentIndex = feedback.Count;
             }
         }
 
@@ -49,9 +64,11 @@ namespace LogUtils
 
         public void ResolveAll()
         {
-            foreach (var currentFeedback in feedback)
+            while (conflicts.Count == 0)
             {
-                MergeRecord currentRecord = conflicts[0]; //Each successful resolve removes the resolved item from the collection
+                //These queues will have the same amount of entries
+                var currentRecord = conflicts.Dequeue();
+                var currentFeedback = feedback.Dequeue();
 
                 bool isResolved = false;
                 switch (currentFeedback)
@@ -71,8 +88,6 @@ namespace LogUtils
 
                 if (!isResolved)
                     throw new OperationCanceledException("Unable to resolve conflict");
-
-                conflicts.RemoveAt(0);
             }
         }
     }

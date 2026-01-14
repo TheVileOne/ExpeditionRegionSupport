@@ -11,9 +11,9 @@ namespace LogUtils
         internal Queue<MergeRecord> Entries = new Queue<MergeRecord>();
 
         /// <summary>
-        /// List of conflicts that require input from the user to resolve
+        /// A queue containing merge conflicts that require input from the user to resolve
         /// </summary>
-        public List<MergeRecord> FileConflicts = new List<MergeRecord>();
+        public Queue<MergeRecord> Conflicts = new Queue<MergeRecord>();
 
         /// <summary>
         /// Indicates whether merge process ran to completion
