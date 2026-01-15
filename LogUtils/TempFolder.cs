@@ -7,12 +7,16 @@ using System.Threading;
 
 namespace LogUtils
 {
-    public static class TempFolder
+    public class TempFolder : IAccessToken
     {
         internal const int MAX_DELETE_ATTEMPTS = 10;
 
         private static int accessCount;
         private static readonly object folderLock = new object();
+
+        private static readonly TempFolder folder = new TempFolder();
+
+        internal static IAccessToken AccessToken => folder;
 
         /// <summary>
         /// Checks whether deletion of the temp folder minimizes risk of unwanted data loss
@@ -24,14 +28,19 @@ namespace LogUtils
         /// </summary>
         public static string Path => Paths.GetTempDirectory();
 
+        private TempFolder()
+        {
+        }
+
+        #region Static
         /// <summary>
         /// Signal that a process intends to access and use LogUtils defined temporary folder. While accessing, LogUtils guarantees that the folder wont be moved, or deleted
         /// through the <see cref="TempFolder"/> public API. Call <see cref="RevokeAccess"/> to signal that your process no longer needs to access the Temp folder.
         /// </summary>
         /// <remarks>For each time this method is called, a following <see cref="RevokeAccess"/> must also be called.</remarks>
-        public static void Access()
+        public static IAccessToken Access()
         {
-            Interlocked.Increment(ref accessCount);
+            return AccessToken.Access();
         }
 
         /// <summary>
@@ -39,6 +48,56 @@ namespace LogUtils
         /// already has access. Doing so may corrupt/remove data being used by other processes that require this temporary folder.
         /// </summary>
         public static void RevokeAccess()
+        {
+            AccessToken.RevokeAccess();
+        }
+
+        public static void Create()
+        {
+            folder.CreateInternal();
+        }
+
+        public static bool TryCreate()
+        {
+            try
+            {
+                folder.CreateInternal();
+                return true;
+            }
+            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException ex2)
+            {
+                UtilityLogger.LogError(ex);
+                return false;
+            }
+        }
+
+        public static void ScheduleForDeletion()
+        {
+            folder.ScheduleDelete();
+        }
+
+        public static bool TryDelete()
+        {
+            try
+            {
+                folder.DeleteInternal();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                UtilityLogger.LogError("Unable to delete Temp folder", ex);
+                return false;
+            }
+        }
+        #endregion
+        #region Internal
+        IAccessToken IAccessToken.Access()
+        {
+            Interlocked.Increment(ref accessCount);
+            return this;
+        }
+
+        void IAccessToken.RevokeAccess()
         {
             if (accessCount == 0)
             {
@@ -48,7 +107,13 @@ namespace LogUtils
             Interlocked.Decrement(ref accessCount);
         }
 
-        public static void Create()
+        void IDisposable.Dispose()
+        {
+            //Not safe to rfevoke access and dispose token
+            RevokeAccess();
+        }
+
+        internal void CreateInternal()
         {
             lock (folderLock)
             {
@@ -59,8 +124,8 @@ namespace LogUtils
             }
         }
 
-        private static Task scheduledTask;
-        public static void ScheduleForDeletion()
+        private Task scheduledTask;
+        internal void ScheduleDelete()
         {
             lock (folderLock)
             {
@@ -82,7 +147,7 @@ namespace LogUtils
                         return;
                     }
 
-                    bool deleted = TryDelete();
+                    bool deleted = TryDeleteInternal();
                     if (!deleted)
                     {
                         deleteAttempts++;
@@ -98,7 +163,19 @@ namespace LogUtils
             }
         }
 
-        public static bool TryDelete()
+        internal void DeleteInternal()
+        {
+            lock (folderLock)
+            {
+                if (!SafeToDelete)
+                    throw new InvalidOperationException("Delete operation is unsafe.");
+
+                //TODO: This needs to throw here
+                DirectoryUtils.DeletePermanently(Path, DirectoryDeletionScope.AllFilesAndFolders);
+            }
+        }
+
+        internal bool TryDeleteInternal()
         {
             lock (folderLock)
             {
@@ -108,5 +185,6 @@ namespace LogUtils
                 return DirectoryUtils.DeletePermanently(Path, DirectoryDeletionScope.AllFilesAndFolders);
             }
         }
+        #endregion
     }
 }
