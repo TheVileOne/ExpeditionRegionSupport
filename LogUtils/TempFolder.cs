@@ -71,11 +71,6 @@ namespace LogUtils
             }
         }
 
-        public static void ScheduleForDeletion()
-        {
-            folder.ScheduleDelete();
-        }
-
         public static bool TryDelete()
         {
             try
@@ -121,6 +116,7 @@ namespace LogUtils
                     UtilityLogger.LogWarning($"Please invoke {nameof(Access)} before using this method");
 
                 Directory.CreateDirectory(Path);
+                ScheduleDelete();
             }
         }
 

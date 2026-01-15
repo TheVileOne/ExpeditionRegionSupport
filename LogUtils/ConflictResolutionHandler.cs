@@ -72,16 +72,9 @@ namespace LogUtils
 
         public void ResolveAll()
         {
-            try
+            using (TempFolder.Access())
             {
-                TempFolder.Access();
-                TempFolder.Create();
                 ResolveAllInternal();
-            }
-            finally
-            {
-                TempFolder.ScheduleForDeletion();
-                TempFolder.RevokeAccess();
             }
         }
 
