@@ -9,8 +9,6 @@ namespace LogUtils
 {
     public class TempFolder : IAccessToken
     {
-        internal const int MAX_DELETE_ATTEMPTS = 10;
-
         private static int accessCount;
         private static readonly object folderLock = new object();
 
@@ -64,7 +62,7 @@ namespace LogUtils
                 folder.CreateInternal();
                 return true;
             }
-            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException ex2)
+            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
             {
                 UtilityLogger.LogError(ex);
                 return false;
@@ -123,38 +121,25 @@ namespace LogUtils
         private Task scheduledTask;
         internal void ScheduleDelete()
         {
-            lock (folderLock)
+            if (scheduledTask != null && scheduledTask.PossibleToRun) //Only allow one deletion task to run
+                return;
+
+            scheduledTask = LogTasker.Schedule(new Task(scheduledAction, TimeSpan.FromSeconds(5)) //Not in a hurry to remove this folder
             {
-                if (scheduledTask != null && scheduledTask.PossibleToRun) //Only allow one deletion task to run
-                    return;
+                Name = "TempFolder",
+                IsContinuous = true
+            });
 
-                int deleteAttempts = 0; //Amount of failed delete attempts since last access revocation
-                scheduledTask = LogTasker.Schedule(new Task(scheduledAction, TimeSpan.FromMilliseconds(50)) //Not in a hurry to remove this folder
+            void scheduledAction()
+            {
+                if (!SafeToDelete) return;
+
+                bool deleted = DirectoryUtils.DeletePermanently(Path, DirectoryDeletionScope.AllFilesAndFolders);
+
+                if (deleted)
                 {
-                    Name = "TempFolder",
-                    IsContinuous = true
-                });
-
-                void scheduledAction()
-                {
-                    if (!SafeToDelete)
-                    {
-                        deleteAttempts = 0; //A valid attempt is when nothing is trying to access the Temp folder
-                        return;
-                    }
-
-                    bool deleted = TryDeleteInternal();
-                    if (!deleted)
-                    {
-                        deleteAttempts++;
-                        if (deleteAttempts >= MAX_DELETE_ATTEMPTS)
-                        {
-                            UtilityLogger.LogWarning("Failed to delete Temp folder. It may be used by another process.");
-                            scheduledTask.Cancel();
-                            return;
-                        }
-                    }
                     scheduledTask.Complete();
+                    scheduledTask = null;
                 }
             }
         }
@@ -168,17 +153,6 @@ namespace LogUtils
 
                 //TODO: This needs to throw here
                 DirectoryUtils.DeletePermanently(Path, DirectoryDeletionScope.AllFilesAndFolders);
-            }
-        }
-
-        internal bool TryDeleteInternal()
-        {
-            lock (folderLock)
-            {
-                if (!SafeToDelete)
-                    return false;
-
-                return DirectoryUtils.DeletePermanently(Path, DirectoryDeletionScope.AllFilesAndFolders);
             }
         }
         #endregion
