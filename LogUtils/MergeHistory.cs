@@ -61,7 +61,13 @@ namespace LogUtils
             }
             finally
             {
-                //TODO: Empty temp folder here
+                while (handler.ResolvedEntries.Count > 0)
+                {
+                    MergeRecord current = handler.ResolvedEntries.Dequeue();
+
+                    if (!current.IsCanceled)
+                        AddRecord(current);
+                }
             }
         }
 
@@ -92,6 +98,11 @@ namespace LogUtils
     /// </summary>
     public abstract class MergeRecord
     {
+        /// <summary>
+        /// Indicates that operation was never completed
+        /// </summary>
+        public bool IsCanceled;
+
         /// <summary>
         /// The path of a file, or folder which has been moved
         /// </summary>

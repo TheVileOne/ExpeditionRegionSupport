@@ -10,6 +10,8 @@ namespace LogUtils
         private readonly Queue<MergeRecord> conflicts;
         private readonly Queue<ConflictResolutionFeedback> feedback;
 
+        public Queue<MergeRecord> ResolvedEntries = new Queue<MergeRecord>();
+
         public ConflictResolutionHandler(Queue<MergeRecord> mergeConflicts)
         {
             conflicts = mergeConflicts; //Reference updated through MergeHistory instance
@@ -70,6 +72,21 @@ namespace LogUtils
 
         public void ResolveAll()
         {
+            try
+            {
+                TempFolder.Access();
+                TempFolder.Create();
+                ResolveAllInternal();
+            }
+            finally
+            {
+                TempFolder.ScheduleForDeletion();
+                TempFolder.RevokeAccess();
+            }
+        }
+
+        internal void ResolveAllInternal()
+        {
             while (conflicts.Count == 0)
             {
                 //These queues will have the same amount of entries
@@ -81,6 +98,7 @@ namespace LogUtils
                 {
                     case ConflictResolutionFeedback.CancelMove:
                         isResolved = true;
+                        currentRecord.IsCanceled = true;
                         break;
                     case ConflictResolutionFeedback.Overwrite:
                         isResolved = FileUtils.TryReplace(currentRecord.OriginalPath, currentRecord.CurrentPath);
@@ -94,6 +112,8 @@ namespace LogUtils
 
                 if (!isResolved)
                     throw new OperationCanceledException("Unable to resolve conflict");
+
+                ResolvedEntries.Enqueue(currentRecord);
             }
         }
     }
