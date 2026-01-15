@@ -2,6 +2,7 @@
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Threading;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 
@@ -17,9 +18,14 @@ namespace LogUtils
         internal static IAccessToken AccessToken => folder;
 
         /// <summary>
+        /// Contains paths pertaining to files within the temp folder flagged as orphaned; usually an indication that the file was unable to be moved from the directory
+        /// </summary>
+        public static readonly ICollection<string> OrphanedFiles = new List<string>();
+
+        /// <summary>
         /// Checks whether deletion of the temp folder minimizes risk of unwanted data loss
         /// </summary>
-        public static bool SafeToDelete => accessCount == 0;
+        public static bool SafeToDelete => accessCount == 0 && OrphanedFiles.Count == 0;
 
         /// <summary>
         /// Full path to LogUtils temporary folder

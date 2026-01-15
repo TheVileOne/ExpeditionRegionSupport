@@ -232,54 +232,52 @@ namespace LogUtils.Helpers.FileHandling
                 return false;
             }
 
-            string tempFolderPath = Paths.GetTempDirectory();
-            try
+            using (IAccessToken accessToken = TempFolder.Access())
             {
-                Directory.CreateDirectory(tempFolderPath);
-            }
-            catch (UnauthorizedAccessException)
-            {
-                UtilityLogger.LogWarning("Unable to replace file. Temp directory could not be created.");
-                return false;
-            }
-
-            bool destEmpty = !File.Exists(destPath);
-            if (destEmpty)
-            {
-                UtilityLogger.Log("No file located at destination path");
-
-                //Attempt to move source file to destination
-                if (!TryMove(sourcePath, destPath))
+                if (!TempFolder.TryCreate())
                 {
-                    UtilityLogger.LogWarning("Unable to move source file");
+                    UtilityLogger.LogWarning("Unable to replace file. Temp directory could not be created.");
                     return false;
                 }
-            }
-            else
-            {
-                string tempFilePath = Path.Combine(tempFolderPath, Path.GetFileName(destPath));
+                string tempFolderPath = TempFolder.Path;
 
-                //Attempt to move file at destination
-                if (!TryMove(destPath, tempFilePath))
-                    return false;
-
-                //Attempt to move source file to destination
-                if (!TryMove(sourcePath, destPath))
+                bool destEmpty = !File.Exists(destPath);
+                if (destEmpty)
                 {
-                    UtilityLogger.LogWarning("Unable to move source file");
+                    UtilityLogger.Log("No file located at destination path");
 
-                    //If it fails, we move file at destination back - maybe it doesn't exist though
-                    if (!TryMove(tempFilePath, destPath))
+                    //Attempt to move source file to destination
+                    if (!TryMove(sourcePath, destPath))
                     {
-                        UtilityLogger.LogWarning("Unable to restore destination file");
+                        UtilityLogger.LogWarning("Unable to move source file");
+                        return false;
                     }
-                    return false;
                 }
-            }
+                else
+                {
+                    string tempFilePath = Path.Combine(tempFolderPath, Path.GetFileName(destPath));
 
-            //TODO: Temp folder should be cleaned up, but we can't do it right away
-            UtilityLogger.Log("Move successful");
-            return true;
+                    //Attempt to move file at destination
+                    if (!TryMove(destPath, tempFilePath))
+                        return false;
+
+                    //Attempt to move source file to destination
+                    if (!TryMove(sourcePath, destPath))
+                    {
+                        UtilityLogger.LogWarning("Unable to move source file");
+
+                        //If it fails, we move file at destination back - maybe it doesn't exist though
+                        if (!TryMove(tempFilePath, destPath))
+                        {
+                            UtilityLogger.LogWarning("Unable to restore destination file");
+                            TempFolder.OrphanedFiles.Add(tempFilePath);
+                        }
+                        return false;
+                    }
+                }
+                UtilityLogger.Log("Move successful");
+                return true;
+            }
         }
 
         /// <summary>
