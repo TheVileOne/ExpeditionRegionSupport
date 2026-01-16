@@ -1,4 +1,5 @@
 ﻿using LogUtils.Helpers;
+using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Threading;
 using System;
@@ -17,7 +18,7 @@ namespace LogUtils
 
         internal static IAccessToken AccessToken => folder;
 
-        private static readonly HashSet<string> _orphanedFiles = new HashSet<string>();
+        private static readonly HashSet<string> _orphanedFiles = new HashSet<string>(ComparerUtils.PathComparer);
         /// <summary>
         /// Contains paths pertaining to files within the temp folder flagged as orphaned; usually an indication that the file was unable to be moved from the directory
         /// </summary>

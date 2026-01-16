@@ -257,9 +257,15 @@ namespace LogUtils.Helpers.FileHandling
                 {
                     string tempFilePath = Path.Combine(tempFolderPath, Path.GetFileName(destPath));
 
+                    bool isOrphanedFile = TempFolder.OrphanedFiles.Contains(tempFilePath);
+
                     //Attempt to move file at destination
                     if (!TryMove(destPath, tempFilePath))
                         return false;
+
+                    //File was overwritten - it is no longer considered orphaned
+                    if (isOrphanedFile)
+                        TempFolder.OrphanedFiles.Remove(tempFilePath);
 
                     //Attempt to move source file to destination
                     if (!TryMove(sourcePath, destPath))
