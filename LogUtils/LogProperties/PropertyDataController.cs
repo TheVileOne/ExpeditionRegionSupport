@@ -422,10 +422,21 @@ namespace LogUtils.Properties
 
                 LogProperties existingProperties = entries.FirstOrDefault(p => propertyComparer.Compare(p, properties) == 0);
 
+                string lastKnownPath = properties.GetLastKnownPath();
                 if (properties is LogGroupProperties)
                 {
-                    if (existingProperties != null)
+                    //TODO: Edge cases should be handled - files that were moved when the group folder was moved, but belong to other groups
+                    LogGroupProperties groupProperties = existingProperties as LogGroupProperties;
+                    if (groupProperties != null)
+                    {
+                        //We have few ways of knowing if the members of a non-group folder have had their paths changed by the other process 
+                        if (groupProperties.IsFolderGroup)
+                            groupProperties.ChangePath(lastKnownPath, applyToMembers: true);
                         continue;
+                    }
+                    groupProperties = properties as LogGroupProperties;
+                    if (groupProperties.IsFolderGroup)
+                        groupProperties.ChangePath(lastKnownPath, applyToMembers: true);
                 }
                 else
                 {
@@ -433,11 +444,11 @@ namespace LogUtils.Properties
                     //We need to restore this metadata so that the incoming process knows where to log new messages
                     if (existingProperties != null)
                     {
-                        existingProperties.ChangePath(properties.LastKnownFilePath);
+                        existingProperties.ChangePath(lastKnownPath);
                         continue;
                     }
 
-                    properties.ChangePath(properties.LastKnownFilePath);
+                    properties.ChangePath(lastKnownPath);
                 }
 
                 //This log file is unrecognized by this process and must be new
