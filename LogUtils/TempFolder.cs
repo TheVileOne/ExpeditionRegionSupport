@@ -17,10 +17,11 @@ namespace LogUtils
 
         internal static IAccessToken AccessToken => folder;
 
+        private static readonly HashSet<string> _orphanedFiles = new HashSet<string>();
         /// <summary>
         /// Contains paths pertaining to files within the temp folder flagged as orphaned; usually an indication that the file was unable to be moved from the directory
         /// </summary>
-        public static readonly ICollection<string> OrphanedFiles = new List<string>();
+        public static ICollection<string> OrphanedFiles => _orphanedFiles;
 
         /// <summary>
         /// Checks whether deletion of the temp folder minimizes risk of unwanted data loss
@@ -86,6 +87,32 @@ namespace LogUtils
             {
                 UtilityLogger.LogError("Unable to delete Temp folder", ex);
                 return false;
+            }
+        }
+
+        internal static void OnStartup()
+        {
+            if (!UtilityCore.IsControllingAssembly || !Directory.Exists(Path))
+
+            OrphanAllFiles();
+            if (OrphanedFiles.Count == 0) //There are no files - folder is safe for removal 
+                folder.ScheduleDelete();
+        }
+
+        /// <summary>
+        /// Does an inventory of all files inside the temp folder (when it exists), and marks each file as orphaned
+        /// </summary>
+        internal static void OrphanAllFiles()
+        {
+            string tempFolderPath = Path;
+            try
+            {
+                string[] allFiles = Directory.GetFiles(tempFolderPath, "*", SearchOption.AllDirectories);
+                _orphanedFiles.UnionWith(allFiles);
+            }
+            catch (Exception ex)
+            {
+                UtilityLogger.LogError("Orphaned file check failed", ex);
             }
         }
         #endregion

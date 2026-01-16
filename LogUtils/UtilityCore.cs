@@ -256,6 +256,8 @@ namespace LogUtils
                     }
                 case UtilitySetup.InitializationStep.POST_LOGID_PROCESSING:
                     {
+                        //TempFolder startup process must be handled before log backups
+                        TempFolder.OnStartup();
                         PropertyManager.ProcessLogFiles();
 
                         if (PatcherPolicy.ShowPatcherLog)
