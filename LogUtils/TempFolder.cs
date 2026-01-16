@@ -26,7 +26,7 @@ namespace LogUtils
         /// <summary>
         /// Checks whether deletion of the temp folder minimizes risk of unwanted data loss
         /// </summary>
-        public static bool SafeToDelete => accessCount == 0 && OrphanedFiles.Count == 0;
+        public static bool SafeToDelete => UtilityCore.IsControllingAssembly && accessCount == 0 && OrphanedFiles.Count == 0;
 
         /// <summary>
         /// Full path to LogUtils temporary folder
