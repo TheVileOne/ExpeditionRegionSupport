@@ -127,6 +127,12 @@ namespace LogUtils
             DirectoryInfo sourceFileDir = sourceFilePath.Directory;
             DirectoryInfo destFileDir = destFilePath.Directory;
 
+            if (!sourceFilePath.Exists)
+            {
+                UtilityLogger.DebugLog("Source file not present");
+                return FileStatus.NoActionRequired;
+            }
+
             //Files are in the same folder
             if (sourceFileDir.FullName == destFileDir.FullName)
             {

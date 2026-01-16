@@ -69,7 +69,7 @@ namespace LogUtils
 
         public bool IsSafeToMove()
         {
-            return DirectoryUtils.IsSafeToMove(FolderPath);
+            return UtilityCore.IsControllingAssembly && DirectoryUtils.IsSafeToMove(FolderPath);
         }
 
         /// <summary>
@@ -108,6 +108,9 @@ namespace LogUtils
 
         internal void MoveInternal(string newPath)
         {
+            if (!UtilityCore.IsControllingAssembly) //TODO: Can we try to predict what the filepaths will be without moving any files/folders?
+                return;
+
             newPath = LogProperties.GetContainingPath(newPath);
             bool canMoveFiles = Exists;
 

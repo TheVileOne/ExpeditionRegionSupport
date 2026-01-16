@@ -68,7 +68,7 @@ namespace LogUtils.Helpers
             {
                 UtilityLogger.Log($"Attempting to move {logFile} to {newLogPath}");
 
-                if (!logFile.Properties.FileExists)
+                if (!UtilityCore.IsControllingAssembly || !logFile.Properties.FileExists)
                 {
                     logFile.Properties.ChangePath(newLogPath);
                     return FileStatus.NoActionRequired;
