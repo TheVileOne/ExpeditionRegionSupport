@@ -11183,6 +11183,36 @@
             The last known file change/access activity that resulted in acquiring the file lock  
             </summary>
         </member>
+        <member name="T:LogUtils.Threading.InvalidStateException">
+            <summary>
+            Exception is thrown when an object is in an invalid state for the current operation
+            </summary>
+        </member>
+        <member name="F:LogUtils.Threading.InvalidStateException.DEFAULT_MESSAGE">
+            <summary>
+            Message that will be used by default if one is not specified
+            </summary>
+        </member>
+        <member name="F:LogUtils.Threading.InvalidStateException.DEFAULT_MESSAGE_FORMAT">
+            <summary>
+            Message that will be used by default if one is not specified, and <see cref="T:LogUtils.Threading.Task"/> is provided
+            </summary>
+        </member>
+        <member name="M:LogUtils.Threading.InvalidStateException.#ctor">
+            <summary/>
+        </member>
+        <member name="M:LogUtils.Threading.InvalidStateException.#ctor(LogUtils.Threading.Task)">
+            <summary/>
+        </member>
+        <member name="M:LogUtils.Threading.InvalidStateException.#ctor(System.String)">
+            <summary/>
+        </member>
+        <member name="M:LogUtils.Threading.InvalidStateException.#ctor(System.String,System.Exception)">
+            <summary/>
+        </member>
+        <member name="M:LogUtils.Threading.InvalidStateException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary/>
+        </member>
         <member name="T:LogUtils.Threading.Lock">
             <summary>
             A wrapper class for a locked object implementation. API exposes a lockable Scope designed to work with with 'using' keyword, does not work well with 'lock'
