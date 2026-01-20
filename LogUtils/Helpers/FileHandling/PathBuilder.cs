@@ -118,8 +118,8 @@ namespace LogUtils.Helpers.FileHandling
 
             public void Accept()
             {
-                result.Append(Path.DirectorySeparatorChar)
-                      .Append(directoryEnumerator.Current);
+                result.Append(directoryEnumerator.Current)
+                      .Append(Path.DirectorySeparatorChar);
             }
 
             internal void AppendValue(string value)
@@ -131,11 +131,10 @@ namespace LogUtils.Helpers.FileHandling
             {
                 if (parent.IncludeFilenameInResult && parent.info.HasFilename)
                 {
-                    string resultFilename = parent.info.Target.Name; 
-                    result.Append(Path.DirectorySeparatorChar)
-                          .Append(resultFilename);
+                    string resultFilename = parent.info.Target.Name;
+                    result.Append(resultFilename);
                 }
-                return result.ToString();
+                return result.ToString(); //If the result is not a filepath, expect a trailing separator character
             }
 
             public bool MoveNext()
