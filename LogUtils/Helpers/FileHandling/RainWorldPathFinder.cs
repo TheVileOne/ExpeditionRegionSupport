@@ -36,7 +36,8 @@ namespace LogUtils.Helpers.FileHandling
             return null;
         }
 
-        public virtual string FindRootMatch(string path)
+        /// <inheritdoc/>
+        public override string FindRootMatch(string path)
         {
             path = FindMatch(path);
 
