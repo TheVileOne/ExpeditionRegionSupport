@@ -58,12 +58,6 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <inheritdoc/>
-        public void Dispose()
-        {
-            Reset();
-        }
-
-        /// <inheritdoc/>
         public bool MoveNext()
         {
             if (iterator == null)
@@ -73,10 +67,23 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <inheritdoc/>
-        public void Reset()
+        public void Dispose()
         {
             iterator?.Dispose();
             iterator = null;
+        }
+
+        /// <inheritdoc/>
+        public void Reset()
+        {
+            try
+            {
+                iterator?.Reset();
+            }
+            catch //Though the iterator could not be reset directly, disposing will create a new iterator for the next enumeration
+            {
+                Dispose();
+            }
         }
 
         /// <summary>
@@ -120,13 +127,6 @@ namespace LogUtils.Helpers.FileHandling
                 result.Append(value);
             }
 
-            public void Dispose()
-            {
-                result.Clear();
-                Reset();
-
-            }
-
             public string GetResult()
             {
                 if (parent.IncludeFilenameInResult && parent.info.HasFilename)
@@ -143,16 +143,22 @@ namespace LogUtils.Helpers.FileHandling
                 return directoryEnumerator.MoveNext();
             }
 
+            public void Dispose()
+            {
+                result.Clear();
+                directoryEnumerator.Dispose();
+            }
+
             public void Reset()
             {
                 try
                 {
                     directoryEnumerator.Reset();
+                    result.Clear(); //Failing to reset will not change the enumeration position. Let the result state be unaffected too.
                 }
-                catch (InvalidOperationException)
+                catch (Exception ex)
                 {
-                    //Not all enumerators support resetting
-                    directoryEnumerator.Dispose();
+                    throw new NotSupportedException("Reset operation is not supported by this enumerator", ex);
                 }
             }
         }
