@@ -144,6 +144,26 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <summary>
+        /// Creates an object for the streamlined building of subpath strings
+        /// </summary>
+        public IPathBuilder BuildPath()
+        {
+            return BuildPath(false);
+        }
+
+        /// <summary>
+        /// Creates an object for the streamlined building of subpath strings
+        /// </summary>
+        public IPathBuilder BuildPath(bool includeRoot, bool includeFilenameInResult = true)
+        {
+            return new PathBuilder(this)
+            {
+                IncludeRoot = includeRoot,
+                IncludeFilenameInResult = includeFilenameInResult,
+            };
+        }
+
+        /// <summary>
         /// Incrementally adds directory names from the target path until the entire target path is returned 
         /// </summary>
         public IEnumerable<string> GetFullDirectoryNames()
@@ -155,11 +175,12 @@ namespace LogUtils.Helpers.FileHandling
                 yield break;
             }
 
-            string path = GetRoot();
-            foreach (string directoryName in GetDirectories())
+            using (var builder = BuildPath(includeRoot: true, includeFilenameInResult: false))
             {
-                path = Path.Combine(path, directoryName);
-                yield return path;
+                while (builder.MoveNext())
+                {
+                    yield return builder.GetResult();
+                }
             }
             yield break;
         }
