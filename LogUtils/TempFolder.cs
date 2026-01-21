@@ -32,10 +32,15 @@ namespace LogUtils
         /// <summary>
         /// Full path to LogUtils temporary folder
         /// </summary>
-        public static string Path => Paths.GetTempDirectory();
+        public static string Path => folder.FullPath;
 
-        private TempFolder()
+        private TempFolder() : this(Paths.GetTempDirectory())
         {
+        }
+
+        private TempFolder(string path)
+        {
+            FullPath = path;
         }
 
         #region Static
@@ -118,6 +123,8 @@ namespace LogUtils
         }
         #endregion
         #region Internal
+        public string FullPath;
+
         IAccessToken IAccessToken.Access()
         {
             Interlocked.Increment(ref accessCount);
