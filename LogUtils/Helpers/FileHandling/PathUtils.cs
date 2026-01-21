@@ -183,33 +183,7 @@ namespace LogUtils.Helpers.FileHandling
         /// <remarks>Supports files and directories</remarks>
         public static string ResolvePath(string path)
         {
-            if (IsEmpty(path))
-                return RainWorldPath.StreamingAssetsPath;
-
-            path = Normalize(path);
-            if (tryExpandPath(ref path))
-                return path;
-
-            string result = RainWorldDirectory.Locate(path);
-
-            if (result != null)
-                return result;
-            return Path.Combine(RainWorldPath.StreamingAssetsPath, path); //Unrecognized partial paths default to StreamingAssets
-        }
-
-        private static bool tryExpandPath(ref string path)
-        {
-            bool isExpanded = false;
-
-            //Expand if path is a relative path, or lacks drive information
-            if (path[0] == '.' || path[0] == Path.DirectorySeparatorChar || path[0] == Path.AltDirectorySeparatorChar)
-            {
-                path = Path.GetFullPath(path);
-                isExpanded = true;
-            }
-
-            isExpanded |= Path.IsPathRooted(path);
-            return isExpanded;
+            return RainWorldDirectory.PathResolver.Resolve(path);
         }
 
         /// <summary>

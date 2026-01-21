@@ -300,9 +300,13 @@ namespace LogUtils.Helpers.FileHandling
 
     public enum PathType
     {
+        /// <summary>Path is null, or empty</summary>
         Empty,
+        /// <summary>Path contains only root information</summary>
         Root,
+        /// <summary>Path ends with a filename</summary>
         Filename,
+        /// <summary>Path ends with a directory name</summary>
         Directory,
     }
 }
