@@ -16,6 +16,7 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <inheritdoc/>
+        /// <remarks>The output string will not contain a trailing separator character</remarks>
         public override string Resolve(string path)
         {
             string tempPath = DefaultPath;
@@ -28,7 +29,7 @@ namespace LogUtils.Helpers.FileHandling
                 if (info.HasFilename || info.HasDirectory) //Path string is a filename or directory name stub
                 {
                     string targetName = info.Target.Name;
-                    return Path.Combine(tempPath, targetName);
+                    return PathUtils.CombineWithoutTrailingSeparators(tempPath, targetName);
                 }
 
                 //Path is either empty, or does not contain any folder, or filename information
@@ -58,15 +59,20 @@ namespace LogUtils.Helpers.FileHandling
                         string targetName = info.Target.Name;
                         return Path.Combine(tempPath, targetPath, targetName);
                     }
-                    return Path.Combine(tempPath, targetPath);
+                    return PathUtils.CombineWithoutTrailingSeparators(tempPath, targetPath);
                 }
+
+                //Maintains consistent handling between directory, and file paths
+                int maxFoldersToSelect = MaxFoldersToSelect;
+                if (info.HasDirectory)
+                    maxFoldersToSelect++; //Trailing directory is excluded from selection maximum
 
                 //Handle the unrecognized case
                 //Include only part of the whole path string for the output path. Filename is included in the output.
                 targetPath = info.BuildPath()
-                                 .TakeLast(MaxFoldersToSelect)
+                                 .TakeLast(maxFoldersToSelect)
                                  .GetResult();
-                return Path.Combine(tempPath, targetPath);
+                return PathUtils.CombineWithoutTrailingSeparators(tempPath, targetPath);
             }
 
             //The path that is handled here cannot be a full path, and cannot be a stub either.
@@ -76,7 +82,7 @@ namespace LogUtils.Helpers.FileHandling
                 string targetName = info.Target.Name;
                 return Path.Combine(tempPath, targetPath, targetName);
             }
-            return Path.Combine(tempPath, targetPath);
+            return PathUtils.CombineWithoutTrailingSeparators(tempPath, targetPath);
         }
     }
 

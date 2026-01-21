@@ -51,17 +51,29 @@ namespace LogUtils
         /// <returns>The created directory path, or null if path could not be created</returns>
         public static string CreateDirectoryFor(string path)
         {
-            string pathMappedToFolder = PathUtils.PathWithoutFilename(MapPathToFolder(path));
-
+            string targetPath = getTargetPath(path);
             try
             {
-                Directory.CreateDirectory(path);
-                return pathMappedToFolder;
+                Directory.CreateDirectory(targetPath);
+                return targetPath;
             }
             catch (Exception ex)
             {
                 UtilityLogger.LogError("Unable to create directory", ex);
                 return null;
+            }
+
+            static string getTargetPath(string input)
+            {
+                string targetPath = MapPathToFolder(input); //Does not require path separator trimming
+
+                bool isTargetingTempFolder = PathUtils.PathsAreEqual(targetPath, folder.FullPath);
+
+                if (isTargetingTempFolder)
+                    return folder.FullPath;
+
+                //Targets the parent directory of the filename, or directory path provided
+                return System.IO.Path.GetDirectoryName(targetPath);
             }
         }
 

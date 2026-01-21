@@ -414,5 +414,10 @@ namespace LogUtils.Helpers.FileHandling
         {
             return ComparerUtils.PathComparer.Equals(path, pathOther);
         }
+
+        internal static string CombineWithoutTrailingSeparators(string path1, string path2)
+        {
+            return Path.Combine(path1, path2).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        }
     }
 }
