@@ -212,5 +212,34 @@ namespace LogUtils.Helpers.FileHandling
             }
             return node.Current;
         }
+
+        public static IPathBuilderNode TakeLast(this IPathBuilder node, int count)
+        {
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count));
+
+            if (count == 0)
+            {
+                while (node.MoveNext())
+                {
+                    node = node.Current;
+                    continue;
+                }
+                return node.Current;
+            }
+
+            List<IPathBuilderNode> selectedNodes = new List<IPathBuilderNode>(count);
+            while (node.MoveNext())
+            {
+                if (selectedNodes.Count == count) //When at capacity remove the earliest node
+                    selectedNodes.RemoveAt(0);
+
+                selectedNodes.Add(node.Current);
+                node = node.Current;
+            }
+
+            selectedNodes.ForEach(node => node.Accept());
+            return node.Current;
+        }
     }
 }

@@ -45,6 +45,39 @@ namespace LogUtils
 
         #region Static
         /// <summary>
+        /// Creates the directory structure for a given file, or directory path
+        /// </summary>
+        /// <param name="path">A file, or directory path</param>
+        /// <returns>The created directory path, or null if path could not be created</returns>
+        public static string CreateDirectoryFor(string path)
+        {
+            string pathMappedToFolder = PathUtils.PathWithoutFilename(MapPathToFolder(path));
+
+            try
+            {
+                Directory.CreateDirectory(path);
+                return pathMappedToFolder;
+            }
+            catch (Exception ex)
+            {
+                UtilityLogger.LogError("Unable to create directory", ex);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Maps a path, filename, or directory to a location within the Temp folder, and returns the resulting path string
+        /// </summary>
+        /// <param name="path">A path, filename, or directory name to locate</param>
+        /// <returns>A fully qualified path inside the Temp folder</returns>
+        /// <remarks>No attempt is made to ensure path exists within the Temp folder</remarks>
+        public static string MapPathToFolder(string path)
+        {
+            TempPathResolver pathResolver = new TempPathResolver(folder.FullPath);
+            return pathResolver.Resolve(path);
+        }
+
+        /// <summary>
         /// Signal that a process intends to access and use LogUtils defined temporary folder. While accessing, LogUtils guarantees that the folder wont be moved, or deleted
         /// through the <see cref="TempFolder"/> public API. Call <see cref="RevokeAccess"/> to signal that your process no longer needs to access the Temp folder.
         /// </summary>
