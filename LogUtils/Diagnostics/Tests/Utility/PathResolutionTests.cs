@@ -133,7 +133,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
         private void testEmptyPathsReturnCorrectPath()
         {
-            string[] pathInputs = [null, string.Empty, " "]; //All three of these should return the same result
+            string[] pathInputs = TestInput.Strings.EmptyPathStrings; //All three of these should return the same result
 
             foreach (string input in pathInputs)
             {
@@ -264,7 +264,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         {
             RAIN_WORLD = 0,
             STREAMING_ASSETS = 1,
-            BEPINEX
+            BEPINEX = 2,
         }
 
         internal static void LogPaths()

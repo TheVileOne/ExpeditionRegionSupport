@@ -24,6 +24,16 @@
             /// Test value representing a null string
             /// </summary>
             public const string NULL = null;
+
+            /// <summary>
+            /// All strings that evaluate to an empty path
+            /// </summary>
+            public static string[] EmptyPathStrings = new string[]
+            {
+                EMPTY,
+                NULL,
+                " ",
+            };
         }
 
         /// <summary>
