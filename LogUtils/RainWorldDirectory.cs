@@ -16,7 +16,7 @@ namespace LogUtils
         /// Converts partial, and non-partial Rain World file or directory paths into a normalized equivalent form within the Rain World directory  
         /// </summary>
         /// <exception cref="ArgumentNullException">Property was set to a null value</exception>
-        public static FileSystemPathFinder PathFinder
+        public static IPathFinder PathFinder
         {
             get => PathResolver.Finder;
             set

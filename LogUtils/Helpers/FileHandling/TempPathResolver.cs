@@ -86,7 +86,7 @@ namespace LogUtils.Helpers.FileHandling
         }
     }
 
-    internal class TempPathFinder : FileSystemPathFinder
+    internal class TempPathFinder : IPathFinder
     {
         /// <summary>
         /// The fully qualified path that represents the location of a temporary folder
@@ -98,7 +98,7 @@ namespace LogUtils.Helpers.FileHandling
             TargetPath = targetPath;
         }
 
-        public override string FindMatch(string path)
+        public string FindMatch(string path)
         {
             int targetIndex = getTargetIndex(path);
 
@@ -107,7 +107,7 @@ namespace LogUtils.Helpers.FileHandling
             return null;
         }
 
-        public override string FindRootMatch(string path)
+        public string FindRootMatch(string path)
         {
             int targetIndex = getTargetIndex(path);
 

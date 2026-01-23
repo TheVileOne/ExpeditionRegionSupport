@@ -13,14 +13,14 @@ namespace LogUtils.Helpers.FileHandling
         /// <summary>
         /// The path matching implementation used to determine the path resolution result
         /// </summary>
-        public FileSystemPathFinder Finder { get; }
+        public IPathFinder Finder { get; }
 
         public PathResolver(string defaultPath)
         {
             DefaultPath = defaultPath;
         }
 
-        public PathResolver(string defaultPath, FileSystemPathFinder finder)
+        public PathResolver(string defaultPath, IPathFinder finder)
         {
             DefaultPath = defaultPath;
             Finder = finder;
