@@ -239,7 +239,6 @@ namespace LogUtils.Helpers.FileHandling
                     UtilityLogger.LogWarning("Unable to replace file. Temp directory could not be created.");
                     return false;
                 }
-                string tempFolderPath = TempFolder.Path;
 
                 bool destEmpty = !File.Exists(destPath);
                 if (destEmpty)
@@ -255,28 +254,37 @@ namespace LogUtils.Helpers.FileHandling
                 }
                 else
                 {
-                    string tempFilePath = Path.Combine(tempFolderPath, Path.GetFileName(destPath));
+                    string tempPath = prepareToMoveFile();
 
-                    bool isOrphanedFile = TempFolder.OrphanedFiles.Contains(tempFilePath);
+                    string prepareToMoveFile()
+                    {
+                        string destFilename = Path.GetFileName(destPath);
+                        //Create the folder that will contain this file, before returning the full filepath
+                        return Path.Combine(TempFolder.CreateDirectoryFor(destPath), destFilename);
 
-                    //Attempt to move file at destination
-                    if (!TryMove(destPath, tempFilePath))
+                    }
+
+                    //Check orphan status in case we overwrite one
+                    bool isOrphanedFile = TempFolder.OrphanedFiles.Contains(tempPath);
+
+                    //Attempt to move file to the temp folder
+                    if (!TryMove(destPath, tempPath))
                         return false;
 
                     //File was overwritten - it is no longer considered orphaned
                     if (isOrphanedFile)
-                        TempFolder.OrphanedFiles.Remove(tempFilePath);
+                        TempFolder.OrphanedFiles.Remove(tempPath);
 
                     //Attempt to move source file to destination
                     if (!TryMove(sourcePath, destPath))
                     {
                         UtilityLogger.LogWarning("Unable to move source file");
 
-                        //If it fails, we move file at destination back - maybe it doesn't exist though
-                        if (!TryMove(tempFilePath, destPath))
+                        //If it fails, we move file at destination back
+                        if (!TryMove(tempPath, destPath))
                         {
                             UtilityLogger.LogWarning("Unable to restore destination file");
-                            TempFolder.OrphanedFiles.Add(tempFilePath);
+                            TempFolder.OrphanedFiles.Add(tempPath);
                         }
                         return false;
                     }
