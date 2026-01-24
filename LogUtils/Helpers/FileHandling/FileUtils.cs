@@ -79,8 +79,7 @@ namespace LogUtils.Helpers.FileHandling
         {
             try
             {
-                if (File.Exists(path))
-                    File.Delete(path);
+                File.Delete(path);
                 return true;
             }
             catch (Exception ex)
@@ -161,21 +160,16 @@ namespace LogUtils.Helpers.FileHandling
                 return true;
             }
 
-            bool destEmpty = !File.Exists(destPath);
             bool exceptionLogged = false;
             while (attemptsAllowed > 0)
             {
                 try
                 {
                     //Make sure destination is clear
-                    if (!destEmpty)
+                    if (!TryDelete(destPath))
                     {
-                        if (!TryDelete(destPath))
-                        {
-                            attemptsAllowed--;
-                            continue;
-                        }
-                        destEmpty = true;
+                        attemptsAllowed--;
+                        continue;
                     }
 
                     File.Move(sourcePath, destPath);
