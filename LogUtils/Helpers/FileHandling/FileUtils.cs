@@ -1,4 +1,5 @@
-﻿using LogUtils.Helpers.Comparers;
+﻿using LogUtils.Diagnostics;
+using LogUtils.Helpers.Comparers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -106,7 +107,6 @@ namespace LogUtils.Helpers.FileHandling
                 return false;
             }
 
-            bool exceptionLogged = false;
             while (attemptsAllowed > 0)
             {
                 try
@@ -114,30 +114,19 @@ namespace LogUtils.Helpers.FileHandling
                     File.Copy(sourcePath, destPath, true);
                     return true;
                 }
-                catch (FileNotFoundException)
-                {
-                    UtilityLogger.LogError($"Copy target file {sourceFilename} could not be found");
-                    return false;
-                }
-                catch (IOException ioex)
-                {
-                    if (ioex.Message.StartsWith("Sharing violation"))
-                        UtilityLogger.LogError($"Copy target file {sourceFilename} is currently in use");
-                    handleException(ioex);
-                }
                 catch (Exception ex)
                 {
-                    handleException(ex);
-                }
-            }
+                    FileMoveExceptionHandler handler = new FileMoveExceptionHandler(Path.GetFileName(sourcePath))
+                    {
+                        IsCopyContext = true,
+                        Protocol = attemptsAllowed == 0 ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently
+                    };
+                    handler.OnError(ex);
 
-            void handleException(Exception ex)
-            {
-                attemptsAllowed--;
-                if (!exceptionLogged)
-                {
-                    UtilityLogger.LogError(ex);
-                    exceptionLogged = true;
+                    if (handler.CanContinue)
+                        continue;
+                    //Exception was of a form that is unlikely to complete on a reattempt
+                    break;
                 }
             }
             return false;
@@ -160,7 +149,6 @@ namespace LogUtils.Helpers.FileHandling
                 return true;
             }
 
-            bool exceptionLogged = false;
             while (attemptsAllowed > 0)
             {
                 try
@@ -175,30 +163,20 @@ namespace LogUtils.Helpers.FileHandling
                     File.Move(sourcePath, destPath);
                     return true;
                 }
-                catch (FileNotFoundException)
-                {
-                    UtilityLogger.LogError($"Move target file {sourceFilename} could not be found");
-                    return false;
-                }
-                catch (IOException ioex)
-                {
-                    if (ioex.Message.StartsWith("Sharing violation"))
-                        UtilityLogger.LogError($"Move target file {sourceFilename} is currently in use");
-                    handleException(ioex);
-                }
                 catch (Exception ex)
                 {
-                    handleException(ex);
-                }
-            }
+                    attemptsAllowed--;
+                    FileMoveExceptionHandler handler = new FileMoveExceptionHandler(Path.GetFileName(sourcePath))
+                    {
+                        IsCopyContext = false,
+                        Protocol = attemptsAllowed == 0 ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently
+                    };
+                    handler.OnError(ex);
 
-            void handleException(Exception ex)
-            {
-                attemptsAllowed--;
-                if (!exceptionLogged)
-                {
-                    UtilityLogger.LogError(ex);
-                    exceptionLogged = true;
+                    if (handler.CanContinue)
+                        continue;
+                    //Exception was of a form that is unlikely to complete on a reattempt
+                    break;
                 }
             }
             return false;
@@ -352,5 +330,51 @@ namespace LogUtils.Helpers.FileHandling
         None,
         OverwriteDestination,
         RenameSourceIfNecessary
+    }
+
+    internal sealed class FileMoveExceptionHandler : ExceptionHandler
+    {
+        /// <summary>
+        /// Can the process recover from an exceptional state
+        /// </summary>
+        public bool CanContinue = true;
+
+        /// <summary>
+        /// Is the context a file move, or file copy
+        /// </summary>
+        public bool IsCopyContext;
+
+        private string contextTag => IsCopyContext ? "Copy" : "Move";
+
+        private readonly string sourceFilename;
+
+        public FileMoveExceptionHandler(string sourceFilename)
+        {
+            this.sourceFilename = sourceFilename;
+        }
+
+        public override void OnError(Exception exception)
+        {
+            CanContinue = CanRecoverFrom(exception);
+            base.OnError(exception);
+        }
+
+        protected override void LogError(Exception exception)
+        {
+            if (exception is FileNotFoundException)
+            {
+                UtilityLogger.LogError($"{contextTag} target file {sourceFilename} could not be found");
+                return;
+            }
+
+            if (exception is IOException)
+            {
+                if (exception.Message.StartsWith("Sharing violation"))
+                    UtilityLogger.LogError($"{contextTag} target file {sourceFilename} is currently in use");
+            }
+            UtilityLogger.LogError(exception);
+        }
+
+        internal static bool CanRecoverFrom(Exception ex) => ex is not FileNotFoundException; //In context this refers to the source file
     }
 }
