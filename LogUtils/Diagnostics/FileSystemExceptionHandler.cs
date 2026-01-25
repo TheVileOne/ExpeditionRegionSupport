@@ -60,7 +60,12 @@ internal class FileSystemExceptionHandler : ExceptionHandler
         UtilityLogger.LogError(exception);
     }
 
-    internal static bool CanRecoverFrom(Exception ex) => ex is not FileNotFoundException; //In context this refers to the source file
+    internal bool CanRecoverFrom(Exception ex)
+    {
+        if (Context == ActionType.Move || Context == ActionType.Copy)
+            return ex is not FileNotFoundException; //In context this refers to the source file
+        return false;
+    }
 
     /// <summary>
     /// Identifies the target file, or directory
