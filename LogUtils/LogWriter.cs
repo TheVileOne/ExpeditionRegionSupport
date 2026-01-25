@@ -1,6 +1,7 @@
 ﻿using LogUtils.Console;
 using LogUtils.Diagnostics.Tools;
 using LogUtils.Enums;
+using LogUtils.Enums.FileSystem;
 using LogUtils.Events;
 using LogUtils.Formatting;
 using LogUtils.Helpers;
