@@ -2,14 +2,15 @@
 using LogUtils.Diagnostics;
 using LogUtils.Enums.FileSystem;
 using System;
+using System.Globalization;
 using System.IO;
 
-internal class FileSystemExceptionHandler : ExceptionHandler
+public abstract class FileSystemExceptionHandler : ExceptionHandler
 {
     /// <summary>
     /// Can the process recover from an exceptional state
     /// </summary>
-    public bool CanContinue = true;
+    public bool CanContinue { get; protected set; } = true;
 
     /// <summary>
     /// The current contextual state - this value affects the phrasing of certain contextual information when exception information is logged
@@ -17,7 +18,7 @@ internal class FileSystemExceptionHandler : ExceptionHandler
     /// <value>Currently supported values: <see cref="ActionType.Move"/>, <see cref="ActionType.Copy"/>, <see cref="ActionType.Delete"/></value>
     public ActionType Context = ActionType.None;
 
-    private readonly string sourceFilename;
+    private readonly string sourceName;
 
     [ThreadStatic]
     private static string _customErrorMessage;
@@ -27,20 +28,22 @@ internal class FileSystemExceptionHandler : ExceptionHandler
     /// </summary>
     protected string CustomMessage => _customErrorMessage;
 
-    public FileSystemExceptionHandler(string sourceFilename)
+    /// <summary>
+    /// The value of this affects the value of descriptors when exception information is logged
+    /// </summary>
+    protected abstract bool IsFileContext { get; }
+
+    protected FileSystemExceptionHandler(string sourceName)
     {
-        this.sourceFilename = sourceFilename;
+        this.sourceName = sourceName;
     }
 
-    public FileSystemExceptionHandler(string sourceFilename, ActionType context) : this(sourceFilename)
+    protected FileSystemExceptionHandler(string sourceName, ActionType context) : this(sourceName)
     {
         Context = context;
     }
 
-    public FileSystemExceptionHandler(string sourceFilename, FileAction context) : this(sourceFilename, new ActionType(context))
-    {
-    }
-
+    /// <inheritdoc/>
     public override void OnError(Exception exception)
     {
         CanContinue = CanRecoverFrom(exception);
@@ -60,6 +63,7 @@ internal class FileSystemExceptionHandler : ExceptionHandler
         }
     }
 
+    /// <inheritdoc/>
     protected override void LogError(Exception exception)
     {
         string errorMessage = null;
@@ -70,40 +74,24 @@ internal class FileSystemExceptionHandler : ExceptionHandler
             return;
         }
 
+        string descriptor;
         if (Context == ActionType.Delete)
         {
-            errorMessage = "Unable to delete file";
+            descriptor = GetSimpleDescriptor();
+            errorMessage = "Unable to delete " + descriptor;
         }
-        else
+        else if (exception is IOException && exception.Message.StartsWith("Sharing violation"))
         {
-            string descriptor;
-            if (exception is FileNotFoundException)
-            {
-                descriptor = GetDescriptor();
-                errorMessage = descriptor + " could not be found";
-
-                if (Context == ActionType.Move || Context == ActionType.Copy)
-                {
-                    UtilityLogger.LogError(errorMessage); //Stack trace is not logged in this case
-                    return;
-                }
-            }
-
-            if (exception is IOException && exception.Message.StartsWith("Sharing violation"))
-            {
-                descriptor = GetDescriptor();
-                errorMessage = descriptor + " is currently in use";
-            }
+            descriptor = GetDescriptor();
+            errorMessage = descriptor + " is currently in use";
         }
         UtilityLogger.LogError(errorMessage, exception);
     }
 
-    internal bool CanRecoverFrom(Exception ex)
-    {
-        if (Context == ActionType.Move || Context == ActionType.Copy)
-            return ex is not FileNotFoundException; //In context this refers to the source file
-        return false;
-    }
+    /// <summary>
+    /// Influences the value of <see cref="CanContinue"/> which is used particular in cases where exceptions need to be caught inside a loop operation
+    /// </summary>
+    protected abstract bool CanRecoverFrom(Exception ex);
 
     /// <summary>
     /// Identifies the target file, or directory
@@ -117,20 +105,27 @@ internal class FileSystemExceptionHandler : ExceptionHandler
         else if (Context == ActionType.Copy)
             contextTag = "Copy";
 
-        //TODO: This needs to make sense for both files and directories
         string descriptor;
-        string filename = sourceFilename;
         if (contextTag != null)
         {
-            descriptor = contextTag + " target file";
+            descriptor = contextTag + " target";
         }
         else
         {
-            descriptor = "File";
+            //Creates a TextInfo based on the "en-US" culture.
+            TextInfo textInfo = new CultureInfo("en-US", false).TextInfo;
+
+            descriptor = textInfo.ToTitleCase(GetSimpleDescriptor());
         }
 
-        if (filename != null) //Include filename when it exists
-            return string.Format("{0} {1}", descriptor, filename);
+        string name = sourceName;
+        if (name != null) //Include source name when it exists
+            return string.Format("{0} {1}", descriptor, name);
         return descriptor;
     }
+
+    /// <summary>
+    /// The short form identification of the target file, or directory
+    /// </summary>
+    protected abstract string GetSimpleDescriptor();
 }

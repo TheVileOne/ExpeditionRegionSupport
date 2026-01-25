@@ -75,7 +75,7 @@ namespace LogUtils.Helpers.FileHandling
             }
             catch (Exception ex)
             {
-                FileSystemExceptionHandler handler = new FileSystemExceptionHandler(null, FileAction.Delete);
+                ExceptionHandler handler = new FileExceptionHandler(null, FileAction.Delete);
 
                 handler.OnError(ex, customErrorMsg);
             }
@@ -108,7 +108,7 @@ namespace LogUtils.Helpers.FileHandling
                 }
                 catch (Exception ex)
                 {
-                    FileSystemExceptionHandler handler = new FileSystemExceptionHandler(Path.GetFileName(sourcePath), FileAction.Copy)
+                    FileSystemExceptionHandler handler = new FileExceptionHandler(Path.GetFileName(sourcePath), FileAction.Copy)
                     {
                         Protocol = attemptsAllowed == 0 ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently
                     };
@@ -157,7 +157,7 @@ namespace LogUtils.Helpers.FileHandling
                 catch (Exception ex)
                 {
                     attemptsAllowed--;
-                    FileSystemExceptionHandler handler = new FileSystemExceptionHandler(Path.GetFileName(sourcePath), FileAction.Move)
+                    FileSystemExceptionHandler handler = new FileExceptionHandler(Path.GetFileName(sourcePath), FileAction.Move)
                     {
                         Protocol = attemptsAllowed == 0 ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently
                     };
