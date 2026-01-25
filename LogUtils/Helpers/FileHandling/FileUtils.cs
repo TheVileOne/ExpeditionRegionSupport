@@ -1,5 +1,4 @@
-﻿using LogUtils;
-using LogUtils.Diagnostics;
+﻿using LogUtils.Diagnostics;
 using LogUtils.Helpers.Comparers;
 using System;
 using System.Collections.Generic;
@@ -106,7 +105,7 @@ namespace LogUtils.Helpers.FileHandling
                 }
                 catch (Exception ex)
                 {
-                    FileMoveExceptionHandler handler = new FileMoveExceptionHandler(Path.GetFileName(sourcePath))
+                    FileSystemExceptionHandler handler = new FileSystemExceptionHandler(Path.GetFileName(sourcePath))
                     {
                         IsCopyContext = true,
                         Protocol = attemptsAllowed == 0 ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently
@@ -156,7 +155,7 @@ namespace LogUtils.Helpers.FileHandling
                 catch (Exception ex)
                 {
                     attemptsAllowed--;
-                    FileMoveExceptionHandler handler = new FileMoveExceptionHandler(Path.GetFileName(sourcePath))
+                    FileSystemExceptionHandler handler = new FileSystemExceptionHandler(Path.GetFileName(sourcePath))
                     {
                         IsCopyContext = false,
                         Protocol = attemptsAllowed == 0 ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently
@@ -230,50 +229,4 @@ namespace LogUtils.Helpers.FileHandling
             }
         }
     }
-    }
-
-    internal sealed class FileMoveExceptionHandler : ExceptionHandler
-    {
-        /// <summary>
-        /// Can the process recover from an exceptional state
-        /// </summary>
-        public bool CanContinue = true;
-
-        /// <summary>
-        /// Is the context a file move, or file copy
-        /// </summary>
-        public bool IsCopyContext;
-
-        private string contextTag => IsCopyContext ? "Copy" : "Move";
-
-        private readonly string sourceFilename;
-
-        public FileMoveExceptionHandler(string sourceFilename)
-        {
-            this.sourceFilename = sourceFilename;
-        }
-
-        public override void OnError(Exception exception)
-        {
-            CanContinue = CanRecoverFrom(exception);
-            base.OnError(exception);
-        }
-
-        protected override void LogError(Exception exception)
-        {
-            if (exception is FileNotFoundException)
-            {
-                UtilityLogger.LogError($"{contextTag} target file {sourceFilename} could not be found");
-                return;
-            }
-
-            if (exception is IOException)
-            {
-                if (exception.Message.StartsWith("Sharing violation"))
-                    UtilityLogger.LogError($"{contextTag} target file {sourceFilename} is currently in use");
-            }
-            UtilityLogger.LogError(exception);
-        }
-
-        internal static bool CanRecoverFrom(Exception ex) => ex is not FileNotFoundException; //In context this refers to the source file
 }
