@@ -75,7 +75,9 @@ namespace LogUtils.Helpers.FileHandling
             }
             catch (Exception ex)
             {
-                UtilityLogger.LogError(customErrorMsg ?? "Unable to delete file", ex);
+                FileSystemExceptionHandler handler = new FileSystemExceptionHandler(null, FileAction.Delete);
+
+                handler.OnError(ex, customErrorMsg);
             }
             return false;
         }

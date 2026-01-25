@@ -14,10 +14,18 @@ internal class FileSystemExceptionHandler : ExceptionHandler
     /// <summary>
     /// The current contextual state - this value affects the phrasing of certain contextual information when exception information is logged
     /// </summary>
-    /// <value>Currently supported values: <see cref="ActionType.Move"/>, <see cref="ActionType.Copy"/></value>
+    /// <value>Currently supported values: <see cref="ActionType.Move"/>, <see cref="ActionType.Copy"/>, <see cref="ActionType.Delete"/></value>
     public ActionType Context = ActionType.None;
 
     private readonly string sourceFilename;
+
+    [ThreadStatic]
+    private static string _customErrorMessage;
+
+    /// <summary>
+    /// A non-empty custom message overrides other exception header messages. The value will get cleared after use.
+    /// </summary>
+    protected string CustomMessage => _customErrorMessage;
 
     public FileSystemExceptionHandler(string sourceFilename)
     {
@@ -39,25 +47,50 @@ internal class FileSystemExceptionHandler : ExceptionHandler
         base.OnError(exception);
     }
 
+    public void OnError(Exception exception, string customErrorMessage)
+    {
+        try
+        {
+            _customErrorMessage = customErrorMessage;
+            OnError(exception);
+        }
+        finally
+        {
+            _customErrorMessage = null;
+        }
+    }
+
     protected override void LogError(Exception exception)
     {
-        string descriptor;
-        if (exception is FileNotFoundException)
+        string errorMessage = null;
+        if (_customErrorMessage != null) //Custom error message always overrides default provided message formatting
         {
-            descriptor = GetDescriptor();
-            UtilityLogger.LogError(descriptor + " could not be found");
+            errorMessage = _customErrorMessage;
+            UtilityLogger.LogError(errorMessage, exception);
             return;
         }
 
-        if (exception is IOException)
+        if (Context == ActionType.Delete)
         {
-            if (exception.Message.StartsWith("Sharing violation"))
+            errorMessage = "Unable to delete file";
+        }
+        else
+        {
+            string descriptor;
+            if (exception is FileNotFoundException)
             {
                 descriptor = GetDescriptor();
-                UtilityLogger.LogError(descriptor + " is currently in use");
+                UtilityLogger.LogError(descriptor + " could not be found"); //Stack trace is not logged in this case
+                return;
+            }
+
+            if (exception is IOException && exception.Message.StartsWith("Sharing violation"))
+            {
+                descriptor = GetDescriptor();
+                errorMessage = descriptor + " is currently in use";
             }
         }
-        UtilityLogger.LogError(exception);
+        UtilityLogger.LogError(errorMessage, exception);
     }
 
     internal bool CanRecoverFrom(Exception ex)
