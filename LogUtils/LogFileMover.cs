@@ -51,9 +51,9 @@ namespace LogUtils
                 }
                 catch (Exception ex)
                 {
-                    var handler = CreateExceptionHandler();
+                    var handler = CreateExceptionHandler(ErrorContext.Move);
 
-                    handler.OnError(ex, ErrorContext.Move);
+                    handler.OnError(ex);
                     status = CopyFile(logValidator);
                 }
 
@@ -82,7 +82,7 @@ namespace LogUtils
                 }
                 catch (Exception ex)
                 {
-                    var handler = CreateExceptionHandler();
+                    var handler = CreateExceptionHandler(ErrorContext.Copy);
 
                     handler.OnError(ex, ErrorContext.Copy);
                     status = FileStatus.Error;
@@ -107,7 +107,7 @@ namespace LogUtils
             }
             catch (Exception ex)
             {
-                var handler = CreateExceptionHandler();
+                var handler = CreateExceptionHandler(ErrorContext.Copy);
 
                 handler.OnError(ex, ErrorContext.Copy);
                 status = FileStatus.Error;
@@ -162,32 +162,41 @@ namespace LogUtils
             return FileStatus.MoveRequired;
         }
 
-        protected virtual ExceptionHandler CreateExceptionHandler()
+        protected virtual FileExceptionHandler CreateExceptionHandler(ErrorContext context)
         {
-            return new LogFileMoverExceptionHandler();
+            var handler = new LogFileMoverExceptionHandler();
+
+            switch (context)
+            {
+                case ErrorContext.Move:
+                    handler.Context = ActionType.Move;
+                    break;
+                case ErrorContext.Copy:
+                    handler.Context = ActionType.Copy;
+                    break;
+                default:
+                    UtilityLogger.LogWarning("Unrecognized error context");
+                    break;
+            }
+            return handler;
         }
 
-        internal sealed class LogFileMoverExceptionHandler : ExceptionHandler
+        internal sealed class LogFileMoverExceptionHandler : FileExceptionHandler
         {
             protected override void LogError(Exception exception)
             {
-                ErrorContext value = (ErrorContext)exception.Data["Context"];
+                if (CustomMessage != null || Context != ActionType.Move)
+                {
+                    base.LogError(exception);
+                    return;
+                }
 
-                string message = getErrorMessage(value);
-                UtilityLogger.LogError(message, exception);
-            }
-
-            private string getErrorMessage(ErrorContext context)
-            {
-                if (context == ErrorContext.Move)
-                    return "Unable to move file. Attempting to copy instead";
-                else if (context == ErrorContext.Copy)
-                    return "Unable to copy file";
-                return null;
+                string errorMessage = "Unable to move file. Attempting to copy instead";
+                UtilityLogger.LogError(errorMessage, exception);
             }
         }
 
-        private enum ErrorContext
+        protected enum ErrorContext
         {
             Move,
             Copy

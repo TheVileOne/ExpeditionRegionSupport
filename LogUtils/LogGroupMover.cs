@@ -296,9 +296,9 @@ namespace LogUtils
             Owner = owner;
         }
 
-        protected override ExceptionHandler CreateExceptionHandler()
+        protected override FileExceptionHandler CreateExceptionHandler(ErrorContext context)
         {
-            ExceptionHandler handler = base.CreateExceptionHandler();
+            var handler = base.CreateExceptionHandler(context);
 
             FailProtocol protocol = Owner.FailProtocol;
 

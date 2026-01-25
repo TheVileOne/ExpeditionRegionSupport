@@ -63,6 +63,11 @@ public abstract class FileSystemExceptionHandler : ExceptionHandler
         }
     }
 
+    /// <summary>
+    /// Influences the value of <see cref="CanContinue"/> which is used particular in cases where exceptions need to be caught inside a loop operation
+    /// </summary>
+    protected virtual bool CanRecoverFrom(Exception ex) => true;
+
     /// <inheritdoc/>
     protected override void LogError(Exception exception)
     {
@@ -79,6 +84,16 @@ public abstract class FileSystemExceptionHandler : ExceptionHandler
         {
             descriptor = GetSimpleDescriptor();
             errorMessage = "Unable to delete " + descriptor;
+        }
+        else if (Context == ActionType.Move)
+        {
+            descriptor = GetSimpleDescriptor();
+            errorMessage = "Unable to move " + descriptor;
+        }
+        else if (Context == ActionType.Copy)
+        {
+            descriptor = GetSimpleDescriptor();
+            errorMessage = "Unable to copy " + descriptor;
         }
         else if (exception is IOException && exception.Message.StartsWith("Sharing violation"))
         {
@@ -97,11 +112,6 @@ public abstract class FileSystemExceptionHandler : ExceptionHandler
         }
         UtilityLogger.LogError(errorMessage, exception);
     }
-
-    /// <summary>
-    /// Influences the value of <see cref="CanContinue"/> which is used particular in cases where exceptions need to be caught inside a loop operation
-    /// </summary>
-    protected abstract bool CanRecoverFrom(Exception ex);
 
     /// <summary>
     /// Identifies the target file, or directory

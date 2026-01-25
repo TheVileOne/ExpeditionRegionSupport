@@ -18,12 +18,6 @@ namespace LogUtils.Diagnostics
         }
 
         /// <inheritdoc/>
-        protected override bool CanRecoverFrom(Exception ex)
-        {
-            return true;
-        }
-
-        /// <inheritdoc/>
         protected override void LogError(Exception exception)
         {
             if (CustomMessage != null) //Base handler is designed to handle this

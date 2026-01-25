@@ -4,10 +4,14 @@ using System.IO;
 
 namespace LogUtils.Diagnostics
 {
-    public sealed class FileExceptionHandler : FileSystemExceptionHandler
+    public class FileExceptionHandler : FileSystemExceptionHandler
     {
         /// <inheritdoc/>
-        protected override bool IsFileContext => true;
+        protected sealed override bool IsFileContext => true;
+
+        public FileExceptionHandler() : base(null)
+        {
+        }
 
         public FileExceptionHandler(string sourceName) : base(sourceName)
         {
