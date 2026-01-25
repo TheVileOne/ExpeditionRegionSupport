@@ -80,8 +80,13 @@ internal class FileSystemExceptionHandler : ExceptionHandler
             if (exception is FileNotFoundException)
             {
                 descriptor = GetDescriptor();
-                UtilityLogger.LogError(descriptor + " could not be found"); //Stack trace is not logged in this case
-                return;
+                errorMessage = descriptor + " could not be found";
+
+                if (Context == ActionType.Move || Context == ActionType.Copy)
+                {
+                    UtilityLogger.LogError(errorMessage); //Stack trace is not logged in this case
+                    return;
+                }
             }
 
             if (exception is IOException && exception.Message.StartsWith("Sharing violation"))
