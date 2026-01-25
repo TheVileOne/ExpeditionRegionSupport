@@ -39,16 +39,13 @@ namespace LogUtils.Diagnostics
                 return;
             }
 
-            if (exception is FileNotFoundException)
+            if (exception is FileNotFoundException && (Context == ActionType.Move || Context == ActionType.Copy))
             {
                 string descriptor = GetDescriptor();
                 string errorMessage = descriptor + " could not be found";
 
-                if (Context == ActionType.Move || Context == ActionType.Copy)
-                {
-                    UtilityLogger.LogError(errorMessage); //Stack trace is not logged in this case
-                    return;
-                }
+                UtilityLogger.LogError(errorMessage); //Stack trace is not logged in this case
+                return;
             }
             base.LogError(exception);
         }

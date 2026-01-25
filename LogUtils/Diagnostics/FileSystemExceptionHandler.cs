@@ -85,6 +85,16 @@ public abstract class FileSystemExceptionHandler : ExceptionHandler
             descriptor = GetDescriptor();
             errorMessage = descriptor + " is currently in use";
         }
+        else if (exception is FileNotFoundException)
+        {
+            descriptor = "File";
+            errorMessage = descriptor + " could not be found";
+        }
+        else if (exception is DirectoryNotFoundException)
+        {
+            descriptor = "Directory";
+            errorMessage = descriptor + " could not be found";
+        }
         UtilityLogger.LogError(errorMessage, exception);
     }
 
