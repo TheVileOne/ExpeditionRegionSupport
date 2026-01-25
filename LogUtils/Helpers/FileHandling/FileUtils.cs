@@ -1,4 +1,5 @@
 ﻿using LogUtils.Diagnostics;
+using LogUtils.Enums.FileSystem;
 using LogUtils.Helpers.Comparers;
 using System;
 using System.Collections.Generic;
@@ -105,9 +106,8 @@ namespace LogUtils.Helpers.FileHandling
                 }
                 catch (Exception ex)
                 {
-                    FileSystemExceptionHandler handler = new FileSystemExceptionHandler(Path.GetFileName(sourcePath))
+                    FileSystemExceptionHandler handler = new FileSystemExceptionHandler(Path.GetFileName(sourcePath), FileAction.Copy)
                     {
-                        IsCopyContext = true,
                         Protocol = attemptsAllowed == 0 ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently
                     };
                     handler.OnError(ex);
@@ -155,9 +155,8 @@ namespace LogUtils.Helpers.FileHandling
                 catch (Exception ex)
                 {
                     attemptsAllowed--;
-                    FileSystemExceptionHandler handler = new FileSystemExceptionHandler(Path.GetFileName(sourcePath))
+                    FileSystemExceptionHandler handler = new FileSystemExceptionHandler(Path.GetFileName(sourcePath), FileAction.Move)
                     {
-                        IsCopyContext = false,
                         Protocol = attemptsAllowed == 0 ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently
                     };
                     handler.OnError(ex);
