@@ -292,6 +292,24 @@ namespace LogUtils
             public const string UNEXPECTED = "Unexpected";
             public const string EMPTY = "No details";
         }
+
+        public static class ExceptionDataKey
+        {
+            /// <summary>Reserved for general data storage, especially identification data.</summary>
+            public const string CONTEXT = "Context";
+
+            /// <summary>Reserved for data that identifies a targeted file, or directory path.</summary>
+            /// <remarks>Caution: Data may be incomplete, or contain invalid characters.</remarks>
+            public const string TARGET_PATH = "TargetPath";
+
+            /// <summary>Reserved for data that identifies a file, or directory path that represents an initial state.</summary>
+            /// <remarks>Caution: Data may be incomplete, or contain invalid characters.</remarks>
+            public const string SOURCE_PATH = "SourcePath";
+
+            /// <summary>Reserved for data that identifies a file, or directory path that represents a transition, or destination state.</summary>
+            /// <remarks>Caution: Data may be incomplete, or contain invalid characters.</remarks>
+            public const string DESTINATION_PATH = "DestinationPath";
+        }
     }
 }
 #pragma warning restore CS1591 //Missing XML comment for publicly visible type or member

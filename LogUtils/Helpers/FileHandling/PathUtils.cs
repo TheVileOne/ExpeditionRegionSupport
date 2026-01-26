@@ -331,6 +331,22 @@ namespace LogUtils.Helpers.FileHandling
             return false;
         }
 
+        /// <summary>
+        /// Attempts to get a fully qualified path from a <see cref="FileSystemInfo"/> instance
+        /// </summary>
+        /// <returns>A fully qualified path, or <see langword="null"/> if one could not be accessed</returns>
+        public static string GetFullPathSafely(FileSystemInfo info)
+        {
+            try
+            {
+                return info.FullName;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         public static string GetPathKeyword(string path)
         {
             if (IsPathKeyword(path))

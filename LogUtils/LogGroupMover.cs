@@ -200,9 +200,6 @@ namespace LogUtils
                 if (PathUtils.IsEmpty(TargetPath))
                     throw new InvalidOperationException("Target path isn't specified");
 
-                if (PathUtils.IsEmpty(TargetPath))
-                    throw new InvalidOperationException("Target path cannot be null, or empty");
-
                 if (PathUtils.IsFilePath(TargetPath))
                     throw new InvalidOperationException("Target path cannot contain a filename");
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.ExceptionServices;
+using ExceptionDataKey = LogUtils.UtilityConsts.ExceptionDataKey;
 
 namespace LogUtils.Diagnostics
 {
@@ -8,7 +9,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Data key to access LogUtils <see cref="Exception.Data"/> for exceptions that support it
         /// </summary>
-        public const string DATA_CONTEXT = "Context";
+        public const string DATA_CONTEXT = ExceptionDataKey.CONTEXT;
 
         /// <summary>
         /// The behavior that results from handling an exception

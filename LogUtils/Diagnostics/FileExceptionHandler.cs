@@ -9,19 +9,15 @@ namespace LogUtils.Diagnostics
         /// <inheritdoc/>
         protected sealed override bool IsFileContext => true;
 
-        public FileExceptionHandler() : base(null)
+        public FileExceptionHandler()
         {
         }
 
-        public FileExceptionHandler(string sourceName) : base(sourceName)
+        public FileExceptionHandler(FileAction context) : base(new ActionType(context))
         {
         }
 
-        public FileExceptionHandler(string sourceName, FileAction context) : base(sourceName, new ActionType(context))
-        {
-        }
-
-        public FileExceptionHandler(string sourceName, ActionType context) : base(sourceName, context)
+        public FileExceptionHandler(ActionType context) : base(context)
         {
         }
 
@@ -35,27 +31,29 @@ namespace LogUtils.Diagnostics
         }
 
         /// <inheritdoc/>
-        protected override void LogError(Exception exception)
+        protected override string CreateErrorMessage(ExceptionContextWrapper contextWrapper, ref bool includeStackTrace)
         {
-            if (CustomMessage != null) //Base handler is designed to handle this
-            {
-                base.LogError(exception);
-                return;
-            }
+            if (contextWrapper.CustomMessage != null) //Custom error message always overrides default provided message formatting
+                return contextWrapper.CustomMessage;
 
-            if (exception is FileNotFoundException && (Context == ActionType.Move || Context == ActionType.Copy))
+            if (contextWrapper.IsExceptionContext)
             {
-                string descriptor = GetDescriptor();
-                string errorMessage = descriptor + " could not be found";
+                ActionType context = contextWrapper.Context;
+                Exception exception = contextWrapper.Source;
 
-                UtilityLogger.LogError(errorMessage); //Stack trace is not logged in this case
-                return;
+                if (exception is FileNotFoundException && (context == ActionType.Move || context == ActionType.Copy))
+                {
+                    includeStackTrace = false; //Stack trace is not logged in this case
+                    string descriptor = GetDescriptor(contextWrapper);
+                    string message = descriptor + " could not be found";
+                    return message;
+                }
             }
-            base.LogError(exception);
+            return base.CreateErrorMessage(contextWrapper, ref includeStackTrace);
         }
 
         /// <inheritdoc/>
-        protected override string GetSimpleDescriptor()
+        protected override string GetSimpleDescriptor(ExceptionContextWrapper contextWrapper)
         {
             return "file";
         }

@@ -32,6 +32,14 @@ namespace LogUtils.Enums.FileSystem
             InitializeEnums();
         }
 
+        /// <summary>
+        /// Checks that a value is consistent with a valid <see cref="ActionType"/> value
+        /// </summary>
+        public static bool IsValid(ActionType type)
+        {
+            return type != null && type != None;
+        }
+
         internal static ActionType ConvertValue(FileAction action)
         {
             return action switch

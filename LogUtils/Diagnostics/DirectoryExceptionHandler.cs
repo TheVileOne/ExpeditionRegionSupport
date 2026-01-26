@@ -9,34 +9,36 @@ namespace LogUtils.Diagnostics
         /// <inheritdoc/>
         protected override bool IsFileContext => false;
 
-        public DirectoryExceptionHandler(string sourceName) : base(sourceName)
+        public DirectoryExceptionHandler()
         {
         }
 
-        public DirectoryExceptionHandler(string sourceName, ActionType context) : base(sourceName, context)
+        public DirectoryExceptionHandler(ActionType context) : base(context)
         {
         }
 
         /// <inheritdoc/>
-        protected override void LogError(Exception exception)
+        protected override string CreateErrorMessage(ExceptionContextWrapper contextWrapper, ref bool includeStackTrace)
         {
-            if (CustomMessage != null) //Base handler is designed to handle this
-            {
-                base.LogError(exception);
-                return;
-            }
+            if (contextWrapper.CustomMessage != null) //Custom error message always overrides default provided message formatting
+                return contextWrapper.CustomMessage;
 
-            if (exception is DirectoryNotFoundException)
+            if (contextWrapper.IsExceptionContext)
             {
-                string descriptor = GetDescriptor();
-                UtilityLogger.LogError(descriptor + " could not be found", exception);
-                return;
+                Exception exception = contextWrapper.Source;
+
+                if (exception is DirectoryNotFoundException)
+                {
+                    string descriptor = GetDescriptor(contextWrapper);
+                    string message = descriptor + " could not be found";
+                    return message;
+                }
             }
-            base.LogError(exception);
+            return base.CreateErrorMessage(contextWrapper, ref includeStackTrace);
         }
 
         /// <inheritdoc/>
-        protected override string GetSimpleDescriptor()
+        protected override string GetSimpleDescriptor(ExceptionContextWrapper contextWrapper)
         {
             return "directory";
         }

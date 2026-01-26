@@ -3,6 +3,7 @@ using LogUtils.Enums.FileSystem;
 using LogUtils.Helpers.FileHandling;
 using System;
 using System.IO;
+using ExceptionDataKey = LogUtils.UtilityConsts.ExceptionDataKey;
 
 namespace LogUtils
 {
@@ -51,9 +52,12 @@ namespace LogUtils
                 }
                 catch (Exception ex)
                 {
+                    ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
+                    ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
+
                     var handler = CreateExceptionHandler(ErrorContext.Move);
 
-                    handler.OnError(ex);
+                    handler.OnError(ex, ActionType.Move);
                     status = CopyFile(logValidator);
                 }
 
@@ -82,9 +86,12 @@ namespace LogUtils
                 }
                 catch (Exception ex)
                 {
+                    ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
+                    ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
+
                     var handler = CreateExceptionHandler(ErrorContext.Copy);
 
-                    handler.OnError(ex, ErrorContext.Copy);
+                    handler.OnError(ex, ActionType.Copy);
                     status = FileStatus.Error;
                 }
 
@@ -107,9 +114,12 @@ namespace LogUtils
             }
             catch (Exception ex)
             {
+                ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
+                ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
+
                 var handler = CreateExceptionHandler(ErrorContext.Copy);
 
-                handler.OnError(ex, ErrorContext.Copy);
+                handler.OnError(ex, ActionType.Copy);
                 status = FileStatus.Error;
             }
 
@@ -183,16 +193,18 @@ namespace LogUtils
 
         internal sealed class LogFileMoverExceptionHandler : FileExceptionHandler
         {
-            protected override void LogError(Exception exception)
+            protected override string CreateErrorMessage(ExceptionContextWrapper contextWrapper, ref bool includeStackTrace)
             {
-                if (CustomMessage != null || Context != ActionType.Move)
-                {
-                    base.LogError(exception);
-                    return;
-                }
+                if (contextWrapper.CustomMessage != null) //Custom error message always overrides default provided message formatting
+                    return contextWrapper.CustomMessage;
 
-                string errorMessage = "Unable to move file. Attempting to copy instead";
-                UtilityLogger.LogError(errorMessage, exception);
+                if (contextWrapper.IsExceptionContext)
+                {
+                    ActionType context = contextWrapper.Context;
+                    if (context == ActionType.Move)
+                        return "Unable to move file. Attempting to copy instead";
+                }
+                return base.CreateErrorMessage(contextWrapper, ref includeStackTrace);
             }
         }
 

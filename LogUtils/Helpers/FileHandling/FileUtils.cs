@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using ExceptionDataKey = LogUtils.UtilityConsts.ExceptionDataKey;
 
 namespace LogUtils.Helpers.FileHandling
 {
@@ -75,9 +76,34 @@ namespace LogUtils.Helpers.FileHandling
             }
             catch (Exception ex)
             {
-                ExceptionHandler handler = new FileExceptionHandler(null, FileAction.Delete);
+                ex.Data[ExceptionDataKey.TARGET_PATH] = path;
+
+                ExceptionHandler handler = new FileExceptionHandler(ActionType.Delete);
 
                 handler.OnError(ex, customErrorMsg);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Attempts to delete a file at the specified path
+        /// </summary>
+        public static bool TryDelete(string path, ExceptionHandler handler)
+        {
+            try
+            {
+                File.Delete(path);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ex.Data[ExceptionDataKey.TARGET_PATH] = path;
+
+                ActionType context = ActionType.Delete;
+                if (handler == null)
+                    handler = new FileExceptionHandler(context);
+
+                handler.OnError(ex, context);
             }
             return false;
         }
@@ -108,11 +134,15 @@ namespace LogUtils.Helpers.FileHandling
                 }
                 catch (Exception ex)
                 {
-                    FileSystemExceptionHandler handler = new FileExceptionHandler(Path.GetFileName(sourcePath), FileAction.Copy)
+                    ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
+                    ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
+
+                    ActionType context = ActionType.Copy;
+                    FileSystemExceptionHandler handler = new FileExceptionHandler(context)
                     {
                         Protocol = attemptsAllowed == 0 ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently
                     };
-                    handler.OnError(ex);
+                    handler.OnError(ex, context);
 
                     if (handler.CanContinue)
                         continue;
@@ -157,11 +187,15 @@ namespace LogUtils.Helpers.FileHandling
                 catch (Exception ex)
                 {
                     attemptsAllowed--;
-                    FileSystemExceptionHandler handler = new FileExceptionHandler(Path.GetFileName(sourcePath), FileAction.Move)
+                    ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
+                    ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
+
+                    ActionType context = ActionType.Move;
+                    FileSystemExceptionHandler handler = new FileExceptionHandler(context)
                     {
                         Protocol = attemptsAllowed == 0 ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently
                     };
-                    handler.OnError(ex);
+                    handler.OnError(ex, context);
 
                     if (handler.CanContinue)
                         continue;
