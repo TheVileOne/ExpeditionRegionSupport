@@ -67,8 +67,8 @@ namespace LogUtils
             Exception validationException = logValidator.GetLastException();
             if (validationException != null)
             {
-                var handler = CreateExceptionHandler();
-                handler.OnError(validationException, ErrorContext.Validation);
+                var handler = CreateExceptionHandler(ErrorContext.Move);
+                handler.OnError(validationException, "Validation error occurred");
             }
             return FileStatus.ValidationFailed;
         }
@@ -106,8 +106,8 @@ namespace LogUtils
             Exception validationException = logValidator.GetLastException();
             if (validationException != null)
             {
-                var handler = CreateExceptionHandler();
-                handler.OnError(validationException, ErrorContext.Validation);
+                var handler = CreateExceptionHandler(ErrorContext.Copy);
+                handler.OnError(validationException, "Validation error occurred");
             }
             return FileStatus.ValidationFailed;
         }
@@ -193,9 +193,6 @@ namespace LogUtils
                     break;
                 case ErrorContext.Copy:
                     handler.Context = ActionType.Copy;
-                    break;
-                default:
-                    UtilityLogger.LogWarning("Unrecognized error context");
                     break;
             }
             return handler;
