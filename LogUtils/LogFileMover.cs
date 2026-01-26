@@ -56,8 +56,8 @@ namespace LogUtils
                     ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
 
                     var handler = CreateExceptionHandler(ErrorContext.Move);
+                    handler.OnError(ex);
 
-                    handler.OnError(ex, ActionType.Move);
                     status = CopyFile(logValidator);
                 }
 
@@ -96,8 +96,8 @@ namespace LogUtils
                     ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
 
                     var handler = CreateExceptionHandler(ErrorContext.Copy);
+                    handler.OnError(ex);
 
-                    handler.OnError(ex, ActionType.Copy);
                     status = FileStatus.Error;
                 }
                 return status;
@@ -129,8 +129,8 @@ namespace LogUtils
                 ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
 
                 var handler = CreateExceptionHandler(ErrorContext.Copy);
+                handler.OnError(ex);
 
-                handler.OnError(ex, ActionType.Copy);
                 status = FileStatus.Error;
             }
             return status;
