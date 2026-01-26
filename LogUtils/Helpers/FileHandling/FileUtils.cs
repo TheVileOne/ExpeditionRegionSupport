@@ -125,8 +125,11 @@ namespace LogUtils.Helpers.FileHandling
                 return false;
             }
 
+            FileSystemExceptionHandler handler = new FileExceptionHandler(ActionType.Copy);
             while (attemptsAllowed > 0)
             {
+                const int LAST_ATTEMPT = 1;
+                handler.Protocol = attemptsAllowed == LAST_ATTEMPT ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently;
                 try
                 {
                     File.Copy(sourcePath, destPath, true);
@@ -137,12 +140,7 @@ namespace LogUtils.Helpers.FileHandling
                     ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
                     ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
 
-                    ActionType context = ActionType.Copy;
-                    FileSystemExceptionHandler handler = new FileExceptionHandler(context)
-                    {
-                        Protocol = attemptsAllowed == 0 ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently
-                    };
-                    handler.OnError(ex, context);
+                    handler.OnError(ex);
 
                     if (handler.CanContinue)
                         continue;
@@ -170,17 +168,21 @@ namespace LogUtils.Helpers.FileHandling
                 return true;
             }
 
+            FileSystemExceptionHandler handler = new FileExceptionHandler(ActionType.Move);
             while (attemptsAllowed > 0)
             {
+                const int LAST_ATTEMPT = 1;
+                handler.Protocol = attemptsAllowed == LAST_ATTEMPT ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently;
+
+                //Make sure destination is clear
+                if (!TryDelete(destPath, handler))
+                {
+                    attemptsAllowed--;
+                    continue;
+                }
+
                 try
                 {
-                    //Make sure destination is clear
-                    if (!TryDelete(destPath))
-                    {
-                        attemptsAllowed--;
-                        continue;
-                    }
-
                     File.Move(sourcePath, destPath);
                     return true;
                 }
@@ -190,12 +192,7 @@ namespace LogUtils.Helpers.FileHandling
                     ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
                     ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
 
-                    ActionType context = ActionType.Move;
-                    FileSystemExceptionHandler handler = new FileExceptionHandler(context)
-                    {
-                        Protocol = attemptsAllowed == 0 ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently
-                    };
-                    handler.OnError(ex, context);
+                    handler.OnError(ex);
 
                     if (handler.CanContinue)
                         continue;
