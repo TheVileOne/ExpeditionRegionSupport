@@ -1,4 +1,5 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Enums.FileSystem;
 using LogUtils.Helpers;
 using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.FileHandling;

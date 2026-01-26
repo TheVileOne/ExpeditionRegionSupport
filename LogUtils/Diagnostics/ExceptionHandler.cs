@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.ExceptionServices;
+using ExceptionDataKey = LogUtils.UtilityConsts.ExceptionDataKey;
 
 namespace LogUtils.Diagnostics
 {
@@ -8,7 +9,7 @@ namespace LogUtils.Diagnostics
         /// <summary>
         /// Data key to access LogUtils <see cref="Exception.Data"/> for exceptions that support it
         /// </summary>
-        public const string DATA_CONTEXT = "Context";
+        public const string DATA_CONTEXT = ExceptionDataKey.CONTEXT;
 
         /// <summary>
         /// The behavior that results from handling an exception
@@ -46,6 +47,7 @@ namespace LogUtils.Diagnostics
         /// </summary>
         protected virtual void LogError(Exception exception)
         {
+            UtilityLogger.LogError(exception);
         }
 
         /// <summary>
@@ -62,11 +64,11 @@ namespace LogUtils.Diagnostics
     /// </summary>
     public enum FailProtocol
     {
-        /// <summary>An <see cref="Exception"/> will log on a move error; expect return</summary>
+        /// <summary><see cref="Exception"/> object will be logged</summary>
         LogAndIgnore,
-        /// <summary>No message will log on a move error; expect a silent return</summary>
+        /// <summary><see cref="Exception"/> object will be silently consumed</summary>
         FailSilently,
-        /// <summary>No message will log on a move error; expect an exception to be thrown</summary>
+        /// <summary><see cref="Exception"/> object will be rethrown while preserving stacktrace</summary>
         Throw,
     }
 }

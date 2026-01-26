@@ -1,4 +1,5 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Enums.FileSystem;
 using System;
 
 namespace LogUtils.Formatting

@@ -338,6 +338,13 @@ namespace LogUtils.Helpers.FileHandling
         /// </summary>
         public static bool IsFilePath(string path)
         {
+            if (IsEmpty(path)) return false;
+
+            char lastChar = path[path.Length - 1];
+
+            if (lastChar == Path.DirectorySeparatorChar || lastChar == Path.AltDirectorySeparatorChar)
+                return false;
+
             path = PathWithoutFilename(path, out string filename);
 
             return !string.IsNullOrEmpty(path) &&
@@ -357,6 +364,22 @@ namespace LogUtils.Helpers.FileHandling
                     return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Attempts to get a fully qualified path from a <see cref="FileSystemInfo"/> instance
+        /// </summary>
+        /// <returns>A fully qualified path, or <see langword="null"/> if one could not be accessed</returns>
+        public static string GetFullPathSafely(FileSystemInfo info)
+        {
+            try
+            {
+                return info.FullName;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         public static string GetPathKeyword(string path)

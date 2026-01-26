@@ -1,8 +1,9 @@
 ﻿using LogUtils.Diagnostics;
-using LogUtils.Enums;
+using LogUtils.Enums.FileSystem;
 using LogUtils.Helpers.FileHandling;
 using System;
 using System.IO;
+using ExceptionDataKey = LogUtils.UtilityConsts.ExceptionDataKey;
 
 namespace LogUtils
 {
@@ -51,9 +52,12 @@ namespace LogUtils
                 }
                 catch (Exception ex)
                 {
-                    var handler = CreateExceptionHandler();
+                    ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
+                    ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
 
-                    handler.OnError(ex, ErrorContext.Move);
+                    var handler = CreateExceptionHandler(ErrorContext.Move);
+
+                    handler.OnError(ex, ActionType.Move);
                     status = CopyFile(logValidator);
                 }
 
@@ -88,9 +92,12 @@ namespace LogUtils
                 }
                 catch (Exception ex)
                 {
-                    var handler = CreateExceptionHandler();
+                    ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
+                    ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
 
-                    handler.OnError(ex, ErrorContext.Copy);
+                    var handler = CreateExceptionHandler(ErrorContext.Copy);
+
+                    handler.OnError(ex, ActionType.Copy);
                     status = FileStatus.Error;
                 }
                 return status;
@@ -118,9 +125,12 @@ namespace LogUtils
             }
             catch (Exception ex)
             {
-                var handler = CreateExceptionHandler();
+                ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
+                ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
 
-                handler.OnError(ex, ErrorContext.Copy);
+                var handler = CreateExceptionHandler(ErrorContext.Copy);
+
+                handler.OnError(ex, ActionType.Copy);
                 status = FileStatus.Error;
             }
             return status;
@@ -172,34 +182,47 @@ namespace LogUtils
             return FileStatus.MoveRequired;
         }
 
-        protected virtual ExceptionHandler CreateExceptionHandler()
+        protected virtual FileExceptionHandler CreateExceptionHandler(ErrorContext context)
         {
-            return new LogFileMoverExceptionHandler();
+            var handler = new LogFileMoverExceptionHandler();
+
+            switch (context)
+            {
+                case ErrorContext.Move:
+                    handler.Context = ActionType.Move;
+                    break;
+                case ErrorContext.Copy:
+                    handler.Context = ActionType.Copy;
+                    break;
+                default:
+                    UtilityLogger.LogWarning("Unrecognized error context");
+                    break;
+            }
+            return handler;
         }
 
-        internal sealed class LogFileMoverExceptionHandler : ExceptionHandler
+        internal sealed class LogFileMoverExceptionHandler : FileExceptionHandler
         {
-            protected override void LogError(Exception exception)
+            protected override string CreateErrorMessage(ExceptionContextWrapper contextWrapper, ref bool includeStackTrace)
             {
-                ErrorContext value = (ErrorContext)exception.Data["Context"];
+                if (contextWrapper.CustomMessage != null) //Custom error message always overrides default provided message formatting
+                    return contextWrapper.CustomMessage;
 
-                string message = getErrorMessage(value);
-                UtilityLogger.LogError(message, exception);
-            }
-
-            private string getErrorMessage(ErrorContext context)
-            {
-                return context switch
+                string message = null;
+                if (contextWrapper.IsExceptionContext)
                 {
-                    ErrorContext.Move => "Unable to move file. Attempting to copy instead",
-                    ErrorContext.Copy => "Unable to copy file",
-                    ErrorContext.Validation => "Unabled to validate file",
-                    _ => null,
-                };
+                    if (contextWrapper.Context == ActionType.Move)
+                        message = "Unable to move file. Attempting to copy instead";
+                }
+
+                if (message != null)
+                    return message;
+
+                return base.CreateErrorMessage(contextWrapper, ref includeStackTrace);
             }
         }
 
-        private enum ErrorContext
+        protected enum ErrorContext
         {
             Move,
             Copy,

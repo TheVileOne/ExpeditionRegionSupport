@@ -3933,6 +3933,15 @@
             </summary>
             <remarks>When delegate returns true, result is handled normally, when false result is discarded</remarks>
         </member>
+        <member name="P:LogUtils.Diagnostics.DirectoryExceptionHandler.IsFileContext">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.DirectoryExceptionHandler.CreateErrorMessage(LogUtils.Diagnostics.FileSystemExceptionHandler.ExceptionContextWrapper,System.Boolean@)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.DirectoryExceptionHandler.GetSimpleDescriptor(LogUtils.Diagnostics.FileSystemExceptionHandler.ExceptionContextWrapper)">
+            <inheritdoc/>
+        </member>
         <member name="F:LogUtils.Diagnostics.ExceptionHandler.DATA_CONTEXT">
             <summary>
             Data key to access LogUtils <see cref="P:System.Exception.Data"/> for exceptions that support it
@@ -3976,6 +3985,97 @@
         </member>
         <member name="F:LogUtils.Diagnostics.FailProtocol.Throw">
             <summary>No message will log on a move error; expect an exception to be thrown</summary>
+        </member>
+        <member name="P:LogUtils.Diagnostics.FileExceptionHandler.IsFileContext">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.FileExceptionHandler.CanRecoverFrom(System.Exception)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.FileExceptionHandler.CreateErrorMessage(LogUtils.Diagnostics.FileSystemExceptionHandler.ExceptionContextWrapper,System.Boolean@)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.FileExceptionHandler.GetSimpleDescriptor(LogUtils.Diagnostics.FileSystemExceptionHandler.ExceptionContextWrapper)">
+            <inheritdoc/>
+        </member>
+        <member name="P:LogUtils.Diagnostics.FileSystemExceptionHandler.CanContinue">
+            <summary>
+            Can the process recover from an exceptional state
+            </summary>
+        </member>
+        <member name="F:LogUtils.Diagnostics.FileSystemExceptionHandler.Context">
+            <summary>
+            The current contextual state - this value affects the phrasing of certain contextual information when exception information is logged
+            </summary>
+            <value>Currently supported values: <see cref="F:LogUtils.Enums.FileSystem.ActionType.Move"/>, <see cref="F:LogUtils.Enums.FileSystem.ActionType.Copy"/>, <see cref="F:LogUtils.Enums.FileSystem.ActionType.Delete"/></value>
+        </member>
+        <member name="P:LogUtils.Diagnostics.FileSystemExceptionHandler.IsFileContext">
+            <summary>
+            The value of this affects the value of descriptors when exception information is logged
+            </summary>
+        </member>
+        <member name="M:LogUtils.Diagnostics.FileSystemExceptionHandler.OnError(System.Exception)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.FileSystemExceptionHandler.CanRecoverFrom(System.Exception)">
+            <summary>
+            Influences the value of <see cref="P:LogUtils.Diagnostics.FileSystemExceptionHandler.CanContinue"/> which is used particular in cases where exceptions need to be caught inside a loop operation
+            </summary>
+        </member>
+        <member name="M:LogUtils.Diagnostics.FileSystemExceptionHandler.CreateErrorMessage(LogUtils.Diagnostics.FileSystemExceptionHandler.ExceptionContextWrapper,System.Boolean@)">
+            <summary>
+            Generates a message to be included when logging the <see cref="T:System.Exception"/>
+            </summary>
+            <param name="contextWrapper">Contains context specific information such as the <see cref="T:System.Exception"/> instance</param>
+            <param name="includeStackTrace">
+            Affects whether stack trace is going to be part of the logging output; true by default. Don't change unless you need to change it.
+            </param>
+        </member>
+        <member name="M:LogUtils.Diagnostics.FileSystemExceptionHandler.LogError(System.Exception)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.FileSystemExceptionHandler.LogError(System.Exception,System.String,System.Boolean)">
+            <inheritdoc cref="M:LogUtils.Diagnostics.FileSystemExceptionHandler.LogError(System.Exception)"/>
+        </member>
+        <member name="M:LogUtils.Diagnostics.FileSystemExceptionHandler.GetDescriptor(LogUtils.Diagnostics.FileSystemExceptionHandler.ExceptionContextWrapper)">
+            <summary>
+            Identifies the target file, or directory
+            </summary>
+            <returns>A string that represents a file, or directory (for logging purposes)</returns>
+        </member>
+        <member name="M:LogUtils.Diagnostics.FileSystemExceptionHandler.GetSimpleDescriptor(LogUtils.Diagnostics.FileSystemExceptionHandler.ExceptionContextWrapper)">
+            <summary>
+            The short form identification of the target file, or directory
+            </summary>
+        </member>
+        <member name="M:LogUtils.Diagnostics.FileSystemExceptionHandler.GetPathFromExceptionData(System.Exception)">
+            <summary>
+            Attempts to extract path data from the <see cref="T:System.Exception"/> data store.
+            </summary>
+            <returns>
+            Information about the path. When there are invalid path characters, this returns the <see cref="T:LogUtils.Helpers.FileHandling.PathInfo"/> instance for an empty <see langword="string"/>.
+            When no path data exists, this method returns <see langword="null"/>.
+            </returns>
+        </member>
+        <member name="F:LogUtils.Diagnostics.FileSystemExceptionHandler.ExceptionContextWrapper.Source">
+            <summary>
+            The <see cref="T:System.Exception"/> object associated with the context
+            </summary>
+        </member>
+        <member name="F:LogUtils.Diagnostics.FileSystemExceptionHandler.ExceptionContextWrapper.Context">
+            <summary>
+            A value that helps identify what file system activity that was happening when the <see cref="T:System.Exception"/> occurred.
+            </summary>
+        </member>
+        <member name="F:LogUtils.Diagnostics.FileSystemExceptionHandler.ExceptionContextWrapper.IsExceptionContext">
+            <summary>
+            The context most directly associated with the <see cref="T:System.Exception"/> itself, and its data.
+            </summary>
+        </member>
+        <member name="F:LogUtils.Diagnostics.FileSystemExceptionHandler.ExceptionContextWrapper.CustomMessage">
+            <summary>
+            A message that should replace the standard message when not null
+            </summary>
         </member>
         <member name="P:LogUtils.Diagnostics.IConditionHandler.IsEnabled">
             <summary>
@@ -5688,10 +5788,100 @@
         <member name="P:LogUtils.Enums.ConsoleID.IsEnabled">
             <inheritdoc/>
         </member>
-        <member name="T:LogUtils.Enums.FolderPermissions">
+        <member name="M:LogUtils.Enums.FileSystem.ActionType.#ctor(System.String,System.Boolean)">
+            <summary>
+            Initializes a new <see cref="T:LogUtils.Enums.FileSystem.ActionType"/> instance
+            </summary>
+            <param name="value">The <see cref="T:ExtEnum`1"/> value associated with this instance</param>
+            <param name="register">Whether or not this instance should be registered as a unique <see cref="T:ExtEnum`1"/> entry</param>
+        </member>
+        <member name="M:LogUtils.Enums.FileSystem.ActionType.#ctor(LogUtils.Enums.FileSystem.FileAction)">
+            <summary>
+            Initializes a new <see cref="T:LogUtils.Enums.FileSystem.ActionType"/> instance
+            </summary>
+            <param name="action">The conversion value that initializes the state</param>
+            <exception cref="T:System.ComponentModel.InvalidEnumArgumentException">Enum value was unrecognized</exception>
+        </member>
+        <member name="M:LogUtils.Enums.FileSystem.ActionType.IsValid(LogUtils.Enums.FileSystem.ActionType)">
+            <summary>
+            Checks that a value is consistent with a valid <see cref="T:LogUtils.Enums.FileSystem.ActionType"/> value
+            </summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ActionType.None">
+            <summary>Default value</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ActionType.Create">
+            <summary>Represents a file, or directory creation event</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ActionType.Delete">
+            <summary>Represents a file, or directory deletion event</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ActionType.Buffering">
+            <summary>Represents a file stream buffer event</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ActionType.Write">
+            <summary>Represents a file write event</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ActionType.Move">
+            <summary>Represents a file, or directory move or rename event</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ActionType.Copy">
+            <summary>Represents a file, or directory copy event</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ActionType.Open">
+            <summary>Represents a file (or filestream) open event</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ActionType.PathUpdate">
+            <summary>Represents a path update event</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ActionType.SessionStart">
+            <summary>Represents a log session started event</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ActionType.SessionEnd">
+            <summary>Represents a log session ended event</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ActionType.StreamDisposal">
+            <summary>Represents a file stream disposal event</summary>
+        </member>
+        <member name="T:LogUtils.Enums.FileSystem.FolderPermissions">
             <summary>
             Represents permission flags that apply to a folder
             </summary>
+        </member>
+        <member name="M:LogUtils.Enums.FileSystem.ProcessCompletion.#ctor(System.String,System.Boolean)">
+            <summary>
+            Initializes a new <see cref="T:LogUtils.Enums.FileSystem.ProcessCompletion"/> instance
+            </summary>
+            <param name="value">The <see cref="T:ExtEnum`1"/> value associated with this instance</param>
+            <param name="register">Whether or not this instance should be registered as a unique <see cref="T:ExtEnum`1"/> entry</param>
+        </member>
+        <member name="M:LogUtils.Enums.FileSystem.ProcessCompletion.#ctor(LogUtils.Enums.FileSystem.FileStatus)">
+            <summary>
+            Initializes a new <see cref="T:LogUtils.Enums.FileSystem.ProcessCompletion"/> instance
+            </summary>
+            <param name="status">The conversion value that initializes the state</param>
+            <exception cref="T:System.ComponentModel.InvalidEnumArgumentException">Enum value was unrecognized</exception>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ProcessCompletion.AwaitingStatus">
+            <summary>The initial process state</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ProcessCompletion.NoActionRequired">
+            <summary>Indicates that no changes were made or required. Action was already completed.</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ProcessCompletion.ActionRequired">
+            <summary>Indicates that the process is incomplete</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ProcessCompletion.Complete">
+            <summary>Indicates that requested action has been completed successfully</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ProcessCompletion.AlreadyExists">
+            <summary>Indicates that process did not complete due to file, or directory already existing; state is similar to <see cref="F:LogUtils.Enums.FileSystem.ProcessCompletion.NoActionRequired"/></summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ProcessCompletion.ValidationFailed">
+            <summary>Indicates that process did not complete due to validation process failure</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ProcessCompletion.Error">
+            <summary>Indicates that process did not complete due to an <see cref="T:System.Exception"/> or other error state</summary>
         </member>
         <member name="T:LogUtils.Enums.IExtEnumBase">
             <summary>
@@ -7460,6 +7650,11 @@
             Attempts to delete a file at the specified path
             </summary>
         </member>
+        <member name="M:LogUtils.Helpers.FileHandling.FileUtils.TryDelete(System.String,LogUtils.Diagnostics.ExceptionHandler)">
+            <summary>
+            Attempts to delete a file at the specified path
+            </summary>
+        </member>
         <member name="M:LogUtils.Helpers.FileHandling.FileUtils.TryCopy(System.String,System.String,System.Int32)">
             <summary>
             Attempts to copy a file to a specified path 
@@ -7700,6 +7895,12 @@
             Checks that the path string contains both directory and file information
             </summary>
         </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.GetFullPathSafely(System.IO.FileSystemInfo)">
+            <summary>
+            Attempts to get a fully qualified path from a <see cref="T:System.IO.FileSystemInfo"/> instance
+            </summary>
+            <returns>A fully qualified path, or <see langword="null"/> if one could not be accessed</returns>
+        </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.Rebase(System.String,System.String,System.String)">
             <summary>
             Takes a current path, and transfers a subpath to a new containing path
@@ -7905,7 +8106,7 @@
             Example showing how API can be used by a mod to move their group folder, or its contents around
             </summary>
         </member>
-        <member name="M:LogUtils.Helpers.LogGroup.OnPermissionDenied(System.String,LogUtils.Enums.FolderPermissions)">
+        <member name="M:LogUtils.Helpers.LogGroup.OnPermissionDenied(System.String,LogUtils.Enums.FileSystem.FolderPermissions)">
             <summary>
             Throws an exception based on a permission violation
             </summary>
@@ -9287,12 +9488,12 @@
             </summary>
             <exception cref="T:System.InvalidOperationException">The log group is not associated with a folder</exception>
         </member>
-        <member name="M:LogUtils.Properties.LogGroupProperties.VerifyPermissions(LogUtils.Enums.FolderPermissions)">
+        <member name="M:LogUtils.Properties.LogGroupProperties.VerifyPermissions(LogUtils.Enums.FileSystem.FolderPermissions)">
             <summary>
             Verify that group has been given the provided folder permissions
             </summary>
         </member>
-        <member name="M:LogUtils.Properties.LogGroupProperties.VerifyPermissionsRecursive(LogUtils.Enums.FolderPermissions,System.Collections.Generic.HashSet{LogUtils.Properties.LogGroupProperties})">
+        <member name="M:LogUtils.Properties.LogGroupProperties.VerifyPermissionsRecursive(LogUtils.Enums.FileSystem.FolderPermissions,System.Collections.Generic.HashSet{LogUtils.Properties.LogGroupProperties})">
             <summary>
             Verify that group has been given the provided folder permissions
             </summary>
@@ -11797,6 +11998,21 @@
             <summary>
             Evaluates whether given name is a match to a game log filename
             </summary>
+        </member>
+        <member name="F:LogUtils.UtilityConsts.ExceptionDataKey.CONTEXT">
+            <summary>Reserved for general data storage, especially identification data.</summary>
+        </member>
+        <member name="F:LogUtils.UtilityConsts.ExceptionDataKey.TARGET_PATH">
+            <summary>Reserved for data that identifies a targeted file, or directory path.</summary>
+            <remarks>Caution: Data may be incomplete, or contain invalid characters.</remarks>
+        </member>
+        <member name="F:LogUtils.UtilityConsts.ExceptionDataKey.SOURCE_PATH">
+            <summary>Reserved for data that identifies a file, or directory path that represents an initial state.</summary>
+            <remarks>Caution: Data may be incomplete, or contain invalid characters.</remarks>
+        </member>
+        <member name="F:LogUtils.UtilityConsts.ExceptionDataKey.DESTINATION_PATH">
+            <summary>Reserved for data that identifies a file, or directory path that represents a transition, or destination state.</summary>
+            <remarks>Caution: Data may be incomplete, or contain invalid characters.</remarks>
         </member>
         <member name="F:LogUtils.UtilityCore.Build">
             <summary>

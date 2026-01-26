@@ -1,9 +1,12 @@
-﻿using LogUtils.Diagnostics;
+﻿using LogUtils;
+using LogUtils.Diagnostics;
+using LogUtils.Enums.FileSystem;
 using LogUtils.Helpers.Comparers;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using ExceptionDataKey = LogUtils.UtilityConsts.ExceptionDataKey;
 
 namespace LogUtils.Helpers.FileHandling
 {
@@ -85,7 +88,34 @@ namespace LogUtils.Helpers.FileHandling
             }
             catch (Exception ex)
             {
-                UtilityLogger.LogError(customErrorMsg ?? "Unable to delete file", ex);
+                ex.Data[ExceptionDataKey.TARGET_PATH] = path;
+
+                ExceptionHandler handler = new FileExceptionHandler(ActionType.Delete);
+
+                handler.OnError(ex, customErrorMsg);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Attempts to delete a file at the specified path
+        /// </summary>
+        public static bool TryDelete(string path, ExceptionHandler handler)
+        {
+            try
+            {
+                File.Delete(path);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ex.Data[ExceptionDataKey.TARGET_PATH] = path;
+
+                ActionType context = ActionType.Delete;
+                if (handler == null)
+                    handler = new FileExceptionHandler(context);
+
+                handler.OnError(ex, context);
             }
             return false;
         }
@@ -107,8 +137,11 @@ namespace LogUtils.Helpers.FileHandling
                 return false;
             }
 
+            FileSystemExceptionHandler handler = new FileExceptionHandler(ActionType.Copy);
             while (attemptsAllowed > 0)
             {
+                const int LAST_ATTEMPT = 1;
+                handler.Protocol = attemptsAllowed == LAST_ATTEMPT ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently;
                 try
                 {
                     File.Copy(sourcePath, destPath, true);
@@ -116,11 +149,8 @@ namespace LogUtils.Helpers.FileHandling
                 }
                 catch (Exception ex)
                 {
-                    FileMoveExceptionHandler handler = new FileMoveExceptionHandler(Path.GetFileName(sourcePath))
-                    {
-                        IsCopyContext = true,
-                        Protocol = attemptsAllowed == 0 ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently
-                    };
+                    ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
+                    ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
                     handler.OnError(ex);
 
                     if (handler.CanContinue)
@@ -149,28 +179,28 @@ namespace LogUtils.Helpers.FileHandling
                 return true;
             }
 
+            FileSystemExceptionHandler handler = new FileExceptionHandler(ActionType.Move);
             while (attemptsAllowed > 0)
             {
+                const int LAST_ATTEMPT = 1;
+                handler.Protocol = attemptsAllowed == LAST_ATTEMPT ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently;
+
+                //Make sure destination is clear
+                if (!TryDelete(destPath, handler))
+                {
+                    attemptsAllowed--;
+                    continue;
+                }
+
                 try
                 {
-                    //Make sure destination is clear
-                    if (!TryDelete(destPath))
-                    {
-                        attemptsAllowed--;
-                        continue;
-                    }
-
                     File.Move(sourcePath, destPath);
                     return true;
                 }
                 catch (Exception ex)
                 {
-                    attemptsAllowed--;
-                    FileMoveExceptionHandler handler = new FileMoveExceptionHandler(Path.GetFileName(sourcePath))
-                    {
-                        IsCopyContext = false,
-                        Protocol = attemptsAllowed == 0 ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently
-                    };
+                    ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
+                    ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
                     handler.OnError(ex);
 
                     if (handler.CanContinue)
@@ -211,7 +241,6 @@ namespace LogUtils.Helpers.FileHandling
                     UtilityLogger.LogWarning("Unable to replace file. Temp directory could not be created.");
                     return false;
                 }
-
                 bool destEmpty = !File.Exists(destPath);
                 if (destEmpty)
                 {
