@@ -64,11 +64,11 @@ namespace LogUtils.Diagnostics
     /// </summary>
     public enum FailProtocol
     {
-        /// <summary>An <see cref="Exception"/> will log on a move error; expect return</summary>
+        /// <summary><see cref="Exception"/> object will be logged</summary>
         LogAndIgnore,
-        /// <summary>No message will log on a move error; expect a silent return</summary>
+        /// <summary><see cref="Exception"/> object will be silently consumed</summary>
         FailSilently,
-        /// <summary>No message will log on a move error; expect an exception to be thrown</summary>
+        /// <summary><see cref="Exception"/> object will be rethrown while preserving stacktrace</summary>
         Throw,
     }
 }
