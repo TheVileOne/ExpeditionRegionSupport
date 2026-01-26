@@ -97,7 +97,7 @@ namespace LogUtils
                         isResolved = FileUtils.TryReplace(currentRecord.OriginalPath, currentRecord.CurrentPath);
                         break;
                     case ConflictResolutionFeedback.KeepBoth:
-                        isResolved = FileUtils.TryMove(currentRecord.OriginalPath, currentRecord.CurrentPath, 1, FileMoveOption.RenameSourceIfNecessary);
+                        isResolved = FileUtils.TryMove(currentRecord.OriginalPath, currentRecord.CurrentPath, FileMoveOption.RenameSourceIfNecessary);
                         break;
                     case ConflictResolutionFeedback.SaveForLater:
                         throw new InvalidOperationException("Conflict resolution state is not valid.");

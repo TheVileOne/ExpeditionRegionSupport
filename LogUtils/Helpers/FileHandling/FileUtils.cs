@@ -193,17 +193,29 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <summary>
-        /// 
+        /// Attempts to move a file to a specified path
         /// </summary>
-        /// <param name="sourcePath"></param>
-        /// <param name="destPath"></param>
-        /// <param name="attemptsAllowed"></param>
-        /// <param name="option"></param>
-        /// <returns></returns>
-        public static bool TryMove(string sourcePath, string destPath, int attemptsAllowed, FileMoveOption option)
+        public static bool TryMove(string sourcePath, string destPath, FileMoveOption moveBehavior)
         {
+            if (moveBehavior == FileMoveOption.OverwriteDestination)
+            {
+                //Standard move behavior
+                return AttemptMove(sourcePath, destPath);
+            }
+            
+            if (moveBehavior == FileMoveOption.RenameSourceIfNecessary)
+            {
+                int conflictCount = 0;
+                while (File.Exists(destPath)) //Tries until it finds a suitable non-conflicting filename
+                {
+                    conflictCount++;
+                    destPath = ApplyBracketInfo(destPath, conflictCount.ToString());
+                }
+            }
+            return AttemptMoveNoOverwrite(sourcePath, destPath);
+        }
 
-        internal static bool AttemptCopy(string sourcePath, string destPath, FileExceptionHandler handler)
+        internal static bool AttemptCopy(string sourcePath, string destPath, FileExceptionHandler handler = null)
         {
             try
             {
@@ -223,12 +235,17 @@ namespace LogUtils.Helpers.FileHandling
             return false;
         }
 
-        internal static bool AttemptMove(string sourcePath, string destPath, FileExceptionHandler handler)
+        internal static bool AttemptMove(string sourcePath, string destPath, FileExceptionHandler handler = null)
         {
             //Make sure destination is clear
             if (!TryDelete(destPath, handler))
                 return false;
 
+            return AttemptMoveNoOverwrite(sourcePath, destPath, handler);
+        }
+
+        internal static bool AttemptMoveNoOverwrite(string sourcePath, string destPath, FileExceptionHandler handler = null)
+        {
             try
             {
                 File.Move(sourcePath, destPath);
