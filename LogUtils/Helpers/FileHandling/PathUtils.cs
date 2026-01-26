@@ -310,6 +310,13 @@ namespace LogUtils.Helpers.FileHandling
         /// </summary>
         public static bool IsFilePath(string path)
         {
+            if (IsEmpty(path)) return false;
+
+            char lastChar = path[path.Length - 1];
+
+            if (lastChar == Path.DirectorySeparatorChar || lastChar == Path.AltDirectorySeparatorChar)
+                return false;
+
             path = PathWithoutFilename(path, out string filename);
 
             return !string.IsNullOrEmpty(path) &&
