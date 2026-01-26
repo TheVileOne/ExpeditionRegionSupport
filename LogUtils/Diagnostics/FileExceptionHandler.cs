@@ -36,6 +36,7 @@ namespace LogUtils.Diagnostics
             if (contextWrapper.CustomMessage != null) //Custom error message always overrides default provided message formatting
                 return contextWrapper.CustomMessage;
 
+            string message = null;
             if (contextWrapper.IsExceptionContext)
             {
                 ActionType context = contextWrapper.Context;
@@ -45,10 +46,13 @@ namespace LogUtils.Diagnostics
                 {
                     includeStackTrace = false; //Stack trace is not logged in this case
                     string descriptor = GetDescriptor(contextWrapper);
-                    string message = descriptor + " could not be found";
-                    return message;
+                    message = descriptor + " could not be found";
                 }
             }
+
+            if (message != null)
+                return message;
+
             return base.CreateErrorMessage(contextWrapper, ref includeStackTrace);
         }
 

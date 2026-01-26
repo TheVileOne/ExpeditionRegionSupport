@@ -23,6 +23,7 @@ namespace LogUtils.Diagnostics
             if (contextWrapper.CustomMessage != null) //Custom error message always overrides default provided message formatting
                 return contextWrapper.CustomMessage;
 
+            string message = null;
             if (contextWrapper.IsExceptionContext)
             {
                 Exception exception = contextWrapper.Source;
@@ -30,10 +31,13 @@ namespace LogUtils.Diagnostics
                 if (exception is DirectoryNotFoundException)
                 {
                     string descriptor = GetDescriptor(contextWrapper);
-                    string message = descriptor + " could not be found";
-                    return message;
+                    message = descriptor + " could not be found";
                 }
             }
+
+            if (message != null)
+                return message;
+
             return base.CreateErrorMessage(contextWrapper, ref includeStackTrace);
         }
 
