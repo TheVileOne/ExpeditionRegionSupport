@@ -46,6 +46,7 @@ namespace LogUtils.Diagnostics
         /// </summary>
         protected virtual void LogError(Exception exception)
         {
+            UtilityLogger.LogError(exception);
         }
 
         /// <summary>
