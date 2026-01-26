@@ -137,26 +137,20 @@ namespace LogUtils.Helpers.FileHandling
                 return false;
             }
 
-            FileSystemExceptionHandler handler = new FileExceptionHandler(ActionType.Copy);
+            var handler = new FileExceptionHandler(ActionType.Copy);
             while (attemptsAllowed > 0)
             {
                 const int LAST_ATTEMPT = 1;
                 handler.Protocol = attemptsAllowed == LAST_ATTEMPT ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently;
-                try
-                {
-                    File.Copy(sourcePath, destPath, true);
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
-                    ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
-                    handler.OnError(ex);
 
-                    if (handler.CanContinue)
-                        continue;
-                    //Exception was of a form that is unlikely to complete on a reattempt
-                    break;
+                bool fileCopied = AttemptCopy(sourcePath, destPath, handler);
+
+                if (!fileCopied)
+                {
+                    attemptsAllowed--;
+                    if (!handler.CanContinue)
+                        attemptsAllowed = 0;
+                    continue;
                 }
             }
             return false;
@@ -179,34 +173,20 @@ namespace LogUtils.Helpers.FileHandling
                 return true;
             }
 
-            FileSystemExceptionHandler handler = new FileExceptionHandler(ActionType.Move);
+            var handler = new FileExceptionHandler(ActionType.Move);
             while (attemptsAllowed > 0)
             {
                 const int LAST_ATTEMPT = 1;
                 handler.Protocol = attemptsAllowed == LAST_ATTEMPT ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently;
 
-                //Make sure destination is clear
-                if (!TryDelete(destPath, handler))
+                bool fileMoved = AttemptMove(sourcePath, destPath, handler);
+
+                if (!fileMoved)
                 {
                     attemptsAllowed--;
+                    if (!handler.CanContinue)
+                        attemptsAllowed = 0;
                     continue;
-                }
-
-                try
-                {
-                    File.Move(sourcePath, destPath);
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
-                    ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
-                    handler.OnError(ex);
-
-                    if (handler.CanContinue)
-                        continue;
-                    //Exception was of a form that is unlikely to complete on a reattempt
-                    break;
                 }
             }
             return false;
@@ -222,6 +202,49 @@ namespace LogUtils.Helpers.FileHandling
         /// <returns></returns>
         public static bool TryMove(string sourcePath, string destPath, int attemptsAllowed, FileMoveOption option)
         {
+
+        internal static bool AttemptCopy(string sourcePath, string destPath, FileExceptionHandler handler)
+        {
+            try
+            {
+                File.Copy(sourcePath, destPath, overwrite: true);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
+                ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
+
+                if (handler != null)
+                    handler = new FileExceptionHandler(ActionType.Copy);
+
+                handler.OnError(ex);
+            }
+            return false;
+        }
+
+        internal static bool AttemptMove(string sourcePath, string destPath, FileExceptionHandler handler)
+        {
+            //Make sure destination is clear
+            if (!TryDelete(destPath, handler))
+                return false;
+
+            try
+            {
+                File.Move(sourcePath, destPath);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
+                ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
+
+                if (handler != null)
+                    handler = new FileExceptionHandler(ActionType.Move);
+
+                handler.OnError(ex);
+            }
+            return false;
         }
 
         public static bool TryReplace(string sourcePath, string destPath)
@@ -359,51 +382,5 @@ namespace LogUtils.Helpers.FileHandling
         None,
         OverwriteDestination,
         RenameSourceIfNecessary
-    }
-
-    internal sealed class FileMoveExceptionHandler : ExceptionHandler
-    {
-        /// <summary>
-        /// Can the process recover from an exceptional state
-        /// </summary>
-        public bool CanContinue = true;
-
-        /// <summary>
-        /// Is the context a file move, or file copy
-        /// </summary>
-        public bool IsCopyContext;
-
-        private string contextTag => IsCopyContext ? "Copy" : "Move";
-
-        private readonly string sourceFilename;
-
-        public FileMoveExceptionHandler(string sourceFilename)
-        {
-            this.sourceFilename = sourceFilename;
-        }
-
-        public override void OnError(Exception exception)
-        {
-            CanContinue = CanRecoverFrom(exception);
-            base.OnError(exception);
-        }
-
-        protected override void LogError(Exception exception)
-        {
-            if (exception is FileNotFoundException)
-            {
-                UtilityLogger.LogError($"{contextTag} target file {sourceFilename} could not be found");
-                return;
-            }
-
-            if (exception is IOException)
-            {
-                if (exception.Message.StartsWith("Sharing violation"))
-                    UtilityLogger.LogError($"{contextTag} target file {sourceFilename} is currently in use");
-            }
-            UtilityLogger.LogError(exception);
-        }
-
-        internal static bool CanRecoverFrom(Exception ex) => ex is not FileNotFoundException; //In context this refers to the source file
     }
 }
