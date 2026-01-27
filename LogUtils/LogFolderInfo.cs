@@ -547,7 +547,15 @@ namespace LogUtils
             }).ToArray();
 
             if (results.Length == 0) //Unrecognized file - might be able to resolve conflict by renaming log file, but LogUtils would have to support it
+            {
+                //Currently not necessary as this method is only used in situations where a file must exist
+                //if (!logFile.Properties.FileExists)
+                //{
+                //    logFile.Properties.ChangePath(conflictingFilePath);
+                //    return true;
+                //}
                 return false;
+            }
 
             LogID destinationLogFile = results[0]; //There shouldn't be more than one result
 

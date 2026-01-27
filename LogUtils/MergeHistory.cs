@@ -213,13 +213,31 @@ namespace LogUtils
 
         public override void Restore()
         {
-            if (CanHandleFile)
-            {
-                //How do we know this is the actual log file?
-                if (!FileUtils.TryMove(CurrentPath, OriginalPath))
-                    return;
-            }
+            AttemptRestore();
+        }
+
+        internal bool AttemptRestore()
+        {
+            //How do we know this is the actual log file?
+            if (CanHandleFile && !FileUtils.TryMove(CurrentPath, OriginalPath))
+                return false;
             Target?.Properties.ChangePath(OriginalPath);
+            return true;
+        }
+    }
+
+    internal class FileReplaceRecord : FileMoveRecord
+    {
+        public override void Restore()
+        {
+            string replacedFilePath = TempFolder.MapPathToFolder(CurrentPath);
+
+            bool fileRestored = AttemptRestore() && FileUtils.TryMove(replacedFilePath, CurrentPath);
+            if (!fileRestored)
+            {
+                UtilityLogger.LogWarning("Restore operation could not be completed. File is now orphaned.");
+                TempFolder.OrphanedFiles.Add(replacedFilePath);
+            }
         }
     }
 

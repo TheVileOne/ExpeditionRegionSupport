@@ -197,22 +197,39 @@ namespace LogUtils.Helpers.FileHandling
         /// </summary>
         public static bool TryMove(string sourcePath, string destPath, FileMoveOption moveBehavior)
         {
-            if (moveBehavior == FileMoveOption.OverwriteDestination)
+            return TryMove(sourcePath, destPath, moveBehavior, out _);
+        }
+
+        public static bool TryMove(string sourcePath, string destPath, FileMoveOption moveBehavior, out string newPath)
+        {
+            bool fileMoved = false;
+            try
             {
-                //Standard move behavior
-                return AttemptMove(sourcePath, destPath);
-            }
-            
-            if (moveBehavior == FileMoveOption.RenameSourceIfNecessary)
-            {
-                int conflictCount = 0;
-                while (File.Exists(destPath)) //Tries until it finds a suitable non-conflicting filename
+                if (moveBehavior == FileMoveOption.OverwriteDestination)
                 {
-                    conflictCount++;
-                    destPath = ApplyBracketInfo(destPath, conflictCount.ToString());
+                    //Standard move behavior
+                    fileMoved = AttemptMove(sourcePath, destPath);
+                    return fileMoved;
                 }
+
+                if (moveBehavior == FileMoveOption.RenameSourceIfNecessary)
+                {
+                    int conflictCount = 0;
+                    while (File.Exists(destPath)) //Tries until it finds a suitable non-conflicting filename
+                    {
+                        conflictCount++;
+                        destPath = ApplyBracketInfo(destPath, conflictCount.ToString());
+                    }
+                }
+                fileMoved = AttemptMoveNoOverwrite(sourcePath, destPath);
+                return fileMoved;
             }
-            return AttemptMoveNoOverwrite(sourcePath, destPath);
+            finally
+            {
+                newPath = null;
+                if (fileMoved)
+                    newPath = destPath;
+            }
         }
 
         internal static bool AttemptCopy(string sourcePath, string destPath, FileExceptionHandler handler = null)

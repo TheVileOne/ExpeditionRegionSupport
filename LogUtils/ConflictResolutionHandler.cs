@@ -95,9 +95,29 @@ namespace LogUtils
                         break;
                     case ConflictResolutionFeedback.Overwrite:
                         isResolved = FileUtils.TryReplace(currentRecord.OriginalPath, currentRecord.CurrentPath);
+
+                        if (isResolved)
+                        {
+                            FileReplaceRecord replaceRecord = new FileReplaceRecord
+                            {
+                                OriginalPath = currentRecord.OriginalPath,
+                                CurrentPath = currentRecord.CurrentPath
+                            };
+
+                            if (currentRecord is FileMoveRecord moveRecord && moveRecord.Target != null)
+                            {
+                                //Transfer log file and update path to reflect the new current path
+                                replaceRecord.Target = moveRecord.Target;
+                                replaceRecord.Target.Properties.ChangePath(replaceRecord.CurrentPath);
+                            }
+                            currentRecord = replaceRecord;
+                        }
                         break;
                     case ConflictResolutionFeedback.KeepBoth:
-                        isResolved = FileUtils.TryMove(currentRecord.OriginalPath, currentRecord.CurrentPath, FileMoveOption.RenameSourceIfNecessary);
+                        isResolved = FileUtils.TryMove(currentRecord.OriginalPath, currentRecord.CurrentPath, FileMoveOption.RenameSourceIfNecessary, out string newCurrentPath);
+
+                        if (isResolved)
+                            currentRecord.CurrentPath = newCurrentPath;
                         break;
                     case ConflictResolutionFeedback.SaveForLater:
                         throw new InvalidOperationException("Conflict resolution state is not valid.");
