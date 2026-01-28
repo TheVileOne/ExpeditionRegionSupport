@@ -126,6 +126,12 @@ namespace LogUtils.Helpers.FileHandling
         /// <remarks>Any file at the destination path will be overwritten</remarks>
         public static bool TryCopy(string sourcePath, string destPath, int attemptsAllowed = 1)
         {
+            if (attemptsAllowed <= 0)
+            {
+                UtilityLogger.DebugLog("Copy operation not allowed to start");
+                return false;
+            }
+
             string sourceFilename = Path.GetFileName(sourcePath);
             string destFilename = Path.GetFileName(destPath);
 
@@ -137,23 +143,32 @@ namespace LogUtils.Helpers.FileHandling
                 return false;
             }
 
-            var handler = new FileExceptionHandler(ActionType.Copy);
-            while (attemptsAllowed > 0)
+            AttemptCounter attempts = new AttemptCounter(attemptsAllowed);
+
+            FileExceptionHandler handler = createExceptionHandler();
+            bool fileCopied = false;
+            while (attempts.Remaining > 0)
             {
-                const int LAST_ATTEMPT = 1;
-                handler.Protocol = attemptsAllowed == LAST_ATTEMPT ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently;
+                if (attempts.IsLast)
+                    handler.Protocol = FailProtocol.LogAndIgnore;
 
-                bool fileCopied = AttemptCopy(sourcePath, destPath, handler);
+                fileCopied = AttemptCopy(sourcePath, destPath, handler);
 
-                if (!fileCopied)
-                {
-                    attemptsAllowed--;
-                    if (!handler.CanContinue)
-                        attemptsAllowed = 0;
-                    continue;
-                }
+                if (fileCopied || !handler.CanContinue)
+                    break;
+
+                attempts.Increment();
             }
-            return false;
+            return fileCopied;
+
+            static FileExceptionHandler createExceptionHandler()
+            {
+                var handler = new FileExceptionHandler(ActionType.Copy)
+                {
+                    Protocol = FailProtocol.FailSilently //This handler does not log exceptions by default
+                };
+                return handler;
+            }
         }
 
         /// <summary>
@@ -162,6 +177,12 @@ namespace LogUtils.Helpers.FileHandling
         /// <remarks>Any file at the destination path will be overwritten</remarks>
         public static bool TryMove(string sourcePath, string destPath, int attemptsAllowed = 1)
         {
+            if (attemptsAllowed <= 0)
+            {
+                UtilityLogger.DebugLog("Move operation not allowed to start");
+                return false;
+            }
+
             string sourceFilename = Path.GetFileName(sourcePath);
             string destFilename = Path.GetFileName(destPath);
 
@@ -173,23 +194,32 @@ namespace LogUtils.Helpers.FileHandling
                 return true;
             }
 
-            var handler = new FileExceptionHandler(ActionType.Move);
-            while (attemptsAllowed > 0)
+            AttemptCounter attempts = new AttemptCounter(attemptsAllowed);
+
+            FileExceptionHandler handler = createExceptionHandler();
+            bool fileMoved = false;
+            while (attempts.Remaining > 0)
             {
-                const int LAST_ATTEMPT = 1;
-                handler.Protocol = attemptsAllowed == LAST_ATTEMPT ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently;
+                if (attempts.IsLast) //Start logging exceptions on the last attempt
+                    handler.Protocol = FailProtocol.LogAndIgnore;
 
-                bool fileMoved = AttemptMove(sourcePath, destPath, handler);
+                fileMoved = AttemptMove(sourcePath, destPath, handler);
 
-                if (!fileMoved)
-                {
-                    attemptsAllowed--;
-                    if (!handler.CanContinue)
-                        attemptsAllowed = 0;
-                    continue;
-                }
+                if (fileMoved || !handler.CanContinue)
+                    break;
+
+                attempts.Increment();
             }
-            return false;
+            return fileMoved;
+
+            static FileExceptionHandler createExceptionHandler()
+            {
+                var handler = new FileExceptionHandler(ActionType.Move)
+                {
+                    Protocol = FailProtocol.FailSilently //This handler does not log exceptions by default
+                };
+                return handler;
+            }
         }
 
         /// <summary>
@@ -319,7 +349,6 @@ namespace LogUtils.Helpers.FileHandling
                         string destFilename = Path.GetFileName(destPath);
                         //Create the folder that will contain this file, before returning the full filepath
                         return Path.Combine(TempFolder.CreateDirectoryFor(destPath), destFilename);
-
                     }
 
                     //Check orphan status in case we overwrite one
