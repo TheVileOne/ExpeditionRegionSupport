@@ -24,8 +24,9 @@ namespace LogUtils.Diagnostics
         /// <inheritdoc/>
         protected override bool CanRecoverFrom(Exception ex)
         {
-            //TODO: Determine if this should remain file context exclusive
-            if (ex is FileNotFoundException && (Context == ActionType.Move || Context == ActionType.Copy)) //In context this refers to the source file
+            var currentScope = ContextStack.CurrentScope;
+
+            if (ex is FileNotFoundException && (currentScope == ActionType.Move || currentScope == ActionType.Copy)) //In context this refers to the source file
                 return false;
             return true;
         }

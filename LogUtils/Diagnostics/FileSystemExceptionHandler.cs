@@ -8,21 +8,28 @@ using ExceptionDataKey = LogUtils.UtilityConsts.ExceptionDataKey;
 
 namespace LogUtils.Diagnostics
 {
-    public abstract class FileSystemExceptionHandler : ExceptionHandler
+    public abstract class FileSystemExceptionHandler : ExceptionHandler, IContextHandler<ActionType>, IHandlerScope<FileSystemExceptionHandler>
     {
+        [ThreadStatic]
+        private static string _customErrorMessage;
+
+        FileSystemExceptionHandler IHandlerScope<FileSystemExceptionHandler>.Handler => this;
+
         /// <summary>
         /// Can the process recover from an exceptional state
         /// </summary>
         public bool CanContinue { get; protected set; } = true;
 
         /// <summary>
+        /// Contains an hierarchial set of contextual state in the order it was assigned to the handler
+        /// </summary>
+        protected ActionStack ContextStack = new ActionStack();
+
+        /// <summary>
         /// The current contextual state - this value affects the phrasing of certain contextual information when exception information is logged
         /// </summary>
         /// <value>Currently supported values: <see cref="ActionType.Move"/>, <see cref="ActionType.Copy"/>, <see cref="ActionType.Delete"/></value>
-        public ActionType Context = ActionType.None;
-
-        [ThreadStatic]
-        private static string _customErrorMessage;
+        public ActionType Context => ContextStack.Current;
 
         /// <summary>
         /// The value of this affects the value of descriptors when exception information is logged
@@ -35,7 +42,31 @@ namespace LogUtils.Diagnostics
 
         protected FileSystemExceptionHandler(ActionType context)
         {
-            Context = context;
+            BeginContext(context);
+        }
+
+        void IContextHandler<ActionType>.BeginContext(ActionType state)
+        {
+            BeginContext(state);
+        }
+
+        public IHandlerScope<FileSystemExceptionHandler> BeginContext(ActionType state)
+        {
+            ContextStack.Push(state);
+            return this;
+        }
+
+        public void EndContext()
+        {
+            ContextStack.Pop();
+        }
+
+        /// <summary>
+        /// Finishes the current <see cref="Context"/> scope for this instance
+        /// </summary>
+        void IDisposable.Dispose()
+        {
+            EndContext();
         }
 
         /// <inheritdoc/>
@@ -308,5 +339,17 @@ namespace LogUtils.Diagnostics
             /// </summary>
             public string CustomMessage;
         }
+    }
+
+    //TODO: Clean this mess
+    public interface IContextHandler<T>
+    {
+        void BeginContext(T state);
+        void EndContext();
+    }
+
+    public interface IHandlerScope<T> : IDisposable
+    {
+        T Handler { get; }
     }
 }

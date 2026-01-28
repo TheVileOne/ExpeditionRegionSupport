@@ -1,5 +1,4 @@
-﻿using LogUtils;
-using LogUtils.Diagnostics;
+﻿using LogUtils.Diagnostics;
 using LogUtils.Enums.FileSystem;
 using LogUtils.Helpers.Comparers;
 using System;
@@ -15,6 +14,33 @@ namespace LogUtils.Helpers.FileHandling
     /// </summary>
     public static class FileUtils
     {
+        [ThreadStatic]
+        private static FileExceptionHandler _exceptionHandler;
+
+        private static FileExceptionHandler setExceptionContext(ActionType context)
+        {
+            if (_exceptionHandler == null)
+                _exceptionHandler = new FileExceptionHandler();
+
+            _exceptionHandler.BeginContext(context);
+            return _exceptionHandler;
+        }
+
+        private static FileExceptionHandler setExceptionContext(ActionType context, FileExceptionHandler handler)
+        {
+            if (handler != null)
+            {
+                handler.BeginContext(context);
+                return handler;
+            }
+
+            if (_exceptionHandler == null)
+                _exceptionHandler = new FileExceptionHandler();
+
+            _exceptionHandler.BeginContext(context);
+            return _exceptionHandler;
+        }
+
         /// <summary>
         /// Used to attach information to a filename
         /// </summary>
@@ -90,9 +116,10 @@ namespace LogUtils.Helpers.FileHandling
             {
                 ex.Data[ExceptionDataKey.TARGET_PATH] = path;
 
-                ExceptionHandler handler = new FileExceptionHandler(ActionType.Delete);
-
-                handler.OnError(ex, customErrorMsg);
+                using (FileExceptionHandler handler = setExceptionContext(ActionType.Delete))
+                {
+                    handler.OnError(ex, customErrorMsg);
+                }
             }
             return false;
         }
@@ -100,7 +127,7 @@ namespace LogUtils.Helpers.FileHandling
         /// <summary>
         /// Attempts to delete a file at the specified path
         /// </summary>
-        public static bool TryDelete(string path, ExceptionHandler handler)
+        public static bool TryDelete(string path, FileExceptionHandler handler)
         {
             try
             {
@@ -111,11 +138,10 @@ namespace LogUtils.Helpers.FileHandling
             {
                 ex.Data[ExceptionDataKey.TARGET_PATH] = path;
 
-                ActionType context = ActionType.Delete;
-                if (handler == null)
-                    handler = new FileExceptionHandler(context);
-
-                handler.OnError(ex, context);
+                using (handler = setExceptionContext(ActionType.Delete, handler))
+                {
+                    handler.OnError(ex);
+                }
             }
             return false;
         }
@@ -145,29 +171,29 @@ namespace LogUtils.Helpers.FileHandling
 
             AttemptCounter attempts = new AttemptCounter(attemptsAllowed);
 
-            FileExceptionHandler handler = createExceptionHandler();
-            bool fileCopied = false;
-            while (attempts.Remaining > 0)
+            var handler = setExceptionContext(new ScopedActionType(ActionType.Copy));
+            var lastProtocol = handler.Protocol;
+            try
             {
-                if (attempts.IsLast)
-                    handler.Protocol = FailProtocol.LogAndIgnore;
-
-                fileCopied = AttemptCopy(sourcePath, destPath, handler);
-
-                if (fileCopied || !handler.CanContinue)
-                    break;
-
-                attempts.Increment();
-            }
-            return fileCopied;
-
-            static FileExceptionHandler createExceptionHandler()
-            {
-                var handler = new FileExceptionHandler(ActionType.Copy)
+                bool fileCopied = false;
+                while (attempts.Remaining > 0)
                 {
-                    Protocol = FailProtocol.FailSilently //This handler does not log exceptions by default
-                };
-                return handler;
+                    if (attempts.IsLast)
+                        handler.Protocol = FailProtocol.LogAndIgnore;
+
+                    fileCopied = AttemptCopy(sourcePath, destPath, handler);
+
+                    if (fileCopied || !handler.CanContinue)
+                        break;
+
+                    attempts.Increment();
+                }
+                return fileCopied;
+            }
+            finally
+            {
+                handler.Protocol = lastProtocol;
+                handler.EndContext();
             }
         }
 
@@ -196,29 +222,29 @@ namespace LogUtils.Helpers.FileHandling
 
             AttemptCounter attempts = new AttemptCounter(attemptsAllowed);
 
-            FileExceptionHandler handler = createExceptionHandler();
-            bool fileMoved = false;
-            while (attempts.Remaining > 0)
+            var handler = setExceptionContext(new ScopedActionType(ActionType.Move));
+            var lastProtocol = handler.Protocol;
+            try
             {
-                if (attempts.IsLast) //Start logging exceptions on the last attempt
-                    handler.Protocol = FailProtocol.LogAndIgnore;
-
-                fileMoved = AttemptMove(sourcePath, destPath, handler);
-
-                if (fileMoved || !handler.CanContinue)
-                    break;
-
-                attempts.Increment();
-            }
-            return fileMoved;
-
-            static FileExceptionHandler createExceptionHandler()
-            {
-                var handler = new FileExceptionHandler(ActionType.Move)
+                bool fileMoved = false;
+                while (attempts.Remaining > 0)
                 {
-                    Protocol = FailProtocol.FailSilently //This handler does not log exceptions by default
-                };
-                return handler;
+                    if (attempts.IsLast) //Start logging exceptions on the last attempt
+                        handler.Protocol = FailProtocol.LogAndIgnore;
+
+                    fileMoved = AttemptMove(sourcePath, destPath, handler);
+
+                    if (fileMoved || !handler.CanContinue)
+                        break;
+
+                    attempts.Increment();
+                }
+                return fileMoved;
+            }
+            finally
+            {
+                handler.Protocol = lastProtocol;
+                handler.EndContext();
             }
         }
 
@@ -274,10 +300,10 @@ namespace LogUtils.Helpers.FileHandling
                 ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
                 ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
 
-                if (handler != null)
-                    handler = new FileExceptionHandler(ActionType.Copy);
-
-                handler.OnError(ex);
+                using (handler = setExceptionContext(ActionType.Copy, handler))
+                {
+                    handler.OnError(ex);
+                }
             }
             return false;
         }
@@ -303,10 +329,10 @@ namespace LogUtils.Helpers.FileHandling
                 ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
                 ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
 
-                if (handler != null)
-                    handler = new FileExceptionHandler(ActionType.Move);
-
-                handler.OnError(ex);
+                using (handler = setExceptionContext(ActionType.Move, handler))
+                {
+                    handler.OnError(ex);
+                }
             }
             return false;
         }

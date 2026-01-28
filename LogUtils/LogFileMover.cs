@@ -189,10 +189,10 @@ namespace LogUtils
             switch (context)
             {
                 case ErrorContext.Move:
-                    handler.Context = ActionType.Move;
+                    handler.BeginContext(ActionType.Move);
                     break;
                 case ErrorContext.Copy:
-                    handler.Context = ActionType.Copy;
+                    handler.BeginContext(ActionType.Copy);
                     break;
             }
             return handler;
