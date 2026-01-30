@@ -2393,6 +2393,26 @@
         <member name="M:LogUtils.Logger.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,System.String,System.String)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,System.String,System.String)"/>
         </member>
+        <member name="F:LogUtils.ConflictResolutionFeedback.Overwrite">
+            <summary>
+            The file at destination will be replaced
+            </summary>
+        </member>
+        <member name="F:LogUtils.ConflictResolutionFeedback.KeepBoth">
+            <summary>
+            The new filename will be renamed to avoid filename collisions
+            </summary>
+        </member>
+        <member name="F:LogUtils.ConflictResolutionFeedback.CancelMove">
+            <summary>
+            File move will not be permitted
+            </summary>
+        </member>
+        <member name="F:LogUtils.ConflictResolutionFeedback.SaveForLater">
+            <summary>
+            Result will be ignored, and asked again at the end
+            </summary>
+        </member>
         <member name="T:LogUtils.Console.AnsiColorConverter">
             <summary>
             This class converts color information into an ANSI color code
@@ -3978,13 +3998,13 @@
             </summary>
         </member>
         <member name="F:LogUtils.Diagnostics.FailProtocol.LogAndIgnore">
-            <summary>An <see cref="T:System.Exception"/> will log on a move error; expect return</summary>
+            <summary><see cref="T:System.Exception"/> object will be logged</summary>
         </member>
         <member name="F:LogUtils.Diagnostics.FailProtocol.FailSilently">
-            <summary>No message will log on a move error; expect a silent return</summary>
+            <summary><see cref="T:System.Exception"/> object will be silently consumed</summary>
         </member>
         <member name="F:LogUtils.Diagnostics.FailProtocol.Throw">
-            <summary>No message will log on a move error; expect an exception to be thrown</summary>
+            <summary><see cref="T:System.Exception"/> object will be rethrown while preserving stacktrace</summary>
         </member>
         <member name="P:LogUtils.Diagnostics.FileExceptionHandler.IsFileContext">
             <inheritdoc/>
@@ -4003,7 +4023,12 @@
             Can the process recover from an exceptional state
             </summary>
         </member>
-        <member name="F:LogUtils.Diagnostics.FileSystemExceptionHandler.Context">
+        <member name="F:LogUtils.Diagnostics.FileSystemExceptionHandler.ContextStack">
+            <summary>
+            Contains an hierarchial set of contextual state in the order it was assigned to the handler
+            </summary>
+        </member>
+        <member name="P:LogUtils.Diagnostics.FileSystemExceptionHandler.Context">
             <summary>
             The current contextual state - this value affects the phrasing of certain contextual information when exception information is logged
             </summary>
@@ -4012,6 +4037,11 @@
         <member name="P:LogUtils.Diagnostics.FileSystemExceptionHandler.IsFileContext">
             <summary>
             The value of this affects the value of descriptors when exception information is logged
+            </summary>
+        </member>
+        <member name="M:LogUtils.Diagnostics.FileSystemExceptionHandler.System#IDisposable#Dispose">
+            <summary>
+            Finishes the current <see cref="P:LogUtils.Diagnostics.FileSystemExceptionHandler.Context"/> scope for this instance
             </summary>
         </member>
         <member name="M:LogUtils.Diagnostics.FileSystemExceptionHandler.OnError(System.Exception)">
@@ -4316,6 +4346,11 @@
         <member name="F:LogUtils.Diagnostics.Tests.TestInput.Strings.NULL">
             <summary>
             Test value representing a null string
+            </summary>
+        </member>
+        <member name="F:LogUtils.Diagnostics.Tests.TestInput.Strings.EmptyPathStrings">
+            <summary>
+            All strings that evaluate to an empty path
             </summary>
         </member>
         <member name="F:LogUtils.Diagnostics.Tests.TestInput.OBJECT">
@@ -5843,6 +5878,18 @@
         <member name="F:LogUtils.Enums.FileSystem.ActionType.StreamDisposal">
             <summary>Represents a file stream disposal event</summary>
         </member>
+        <member name="T:LogUtils.Enums.FileSystem.ScopedActionType">
+            <summary>
+            Constructs a new unregistered instance of a scoped <see cref="T:LogUtils.Enums.FileSystem.ActionType"/>
+            </summary>
+            <param name="type">The type that the scope will be associated with</param>
+        </member>
+        <member name="M:LogUtils.Enums.FileSystem.ScopedActionType.#ctor(LogUtils.Enums.FileSystem.ActionType)">
+            <summary>
+            Constructs a new unregistered instance of a scoped <see cref="T:LogUtils.Enums.FileSystem.ActionType"/>
+            </summary>
+            <param name="type">The type that the scope will be associated with</param>
+        </member>
         <member name="T:LogUtils.Enums.FileSystem.FolderPermissions">
             <summary>
             Represents permission flags that apply to a folder
@@ -6132,7 +6179,7 @@
             <inheritdoc/>
         </member>
         <member name="P:LogUtils.Enums.LogGroupID.Properties">
-            <inheritdoc cref="P:LogUtils.Enums.LogID.Properties"/>
+            <inheritdoc cref="P:LogUtils.Properties.IPropertyHolder.Properties"/>
         </member>
         <member name="M:LogUtils.Enums.LogGroupID.#ctor(System.String,System.Boolean)">
             <inheritdoc cref="M:LogUtils.Enums.LogGroupID.#ctor(System.String,System.String,System.Boolean)"/>
@@ -6234,9 +6281,7 @@
             </summary>
         </member>
         <member name="P:LogUtils.Enums.LogID.Properties">
-            <summary>
-            Contains path information, and other settings that affect logging behavior 
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:LogUtils.Enums.LogID.Tag">
             <inheritdoc/>
@@ -6359,6 +6404,11 @@
             </summary>
             <param name="idOther">The <see cref="T:LogUtils.Enums.LogID"/> instance to compare with the current instance</param>
             <param name="doPathCheck">Whether the folder path should also be considered in the equality check</param>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.Equals(LogUtils.Properties.LogProperties)">
+            <summary>
+            Determines whether the current <see cref="T:LogUtils.Enums.LogID"/> instance is associated with an equivalent <see cref="T:LogUtils.Properties.LogProperties"/> instance
+            </summary>
         </member>
         <member name="M:LogUtils.Enums.LogID.GetHashCode">
             <inheritdoc/>
@@ -6876,8 +6926,38 @@
             that process
             </summary>
         </member>
+        <member name="P:LogUtils.ExceptionInfo.Message">
+            <inheritdoc cref="P:System.Exception.Message"/>
+        </member>
+        <member name="P:LogUtils.ExceptionInfo.StackTrace">
+            <inheritdoc cref="P:System.Exception.StackTrace"/>
+        </member>
+        <member name="P:LogUtils.ExceptionInfo.InnerException">
+            <summary>
+            Gets the underlying <see cref="T:System.Exception"/> represented by this object. If such information is unavailable, <see langword="null"/> is returned.
+            </summary>
+        </member>
+        <member name="P:LogUtils.ExceptionInfo.HelpLink">
+            <inheritdoc cref="P:System.Exception.HelpLink"/>
+            <exception cref="T:System.NullReferenceException">Attempted to set field without underlying <see cref="T:System.Exception"/> present</exception>
+        </member>
+        <member name="P:LogUtils.ExceptionInfo.Source">
+            <inheritdoc cref="P:System.Exception.Source"/>
+            <exception cref="T:System.NullReferenceException">Attempted to set field without underlying <see cref="T:System.Exception"/> present</exception>
+        </member>
+        <member name="P:LogUtils.ExceptionInfo.TargetSite">
+            <inheritdoc cref="P:System.Exception.TargetSite"/>
+        </member>
         <member name="M:LogUtils.ExceptionInfo.Equals(LogUtils.ExceptionInfo)">
             <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.ExceptionInfo.GetBaseException">
+            <inheritdoc cref="M:System.Exception.GetBaseException"/>
+        </member>
+        <member name="M:LogUtils.ExceptionInfo.GetUnderlyingInnerException">
+            <summary>
+            Gets the value of the <see cref="P:System.Exception.InnerException"/> property of the <see cref="T:System.Exception"/> instance represented by this object.
+            </summary>
         </member>
         <member name="M:LogUtils.ExceptionInfo.GetHashCode">
             <inheritdoc/>
@@ -7359,6 +7439,27 @@
             </summary>
             <remarks>Credit for this code goes to WilliamCruisoring</remarks>
         </member>
+        <member name="P:LogUtils.Helpers.AttemptCounter.Remaining">
+            <summary>
+            The number of attempts remaining before maximum attempts is reached
+            </summary>
+        </member>
+        <member name="P:LogUtils.Helpers.AttemptCounter.IsLast">
+            <summary>
+            Indicates that this is the last attempt, or that there are no attempts remaining
+            </summary>
+        </member>
+        <member name="P:LogUtils.Helpers.AttemptCounter.IsFirst">
+            <summary>
+            Indicates that this is the first attempt
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.AttemptCounter.Increment">
+            <summary>
+            Increments the attempt count
+            </summary>
+            <returns>The new attempt count</returns>
+        </member>
         <member name="M:LogUtils.Helpers.Comparers.ComparerBase`1.Compare(`0,`0)">
             <inheritdoc/>
         </member>
@@ -7367,6 +7468,21 @@
         </member>
         <member name="M:LogUtils.Helpers.Comparers.ComparerBase`1.GetHashCode(`0)">
             <inheritdoc/>
+        </member>
+        <member name="F:LogUtils.Helpers.Comparers.ComparerUtils.FilenameComparer">
+            <summary>
+            Default implementation for comparing filenames
+            </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.Comparers.ComparerUtils.PathComparer">
+            <summary>
+            Default implementation for comparing file/folder paths
+            </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.Comparers.ComparerUtils.StringComparerIgnoreCase">
+            <summary>
+            Default invariant case string comparer used by LogUtils
+            </summary>
         </member>
         <member name="F:LogUtils.Helpers.Comparers.ExceptionComparer.MAX_CHARS_DEFAULT">
             <summary>
@@ -7460,6 +7576,23 @@
         <member name="M:LogUtils.Helpers.Comparers.LogIDComparer.GetHashCode(LogUtils.Properties.LogProperties)">
             <inheritdoc/>
         </member>
+        <member name="F:LogUtils.Helpers.Comparers.LogPathComparer.Selector">
+            <summary>
+            Accepts a <see cref="T:LogUtils.Properties.LogProperties"/> instance, and returns a fully qualified path string
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.Comparers.LogPathComparer.Equals(LogUtils.Enums.LogID,LogUtils.Enums.LogID)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Helpers.Comparers.LogPathComparer.GetHashCode(LogUtils.Enums.LogID)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Helpers.Comparers.LogPathComparer.Equals(LogUtils.Properties.LogProperties,LogUtils.Properties.LogProperties)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Helpers.Comparers.LogPathComparer.GetHashCode(LogUtils.Properties.LogProperties)">
+            <inheritdoc/>
+        </member>
         <member name="M:LogUtils.Helpers.Comparers.PathComparer.CompareFilenameAndPath(System.String,System.String,System.Boolean)">
             <summary>
             Compares two paths (with or without a filename)
@@ -7480,6 +7613,9 @@
             <summary>
             Assumes path info is being compared, not keywords
             </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.Comparers.PathComparer.GetHashCode(System.String)">
+            <inheritdoc/>
         </member>
         <member name="M:LogUtils.Helpers.Comparers.RemoteLoggerComparer.Compare(LogUtils.ILogHandler,LogUtils.ILogHandler)">
             <summary>
@@ -7556,7 +7692,7 @@
             <param name="path">Location of the directory</param>
             <param name="deleteOption">Condition that must be met for deletion operation to complete successfully</param>
             <param name="customErrorMsg">Message that will be logged in the event of an exception</param>
-            <returns>true, if the operation was successful, false if an exception was throw, or condition for deletion was not met</returns>
+            <returns>true, if the operation was successful, false if an exception was thrown, or condition for deletion was not met</returns>
         </member>
         <member name="T:LogUtils.Helpers.FileHandling.DirectoryDeletionScope">
             <summary>
@@ -7628,13 +7764,6 @@
             <returns>The filename (or path) with the applied file extension</returns>
             <remarks>Filenames with long extensions may be unaffected by this operation</remarks>
         </member>
-        <member name="M:LogUtils.Helpers.FileHandling.FileSystemPathFinder.FindMatch(System.String)">
-            <summary>
-            Searches for a file, or directory path corresponding with a provided path, directory, or filename
-            </summary>
-            <param name="path">The path, directory, or filename to search for</param>
-            <returns>A file, or directory path corresponding with a provided path, directory, or filename, or null if match criteria was not found</returns>
-        </member>
         <member name="T:LogUtils.Helpers.FileHandling.FileUtils">
             <summary>
             Helper class for interacting with the file system that is safe and supported by LogUtils
@@ -7650,7 +7779,7 @@
             Attempts to delete a file at the specified path
             </summary>
         </member>
-        <member name="M:LogUtils.Helpers.FileHandling.FileUtils.TryDelete(System.String,LogUtils.Diagnostics.ExceptionHandler)">
+        <member name="M:LogUtils.Helpers.FileHandling.FileUtils.TryDelete(System.String,LogUtils.Diagnostics.FileExceptionHandler)">
             <summary>
             Attempts to delete a file at the specified path
             </summary>
@@ -7666,6 +7795,11 @@
             Attempts to move a file to a specified path
             </summary>
             <remarks>Any file at the destination path will be overwritten</remarks>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.FileUtils.TryMove(System.String,System.String,LogUtils.Helpers.FileHandling.FileMoveOption)">
+            <summary>
+            Attempts to move a file to a specified path
+            </summary>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.FileUtils.TryWrite(System.String,System.String[])">
             <summary>
@@ -7688,6 +7822,77 @@
             <remarks>
             - Write lock is applied internally for thread safety, but is not safe to run from multiple processes.
             </remarks>
+        </member>
+        <member name="T:LogUtils.Helpers.FileHandling.IPathFinder">
+            <summary>
+            Type provided to a <see cref="T:LogUtils.Helpers.FileHandling.PathResolver"/> that is responsible for matching to specific directory or file path
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.IPathFinder.FindMatch(System.String)">
+            <summary>
+            Searches for a file, or directory path corresponding with a provided path, directory, or filename
+            </summary>
+            <param name="path">The path, directory, or filename to search for</param>
+            <returns>A file, or directory path corresponding with a provided path, directory, or filename, or null if match criteria was not found</returns>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.IPathFinder.FindRootMatch(System.String)">
+            <summary>
+            Searches for a file, or directory path corresponding with a provided path, directory, or filename, and returns the base root portion of the corresponding path
+            </summary>
+            <param name="path">The path, directory, or filename to search for</param>
+            <returns>A directory path considered as the base root corresponding with a provided path, directory, or filename, or null if match criteria was not found</returns>
+        </member>
+        <member name="T:LogUtils.Helpers.FileHandling.PathBuilder">
+            <summary>
+            Type makes it easier to construct new paths 
+            </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.PathBuilder.IncludeRoot">
+            <summary>
+            Indicates whether root should be included in path result
+            </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.PathBuilder.IncludeFilenameInResult">
+            <summary>
+            Set to <see langword="true"/> when a filename (if present) should be appended before getting path result
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathBuilder.GetResult">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathBuilder.MoveNext">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathBuilder.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathBuilder.Reset">
+            <inheritdoc/>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.PathBuilder.PathIterator.version">
+            <summary>
+            Increments when iterator gets reset
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathBuilder.PathIterator.PathNode.GetResult">
+            <summary>
+            Gets the path result. Directory paths will contain a trailing separator char.
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.IPathBuilder.GetResult">
+            <summary>
+            Returns the compiled path string containing all selected values
+            </summary>
+        </member>
+        <member name="P:LogUtils.Helpers.FileHandling.IPathBuilderNode.Value">
+            <summary>
+            Name of a directory in a specific place in the path string
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.IPathBuilderNode.Accept">
+            <summary>
+            Signals that path segment should be added to path string (only invoke once per node)
+            </summary>
         </member>
         <member name="F:LogUtils.Helpers.FileHandling.PathInfo.Target">
             <summary>
@@ -7723,6 +7928,21 @@
         <member name="P:LogUtils.Helpers.FileHandling.PathInfo.IsDirectoryPath">
             <summary>
             Checks that there is path information pertaining to a directory
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathInfo.BuildPath">
+            <summary>
+            Creates an object for the streamlined building of subpath strings
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathInfo.BuildPath(System.Boolean,System.Boolean)">
+            <summary>
+            Creates an object for the streamlined building of subpath strings
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathInfo.GetFullDirectoryNames">
+            <summary>
+            Incrementally adds directory names from the target path until the entire target path is returned 
             </summary>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathInfo.GetDirectories">
@@ -7761,6 +7981,18 @@
             Identifies a component of a path
             </summary>
         </member>
+        <member name="F:LogUtils.Helpers.FileHandling.PathType.Empty">
+            <summary>Path is null, or empty</summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.PathType.Root">
+            <summary>Path contains only root information</summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.PathType.Filename">
+            <summary>Path ends with a filename</summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.PathType.Directory">
+            <summary>Path ends with a directory name</summary>
+        </member>
         <member name="T:LogUtils.Helpers.FileHandling.PathResolution">
             <summary>
             Performs helper functions similar to AssetManager path resolution
@@ -7790,6 +8022,29 @@
             <summary>
             Gets the complete resolved path
             </summary>
+        </member>
+        <member name="P:LogUtils.Helpers.FileHandling.PathResolver.DefaultPath">
+            <summary>
+            A fully qualified path that tends to serve as a path to fallback on in necessary situations. Usage of this path depends on
+            the <see cref="T:LogUtils.Helpers.FileHandling.PathResolver"/> implementation.
+            </summary>
+        </member>
+        <member name="P:LogUtils.Helpers.FileHandling.PathResolver.Finder">
+            <summary>
+            The path matching implementation used to determine the path resolution result
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathResolver.Resolve(System.String)">
+            <summary>
+            Translates a provided path string into a new path string
+            </summary>
+            <param name="path">A fully qualified, relative, or partial path, or filename</param>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathResolver.TryExpandPath(System.String@)">
+            <summary>
+            Expands relative, or fully qualified paths into a normalized format
+            </summary>
+            <returns>A value indicating the fully qualified state of the path</returns>
         </member>
         <member name="F:LogUtils.Helpers.FileHandling.PathUtils.PATH_VOLUME_LENGTH">
             <summary>
@@ -7829,6 +8084,17 @@
             <summary>
             Finds a path string that two provided paths have in common.
             </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.SubPathExists(System.String,System.Int32)">
+            <summary>
+            Accepts a path, and checks if there is an existing subdirectory after a given length of the path string
+            </summary>
+            <param name="checkPath">Path to evaluate</param>
+            <param name="startAfter">Checks for an existing directory path after a specified character position in the <paramref name="checkPath"/> string</param>
+            <returns><see langword="true"/>, when an subpath exists, <see langword="false"/> otherwise.
+            Also returns <see langword="false"/> when <paramref name="startAfter"/> is equal to the length of the checked path.</returns>
+            <exception cref="T:System.ArgumentNullException">A path given was null or empty</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">The index was negative, or greater than the path length</exception>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.TrimCommonRoot(System.String,System.String)">
             <summary>
@@ -7880,6 +8146,14 @@
             Separates a path into its directory and/or file components
             </summary>
         </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.SplitPath(System.String,System.Int32)">
+            <summary>
+            Separates a path into its directory and/or file components
+            </summary>
+            <param name="path">Path to target</param>
+            <param name="startAt">The character position in the string to start beging the split</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">Index position given was negative or greater than the length of the path string</exception>
+        </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.Unroot(System.String)">
             <summary>
             Check for a path root, and strip it from the path
@@ -7926,6 +8200,9 @@
             </summary>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.RainWorldPathFinder.FindMatch(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.RainWorldPathFinder.FindRootMatch(System.String)">
             <inheritdoc/>
         </member>
         <member name="T:LogUtils.Helpers.FileHandling.RecycleBin.FileOperationFlags">
@@ -8012,6 +8289,20 @@
             Send directory, or file silently to recycle bin.  Suppresses dialog, suppresses errors, deletes permanently if too large.
             </summary>
             <param name="path">Location of directory or file to recycle</param>
+        </member>
+        <member name="P:LogUtils.Helpers.FileHandling.TempPathResolver.MaxFoldersToSelect">
+            <summary>
+            Used in situations in which use of the entire path is undesired. This value sets a limit to how many directory segments to use in the resolved path. 
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.TempPathResolver.Resolve(System.String)">
+            <inheritdoc/>
+            <remarks>The output string will not contain a trailing separator character</remarks>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.TempPathFinder.TargetPath">
+            <summary>
+            The fully qualified path that represents the location of a temporary folder
+            </summary>
         </member>
         <member name="M:LogUtils.Helpers.FlagUtils.HasConvertedFlags(System.Int32)">
             <summary>
@@ -8745,6 +9036,39 @@
             (includes both non-folder group files, and files from folder groups that do not target this folder path)
             </summary>
         </member>
+        <member name="M:LogUtils.LogFolderInfo.#ctor(System.String)">
+            <summary>
+            Creates an object for manipulating folders containing log files
+            </summary>
+            <param name="folderPath">A path (absolute, relative, or partial) to a folder to access information from</param>
+            <exception cref="T:System.Security.SecurityException">Insufficient access to specified path</exception>
+            <exception cref="T:System.IO.PathTooLongException">Path exceeded allowed maximum character length</exception>
+        </member>
+        <member name="M:LogUtils.LogFolderInfo.#ctor(System.IO.DirectoryInfo)">
+            <summary>
+            Creates an object for manipulating folders containing log files
+            </summary>
+            <param name="folderInfo">A directory object pointing to a desired folder path</param>
+            <exception cref="T:System.ArgumentNullException">Folder info was a null value</exception>
+            <exception cref="T:System.Security.SecurityException">Insufficient access to specified path</exception>
+            <exception cref="T:System.IO.PathTooLongException">Path exceeded allowed maximum character length</exception>
+        </member>
+        <member name="M:LogUtils.LogFolderInfo.GetSubFolderInfo(System.String)">
+            <summary>
+            Gets a slice of folder information that applies to a specified subfolder
+            </summary>
+            <exception cref="T:System.ArgumentException">Folder path provided is not a part of the current folder path</exception>
+            <exception cref="T:System.Security.SecurityException">Insufficient access to specified path</exception>
+            <exception cref="T:System.IO.PathTooLongException">Path exceeded allowed maximum character length</exception>
+        </member>
+        <member name="M:LogUtils.LogFolderInfo.GetSubFolderInfo(System.IO.DirectoryInfo)">
+            <summary>
+            Gets a slice of folder information that applies to a specified subfolder
+            </summary>
+            <exception cref="T:System.ArgumentException">Folder path provided is not a part of the current folder path</exception>
+            <exception cref="T:System.ArgumentNullException">Folder info is a null value</exception>
+            <exception cref="T:System.Security.SecurityException">Insufficient access to specified path</exception>
+        </member>
         <member name="M:LogUtils.LogFolderInfo.GetPermissions">
             <summary>
             Returns the folder permissions associated with this folder path
@@ -8756,6 +9080,16 @@
             </summary>
             <param name="newPath">A fully qualified folder path, or path keyword</param>
             <param name="checkPermissions">Flag helps enhance safe folder operations. Keep value set to true (Recommended)</param>
+        </member>
+        <member name="M:LogUtils.LogFolderInfo.mergeCurrentFolder(LogUtils.MergeFolderState)">
+            <summary>
+            The contents of the current folder path will be merged into a destination path of the same name
+            </summary>
+        </member>
+        <member name="M:LogUtils.LogFolderInfo.rebaseAllPaths(System.String)">
+            <summary>
+            Changes the base paths of all groups and files associated with this folder path and any subfolders
+            </summary>
         </member>
         <member name="M:LogUtils.LogFolderInfo.demandAllLocks">
             <summary>
@@ -9424,6 +9758,16 @@
         <member name="M:LogUtils.Properties.Formatting.LogTimestampRule.GetPriority">
             <inheritdoc/>
         </member>
+        <member name="T:LogUtils.Properties.IPropertyHolder">
+            <summary>
+            Interface for accessing a <see cref="T:LogUtils.Properties.LogProperties"/> instance
+            </summary>
+        </member>
+        <member name="P:LogUtils.Properties.IPropertyHolder.Properties">
+            <summary>
+            Contains metadata information (filename, path, etc), and other settings that impact logging behavior, and log file management
+            </summary>
+        </member>
         <member name="F:LogUtils.Properties.LogGroupProperties.FolderPermissions">
             <summary>
             A set of flags indicating activities that are safe, and permissible to happen to a defined group folder
@@ -9912,7 +10256,7 @@
             </para>
             <para>
             For log groups:<br/>
-            - This method does nothing.
+            - This method updates the group path.
             </para>
             </remarks>
             <param name="newPath">The new path</param>
@@ -10308,6 +10652,11 @@
             Groups entries that should be processed together (because they share the same path, or don't have a path)
             </summary>
         </member>
+        <member name="M:LogUtils.LogValidator.GetLastException">
+            <summary>
+            Retrieves the last handled exception. Handled exception will then be cleared.
+            </summary>
+        </member>
         <member name="F:LogUtils.LogWriter.Writer">
             <summary>
             Writer used by default for most Logger implementations
@@ -10387,6 +10736,116 @@
             <param name="logFile">The file that contains the message buffer</param>
             <param name="waitTime">The initial time to wait before writing to file (when set to zero, write attempt will be immediate)</param>
             <param name="respectBufferState">Allow the buffer state to determine when to make a write attempt</param>
+        </member>
+        <member name="P:LogUtils.MergeFolderState.FolderDepth">
+            <summary>
+            The number of folder levels the current source directory is from the topmost source directory
+            </summary>
+        </member>
+        <member name="P:LogUtils.MergeFolderState.CurrentSource">
+            <summary>
+            The current directory being merged into a new directory
+            </summary>
+        </member>
+        <member name="F:LogUtils.MergeFolderState.DestinationPath">
+            <summary>
+            The specified path to merge into
+            </summary>
+        </member>
+        <member name="F:LogUtils.MergeFolderState.History">
+            <summary>
+            The complete history of file system, LogID, and LogGroupID changes since the merge began
+            </summary>
+        </member>
+        <member name="F:LogUtils.MergeHistory.Conflicts">
+            <summary>
+            A queue containing merge conflicts that require input from the user to resolve
+            </summary>
+        </member>
+        <member name="F:LogUtils.MergeHistory.ConflictHandler">
+            <summary>
+            Handles all merge conflicts
+            </summary>
+        </member>
+        <member name="F:LogUtils.MergeHistory.HasFailed">
+            <summary>
+            Indicates whether merge process ran to completion
+            </summary>
+        </member>
+        <member name="F:LogUtils.MergeHistory.Exception">
+            <summary>
+            Inclues the exception resulting in a failed merge execution. Not all exceptions are able to be exposed through this field yet.
+            </summary>
+        </member>
+        <member name="M:LogUtils.MergeHistory.Restore">
+            <summary>
+            Restores all merged files, and folders back to their original states
+            </summary>
+        </member>
+        <member name="T:LogUtils.MergeRecord">
+            <summary>
+            Contains state required to reverse a folder merge operation
+            </summary>
+        </member>
+        <member name="F:LogUtils.MergeRecord.IsCanceled">
+            <summary>
+            Indicates that operation was never completed
+            </summary>
+        </member>
+        <member name="F:LogUtils.MergeRecord.CurrentPath">
+            <summary>
+            The path of a file, or folder which has been moved
+            </summary>
+        </member>
+        <member name="F:LogUtils.MergeRecord.OriginalPath">
+            <summary>
+            The original path of a file, or folder which has been moved
+            </summary>
+        </member>
+        <member name="M:LogUtils.MergeRecord.Restore">
+            <summary>
+            Contains logic for restoring a file, or folder back to its original path
+            </summary>
+        </member>
+        <member name="F:LogUtils.FolderMoveRecord.GroupRecords">
+            <summary>
+            All groups affected by a folder move
+            </summary>
+        </member>
+        <member name="F:LogUtils.FolderMoveRecord.FileRecords">
+            <summary>
+            All files affected by a folder move
+            </summary>
+        </member>
+        <member name="F:LogUtils.FolderMoveRecord.RestoreMode">
+            <summary>
+            Determines how the current folder should be restored to the original path
+            </summary>
+        </member>
+        <member name="F:LogUtils.LogGroupMoveRecord.Target">
+            <summary>
+            Field identifies a changed log group
+            </summary>
+        </member>
+        <member name="F:LogUtils.FileMoveRecord.Target">
+            <summary>
+            Optional field that identifies path as a log file
+            </summary>
+        </member>
+        <member name="P:LogUtils.FileMoveRecord.CanHandleFile">
+            <summary>
+            Defines whether this record applies to an actual file, or only a targeted path
+            </summary>
+        </member>
+        <member name="F:LogUtils.FolderRestoreMode.FilesOnly">
+            <summary>
+            Restoration will involve moving individual files to their original location
+            </summary>
+        </member>
+        <member name="F:LogUtils.FolderRestoreMode.EntireFolder">
+            <summary>
+            Restoration will involve moving folder back to its original location
+            </summary>
         </member>
         <member name="P:LogUtils.MessageBuffer.IsBuffering">
             <summary>
@@ -10766,10 +11225,11 @@
             Writes all messages in the queue to file
             </summary>
         </member>
-        <member name="F:LogUtils.RainWorldDirectory.PathFinder">
+        <member name="P:LogUtils.RainWorldDirectory.PathFinder">
             <summary>
             Converts partial, and non-partial Rain World file or directory paths into a normalized equivalent form within the Rain World directory  
             </summary>
+            <exception cref="T:System.ArgumentNullException">Property was set to a null value</exception>
         </member>
         <member name="F:LogUtils.RainWorldDirectory.FolderTree">
             <summary>
@@ -11306,6 +11766,54 @@
             </summary>
             <param name="tag">The input to compare to</param>
             <returns>Whether a match has been found</returns>
+        </member>
+        <member name="P:LogUtils.TempFolder.OrphanedFiles">
+            <summary>
+            Contains paths pertaining to files within the temp folder flagged as orphaned; usually an indication that the file was unable to be moved from the directory
+            </summary>
+        </member>
+        <member name="P:LogUtils.TempFolder.SafeToDelete">
+            <summary>
+            Checks whether deletion of the temp folder minimizes risk of unwanted data loss
+            </summary>
+        </member>
+        <member name="P:LogUtils.TempFolder.Path">
+            <summary>
+            Full path to LogUtils temporary folder
+            </summary>
+        </member>
+        <member name="M:LogUtils.TempFolder.CreateDirectoryFor(System.String)">
+            <summary>
+            Creates the directory structure for a given file, or directory path
+            </summary>
+            <param name="path">A file, or directory path</param>
+            <returns>The created directory path, or null if path could not be created</returns>
+        </member>
+        <member name="M:LogUtils.TempFolder.MapPathToFolder(System.String)">
+            <summary>
+            Maps a path, filename, or directory to a location within the Temp folder, and returns the resulting path string
+            </summary>
+            <param name="path">A path, filename, or directory name to locate</param>
+            <returns>A fully qualified path inside the Temp folder</returns>
+            <remarks>No attempt is made to ensure path exists within the Temp folder</remarks>
+        </member>
+        <member name="M:LogUtils.TempFolder.Access">
+            <summary>
+            Signal that a process intends to access and use LogUtils defined temporary folder. While accessing, LogUtils guarantees that the folder wont be moved, or deleted
+            through the <see cref="T:LogUtils.TempFolder"/> public API. Call <see cref="M:LogUtils.TempFolder.RevokeAccess"/> to signal that your process no longer needs to access the Temp folder.
+            </summary>
+            <remarks>For each time this method is called, a following <see cref="M:LogUtils.TempFolder.RevokeAccess"/> must also be called.</remarks>
+        </member>
+        <member name="M:LogUtils.TempFolder.RevokeAccess">
+            <summary>
+            Signal that a process no longer needs to access any data located inside of the LogUtils defined temporary folder. Do not call this unless your process
+            already has access. Doing so may corrupt/remove data being used by other processes that require this temporary folder.
+            </summary>
+        </member>
+        <member name="M:LogUtils.TempFolder.OrphanAllFiles">
+            <summary>
+            Does an inventory of all files inside the temp folder (when it exists), and marks each file as orphaned
+            </summary>
         </member>
         <member name="T:LogUtils.Templates.LoggerTemplate">
             <summary>
