@@ -61,7 +61,7 @@ namespace LogUtils.Helpers.FileHandling
         public bool MoveNext()
         {
             if (iterator == null)
-                StartBuild();
+                iterator = new PathIterator(this);
 
             return iterator.MoveNext();
         }
@@ -86,79 +86,202 @@ namespace LogUtils.Helpers.FileHandling
             }
         }
 
-        /// <summary>
-        /// Initializes iterator state
-        /// </summary>
-        protected void StartBuild()
+        private class PathIterator : IPathBuilder
         {
-            Reset();
-            iterator = new PathIterator(this);
+            private readonly PathBuilder builder;
 
-            if (IncludeRoot && info.HasPath)
-                iterator.AppendValue(info.GetRoot());
-        }
+            private PathNode node;
+            private PathNodeState nodeState = PathNodeState.NotStarted;
 
-        internal class PathIterator : IPathBuilderNode
-        {
-            private readonly IEnumerator<string> directoryEnumerator;
-            private readonly PathBuilder parent;
-            private readonly StringBuilder result = new StringBuilder();
+            /// <summary>
+            /// Increments when iterator gets reset
+            /// </summary>
+            private int version = 0;
 
-            public PathIterator(PathBuilder parent)
+            public IPathBuilderNode Current => node;
+
+            object IEnumerator.Current => node;
+
+            public PathIterator(PathBuilder builder)
             {
-                this.parent = parent;
-                this.directoryEnumerator = parent.info.GetDirectoryEnumerator();
-            }
-
-            object IEnumerator.Current => Current;
-
-            public IPathBuilderNode Current => this;
-
-            public string Value => directoryEnumerator.Current;
-
-            public void Accept()
-            {
-                result.Append(directoryEnumerator.Current)
-                      .Append(Path.DirectorySeparatorChar);
-            }
-
-            internal void AppendValue(string value)
-            {
-                result.Append(value);
+                this.builder = builder;
+                node = new PathNode(this);
             }
 
             public string GetResult()
             {
-                if (parent.IncludeFilenameInResult && parent.info.HasFilename)
-                {
-                    string resultFilename = parent.info.Target.Name;
-                    result.Append(resultFilename);
-                }
-                return result.ToString(); //If the result is not a filepath, expect a trailing separator character
-            }
-
-            public bool MoveNext()
-            {
-                return directoryEnumerator.MoveNext();
+                return node.GetResult();
             }
 
             public void Dispose()
             {
-                result.Clear();
-                directoryEnumerator.Dispose();
+                if (nodeState == PathNodeState.Disposed) return;
+
+                nodeState = PathNodeState.Disposed; //This needs to be set before node is disposed
+                node.Dispose();
+
+                if (builder.iterator == this) //Dispose iterator at the builder level
+                    builder.Dispose();
             }
 
-            public void Reset()
+            public bool MoveNext()
             {
+                PathNode nextNode = node;
+                if (nodeState != PathNodeState.NotStarted || version > 0)
+                {
+                    //Each time we need to advance the enumeration, we clone a new node to avoid overwriting the old node's state.
+                    nextNode = node.Clone();
+                }
+
                 try
                 {
-                    directoryEnumerator.Reset();
-                    result.Clear(); //Failing to reset will not change the enumeration position. Let the result state be unaffected too.
+                    if (nodeState != PathNodeState.InProgress) //First iteration
+                    {
+                        node = null; //This hack avoids an equality check that would otherwise trigger an infinite loop
+                        nodeState = PathNodeState.InProgress;
+                        return nextNode.MoveNextRare();
+                    }
+                    return nextNode.MoveNext();
                 }
-                catch (Exception ex)
+                finally
                 {
-                    throw new NotSupportedException("Reset operation is not supported by this enumerator", ex);
+                    node = nextNode;
                 }
+            }
+
+            private bool isResetting; 
+            public void Reset()
+            {
+                if (nodeState == PathNodeState.NotStarted) return;
+
+                //We want to reset under the error handling protections of the builder class which would not be applied when invoked from a node
+                if (!isResetting && builder.iterator == this)
+                {
+                    isResetting = true;
+                    builder.Reset();
+                    return;
+                }
+
+                version++;
+                isResetting = false;
+                nodeState = PathNodeState.NotStarted; //This needs to be set before node is disposed
+                node.Reset();
+            }
+
+            protected class PathNode : IPathBuilderNode
+            {
+                private readonly PathIterator iterator;
+
+                private readonly IEnumerator<string> directoryEnumerator;
+                private readonly StringBuilder result = new StringBuilder();
+
+                object IEnumerator.Current => iterator.node;
+
+                public IPathBuilderNode Current => iterator.node;
+
+                private string _value;
+                public string Value => _value;
+
+                public PathNode(PathIterator iterator)
+                {
+                    this.iterator = iterator;
+                    directoryEnumerator = iterator.builder.info.GetDirectoryEnumerator();
+                }
+
+                public void Accept()
+                {
+                    result.Append(Value)
+                          .Append(Path.DirectorySeparatorChar);
+                }
+
+                internal void AppendValue(string value)
+                {
+                    result.Append(value);
+                }
+
+                /// <summary>
+                /// Gets the path result. Directory paths will contain a trailing separator char.
+                /// </summary>
+                public string GetResult()
+                {
+                    if (iterator.builder.IncludeFilenameInResult)
+                        return GetResultWithFilename();
+                    return result.ToString();
+                }
+
+                internal string GetResultWithFilename()
+                {
+                    var buildInfo = iterator.builder.info;
+                    if (buildInfo.HasFilename)
+                    {
+                        string resultFilename = buildInfo.Target.Name;
+                        return result.ToString() + resultFilename;
+                    }
+                    return result.ToString();
+                }
+
+                public bool MoveNext()
+                {
+                    if (Current == this)
+                    {
+                        //This ensures that we are operating on a fresh node each time MoveNext() is invoked
+                        return iterator.MoveNext();
+                    }
+
+                    //We must be working with the new node
+                    if (directoryEnumerator.MoveNext())
+                    {
+                        _value = directoryEnumerator.Current;
+                        return true;
+                    }
+                    return false;
+                }
+
+                internal bool MoveNextRare()
+                {
+                    if (iterator.builder.IncludeRoot)
+                    {
+                        var buildInfo = iterator.builder.info;
+                        if (buildInfo.HasFilename)
+                            AppendValue(buildInfo.GetRoot());
+                    }
+                    return MoveNext();
+                }
+
+                public PathNode Clone() => (PathNode)MemberwiseClone();
+
+                public void Dispose()
+                {
+                    if (iterator.nodeState == PathNodeState.Disposed) return;
+
+                    //Inform the iterator of a dispose request
+                    iterator.Dispose();
+
+                    result.Clear();
+                    directoryEnumerator.Dispose();
+                }
+
+                public void Reset()
+                {
+                    if (iterator.nodeState == PathNodeState.NotStarted) return;
+
+                    try
+                    {
+                        directoryEnumerator.Reset();
+                        result.Clear(); //Failing to reset will not change the enumeration position. Let the result state be unaffected too.
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new NotSupportedException("Reset operation is not supported by this enumerator", ex);
+                    }
+                }
+            }
+
+            private enum PathNodeState
+            {
+                NotStarted = -1,
+                InProgress = -2,
+                Disposed = -3,
             }
         }
     }
@@ -231,14 +354,18 @@ namespace LogUtils.Helpers.FileHandling
             List<IPathBuilderNode> selectedNodes = new List<IPathBuilderNode>(count);
             while (node.MoveNext())
             {
+                UtilityLogger.Log("NODE: " + node.Current.Value);
+
                 if (selectedNodes.Count == count) //When at capacity remove the earliest node
                     selectedNodes.RemoveAt(0);
 
                 selectedNodes.Add(node.Current);
+                UtilityLogger.Log("ADDING: " + node.Current.Value);
                 node = node.Current;
             }
 
             selectedNodes.ForEach(node => node.Accept());
+            selectedNodes.ForEach(node => UtilityLogger.Log("SELECTED: " + node.Value));
             return node.Current;
         }
     }

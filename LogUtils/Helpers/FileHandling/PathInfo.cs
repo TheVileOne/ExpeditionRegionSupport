@@ -66,12 +66,10 @@ namespace LogUtils.Helpers.FileHandling
                 if (Path.HasExtension(pathTarget)) //The target is probably a filename
                 {
                     Target = new PathTarget(PathType.Filename, pathTarget);
+                    TargetPath = path.Remove(path.Length - pathTarget.Length);
 
-                    if (path.StartsWith(pathTarget)) //Check that there is path info associated with the target
-                    {
-                        TargetPath = string.Empty;
+                    if (TargetPath == string.Empty) //There is no path information
                         return;
-                    }
                 }
                 else
                 {
@@ -85,12 +83,10 @@ namespace LogUtils.Helpers.FileHandling
                     if (hasDirectoryInfo)
                     {
                         Target = new PathTarget(PathType.Directory, pathTarget);
+                        TargetPath = path.Remove(path.Length - pathTarget.Length);
 
-                        if (path.StartsWith(pathTarget)) //Check that there is path info associated with the target
-                        {
-                            TargetPath = string.Empty;
+                        if (TargetPath == string.Empty) //There is no path information
                             return;
-                        }
                     }
                     else
                     {
@@ -127,12 +123,10 @@ namespace LogUtils.Helpers.FileHandling
                 if (hasDirectoryInfo)
                 {
                     Target = new PathTarget(PathType.Directory, pathTarget);
+                    TargetPath = path.Remove(path.Length - pathTarget.Length);
 
-                    if (path.StartsWith(pathTarget)) //Check that there is path info associated with the target
-                    {
-                        TargetPath = string.Empty;
+                    if (TargetPath == string.Empty) //There is no path information
                         return;
-                    }
                 }
                 else
                 {

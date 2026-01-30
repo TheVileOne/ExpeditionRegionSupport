@@ -52,7 +52,10 @@ namespace LogUtils.Helpers.FileHandling
 
                 if (pathRoot != null) //Root is compared, because we need the root length
                 {
-                    targetPath = targetPath.Substring(pathRoot.Length);
+                    if (PathUtils.PathsAreEqual(pathRoot, Environment.CurrentDirectory))
+                        pathRoot = Path.GetDirectoryName(pathRoot); //Get the path preceding the root path, but only for the root directory
+
+                    targetPath = targetPath.Substring(pathRoot.Length + 1); //Plus one to account for directory separator
 
                     if (info.HasFilename)
                     {

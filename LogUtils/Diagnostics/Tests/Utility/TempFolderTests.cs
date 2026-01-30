@@ -1,17 +1,12 @@
 ﻿using LogUtils.Helpers.FileHandling;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
 
 namespace LogUtils.Diagnostics.Tests.Utility
 {
     internal sealed class TempFolderTests : TestCase, ITestable
     {
-        internal const string TEST_NAME = "Test - Logging System";
+        internal const string TEST_NAME = "Test - Temp Folder";
 
         public TempFolderTests() : base(TEST_NAME)
         {
