@@ -8,10 +8,25 @@ namespace LogUtils
 {
     public static class RainWorldDirectory
     {
+        internal readonly static string DEFAULT_PATH = RainWorldPath.StreamingAssetsPath;
+
+        internal static PathResolver PathResolver;
+
         /// <summary>
         /// Converts partial, and non-partial Rain World file or directory paths into a normalized equivalent form within the Rain World directory  
         /// </summary>
-        public static RainWorldPathFinder PathFinder = new RainWorldPathFinder();
+        /// <exception cref="ArgumentNullException">Property was set to a null value</exception>
+        public static IPathFinder PathFinder
+        {
+            get => PathResolver.Finder;
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+
+                PathResolver = new PathResolver(DEFAULT_PATH, value);
+            }
+        }
 
         /// <summary>
         /// Hardcoded tree of directory names associated with a vanilla Rain world installation 
@@ -25,6 +40,7 @@ namespace LogUtils
 
         public static void Initialize()
         {
+            PathFinder = new RainWorldPathFinder();
             FolderTree = new DirectoryTree(RainWorldPath.RootPath);
 
             //Rain World

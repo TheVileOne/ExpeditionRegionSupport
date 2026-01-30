@@ -22,7 +22,7 @@ using DataFields = LogUtils.UtilityConsts.DataFields;
 
 namespace LogUtils.Properties
 {
-    public partial class LogProperties : IEquatable<LogProperties>, ILockable
+    public partial class LogProperties : IPropertyHolder, ILockable
     {
         /// <summary>
         /// The latest properties version recognized by LogUtils
@@ -58,6 +58,8 @@ namespace LogUtils.Properties
         /// Value is used to filter invalid compare options
         /// </summary>
         protected virtual CompareOptions CompareMask => ~CompareOptions.None;
+
+        LogProperties IPropertyHolder.Properties => this;
 
         /// <summary>
         /// This field contains the last known <see cref="LogRequest"/> handle state for this <see cref="LogID"/>, particularly the rejection status, and the reason for rejection of the request

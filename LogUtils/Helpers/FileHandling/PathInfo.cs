@@ -66,12 +66,10 @@ namespace LogUtils.Helpers.FileHandling
                 if (Path.HasExtension(pathTarget)) //The target is probably a filename
                 {
                     Target = new PathTarget(PathType.Filename, pathTarget);
+                    TargetPath = path.Remove(path.Length - pathTarget.Length);
 
-                    if (path.StartsWith(pathTarget)) //Check that there is path info associated with the target
-                    {
-                        TargetPath = string.Empty;
+                    if (TargetPath == string.Empty) //There is no path information
                         return;
-                    }
                 }
                 else
                 {
@@ -85,12 +83,10 @@ namespace LogUtils.Helpers.FileHandling
                     if (hasDirectoryInfo)
                     {
                         Target = new PathTarget(PathType.Directory, pathTarget);
+                        TargetPath = path.Remove(path.Length - pathTarget.Length);
 
-                        if (path.StartsWith(pathTarget)) //Check that there is path info associated with the target
-                        {
-                            TargetPath = string.Empty;
+                        if (TargetPath == string.Empty) //There is no path information
                             return;
-                        }
                     }
                     else
                     {
@@ -127,12 +123,10 @@ namespace LogUtils.Helpers.FileHandling
                 if (hasDirectoryInfo)
                 {
                     Target = new PathTarget(PathType.Directory, pathTarget);
+                    TargetPath = path.Remove(path.Length - pathTarget.Length);
 
-                    if (path.StartsWith(pathTarget)) //Check that there is path info associated with the target
-                    {
-                        TargetPath = string.Empty;
+                    if (TargetPath == string.Empty) //There is no path information
                         return;
-                    }
                 }
                 else
                 {
@@ -140,6 +134,48 @@ namespace LogUtils.Helpers.FileHandling
                 }
             }
             TargetPath = path;
+        }
+
+        /// <summary>
+        /// Creates an object for the streamlined building of subpath strings
+        /// </summary>
+        public IPathBuilder BuildPath()
+        {
+            return BuildPath(false);
+        }
+
+        /// <summary>
+        /// Creates an object for the streamlined building of subpath strings
+        /// </summary>
+        public IPathBuilder BuildPath(bool includeRoot, bool includeFilenameInResult = true)
+        {
+            return new PathBuilder(this)
+            {
+                IncludeRoot = includeRoot,
+                IncludeFilenameInResult = includeFilenameInResult,
+            };
+        }
+
+        /// <summary>
+        /// Incrementally adds directory names from the target path until the entire target path is returned 
+        /// </summary>
+        public IEnumerable<string> GetFullDirectoryNames()
+        {
+            if (!HasPath)
+            {
+                if (HasDirectory)
+                    yield return Target.Name;
+                yield break;
+            }
+
+            using (var builder = BuildPath(includeRoot: true, includeFilenameInResult: false))
+            {
+                while (builder.MoveNext())
+                {
+                    yield return builder.GetResult();
+                }
+            }
+            yield break;
         }
 
         /// <summary>
@@ -257,9 +293,13 @@ namespace LogUtils.Helpers.FileHandling
 
     public enum PathType
     {
+        /// <summary>Path is null, or empty</summary>
         Empty,
+        /// <summary>Path contains only root information</summary>
         Root,
+        /// <summary>Path ends with a filename</summary>
         Filename,
+        /// <summary>Path ends with a directory name</summary>
         Directory,
     }
 }

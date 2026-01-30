@@ -40,11 +40,8 @@ namespace LogUtils.Helpers.Comparers
         /// <inheritdoc/>
         public bool Equals(ExceptionInfo exception, ExceptionInfo exceptionOther)
         {
-            if (exception == null)
-                return exceptionOther == null;
-
-            if (exceptionOther == null)
-                return false;
+            if (exception == null || exceptionOther == null)
+                return exception == exceptionOther;
 
             if (MaxLinesToCheck > 0)
                 return checkMatchLineByLine(exception, exceptionOther);
@@ -55,7 +52,7 @@ namespace LogUtils.Helpers.Comparers
         {
             uint maxChars = MaxCharsToCheck;
 
-            return checkMatch(exception.ExceptionMessage, exceptionOther.ExceptionMessage) && checkMatch(exception.StackTrace, exceptionOther.StackTrace);
+            return checkMatch(exception.Message, exceptionOther.Message) && checkMatch(exception.StackTrace, exceptionOther.StackTrace);
 
             bool checkMatch(string str, string str2)
             {
@@ -74,7 +71,7 @@ namespace LogUtils.Helpers.Comparers
         {
             int maxLines = (int)MaxLinesToCheck;
 
-            return checkMatch(exception.ExceptionMessage, exceptionOther.ExceptionMessage) && checkMatch(exception.StackTrace, exceptionOther.StackTrace);
+            return checkMatch(exception.Message, exceptionOther.Message) && checkMatch(exception.StackTrace, exceptionOther.StackTrace);
 
             bool checkMatch(string str, string str2)
             {
@@ -141,7 +138,7 @@ namespace LogUtils.Helpers.Comparers
                 string[] lines;
                 int maxLines = (int)MaxLinesToCheck;
 
-                lines = StringParser.GetLines(obj.ExceptionMessage, maxLines);
+                lines = StringParser.GetLines(obj.Message, maxLines);
                 hashString += StringParser.Format(lines, Environment.NewLine, maxChars);
 
                 lines = StringParser.GetLines(obj.StackTrace, maxLines);
@@ -149,7 +146,7 @@ namespace LogUtils.Helpers.Comparers
             }
             else //MaxCharsToCheck must be greater than zero here
             {
-                hashString += (obj.ExceptionMessage.Length <= maxChars) ? obj.ExceptionMessage : obj.ExceptionMessage.Substring(0, maxChars);
+                hashString += (obj.Message.Length <= maxChars) ? obj.Message : obj.Message.Substring(0, maxChars);
                 hashString += (obj.StackTrace.Length <= maxChars) ? obj.StackTrace : obj.StackTrace.Substring(0, maxChars);
             }
             return hashString.GetHashCode();

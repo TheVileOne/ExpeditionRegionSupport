@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace LogUtils.Enums.FileSystem
 {
@@ -101,5 +102,61 @@ namespace LogUtils.Enums.FileSystem
         public static ActionType SessionEnd;
         /// <summary>Represents a file stream disposal event</summary>
         public static ActionType StreamDisposal;
+    }
+
+    /// <summary>
+    /// Constructs a new unregistered instance of a scoped <see cref="ActionType"/>
+    /// </summary>
+    /// <param name="type">The type that the scope will be associated with</param>
+    public class ScopedActionType(ActionType type) : ActionType(type.value, register: false);
+
+    public sealed class ActionStack
+    {
+        private readonly Stack<ActionType> items = new Stack<ActionType>();
+
+        private readonly Stack<ScopedActionType> scopes = new Stack<ScopedActionType>();
+
+        public ActionType Current
+        {
+            get
+            {
+                if (items.Count == 0)
+                    return ActionType.None;
+
+                return items.Peek();
+            }
+        }
+
+        public ActionType CurrentScope
+        {
+            get
+            {
+                if (scopes.Count == 0)
+                    return ActionType.None;
+
+                return scopes.Peek();
+            }
+        }
+
+        public int Count => items.Count;
+
+        public int ScopeCount => scopes.Count;
+
+        public void Push(ActionType item)
+        {
+            if (item is ScopedActionType scopedItem)
+                scopes.Push(scopedItem);
+
+            items.Push(item);
+        }
+
+        public ActionType Pop()
+        {
+            ActionType item = items.Pop();
+
+            if (item is ScopedActionType)
+                scopes.Pop();
+            return item;
+        }
     }
 }

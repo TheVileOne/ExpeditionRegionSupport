@@ -1,4 +1,5 @@
 ﻿using LogUtils.Helpers.FileHandling;
+using System;
 using System.IO;
 
 namespace LogUtils
@@ -10,6 +11,8 @@ namespace LogUtils
 
         internal string UnvalidatedSourcePath, UnvalidatedDestinationPath;
 
+        private Exception lastException;
+
         public LogValidator(string sourceLogPath, string destLogPath)
         {
             UnvalidatedSourcePath = sourceLogPath;
@@ -17,6 +20,19 @@ namespace LogUtils
         }
 
         public bool Validate()
+        {
+            try
+            {
+                return ValidateInternal();
+            }
+            catch (Exception ex)
+            {
+                lastException = ex;
+                return false;
+            }
+        }
+
+        internal bool ValidateInternal()
         {
             string sourcePath = UnvalidatedSourcePath ?? SourceFile.FullName;
             string destPath = UnvalidatedDestinationPath ?? DestinationFile.FullName;
@@ -43,8 +59,17 @@ namespace LogUtils
             {
                 DestinationFile = new FileInfo(Path.Combine(destPath, SourceFile.Name));
             }
-
             return true;
+        }
+
+        /// <summary>
+        /// Retrieves the last handled exception. Handled exception will then be cleared.
+        /// </summary>
+        public Exception GetLastException()
+        {
+            Exception ex = lastException;
+            lastException = null;
+            return ex;
         }
     }
 }

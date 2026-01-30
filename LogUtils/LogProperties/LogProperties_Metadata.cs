@@ -347,7 +347,7 @@ namespace LogUtils.Properties
         /// </para>
         /// <para>
         /// For log groups:<br/>
-        /// - This method does nothing.
+        /// - This method updates the group path.
         /// </para>
         /// </remarks>
         /// <param name="newPath">The new path</param>
@@ -364,6 +364,12 @@ namespace LogUtils.Properties
             newFilename = filename == null ? CurrentFilename : new LogFilename(filename);
 
             UpdateCurrentPath(newPath, newFilename);
+        }
+
+        internal void ChangeBasePath(string currentBasePath, string newBasePath)
+        {
+            newBasePath = GetNewBasePath(ID, currentBasePath, newBasePath);
+            ChangePath(newBasePath);
         }
 
         internal virtual string GetLastKnownPath()

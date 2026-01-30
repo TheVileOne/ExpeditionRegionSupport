@@ -121,6 +121,38 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <summary>
+        /// Accepts a path, and checks if there is an existing subdirectory after a given length of the path string
+        /// </summary>
+        /// <param name="checkPath">Path to evaluate</param>
+        /// <param name="startAfter">Checks for an existing directory path after a specified character position in the <paramref name="checkPath"/> string</param>
+        /// <returns><see langword="true"/>, when an subpath exists, <see langword="false"/> otherwise.
+        /// Also returns <see langword="false"/> when <paramref name="startAfter"/> is equal to the length of the checked path.</returns>
+        /// <exception cref="ArgumentNullException">A path given was null or empty</exception>
+        /// <exception cref="ArgumentOutOfRangeException">The index was negative, or greater than the path length</exception>
+        public static bool SubPathExists(string checkPath, int startAfter)
+        {
+            if (IsEmpty(checkPath))
+                throw new ArgumentNullException(nameof(checkPath));
+
+            if (startAfter < 0 || startAfter > checkPath.Length)
+                throw new ArgumentOutOfRangeException(nameof(startAfter));
+
+            if (startAfter == checkPath.Length) //A subdirectory cannot exists
+                return false;
+
+            bool pathExists = false;
+            PathInfo pathInfo = new PathInfo(checkPath);
+            foreach (string path in pathInfo.GetFullDirectoryNames())
+            {
+                if (path.Length <= startAfter) //We don't care about the path until we reach the desired path length
+                    continue;
+                pathExists = Directory.Exists(path);
+                break;
+            }
+            return pathExists;
+        }
+
+        /// <summary>
         /// Trims the common difference between the first path and the second path from the first path. If the common difference will consume the path, an empty string
         /// with be returned.
         /// </summary>
@@ -151,33 +183,7 @@ namespace LogUtils.Helpers.FileHandling
         /// <remarks>Supports files and directories</remarks>
         public static string ResolvePath(string path)
         {
-            if (IsEmpty(path))
-                return RainWorldPath.StreamingAssetsPath;
-
-            path = Normalize(path);
-            if (tryExpandPath(ref path))
-                return path;
-
-            string result = RainWorldDirectory.Locate(path);
-
-            if (result != null)
-                return result;
-            return Path.Combine(RainWorldPath.StreamingAssetsPath, path); //Unrecognized partial paths default to StreamingAssets
-        }
-
-        private static bool tryExpandPath(ref string path)
-        {
-            bool isExpanded = false;
-
-            //Expand if path is a relative path, or lacks drive information
-            if (path[0] == '.' || path[0] == Path.DirectorySeparatorChar || path[0] == Path.AltDirectorySeparatorChar)
-            {
-                path = Path.GetFullPath(path);
-                isExpanded = true;
-            }
-
-            isExpanded |= Path.IsPathRooted(path);
-            return isExpanded;
+            return RainWorldDirectory.PathResolver.Resolve(path);
         }
 
         /// <summary>
@@ -266,6 +272,28 @@ namespace LogUtils.Helpers.FileHandling
             if (IsEmpty(path))
                 return Array.Empty<string>();
 
+            return SplitPathInternal(path);
+        }
+
+        /// <summary>
+        /// Separates a path into its directory and/or file components
+        /// </summary>
+        /// <param name="path">Path to target</param>
+        /// <param name="startAt">The character position in the string to start beging the split</param>
+        /// <exception cref="ArgumentOutOfRangeException">Index position given was negative or greater than the length of the path string</exception>
+        public static string[] SplitPath(string path, int startAt = 0)
+        {
+            if (startAt < 0 || (startAt > 0 && (path == null || startAt > path.Length)))
+                throw new ArgumentOutOfRangeException(nameof(startAt));
+
+            if (IsEmpty(path) || startAt == path.Length)
+                return Array.Empty<string>();
+
+            return SplitPathInternal(path.Substring(startAt));
+        }
+
+        internal static string[] SplitPathInternal(string path)
+        {
             char[] separators = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
 
             int prefixLength = GetPrefixLength(path);
@@ -273,7 +301,7 @@ namespace LogUtils.Helpers.FileHandling
             if (prefixLength > 0)
                 path = path.Substring(prefixLength);
 
-            return path.TrimEnd(separators) //Trimming avoids empty data making it into the results
+            return path.Trim(separators) //Trimming avoids empty data making it into the results
                        .Split(separators);
         }
 
@@ -399,7 +427,7 @@ namespace LogUtils.Helpers.FileHandling
         public static string Rebase(string subPath, string basePath, string newBasePath)
         {
             subPath = TrimCommonRoot(subPath, basePath); //Remove current path from subpath
-            return Path.Combine(newBasePath, subPath);                 //Combine it with new path
+            return Path.Combine(newBasePath, subPath);   //Combine it with new path
         }
 
         /// <summary>
@@ -408,6 +436,11 @@ namespace LogUtils.Helpers.FileHandling
         public static bool PathsAreEqual(string path, string pathOther)
         {
             return ComparerUtils.PathComparer.Equals(path, pathOther);
+        }
+
+        internal static string CombineWithoutTrailingSeparators(string path1, string path2)
+        {
+            return Path.Combine(path1, path2).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         }
     }
 }

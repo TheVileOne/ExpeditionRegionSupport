@@ -21,8 +21,7 @@ namespace LogUtils.Helpers
         {
             foreach (LogID logFile in logFilesInFolder)
             {
-                string newFolderPath = LogProperties.GetNewBasePath(logFile, currentPath, newPath);
-                logFile.Properties.ChangePath(newFolderPath);
+                logFile.Properties.ChangeBasePath(currentPath, newPath);
             }
         }
 
@@ -161,8 +160,12 @@ namespace LogUtils.Helpers
 
         public static IEnumerable<LogGroupID> GroupsSharingThisPath(string path)
         {
-            IEnumerable<LogGroupProperties> groupsSharingThisPath =
-                LogProperties.PropertyManager.GroupProperties
+            return GroupsSharingThisPath(path, LogProperties.PropertyManager.GroupProperties);
+        }
+
+        public static IEnumerable<LogGroupID> GroupsSharingThisPath(string path, IEnumerable<LogGroupProperties> searchEntries)
+        {
+            IEnumerable<LogGroupProperties> groupsSharingThisPath = searchEntries
                              .WithFolder()
                              .HasPath(LogProperties.GetContainingPath(path));
             return groupsSharingThisPath.GetIDs();
@@ -170,8 +173,18 @@ namespace LogUtils.Helpers
 
         public static IEnumerable<LogID> NonGroupMembersSharingThisPath(string path)
         {
+            return NonGroupMembersSharingThisPath(path, LogProperties.PropertyManager.Properties);
+        }
+
+        public static IEnumerable<LogID> NonGroupMembersSharingThisPath(string path, IEnumerable<LogID> searchEntries)
+        {
+            return NonGroupMembersSharingThisPath(path, searchEntries.GetProperties());
+        }
+
+        public static IEnumerable<LogID> NonGroupMembersSharingThisPath(string path, IEnumerable<LogProperties> searchEntries)
+        {
             IEnumerable<LogProperties> nonGroupMembers =
-                LogID.FindAll(properties => properties.Group == null).GetProperties();
+                searchEntries.FindAll(properties => properties.Group == null).GetProperties();
             return nonGroupMembers.HasPath(LogProperties.GetContainingPath(path)).GetIDs();
         }
     }

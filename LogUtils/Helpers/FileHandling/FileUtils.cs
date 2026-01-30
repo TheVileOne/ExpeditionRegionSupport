@@ -14,6 +14,33 @@ namespace LogUtils.Helpers.FileHandling
     /// </summary>
     public static class FileUtils
     {
+        [ThreadStatic]
+        private static FileExceptionHandler _exceptionHandler;
+
+        private static FileExceptionHandler setExceptionContext(ActionType context)
+        {
+            if (_exceptionHandler == null)
+                _exceptionHandler = new FileExceptionHandler();
+
+            _exceptionHandler.BeginContext(context);
+            return _exceptionHandler;
+        }
+
+        private static FileExceptionHandler setExceptionContext(ActionType context, FileExceptionHandler handler)
+        {
+            if (handler != null)
+            {
+                handler.BeginContext(context);
+                return handler;
+            }
+
+            if (_exceptionHandler == null)
+                _exceptionHandler = new FileExceptionHandler();
+
+            _exceptionHandler.BeginContext(context);
+            return _exceptionHandler;
+        }
+
         /// <summary>
         /// Used to attach information to a filename
         /// </summary>
@@ -64,6 +91,17 @@ namespace LogUtils.Helpers.FileHandling
             return filename.Substring(0, bracketIndex) + (useExtension ? extInfo.Extension : string.Empty);
         }
 
+        public static string GetCollisionFriendlyName(string filePath)
+        {
+            if (filePath == null)
+                throw new ArgumentNullException(nameof(filePath));
+
+            int pathHash = filePath.GetHashCode();
+
+            filePath = FileExtension.Remove(filePath, out string fileExt) + '_' + pathHash + fileExt;
+            return filePath;
+        }
+
         /// <summary>
         /// Attempts to delete a file at the specified path
         /// </summary>
@@ -78,9 +116,10 @@ namespace LogUtils.Helpers.FileHandling
             {
                 ex.Data[ExceptionDataKey.TARGET_PATH] = path;
 
-                ExceptionHandler handler = new FileExceptionHandler(ActionType.Delete);
-
-                handler.OnError(ex, customErrorMsg);
+                using (FileExceptionHandler handler = setExceptionContext(ActionType.Delete))
+                {
+                    handler.OnError(ex, customErrorMsg);
+                }
             }
             return false;
         }
@@ -88,7 +127,7 @@ namespace LogUtils.Helpers.FileHandling
         /// <summary>
         /// Attempts to delete a file at the specified path
         /// </summary>
-        public static bool TryDelete(string path, ExceptionHandler handler)
+        public static bool TryDelete(string path, FileExceptionHandler handler)
         {
             try
             {
@@ -99,11 +138,10 @@ namespace LogUtils.Helpers.FileHandling
             {
                 ex.Data[ExceptionDataKey.TARGET_PATH] = path;
 
-                ActionType context = ActionType.Delete;
-                if (handler == null)
-                    handler = new FileExceptionHandler(context);
-
-                handler.OnError(ex, context);
+                using (handler = setExceptionContext(ActionType.Delete, handler))
+                {
+                    handler.OnError(ex);
+                }
             }
             return false;
         }
@@ -114,6 +152,12 @@ namespace LogUtils.Helpers.FileHandling
         /// <remarks>Any file at the destination path will be overwritten</remarks>
         public static bool TryCopy(string sourcePath, string destPath, int attemptsAllowed = 1)
         {
+            if (attemptsAllowed <= 0)
+            {
+                UtilityLogger.DebugLog("Copy operation not allowed to start");
+                return false;
+            }
+
             string sourceFilename = Path.GetFileName(sourcePath);
             string destFilename = Path.GetFileName(destPath);
 
@@ -125,30 +169,32 @@ namespace LogUtils.Helpers.FileHandling
                 return false;
             }
 
-            FileSystemExceptionHandler handler = new FileExceptionHandler(ActionType.Copy);
-            while (attemptsAllowed > 0)
+            AttemptCounter attempts = new AttemptCounter(attemptsAllowed);
+
+            var handler = setExceptionContext(new ScopedActionType(ActionType.Copy));
+            var lastProtocol = handler.Protocol;
+            try
             {
-                const int LAST_ATTEMPT = 1;
-                handler.Protocol = attemptsAllowed == LAST_ATTEMPT ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently;
-                try
+                bool fileCopied = false;
+                while (attempts.Remaining > 0)
                 {
-                    File.Copy(sourcePath, destPath, true);
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
-                    ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
+                    if (attempts.IsLast)
+                        handler.Protocol = FailProtocol.LogAndIgnore;
 
-                    handler.OnError(ex);
+                    fileCopied = AttemptCopy(sourcePath, destPath, handler);
 
-                    if (handler.CanContinue)
-                        continue;
-                    //Exception was of a form that is unlikely to complete on a reattempt
-                    break;
+                    if (fileCopied || !handler.CanContinue)
+                        break;
+
+                    attempts.Increment();
                 }
+                return fileCopied;
             }
-            return false;
+            finally
+            {
+                handler.Protocol = lastProtocol;
+                handler.EndContext();
+            }
         }
 
         /// <summary>
@@ -157,6 +203,12 @@ namespace LogUtils.Helpers.FileHandling
         /// <remarks>Any file at the destination path will be overwritten</remarks>
         public static bool TryMove(string sourcePath, string destPath, int attemptsAllowed = 1)
         {
+            if (attemptsAllowed <= 0)
+            {
+                UtilityLogger.DebugLog("Move operation not allowed to start");
+                return false;
+            }
+
             string sourceFilename = Path.GetFileName(sourcePath);
             string destFilename = Path.GetFileName(destPath);
 
@@ -168,39 +220,191 @@ namespace LogUtils.Helpers.FileHandling
                 return true;
             }
 
-            FileSystemExceptionHandler handler = new FileExceptionHandler(ActionType.Move);
-            while (attemptsAllowed > 0)
+            AttemptCounter attempts = new AttemptCounter(attemptsAllowed);
+
+            var handler = setExceptionContext(new ScopedActionType(ActionType.Move));
+            var lastProtocol = handler.Protocol;
+            try
             {
-                const int LAST_ATTEMPT = 1;
-                handler.Protocol = attemptsAllowed == LAST_ATTEMPT ? FailProtocol.LogAndIgnore : FailProtocol.FailSilently;
-
-                //Make sure destination is clear
-                if (!TryDelete(destPath, handler))
+                bool fileMoved = false;
+                while (attempts.Remaining > 0)
                 {
-                    attemptsAllowed--;
-                    continue;
+                    if (attempts.IsLast) //Start logging exceptions on the last attempt
+                        handler.Protocol = FailProtocol.LogAndIgnore;
+
+                    fileMoved = AttemptMove(sourcePath, destPath, handler);
+
+                    if (fileMoved || !handler.CanContinue)
+                        break;
+
+                    attempts.Increment();
+                }
+                return fileMoved;
+            }
+            finally
+            {
+                handler.Protocol = lastProtocol;
+                handler.EndContext();
+            }
+        }
+
+        /// <summary>
+        /// Attempts to move a file to a specified path
+        /// </summary>
+        public static bool TryMove(string sourcePath, string destPath, FileMoveOption moveBehavior)
+        {
+            return TryMove(sourcePath, destPath, moveBehavior, out _);
+        }
+
+        public static bool TryMove(string sourcePath, string destPath, FileMoveOption moveBehavior, out string newPath)
+        {
+            bool fileMoved = false;
+            try
+            {
+                if (moveBehavior == FileMoveOption.OverwriteDestination)
+                {
+                    //Standard move behavior
+                    fileMoved = AttemptMove(sourcePath, destPath);
+                    return fileMoved;
                 }
 
-                try
+                if (moveBehavior == FileMoveOption.RenameSourceIfNecessary)
                 {
-                    File.Move(sourcePath, destPath);
-                    return true;
+                    int conflictCount = 0;
+                    while (File.Exists(destPath)) //Tries until it finds a suitable non-conflicting filename
+                    {
+                        conflictCount++;
+                        destPath = ApplyBracketInfo(destPath, conflictCount.ToString());
+                    }
                 }
-                catch (Exception ex)
-                {
-                    attemptsAllowed--;
-                    ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
-                    ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
+                fileMoved = AttemptMoveNoOverwrite(sourcePath, destPath);
+                return fileMoved;
+            }
+            finally
+            {
+                newPath = null;
+                if (fileMoved)
+                    newPath = destPath;
+            }
+        }
 
+        internal static bool AttemptCopy(string sourcePath, string destPath, FileExceptionHandler handler = null)
+        {
+            try
+            {
+                File.Copy(sourcePath, destPath, overwrite: true);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
+                ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
+
+                using (handler = setExceptionContext(ActionType.Copy, handler))
+                {
                     handler.OnError(ex);
-
-                    if (handler.CanContinue)
-                        continue;
-                    //Exception was of a form that is unlikely to complete on a reattempt
-                    break;
                 }
             }
             return false;
+        }
+
+        internal static bool AttemptMove(string sourcePath, string destPath, FileExceptionHandler handler = null)
+        {
+            //Make sure destination is clear
+            if (!TryDelete(destPath, handler))
+                return false;
+
+            return AttemptMoveNoOverwrite(sourcePath, destPath, handler);
+        }
+
+        internal static bool AttemptMoveNoOverwrite(string sourcePath, string destPath, FileExceptionHandler handler = null)
+        {
+            try
+            {
+                File.Move(sourcePath, destPath);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
+                ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
+
+                using (handler = setExceptionContext(ActionType.Move, handler))
+                {
+                    handler.OnError(ex);
+                }
+            }
+            return false;
+        }
+
+        public static bool TryReplace(string sourcePath, string destPath)
+        {
+            UtilityLogger.Log("Replacing file");
+
+            if (PathUtils.IsEmpty(sourcePath) || PathUtils.IsEmpty(destPath))
+            {
+                UtilityLogger.LogError("Source or destination path is null");
+                return false;
+            }
+
+            using (IAccessToken accessToken = TempFolder.Access())
+            {
+                if (!TempFolder.TryCreate())
+                {
+                    UtilityLogger.LogWarning("Unable to replace file. Temp directory could not be created.");
+                    return false;
+                }
+                bool destEmpty = !File.Exists(destPath);
+                if (destEmpty)
+                {
+                    UtilityLogger.Log("No file located at destination path");
+
+                    //Attempt to move source file to destination
+                    if (!TryMove(sourcePath, destPath))
+                    {
+                        UtilityLogger.LogWarning("Unable to move source file");
+                        return false;
+                    }
+                }
+                else
+                {
+                    string tempPath = prepareToMoveFile();
+
+                    string prepareToMoveFile()
+                    {
+                        string destFilename = Path.GetFileName(destPath);
+                        //Create the folder that will contain this file, before returning the full filepath
+                        return Path.Combine(TempFolder.CreateDirectoryFor(destPath), destFilename);
+                    }
+
+                    //Check orphan status in case we overwrite one
+                    bool isOrphanedFile = TempFolder.OrphanedFiles.Contains(tempPath);
+
+                    //Attempt to move file to the temp folder
+                    if (!TryMove(destPath, tempPath))
+                        return false;
+
+                    //File was overwritten - it is no longer considered orphaned
+                    if (isOrphanedFile)
+                        TempFolder.OrphanedFiles.Remove(tempPath);
+
+                    //Attempt to move source file to destination
+                    if (!TryMove(sourcePath, destPath))
+                    {
+                        UtilityLogger.LogWarning("Unable to move source file");
+
+                        //If it fails, we move file at destination back
+                        if (!TryMove(tempPath, destPath))
+                        {
+                            UtilityLogger.LogWarning("Unable to restore destination file");
+                            TempFolder.OrphanedFiles.Add(tempPath);
+                        }
+                        return false;
+                    }
+                }
+                UtilityLogger.Log("Move successful");
+                return true;
+            }
         }
 
         /// <summary>
@@ -260,5 +464,12 @@ namespace LogUtils.Helpers.FileHandling
                 File.AppendAllText(path, contents);
             }
         }
+    }
+
+    public enum FileMoveOption
+    {
+        None,
+        OverwriteDestination,
+        RenameSourceIfNecessary
     }
 }

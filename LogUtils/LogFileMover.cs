@@ -56,14 +56,20 @@ namespace LogUtils
                     ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
 
                     var handler = CreateExceptionHandler(ErrorContext.Move);
+                    handler.OnError(ex);
 
-                    handler.OnError(ex, ActionType.Move);
                     status = CopyFile(logValidator);
                 }
 
                 return status;
             }
 
+            Exception validationException = logValidator.GetLastException();
+            if (validationException != null)
+            {
+                var handler = CreateExceptionHandler(ErrorContext.Move);
+                handler.OnError(validationException, "Validation error occurred");
+            }
             return FileStatus.ValidationFailed;
         }
 
@@ -90,14 +96,19 @@ namespace LogUtils
                     ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
 
                     var handler = CreateExceptionHandler(ErrorContext.Copy);
+                    handler.OnError(ex);
 
-                    handler.OnError(ex, ActionType.Copy);
                     status = FileStatus.Error;
                 }
-
                 return status;
             }
 
+            Exception validationException = logValidator.GetLastException();
+            if (validationException != null)
+            {
+                var handler = CreateExceptionHandler(ErrorContext.Copy);
+                handler.OnError(validationException, "Validation error occurred");
+            }
             return FileStatus.ValidationFailed;
         }
 
@@ -118,11 +129,10 @@ namespace LogUtils
                 ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
 
                 var handler = CreateExceptionHandler(ErrorContext.Copy);
+                handler.OnError(ex);
 
-                handler.OnError(ex, ActionType.Copy);
                 status = FileStatus.Error;
             }
-
             return status;
         }
 
@@ -179,13 +189,10 @@ namespace LogUtils
             switch (context)
             {
                 case ErrorContext.Move:
-                    handler.Context = ActionType.Move;
+                    handler.BeginContext(ActionType.Move);
                     break;
                 case ErrorContext.Copy:
-                    handler.Context = ActionType.Copy;
-                    break;
-                default:
-                    UtilityLogger.LogWarning("Unrecognized error context");
+                    handler.BeginContext(ActionType.Copy);
                     break;
             }
             return handler;
@@ -198,12 +205,16 @@ namespace LogUtils
                 if (contextWrapper.CustomMessage != null) //Custom error message always overrides default provided message formatting
                     return contextWrapper.CustomMessage;
 
+                string message = null;
                 if (contextWrapper.IsExceptionContext)
                 {
-                    ActionType context = contextWrapper.Context;
-                    if (context == ActionType.Move)
-                        return "Unable to move file. Attempting to copy instead";
+                    if (contextWrapper.Context == ActionType.Move)
+                        message = "Unable to move file. Attempting to copy instead";
                 }
+
+                if (message != null)
+                    return message;
+
                 return base.CreateErrorMessage(contextWrapper, ref includeStackTrace);
             }
         }
@@ -211,7 +222,8 @@ namespace LogUtils
         protected enum ErrorContext
         {
             Move,
-            Copy
+            Copy,
+            Validation,
         }
     }
 
