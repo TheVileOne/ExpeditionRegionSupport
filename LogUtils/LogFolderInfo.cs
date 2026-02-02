@@ -182,6 +182,11 @@ namespace LogUtils
         public void Move(string newPath, bool checkPermissions = true)
         {
             RefreshInfo();
+
+            //TODO: Determine if there is a decent way to keep file paths in sync across multiple Rain World processes
+            if (!UtilityCore.IsControllingAssembly)
+                return;
+
             if (checkPermissions)
             {
                 FolderPermissions permissions = GetPermissions();
@@ -195,9 +200,6 @@ namespace LogUtils
 
         internal void MoveInternal(string newPath)
         {
-            if (!UtilityCore.IsControllingAssembly) //TODO: Can we try to predict what the filepaths will be without moving any files/folders?
-                return;
-
             newPath = LogProperties.GetContainingPath(newPath);
 
             bool canMoveFiles = Exists;
