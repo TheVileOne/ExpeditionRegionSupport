@@ -204,7 +204,7 @@ namespace LogUtils
 
             if (!canMoveFiles)
             {
-                moveFilesToPath(newPath);
+                changePathOfNonExistingFilesAndFolders(newPath);
                 return;
             }
 
@@ -218,21 +218,6 @@ namespace LogUtils
             {
                 mergeFolder(newPath);
             }
-        }
-
-        private void moveFilesToPath(string newPath)
-        {
-            string currentPath = FolderPath;
-
-            ThreadSafeWorker worker = new ThreadSafeWorker(Groups.GetLocks())
-            {
-                UseEnumerableWrapper = false
-            };
-
-            worker.DoWork(() =>
-            {
-                UpdateAllPaths(newPath);
-            });
         }
 
         private void moveFolderToPath(string newPath)
@@ -374,6 +359,12 @@ namespace LogUtils
 
         private IEnumerable<MergeRecord> changePathOfNonExistingFilesAndFolders(string destinationPath)
         {
+            if (!Exists)
+            {
+                //All folders, subfolders, and file paths may be assumed to not exist in this case
+                return rebaseAllPaths(destinationPath, renameFolder: true);
+            }
+
             List<LogGroupID> handledGroups = new List<LogGroupID>();
 
             IEnumerable<MergeRecord> records = [];
@@ -392,7 +383,7 @@ namespace LogUtils
 
                     LogFolderInfo folderInfo = GetSubFolderInfo(logGroup.Properties.CurrentFolderPath);
 
-                    records.Concat(folderInfo.rebaseAllPaths(destinationPath));
+                    records.Concat(folderInfo.rebaseAllPaths(destinationPath, renameFolder: false));
                     handledGroups.Add(logGroup);
                 }
             }
@@ -440,10 +431,13 @@ namespace LogUtils
         /// <summary>
         /// Changes the base paths of all groups and files associated with this folder path and any subfolders
         /// </summary>
-        private MergeRecord[] rebaseAllPaths(string newBasePath)
+        private MergeRecord[] rebaseAllPaths(string newBasePath, bool renameFolder)
         {
-            //The folder path must be included here, or it will be trimmed out of the new path
-            newBasePath = Path.Combine(newBasePath, Path.GetFileName(FolderPath));
+            if (!renameFolder)
+            {
+                //The folder path must be included here, or it will be trimmed out of the new path
+                newBasePath = Path.Combine(newBasePath, Path.GetFileName(FolderPath));
+            }
 
             int totalRecordsExpected = Groups.Count + AllFiles.Count;
 
