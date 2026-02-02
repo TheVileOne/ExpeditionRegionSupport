@@ -202,79 +202,79 @@ namespace LogUtils
         {
             newPath = LogProperties.GetContainingPath(newPath);
 
-            bool canMoveFiles = Exists;
-
-            if (!canMoveFiles)
+            using (var scope = demandAllLocks())
             {
-                changePathOfNonExistingFilesAndFolders(newPath);
-                return;
-            }
+                bool canMoveFiles = Exists;
 
-            bool canMoveFolderToPath = !Directory.Exists(newPath);
+                if (!canMoveFiles)
+                {
+                    changePathOfNonExistingFilesAndFolders(newPath);
+                    return;
+                }
 
-            if (canMoveFolderToPath)
-            {
-                moveFolderToPath(newPath);
-            }
-            else
-            {
-                mergeFolder(newPath);
+                bool canMoveFolderToPath = !Directory.Exists(newPath);
+
+                if (canMoveFolderToPath)
+                {
+                    moveFolderToPath(newPath);
+                }
+                else
+                {
+                    mergeFolder(newPath);
+                }
             }
         }
 
         private void moveFolderToPath(string newPath)
         {
-            using (var scope = demandAllLocks())
+            bool moveCompleted = false;
+
+            List<MessageBuffer> activeBuffers = new List<MessageBuffer>();
+            List<StreamResumer> streamsToResume = new List<StreamResumer>();
+            try
             {
-                bool moveCompleted = false;
+                int expectedFileMoves = AllFiles.Count;
+                int currentFile = 0;
+                UtilityLogger.Log($"Moving {expectedFileMoves} files");
 
-                List<MessageBuffer> activeBuffers = new List<MessageBuffer>();
-                List<StreamResumer> streamsToResume = new List<StreamResumer>();
-                try
+                UtilityCore.RequestHandler.BeginCriticalSection();
+                while (currentFile != expectedFileMoves)
                 {
-                    int expectedFileMoves = AllFiles.Count;
-                    int currentFile = 0;
-                    UtilityLogger.Log($"Moving {expectedFileMoves} files");
+                    LogID logFile = AllFiles[currentFile];
 
-                    UtilityCore.RequestHandler.BeginCriticalSection();
-                    while (currentFile != expectedFileMoves)
-                    {
-                        LogID logFile = AllFiles[currentFile];
+                    logFile.Properties.EnsureStartupHasRun();
 
-                        logFile.Properties.EnsureStartupHasRun();
+                    MessageBuffer writeBuffer = logFile.Properties.WriteBuffer;
 
-                        MessageBuffer writeBuffer = logFile.Properties.WriteBuffer;
+                    writeBuffer.SetState(true, BufferContext.CriticalArea);
+                    activeBuffers.Add(writeBuffer);
 
-                        writeBuffer.SetState(true, BufferContext.CriticalArea);
-                        activeBuffers.Add(writeBuffer);
+                    logFile.Properties.FileLock.SetActivity(FileAction.Move); //Lock activated by ThreadSafeWorker
+                    logFile.Properties.NotifyPendingMove(LogProperties.GetNewBasePath(logFile, FolderPath, newPath));
 
-                        logFile.Properties.FileLock.SetActivity(FileAction.Move); //Lock activated by ThreadSafeWorker
-                        logFile.Properties.NotifyPendingMove(LogProperties.GetNewBasePath(logFile, FolderPath, newPath));
-
-                        //The move operation requires that all persistent file activity be closed until move is complete
-                        streamsToResume.AddRange(logFile.Properties.PersistentStreamHandles.InterruptAll());
-                        currentFile++;
-                    }
-                    string currentPath = FolderPath;
-
-                    Directory.Move(currentPath, newPath);
-                    moveCompleted = true;
-
-                    UpdateAllPaths(newPath);
+                    //The move operation requires that all persistent file activity be closed until move is complete
+                    streamsToResume.AddRange(logFile.Properties.PersistentStreamHandles.InterruptAll());
+                    currentFile++;
                 }
-                finally
+                string currentPath = FolderPath;
+
+                Directory.Move(currentPath, newPath);
+                moveCompleted = true;
+
+                UpdateAllPaths(newPath);
+            }
+            finally
+            {
+                if (!moveCompleted)
                 {
-                    if (!moveCompleted)
-                    {
-                        foreach (LogID logFile in AllFiles)
-                            logFile.Properties.NotifyPendingMoveAborted();
-                    }
-
-                    //Reopen the streams
-                    streamsToResume.ResumeAll();
-                    activeBuffers.ForEach(buffer => buffer.SetState(false, BufferContext.CriticalArea));
-                    UtilityCore.RequestHandler.EndCriticalSection();
+                    foreach (LogID logFile in AllFiles)
+                        logFile.Properties.NotifyPendingMoveAborted();
                 }
+
+                //Reopen the streams
+                streamsToResume.ResumeAll();
+                activeBuffers.ForEach(buffer => buffer.SetState(false, BufferContext.CriticalArea));
+                UtilityCore.RequestHandler.EndCriticalSection();
             }
         }
 
