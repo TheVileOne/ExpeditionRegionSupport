@@ -3,7 +3,7 @@ using System.IO;
 
 namespace LogUtils
 {
-    public struct MergeFolderState
+    internal struct MergeFolderState
     {
         /// <summary>
         /// The number of folder levels the current source directory is from the topmost source directory
@@ -38,5 +38,10 @@ namespace LogUtils
         /// The complete history of file system, LogID, and LogGroupID changes since the merge began
         /// </summary>
         public MergeHistory History;
+
+        public MergeFolderState()
+        {
+            History = new MergeHistory();
+        }
     }
 }

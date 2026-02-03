@@ -19,28 +19,15 @@ namespace LogUtils
     /// </summary>
     public sealed class LogFolderInfo
     {
-        private bool hasInitialized;
-        private string folderPathCache;
-
         /// <summary>
         /// A fully qualified path that contains log groups or files
         /// </summary>
-        public string FolderPath
-        {
-            get
-            {
-                if (folderPathCache == null)
-                    folderPathCache = FolderPathInfo.FullName;
-                return folderPathCache;
-            }
-        }
+        public string FolderPath { get; private set; }
 
         /// <summary>
         /// Checks that folder path exists
         /// </summary>
-        public bool Exists => FolderPathInfo.Exists;
-
-        internal DirectoryInfo FolderPathInfo;
+        public bool Exists => Directory.Exists(FolderPath);
 
         /// <summary>
         /// A snapshot of any groups that target this folder path
@@ -66,8 +53,7 @@ namespace LogUtils
         /// <exception cref="PathTooLongException">Path exceeded allowed maximum character length</exception>
         public LogFolderInfo(string folderPath)
         {
-            FolderPathInfo = new DirectoryInfo(LogProperties.GetContainingPath(folderPath));
-            hasInitialized = true;
+            FolderPath = LogProperties.GetContainingPath(folderPath);
         }
 
         /// <summary>
@@ -81,28 +67,23 @@ namespace LogUtils
         {
             if (folderInfo == null)
                 throw new ArgumentNullException(nameof(folderInfo));
-            FolderPathInfo = folderInfo;
-            hasInitialized = true;
+            FolderPath = folderInfo.FullName;
         }
 
         private LogFolderInfo(string folderPath, LogFolderInfo parentInfo) : this(folderPath)
         {
-            hasInitialized = false;
             if (!PathUtils.ContainsOtherPath(FolderPath, parentInfo.FolderPath))
                 throw new ArgumentException("Path must be a subdirectory");
 
             RefreshInfoInternal(parentInfo.Groups.GetProperties(), parentInfo.FilesNotFromFolderGroups);
-            hasInitialized = true;
         }
 
         private LogFolderInfo(DirectoryInfo folderInfo, LogFolderInfo parentInfo) : this(folderInfo)
         {
-            hasInitialized = false;
             if (!PathUtils.ContainsOtherPath(FolderPath, parentInfo.FolderPath))
                 throw new ArgumentException("Path must be a subdirectory");
 
             RefreshInfoInternal(parentInfo.Groups.GetProperties(), parentInfo.FilesNotFromFolderGroups);
-            hasInitialized = true;
         }
 
         public void RefreshInfo()
@@ -112,8 +93,6 @@ namespace LogUtils
 
         internal void RefreshInfoInternal(IEnumerable<LogGroupProperties> searchGroups, IEnumerable<LogID> searchFiles)
         {
-            if (hasInitialized)
-                folderPathCache = null;
             Groups = createCollection(LogGroup.GroupsSharingThisPath(FolderPath, searchGroups).ToList());
 
             IEnumerable<LogGroupProperties> allOtherGroups = searchGroups
@@ -282,11 +261,8 @@ namespace LogUtils
         {
             MergeFolderState mergeInfo = new MergeFolderState
             {
-                CurrentSource = new DirectoryInfo(FolderPath),
-                DestinationPath = newPath,
-                History = new MergeHistory()
+                DestinationPath = newPath
             };
-
             mergeCurrentFolder(mergeInfo);
 
             MergeHistory history = mergeInfo.History;
@@ -312,10 +288,11 @@ namespace LogUtils
         {
             try
             {
-                mergeInfo.CurrentSource = FolderPathInfo;
+                mergeInfo.CurrentSource = GetDirectoryInfo();
+
                 //For the first folder, source name will already be included in the destination path
                 if (mergeInfo.FolderDepth > 0)
-                    mergeInfo.DestinationPath = Path.Combine(mergeInfo.DestinationPath, FolderPathInfo.Name);
+                    mergeInfo.DestinationPath = Path.Combine(mergeInfo.DestinationPath, mergeInfo.CurrentSource.Name);
 
                 //Any LogID, or LogGroupIDs pointing to non-existing file, or folder paths are handled here
                 var records = changePathOfNonExistingFilesAndFolders(mergeInfo.DestinationPath);
@@ -348,6 +325,11 @@ namespace LogUtils
                 mergeInfo.History.HasFailed = true;
                 mergeInfo.History.Exception = ex;
             }
+        }
+
+        internal DirectoryInfo GetDirectoryInfo()
+        {
+            return new DirectoryInfo(FolderPath);
         }
 
         private void onMergeFailed(MergeHistory history)
@@ -623,7 +605,7 @@ namespace LogUtils
                 LogGroup.ChangePath(groupEntry, currentPath, newPath, applyToMembers: true);
 
             LogGroup.ChangePath(FilesNotFromFolderGroups, currentPath, newPath);
-            FolderPathInfo = new DirectoryInfo(newPath); //Info cache will be stale and should be refreshed before next access
+            FolderPath = newPath;
         }
 
         /// <summary>
