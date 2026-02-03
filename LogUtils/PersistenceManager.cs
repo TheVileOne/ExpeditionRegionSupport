@@ -1,6 +1,7 @@
 ﻿using LogUtils.Collections;
 using System;
 using System.Linq;
+using UnityEngine;
 
 namespace LogUtils
 {
@@ -12,7 +13,7 @@ namespace LogUtils
         public override string Tag => UtilityConsts.ComponentTags.PERSISTENCE_MANAGER;
 
         /// <summary>
-        /// Called whenever a PersistentFileHandle is disposed
+        /// Invoked when a <see cref="PersistentFileHandle"/> instance is disposed
         /// </summary>
         public event Action<PersistentFileHandle> OnHandleDisposed;
 
@@ -21,6 +22,9 @@ namespace LogUtils
             enabled = true;
         }
 
+        /// <summary>
+        /// Required method for <see cref="MonoBehaviour"/> update process
+        /// </summary>
         public void Update()
         {
             bool hasDisposedReferences = false;

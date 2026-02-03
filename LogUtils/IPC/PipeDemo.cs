@@ -9,7 +9,7 @@ namespace LogUtils.IPC
     /// <summary>
     /// Demonstrates a working PipeServer and client system
     /// </summary>
-    public static class PipeDemo
+    internal static class PipeDemo
     {
         private static NamedPipeServerStream demoServer;
 

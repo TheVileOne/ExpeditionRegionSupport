@@ -4318,6 +4318,9 @@
         <member name="M:LogUtils.Diagnostics.Tests.TestCaseGroup.GetEnumerator">
             <inheritdoc/>
         </member>
+        <member name="M:LogUtils.Diagnostics.Tests.TestCaseGroup.Handle(LogUtils.Diagnostics.Condition.Result)">
+            <inheritdoc/>
+        </member>
         <member name="M:LogUtils.Diagnostics.Tests.TestCaseGroup.HasFailed">
             <summary>
             Checks that any test cases under the group have failed outcomes, as well as its own asserts
@@ -8156,12 +8159,20 @@
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.Unroot(System.String)">
             <summary>
-            Check for a path root, and strip it from the path
+            Removes path root information from a path
             </summary>
+            <param name="path">Path to check</param>
+            <returns>A <see langword="string"/> not containing path root information</returns>
+            <exception cref="T:System.ArgumentException">Path contains illegal characters</exception>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.IsAbsolute(System.String)">
             <summary>
-            Checks that the path given contains drive letter information
+            Checks that <paramref name="path"/> contains drive letter information
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.IsEmpty(System.String)">
+            <summary>
+            Checks that <paramref name="path"/> contains useable path information
             </summary>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.IsFilePath(System.String)">
@@ -10346,6 +10357,9 @@
             Closes and reopens the filestream
             </summary>
         </member>
+        <member name="M:LogUtils.Properties.LogPropertyFile.CreateFileStream">
+            <inheritdoc/>
+        </member>
         <member name="M:LogUtils.Properties.LogPropertyReader.countOptionalFieldsBeforeNextMatch(System.String,System.Int32)">
             <summary>
             Finds the position of a data field header beginning at the start index, and searches until the end of the collection, or the search encounters a non-optional data field entry
@@ -10907,7 +10921,12 @@
         </member>
         <member name="E:LogUtils.PersistenceManager.OnHandleDisposed">
             <summary>
-            Called whenever a PersistentFileHandle is disposed
+            Invoked when a <see cref="T:LogUtils.PersistentFileHandle"/> instance is disposed
+            </summary>
+        </member>
+        <member name="M:LogUtils.PersistenceManager.Update">
+            <summary>
+            Required method for <see cref="T:UnityEngine.MonoBehaviour"/> update process
             </summary>
         </member>
         <member name="T:LogUtils.PersistentFileHandle">
@@ -10933,13 +10952,30 @@
         </member>
         <member name="F:LogUtils.PersistentFileHandle.resumeHandle">
             <summary>
-            Contains a reference to the handle responsible for reopening the FileStream after interruption
+            Contains a reference to the handle responsible for reopening the stream after interruption
             </summary>
         </member>
         <member name="M:LogUtils.PersistentFileHandle.InterruptStream">
             <summary>
-            Closes the stream. Mod should resume stream when file operations are finished
+            Temporarily closes the stream
             </summary>
+            <returns>A <see cref="T:LogUtils.StreamResumer"/> object that supports resuming the stream when file operations are finished</returns>
+        </member>
+        <member name="M:LogUtils.PersistentFileHandle.NotifyOnInterrupt">
+            <summary>
+            Notifies that a stream interruption operation has started
+            </summary>
+        </member>
+        <member name="M:LogUtils.PersistentFileHandle.NotifyOnResume">
+            <summary>
+            Notifies that a stream interruption operation has completed
+            </summary>
+        </member>
+        <member name="M:LogUtils.PersistentFileHandle.CreateFileStream">
+            <summary>
+            Opens a filestream for the targeted file 
+            </summary>
+            <exception cref="T:System.IO.IOException">Stream has been interrupted</exception>
         </member>
         <member name="F:LogUtils.PersistentFileHandle.IsDisposed">
             <summary/>
@@ -10967,6 +11003,38 @@
         </member>
         <member name="M:LogUtils.PersistentFileHandle.Finalize">
             <summary/>
+        </member>
+        <member name="T:LogUtils.StreamResumer">
+            <summary>
+            A class instantiated by LogUtils for the purpose of resuming a stream that has been interrupted
+            </summary>
+        </member>
+        <member name="P:LogUtils.StreamResumer.Handled">
+            <summary>
+            Indicates the resumed state has been handled
+            </summary>
+        </member>
+        <member name="M:LogUtils.StreamResumer.Resume">
+            <summary>
+            Refreshes an interrupted stream
+            </summary>
+        </member>
+        <member name="F:LogUtils.PersistentLogFileHandle.FileID">
+            <summary>
+            Identifies the target of which the persistent <see cref="T:System.IO.FileStream"/> is managed
+            </summary>
+        </member>
+        <member name="M:LogUtils.PersistentLogFileHandle.InterruptStream">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.PersistentLogFileHandle.NotifyOnInterrupt">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.PersistentLogFileHandle.NotifyOnResume">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.PersistentLogFileHandle.CreateFileStream">
+            <inheritdoc/>
         </member>
         <member name="M:LogUtils.PersistentLogFileHandle.BeginDispose(System.Boolean)">
             <inheritdoc/>
@@ -11224,16 +11292,33 @@
             placed in a queue and logged at the end of a Rain World frame
             </summary>
         </member>
+        <member name="M:LogUtils.QueueLogWriter.ApplyRules(LogUtils.Events.LogRequestEventArgs)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.QueueLogWriter.WriteToBuffer(LogUtils.Requests.LogRequest)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.QueueLogWriter.EnqueueMessage(LogUtils.Events.LogRequestEventArgs)">
+            <summary>
+            Adds a message to the logging queue
+            </summary>
+        </member>
         <member name="M:LogUtils.QueueLogWriter.WriteToFile(LogUtils.Requests.LogRequest)">
             <summary>
             Operation is not supported by this write implementation
             </summary>
             <exception cref="T:System.NotSupportedException"></exception>
         </member>
+        <member name="M:LogUtils.QueueLogWriter.PrepareLogFile(LogUtils.Enums.LogID)">
+            <inheritdoc/>
+        </member>
         <member name="M:LogUtils.QueueLogWriter.Flush">
             <summary>
             Writes all messages in the queue to file
             </summary>
+        </member>
+        <member name="M:LogUtils.QueueLogWriter.OnWriteException(LogUtils.Enums.LogID,System.Exception)">
+            <inheritdoc/>
         </member>
         <member name="P:LogUtils.RainWorldDirectory.PathFinder">
             <summary>
@@ -12193,6 +12278,11 @@
             <exception cref="T:LogUtils.Threading.TaskNotFoundException">Exception that throws if the targeted task does not exist</exception>
             <exception cref="T:System.ArgumentException">Exception that throws if the task instances are the same</exception>
         </member>
+        <member name="M:LogUtils.Threading.Task.SetID">
+            <summary>
+            Assigns a randomized identifier value
+            </summary>
+        </member>
         <member name="M:LogUtils.Threading.Task.WaitUntil(System.Func{System.Boolean},System.Int32,System.Int32)">
             <summary>
             Blocks until condition is true or timeout occurs.
@@ -12443,6 +12533,16 @@
             Invoked when a FrameTimer instance signals that it should no longer be updated by the scheduler
             </summary>
         </member>
+        <member name="T:LogUtils.Timers.PollingTimer">
+            <summary>
+            Class hides base methods. It is recommended to not use this class while casted by the <see cref="T:System.Timers.Timer"/> base class
+            </summary>
+        </member>
+        <member name="P:LogUtils.Timers.PollingTimer.Started">
+            <summary>
+            The timer is available and is actively running
+            </summary>
+        </member>
         <member name="F:LogUtils.Timers.PollingTimer.Tag">
             <summary>
             Used to attach identifying information
@@ -12475,7 +12575,7 @@
         </member>
         <member name="M:LogUtils.Timers.PollingTimer.#ctor(System.Double)">
             <summary>
-            Constructs a PollingTimer
+            Constructs a new <see cref="T:LogUtils.Timers.PollingTimer"/> instance
             </summary>
             <param name="checkInterval">The time window in which a polling flag must be set</param>
         </member>
@@ -12485,11 +12585,19 @@
             </summary>
         </member>
         <member name="M:LogUtils.Timers.PollingTimer.Start">
+            <inheritdoc cref="M:System.Timers.Timer.Start"/>
+            <exception cref="T:System.ObjectDisposedException">Attempted to access object after it was disposed</exception>
+        </member>
+        <member name="M:LogUtils.Timers.PollingTimer.Stop">
+            <inheritdoc cref="M:System.Timers.Timer.Stop"/>
+        </member>
+        <member name="M:LogUtils.Timers.PollingTimer.Dispose(System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="T:LogUtils.UtilityComponent">
             <summary>
-            Starts raising the System.Timers.Timer.Elapsed event by setting System.Timers.Timer.Enabled to true
+            Base class for UnityEngine components used by the assembly
             </summary>
-            <exception cref="T:System.ArgumentOutOfRangeException">The System.Timers.Timer is created with an interval equal to or greater than
-            System.Int32.MaxValue + 1, or set to an interval less than zero.</exception>
         </member>
         <member name="P:LogUtils.UtilityComponent.Version">
             <summary>
@@ -12499,7 +12607,7 @@
         </member>
         <member name="P:LogUtils.UtilityComponent.Tag">
             <summary>
-            A tag used for identification purposes (Not the same field as Component.tag)
+            A tag used for identification purposes (Not the same field as <see cref="P:UnityEngine.Component.tag"/>)
             </summary>
         </member>
         <member name="M:LogUtils.UtilityComponent.GetFields">

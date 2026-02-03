@@ -22,6 +22,7 @@ namespace LogUtils
             WriteHandler = WriteToBuffer;
         }
 
+        /// <inheritdoc/>
         public override string ApplyRules(LogRequestEventArgs messageData)
         {
             LogID logFile = messageData.ID;
@@ -46,6 +47,7 @@ namespace LogUtils
             }
         }
 
+        /// <inheritdoc/>
         protected override void WriteToBuffer(LogRequest request)
         {
             if (!PrepareLogFile(request.Data.ID))
@@ -58,6 +60,9 @@ namespace LogUtils
             request.Complete();
         }
 
+        /// <summary>
+        /// Adds a message to the logging queue
+        /// </summary>
         protected void EnqueueMessage(LogRequestEventArgs messageData)
         {
             OnLogMessageReceived(messageData);
@@ -73,6 +78,7 @@ namespace LogUtils
             throw new NotSupportedException();
         }
 
+        /// <inheritdoc/>
         protected override bool PrepareLogFile(LogID logFile)
         {
             //Does not attempt to create the file. Code is handled in a different place
@@ -133,6 +139,7 @@ namespace LogUtils
             }
         }
 
+        /// <inheritdoc/>
         protected override void OnWriteException(LogID logFile, Exception exception)
         {
             ExceptionInfo exceptionInfo = new ExceptionInfo(exception);

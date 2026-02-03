@@ -54,6 +54,7 @@ namespace LogUtils.Properties
             resumer.Resume();
         }
 
+        /// <inheritdoc/>
         protected override void CreateFileStream()
         {
             //It is possible to redirect here by referencing resumeHandle. Unsure if that would be good behavior or not.

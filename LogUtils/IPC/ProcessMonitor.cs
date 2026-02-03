@@ -4,20 +4,20 @@ using System.IO.Pipes;
 
 namespace LogUtils.IPC
 {
-    public static class ProcessMonitor
+    internal static class ProcessMonitor
     {
         private static NamedPipeServerStream connection;
 
         /// <summary>
         /// This process has control of the PipeServer that all LogUtils instances attempt to establish a connection with
         /// </summary>
-        internal static bool IsConnected => connection != null;
+        public static bool IsConnected => connection != null;
 
         private static bool isWaitingOnFirstUpdate = true;
 
         private static Task connectTask;
 
-        internal static void Connect()
+        public static void Connect()
         {
             connectTask = new Task(() =>
             {
@@ -47,7 +47,7 @@ namespace LogUtils.IPC
             LogTasker.Schedule(connectTask);
         }
 
-        internal static void Disconnect()
+        public static void Disconnect()
         {
             connectTask?.Cancel();
 
@@ -77,7 +77,7 @@ namespace LogUtils.IPC
         /// <summary>
         /// Block thread until connection status has been verified
         /// </summary>
-        internal static void WaitOnConnectionStatus()
+        public static void WaitOnConnectionStatus()
         {
             Task.WaitUntil(() => !isWaitingOnFirstUpdate).Wait();
         }

@@ -332,6 +332,9 @@ namespace LogUtils.Threading
             LogTasker.ScheduleAfter(this, otherTask);
         }
 
+        /// <summary>
+        /// Assigns a randomized identifier value
+        /// </summary>
         public void SetID()
         {
             ID = UnityEngine.Random.Range(0, 1000);

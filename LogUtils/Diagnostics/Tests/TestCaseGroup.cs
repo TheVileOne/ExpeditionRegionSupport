@@ -106,6 +106,7 @@ namespace LogUtils.Diagnostics.Tests
             return Cases.GetEnumerator();
         }
 
+        /// <inheritdoc/>
         public override void Handle(Condition.Result result)
         {
             var firstHandler = result.Handlers[0];

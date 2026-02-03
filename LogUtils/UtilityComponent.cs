@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace LogUtils
 {
+    /// <summary>
+    /// Base class for UnityEngine components used by the assembly
+    /// </summary>
     public abstract class UtilityComponent : MonoBehaviour
     {
         /// <summary>
@@ -14,7 +17,7 @@ namespace LogUtils
         public Version Version => UtilityCore.AssemblyVersion;
 
         /// <summary>
-        /// A tag used for identification purposes (Not the same field as Component.tag)
+        /// A tag used for identification purposes (Not the same field as <see cref="Component.tag"/>)
         /// </summary>
         public abstract string Tag { get; }
 

@@ -306,8 +306,11 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <summary>
-        /// Check for a path root, and strip it from the path
+        /// Removes path root information from a path
         /// </summary>
+        /// <param name="path">Path to check</param>
+        /// <returns>A <see langword="string"/> not containing path root information</returns>
+        /// <exception cref="ArgumentException">Path contains illegal characters</exception>
         public static string Unroot(string path)
         {
             if (Path.IsPathRooted(path))
@@ -321,13 +324,16 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <summary>
-        /// Checks that the path given contains drive letter information
+        /// Checks that <paramref name="path"/> contains drive letter information
         /// </summary>
         public static bool IsAbsolute(string path)
         {
             return Path.IsPathRooted(path) && path[0] != Path.DirectorySeparatorChar && path[0] != Path.AltDirectorySeparatorChar;
         }
 
+        /// <summary>
+        /// Checks that <paramref name="path"/> contains useable path information
+        /// </summary>
         public static bool IsEmpty(string path)
         {
             return string.IsNullOrWhiteSpace(path);

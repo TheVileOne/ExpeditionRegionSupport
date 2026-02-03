@@ -9,6 +9,9 @@ namespace LogUtils
 {
     public class PersistentLogFileHandle : PersistentFileHandle, IDisposable
     {
+        /// <summary>
+        /// Identifies the target of which the persistent <see cref="FileStream"/> is managed
+        /// </summary>
         public readonly LogID FileID;
 
         public PersistentLogFileHandle(LogID logFile) : base()
@@ -23,6 +26,7 @@ namespace LogUtils
             FileID.Properties.PersistentStreamHandles.Add(this);
         }
 
+        /// <inheritdoc/>
         public override StreamResumer InterruptStream()
         {
             var fileLock = FileID.Properties.FileLock;
@@ -35,6 +39,7 @@ namespace LogUtils
             }
         }
 
+        /// <inheritdoc/>
         protected override void NotifyOnInterrupt()
         {
             string reportMessage = $"Interrupting filestream {FileID}";
@@ -47,6 +52,7 @@ namespace LogUtils
             UtilityLogger.DebugLog(reportMessage);
         }
 
+        /// <inheritdoc/>
         protected override void NotifyOnResume()
         {
             string reportMessage = $"Resuming filestream {FileID}";
@@ -59,6 +65,7 @@ namespace LogUtils
             UtilityLogger.DebugLog(reportMessage);
         }
 
+        /// <inheritdoc/>
         protected override void CreateFileStream()
         {
             try

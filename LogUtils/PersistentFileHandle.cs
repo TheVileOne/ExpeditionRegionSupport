@@ -28,7 +28,7 @@ namespace LogUtils
         public FileStream Stream;
 
         /// <summary>
-        /// Contains a reference to the handle responsible for reopening the FileStream after interruption
+        /// Contains a reference to the handle responsible for reopening the stream after interruption
         /// </summary>
         private StreamResumer resumeHandle;
 
@@ -40,8 +40,9 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Closes the stream. Mod should resume stream when file operations are finished
+        /// Temporarily closes the stream
         /// </summary>
+        /// <returns>A <see cref="StreamResumer"/> object that supports resuming the stream when file operations are finished</returns>
         public virtual StreamResumer InterruptStream()
         {
             if (WaitingToResume)
@@ -62,16 +63,26 @@ namespace LogUtils
             return new StreamResumer(onResume);
         }
 
+        /// <summary>
+        /// Notifies that a stream interruption operation has started
+        /// </summary>
         protected virtual void NotifyOnInterrupt()
         {
             UtilityLogger.Log("Interrupting filestream");
         }
 
+        /// <summary>
+        /// Notifies that a stream interruption operation has completed
+        /// </summary>
         protected virtual void NotifyOnResume()
         {
             UtilityLogger.Log("Resuming filestream");
         }
 
+        /// <summary>
+        /// Opens a filestream for the targeted file 
+        /// </summary>
+        /// <exception cref="IOException">Stream has been interrupted</exception>
         protected abstract void CreateFileStream();
 
         #region Dispose handling
@@ -146,10 +157,16 @@ namespace LogUtils
         #endregion
     }
 
+    /// <summary>
+    /// A class instantiated by LogUtils for the purpose of resuming a stream that has been interrupted
+    /// </summary>
     public class StreamResumer
     {
         private readonly Action resumeCallback;
 
+        /// <summary>
+        /// Indicates the resumed state has been handled
+        /// </summary>
         public bool Handled { get; protected set; }
 
         public StreamResumer(Action callback)
@@ -157,6 +174,9 @@ namespace LogUtils
             resumeCallback = callback;
         }
 
+        /// <summary>
+        /// Refreshes an interrupted stream
+        /// </summary>
         public void Resume()
         {
             if (Handled)
