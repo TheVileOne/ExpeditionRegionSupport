@@ -313,7 +313,9 @@ namespace LogUtils
             try
             {
                 mergeInfo.CurrentSource = FolderPathInfo;
-                mergeInfo.DestinationPath = Path.Combine(mergeInfo.DestinationPath, FolderPathInfo.Name);
+                //For the first folder, source name will already be included in the destination path
+                if (mergeInfo.FolderDepth > 0)
+                    mergeInfo.DestinationPath = Path.Combine(mergeInfo.DestinationPath, FolderPathInfo.Name);
 
                 //Any LogID, or LogGroupIDs pointing to non-existing file, or folder paths are handled here
                 var records = changePathOfNonExistingFilesAndFolders(mergeInfo.DestinationPath);
