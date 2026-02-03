@@ -124,7 +124,7 @@ namespace LogUtils
                     }
                     catch (IOException ex)
                     {
-                        if (errors != null)
+                        if (errors == null)
                             errors = new Dictionary<LogID, Exception>();
                         errors[target.ID] = ex;
                     }
