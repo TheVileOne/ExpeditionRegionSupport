@@ -26,6 +26,8 @@ namespace LogUtils
 
         public void CollectFeedbackFromUser()
         {
+            UtilityLogger.Log("Number of conflicts detected: " + conflicts.Count);
+
             if (conflicts.Count == 0)
                 return;
 
@@ -80,7 +82,7 @@ namespace LogUtils
 
         internal void ResolveAllInternal()
         {
-            while (conflicts.Count == 0)
+            while (conflicts.Count > 0)
             {
                 //These queues will have the same amount of entries
                 var currentRecord = conflicts.Dequeue();
