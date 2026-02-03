@@ -5,9 +5,16 @@ using System.Timers;
 
 namespace LogUtils.Timers
 {
+    /// <summary>
+    /// Class hides base methods. It is recommended to not use this class while casted by the <see cref="Timer"/> base class
+    /// </summary>
     public class PollingTimer : Timer
     {
         private bool _started;
+
+        /// <summary>
+        /// The timer is available and is actively running
+        /// </summary>
         public bool Started => Enabled && _started;
 
         /// <summary>
@@ -43,7 +50,7 @@ namespace LogUtils.Timers
         public event EventHandler<PollingTimer, ElapsedEventArgs> OnTimeout;
 
         /// <summary>
-        /// Constructs a PollingTimer
+        /// Constructs a new <see cref="PollingTimer"/> instance
         /// </summary>
         /// <param name="checkInterval">The time window in which a polling flag must be set</param>
         public PollingTimer(double checkInterval) : base(checkInterval)
@@ -64,21 +71,21 @@ namespace LogUtils.Timers
             OnSignal?.Invoke(this);
         }
 
-        /// <summary>
-        /// Starts raising the System.Timers.Timer.Elapsed event by setting System.Timers.Timer.Enabled to true
-        /// </summary>
-        /// <exception cref="ArgumentOutOfRangeException">The System.Timers.Timer is created with an interval equal to or greater than
-        /// System.Int32.MaxValue + 1, or set to an interval less than zero.</exception>
+        /// <inheritdoc cref="Timer.Start"/>
+        /// <exception cref="ObjectDisposedException">Attempted to access object after it was disposed</exception>
         public new void Start()
         {
+            //Though this state will be in an abnormal state if an exception were to occur, it should not affect standard operation.
+            //No events will be fired in the event of an exception. This cannot throw an exception in any place that LogUtils utilizes this instance
+            //without user intervention.
             _started = true;
             lastPollTime = -1;
 
-            Enabled = true;
             PollFlagged = false;
             base.Start();
         }
 
+        /// <inheritdoc cref="Timer.Stop"/>
         public new void Stop()
         {
             _started = false;
@@ -90,6 +97,14 @@ namespace LogUtils.Timers
             if (!PollFlagged)
                 OnTimeout?.Invoke(this, e);
             PollFlagged = false;
+        }
+
+        /// <inheritdoc/>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+                _started = false;
+            base.Dispose(disposing);
         }
     }
 
