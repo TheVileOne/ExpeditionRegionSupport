@@ -8501,6 +8501,16 @@
             <param name="filename">The filename to search for</param>
             <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
         </member>
+        <member name="M:LogUtils.ExtensionMethods.Find(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.IO.FileInfo)">
+            <summary>
+            Finds a <see cref="T:LogUtils.Enums.LogID"/> instance with the given metadata in the provided collection
+            </summary>
+            <remarks>
+            - Compares CurrentFilename, and CurrentFolderPath fields
+            </remarks>
+            <param name="values"></param>
+            <param name="fileInfo">The file to search for a direct match for</param>
+        </member>
         <member name="M:LogUtils.ExtensionMethods.FindAll(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String)">
             <summary>
             Finds all <see cref="T:LogUtils.Enums.LogID"/> instances with the given metadata in the provided collection
@@ -9086,7 +9096,7 @@
             The contents of the current folder path will be merged into a destination path of the same name
             </summary>
         </member>
-        <member name="M:LogUtils.LogFolderInfo.rebaseAllPaths(System.String)">
+        <member name="M:LogUtils.LogFolderInfo.rebaseAllPaths(System.String,System.Boolean)">
             <summary>
             Changes the base paths of all groups and files associated with this folder path and any subfolders
             </summary>

@@ -82,7 +82,7 @@ namespace LogUtils.Properties
         /// <inheritdoc/>
         public override void ChangePath(string newPath)
         {
-            UtilityLogger.Log("Assigning new folder to group");
+            UtilityLogger.Log("Assigning new group path");
             if (!IsFolderGroup)
             {
                 if (Members.Count > 0)

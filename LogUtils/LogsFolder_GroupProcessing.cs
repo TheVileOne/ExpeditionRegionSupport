@@ -66,28 +66,6 @@ namespace LogUtils
                 {
                     addGroupsToFolder(untargetedGroups);
                 });
-
-                //foreach (LogGroupProperties target in untargetedGroups)
-                //{
-                //    UtilityLogger.Log($"Processing {target.ID} with {target.Members.Count} members");
-
-                //    EligibilityResult result = checkEligibilityRequirementsThisEntry(target);
-
-                //    if (result == EligibilityResult.InsufficientPermissions)
-                //    {
-                //        UtilityLogger.Log($"{target.ID} is currently ineligible to be moved to Logs folder");
-                //        continue;
-                //    }
-
-                //    foreach (LogID logID in target.Members)
-                //    {
-                //        //Registered log files are handled individually, and log files with groups were handled before this method was called
-                //        if (logID.Registered || LogGroup.GroupsSharingThisPath(logID.Properties.CurrentFolderPath).Any())
-                //            continue;
-
-                //        //All other entries are eligible to be moved
-                //    }
-                //}
             }
 
             bool isUntargetedGroup(IEnumerable<LogGroupProperties> entryGroup)
@@ -116,8 +94,10 @@ namespace LogUtils
                 return;
             }
 
+            UtilityLogger.Log("Processing entries");
             processEntries(moveGroupIntoSubFolder);
 
+            UtilityLogger.Log("Adding groups");
             //Since we could not move the entire folder - we need to check each subgroup
             addGroupsToFolder(Processor.GroupTopLevelEntries(firstEntry));
 

@@ -354,18 +354,14 @@ namespace LogUtils.Helpers.FileHandling
             List<IPathBuilderNode> selectedNodes = new List<IPathBuilderNode>(count);
             while (node.MoveNext())
             {
-                UtilityLogger.Log("NODE: " + node.Current.Value);
-
                 if (selectedNodes.Count == count) //When at capacity remove the earliest node
                     selectedNodes.RemoveAt(0);
 
                 selectedNodes.Add(node.Current);
-                UtilityLogger.Log("ADDING: " + node.Current.Value);
                 node = node.Current;
             }
 
             selectedNodes.ForEach(node => node.Accept());
-            selectedNodes.ForEach(node => UtilityLogger.Log("SELECTED: " + node.Value));
             return node.Current;
         }
     }
