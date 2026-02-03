@@ -422,13 +422,20 @@ namespace LogUtils
                 if (fileAlreadyHandled)
                     return false;
 
+                string containingPath = FolderPath;
+
                 //The folder must not be associated with an existing subpath - those cases will be handled with the subfolder is handled
-                return !PathUtils.SubPathExists(logFile.Properties.CurrentFolderPath, FolderPath.Length);
+                return !PathUtils.SubPathExists(logFile.Properties.CurrentFolderPath, containingPath.Length);
             }
 
             bool isNonExistingFolderGroup(LogGroupID logGroup)
             {
-                return !PathUtils.SubPathExists(logGroup.Properties.CurrentFolderPath, FolderPath.Length);
+                string containingPath = FolderPath;
+
+                if (containingPath.Length == logGroup.Properties.CurrentFolderPath.Length) //We know containing path exists here
+                    return false;
+
+                return !PathUtils.SubPathExists(logGroup.Properties.CurrentFolderPath, containingPath.Length);
             }
         }
 
