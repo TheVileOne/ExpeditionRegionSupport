@@ -470,11 +470,15 @@ namespace LogUtils
             bool fileMoveError = false;
             foreach (FileInfo file in mergeInfo.CurrentSource.GetFiles())
             {
-                LogID logFile = AllFiles.Find(file.Name, file.DirectoryName); //TODO: It is possible that this finds the wrong instance
-                
+                //Search for a LogID with the same name, and path as this file
+                LogID logFile = AllFiles.Find(file);
+
                 MergeRecord record;
                 if (logFile != null)
+                {
+                    UtilityLogger.Log("Log file detected");
                     record = MergeRecordFactory.Create(logFile, canHandle: true);
+                }
                 else
                 {
                     record = new FileMoveRecord()

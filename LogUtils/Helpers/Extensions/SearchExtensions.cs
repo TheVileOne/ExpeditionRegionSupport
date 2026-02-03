@@ -4,6 +4,7 @@ using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace LogUtils
@@ -24,6 +25,21 @@ namespace LogUtils
         {
             return values.GetProperties()
                          .Find(filename, relativePathNoFile);
+        }
+
+        /// <summary>
+        /// Finds a <see cref="LogID"/> instance with the given metadata in the provided collection
+        /// </summary>
+        /// <remarks>
+        /// - Compares CurrentFilename, and CurrentFolderPath fields
+        /// </remarks>
+        /// <param name="values"></param>
+        /// <param name="fileInfo">The file to search for a direct match for</param>
+        public static LogID Find(this IEnumerable<LogID> values, FileInfo fileInfo)
+        {
+            return values.FindAll(fileInfo.Name, CompareOptions.CurrentFilename)
+                         .HasPathExact(fileInfo.DirectoryName)
+                         .FirstOrDefault();
         }
 
         /// <summary>
