@@ -98,7 +98,7 @@ namespace LogUtils
         /// Initializes the log directory path
         /// </summary>
         /// <remarks>LogUtils does not create this directory by default</remarks>
-        public static void Initialize()
+        internal static void Initialize()
         {
             AvailablePaths.Add(RainWorldPath.RootPath);            //Default path
             AvailablePaths.Add(RainWorldPath.StreamingAssetsPath); //Alternate path
