@@ -409,8 +409,12 @@ namespace LogUtils
         /// <param name="path">A valid directory path</param>
         public static void SetContainingPath(string path)
         {
-            string targetPath = Path.Combine(path, Name);
-            SetPath(targetPath);
+            path = Path.Combine(path, Name);
+
+            if (!validatePath(path)) return;
+
+            SetPathInternal(path);
+            UtilityLogger.Log("Logs folder path set successfully");
         }
 
         /// <summary>
@@ -420,8 +424,14 @@ namespace LogUtils
         /// <param name="path">A valid directory path</param>
         public static void SetPath(string path)
         {
-            if (IsCurrentPath(path)) return;
+            if (!validatePath(path)) return;
 
+            SetPathInternal(path);
+            UtilityLogger.Log("Logs folder path set successfully");
+        }
+
+        internal static void SetPathInternal(string path)
+        {
             bool didMove = false;
             if (!Exists || (didMove = TryMove(path))) //Path data must remain the same if the existing directory cannot be moved
             {
@@ -431,6 +441,31 @@ namespace LogUtils
 
             if (didMove) //Only record a path history event when the directory is moved, or renamed
                 PathHistory.Update();
+        }
+
+        private static bool validatePath(string path)
+        {
+            if (PathUtils.IsEmpty(path))
+            {
+                UtilityLogger.LogWarning("Unable to set Logs folder path. Path given was an empty string.");
+                return false;
+            }
+
+            //Path hasn't changed, or is an sub-path (not currently supported)
+            if (Contains(path))
+            {
+                if (!PathUtils.PathsAreEqual(CurrentPath, path))
+                    UtilityLogger.LogWarning("Unable to set Logs folder path. Path is a subpath of the current path.");
+                return false;
+            }
+
+            //Path is a parent to the current path (not currently supported)
+            if (PathUtils.ContainsOtherPath(path, CurrentPath))
+            {
+                UtilityLogger.LogWarning("Unable to set Logs folder path. Path is a parent of the current path.");
+                return false;
+            }
+            return true;
         }
 
         internal static class PathHistory
