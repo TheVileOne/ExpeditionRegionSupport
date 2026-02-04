@@ -10563,6 +10563,11 @@
             Checks that log directory exists at its currently set path
             </summary>
         </member>
+        <member name="M:LogUtils.LogsFolder.Contains(System.String)">
+            <summary>
+            Checks that the current path is located somewhere inside the current log directory path
+            </summary>
+        </member>
         <member name="M:LogUtils.LogsFolder.IsCurrentPath(System.String)">
             <summary>
             Checks a path against the current log directory path
