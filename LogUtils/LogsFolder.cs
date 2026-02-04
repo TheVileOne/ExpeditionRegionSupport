@@ -62,8 +62,14 @@ namespace LogUtils
         internal static void ResetExistsCache() => _existsCache = null;
 
         /// <summary>
+        /// Checks that the current path is located somewhere inside the current log directory path
+        /// </summary>
+        public static bool Contains(string path) => PathUtils.ContainsOtherPath(CurrentPath, path);
+
+        /// <summary>
         /// Checks a path against the current log directory path
         /// </summary>
+        [Obsolete("Use LogsFolder.Contains instead")]
         public static bool IsCurrentPath(string path) => PathUtils.PathsAreEqual(CurrentPath, path);
 
         /// <summary>
@@ -333,14 +339,14 @@ namespace LogUtils
 
             LogID logFile = properties.ID;
 
-            if (IsCurrentPath(properties.FolderPath))
+            if (Contains(properties.FolderPath))
             {
                 //We cannot move this file unless we have a destination path to move it into
                 UtilityLogger.Log($"Unable to move file {logFile}");
                 return;
             }
 
-            if (!IsCurrentPath(properties.CurrentFolderPath))
+            if (!Contains(properties.CurrentFolderPath))
             {
                 UtilityLogger.Log($"{logFile} file is not a part of Logs folder");
                 return;
