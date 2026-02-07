@@ -34,6 +34,7 @@ namespace LogUtils.Events
     public delegate void LogRequestDataEventHandler(LogRequestEventArgs e);
     public delegate void LogMovePendingEventHandler(LogMovePendingEventArgs e);
     public delegate void LogStreamEventHandler(LogStreamEventArgs e);
+    public delegate void PathChangeEventHandler(PathChangeEventArgs e);
     public delegate void RegistrationChangedEventHandler(ILogHandler logger, RegistrationChangedEventArgs registrationStatus);
     public delegate void SetupPeriodEventHandler(SetupPeriodEventArgs e);
 }
