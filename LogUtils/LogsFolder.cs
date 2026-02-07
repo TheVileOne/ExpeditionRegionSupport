@@ -88,8 +88,6 @@ namespace LogUtils
         /// </summary>
         public static bool IsManagingFiles { get; private set; }
 
-        internal static bool ValidatePath(string path) => !DirectoryUtils.ParentExists(path) || PathUtils.ContainsOtherPath(path, CurrentPath);
-
         static LogsFolder()
         {
             UtilityCore.EnsureInitializedState();
@@ -106,7 +104,7 @@ namespace LogUtils
         {
             //The containing directory must exist to create this directory
             if (!Directory.Exists(ContainingPath))
-                throw new DirectoryNotFoundException("Cannot create log directory - Containing path does not exist");
+                throw new DirectoryNotFoundException("Unable to create log directory. Containing path does not exist");
 
             //May throw UnauthroizedAccessException, or IOException, leave responsibility of caller to handle
             UtilityLogger.Log("Creating log directory: " + CurrentPath);
@@ -163,7 +161,7 @@ namespace LogUtils
 
             if (targetPath != null && !Directory.Exists(targetPath))
             {
-                UtilityLogger.Log("Could not find previous logs folder path - it may have been moved, or belongs to a temporary directory");
+                UtilityLogger.Log("Could not find previous log directory path. It may have been moved, or belongs to a temporary directory.");
                 targetPath = null;
             }
 
@@ -229,11 +227,11 @@ namespace LogUtils
 
             if (!Exists)
             {
-                UtilityLogger.Log("Logs folder unavailable - Files not moved");
+                UtilityLogger.Log("Log directory unavailable - Files not moved");
                 return;
             }
 
-            UtilityLogger.Log("Logs folder available");
+            UtilityLogger.Log("Log directory available");
 
             if (IsManagingFiles)
             {
@@ -275,7 +273,7 @@ namespace LogUtils
 
         private static bool suppressGroupMemberEligibilityLogging = false;
         /// <summary>
-        /// Transfers log files, and folders associated with the properties instance to the Logs folder
+        /// Transfers log files, and folders associated with the properties instance to the current log directory
         /// </summary>
         internal static void AddToFolder(LogProperties properties)
         {
@@ -308,7 +306,7 @@ namespace LogUtils
 
             if (!properties.LogsFolderEligible)
             {
-                UtilityLogger.Log($"{logFile} is currently ineligible to be moved to Logs folder");
+                UtilityLogger.Log($"{logFile} is currently ineligible to be moved to log directory");
                 return;
             }
 
@@ -327,13 +325,13 @@ namespace LogUtils
 
             if (isMoveRequired)
             {
-                UtilityLogger.Log($"Moving {logFile} to Logs folder");
+                UtilityLogger.Log($"Moving {logFile} to log directory");
                 LogFile.Move(logFile, newPath);
             }
         }
 
         /// <summary>
-        /// Transfers a log file from the Logs folder (when it exists)
+        /// Transfers a log file from the current log directory (when it exists)
         /// </summary>
         internal static void RemoveFromFolder(LogProperties properties)
         {
@@ -361,7 +359,7 @@ namespace LogUtils
 
             if (!Contains(properties.CurrentFolderPath))
             {
-                UtilityLogger.Log($"{logFile} file is not a part of Logs folder");
+                UtilityLogger.Log($"{logFile} file is not a part of log directory");
                 return;
             }
 
@@ -374,7 +372,7 @@ namespace LogUtils
                 return;
             }
 
-            UtilityLogger.Log($"Moving {logFile} out of Logs folder");
+            UtilityLogger.Log($"Moving {logFile} out of log directory");
             LogFile.Move(logFile, newPath);
         }
 
@@ -390,7 +388,7 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Targets a directory path to contain a logs folder
+        /// Targets a directory path to contain the current log directory
         /// </summary>
         /// <param name="path">A valid directory path</param>
         public static void SetContainingPath(string path)
@@ -398,18 +396,18 @@ namespace LogUtils
             path = Path.Combine(path, Name);
 
             if (TryMove(path))
-                UtilityLogger.Log("Logs folder path set successfully");
+                UtilityLogger.Log("Log directory path set successfully");
         }
 
         /// <summary>
-        /// Targets a directory path to become the new logs folder
+        /// Targets a directory path to become the new current log directory
         /// </summary>
         /// <remarks>DO NOT set to any directory you don't want moved around</remarks>
         /// <param name="path">A valid directory path</param>
         public static void SetPath(string path)
         {
             if (TryMove(path))
-                UtilityLogger.Log("Logs folder path set successfully");
+                UtilityLogger.Log("Log directory path set successfully");
         }
 
         internal static bool TryMove(string newPath)
@@ -425,10 +423,10 @@ namespace LogUtils
                 bool shouldAttemptMove = UtilityCore.IsControllingAssembly && folderExists;
                 if (shouldAttemptMove)
                 {
-                    logMessage("Attempting to move Logs folder");
+                    logMessage("Attempting to move log directory");
 
                     LogFolderInfo folderInfo = new LogFolderInfo(CurrentPath);
-                    folderInfo.Move(newPath, checkPermissions: false); //Enforcing permissions inside Logs folder is unsupported
+                    folderInfo.Move(newPath, checkPermissions: false); //Enforcing permissions inside log directory is unsupported
 
                     ContainingPath = Path.GetDirectoryName(newPath);
                     Name = Path.GetFileName(newPath);
@@ -463,7 +461,7 @@ namespace LogUtils
         {
             if (PathUtils.IsEmpty(path))
             {
-                UtilityLogger.LogWarning("Unable to set Logs folder path. Path given was an empty string.");
+                UtilityLogger.LogWarning("Unable to set log directory path. Path given was an empty string.");
                 return false;
             }
 
@@ -471,20 +469,20 @@ namespace LogUtils
             if (Contains(path))
             {
                 if (!PathUtils.PathsAreEqual(CurrentPath, path))
-                    UtilityLogger.LogWarning("Unable to set Logs folder path. Path is a subpath of the current path.");
+                    UtilityLogger.LogWarning("Unable to set log directory path. Path is a subpath of the current path.");
                 return false;
             }
 
             //Path is a parent to the current path (not currently supported)
             if (PathUtils.ContainsOtherPath(path, CurrentPath))
             {
-                UtilityLogger.LogWarning("Unable to set Logs folder path. Path is a parent of the current path.");
+                UtilityLogger.LogWarning("Unable to set log directory path. Path is a parent of the current path.");
                 return false;
             }
 
             if (!DirectoryUtils.ParentExists(path))
             {
-                UtilityLogger.LogWarning("Unable to set Logs folder path. Part of the path cannot be found.");
+                UtilityLogger.LogWarning("Unable to set log directory path. Part of the path cannot be found.");
                 return false;
             }
             return true;
@@ -503,7 +501,7 @@ namespace LogUtils
                 }
                 catch
                 {
-                    UtilityLogger.LogWarning("Unable to read log folder history");
+                    UtilityLogger.LogWarning("Unable to read path history file");
                 }
                 return [];
             }
@@ -526,7 +524,7 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// The result of a Logs folder path search
+        /// The result of a log directory path search
         /// </summary>
         public struct PathResult
         {

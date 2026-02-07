@@ -17,12 +17,12 @@ namespace LogUtils
     public static partial class LogsFolder
     {
         /// <summary>
-        /// Manages subfolders and their associated log groups within the log directory
+        /// Manages subfolders and their associated log groups within the current log directory
         /// </summary>
         internal static FolderProcessor Processor = new FolderProcessor();
 
         /// <summary>
-        /// Attempts to move eligible log groups to Logs folder
+        /// Attempts to move eligible log groups to the current log directory
         /// </summary>
         internal static void AddGroupsToFolder()
         {
@@ -114,7 +114,7 @@ namespace LogUtils
 
                     if (result == EligibilityResult.InsufficientPermissions)
                     {
-                        UtilityLogger.Log($"{target.ID} is currently ineligible to be moved to Logs folder");
+                        UtilityLogger.Log($"{target.ID} is currently ineligible to be moved to log directory");
                         continue;
                     }
 
@@ -144,7 +144,7 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// This method is only responsible with moving the existing group folder to the Logs folder directory, or a subfolder within it
+        /// This method is only responsible with moving the existing group folder to the current log directory, or a subfolder within it
         /// </summary>
         private static bool tryAddFolderGroupFirstPass(LogGroupProperties target)
         {
@@ -153,7 +153,7 @@ namespace LogUtils
 
             if (result == EligibilityResult.Success)
             {
-                UtilityLogger.Log("Attempting to move group folder to Logs folder");
+                UtilityLogger.Log("Attempting to move group folder to log directory");
                 return tryMoveGroup(target);
             }
             return false;
@@ -208,7 +208,7 @@ namespace LogUtils
                 //Conditions explanation
                 //I.   Registered log files are handled when properties file is read. Log groups should not have registered members under normal circumstances anyways.
                 //II.  Untargeted log groups are handled last. We need this extra check to ensure that group files are not handled more than once
-                //III. The current path of the log file is already inside the Logs folder
+                //III. The current path of the log file is already inside the current log directory
                 return !logID.Registered
                     && (target.IsFolderGroup || !LogGroup.GroupsSharingThisPath(logID.Properties.CurrentFolderPath).Any())
                     && !PathUtils.ContainsOtherPath(logID.Properties.CurrentFolderPath, CurrentPath);
@@ -222,7 +222,7 @@ namespace LogUtils
 
             string targetDirName = Path.GetFileName(target.CurrentFilePath);
 
-            //Take the parent directory of the group, and make it the new destination inside Logs folder
+            //Take the parent directory of the group, and make it the new destination inside log directory
             return Path.Combine(CurrentPath, targetDirName);
         }
 
