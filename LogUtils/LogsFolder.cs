@@ -75,12 +75,12 @@ namespace LogUtils
         /// <summary>
         /// Checks that the current path is located somewhere inside the current log directory path
         /// </summary>
-        public static bool Contains(string path) => PathUtils.ContainsOtherPath(CurrentPath, path);
+        public static bool ContainsPath(string path) => PathUtils.ContainsOtherPath(CurrentPath, path);
 
         /// <summary>
         /// Checks a path against the current log directory path
         /// </summary>
-        [Obsolete("Use LogsFolder.Contains instead")]
+        [Obsolete("Use LogsFolder.ContainsPath instead")]
         public static bool IsCurrentPath(string path) => PathUtils.PathsAreEqual(CurrentPath, path);
 
         /// <summary>
@@ -350,14 +350,14 @@ namespace LogUtils
 
             LogID logFile = properties.ID;
 
-            if (Contains(properties.FolderPath))
+            if (ContainsPath(properties.FolderPath))
             {
                 //We cannot move this file unless we have a destination path to move it into
                 UtilityLogger.Log($"Unable to move file {logFile}");
                 return;
             }
 
-            if (!Contains(properties.CurrentFolderPath))
+            if (!ContainsPath(properties.CurrentFolderPath))
             {
                 UtilityLogger.Log($"{logFile} file is not a part of log directory");
                 return;
@@ -466,7 +466,7 @@ namespace LogUtils
             }
 
             //Path hasn't changed, or is an sub-path (not currently supported)
-            if (Contains(path))
+            if (ContainsPath(path))
             {
                 if (!PathUtils.PathsAreEqual(CurrentPath, path))
                     UtilityLogger.LogWarning("Unable to set log directory path. Path is a subpath of the current path.");
