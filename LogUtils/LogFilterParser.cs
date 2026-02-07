@@ -22,7 +22,7 @@ namespace LogUtils
 
                     string filterString = header.Length == 0 ? line : line.Substring(header.Length + 1);
 
-                    FilteredStringEntry entry = new FilteredStringEntry(filterString, FilterDuration.Always);
+                    FilteredStringEntry entry = new FilteredStringEntry(filterString, FilterDuration.Always, header.IsRegex);
 
                     if (header.Keywords != null)
                         entry.Keywords.AddRange(header.Keywords);
