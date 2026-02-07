@@ -279,7 +279,7 @@ namespace LogUtils.Properties
 
         private Task eventTask;
         /// <summary>
-        /// When the log file properties are first initialized, the log file can have its path changed to target the Logs folder if it exists, disabled by default
+        /// When the log file properties are first initialized, the log file can have its path changed to target the current log directory if it exists, disabled by default
         /// </summary>
         public bool LogsFolderAware
         {
@@ -310,7 +310,7 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
-        /// A property that informs the utility that the log file should not use the Logs folder
+        /// A property that informs the utility that the log file should not use the current log directory
         /// </summary>
         public bool LogsFolderEligible
         {

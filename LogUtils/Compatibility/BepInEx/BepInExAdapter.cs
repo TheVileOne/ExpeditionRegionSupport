@@ -75,7 +75,7 @@ namespace LogUtils.Compatibility.BepInEx
         }
 
         /// <summary>
-        /// Detects, and removes log file copies in the original BepInEx logs folder directory
+        /// Detects, and removes log file copies in the original BepInEx log folder directory
         /// </summary>
         internal static void CleanBepInExFolder()
         {

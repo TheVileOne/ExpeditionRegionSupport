@@ -125,7 +125,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
         }
 
         /// <summary>
-        /// Moves eligible files to Logs folder and moves them back to their original location 
+        /// Moves eligible files to the current log directory and moves them back to their original location 
         /// </summary>
         internal static void TestMoveAndRestore()
         {
@@ -133,7 +133,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
             {
                 try
                 {
-                    //Alternate between having log files in the Logs folder, and having them at their original location
+                    //Alternate between having log files in the current log directory, and having them at their original location
                     if (!LogsFolder.IsManagingFiles)
                     {
                         UtilityLogger.DebugLog("Enabled");
