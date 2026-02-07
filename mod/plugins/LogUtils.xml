@@ -5826,6 +5826,50 @@
         <member name="P:LogUtils.Enums.ConsoleID.IsEnabled">
             <inheritdoc/>
         </member>
+        <member name="M:LogUtils.Enums.FileSystem.ActionStatus.#ctor(System.String,System.Boolean)">
+            <summary>
+            Initializes a new <see cref="T:LogUtils.Enums.FileSystem.ActionStatus"/> instance
+            </summary>
+            <param name="value">The <see cref="T:ExtEnum`1"/> value associated with this instance</param>
+            <param name="register">Whether or not this instance should be registered as a unique <see cref="T:ExtEnum`1"/> entry</param>
+        </member>
+        <member name="M:LogUtils.Enums.FileSystem.ActionStatus.#ctor(LogUtils.Enums.FileSystem.FileStatus)">
+            <summary>
+            Initializes a new <see cref="T:LogUtils.Enums.FileSystem.ActionStatus"/> instance
+            </summary>
+            <param name="status">The conversion value that initializes the state</param>
+            <exception cref="T:System.ComponentModel.InvalidEnumArgumentException">Enum value was unrecognized</exception>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ActionStatus.None">
+            <summary>No status</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ActionStatus.AwaitingStatus">
+            <summary>The initial process state</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ActionStatus.Pending">
+            <summary>The initial process state</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ActionStatus.NoActionRequired">
+            <summary>Indicates that no changes were made or required. Action was already completed.</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ActionStatus.ActionRequired">
+            <summary>Indicates that the process is incomplete</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ActionStatus.Aborted">
+            <summary>Indicates that the process has been cancelled</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ActionStatus.Complete">
+            <summary>Indicates that requested action has been completed successfully</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ActionStatus.AlreadyExists">
+            <summary>Indicates that process did not complete due to file, or directory already existing; state is similar to <see cref="F:LogUtils.Enums.FileSystem.ActionStatus.NoActionRequired"/></summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ActionStatus.ValidationFailed">
+            <summary>Indicates that process did not complete due to validation process failure</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.ActionStatus.Error">
+            <summary>Indicates that process did not complete due to an <see cref="T:System.Exception"/> or other error state</summary>
+        </member>
         <member name="M:LogUtils.Enums.FileSystem.ActionType.#ctor(System.String,System.Boolean)">
             <summary>
             Initializes a new <see cref="T:LogUtils.Enums.FileSystem.ActionType"/> instance
@@ -5897,41 +5941,6 @@
             <summary>
             Represents permission flags that apply to a folder
             </summary>
-        </member>
-        <member name="M:LogUtils.Enums.FileSystem.ProcessCompletion.#ctor(System.String,System.Boolean)">
-            <summary>
-            Initializes a new <see cref="T:LogUtils.Enums.FileSystem.ProcessCompletion"/> instance
-            </summary>
-            <param name="value">The <see cref="T:ExtEnum`1"/> value associated with this instance</param>
-            <param name="register">Whether or not this instance should be registered as a unique <see cref="T:ExtEnum`1"/> entry</param>
-        </member>
-        <member name="M:LogUtils.Enums.FileSystem.ProcessCompletion.#ctor(LogUtils.Enums.FileSystem.FileStatus)">
-            <summary>
-            Initializes a new <see cref="T:LogUtils.Enums.FileSystem.ProcessCompletion"/> instance
-            </summary>
-            <param name="status">The conversion value that initializes the state</param>
-            <exception cref="T:System.ComponentModel.InvalidEnumArgumentException">Enum value was unrecognized</exception>
-        </member>
-        <member name="F:LogUtils.Enums.FileSystem.ProcessCompletion.AwaitingStatus">
-            <summary>The initial process state</summary>
-        </member>
-        <member name="F:LogUtils.Enums.FileSystem.ProcessCompletion.NoActionRequired">
-            <summary>Indicates that no changes were made or required. Action was already completed.</summary>
-        </member>
-        <member name="F:LogUtils.Enums.FileSystem.ProcessCompletion.ActionRequired">
-            <summary>Indicates that the process is incomplete</summary>
-        </member>
-        <member name="F:LogUtils.Enums.FileSystem.ProcessCompletion.Complete">
-            <summary>Indicates that requested action has been completed successfully</summary>
-        </member>
-        <member name="F:LogUtils.Enums.FileSystem.ProcessCompletion.AlreadyExists">
-            <summary>Indicates that process did not complete due to file, or directory already existing; state is similar to <see cref="F:LogUtils.Enums.FileSystem.ProcessCompletion.NoActionRequired"/></summary>
-        </member>
-        <member name="F:LogUtils.Enums.FileSystem.ProcessCompletion.ValidationFailed">
-            <summary>Indicates that process did not complete due to validation process failure</summary>
-        </member>
-        <member name="F:LogUtils.Enums.FileSystem.ProcessCompletion.Error">
-            <summary>Indicates that process did not complete due to an <see cref="T:System.Exception"/> or other error state</summary>
         </member>
         <member name="T:LogUtils.Enums.IExtEnumBase">
             <summary>
@@ -6921,6 +6930,41 @@
         <member name="M:LogUtils.Events.LogRequestEventArgs.GetElement">
             <summary>
             Constructs a JollyCoop LogElement struct using stored event data
+            </summary>
+        </member>
+        <member name="E:LogUtils.Events.PathChangeEventPublisher.Event">
+            <summary>
+            Event raised when a path change event occurs
+            </summary>
+        </member>
+        <member name="E:LogUtils.Events.PathChangeEventPublisher.PendingEvent">
+            <summary>
+            Event raised when a path is about to be changed
+            </summary>
+        </member>
+        <member name="E:LogUtils.Events.PathChangeEventPublisher.CompletedEvent">
+            <summary>
+            Event raised when a path change is completed
+            </summary>
+        </member>
+        <member name="E:LogUtils.Events.PathChangeEventPublisher.AbortedEvent">
+            <summary>
+            Event raised when a path change is canceled
+            </summary>
+        </member>
+        <member name="F:LogUtils.Events.PathChangeEventArgs.EventType">
+            <summary>
+            Describes the nature of the path change event
+            </summary>
+        </member>
+        <member name="F:LogUtils.Events.PathChangeEventArgs.NewPath">
+            <summary>
+            The path targeted by the path change event
+            </summary>
+        </member>
+        <member name="F:LogUtils.Events.PathChangeEventArgs.NewFilename">
+            <summary>
+            The filename targeted by the path change event, or <see langword="null"/> if targeted path is not a file path
             </summary>
         </member>
         <member name="F:LogUtils.Events.UtilityEvents.OnNewUpdateSynced">
@@ -10518,19 +10562,9 @@
               Looks up a localized resource of type System.Byte[].
             </summary>
         </member>
-        <member name="E:LogUtils.LogsFolder.OnMovePending">
+        <member name="F:LogUtils.LogsFolder.OnPathChange">
             <summary>
-            Event signals that the log directory is about to be moved, or renamed
-            </summary>
-        </member>
-        <member name="E:LogUtils.LogsFolder.OnMoveAborted">
-            <summary>
-            Event signals that the log directory was unable to be moved, or renamed
-            </summary>
-        </member>
-        <member name="E:LogUtils.LogsFolder.OnMoveComplete">
-            <summary>
-            Event signals that the log directory has successfully been moved, or renamed
+            Event publisher for path change events
             </summary>
         </member>
         <member name="F:LogUtils.LogsFolder.LOGS_FOLDER_NAME">

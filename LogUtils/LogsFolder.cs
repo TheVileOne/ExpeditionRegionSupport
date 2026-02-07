@@ -13,19 +13,30 @@ namespace LogUtils
     public static partial class LogsFolder
     {
         /// <summary>
-        /// Event signals that the log directory is about to be moved, or renamed
+        /// Event publisher for path change events
         /// </summary>
-        public static event Action OnMovePending;
+        public static readonly PathChangeEventPublisher OnPathChange = new PathChangeEventPublisher();
 
-        /// <summary>
-        /// Event signals that the log directory was unable to be moved, or renamed
-        /// </summary>
-        public static event Action OnMoveAborted;
+        [Obsolete]
+        internal static event PathChangeEventHandler OnMovePending
+        {
+            add => OnPathChange.PendingEvent += value;
+            remove => OnPathChange.PendingEvent -= value;
+        }
 
-        /// <summary>
-        /// Event signals that the log directory has successfully been moved, or renamed
-        /// </summary>
-        public static event Action OnMoveComplete;
+        [Obsolete]
+        internal static event PathChangeEventHandler OnMoveAborted
+        {
+            add => OnPathChange.AbortedEvent += value;
+            remove => OnPathChange.AbortedEvent -= value;
+        }
+
+        [Obsolete]
+        internal static event PathChangeEventHandler OnMoveComplete
+        {
+            add => OnPathChange.CompletedEvent += value;
+            remove => OnPathChange.CompletedEvent -= value;
+        }
 
         /// <summary>
         /// The default directory name
@@ -76,6 +87,8 @@ namespace LogUtils
         /// A flag that indicates whether the log directory contains eligible log files
         /// </summary>
         public static bool IsManagingFiles { get; private set; }
+
+        internal static bool ValidatePath(string path) => !DirectoryUtils.ParentExists(path) || PathUtils.ContainsOtherPath(path, CurrentPath);
 
         static LogsFolder()
         {
@@ -376,33 +389,6 @@ namespace LogUtils
             return Path.Combine(logPath, preferredFilename.WithExtension());
         }
 
-        internal static bool TryMove(string newPath)
-        {
-            if (!UtilityCore.IsControllingAssembly || !Exists || !DirectoryUtils.ParentExists(newPath) || PathUtils.ContainsOtherPath(newPath, CurrentPath))
-                return false;
-            try
-            {
-                UtilityLogger.Log("Attempting to move log directory");
-                UtilityLogger.DebugLog("Attempting to move log directory");
-                OnMovePending?.Invoke();
-
-                LogFolderInfo folderInfo = new LogFolderInfo(CurrentPath);
-                folderInfo.Move(newPath, checkPermissions: false); //Enforcing permissions inside Logs folder is unsupported
-
-                UtilityLogger.Log("Move successful");
-                UtilityLogger.DebugLog("Move successful");
-                OnMoveComplete?.Invoke();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                UtilityLogger.DebugLog(ex);
-                UtilityLogger.LogError(ex);
-                OnMoveAborted?.Invoke();
-                return false;
-            }
-        }
-
         /// <summary>
         /// Targets a directory path to contain a logs folder
         /// </summary>
@@ -411,10 +397,8 @@ namespace LogUtils
         {
             path = Path.Combine(path, Name);
 
-            if (!validatePath(path)) return;
-
-            SetPathInternal(path);
-            UtilityLogger.Log("Logs folder path set successfully");
+            if (TryMove(path))
+                UtilityLogger.Log("Logs folder path set successfully");
         }
 
         /// <summary>
@@ -424,23 +408,55 @@ namespace LogUtils
         /// <param name="path">A valid directory path</param>
         public static void SetPath(string path)
         {
-            if (!validatePath(path)) return;
-
-            SetPathInternal(path);
-            UtilityLogger.Log("Logs folder path set successfully");
+            if (TryMove(path))
+                UtilityLogger.Log("Logs folder path set successfully");
         }
 
-        internal static void SetPathInternal(string path)
+        internal static bool TryMove(string newPath)
         {
-            bool didMove = false;
-            if (!Exists || (didMove = TryMove(path))) //Path data must remain the same if the existing directory cannot be moved
-            {
-                ContainingPath = Path.GetDirectoryName(path);
-                Name = Path.GetFileName(path);
-            }
+            bool folderExists = Exists;
+            if (!validatePath(newPath) || !UtilityCore.IsControllingAssembly && folderExists) //Unsure how to properly handle this - should it be presumed that this is synchronous operation across processes?
+                return false;
 
-            if (didMove) //Only record a path history event when the directory is moved, or renamed
-                PathHistory.Update();
+            try
+            {
+                OnPathChange.OnPending(newPath);
+
+                bool shouldAttemptMove = UtilityCore.IsControllingAssembly && folderExists;
+                if (shouldAttemptMove)
+                {
+                    logMessage("Attempting to move Logs folder");
+
+                    LogFolderInfo folderInfo = new LogFolderInfo(CurrentPath);
+                    folderInfo.Move(newPath, checkPermissions: false); //Enforcing permissions inside Logs folder is unsupported
+
+                    ContainingPath = Path.GetDirectoryName(newPath);
+                    Name = Path.GetFileName(newPath);
+
+                    PathHistory.Update(); //A path history event is recorded when the directory is moved, or renamed
+                }
+                else
+                {
+                    ContainingPath = Path.GetDirectoryName(newPath);
+                    Name = Path.GetFileName(newPath);
+                }
+                OnPathChange.OnCompleted(newPath);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                UtilityLogger.DebugLog(ex);
+                UtilityLogger.LogError(ex);
+
+                OnPathChange.OnAbort(newPath);
+            }
+            return false;
+
+            void logMessage(string message)
+            {
+                UtilityLogger.DebugLog(message);
+                UtilityLogger.Log(message);
+            }
         }
 
         private static bool validatePath(string path)
@@ -463,6 +479,12 @@ namespace LogUtils
             if (PathUtils.ContainsOtherPath(path, CurrentPath))
             {
                 UtilityLogger.LogWarning("Unable to set Logs folder path. Path is a parent of the current path.");
+                return false;
+            }
+
+            if (!DirectoryUtils.ParentExists(path))
+            {
+                UtilityLogger.LogWarning("Unable to set Logs folder path. Part of the path cannot be found.");
                 return false;
             }
             return true;

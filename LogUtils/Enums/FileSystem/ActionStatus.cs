@@ -3,36 +3,36 @@ using System.ComponentModel;
 
 namespace LogUtils.Enums.FileSystem
 {
-    public class ProcessCompletion : ExtEnum<ProcessCompletion>
+    public class ActionStatus : ExtEnum<ActionStatus>
     {
         /// <summary>
-        /// Initializes a new <see cref="ProcessCompletion"/> instance
+        /// Initializes a new <see cref="ActionStatus"/> instance
         /// </summary>
         /// <param name="value">The <see cref="ExtEnum{T}"/> value associated with this instance</param>
         /// <param name="register">Whether or not this instance should be registered as a unique <see cref="ExtEnum{T}"/> entry</param>
-        public ProcessCompletion(string value, bool register = false) : base(value, register)
+        public ActionStatus(string value, bool register = false) : base(value, register)
         {
         }
 
         /// <summary>
-        /// Initializes a new <see cref="ProcessCompletion"/> instance
+        /// Initializes a new <see cref="ActionStatus"/> instance
         /// </summary>
         /// <param name="status">The conversion value that initializes the state</param>
         /// <exception cref="InvalidEnumArgumentException">Enum value was unrecognized</exception>
-        public ProcessCompletion(FileStatus status) : this(ConvertValue(status))
+        public ActionStatus(FileStatus status) : this(ConvertValue(status))
         {
         }
 
-        private ProcessCompletion(ProcessCompletion status) : base(status.value, status.index != -1)
+        private ActionStatus(ActionStatus status) : base(status.value, status.index != -1)
         {
         }
 
-        static ProcessCompletion()
+        static ActionStatus()
         {
             InitializeEnums();
         }
 
-        internal static ProcessCompletion ConvertValue(FileStatus status)
+        internal static ActionStatus ConvertValue(FileStatus status)
         {
             return status switch
             {
@@ -51,28 +51,36 @@ namespace LogUtils.Enums.FileSystem
         internal static void InitializeEnums()
         {
             //Order mirrors FileAction enum
-            AwaitingStatus = new ProcessCompletion("AwaitingStatus", true);
-            NoActionRequired = new ProcessCompletion("NoActionRequired", true);
-            ActionRequired = new ProcessCompletion("ActionRequired", true);
-            Complete = new ProcessCompletion("Complete", true);
-            AlreadyExists = new ProcessCompletion("AlreadyExists", true);
-            ValidationFailed = new ProcessCompletion("ValidationFailed", true);
-            Error = new ProcessCompletion("Error", true);
+            None = new ActionStatus("None", true);
+            AwaitingStatus = new ActionStatus("AwaitingStatus", true);
+            NoActionRequired = new ActionStatus("NoActionRequired", true);
+            ActionRequired = new ActionStatus("ActionRequired", true);
+            Aborted = new ActionStatus("Aborted", true);
+            Complete = new ActionStatus("Complete", true);
+            AlreadyExists = new ActionStatus("AlreadyExists", true);
+            ValidationFailed = new ActionStatus("ValidationFailed", true);
+            Error = new ActionStatus("Error", true);
+
+            Pending = AwaitingStatus; //Alias
         }
 
+        /// <summary>No status</summary>
+        public static ActionStatus None;
         /// <summary>The initial process state</summary>
-        public static ProcessCompletion AwaitingStatus;
+        public static ActionStatus AwaitingStatus, Pending;
         /// <summary>Indicates that no changes were made or required. Action was already completed.</summary>
-        public static ProcessCompletion NoActionRequired;
+        public static ActionStatus NoActionRequired;
         /// <summary>Indicates that the process is incomplete</summary>
-        public static ProcessCompletion ActionRequired;
+        public static ActionStatus ActionRequired;
+        /// <summary>Indicates that the process has been cancelled</summary>
+        public static ActionStatus Aborted;
         /// <summary>Indicates that requested action has been completed successfully</summary>
-        public static ProcessCompletion Complete;
+        public static ActionStatus Complete;
         /// <summary>Indicates that process did not complete due to file, or directory already existing; state is similar to <see cref="NoActionRequired"/></summary>
-        public static ProcessCompletion AlreadyExists;
+        public static ActionStatus AlreadyExists;
         /// <summary>Indicates that process did not complete due to validation process failure</summary>
-        public static ProcessCompletion ValidationFailed;
+        public static ActionStatus ValidationFailed;
         /// <summary>Indicates that process did not complete due to an <see cref="Exception"/> or other error state</summary>
-        public static ProcessCompletion Error;
+        public static ActionStatus Error;
     }
 }
