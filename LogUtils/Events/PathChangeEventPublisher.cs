@@ -4,7 +4,6 @@ namespace LogUtils.Events
 {
     public sealed class PathChangeEventPublisher
     {
-        private bool hasThrownFirstEvent;
         private PathChangeEventHandler _changeHandler,
                                        _pendingHandler,
                                        _completedHandler,
@@ -52,28 +51,14 @@ namespace LogUtils.Events
 
         internal void OnPending(string newPath, string newFilename = null)
         {
-            if (hasThrownFirstEvent) return; //Check permits multiple attempts to raise this event
+            var eventArgs = new PathChangeEventArgs(ActionStatus.Pending, newPath, newFilename);
 
-            try
-            {
-                var eventArgs = new PathChangeEventArgs(ActionStatus.Pending, newPath, newFilename);
-
-                OnChangeEvent(eventArgs);
-                _pendingHandler?.Invoke(eventArgs);
-            }
-            finally
-            {
-                hasThrownFirstEvent = true;
-            }
+            OnChangeEvent(eventArgs);
+            _pendingHandler?.Invoke(eventArgs);
         }
 
         internal void OnCompleted(string newPath, string newFilename = null)
         {
-            if (!hasThrownFirstEvent) //Ideally this should never happen
-            {
-                UtilityLogger.LogWarning("Path change event invocation was unexpected");
-                return;
-            }
             var eventArgs = new PathChangeEventArgs(ActionStatus.Complete, newPath, newFilename);
 
             OnChangeEvent(eventArgs);
@@ -82,20 +67,10 @@ namespace LogUtils.Events
 
         internal void OnAbort(string newPath, string newFilename = null)
         {
-            if (!hasThrownFirstEvent) //Ideally this should never happen
-            {
-                UtilityLogger.LogWarning("Path change event invocation was unexpected");
-                return;
-            }
             var eventArgs = new PathChangeEventArgs(ActionStatus.Aborted, newPath, newFilename);
 
             OnChangeEvent(eventArgs);
             _abortedHandler?.Invoke(eventArgs);
-        }
-
-        internal void Reset()
-        {
-            hasThrownFirstEvent = false;
         }
     }
 
