@@ -356,7 +356,7 @@
         </member>
         <member name="M:LogUtils.Compatibility.BepInEx.BepInExAdapter.CleanBepInExFolder">
             <summary>
-            Detects, and removes log file copies in the original BepInEx logs folder directory
+            Detects, and removes log file copies in the original BepInEx log folder directory
             </summary>
         </member>
         <member name="M:LogUtils.Compatibility.BepInEx.BepInExAdapter.RetroactivelyApplyRules(System.String)">
@@ -2524,7 +2524,7 @@
             Gets a valid stream writer instance
             </summary>
         </member>
-        <member name="M:LogUtils.Console.ConsoleLogWriter.SendToBuffer(LogUtils.Events.LogRequestEventArgs)">
+        <member name="M:LogUtils.Console.ConsoleLogWriter.SendToBuffer(LogUtils.Events.LogRequestEventArgs,LogUtils.Enums.BufferContext)">
             <inheritdoc/>
             <exception cref="T:System.NotImplementedException"></exception>
         </member>
@@ -4477,7 +4477,7 @@
         </member>
         <member name="M:LogUtils.Diagnostics.Tests.Utility.LogsFolderTests.TestMoveAndRestore">
             <summary>
-            Moves eligible files to Logs folder and moves them back to their original location 
+            Moves eligible files to the current log directory and moves them back to their original location 
             </summary>
         </member>
         <member name="M:LogUtils.Diagnostics.Tests.Utility.StressTests.TestThreadSafeWorker">
@@ -9988,6 +9988,16 @@
             Contains messages that have passed all validation checks, and are waiting to be written to file
             </summary>
         </member>
+        <member name="F:LogUtils.Properties.LogProperties.WriteBufferTask">
+            <summary>
+            A <see cref="T:LogUtils.Threading.Task"/> instance responsible for attempting to write buffered messages to file 
+            </summary>
+        </member>
+        <member name="F:LogUtils.Properties.LogProperties.AccumulatedWaitTime">
+            <summary>
+            The accumulated time a log file has been waiting to write to file 
+            </summary>
+        </member>
         <member name="F:LogUtils.Properties.LogProperties.AccessPeriod">
             <summary>
             The earliest period that the log file may start a new log session through a log event
@@ -10052,12 +10062,12 @@
         </member>
         <member name="P:LogUtils.Properties.LogProperties.LogsFolderAware">
             <summary>
-            When the log file properties are first initialized, the log file can have its path changed to target the Logs folder if it exists, disabled by default
+            When the log file properties are first initialized, the log file can have its path changed to target the current log directory if it exists, disabled by default
             </summary>
         </member>
         <member name="P:LogUtils.Properties.LogProperties.LogsFolderEligible">
             <summary>
-            A property that informs the utility that the log file should not use the Logs folder
+            A property that informs the utility that the log file should not use the current log directory
             </summary>
         </member>
         <member name="F:LogUtils.Properties.LogProperties.Tags">
@@ -10597,7 +10607,7 @@
             Checks that log directory exists at its currently set path
             </summary>
         </member>
-        <member name="M:LogUtils.LogsFolder.Contains(System.String)">
+        <member name="M:LogUtils.LogsFolder.ContainsPath(System.String)">
             <summary>
             Checks that the current path is located somewhere inside the current log directory path
             </summary>
@@ -10654,23 +10664,23 @@
         </member>
         <member name="M:LogUtils.LogsFolder.AddToFolder(LogUtils.Properties.LogProperties)">
             <summary>
-            Transfers log files, and folders associated with the properties instance to the Logs folder
+            Transfers log files, and folders associated with the properties instance to the current log directory
             </summary>
         </member>
         <member name="M:LogUtils.LogsFolder.RemoveFromFolder(LogUtils.Properties.LogProperties)">
             <summary>
-            Transfers a log file from the Logs folder (when it exists)
+            Transfers a log file from the current log directory (when it exists)
             </summary>
         </member>
         <member name="M:LogUtils.LogsFolder.SetContainingPath(System.String)">
             <summary>
-            Targets a directory path to contain a logs folder
+            Targets a directory path to contain the current log directory
             </summary>
             <param name="path">A valid directory path</param>
         </member>
         <member name="M:LogUtils.LogsFolder.SetPath(System.String)">
             <summary>
-            Targets a directory path to become the new logs folder
+            Targets a directory path to become the new current log directory
             </summary>
             <remarks>DO NOT set to any directory you don't want moved around</remarks>
             <param name="path">A valid directory path</param>
@@ -10682,7 +10692,7 @@
         </member>
         <member name="T:LogUtils.LogsFolder.PathResult">
             <summary>
-            The result of a Logs folder path search
+            The result of a log directory path search
             </summary>
         </member>
         <member name="F:LogUtils.LogsFolder.PathResult.Target">
@@ -10697,17 +10707,17 @@
         </member>
         <member name="F:LogUtils.LogsFolder.Processor">
             <summary>
-            Manages subfolders and their associated log groups within the log directory
+            Manages subfolders and their associated log groups within the current log directory
             </summary>
         </member>
         <member name="M:LogUtils.LogsFolder.AddGroupsToFolder">
             <summary>
-            Attempts to move eligible log groups to Logs folder
+            Attempts to move eligible log groups to the current log directory
             </summary>
         </member>
         <member name="M:LogUtils.LogsFolder.tryAddFolderGroupFirstPass(LogUtils.Properties.LogGroupProperties)">
             <summary>
-            This method is only responsible with moving the existing group folder to the Logs folder directory, or a subfolder within it
+            This method is only responsible with moving the existing group folder to the current log directory, or a subfolder within it
             </summary>
         </member>
         <member name="M:LogUtils.LogsFolder.FolderProcessor.GroupTopLevelEntries">
@@ -10750,7 +10760,7 @@
             Processes a write request
             </summary>
         </member>
-        <member name="M:LogUtils.LogWriter.WriteFromBuffer(LogUtils.Enums.LogID,System.TimeSpan,System.Boolean)">
+        <member name="M:LogUtils.LogWriter.WriteFromBuffer(LogUtils.Enums.LogID,System.TimeSpan,System.Boolean,LogUtils.Enums.BufferContext)">
             <inheritdoc cref="M:LogUtils.IBufferHandler.WriteFromBuffer(LogUtils.Enums.LogID,System.TimeSpan,System.Boolean)"/>
             <returns>A handle to the scheduled write task</returns>
         </member>
@@ -10772,7 +10782,7 @@
         <member name="M:LogUtils.LogWriter.ApplyRules(LogUtils.Events.LogRequestEventArgs)">
             <inheritdoc/>
         </member>
-        <member name="M:LogUtils.LogWriter.SendToBuffer(LogUtils.Events.LogRequestEventArgs)">
+        <member name="M:LogUtils.LogWriter.SendToBuffer(LogUtils.Events.LogRequestEventArgs,LogUtils.Enums.BufferContext)">
             <inheritdoc/>
         </member>
         <member name="M:LogUtils.ILogWriter.ApplyRules(LogUtils.Events.LogRequestEventArgs)">
@@ -10785,7 +10795,7 @@
             Provides a procedure for writing a message to file
             </summary>
         </member>
-        <member name="M:LogUtils.IBufferHandler.SendToBuffer(LogUtils.Events.LogRequestEventArgs)">
+        <member name="M:LogUtils.IBufferHandler.SendToBuffer(LogUtils.Events.LogRequestEventArgs,LogUtils.Enums.BufferContext)">
             <summary>
             Provides a procedure for adding a message to the WriteBuffer
             </summary>
