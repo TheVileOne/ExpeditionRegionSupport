@@ -123,24 +123,7 @@ namespace LogUtils
                         {
                             if (!writeBuffer.IsEntered(BufferContext.HighVolume))
                             {
-                                writeBuffer.SetState(true, BufferContext.HighVolume);
-
-                                PollingTimer listener = writeBuffer.ActivityListeners.FirstOrDefault(l => Equals(l.Tag, BufferContext.HighVolume));
-
-                                if (listener == null)
-                                {
-                                    listener = writeBuffer.PollForActivity(null, (t, e) =>
-                                    {
-                                        //TODO: This will run on a different thread. It needs to be thread-safe
-                                        //Ensure that buffer will disable itself after a short period of time without needing extra log requests to clear the buffer
-                                        if (writeBuffer.SetState(false, BufferContext.HighVolume))
-                                        {
-                                            profiler.Restart();
-                                            WriteFromBuffer(request.Data.ID, TimeSpan.Zero);
-                                        }
-                                    }, initialWaitInterval);
-                                    listener.Tag = BufferContext.HighVolume;
-                                }
+                                ApplyBufferContext(request.Data.ID, BufferContext.HighVolume);
                                 UtilityLogger.DebugLog($"Activity listeners {writeBuffer.ActivityListeners.Count}");
                             }
                             profiler.BufferedFrameCount++;
@@ -182,6 +165,31 @@ namespace LogUtils
         void IBufferHandler.WriteFromBuffer(LogID logFile, TimeSpan waitTime, bool respectBufferState)
         {
             WriteFromBuffer(logFile, waitTime, respectBufferState);
+        }
+
+        protected void ApplyBufferContext(LogID logFile, BufferContext context)
+        {
+            LogProfiler profiler = logFile.Properties.Profiler;
+            MessageBuffer writeBuffer = logFile.Properties.WriteBuffer;
+
+            writeBuffer.SetState(true, context);
+
+            PollingTimer listener = writeBuffer.ActivityListeners.FirstOrDefault(l => Equals(l.Tag, context));
+
+            if (listener == null)
+            {
+                //TODO: This will run on a different thread. It needs to be thread-safe
+                listener = writeBuffer.PollForActivity(null, (t, e) =>
+                {
+                    //Ensure that buffer will disable itself after a short period of time without needing extra log requests to clear the buffer
+                    if (writeBuffer.SetState(false, context))
+                    {
+                        profiler.Restart();
+                        WriteFromBuffer(logFile, TimeSpan.Zero);
+                    }
+                }, initialWaitInterval);
+                listener.Tag = context;
+            }
         }
 
         /// <inheritdoc cref="IBufferHandler.WriteFromBuffer(LogID, TimeSpan, bool)"/>
