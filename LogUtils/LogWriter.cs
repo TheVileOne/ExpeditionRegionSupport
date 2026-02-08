@@ -143,7 +143,7 @@ namespace LogUtils
                 else
                 {
                     //Buffer should be handled immediately, while Rain World is shutting down
-                    WriteFromBuffer(request.Data.ID, TimeSpan.Zero, context: null, respectBufferState: false);
+                    WriteFromBuffer(request.Data.ID, TimeSpan.Zero, respectBufferState: false);
                 }
 
                 WriteHandler.Invoke(request);
@@ -164,7 +164,7 @@ namespace LogUtils
 
         void IBufferHandler.WriteFromBuffer(LogID logFile, TimeSpan waitTime, bool respectBufferState)
         {
-            WriteFromBuffer(logFile, waitTime, context: null, respectBufferState);
+            WriteFromBuffer(logFile, waitTime, respectBufferState);
         }
 
         protected void ApplyBufferContext(LogID logFile, BufferContext context)
@@ -185,7 +185,7 @@ namespace LogUtils
                     if (writeBuffer.SetState(false, context))
                     {
                         profiler.Restart();
-                        WriteFromBuffer(logFile, TimeSpan.Zero, context);
+                        WriteFromBuffer(logFile, TimeSpan.Zero, respectBufferState: true, context);
                     }
                 }, initialWaitInterval);
                 listener.Tag = context;
@@ -194,7 +194,7 @@ namespace LogUtils
 
         /// <inheritdoc cref="IBufferHandler.WriteFromBuffer(LogID, TimeSpan, bool)"/>
         /// <returns>A handle to the scheduled write task</returns>
-        public Task WriteFromBuffer(LogID logFile, TimeSpan waitTime, BufferContext context, bool respectBufferState = true)
+        public Task WriteFromBuffer(LogID logFile, TimeSpan waitTime, bool respectBufferState = true, BufferContext context = null)
         {
             if (!UtilityCore.IsControllingAssembly)
                 return null;
@@ -279,6 +279,9 @@ namespace LogUtils
                     if (result != ProcessResult.Success)
                         return false;
 
+                    if (logFile == LogID.Expedition)
+                        return false;
+
                     writer.WriteLine(writeBuffer);
                     writeBuffer.Clear();
                     return true;
@@ -359,6 +362,9 @@ namespace LogUtils
                 if (canReceiveMessage)
                 {
                     OnLogMessageReceived(request.Data);
+
+                    if (logFile == LogID.Expedition)
+                        streamResult = ProcessResult.FailedToCreate;
 
                     if (streamResult != ProcessResult.Success)
                         throw new IOException("Unable to create stream");
