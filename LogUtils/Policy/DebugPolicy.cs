@@ -102,10 +102,10 @@ namespace LogUtils.Policy
                     new ConfigDescription("Enables development build."));
                 ShowDebugLog = config.Bind(
                     new ConfigDefinition(ConfigCategory.Debug, PolicyNames.Debug.ShowDebugLog), defaultValue: false,
-                    new ConfigDescription("Activates LogUtils debugging log file. (This file shows additional log information often too sensitive to be handled through a typical log file)."));
+                    new ConfigDescription("Activates LogUtils debugging log file. (This file shows additional log information often too sensitive to be handled through a typical log file). [DEBUG MODE ONLY]"));
                 ShowActivityLog = config.Bind(
                     new ConfigDefinition(ConfigCategory.Debug, PolicyNames.Debug.ShowActivityLog), defaultValue: false,
-                    new ConfigDescription("Activates LogUtils logging activity log file. (This file shows a record of log file operations)."));
+                    new ConfigDescription("Activates LogUtils logging activity log file. (This file shows a record of log file operations). [DEBUG MODE ONLY]"));
                 AssertsEnabled = config.Bind(
                     new ConfigDefinition(ConfigCategory.Asserts, PolicyNames.Testing.AssertsEnabled), defaultValue: true,
                     new ConfigDescription("Affects whether test cases apply, or LogUtils based assert statements have an effect."));
