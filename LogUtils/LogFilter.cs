@@ -22,7 +22,7 @@ namespace LogUtils
             if (!FilteredStrings.TryGetValue(logID, out List<FilteredStringEntry> filter)) //Ensure list is created
                 filter = FilteredStrings[logID] = new List<FilteredStringEntry>();
 
-            if (logID == LogID.Expedition)
+            if (logID == LogID.Expedition && !entry.IsRegex)
                 ExpLog.onceText.Add(entry.Value); //No longer used, but keep it updated for legacy purposes
 
             filter.Add(entry);
