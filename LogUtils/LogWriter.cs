@@ -224,9 +224,6 @@ namespace LogUtils
                 waitTime = initialWaitInterval;
             }
 
-            if (context != null)
-                writeBuffer.SetState(true, context);
-
             writeTask = new Task(() =>
             {
                 bool hasContext = context != null;
