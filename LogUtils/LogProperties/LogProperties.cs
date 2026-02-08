@@ -156,6 +156,11 @@ namespace LogUtils.Properties
         /// </summary>
         public Task WriteBufferTask;
 
+        /// <summary>
+        /// The accumulated time a log file has been waiting to write to file 
+        /// </summary>
+        public TimeSpan AccumulatedWaitTime = TimeSpan.Zero;
+
         #region Properties
         /// <summary>
         /// The earliest period that the log file may start a new log session through a log event

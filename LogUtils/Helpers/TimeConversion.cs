@@ -18,5 +18,19 @@ namespace LogUtils.Helpers
         {
             return new TimeSpan((long)(span.Ticks / amount));
         }
+
+        public static TimeSpan Max(TimeSpan span, TimeSpan spanOther)
+        {
+            if (span >= spanOther)
+                return span;
+            return spanOther;
+        }
+
+        public static TimeSpan Min(TimeSpan span, TimeSpan spanOther)
+        {
+            if (span <= spanOther)
+                return span;
+            return spanOther;
+        }
     }
 }

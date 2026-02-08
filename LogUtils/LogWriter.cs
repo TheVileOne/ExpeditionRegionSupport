@@ -161,6 +161,7 @@ namespace LogUtils
 
         private static readonly TimeSpan initialWaitInterval = TimeSpan.FromMilliseconds(25);
         private static readonly TimeSpan maxWaitInterval = TimeSpan.FromSeconds(5);
+        private static readonly TimeSpan maxAllowedWaitTime = TimeSpan.FromSeconds(30);
 
         void IBufferHandler.WriteFromBuffer(LogID logFile, TimeSpan waitTime, bool respectBufferState)
         {
@@ -181,6 +182,8 @@ namespace LogUtils
                 //TODO: This will run on a different thread. It needs to be thread-safe
                 listener = writeBuffer.PollForActivity(null, (t, e) =>
                 {
+                    logFile.Properties.AccumulatedWaitTime += initialWaitInterval;
+
                     //Ensure that buffer will disable itself after a short period of time without needing extra log requests to clear the buffer
                     if (writeBuffer.SetState(false, context))
                     {
@@ -226,14 +229,26 @@ namespace LogUtils
 
             writeTask = new Task(() =>
             {
+                logFile.Properties.AccumulatedWaitTime = TimeConversion.Min(logFile.Properties.AccumulatedWaitTime + writeTask.WaitTimeInterval, maxAllowedWaitTime);
+
                 bool hasContext = context != null;
                 if (hasContext)
                     writeBuffer.SetState(false, context);
 
                 bool taskCompleted = (!respectBufferState || !writeBuffer.IsBuffering) && tryWrite();
 
-                if (taskCompleted)
+                if (taskCompleted || logFile.Properties.AccumulatedWaitTime == maxAllowedWaitTime)
+                {
+                    UtilityLogger.DebugLog($"Buffer period took {logFile.Properties.AccumulatedWaitTime.TotalMilliseconds} milliseconds");
+                    if (!taskCompleted)
+                    {
+                        UtilityLogger.LogWarning("Maximum buffer period reached. Unable to log buffer.");
+                        writeBuffer.Clear();
+                    }
+
+                    logFile.Properties.AccumulatedWaitTime = TimeSpan.Zero;
                     writeTask.IsContinuous = false;
+                }
                 else
                 {
                     if (hasContext)
