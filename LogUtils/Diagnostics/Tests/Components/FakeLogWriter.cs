@@ -23,7 +23,7 @@ namespace LogUtils.Diagnostics.Tests.Components
             ReceivedRequests.Add((LogRequest)request.Clone());
         }
 
-        void IBufferHandler.SendToBuffer(LogRequestEventArgs messageData)
+        void IBufferHandler.SendToBuffer(LogRequestEventArgs messageData, BufferContext context)
         {
             //Does nothing
         }

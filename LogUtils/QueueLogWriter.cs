@@ -132,7 +132,7 @@ namespace LogUtils
                         writer.Close();
 
                     if (errorHandled)
-                        SendToBuffer(logEntry);
+                        SendToBuffer(logEntry, BufferContext.WriteFailure);
 
                     fileLock.Release();
                 }

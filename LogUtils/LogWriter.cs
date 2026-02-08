@@ -384,7 +384,7 @@ namespace LogUtils
                     request.Reject(RejectionReason.FailedToWrite);
 
                 if (request.UnhandledReason == RejectionReason.FailedToWrite)
-                    SendToBuffer(request.Data);
+                    SendToBuffer(request.Data, BufferContext.WriteFailure);
 
                 fileLock.Release();
             }
@@ -454,7 +454,7 @@ namespace LogUtils
         }
 
         /// <inheritdoc/>
-        public void SendToBuffer(LogRequestEventArgs messageData)
+        public void SendToBuffer(LogRequestEventArgs messageData, BufferContext context = null)
         {
             LogID logFile = messageData.ID;
 
@@ -469,8 +469,20 @@ namespace LogUtils
                 //Keep this inside a lock, we want to ensure that it remains in sync with the MessagesHandled count, which is used for this process
                 string message = ApplyRules(messageData);
 
-                logFile.Properties.WriteBuffer.AppendLine(message);
+                MessageBuffer writeBuffer = messageData.Properties.WriteBuffer;
+
+                writeBuffer.AppendLine(message);
                 logFile.Properties.MessagesHandledThisSession++;
+
+                if (context != null)
+                {
+                    //Disallow writing to file for some time to minimize user impact from an IO issue.
+                    //Worst case, writing to this file will not be possible.
+                    if (!writeBuffer.IsBuffering || !writeBuffer.IsEntered(BufferContext.WriteFailure))
+                    {
+                        ApplyBufferContext(messageData.ID, BufferContext.WriteFailure);
+                    }
+                }
             }
         }
 
@@ -539,7 +551,7 @@ namespace LogUtils
         /// Provides a procedure for adding a message to the WriteBuffer
         /// </summary>
         /// <remarks>Bypasses the log request system - intended to be used as a fallback message handling process</remarks>
-        void SendToBuffer(LogRequestEventArgs messageData);
+        void SendToBuffer(LogRequestEventArgs messageData, BufferContext context = null);
 
         /// <summary>
         /// Attempts to write content from the message buffer to file after a specified amount of time

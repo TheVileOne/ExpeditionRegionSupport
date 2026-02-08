@@ -85,7 +85,7 @@ namespace LogUtils.Console
 
         /// <inheritdoc/>
         /// <exception cref="NotImplementedException"></exception>
-        public void SendToBuffer(LogRequestEventArgs messageData)
+        public void SendToBuffer(LogRequestEventArgs messageData, BufferContext context = null)
         {
             throw new NotImplementedException();
         }
