@@ -136,7 +136,7 @@ namespace LogUtils
                                         if (writeBuffer.SetState(false, BufferContext.HighVolume))
                                         {
                                             profiler.Restart();
-                                            WriteFromBuffer(request.Data.ID, initialWaitInterval);
+                                            WriteFromBuffer(request.Data.ID, TimeSpan.Zero);
                                         }
                                     }, initialWaitInterval);
                                     listener.Tag = BufferContext.HighVolume;
