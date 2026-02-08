@@ -151,6 +151,11 @@ namespace LogUtils.Properties
         /// </summary>
         public MessageBuffer WriteBuffer = new MessageBuffer();
 
+        /// <summary>
+        /// A <see cref="Task"/> instance responsible for attempting to write buffered messages to file 
+        /// </summary>
+        public Task WriteBufferTask;
+
         #region Properties
         /// <summary>
         /// The earliest period that the log file may start a new log session through a log event

@@ -143,7 +143,7 @@ namespace LogUtils
                 else
                 {
                     //Buffer should be handled immediately, while Rain World is shutting down
-                    WriteFromBuffer(request.Data.ID, TimeSpan.Zero, respectBufferState: false);
+                    WriteFromBuffer(request.Data.ID, TimeSpan.Zero, context: null, respectBufferState: false);
                 }
 
                 WriteHandler.Invoke(request);
@@ -164,7 +164,7 @@ namespace LogUtils
 
         void IBufferHandler.WriteFromBuffer(LogID logFile, TimeSpan waitTime, bool respectBufferState)
         {
-            WriteFromBuffer(logFile, waitTime, respectBufferState);
+            WriteFromBuffer(logFile, waitTime, context: null, respectBufferState);
         }
 
         protected void ApplyBufferContext(LogID logFile, BufferContext context)
@@ -185,7 +185,7 @@ namespace LogUtils
                     if (writeBuffer.SetState(false, context))
                     {
                         profiler.Restart();
-                        WriteFromBuffer(logFile, TimeSpan.Zero);
+                        WriteFromBuffer(logFile, TimeSpan.Zero, context);
                     }
                 }, initialWaitInterval);
                 listener.Tag = context;
@@ -194,40 +194,61 @@ namespace LogUtils
 
         /// <inheritdoc cref="IBufferHandler.WriteFromBuffer(LogID, TimeSpan, bool)"/>
         /// <returns>A handle to the scheduled write task</returns>
-        public Task WriteFromBuffer(LogID logFile, TimeSpan waitTime, bool respectBufferState = true)
+        public Task WriteFromBuffer(LogID logFile, TimeSpan waitTime, BufferContext context, bool respectBufferState = true)
         {
             if (!UtilityCore.IsControllingAssembly)
                 return null;
 
             MessageBuffer writeBuffer = logFile.Properties.WriteBuffer;
-            FileLock fileLock = logFile.Properties.FileLock;
+            Task writeTask = logFile.Properties.WriteBufferTask;
 
-            //TODO: Determine if this should always run through a Task
+            bool isWriteTaskInvocation = writeTask != null && writeTask.IsRunning;
+
+            //The buffer context state cannot be trusted here. The context had to be released before this method was called. 
+            if (respectBufferState && isWriteTaskInvocation)
+            {
+                UtilityLogger.Log("Write task is already active");
+                return writeTask;
+            }
+
+            FileLock fileLock = logFile.Properties.FileLock;
             if (waitTime <= TimeSpan.Zero)
             {
                 //Write implementation will ignore this field - make sure we want that to happen
                 if ((!respectBufferState || !writeBuffer.IsBuffering) && tryWrite())
+                {
+                    if (isWriteTaskInvocation)
+                        logFile.Properties.WriteBufferTask = null; //Not thread safe
                     return null;
-
+                }
                 waitTime = initialWaitInterval;
             }
 
-            Task writeTask = null;
+            if (context != null)
+                writeBuffer.SetState(true, context);
 
             writeTask = new Task(() =>
             {
+                bool hasContext = context != null;
+                if (hasContext)
+                    writeBuffer.SetState(false, context);
+
                 bool taskCompleted = (!respectBufferState || !writeBuffer.IsBuffering) && tryWrite();
 
                 if (taskCompleted)
                     writeTask.IsContinuous = false;
                 else
                 {
+                    if (hasContext)
+                        writeBuffer.SetState(true, context);
+
                     //Each failed attempt doubles the wait time for the next attempt up to a maximum of 5 seconds
                     TimeSpan waitInterval = writeTask.WaitTimeInterval.MultiplyBy(2);
 
                     if (waitInterval > maxWaitInterval)
                         waitInterval = maxWaitInterval;
                     writeTask.WaitTimeInterval = waitInterval;
+                    //UtilityLogger.DebugLog("WAIT TIME: " + writeTask.WaitTimeInterval.TotalMilliseconds);
                 }
 
             }, waitTime);
@@ -235,6 +256,9 @@ namespace LogUtils
             writeTask.IsContinuous = true;
 
             LogTasker.Schedule(writeTask);
+
+            if (respectBufferState) //Original write task is replaced when writing from buffer is not forced
+                logFile.Properties.WriteBufferTask = writeTask;
             return writeTask;
 
             bool tryWrite()
