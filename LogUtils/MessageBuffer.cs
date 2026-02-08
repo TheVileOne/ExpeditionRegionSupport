@@ -60,6 +60,9 @@ namespace LogUtils
 
         public void EnterContext(BufferContext context)
         {
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
             //UtilityLogger.DebugLog($"Entering context: {context}");
             Scopes.Add(context);
             Signal();
@@ -67,6 +70,9 @@ namespace LogUtils
 
         public void LeaveContext(BufferContext context)
         {
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
             //UtilityLogger.DebugLog($"Leaving context: {context}");
             Scopes.Remove(context);
             Signal();
