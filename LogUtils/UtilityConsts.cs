@@ -311,6 +311,15 @@ namespace LogUtils
             /// <remarks>Caution: Data may be incomplete, or contain invalid characters.</remarks>
             public const string DESTINATION_PATH = "DestinationPath";
         }
+
+        public static class DialogOption
+        {
+            public const string OKAY = "OK";
+            public const string ACCEPT = "ACCEPT";
+            public const string FOLDER_MOVE = "FOLDER_MOVE";
+            public const string FILE_MOVE = "FILE_MOVE";
+            public const string PATH_CHANGE = "PATH_CHANGE";
+        }
     }
 }
 #pragma warning restore CS1591 //Missing XML comment for publicly visible type or member

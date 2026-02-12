@@ -3,6 +3,7 @@ using LogUtils.Helpers;
 using Menu;
 using System;
 using UnityEngine;
+using DialogOption = LogUtils.UtilityConsts.DialogOption;
 
 namespace LogUtils
 {
@@ -14,8 +15,8 @@ namespace LogUtils
 
         private static ProcessManager currentProcess => RainWorldInfo.RainWorld.processManager;
 
-        private LogGroupID groupID;
-        private string destinationPath;
+        private readonly LogGroupID groupID;
+        private readonly string destinationPath;
 
         private RadioButtonGroup dialogOptions;
 
@@ -33,7 +34,7 @@ namespace LogUtils
             addOptions(ref currentPosition);
 
             currentPosition.y += PADDING;
-            SimpleButton acceptButton = new SimpleButton(this, dialogPage, Translate("Accept"), "ACCEPT",  currentPosition, new Vector2(110f, 30f));
+            SimpleButton acceptButton = new SimpleButton(this, dialogPage, Translate("Accept"), DialogOption.ACCEPT,  currentPosition, new Vector2(110f, 30f));
             dialogPage.subObjects.Add(acceptButton);
         }
 
@@ -64,11 +65,11 @@ namespace LogUtils
             dialogOptions = new RadioButtonGroup(this, dialogPage, position);
 
             //In all of these cases, the user path will be chosen as the new log group path even in the case the files/folders don't make it to the new path
-            dialogOptions.AddOption(textWidth: 80f, "Move entire group folder", "FOLDER_MOVE");
-            dialogOptions.AddOption(textWidth: 80f, "Move group files only", "FILE_MOVE");
-            dialogOptions.AddOption(textWidth: 80f, "Change group path only", "CHANGE_PATH");
+            dialogOptions.AddOption(textWidth: 80f, Translate("Move entire group folder"), DialogOption.FOLDER_MOVE);
+            dialogOptions.AddOption(textWidth: 80f, Translate("Move group files only"), DialogOption.FILE_MOVE);
+            dialogOptions.AddOption(textWidth: 80f, Translate("Change group path only"), DialogOption.PATH_CHANGE);
 
-            dialogOptions.SetInitial("FOLDER_MOVE");
+            dialogOptions.SetInitial(DialogOption.FOLDER_MOVE);
             dialogPage.subObjects.Add(dialogOptions);
         }
 
@@ -79,7 +80,7 @@ namespace LogUtils
         /// <param name="message">Case-sensitive identifier</param>
         public override void Singal(MenuObject sender, string message)
         {
-            if (message == "OK" || message == "ACCEPT")
+            if (message == DialogOption.OKAY || message == DialogOption.ACCEPT)
             {
                 Singal(dialogOptions, dialogOptions.Selected.IDString);
                 return;
@@ -89,15 +90,15 @@ namespace LogUtils
             {
                 switch (message)
                 {
-                    case "FOLDER_MOVE":
+                    case DialogOption.FOLDER_MOVE:
                         LogGroup.MoveFolder(groupID, destinationPath);
                         Dismiss();
                         return;
-                    case "FILE_MOVE":
+                    case DialogOption.FILE_MOVE:
                         LogGroup.MoveFiles(groupID, destinationPath);
                         Dismiss();
                         return;
-                    case "CHANGE_PATH":
+                    case DialogOption.PATH_CHANGE:
                         groupID.Properties.ChangePath(destinationPath, applyToMembers: true);
                         Dismiss();
                         return;
