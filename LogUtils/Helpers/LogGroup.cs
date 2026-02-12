@@ -36,6 +36,20 @@ namespace LogUtils.Helpers
                 return;
         }
 
+        /// <summary>
+        /// Moves a log group folder, and its contents to a target path
+        /// </summary>
+        /// <exception cref="ArgumentException">Target path isn't set, or is invalid - OR - group does not support specified move operation</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="group"/> is null</exception>
+        /// <exception cref="DirectoryNotFoundException">Directory was unable to be created</exception>
+        /// <exception cref="IOException">General IO exceptions (probably directory not found)</exception>
+        /// <exception cref="PermissionDeniedException">
+        /// LogUtils does not have permission from the log controller to move this folder
+        /// - OR - It is unsafe to move this folder</exception>
+        /// <exception cref="UnauthorizedAccessException">
+        /// File is in use within the group folder that LogUtils cannot move
+        /// - OR - LogUtils does not have permission to perform this operation
+        /// </exception>
         public static void MoveFolder(LogGroupID group, string newPath)
         {
             LogGroupMover groupMover = new LogGroupMover(newPath)
@@ -55,6 +69,17 @@ namespace LogUtils.Helpers
             }
         }
 
+        /// <summary>
+        /// Moves log group files to a target path. If required, group path will be updated to reflect the new path.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="group"/> is null</exception>
+        /// <exception cref="InvalidOperationException">Target path isn't set, or is invalid</exception>
+        /// <exception cref="DirectoryNotFoundException">Directory was unable to be created</exception>
+        /// <exception cref="IOException">General IO exceptions (probably directory not found)</exception>
+        /// <exception cref="UnauthorizedAccessException">
+        /// File is in use within the group folder that LogUtils cannot move
+        /// - OR - LogUtils does not have permission to perform this operation
+        /// </exception>
         public static void MoveFiles(LogGroupID group, string newPath)
         {
             LogGroupMover groupMover = new LogGroupMover(newPath)

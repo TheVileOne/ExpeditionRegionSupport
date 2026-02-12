@@ -243,6 +243,7 @@ namespace LogUtils.Helpers.FileHandling
         /// <summary>
         /// Returns a path string without the filename (filename must have an extension)
         /// </summary>
+        /// <exception cref="ArgumentException">Path contains illegal characters</exception>
         public static string PathWithoutFilename(string path, out string filename)
         {
             filename = null;
@@ -351,10 +352,17 @@ namespace LogUtils.Helpers.FileHandling
             if (lastChar == Path.DirectorySeparatorChar || lastChar == Path.AltDirectorySeparatorChar)
                 return false;
 
-            path = PathWithoutFilename(path, out string filename);
+            try
+            {
+                path = PathWithoutFilename(path, out string filename);
 
-            return !string.IsNullOrEmpty(path) &&
-                   !string.IsNullOrEmpty(filename);
+                return !string.IsNullOrEmpty(path) &&
+                       !string.IsNullOrEmpty(filename);
+            }
+            catch (ArgumentException)
+            {
+                return false;
+            }
         }
 
         public static bool IsPathKeyword(string pathString)

@@ -82,7 +82,7 @@ namespace LogUtils
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="target"/> is null</exception>
         /// <exception cref="InvalidOperationException">Target path isn't set, or is invalid</exception>
-        /// <exception cref="DirectoryNotFoundException">The directory was unable to be created</exception>
+        /// <exception cref="DirectoryNotFoundException">Directory was unable to be created</exception>
         /// <exception cref="IOException">General IO exceptions (probably directory not found)</exception>
         /// <exception cref="UnauthorizedAccessException">
         /// File is in use within the group folder that LogUtils cannot move
@@ -98,7 +98,7 @@ namespace LogUtils
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="target"/> is null</exception>
         /// <exception cref="InvalidOperationException">Target path isn't set, or is invalid - OR - group does not support specified move operation</exception>
-        /// <exception cref="DirectoryNotFoundException">The directory was unable to be created</exception>
+        /// <exception cref="DirectoryNotFoundException">Directory was unable to be created</exception>
         /// <exception cref="IOException">General IO exceptions (probably directory not found)</exception>
         /// <exception cref="UnauthorizedAccessException">
         /// File is in use within the group folder that LogUtils cannot move
@@ -178,7 +178,7 @@ namespace LogUtils
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="target"/> is null</exception>
         /// <exception cref="InvalidOperationException">Target path isn't set, or is invalid - OR - group does not support specified move operation</exception>
-        /// <exception cref="DirectoryNotFoundException">The directory was unable to be created</exception>
+        /// <exception cref="DirectoryNotFoundException">Directory was unable to be created</exception>
         /// <exception cref="IOException">General IO exceptions (probably directory not found)</exception>
         /// <exception cref="PermissionDeniedException">
         /// LogUtils does not have permission from the log controller to move this folder
