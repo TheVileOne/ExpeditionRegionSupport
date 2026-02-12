@@ -291,9 +291,6 @@ namespace LogUtils
                     if (result != ProcessResult.Success)
                         return false;
 
-                    if (logFile == LogID.Expedition)
-                        return false;
-
                     writer.WriteLine(writeBuffer);
                     writeBuffer.Clear();
                     return true;
@@ -374,9 +371,6 @@ namespace LogUtils
                 if (canReceiveMessage)
                 {
                     OnLogMessageReceived(request.Data);
-
-                    if (logFile == LogID.Expedition)
-                        streamResult = ProcessResult.FailedToCreate;
 
                     if (streamResult != ProcessResult.Success)
                         throw new IOException("Unable to create stream");
