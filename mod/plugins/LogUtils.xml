@@ -5699,6 +5699,9 @@
             Unsupported operation on this type
             </summary>
         </member>
+        <member name="M:LogUtils.Enums.ComparisonLogID.ToString">
+            <inheritdoc/>
+        </member>
         <member name="F:LogUtils.Enums.ComparisonLogID.Factory">
             <inheritdoc cref="F:LogUtils.Enums.LogID.Factory"/>
         </member>
@@ -6209,6 +6212,9 @@
             <inheritdoc/>
             <exception cref="T:System.InvalidOperationException">Log group is anonymous</exception>
         </member>
+        <member name="M:LogUtils.Enums.LogGroupID.ToString">
+            <inheritdoc/>
+        </member>
         <member name="M:LogUtils.Enums.LogGroupID.CheckTag(System.String)">
             <inheritdoc/>
         </member>
@@ -6443,6 +6449,9 @@
             <exception cref="T:System.ArgumentNullException">Filename provided is null</exception>
         </member>
         <member name="M:LogUtils.Enums.LogID.GetLock">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Enums.LogID.ToString(System.String,System.IFormatProvider)">
             <inheritdoc/>
         </member>
         <member name="F:LogUtils.Enums.LogID.NotUsed">
@@ -8181,6 +8190,7 @@
             <summary>
             Returns a path string without the filename (filename must have an extension)
             </summary>
+            <exception cref="T:System.ArgumentException">Path contains illegal characters</exception>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.PrependWithSeparator(System.String)">
             <summary>
@@ -8446,6 +8456,35 @@
             <summary>
             Retrieves all file handles for log files with at least one persistent FileStream open (file is currently in use), or temporarily closed
             </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.LogGroup.MoveFolder(LogUtils.Enums.LogGroupID,System.String)">
+            <summary>
+            Moves a log group folder, and its contents to a target path
+            </summary>
+            <exception cref="T:System.ArgumentException">Target path isn't set, or is invalid - OR - group does not support specified move operation</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="group"/> is null</exception>
+            <exception cref="T:System.IO.DirectoryNotFoundException">Directory was unable to be created</exception>
+            <exception cref="T:System.IO.IOException">General IO exceptions (probably directory not found)</exception>
+            <exception cref="T:LogUtils.PermissionDeniedException">
+            LogUtils does not have permission from the log controller to move this folder
+            - OR - It is unsafe to move this folder</exception>
+            <exception cref="T:System.UnauthorizedAccessException">
+            File is in use within the group folder that LogUtils cannot move
+            - OR - LogUtils does not have permission to perform this operation
+            </exception>
+        </member>
+        <member name="M:LogUtils.Helpers.LogGroup.MoveFiles(LogUtils.Enums.LogGroupID,System.String)">
+            <summary>
+            Moves log group files to a target path. If required, group path will be updated to reflect the new path.
+            </summary>
+            <exception cref="T:System.ArgumentNullException"><paramref name="group"/> is null</exception>
+            <exception cref="T:System.InvalidOperationException">Target path isn't set, or is invalid</exception>
+            <exception cref="T:System.IO.DirectoryNotFoundException">Directory was unable to be created</exception>
+            <exception cref="T:System.IO.IOException">General IO exceptions (probably directory not found)</exception>
+            <exception cref="T:System.UnauthorizedAccessException">
+            File is in use within the group folder that LogUtils cannot move
+            - OR - LogUtils does not have permission to perform this operation
+            </exception>
         </member>
         <member name="M:LogUtils.Helpers.LogGroup.MoveFolderExample">
             <summary>
@@ -9484,7 +9523,7 @@
             </summary>
             <exception cref="T:System.ArgumentNullException"><paramref name="target"/> is null</exception>
             <exception cref="T:System.InvalidOperationException">Target path isn't set, or is invalid</exception>
-            <exception cref="T:System.IO.DirectoryNotFoundException">The directory was unable to be created</exception>
+            <exception cref="T:System.IO.DirectoryNotFoundException">Directory was unable to be created</exception>
             <exception cref="T:System.IO.IOException">General IO exceptions (probably directory not found)</exception>
             <exception cref="T:System.UnauthorizedAccessException">
             File is in use within the group folder that LogUtils cannot move
@@ -9497,7 +9536,7 @@
             </summary>
             <exception cref="T:System.ArgumentNullException"><paramref name="target"/> is null</exception>
             <exception cref="T:System.InvalidOperationException">Target path isn't set, or is invalid - OR - group does not support specified move operation</exception>
-            <exception cref="T:System.IO.DirectoryNotFoundException">The directory was unable to be created</exception>
+            <exception cref="T:System.IO.DirectoryNotFoundException">Directory was unable to be created</exception>
             <exception cref="T:System.IO.IOException">General IO exceptions (probably directory not found)</exception>
             <exception cref="T:System.UnauthorizedAccessException">
             File is in use within the group folder that LogUtils cannot move
@@ -9510,7 +9549,7 @@
             </summary>
             <exception cref="T:System.ArgumentNullException"><paramref name="target"/> is null</exception>
             <exception cref="T:System.InvalidOperationException">Target path isn't set, or is invalid - OR - group does not support specified move operation</exception>
-            <exception cref="T:System.IO.DirectoryNotFoundException">The directory was unable to be created</exception>
+            <exception cref="T:System.IO.DirectoryNotFoundException">Directory was unable to be created</exception>
             <exception cref="T:System.IO.IOException">General IO exceptions (probably directory not found)</exception>
             <exception cref="T:LogUtils.PermissionDeniedException">
             LogUtils does not have permission from the log controller to move this folder
@@ -9539,6 +9578,13 @@
         </member>
         <member name="F:LogUtils.FolderCreationProtocol.CreateFolder">
             <summary>Creates the parent directory only. Fail procedure activates when more than one directory specified in the the path doesn't exist</summary>
+        </member>
+        <member name="M:LogUtils.LogGroupTransferDialog.Singal(Menu.MenuObject,System.String)">
+            <summary>
+            Initiates transfer strategy based on user selected option
+            </summary>
+            <param name="sender">Event source object</param>
+            <param name="message">Case-sensitive identifier</param>
         </member>
         <member name="F:LogUtils.Properties.Custom.CustomLogProperty.IsLogRule">
             <summary>
@@ -11369,6 +11415,47 @@
         <member name="M:LogUtils.QueueLogWriter.OnWriteException(LogUtils.Enums.LogID,System.Exception)">
             <inheritdoc/>
         </member>
+        <member name="P:LogUtils.RadioButtonGroup.DefaultOption">
+            <summary>
+            The option set by default (one option has to be)
+            </summary>
+        </member>
+        <member name="F:LogUtils.RadioButtonGroup.OPTION_HEIGHT">
+            <summary>
+            The height of a <see cref="T:Menu.CheckBox"/> sprite
+            </summary>
+        </member>
+        <member name="F:LogUtils.RadioButtonGroup.OPTION_PADDING">
+            <summary>
+            The distance between listed options
+            </summary>
+        </member>
+        <member name="F:LogUtils.RadioButtonGroup.Position">
+            <summary>
+            The position of the <see cref="T:LogUtils.RadioButtonGroup"/> options.
+            </summary>
+        </member>
+        <member name="P:LogUtils.RadioButtonGroup.OptionCollection">
+            <summary>
+            Contains options belonging to <see langword="this"/> instance
+            </summary>
+        </member>
+        <member name="M:LogUtils.RadioButtonGroup.Singal(Menu.MenuObject,System.String)">
+            <summary>
+            Selects an option by its identifying string
+            </summary>
+            <param name="sender">Event source object</param>
+            <param name="message">Case-sensitive identifier</param>
+        </member>
+        <member name="M:LogUtils.RadioButtonGroup.AddOption(System.Single,System.String,System.String)">
+            <summary>
+            Adds a new <see cref="T:LogUtils.RadioButtonGroup"/> option
+            </summary>
+            <param name="textWidth">The hover range for this option</param>
+            <param name="displayText">The text that will show on this option's display label</param>
+            <param name="optionID">An identifying string for a <see cref="T:LogUtils.RadioButtonGroup"/> option; can be selectable through <see cref="M:Menu.MenuObject.Singal(Menu.MenuObject,System.String)"/></param>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:LogUtils.RadioButtonGroup.RemoveOption(System.String)" -->
         <member name="P:LogUtils.RainWorldDirectory.PathFinder">
             <summary>
             Converts partial, and non-partial Rain World file or directory paths into a normalized equivalent form within the Rain World directory  
