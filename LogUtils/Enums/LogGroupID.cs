@@ -98,6 +98,12 @@ namespace LogUtils.Enums
         }
 
         /// <inheritdoc/>
+        public override string ToString()
+        {
+            return Value.Substring(ID_PREFIX.Length);
+        }
+
+        /// <inheritdoc/>
         public override bool CheckTag(string tag)
         {
             //Adding a file extension is required by the helper

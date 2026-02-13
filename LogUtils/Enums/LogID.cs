@@ -22,7 +22,7 @@ namespace LogUtils.Enums
     /// Implements <see cref="ILogTarget"/> interface.<br/>
     /// Note: This type serves as the base class for <see cref="LogGroupID"/>, which is designed for inheritance of log properties, not as a logging target.
     /// </remarks>
-    public partial class LogID : SharedExtEnum<LogID>, ILogTarget, IPropertyHolder, IEquatable<LogID>, ILockable
+    public partial class LogID : SharedExtEnum<LogID>, ILogTarget, IPropertyHolder, IEquatable<LogID>, IFormattable, ILockable
     {
         /// <summary>
         /// Registration may be handled through the <see cref="SharedExtEnum{T}"/> constructor only when no other existing reference to this <see cref="LogID"/> value is present.  
@@ -551,6 +551,25 @@ namespace LogUtils.Enums
                 return new Lock();
             }
             return Properties.GetLock();
+        }
+
+        /// <inheritdoc/>
+        public string ToString(string format, IFormatProvider ignored = null)
+        {
+            switch (format?.ToUpperInvariant())
+            {
+                default:
+                case "G":
+                    return Value;
+                case "D": //Display format
+                    if (Value.StartsWith(LogGroupID.ID_PREFIX))
+                        return Value.Substring(LogGroupID.ID_PREFIX.Length);
+                    return Value;
+                case "D2":
+                    if (Value.StartsWith(LogGroupID.ID_PREFIX))
+                        return "log group " + Value.Substring(LogGroupID.ID_PREFIX.Length);
+                    return Value;
+            }
         }
 
         static LogID()

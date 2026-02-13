@@ -74,5 +74,13 @@ namespace LogUtils.Enums
         {
             UtilityLogger.LogWarning($"Unregistering {nameof(ComparisonLogID)} is unsupported");
         }
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            if (RepresentedType == LogIDType.Group)
+                return Value.Substring(LogGroupID.ID_PREFIX.Length);
+            return Value;
+        }
     }
 }

@@ -102,12 +102,12 @@ namespace LogUtils.Properties
                 {
                     const int disable_frames_allowed = 3;
 
-                    string reportMessage = $"Read Only mode for {ID} disabled for the rest of the game loading period";
+                    string reportMessage = $"Read Only mode for {ID:D2} disabled for the rest of the game loading period";
 
                     //When ReadOnly is set to false, set a short frame window to allow for edits
                     if (!PropertyManager.IsEditGracePeriod)
                     {
-                        reportMessage = $"Read Only mode for {ID} disabled for {disable_frames_allowed} frames";
+                        reportMessage = $"Read Only mode for {ID:D2} disabled for {disable_frames_allowed} frames";
 
                         Action setReadonly = new Action(() =>
                         {
@@ -972,9 +972,9 @@ namespace LogUtils.Properties
             string[] dataTags = Tags;
             Tags = oldTags;
 
-            string idValue = ID.Value;
-            if (idValue.StartsWith(LogGroupID.ID_PREFIX))
-                idValue = idValue.Substring(LogGroupID.ID_PREFIX.Length); //Strips out the prefix
+            string idValue = ID.ToString("D");
+            //if (idValue.StartsWith(LogGroupID.ID_PREFIX))
+            //    idValue = idValue.Substring(LogGroupID.ID_PREFIX.Length); //Strips out the prefix
 
             #pragma warning disable IDE0055 //Fix formatting
             var fields = new LogPropertyStringDictionary
