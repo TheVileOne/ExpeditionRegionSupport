@@ -279,9 +279,7 @@ namespace LogUtils
         {
             if (!UtilityCore.IsControllingAssembly) return;
 
-            LogID logFile = properties.ID;
-
-            if (!logFile.Registered)
+            if (!properties.ID.Registered)
             {
                 if (properties.Group == null) //Only group managed instances are allowed to be unregistered
                     return;
@@ -294,6 +292,10 @@ namespace LogUtils
             //TODO: This needs to support moving the whole folder
             if (properties is LogGroupProperties groupProperties)
             {
+                LogID logGroup = properties.ID;
+
+                UtilityLogger.Log("Checking eligibility of log group " + logGroup);
+
                 suppressGroupMemberEligibilityLogging = true;
                 foreach (LogProperties memberProperties in groupProperties.Members.GetProperties())
                     AddToFolder(memberProperties);
@@ -303,6 +305,8 @@ namespace LogUtils
 
             if (!suppressGroupMemberEligibilityLogging && properties.Group != null)
                 UtilityLogger.Log("Checking eligibility of log group member");
+
+            LogID logFile = properties.ID;
 
             if (!properties.LogsFolderEligible)
             {

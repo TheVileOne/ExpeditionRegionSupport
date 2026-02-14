@@ -486,8 +486,6 @@ namespace LogUtils.Properties
         /// </summary>
         internal void BeginInit()
         {
-            string propertyID = GetRawID();
-
             InitializationInProgress = true;
             FileLock = new FileLock(new Lock.ContextProvider(() => ID));
 
@@ -495,6 +493,8 @@ namespace LogUtils.Properties
 
             Rules = new LogRuleCollection(readOnlyProvider);
             ConsoleIDs = new ValueCollection<ConsoleID>(readOnlyProvider);
+
+            string propertyID = GetRawID();
 
             //Report log groups slightly differently than other types of log id. The value will contain prefix formatting that we don't want to report to the user.
             string reportMessage;
@@ -516,8 +516,6 @@ namespace LogUtils.Properties
         /// </summary>
         internal void EndInit()
         {
-            string propertyID = GetRawID();
-
             IDHash = CreateIDHash();
             IsNewInstance = true;
 
@@ -541,6 +539,8 @@ namespace LogUtils.Properties
 
             CustomProperties.OnPropertyAdded += onCustomPropertyAdded;
             CustomProperties.OnPropertyRemoved += onCustomPropertyRemoved;
+
+            string propertyID = GetRawID();
 
             //Some game logs have hardcoded intro messages - Display these messages before any other content
             if (propertyID == UtilityConsts.LogNames.Expedition)
