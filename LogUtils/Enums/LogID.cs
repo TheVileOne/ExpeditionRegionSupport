@@ -558,18 +558,20 @@ namespace LogUtils.Enums
         {
             switch (format?.ToUpperInvariant())
             {
-                default:
-                case "G":
-                    return Value;
+                default: //Default format, Value format for log file ids, and display format for log group ids
+                    return ToString();
+                case "G": //Value format
+                    break;
                 case "D": //Display format
                     if (Value.StartsWith(LogGroupID.ID_PREFIX))
                         return Value.Substring(LogGroupID.ID_PREFIX.Length);
-                    return Value;
-                case "D2":
+                    break;
+                case "D2": //Display format with descriptor
                     if (Value.StartsWith(LogGroupID.ID_PREFIX))
                         return "log group " + Value.Substring(LogGroupID.ID_PREFIX.Length);
-                    return Value;
+                    break;
             }
+            return Value;
         }
 
         static LogID()
