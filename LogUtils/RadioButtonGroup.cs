@@ -38,6 +38,8 @@ namespace LogUtils
         /// </summary>
         public IReadOnlyList<CheckBox> OptionCollection => Options;
 
+        public float Height => (OPTION_HEIGHT + OPTION_PADDING) * Options.Count;
+
         public RadioButtonGroup(Menu.Menu menu, MenuObject owner, Vector2 position) : base(menu, owner)
         {
             Position = position;
@@ -68,7 +70,7 @@ namespace LogUtils
         /// <param name="optionID">An identifying string for a <see cref="RadioButtonGroup"/> option; can be selectable through <see cref="MenuObject.Singal"/></param>
         public void AddOption(float textWidth, string displayText, string optionID)
         {
-            Vector2 optionPos = new Vector2(Position.x, Position.y + ((OPTION_HEIGHT + OPTION_PADDING) * Options.Count));
+            Vector2 optionPos = new Vector2(Position.x, Position.y - Height);
             CheckBox option = new CheckBox(menu, this, this, optionPos, textWidth, displayText, optionID, textOnRight: true);
 
             subObjects.Add(option);

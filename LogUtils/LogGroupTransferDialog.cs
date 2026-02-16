@@ -1,6 +1,7 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Helpers;
 using Menu;
+using Menu.Remix.MixedUI;
 using System;
 using UnityEngine;
 using DialogOption = LogUtils.UtilityConsts.DialogOption;
@@ -11,7 +12,10 @@ namespace LogUtils
     {
         internal const string DESCRIPTION = "A log group change has been detected that requires your input.";
 
-        internal const float PADDING = 14f;
+        internal const float PADDING_X = 90f;
+        internal const float PADDING_Y = 15f;
+
+        internal const float LABEL_HEIGHT = 24f;
 
         private static ProcessManager currentProcess => RainWorldInfo.RainWorld.processManager;
 
@@ -20,49 +24,89 @@ namespace LogUtils
 
         private RadioButtonGroup dialogOptions;
 
-        public LogGroupTransferDialog(LogGroupID groupID, string destinationPath) : base(DESCRIPTION, currentProcess)
+        public LogGroupTransferDialog(LogGroupID groupID, string destinationPath) : base(DESCRIPTION, calculateSize(groupID, destinationPath), currentProcess)
         {
             this.groupID = groupID;
             this.destinationPath = destinationPath;
 
-            Vector2 currentPosition = new Vector2(descriptionLabel.pos.x, descriptionLabel.pos.y + descriptionLabel.size.y);
+            descriptionLabel.pos.y = pos.y + 185f;
 
-            currentPosition.y += PADDING * 2;
+            //UtilityLogger.Log("Rect position " + roundedRect.pos);
+            //UtilityLogger.Log("Rect size " + roundedRect.size);
+            //UtilityLogger.Log("Label position " + descriptionLabel.pos);
+
+            //Set initial position to top-left position from bottom-left aligned position
+            Vector2 initialPosition = new Vector2(roundedRect.pos.x, roundedRect.pos.y + roundedRect.size.y);
+
+            Vector2 currentPosition = new Vector2(initialPosition.x, initialPosition.y - 120f); //Align to a position after the description label. Size of description label was not useful.
             addDetails(ref currentPosition);
 
-            currentPosition.y += PADDING;
+            currentPosition.y -= PADDING_Y * 3; //Set some extra space between the options and the info section
+
+            MenuLabel label = new MenuLabel(this, dialogPage, "Resolution Options", new Vector2(currentPosition.x + PADDING_X, currentPosition.y), Vector2.zero, false);
+
+            label.label.alignment = FLabelAlignment.Left;
+            dialogPage.subObjects.Add(label);
+
+            currentPosition.y -= LABEL_HEIGHT + PADDING_Y;
             addOptions(ref currentPosition);
 
-            currentPosition.y += PADDING;
-            SimpleButton acceptButton = new SimpleButton(this, dialogPage, Translate("Accept"), DialogOption.ACCEPT,  currentPosition, new Vector2(110f, 30f));
+            currentPosition.y -= PADDING_Y * 2;
+
+            Vector2 buttonSize = new Vector2(210.5f, 30f);
+            Vector2 buttonPosition = new Vector2(currentPosition.x + (size.x / 2) - (buttonSize.x / 2), currentPosition.y);
+            SimpleButton acceptButton = new SimpleButton(this, dialogPage, Translate("Accept"), DialogOption.ACCEPT, buttonPosition, buttonSize);
             dialogPage.subObjects.Add(acceptButton);
+        }
+
+        private static Vector2 calculateSize(LogGroupID groupID, string destinationPath)
+        {
+            if (groupID == null)
+                throw new ArgumentNullException(nameof(groupID));
+
+            const int DETAIL_WIDTH_BASE = 90; //The current size of unchanging label text
+            const int MIN_WIDTH = 800;        //The minimum width of the dialog at any label size
+
+            float height, width;
+
+            height = 450.01f; //0.01 is important here (LABEL FIX)
+
+            float longestDetail = Mathf.Max(LabelTest.GetWidth(groupID.Properties.CurrentFolderPath), LabelTest.GetWidth(destinationPath))
+                                + DETAIL_WIDTH_BASE + (PADDING_X * 2); //Account for margins
+
+            UtilityLogger.Logger.LogDebug($"Longest label is {longestDetail} units");
+            width = Mathf.Max(longestDetail, MIN_WIDTH) + 0.01f; //Clamp to the minimum allowed value
+            return new Vector2(width, height);
         }
 
         private void addDetails(ref Vector2 position)
         {
-            Vector2 labelSize = new Vector2(180f, 24f);
-
             string[] detailLabels =
             {
                 //Group name
-                "GROUP NAME      : " + groupID.Value,
+                $"GROUP: \'{groupID}\'",
                 //Group path
-                "CURRENT PATH    : " + groupID.Properties.CurrentFolderPath,
+                $"CURRENT:         \'{groupID.Properties.CurrentFolderPath}\'", //Spaces align with destination label
                 //Destination path
-                "DESTINATION PATH: " + destinationPath
+                $"DESTINATION: \'{destinationPath}\'",
             };
 
             for (int i = 0; i < detailLabels.Length; i++)
             {
-                Vector2 labelPosition = new Vector2(position.x, position.y + (labelSize.y * i));
-                dialogPage.subObjects.Add(new MenuLabel(this, dialogPage, detailLabels[i], labelPosition, labelSize, false));
+                float labelOffsetY = i > 0 ? LABEL_HEIGHT * (i + 1) : 0;
+
+                Vector2 labelPosition = new Vector2(position.x + PADDING_X, position.y - labelOffsetY);
+                MenuLabel label = new MenuLabel(this, dialogPage, detailLabels[i], labelPosition, Vector2.zero, false);
+
+                label.label.alignment = FLabelAlignment.Left;
+                dialogPage.subObjects.Add(label);
             }
-            position.y += labelSize.y * detailLabels.Length - 1; //Account for label positions
+            position.y -= LABEL_HEIGHT * detailLabels.Length + 1; //Account for label positions
         }
 
         private void addOptions(ref Vector2 position)
         {
-            dialogOptions = new RadioButtonGroup(this, dialogPage, position);
+            dialogOptions = new RadioButtonGroup(this, dialogPage, new Vector2(position.x + PADDING_X, position.y));
 
             //In all of these cases, the user path will be chosen as the new log group path even in the case the files/folders don't make it to the new path
             dialogOptions.AddOption(textWidth: 80f, Translate("Move entire group folder"), DialogOption.FOLDER_MOVE);
@@ -71,6 +115,7 @@ namespace LogUtils
 
             dialogOptions.SetInitial(DialogOption.FOLDER_MOVE);
             dialogPage.subObjects.Add(dialogOptions);
+            position.y -= dialogOptions.Height; //Account for option positions
         }
 
         /// <summary>
@@ -86,6 +131,7 @@ namespace LogUtils
                 return;
             }
 
+            UtilityLogger.Log("OPTION SELECTED: " + message);
             try
             {
                 switch (message)
