@@ -1,5 +1,7 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Events;
 using LogUtils.Helpers;
+using LogUtils.Helpers.FileHandling;
 using Menu;
 using Menu.Remix.MixedUI;
 using System;
@@ -57,6 +59,43 @@ namespace LogUtils
             Vector2 buttonPosition = new Vector2(currentPosition.x + (size.x / 2) - (buttonSize.x / 2), currentPosition.y);
             SimpleButton acceptButton = new SimpleButton(this, dialogPage, Translate("Accept"), DialogOption.ACCEPT, buttonPosition, buttonSize);
             dialogPage.subObjects.Add(acceptButton);
+        }
+
+        /// <summary>
+        /// Shows a dialog presenting options on how to transfer a log group to a specified path
+        /// </summary>
+        public static void ShowDialog(LogGroupID groupID, string pendingGroupPath)
+        {
+            //Allow a short grace period for folder permissions to be established
+            if (RainWorldInfo.LatestSetupPeriodReached < SetupPeriod.PreMods)
+            {
+                UtilityLogger.Log("Scheduling transfer dialog");
+
+                string currentGroupPath = groupID.Properties.CurrentFolderPath;
+                UtilityEvents.OnSetupPeriodReached += scheduledEvent;
+
+                void scheduledEvent(SetupPeriodEventArgs e)
+                {
+                    if (e.CurrentPeriod < SetupPeriod.PreMods)
+                        return;
+
+                    bool pathChanged = !PathUtils.PathsAreEqual(currentGroupPath, groupID.Properties.CurrentFolderPath);
+                    if (!pathChanged)
+                    {
+                        var dialog = new LogGroupTransferDialog(groupID, pendingGroupPath);
+                        dialog.Show();
+                    }
+                    else
+                    {
+                        UtilityLogger.Log("Path already changed. Transfer no longer necessary.");
+                    }
+                    UtilityEvents.OnSetupPeriodReached -= scheduledEvent;
+                }
+                return;
+            }
+            //Dialog will run after Update frame completes. Although unlikely it is possible for the path to change by the time the dialog shows.
+            var dialog = new LogGroupTransferDialog(groupID, pendingGroupPath);
+            dialog.Show();
         }
 
         private static Vector2 calculateSize(LogGroupID groupID, string destinationPath)
@@ -159,12 +198,20 @@ namespace LogUtils
             }
         }
 
-        public void Show()
+        internal void Show()
         {
+            UtilityLogger.Log("Transfer dialog activated");
+            UtilityLogger.Log("Active process: " + currentProcess.currentMainLoop.ID);
             currentProcess.ShowDialog(this);
+
+            if (!currentProcess.currentMainLoop.AllowDialogs) //Most menus will support dialogs
+                UtilityLogger.LogWarning("Active process does not allow dialogs");
+
+            if (!ProcessManager.fontHasBeenLoaded || currentProcess.IsSwitchingProcesses())
+                UtilityLogger.LogWarning("Dialog has been added to the show queue");
         }
 
-        public void Dismiss()
+        internal void Dismiss()
         {
             currentProcess.StopSideProcess(this);
         }

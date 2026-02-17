@@ -1,10 +1,12 @@
-﻿using LogUtils.Enums;
+﻿using LogUtils.Diagnostics;
+using LogUtils.Enums;
 using LogUtils.Enums.FileSystem;
 using LogUtils.Helpers;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using static LogUtils.UtilityConsts;
 
@@ -68,6 +70,40 @@ namespace LogUtils.Properties
                 return;
             }
             StartupRoutineRequired = false;
+
+            //Folder groups require extra processing on startup when they have to be read from file
+            if (!UtilityCore.IsInitialized && IsFolderGroup)
+            {
+                //No log group should have members when LogUtils has initialized
+                Assert.That(Members, AssertBehavior.LogAndThrow).IsNullOrEmpty();
+
+                bool hasPathChangedSinceLastShutdown = !PathUtils.PathsAreEqual(CurrentFolderPath, LastKnownFolderPath);
+
+                //In order to minimize folder move operations, and lessen the chance of encountering merge conflicts, group folders target the last
+                //known path when it exists on startup.
+                if (hasPathChangedSinceLastShutdown && Directory.Exists(LastKnownFolderPath))
+                {
+                    //Logs folder takes priority over user defined paths
+                    if (LogsFolderAware && LogsFolderEligible && LogsFolder.ContainsPath(LastKnownFolderPath))
+                    {
+                        UtilityLogger.Log("Group already targets Logs folder");
+                        ChangePath(LogsFolder.CurrentPath, applyToMembers: false);
+                        return;
+                    }
+
+                    //Expect that the user-supplied path is the same as the current path when this is called
+                    Assert.That(PathUtils.PathsAreEqual(FolderPath, CurrentFolderPath));
+
+                    //The last known path has priority over the user-supplied path for log groups when it exists
+                    string pendingGroupPath = CurrentFolderPath;
+                    ChangePath(LastKnownFolderPath, applyToMembers: false); //LogUtils will get confused if we don't do this
+
+                    //Begin the process of transferring the last known path to the user-supplied path.
+                    //Moving a folder involves some amount of uncertainty. This dialog enables the user to choose how to proceed.
+                    //Even if the user confirms, folder permissions may prevent a successful move.
+                    LogGroupTransferDialog.ShowDialog((LogGroupID)ID, pendingGroupPath);
+                }
+            }
 
             if (LogsFolderAware)
                 LogsFolder.AddToFolder(this);
