@@ -19,14 +19,12 @@ namespace LogUtils
 
         internal const float LABEL_HEIGHT = 24f;
 
-        private static ProcessManager currentProcess => RainWorldInfo.RainWorld.processManager;
-
         private readonly LogGroupID groupID;
         private readonly string destinationPath;
 
         private RadioButtonGroup dialogOptions;
 
-        public LogGroupTransferDialog(LogGroupID groupID, string destinationPath) : base(DESCRIPTION, calculateSize(groupID, destinationPath), currentProcess)
+        public LogGroupTransferDialog(LogGroupID groupID, string destinationPath) : base(DESCRIPTION, calculateSize(groupID, destinationPath), RainWorldInfo.RainWorld.processManager)
         {
             this.groupID = groupID;
             this.destinationPath = destinationPath;
@@ -201,19 +199,19 @@ namespace LogUtils
         internal void Show()
         {
             UtilityLogger.Log("Transfer dialog activated");
-            UtilityLogger.Log("Active process: " + currentProcess.currentMainLoop.ID);
-            currentProcess.ShowDialog(this);
+            UtilityLogger.Log("Active process: " + manager.currentMainLoop.ID);
+            manager.ShowDialog(this);
 
-            if (!currentProcess.currentMainLoop.AllowDialogs) //Most menus will support dialogs
+            if (!manager.currentMainLoop.AllowDialogs) //Most menus will support dialogs
                 UtilityLogger.LogWarning("Active process does not allow dialogs");
 
-            if (!ProcessManager.fontHasBeenLoaded || currentProcess.IsSwitchingProcesses())
+            if (!ProcessManager.fontHasBeenLoaded || manager.IsSwitchingProcesses())
                 UtilityLogger.LogWarning("Dialog has been added to the show queue");
         }
 
         internal void Dismiss()
         {
-            currentProcess.StopSideProcess(this);
+            manager.StopSideProcess(this);
         }
     }
 }
