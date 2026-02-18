@@ -10,7 +10,7 @@ using DialogOption = LogUtils.UtilityConsts.DialogOption;
 
 namespace LogUtils
 {
-    public class LogGroupTransferDialog : Dialog
+    public class LogGroupTransferDialog : UtilityDialog
     {
         internal const string DESCRIPTION = "A log group change has been detected that requires your input.";
 
@@ -194,24 +194,6 @@ namespace LogUtils
             {
                 UtilityLogger.LogError("Failed to move group folder", ex);
             }
-        }
-
-        internal void Show()
-        {
-            UtilityLogger.Log("Transfer dialog activated");
-            UtilityLogger.Log("Active process: " + manager.currentMainLoop.ID);
-            manager.ShowDialog(this);
-
-            if (!manager.currentMainLoop.AllowDialogs) //Most menus will support dialogs
-                UtilityLogger.LogWarning("Active process does not allow dialogs");
-
-            if (!ProcessManager.fontHasBeenLoaded || manager.IsSwitchingProcesses())
-                UtilityLogger.LogWarning("Dialog has been added to the show queue");
-        }
-
-        internal void Dismiss()
-        {
-            manager.StopSideProcess(this);
         }
     }
 }

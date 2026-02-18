@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using LogUtils.Collections;
 using LogUtils.Compatibility.BepInEx;
 using LogUtils.Compatibility.Unity;
 using LogUtils.Console;
@@ -13,6 +14,7 @@ using LogUtils.Threading;
 using LogUtils.Timers;
 using Menu;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Debug = LogUtils.Diagnostics.Debug;
@@ -53,6 +55,27 @@ namespace LogUtils
 
         /// <inheritdoc cref="UtilityConfig"/>
         public static UtilityConfig Config;
+
+        private static DialogCollection<UtilityDialog> _currentDialogs;
+        /// <summary>
+        /// The active or currently pending dialog instances handled by the Rain World client
+        /// </summary>
+        public static IEnumerable<UtilityDialog> CurrentDialogs
+        {
+            get
+            {
+                var result = _currentDialogs;
+
+                if (result != null)
+                    return result;
+
+                if (RainWorldInfo.IsRainWorldRunning)
+                    result = new DialogCollection<UtilityDialog>(RainWorldInfo.RainWorld.processManager);
+
+                _currentDialogs = result;
+                return result ?? Enumerable.Empty<UtilityDialog>();
+            }
+        }
 
         /// <summary>
         /// Handles cross-mod data storage for the utility
