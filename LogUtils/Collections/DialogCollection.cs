@@ -24,13 +24,14 @@ namespace LogUtils.Collections
         /// <inheritdoc/>
         public IEnumerator<T> GetEnumerator()
         {
-            IEnumerable<T> dialogs = Manager.dialogStack.OfType<T>();
+            List<T> dialogsOfCorrectType = Manager.dialogStack.OfType<T>().ToList();
 
             T activeDialog = Manager.dialog as T;
             if (activeDialog != null)
-                dialogs = dialogs.Append(activeDialog);
+                dialogsOfCorrectType.Add(activeDialog);
 
-            return (IEnumerator<T>)dialogs.Reverse(); //Order by active priority
+            dialogsOfCorrectType.Reverse(); //Order by active priority
+            return dialogsOfCorrectType.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
