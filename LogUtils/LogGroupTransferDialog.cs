@@ -5,6 +5,7 @@ using LogUtils.Helpers.FileHandling;
 using Menu;
 using Menu.Remix.MixedUI;
 using System;
+using System.Linq;
 using UnityEngine;
 using DialogOption = LogUtils.UtilityConsts.DialogOption;
 
@@ -58,6 +59,11 @@ namespace LogUtils
             SimpleButton acceptButton = new SimpleButton(this, dialogPage, Translate("Accept"), DialogOption.ACCEPT, buttonPosition, buttonSize);
             dialogPage.subObjects.Add(acceptButton);
         }
+
+        /// <summary>
+        /// Indicates that there are pending, or active dialogs for this type
+        /// </summary>
+        public static bool HasAnyDialogs => UtilityCore.CurrentDialogs.Where(dialog => dialog.IsActive || dialog.IsPending).ContainsType<LogGroupTransferDialog>();
 
         /// <summary>
         /// Shows a dialog presenting options on how to transfer a log group to a specified path

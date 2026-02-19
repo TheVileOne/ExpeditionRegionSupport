@@ -28,7 +28,37 @@ namespace LogUtils
         {
             if (!Exists) return;
 
+            retry:
+            if (LogGroupTransferDialog.HasAnyDialogs)
+            {
+                UtilityLogger.Log("Transfer dialog active. Interrupting operation until dialog is handled.");
+
+                bool subscribedToCloseEvent;
+                try
+                {
+                    //Subscribe event to the first instance, which should be the most active example
+                    UtilityDialog dialog = UtilityCore.CurrentDialogs.OfType<LogGroupTransferDialog>().First();
+
+                    dialog.OnClose += dialog_OnClose;
+                    subscribedToCloseEvent = true;
+                }
+                catch (InvalidOperationException) //Threading issue
+                {
+                    subscribedToCloseEvent = false;
+                }
+
+                if (!subscribedToCloseEvent) //In the case of a threading issue, just try again
+                    goto retry;
+                return;
+            }
+
             addGroupsToFolder(Processor.GroupTopLevelEntries());
+        }
+
+        private static void dialog_OnClose(UtilityDialog source, DialogCloseEventArgs data)
+        {
+            AddGroupsToFolder();
+            source.OnClose -= dialog_OnClose;
         }
 
         private static void addGroupsToFolder(IEnumerable<IEnumerable<LogGroupProperties>> entryGroups)

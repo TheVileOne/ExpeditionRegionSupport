@@ -7,17 +7,22 @@ namespace LogUtils
 {
     public class UtilityDialog : Dialog
     {
+        private State state = State.NotSubmitted;
+
         /// <summary>
         /// Indicates whether the dialog is actively being displayed by the Rain World client
         /// </summary>
-        public bool IsActive => manager.dialog == this;
+        public bool IsActive => state != State.Closed && manager.dialog == this;
 
         /// <summary>
         /// Indicates whether the dialog is actively being displayed by the Rain World client, or is scheduled to be
         /// </summary>
-        public bool IsActiveOrPending => UtilityCore.CurrentDialogs.Contains(this);
+        public bool IsPending => state != State.Closed && manager.dialog != this && UtilityCore.CurrentDialogs.Contains(this);
 
-        public event Events.EventHandler<UtilityDialog, DialogCloseEventArgs> OnClosing;
+        /// <summary>
+        /// Event raised when this dialog is closing
+        /// </summary>
+        public event Events.EventHandler<UtilityDialog, DialogCloseEventArgs> OnClose;
 
         #region Constructors
         public UtilityDialog(string description, ProcessManager manager, bool longLabel = false) : base(description, manager, longLabel)
@@ -43,6 +48,8 @@ namespace LogUtils
 
         public void Show()
         {
+            state = State.Submitted;
+
             UtilityLogger.Log("Dialog activated");
             UtilityLogger.Log("Active process: " + manager.currentMainLoop.ID);
 
@@ -69,8 +76,17 @@ namespace LogUtils
         /// </summary>
         public override void ShutDownProcess()
         {
-            OnClosing?.Invoke(this, new DialogCloseEventArgs());
+            state = State.Closed;
+
+            OnClose?.Invoke(this, new DialogCloseEventArgs());
             base.ShutDownProcess();
+        }
+
+        private enum State
+        {
+            NotSubmitted = -1, //Instance has yet to be submitted to Rain World's dialog stack
+            Submitted = 0,     //Instance is currently submitted to Rain World's dialog stack
+            Closed = 1,        //Instanceis in the process of being unloaded
         }
     }
 
