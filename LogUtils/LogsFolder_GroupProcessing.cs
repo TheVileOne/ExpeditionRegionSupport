@@ -117,6 +117,17 @@ namespace LogUtils
                 return;
             }
 
+            if (ContainsPath(firstEntry.CurrentFolderPath))
+            {
+                UtilityLogger.Log("Skipping attempt to move group for the following groups:");
+                for (int i = 0; i < entries.Length; i++)
+                {
+                    UtilityLogger.Log($"[{i}] {entries[i].ID}");
+                }
+                UtilityLogger.Log("REASON: Group path already targets folder");
+                return;
+            }
+
             //The first pass checks for eligibility requirements for moving the entire folder, and all associated log groups and log files associated with it
             if (tryAddFolderGroupFirstPass(firstEntry))
             {
