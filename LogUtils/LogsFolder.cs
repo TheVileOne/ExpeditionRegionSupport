@@ -191,7 +191,7 @@ namespace LogUtils
         /// </summary>
         public static IEnumerable<LogID> GetContainedLogFiles()
         {
-            return LogID.FindAll(properties => PathUtils.ContainsOtherPath(properties.CurrentFolderPath, CurrentPath));
+            return LogID.FindAll(properties => ContainsPath(properties.CurrentFolderPath));
         }
 
         /// <summary>
@@ -325,7 +325,7 @@ namespace LogUtils
                 return;
             }
 
-            bool isMoveRequired = !PathUtils.ContainsOtherPath(properties.CurrentFolderPath, CurrentPath);
+            bool isMoveRequired = !ContainsPath(properties.CurrentFolderPath);
 
             if (isMoveRequired)
             {
@@ -478,7 +478,7 @@ namespace LogUtils
             }
 
             //Path is a parent to the current path (not currently supported)
-            if (PathUtils.ContainsOtherPath(path, CurrentPath))
+            if (PathUtils.ContainsOtherPath(CurrentPath, path))
             {
                 UtilityLogger.LogWarning("Unable to set log directory path. Path is a parent of the current path.");
                 return false;

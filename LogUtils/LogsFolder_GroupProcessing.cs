@@ -252,7 +252,7 @@ namespace LogUtils
                 //III. The current path of the log file is already inside the current log directory
                 return !logID.Registered
                     && (target.IsFolderGroup || !LogGroup.GroupsSharingThisPath(logID.Properties.CurrentFolderPath).Any())
-                    && !PathUtils.ContainsOtherPath(logID.Properties.CurrentFolderPath, CurrentPath);
+                    && !ContainsPath(logID.Properties.CurrentFolderPath);
             }
         }
 
