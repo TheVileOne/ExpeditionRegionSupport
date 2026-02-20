@@ -75,13 +75,13 @@ namespace LogUtils
         /// <summary>
         /// Checks that the current path is located somewhere inside the current log directory path
         /// </summary>
-        public static bool ContainsPath(string path) => PathUtils.ContainsOtherPath(CurrentPath, path);
+        public static bool ContainsPath(string path) => PathUtils.ContainsOtherPath(path, CurrentPath);
 
         /// <summary>
         /// Checks a path against the current log directory path
         /// </summary>
         [Obsolete("Use LogsFolder.ContainsPath instead")]
-        public static bool IsCurrentPath(string path) => PathUtils.PathsAreEqual(CurrentPath, path);
+        public static bool IsCurrentPath(string path) => PathUtils.PathsAreEqual(path, CurrentPath);
 
         /// <summary>
         /// A flag that indicates whether the log directory contains eligible log files
