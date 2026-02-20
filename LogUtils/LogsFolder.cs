@@ -232,7 +232,6 @@ namespace LogUtils
             }
 
             UtilityLogger.Log("Log directory available");
-
             if (IsManagingFiles)
             {
                 UtilityLogger.Log("Log files already in folder");
@@ -289,17 +288,9 @@ namespace LogUtils
                     return;
             }
 
-            //TODO: This needs to support moving the whole folder
             if (properties is LogGroupProperties groupProperties)
             {
-                LogID logGroup = properties.ID;
-
-                UtilityLogger.Log("Checking eligibility of log group " + logGroup);
-
-                suppressGroupMemberEligibilityLogging = true;
-                foreach (LogProperties memberProperties in groupProperties.Members.GetProperties())
-                    AddToFolder(memberProperties);
-                suppressGroupMemberEligibilityLogging = false;
+                AddGroupToFolder(groupProperties);
                 return;
             }
 
@@ -332,6 +323,33 @@ namespace LogUtils
                 UtilityLogger.Log($"Moving {logFile} to log directory");
                 LogFile.Move(logFile, newPath);
             }
+        }
+
+        internal static void AddGroupToFolder(LogGroupProperties properties)
+        {
+            UtilityLogger.Log("Checking eligibility of log group " + properties.ID);
+            if (!UtilityCore.IsInitialized)
+            {
+                UtilityLogger.LogWarning("Group will not be assigned members this early");
+                return;
+            }
+
+            var groupMembers = properties.Members;
+
+            if (groupMembers.Count == 0)
+            {
+                UtilityLogger.Log("No eligible members");
+                return;
+            }
+
+            //TODO: Moving an entire folder is possible here
+            if (properties.IsFolderGroup)
+                UtilityLogger.LogWarning("Group subpaths will not be respected after move operation");
+
+            suppressGroupMemberEligibilityLogging = true;
+            foreach (LogProperties memberProperties in groupMembers.GetProperties())
+                AddToFolder(memberProperties);
+            suppressGroupMemberEligibilityLogging = false;
         }
 
         /// <summary>

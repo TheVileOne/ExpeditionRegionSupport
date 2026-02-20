@@ -74,8 +74,9 @@ namespace LogUtils.Properties
             //Folder groups require extra processing on startup when they have to be read from file
             if (!UtilityCore.IsInitialized && IsFolderGroup)
             {
-                //No log group should have members when LogUtils has initialized
-                Assert.That(Members, AssertBehavior.LogAndThrow).IsNullOrEmpty();
+                //Assert expected truths about a preinitialized log group file
+                Assert.That(Members, AssertBehavior.LogAndThrow).IsNullOrEmpty();                             //No members
+                Assert.That(FolderPermissions, AssertBehavior.LogAndThrow).IsEqualTo(FolderPermissions.None); //No permissions
 
                 bool hasPathChangedSinceLastShutdown = !PathUtils.PathsAreEqual(CurrentFolderPath, LastKnownFolderPath);
 
@@ -105,7 +106,7 @@ namespace LogUtils.Properties
                 }
             }
 
-            if (LogsFolderAware)
+            if (UtilityCore.IsInitialized && LogsFolderAware)
                 LogsFolder.AddToFolder(this);
         }
 
