@@ -241,6 +241,14 @@
             The LinkedListNode associated with Current
             </summary>
         </member>
+        <member name="P:LogUtils.Collections.DialogCollection`1.Manager">
+            <summary>
+            The <see cref="T:ProcessManager"/> instance responsible for managing Rain World dialogs
+            </summary>
+        </member>
+        <member name="M:LogUtils.Collections.DialogCollection`1.GetEnumerator">
+            <inheritdoc/>
+        </member>
         <member name="T:LogUtils.Collections.ValueCollection`1">
             <summary>
             A hashset wrapper class with built-in ReadOnly support from a bindable source
@@ -9579,6 +9587,16 @@
         <member name="F:LogUtils.FolderCreationProtocol.CreateFolder">
             <summary>Creates the parent directory only. Fail procedure activates when more than one directory specified in the the path doesn't exist</summary>
         </member>
+        <member name="P:LogUtils.LogGroupTransferDialog.HasAnyDialogs">
+            <summary>
+            Indicates that there are pending, or active dialogs for this type
+            </summary>
+        </member>
+        <member name="M:LogUtils.LogGroupTransferDialog.ShowDialog(LogUtils.Enums.LogGroupID,System.String)">
+            <summary>
+            Shows a dialog presenting options on how to transfer a log group to a specified path
+            </summary>
+        </member>
         <member name="M:LogUtils.LogGroupTransferDialog.Singal(Menu.MenuObject,System.String)">
             <summary>
             Initiates transfer strategy based on user selected option
@@ -12805,6 +12823,11 @@
         <member name="F:LogUtils.UtilityCore.Config">
             <inheritdoc cref="T:LogUtils.Policy.UtilityConfig"/>
         </member>
+        <member name="P:LogUtils.UtilityCore.CurrentDialogs">
+            <summary>
+            The active or currently pending dialog instances handled by the Rain World client
+            </summary>
+        </member>
         <member name="F:LogUtils.UtilityCore.DataHandler">
             <summary>
             Handles cross-mod data storage for the utility
@@ -12823,6 +12846,32 @@
         <member name="M:LogUtils.UtilityCore.LoadComponents">
             <summary>
             Creates, or establishes a reference to an existing instance of necessary utility components
+            </summary>
+        </member>
+        <member name="P:LogUtils.UtilityDialog.IsActive">
+            <summary>
+            Indicates whether the dialog is actively being displayed by the Rain World client
+            </summary>
+        </member>
+        <member name="P:LogUtils.UtilityDialog.IsPending">
+            <summary>
+            Indicates whether the dialog is actively being displayed by the Rain World client, or is scheduled to be
+            </summary>
+        </member>
+        <member name="E:LogUtils.UtilityDialog.OnClose">
+            <summary>
+            Event raised when this dialog is closing
+            </summary>
+        </member>
+        <member name="M:LogUtils.UtilityDialog.Dismiss">
+            <summary>
+            Stops the dialog process
+            </summary>
+            <remarks>This will always invoke close event even if dialog is not active</remarks>
+        </member>
+        <member name="M:LogUtils.UtilityDialog.ShutDownProcess">
+            <summary>
+            Method is invoked by Rain World assembly
             </summary>
         </member>
         <member name="F:LogUtils.UtilityLogger.activityLogger">
