@@ -301,6 +301,19 @@ namespace LogUtils
                 if (mergeInfo.FolderDepth == 0 || Directory.Exists(mergeInfo.DestinationPath)) //Folder will need be merged with an existing folder at the destination
                 {
                     moveFilesDuringMerge(mergeInfo);
+
+                    if (mergeInfo.FolderDepth == 0)
+                    {
+                        UtilityLogger.Log("Updating group path");
+                        foreach (LogGroupID logGroup in Groups.HasPathExact(FolderPath))
+                        {
+                            MergeRecord record = MergeRecordFactory.Create(logGroup);
+                            logGroup.Properties.ChangePath(mergeInfo.DestinationPath, applyToMembers: false);
+                            record.CurrentPath = logGroup.Properties.CurrentFolderPath;
+
+                            mergeInfo.History.AddRecord(record);
+                        }
+                    }
                 }
                 else
                 {
