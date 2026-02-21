@@ -271,20 +271,20 @@ namespace LogUtils.Helpers.FileHandling
                 if (moveBehavior == FileMoveOption.RenameSourceIfNecessary)
                 {
                     int conflictCount = 0;
-                    while (File.Exists(destPath)) //Tries until it finds a suitable non-conflicting filename
+                    newPath = destPath;
+                    while (File.Exists(newPath)) //Tries until it finds a suitable non-conflicting filename
                     {
                         conflictCount++;
-                        destPath = ApplyBracketInfo(destPath, conflictCount.ToString());
+                        newPath = ApplyBracketInfo(destPath, conflictCount.ToString());
                     }
+                    destPath = newPath;
                 }
                 fileMoved = AttemptMoveNoOverwrite(sourcePath, destPath);
                 return fileMoved;
             }
             finally
             {
-                newPath = null;
-                if (fileMoved)
-                    newPath = destPath;
+                newPath = fileMoved ? destPath : null;
             }
         }
 
