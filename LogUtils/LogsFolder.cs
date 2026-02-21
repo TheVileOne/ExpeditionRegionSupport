@@ -338,13 +338,13 @@ namespace LogUtils
 
             if (groupMembers.Count == 0)
             {
-                UtilityLogger.Log("No eligible members");
+                //UtilityLogger.Log("No eligible members");
                 return;
             }
 
             //TODO: Moving an entire folder is possible here
-            if (properties.IsFolderGroup)
-                UtilityLogger.LogWarning("Group subpaths will not be respected after move operation");
+            //if (properties.IsFolderGroup && RainWorldInfo.LatestSetupPeriodReached >= SetupPeriod.PostMods)
+            //    UtilityLogger.LogWarning("Group subpaths will not be respected after move operation");
 
             suppressGroupMemberEligibilityLogging = true;
             foreach (LogProperties memberProperties in groupMembers.GetProperties())
