@@ -266,17 +266,14 @@ namespace LogUtils
             mergeCurrentFolder(mergeInfo);
 
             MergeHistory history = mergeInfo.History;
-            if (history.HasFailed)
-            {
-                onMergeFailed(history);
-                return;
-            }
 
-            history.ResolveConflicts();
+            if (!history.HasFailed)
+                history.ResolveConflicts();
+
             if (history.HasFailed)
             {
-                onMergeFailed(history);
-                return;
+                cancelMerge(history);
+                throw new IOException("Unable to complete merge operation", history.Exception);
             }
             UtilityLogger.Log("Merge operation on all files successful");
         }
@@ -343,12 +340,6 @@ namespace LogUtils
         internal DirectoryInfo GetDirectoryInfo()
         {
             return new DirectoryInfo(FolderPath);
-        }
-
-        private void onMergeFailed(MergeHistory history)
-        {
-            UtilityLogger.LogError("Failed to merge folder", history.Exception);
-            cancelMerge(history);
         }
 
         private void cancelMerge(MergeHistory history)
