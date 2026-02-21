@@ -6,6 +6,7 @@ using LogUtils.Helpers.FileHandling;
 using LogUtils.Properties;
 using LogUtils.Threading;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -223,25 +224,14 @@ namespace LogUtils
         /// </summary>
         private LogID[] getFilesToMove(LogGroupID target)
         {
-            var members = target.Properties.Members;
+            //External member is defined as any member with a path that is outside of the designated folder path - only applicable to folder groups
+            bool includeExternalMembers = !target.Properties.IsFolderGroup || !IgnoreOutOfFolderFiles;
 
-            if (members.Count == 0)
-                return [];
-
-            //There is no such thing as external members for non-folder groups
-            bool ignoreExternalMembers = target.Properties.IsFolderGroup && IgnoreOutOfFolderFiles;
-
-            LogID[] folderMembers = null;
-            if (ignoreExternalMembers) //Avoids unnecessary execution
-                folderMembers = target.Properties.GetFolderMembers().ToArray();
-
-            return members.Where(logID =>
-            {
-                if (ignoreExternalMembers && !folderMembers.Contains(logID))
-                    return false;
-
-                return Conditions?.Invoke(logID) == true;
-            }).ToArray();
+            IEnumerable<LogID> members = includeExternalMembers
+                                       ? target.Properties.Members
+                                       : target.Properties.GetFolderMembers();
+            var conditions = Conditions;
+            return members.Where(m => conditions == null || conditions.Invoke(m)).ToArray();
         }
 
         private string getDestinationPath(LogID target, LogGroupID groupTarget)
