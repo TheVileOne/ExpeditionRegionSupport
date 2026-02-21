@@ -88,7 +88,7 @@ namespace LogUtils.Properties
                     if (LogsFolderAware && LogsFolderEligible && LogsFolder.ContainsPath(LastKnownFolderPath))
                     {
                         UtilityLogger.Log("Group already targets Logs folder");
-                        ChangePath(LogsFolder.CurrentPath, applyToMembers: false);
+                        ChangePath(LastKnownFolderPath, applyToMembers: false);
                         return;
                     }
 
