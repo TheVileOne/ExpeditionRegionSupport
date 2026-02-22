@@ -188,7 +188,7 @@ namespace LogUtils.Properties
             //This class is designed for log groups after all - there is no expectation for there to be filename information stored. What we CAN conclude here is that there can not be
             //filename information as part of the path.
             if (PathUtils.IsEmpty(path))
-                path = CurrentFolderPath; //The last known path can be extracted from the current path
+                path = OriginalFolderPath; //The last known path can be extracted from the original path
 
             LastKnownFolderPath = path;
         }
