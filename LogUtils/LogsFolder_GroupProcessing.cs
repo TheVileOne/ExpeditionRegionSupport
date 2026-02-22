@@ -406,9 +406,11 @@ namespace LogUtils
             private List<LogGroupProperties> getTopLevelEntries(LogGroupProperties target)
             {
                 List<LogGroupProperties> topLevelEntries = getTopLevelEntries(target.AllGroupsSharingMyFolder());
-                
+
                 //Entries that match the target are not intended to be included in the result
-                topLevelEntries.RemoveAll(group => group.Equals(target));
+                var pathComparer = new LogPathComparer();
+
+                topLevelEntries.RemoveAll(group => pathComparer.Equals(target, group));
                 return topLevelEntries;
             }
 
