@@ -1060,7 +1060,7 @@ namespace LogUtils.Properties
             return fields;
         }
 
-        internal LogPropertyMetadata ToMetadata()
+        public LogPropertyMetadata ToMetadata()
         {
             return new LogPropertyMetadata()
             {

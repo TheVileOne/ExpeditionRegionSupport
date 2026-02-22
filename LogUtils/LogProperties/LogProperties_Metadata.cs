@@ -464,7 +464,7 @@ namespace LogUtils.Properties
         }
     }
 
-    internal sealed class LogPropertyMetadata
+    public sealed class LogPropertyMetadata
     {
         internal bool IsOptional;
 
@@ -474,7 +474,7 @@ namespace LogUtils.Properties
         public string OriginalPath;
         public string LastKnownPath;
 
-        public MetadataPathResult PopulateMissingPathValues()
+        internal MetadataPathResult PopulateMissingPathValues()
         {
             bool hasPath = !PathUtils.IsEmpty(Path);
             bool hasOriginalPath = !PathUtils.IsEmpty(OriginalPath);
@@ -522,7 +522,7 @@ namespace LogUtils.Properties
             }
         }
 
-        public void ReplaceIllegalCharacters()
+        internal void ReplaceIllegalCharacters()
         {
             const char REPLACE_CHAR = '_';
             char[] illegalFilenameChars = System.IO.Path.GetInvalidFileNameChars();
@@ -551,7 +551,7 @@ namespace LogUtils.Properties
         }
     }
 
-    internal enum MetadataPathResult
+    public enum MetadataPathResult
     {
         NoChanges,
         MissingPathResolved,
