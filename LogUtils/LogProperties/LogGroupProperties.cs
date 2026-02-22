@@ -167,7 +167,10 @@ namespace LogUtils.Properties
                    : string.Empty;
 
             OriginalFolderPath = path;
-            CurrentFolderPath = FolderPath = OriginalFolderPath;
+            FolderPath = OriginalFolderPath;
+
+            if (PathUtils.IsEmpty(CurrentFolderPath)) //Sanity check, current path should not be updated here unless we don't have one
+                CurrentFolderPath = FolderPath;
         }
 
         internal override string GetLastKnownPath()
