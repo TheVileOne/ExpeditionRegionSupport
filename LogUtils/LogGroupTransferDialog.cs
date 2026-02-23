@@ -198,7 +198,7 @@ namespace LogUtils
             }
             catch (Exception ex)
             {
-                UtilityLogger.LogError("Failed to move group folder", ex);
+                UtilityLogger.LogError("Failed to move folder", ex);
             }
         }
     }
