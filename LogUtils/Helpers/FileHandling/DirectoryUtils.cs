@@ -1,6 +1,7 @@
 ﻿using LogUtils.Helpers.Comparers;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 
@@ -96,6 +97,20 @@ namespace LogUtils.Helpers.FileHandling
             return dirIndex;
         }
 
+        /// <summary>
+        /// Gets the total number of files contained by a specified directory
+        /// </summary>
+        /// <param name="path">Path to use</param>
+        /// <param name="searchOption">Option to choose only the topmost directory, or all directories</param>
+        /// <returns>The number of files contained by a specified directory</returns>
+        public static int GetFileCount(string path, SearchOption searchOption = SearchOption.TopDirectoryOnly)
+        {
+            return Directory.Exists(path) ? Directory.GetFiles(path, "*", searchOption).Length : 0;
+        }
+
+        [Obsolete("Legacy method")]
+        internal static int DirectoryFileCount(string path) => GetFileCount(path);
+
         public static bool IsSafeToMove(string folderPath)
         {
             return RainWorldDirectory.GetDirectoryCategory(folderPath) == PathCategory.ModSourced;
@@ -111,42 +126,63 @@ namespace LogUtils.Helpers.FileHandling
             return Directory.Exists(Path.GetDirectoryName(path));
         }
 
+        /// <summary>
+        /// Deletes a directory at a specified path
+        /// </summary>
+        /// <param name="path">Location of the directory</param>
+        /// <param name="scope">Condition that must be met for deletion operation to complete successfully</param>
+        /// <param name="mode">The type of deletion specified</param>
+        /// <exception cref="ArgumentException"><paramref name="path"/> is null, empty, or contains invalid characters</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="path"/> is null</exception>
+        /// <exception cref="System.Security.SecurityException">The caller does not have the required permission</exception>
+        /// <exception cref="UnauthorizedAccessException">The caller does not have the required permission</exception>
+        /// <exception cref="PathTooLongException"><paramref name="path"/> exceeds maximum number of path characters</exception>
+        /// <exception cref="InvalidEnumArgumentException">Enum value is unrecognized</exception>
+        /// <exception cref="InvalidOperationException">Deletion criteria is not met</exception>
+        /// <exception cref="IOException">Directory was unable to be deleted</exception>
+        public static void Delete(string path, DirectoryDeletionScope scope, DirectoryDeletionMode mode)
+        {
+            DeleteInternal(path, scope, mode);
+        }
+
         /// <inheritdoc cref="DeletePermanently(string, DirectoryDeletionScope, string)"/>
         public static bool DeletePermanently(string path, bool deleteOnlyIfEmpty = true)
         {
-            return DeleteInternal(path, deleteOnlyIfEmpty ? DirectoryDeletionScope.OnlyIfEmpty : DirectoryDeletionScope.AllFilesAndFolders);
+            return TryDelete(path, deleteOnlyIfEmpty ? DirectoryDeletionScope.OnlyIfEmpty : DirectoryDeletionScope.AllFilesAndFolders, DirectoryDeletionMode.Permanent);
         }
 
         /// <inheritdoc cref="DeletePermanently(string, DirectoryDeletionScope, string)"/>
-        public static bool DeletePermanently(string path, DirectoryDeletionScope deleteOption)
+        public static bool DeletePermanently(string path, DirectoryDeletionScope scope)
         {
-            return DeleteInternal(path, deleteOption);
+            return TryDelete(path, scope, DirectoryDeletionMode.Permanent);
         }
 
         /// <summary>
-        /// Permanently deletes a directory at the specified path
+        /// Permanently deletes a directory at a specified path
         /// </summary>
         /// <param name="path">Location of the directory</param>
-        /// <param name="deleteOption">Condition that must be met for deletion operation to complete successfully</param>
+        /// <param name="scope">Condition that must be met for deletion operation to complete successfully</param>
         /// <param name="customErrorMsg">Message that will be logged in the event of an exception</param>
         /// <returns>true, if the operation was successful, false if an exception was thrown, or condition for deletion was not met</returns>
-        public static bool DeletePermanently(string path, DirectoryDeletionScope deleteOption, string customErrorMsg = null)
+        public static bool DeletePermanently(string path, DirectoryDeletionScope scope, string customErrorMsg = null)
         {
-            return DeleteInternal(path, deleteOption, customErrorMsg);
+            return TryDelete(path, scope, DirectoryDeletionMode.Permanent, customErrorMsg);
         }
 
-        internal static bool DeleteInternal(string path, DirectoryDeletionScope deleteOption = DirectoryDeletionScope.OnlyIfEmpty, string customErrorMsg = null)
+        /// <summary>
+        /// Attempts to delete a directory at a specified path
+        /// </summary>
+        /// <param name="path">Location of the directory</param>
+        /// <param name="scope">Condition that must be met for deletion operation to complete successfully</param>
+        /// <param name="mode">The type of deletion specified</param>
+        /// <param name="customErrorMsg">Message that will be logged in the event of an exception</param>
+        /// <returns>true, if the operation was successful, false if an exception was thrown, or condition for deletion was not met</returns>
+        public static bool TryDelete(string path, DirectoryDeletionScope scope, DirectoryDeletionMode mode, string customErrorMsg = null)
         {
             try
             {
-                if (!Directory.Exists(path)) //Return value is consistent with how files are handled
-                    return true;
-
-                bool canDelete = deleteOption == DirectoryDeletionScope.AllFilesAndFolders || !Directory.EnumerateFiles(path).Any();
-
-                if (canDelete)
-                    Directory.Delete(path, true);
-                return canDelete; //Consider not meeting deletion conditions as a failed operation
+                DeleteInternal(path, scope, mode);
+                return true;
             }
             catch (Exception ex)
             {
@@ -155,16 +191,46 @@ namespace LogUtils.Helpers.FileHandling
             }
         }
 
-        public static int DirectoryFileCount(string path)
+        internal static void DeleteInternal(string path, DirectoryDeletionScope scope, DirectoryDeletionMode mode)
         {
-            return Directory.Exists(path) ? Directory.GetFiles(path).Length : 0;
+            if (!Directory.Exists(path))
+                return;
+
+            bool canDelete;
+            switch (scope)
+            {
+                case DirectoryDeletionScope.AllFilesAndFolders:
+                    canDelete = true;
+                    break;
+                case DirectoryDeletionScope.OnlyIfEmpty:
+                    canDelete = !Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories).Any();
+                    break;
+                default:
+                    throw new InvalidEnumArgumentException(nameof(scope), (int)scope, typeof(DirectoryDeletionScope));
+            }
+
+            if (!canDelete)
+                throw new InvalidOperationException("Deletion criteria is not met");
+
+            switch (mode)
+            {
+                case DirectoryDeletionMode.Permanent:
+                    Directory.Delete(path, true);
+                    break;
+                case DirectoryDeletionMode.RecycleBin:
+                    if (!RecycleBin.MoveToRecycleBin(path))
+                        throw new IOException("Unable to move file");
+                    break;
+                default:
+                    throw new InvalidEnumArgumentException(nameof(mode), (int)mode, typeof(DirectoryDeletionMode));
+            }
         }
 
         public static void Copy(string sourceDir, string destinationDir, bool recursive)
         {
             List<string> failedToCopy = new List<string>();
 
-            // Get information about the source directory
+            //Get information about the source directory
             DirectoryInfo dir = new DirectoryInfo(sourceDir);
 
             //Check if the source directory exists
@@ -213,13 +279,20 @@ namespace LogUtils.Helpers.FileHandling
     /// </summary>
     public enum DirectoryDeletionScope
     {
-        /// <summary>
-        /// Directory is only touched if there are no files, or other directories inside
-        /// </summary>
+        /// <summary>Directory is only touched if there are no files, or other directories inside</summary>
         OnlyIfEmpty = 0,
-        /// <summary>
-        /// Directory, and all of its contents will be deleted
-        /// </summary>
+        /// <summary>Directory, and all of its contents will be deleted</summary>
         AllFilesAndFolders = 1,
+    }
+
+    /// <summary>
+    /// Specifies the behavior of the deletion operation
+    /// </summary>
+    public enum DirectoryDeletionMode
+    {
+        /// <summary>Directory will be permanently deleted</summary>
+        Permanent,
+        /// <summary>Directory will be sent to the Recycle Bin on the user's computer</summary>
+        RecycleBin
     }
 }
