@@ -62,6 +62,7 @@ namespace LogUtils.Enums
         /// <inheritdoc cref="LogGroupID(string, string, bool)"/>
         public LogGroupID(string value, bool register = false) : base(getProperties(value), register)
         {
+            Properties.InitializePermissions();
         }
 
         /// <summary>
@@ -73,6 +74,7 @@ namespace LogUtils.Enums
         /// <param name="register"></param>
         public LogGroupID(string value, string path, bool register = false) : base(getProperties(value), register)
         {
+            Properties.InitializePermissions();
             Properties.SetInitialPath(path);
         }
 

@@ -14,10 +14,23 @@ namespace LogUtils.Properties
 {
     public class LogGroupProperties : LogProperties
     {
+        private FolderPermissions _permissions = FolderPermissions.Invalid;
         /// <summary>
         /// A set of flags indicating activities that are safe, and permissible to happen to a defined group folder
         /// </summary>
-        public FolderPermissions FolderPermissions = FolderPermissions.None;
+        public FolderPermissions FolderPermissions
+        {
+            get
+            {
+                if (_permissions == FolderPermissions.Invalid)
+                    return FolderPermissions.All;
+                return _permissions;
+            }
+            set
+            {
+                _permissions = value;
+            }
+        }
 
         public bool IsAnonymous { get; internal set; }
 
@@ -74,8 +87,8 @@ namespace LogUtils.Properties
             if (!UtilityCore.IsInitialized)
             {
                 //Assert expected truths about a preinitialized log group file
-                Assert.That(Members, AssertBehavior.LogAndThrow).IsNullOrEmpty();                             //No members
-                Assert.That(FolderPermissions, AssertBehavior.LogAndThrow).IsEqualTo(FolderPermissions.None); //No permissions
+                Assert.That(Members, AssertBehavior.LogAndThrow).IsNullOrEmpty();                           //No members
+                Assert.That(_permissions, AssertBehavior.LogAndThrow).IsEqualTo(FolderPermissions.Invalid); //No permissions
 
                 //Folder groups require extra processing on startup when they have to be read from file
                 bool hasPathChangedSinceLastShutdown = IsFolderGroup && !PathUtils.PathsAreEqual(CurrentFolderPath, LastKnownFolderPath);
@@ -171,6 +184,15 @@ namespace LogUtils.Properties
 
             if (PathUtils.IsEmpty(CurrentFolderPath)) //Sanity check, current path should not be updated here unless we don't have one
                 CurrentFolderPath = FolderPath;
+        }
+
+        internal void InitializePermissions()
+        {
+            if (UtilityCore.IsInitialized && FolderPermissions == FolderPermissions.Invalid)
+            {
+                UtilityLogger.Log("Permissions initialized");
+                FolderPermissions = FolderPermissions.None;
+            }
         }
 
         internal override string GetLastKnownPath()

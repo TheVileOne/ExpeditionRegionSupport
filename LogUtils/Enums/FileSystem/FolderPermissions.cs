@@ -8,9 +8,15 @@ namespace LogUtils.Enums.FileSystem
     [Flags]
     public enum FolderPermissions
     {
+        /// <summary>The default state</summary>
+        Invalid = -1,
+        /// <summary>Permission state that does not permit most folder operations</summary>
         None = 0,
+        /// <summary>Permission state that gives LogUtils deletion privileges</summary>
         Delete = 1,
+        /// <summary>Permission state that gives LogUtils move privileges</summary>
         Move = 2,
+        /// <summary>Permission state that gives all privileges</summary>
         All = Delete | Move
     }
 }
