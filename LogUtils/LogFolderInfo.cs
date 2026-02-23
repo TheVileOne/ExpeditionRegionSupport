@@ -158,6 +158,12 @@ namespace LogUtils
         /// </summary>
         /// <param name="newPath">A fully qualified folder path, or path keyword</param>
         /// <param name="checkPermissions">Flag helps enhance safe folder operations. Keep value set to true (Recommended)</param>
+        /// <exception cref="ArgumentException">Path represents a child, or parent directory of this folder</exception>
+        /// <exception cref="IOException">
+        /// Path was not allowed to be moved i.e. a Rain World directory path, or mod folder path
+        /// - OR - merge operation failed - OR - user canceled the merge operation
+        /// </exception>
+        /// <exception cref="PermissionDeniedException">A <see cref="LogGroupID"/> instance has targeted this folder, or a subfolder, and has not given permission to move it</exception>
         public void Move(string newPath, bool checkPermissions = true)
         {
             RefreshInfo();
@@ -165,6 +171,19 @@ namespace LogUtils
             //TODO: Determine if there is a decent way to keep file paths in sync across multiple Rain World processes
             if (!UtilityCore.IsControllingAssembly)
                 return;
+
+            newPath = LogProperties.GetContainingPath(newPath);
+
+            if (PathUtils.ContainsOtherPath(newPath, FolderPath) || PathUtils.ContainsOtherPath(FolderPath, newPath))
+            {
+                if (PathUtils.PathsAreEqual(newPath, FolderPath))
+                {
+                    UtilityLogger.Log("Path change is not necessary");
+                    return;
+                }
+                //Currently unsupported, but may be supported in the future
+                throw new ArgumentException("New path represents a child, or parent directory of the current path", nameof(newPath));
+            }
 
             if (checkPermissions)
             {
@@ -174,12 +193,6 @@ namespace LogUtils
                 if (!canMove)
                     LogGroup.OnPermissionDenied(FolderPath, FolderPermissions.Move);
             }
-            MoveInternal(newPath);
-        }
-
-        internal void MoveInternal(string newPath)
-        {
-            newPath = LogProperties.GetContainingPath(newPath);
 
             using (var scope = demandAllLocks())
             {
