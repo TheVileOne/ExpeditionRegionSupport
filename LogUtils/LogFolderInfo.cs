@@ -288,6 +288,9 @@ namespace LogUtils
                 cancelMerge(history);
                 throw new IOException("Unable to complete merge operation", history.Exception);
             }
+
+            //The merge process will leave behind an empty folder
+            DirectoryUtils.DeletePermanently(FolderPath, deleteOnlyIfEmpty: true);
             UtilityLogger.Log("Merge operation on all files successful");
         }
 
