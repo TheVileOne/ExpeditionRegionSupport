@@ -249,7 +249,16 @@ namespace LogUtils
 
         private string getDestinationPath(LogID target, LogGroupID groupTarget)
         {
-            if (!PreserveFolderStructure || !groupTarget.Properties.IsFolderGroup)
+            bool shouldUseTargetPath()
+            {
+                if (!PreserveFolderStructure || !groupTarget.Properties.IsFolderGroup)
+                    return true;
+
+                //When this is set to false, we cannot trust that the path is a subpath to the target group
+                return !IgnoreOutOfFolderFiles && PathUtils.ContainsOtherPath(target.Properties.CurrentFolderPath, groupTarget.Properties.CurrentFolderPath);
+            }
+
+            if (shouldUseTargetPath())
                 return TargetPath;
 
             string currentBasePath = groupTarget.Properties.CurrentFolderPath;
