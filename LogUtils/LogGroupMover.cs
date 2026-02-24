@@ -14,10 +14,23 @@ namespace LogUtils
 {
     public class LogGroupMover
     {
+        private string _targetPath;
         /// <summary>
         /// The path that files will be moved to
         /// </summary>
-        public string TargetPath;
+        public string TargetPath
+        {
+            get => _targetPath;
+            set
+            {
+                if (PathUtils.IsEmpty(value))
+                {
+                    _targetPath = string.Empty;
+                    return;
+                }
+                _targetPath = value.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            }
+        }
 
         /// <summary>
         /// The behavior that results from being unable to complete a move operation
