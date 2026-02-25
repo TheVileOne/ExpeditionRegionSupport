@@ -250,60 +250,12 @@ namespace LogUtils
         private PathTarget[] getPathTargets(LogID[] targets, LogGroupID groupTarget)
         {
             PathTarget[] results = new PathTarget[targets.Length];
-
-            int basePathIndex = -1; //The highest index containing an entry that exactly matches TargetPath
             for (int i = 0; i < results.Length; i++)
             {
                 results[i].ID = targets[i];
                 results[i].Path = getDestinationPath(targets[i], groupTarget);
-
-                if (PathUtils.PathsAreEqual(results[i].Path, TargetPath))
-                {
-                    if (i == basePathIndex + 1) //All entries have targeted the base path so far
-                    {
-                        basePathIndex = i;
-                        continue;
-                    }
-
-                    //There must be a gap for this code to execute
-                    basePathIndex++;
-                    PathTarget temp = results[basePathIndex];
-
-                    results[basePathIndex] = results[i];
-                    results[i] = temp;
-                }
             }
-
-            int unsortedPathIndex = basePathIndex + 1;
-            int unsortedCount = results.Length - unsortedPathIndex;
-
-            if (unsortedCount > 1)
-                Array.Sort(results, unsortedPathIndex, unsortedCount, Comparer<PathTarget>.Create(compareTargets));
             return results;
-        }
-
-        private static int compareTargets(PathTarget target, PathTarget targetOther)
-        {
-            if (compareByDescendingPathDepth(target.Path, targetOther.Path) == 0)
-            {
-                //LogIDs associated with existing files should appear before examples that do not exist
-                bool targetExists = target.ID.Properties.FileExists;
-                bool targetOtherExists = targetOther.ID.Properties.FileExists;
-
-                if (targetExists == targetOtherExists)
-                    return 0;
-
-                return targetExists ? -1 : 1;
-            }
-            return 0;
-
-            static int compareByDescendingPathDepth(string path, string pathOther)
-            {
-                int pathDepth = PathUtils.SplitPath(path).Length;
-                int pathDepthOther = PathUtils.SplitPath(pathOther).Length;
-
-                return pathDepth - pathDepthOther; //Higher depth should appear before lower depth in the sort order
-            }
         }
 
         private string getDestinationPath(LogID target, LogGroupID groupTarget)
