@@ -5953,6 +5953,21 @@
             Represents permission flags that apply to a folder
             </summary>
         </member>
+        <member name="F:LogUtils.Enums.FileSystem.FolderPermissions.Invalid">
+            <summary>The default state</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.FolderPermissions.None">
+            <summary>Permission state that does not permit most folder operations</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.FolderPermissions.Delete">
+            <summary>Permission state that gives LogUtils deletion privileges</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.FolderPermissions.Move">
+            <summary>Permission state that gives LogUtils move privileges</summary>
+        </member>
+        <member name="F:LogUtils.Enums.FileSystem.FolderPermissions.All">
+            <summary>Permission state that gives all privileges</summary>
+        </member>
         <member name="T:LogUtils.Enums.IExtEnumBase">
             <summary>
             The non-generic representation of a <see cref="T:LogUtils.Enums.SharedExtEnum`1"/> derived type
@@ -7738,10 +7753,34 @@
             <returns>Returns a char position, or -1 if a match is not found</returns>
             <remarks>The returned index will be representative of the position of the first character in the directory string (separator characters are ignored)</remarks>
         </member>
+        <member name="M:LogUtils.Helpers.FileHandling.DirectoryUtils.GetFileCount(System.String,System.IO.SearchOption)">
+            <summary>
+            Gets the total number of files contained by a specified directory
+            </summary>
+            <param name="path">Path to use</param>
+            <param name="searchOption">Option to choose only the topmost directory, or all directories</param>
+            <returns>The number of files contained by a specified directory</returns>
+        </member>
         <member name="M:LogUtils.Helpers.FileHandling.DirectoryUtils.ParentExists(System.String)">
             <summary>
             Determines if the given path has an existing parent directory
             </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.DirectoryUtils.Delete(System.String,LogUtils.Helpers.FileHandling.DirectoryDeletionScope,LogUtils.Helpers.FileHandling.DirectoryDeletionMode)">
+            <summary>
+            Deletes a directory at a specified path
+            </summary>
+            <param name="path">Location of the directory</param>
+            <param name="scope">Condition that must be met for deletion operation to complete successfully</param>
+            <param name="mode">The type of deletion specified</param>
+            <exception cref="T:System.ArgumentException"><paramref name="path"/> is null, empty, or contains invalid characters</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="path"/> is null</exception>
+            <exception cref="T:System.Security.SecurityException">The caller does not have the required permission</exception>
+            <exception cref="T:System.UnauthorizedAccessException">The caller does not have the required permission</exception>
+            <exception cref="T:System.IO.PathTooLongException"><paramref name="path"/> exceeds maximum number of path characters</exception>
+            <exception cref="T:System.ComponentModel.InvalidEnumArgumentException">Enum value is unrecognized</exception>
+            <exception cref="T:System.InvalidOperationException">Deletion criteria is not met</exception>
+            <exception cref="T:System.IO.IOException">Directory was unable to be deleted</exception>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.DirectoryUtils.DeletePermanently(System.String,System.Boolean)">
             <inheritdoc cref="M:LogUtils.Helpers.FileHandling.DirectoryUtils.DeletePermanently(System.String,LogUtils.Helpers.FileHandling.DirectoryDeletionScope,System.String)"/>
@@ -7751,10 +7790,20 @@
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.DirectoryUtils.DeletePermanently(System.String,LogUtils.Helpers.FileHandling.DirectoryDeletionScope,System.String)">
             <summary>
-            Permanently deletes a directory at the specified path
+            Permanently deletes a directory at a specified path
             </summary>
             <param name="path">Location of the directory</param>
-            <param name="deleteOption">Condition that must be met for deletion operation to complete successfully</param>
+            <param name="scope">Condition that must be met for deletion operation to complete successfully</param>
+            <param name="customErrorMsg">Message that will be logged in the event of an exception</param>
+            <returns>true, if the operation was successful, false if an exception was thrown, or condition for deletion was not met</returns>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.DirectoryUtils.TryDelete(System.String,LogUtils.Helpers.FileHandling.DirectoryDeletionScope,LogUtils.Helpers.FileHandling.DirectoryDeletionMode,System.String)">
+            <summary>
+            Attempts to delete a directory at a specified path
+            </summary>
+            <param name="path">Location of the directory</param>
+            <param name="scope">Condition that must be met for deletion operation to complete successfully</param>
+            <param name="mode">The type of deletion specified</param>
             <param name="customErrorMsg">Message that will be logged in the event of an exception</param>
             <returns>true, if the operation was successful, false if an exception was thrown, or condition for deletion was not met</returns>
         </member>
@@ -7764,14 +7813,21 @@
             </summary>
         </member>
         <member name="F:LogUtils.Helpers.FileHandling.DirectoryDeletionScope.OnlyIfEmpty">
-            <summary>
-            Directory is only touched if there are no files, or other directories inside
-            </summary>
+            <summary>Directory is only touched if there are no files, or other directories inside</summary>
         </member>
         <member name="F:LogUtils.Helpers.FileHandling.DirectoryDeletionScope.AllFilesAndFolders">
+            <summary>Directory, and all of its contents will be deleted</summary>
+        </member>
+        <member name="T:LogUtils.Helpers.FileHandling.DirectoryDeletionMode">
             <summary>
-            Directory, and all of its contents will be deleted
+            Specifies the behavior of the deletion operation
             </summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.DirectoryDeletionMode.Permanent">
+            <summary>Directory will be permanently deleted</summary>
+        </member>
+        <member name="F:LogUtils.Helpers.FileHandling.DirectoryDeletionMode.RecycleBin">
+            <summary>Directory will be sent to the Recycle Bin on the user's computer</summary>
         </member>
         <member name="T:LogUtils.Helpers.FileHandling.FileExtension">
             <summary>
@@ -9192,6 +9248,12 @@
             </summary>
             <param name="newPath">A fully qualified folder path, or path keyword</param>
             <param name="checkPermissions">Flag helps enhance safe folder operations. Keep value set to true (Recommended)</param>
+            <exception cref="T:System.ArgumentException">Path represents a child, or parent directory of this folder</exception>
+            <exception cref="T:System.IO.IOException">
+            Path was not allowed to be moved i.e. a Rain World directory path, or mod folder path
+            - OR - merge operation failed - OR - user canceled the merge operation
+            </exception>
+            <exception cref="T:LogUtils.PermissionDeniedException">A <see cref="T:LogUtils.Enums.LogGroupID"/> instance has targeted this folder, or a subfolder, and has not given permission to move it</exception>
         </member>
         <member name="M:LogUtils.LogFolderInfo.mergeCurrentFolder(LogUtils.MergeFolderState)">
             <summary>
@@ -9468,6 +9530,21 @@
             </summary>
             <value>This should be set if you want to log to a location inside the Mods directory. Leave empty for any other location.</value>
         </member>
+        <member name="P:LogUtils.LogGroupBuilder.CanCreateFolder">
+            <summary>
+            Flag indicates that the builder has permissions to create a log group folder and any subfolders
+            </summary>
+        </member>
+        <member name="P:LogUtils.LogGroupBuilder.SubFolders">
+            <summary>
+            Collection of subfolder names, or partial paths containing subfolders names to create on building a <see cref="T:LogUtils.Enums.LogGroupID"/> through use of the builder
+            </summary>
+        </member>
+        <member name="M:LogUtils.LogGroupBuilder.CreateFolderOnBuild">
+            <summary>
+            Attempt to create the group folder, and any specified subpaths on the creation of the group ID (only applies to folder groups)
+            </summary>
+        </member>
         <member name="M:LogUtils.LogGroupBuilder.GetID">
             <summary>
             Creates a new unregistered <see cref="T:LogUtils.Enums.LogGroupID"/> instance based on set build parameters.
@@ -9479,7 +9556,7 @@
             </summary>
             <exception cref="T:System.InvalidOperationException">"Name field was not set."</exception>
         </member>
-        <member name="F:LogUtils.LogGroupMover.TargetPath">
+        <member name="P:LogUtils.LogGroupMover.TargetPath">
             <summary>
             The path that files will be moved to
             </summary>
@@ -9494,9 +9571,9 @@
             The behavior that results from encountering a path that doesn't exist
             </summary>
         </member>
-        <member name="F:LogUtils.LogGroupMover.AllowEmptyFolders">
+        <member name="F:LogUtils.LogGroupMover.AvoidEmptyFolders">
             <summary>
-            When false the mover will avoid creating an empty folder when given no files to move 
+            When true the mover will avoid creating an empty folder when given no files to move 
             </summary>
         </member>
         <member name="F:LogUtils.LogGroupMover.PreserveFolderStructure">
@@ -9570,6 +9647,11 @@
         <member name="M:LogUtils.LogGroupMover.getFilesToMove(LogUtils.Enums.LogGroupID)">
             <summary>
             Applies filter conditions to group members
+            </summary>
+        </member>
+        <member name="M:LogUtils.LogGroupMover.PathTarget.MayDependOnFolderPath">
+            <summary>
+            Checks whether log file may expect a folder path to exist to log correctly
             </summary>
         </member>
         <member name="F:LogUtils.MoveBehavior.FilesAndGroup">
@@ -9897,7 +9979,7 @@
             Contains metadata information (filename, path, etc), and other settings that impact logging behavior, and log file management
             </summary>
         </member>
-        <member name="F:LogUtils.Properties.LogGroupProperties.FolderPermissions">
+        <member name="P:LogUtils.Properties.LogGroupProperties.FolderPermissions">
             <summary>
             A set of flags indicating activities that are safe, and permissible to happen to a defined group folder
             </summary>
@@ -11535,6 +11617,16 @@
         <member name="F:LogUtils.RainWorldInfo.STARTUP_CUTOFF_PERIOD">
             <summary>
             The period during which it becomes too late to initiate the startup routine (such as for replacing log files)
+            </summary>
+        </member>
+        <member name="P:LogUtils.RainWorldInfo.IsRainWorldRunning">
+            <summary>
+            Indicates when the Rain World client instance is available
+            </summary>
+        </member>
+        <member name="F:LogUtils.RainWorldInfo.IsShuttingDown">
+            <summary>
+            Indicates when the Rain World client instance is shutting down
             </summary>
         </member>
         <member name="F:LogUtils.RainWorldInfo.LastReportedException">
