@@ -43,9 +43,9 @@ namespace LogUtils
         public FolderCreationProtocol FolderCreationProtocol = FolderCreationProtocol.FailToCreate;
 
         /// <summary>
-        /// When false the mover will avoid creating an empty folder when given no files to move 
+        /// When true the mover will avoid creating an empty folder when given no files to move 
         /// </summary>
-        public bool AllowEmptyFolders;
+        public bool AvoidEmptyFolders = true;
 
         /// <summary>
         /// The structure of the folder hierarchy of a folder group will be kept
@@ -144,7 +144,7 @@ namespace LogUtils
                     var pathTargets = getPathTargets(moveTargets, groupTarget);
 
                     //Prepare the folder - the destination must exist before we can move files there
-                    prepareDestinationFolder(pathTargets);
+                    prepareDestinationFolder(pathTargets.Length > 0);
 
                     int filesMoved = 0;
                     try
@@ -276,14 +276,14 @@ namespace LogUtils
             return LogProperties.GetNewBasePath(target, currentBasePath, TargetPath);
         }
 
-        private void prepareDestinationFolder(PathTarget[] pathTargets)
+        private void prepareDestinationFolder(bool hasFileTargets)
         {
             if (Directory.Exists(TargetPath))
                 return;
 
             FolderCreationProtocol protocol = FolderCreationProtocol;
 
-            if (!AllowEmptyFolders && pathTargets.Length == 0) //Nothing to move, nothing to create
+            if (AvoidEmptyFolders && !hasFileTargets) //Nothing to move, nothing to create
             {
                 if (protocol == FolderCreationProtocol.EnsurePathExists)
                     throw new DirectoryNotFoundException(string.Format(ExceptionMessage.EMPTY_PATH_NOT_ALLOWED, TargetPath));
