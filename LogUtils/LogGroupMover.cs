@@ -334,17 +334,17 @@ namespace LogUtils
             if (!AllowEmptyFolders && pathTargets.Length == 0) //Nothing to move, nothing to create
             {
                 if (protocol == FolderCreationProtocol.EnsurePathExists)
-                    throw new DirectoryNotFoundException("Target path could not be created. Folder would be empty.\n" + TargetPath);
+                    throw new DirectoryNotFoundException(string.Format(ExceptionMessage.EMPTY_PATH_NOT_ALLOWED, TargetPath));
                 return;
             }
 
             //Not allowed to create new folders
             if (protocol == FolderCreationProtocol.FailToCreate)
-                throw new DirectoryNotFoundException("Target path must exist before files can be moved");
+                throw new DirectoryNotFoundException(ExceptionMessage.PATH_MUST_EXIST);
 
             //Not allowed to create any new folders other than the parent directory
             if (protocol == FolderCreationProtocol.CreateFolder && !DirectoryUtils.ParentExists(TargetPath))
-                throw new DirectoryNotFoundException("Target path must exist before files can be moved");
+                throw new DirectoryNotFoundException(ExceptionMessage.PATH_MUST_EXIST);
 
             Directory.CreateDirectory(TargetPath);
 
@@ -367,21 +367,21 @@ namespace LogUtils
             if (!AllowEmptyFolders && !target.ID.Properties.FileExists) //Folder wont be empty when we have something to move
             {
                 if (protocol == FolderCreationProtocol.EnsurePathExists)
-                    throw new DirectoryNotFoundException("Target path could not be created. Folder would be empty.\n" + target.Path);
+                    throw new DirectoryNotFoundException(string.Format(ExceptionMessage.EMPTY_PATH_NOT_ALLOWED, target.Path));
 
 
                 //Not allowed to create new folders
                 if (protocol == FolderCreationProtocol.FailToCreate)
-                    throw new DirectoryNotFoundException("Target path could not be created. Folder would be empty.\n" + target.Path);
+                    throw new DirectoryNotFoundException(string.Format(ExceptionMessage.EMPTY_PATH_NOT_ALLOWED, target.Path));
 
                 //In any other situation we can ignore this issue. The folder will contain only the essential folders.
-                UtilityLogger.LogWarning("Target path could not be created. Folder would be empty.\n" + target.Path);
+                UtilityLogger.LogWarning(string.Format(ExceptionMessage.EMPTY_PATH_NOT_ALLOWED, target.Path));
                 return;
             }
 
             //Not allowed to create new folders
             if (protocol == FolderCreationProtocol.FailToCreate)
-                throw new DirectoryNotFoundException("Target path must exist before files can be moved");
+                throw new DirectoryNotFoundException(ExceptionMessage.PATH_MUST_EXIST);
 
             Directory.CreateDirectory(target.Path);
         }
@@ -390,6 +390,12 @@ namespace LogUtils
         {
             public LogID ID;
             public string Path;
+        }
+
+        private static class ExceptionMessage
+        {
+            public const string PATH_MUST_EXIST = "Target path must exist before files can be moved";
+            public const string EMPTY_PATH_NOT_ALLOWED = "Target path could not be created. Folder would be empty.\n{0}";
         }
     }
 
