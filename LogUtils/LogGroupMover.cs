@@ -162,6 +162,17 @@ namespace LogUtils
                                 UtilityLogger.LogWarning("Move operation failed");
                                 continue;
                             }
+
+                            //Handle the situation where a log path targets a folder that exists, but the file itself doesn't exist. This presumes that
+                            //the presence of this folder is also expected at the destination folder, and should not be left out. Second note, out of folder
+                            //examples here will never target a subfolder.
+                            bool isTargetingSubFolder = target.Path.Length > TargetPath.Length;
+
+                            if (isTargetingSubFolder && !target.ID.Properties.FileExists && target.MayDependOnFolderPath())
+                            {
+                                UtilityLogger.Log("Creating file dependent folder path");
+                                Directory.CreateDirectory(target.Path);
+                            }
                             filesMoved++;
                         }
                     }
@@ -305,6 +316,11 @@ namespace LogUtils
         {
             public LogID ID;
             public string Path;
+
+            /// <summary>
+            /// Checks whether log file may expect a folder path to exist to log correctly
+            /// </summary>
+            public readonly bool MayDependOnFolderPath() => Directory.Exists(ID.Properties.CurrentFolderPath);
         }
 
         private static class ExceptionMessage
