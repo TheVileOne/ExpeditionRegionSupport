@@ -134,28 +134,28 @@ namespace LogUtils
                         throw new InvalidOperationException("Group does not support folder operations");
                 }
 
-                LogID[] moveTargets = getFilesToMove(target);
-
-                //Prepare the folder - the destination must exist before we can move files there
-                prepareDestinationFolder(moveTargets);
+                LogGroupID groupTarget = target;
+                LogID[] moveTargets = getFilesToMove(groupTarget);
 
                 ThreadSafeWorker worker = new ThreadSafeWorker(moveTargets.GetLocks());
 
                 worker.DoWork(() =>
                 {
+                    var pathTargets = getPathTargets(moveTargets, groupTarget);
+
+                    //Prepare the folder - the destination must exist before we can move files there
+                    prepareDestinationFolder(pathTargets);
+
                     int filesMoved = 0;
                     try
                     {
-                        if (moveTargets.Length == 0)
+                        if (pathTargets.Length == 0)
                             return;
 
-                        UtilityLogger.Log($"Attempting to move {moveTargets.Length} log file(s)");
-
-                        LogGroupID groupTarget = target;
-                        foreach (LogID target in moveTargets)
+                        UtilityLogger.Log($"Attempting to move {pathTargets.Length} log file(s)");
+                        foreach (PathTarget target in pathTargets)
                         {
-                            string newPath = getDestinationPath(target, groupTarget);
-                            FileStatus moveResult = LogFile.Move(target, newPath);
+                            FileStatus moveResult = LogFile.Move(target.ID, target.Path);
 
                             if (moveResult != FileStatus.MoveComplete && moveResult != FileStatus.NoActionRequired)
                             {
@@ -247,6 +247,65 @@ namespace LogUtils
             return members.Where(m => conditions == null || conditions.Invoke(m)).ToArray();
         }
 
+        private PathTarget[] getPathTargets(LogID[] targets, LogGroupID groupTarget)
+        {
+            PathTarget[] results = new PathTarget[targets.Length];
+
+            int basePathIndex = -1; //The highest index containing an entry that exactly matches TargetPath
+            for (int i = 0; i < results.Length; i++)
+            {
+                results[i].ID = targets[i];
+                results[i].Path = getDestinationPath(targets[i], groupTarget);
+
+                if (PathUtils.PathsAreEqual(results[i].Path, TargetPath))
+                {
+                    if (i == basePathIndex + 1) //All entries have targeted the base path so far
+                    {
+                        basePathIndex = i;
+                        continue;
+                    }
+
+                    //There must be a gap for this code to execute
+                    basePathIndex++;
+                    PathTarget temp = results[basePathIndex];
+
+                    results[basePathIndex] = results[i];
+                    results[i] = temp;
+                }
+            }
+
+            int unsortedPathIndex = basePathIndex + 1;
+            int unsortedCount = results.Length - unsortedPathIndex;
+
+            if (unsortedCount > 1)
+                Array.Sort(results, unsortedPathIndex, unsortedCount, Comparer<PathTarget>.Create(compareTargets));
+            return results;
+        }
+
+        private static int compareTargets(PathTarget target, PathTarget targetOther)
+        {
+            if (compareByDescendingPathDepth(target.Path, targetOther.Path) == 0)
+            {
+                //LogIDs associated with existing files should appear before examples that do not exist
+                bool targetExists = target.ID.Properties.FileExists;
+                bool targetOtherExists = targetOther.ID.Properties.FileExists;
+
+                if (targetExists == targetOtherExists)
+                    return 0;
+
+                return targetExists ? -1 : 1;
+            }
+            return 0;
+
+            static int compareByDescendingPathDepth(string path, string pathOther)
+            {
+                int pathDepth = PathUtils.SplitPath(path).Length;
+                int pathDepthOther = PathUtils.SplitPath(pathOther).Length;
+
+                return pathDepth - pathDepthOther; //Higher depth should appear before lower depth in the sort order
+            }
+        }
+
         private string getDestinationPath(LogID target, LogGroupID groupTarget)
         {
             bool shouldUseTargetPath()
@@ -265,17 +324,17 @@ namespace LogUtils
             return LogProperties.GetNewBasePath(target, currentBasePath, TargetPath);
         }
 
-        private void prepareDestinationFolder(LogID[] moveTargets)
+        private void prepareDestinationFolder(PathTarget[] pathTargets)
         {
             if (Directory.Exists(TargetPath))
                 return;
 
             FolderCreationProtocol protocol = FolderCreationProtocol;
 
-            if (!AllowEmptyFolders && moveTargets.Length == 0) //Nothing to move, nothing to create
+            if (!AllowEmptyFolders && pathTargets.Length == 0) //Nothing to move, nothing to create
             {
                 if (protocol == FolderCreationProtocol.EnsurePathExists)
-                    throw new DirectoryNotFoundException("Target path could not be created. Folder would be empty.");
+                    throw new DirectoryNotFoundException("Target path could not be created. Folder would be empty.\n" + TargetPath);
                 return;
             }
 
@@ -288,11 +347,49 @@ namespace LogUtils
                 throw new DirectoryNotFoundException("Target path must exist before files can be moved");
 
             Directory.CreateDirectory(TargetPath);
+
+            for (int i = 0; i < pathTargets.Length; i++)
+            {
+                if (PathUtils.PathsAreEqual(pathTargets[i].Path, TargetPath))
+                    continue;
+
+                prepareDestinationFolder(pathTargets[i]);
+            }
         }
 
-        private LogFileMover createFileMover(string sourceLogPath, string destLogPath)
+        private void prepareDestinationFolder(PathTarget target)
         {
-            return new GroupFileMover(this, sourceLogPath, destLogPath);
+            if (Directory.Exists(target.Path))
+                return;
+
+            FolderCreationProtocol protocol = FolderCreationProtocol;
+
+            if (!AllowEmptyFolders && !target.ID.Properties.FileExists) //Folder wont be empty when we have something to move
+            {
+                if (protocol == FolderCreationProtocol.EnsurePathExists)
+                    throw new DirectoryNotFoundException("Target path could not be created. Folder would be empty.\n" + target.Path);
+
+
+                //Not allowed to create new folders
+                if (protocol == FolderCreationProtocol.FailToCreate)
+                    throw new DirectoryNotFoundException("Target path could not be created. Folder would be empty.\n" + target.Path);
+
+                //In any other situation we can ignore this issue. The folder will contain only the essential folders.
+                UtilityLogger.LogWarning("Target path could not be created. Folder would be empty.\n" + target.Path);
+                return;
+            }
+
+            //Not allowed to create new folders
+            if (protocol == FolderCreationProtocol.FailToCreate)
+                throw new DirectoryNotFoundException("Target path must exist before files can be moved");
+
+            Directory.CreateDirectory(target.Path);
+        }
+
+        private struct PathTarget
+        {
+            public LogID ID;
+            public string Path;
         }
     }
 
