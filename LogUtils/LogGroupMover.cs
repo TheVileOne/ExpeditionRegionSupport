@@ -155,6 +155,8 @@ namespace LogUtils
                         UtilityLogger.Log($"Attempting to move {pathTargets.Length} log file(s)");
                         foreach (PathTarget target in pathTargets)
                         {
+                            //Destination folder for the log file is automatically generated when this method is called. This allows us to not have to worry
+                            //about creating folder paths for existing log files.
                             FileStatus moveResult = LogFile.Move(target.ID, target.Path);
 
                             if (moveResult != FileStatus.MoveComplete && moveResult != FileStatus.NoActionRequired)

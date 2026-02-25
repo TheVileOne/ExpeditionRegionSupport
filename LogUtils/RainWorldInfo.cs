@@ -22,8 +22,14 @@ namespace LogUtils
 
         public static RainWorld RainWorld => Custom.rainWorld;
 
+        /// <summary>
+        /// Indicates when the Rain World client instance is available
+        /// </summary>
         public static bool IsRainWorldRunning => RainWorld != null;
 
+        /// <summary>
+        /// Indicates when the Rain World client instance is shutting down
+        /// </summary>
         public static bool IsShuttingDown;
 
         public static RainWorld.BuildType Build => IsRainWorldRunning ? RainWorld.buildType : default;
