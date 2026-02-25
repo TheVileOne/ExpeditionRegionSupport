@@ -261,7 +261,7 @@ namespace LogUtils
             if (!target.IsFolderGroup)
                 return CurrentPath;
 
-            string targetDirName = Path.GetFileName(target.CurrentFilePath);
+            string targetDirName = Path.GetFileName(target.CurrentFolderPath);
 
             //Take the parent directory of the group, and make it the new destination inside log directory
             return Path.Combine(CurrentPath, targetDirName);
