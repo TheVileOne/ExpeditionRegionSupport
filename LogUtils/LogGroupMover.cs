@@ -347,43 +347,6 @@ namespace LogUtils
                 throw new DirectoryNotFoundException(ExceptionMessage.PATH_MUST_EXIST);
 
             Directory.CreateDirectory(TargetPath);
-
-            for (int i = 0; i < pathTargets.Length; i++)
-            {
-                if (PathUtils.PathsAreEqual(pathTargets[i].Path, TargetPath))
-                    continue;
-
-                prepareDestinationFolder(pathTargets[i]);
-            }
-        }
-
-        private void prepareDestinationFolder(PathTarget target)
-        {
-            if (Directory.Exists(target.Path))
-                return;
-
-            FolderCreationProtocol protocol = FolderCreationProtocol;
-
-            if (!AllowEmptyFolders && !target.ID.Properties.FileExists) //Folder wont be empty when we have something to move
-            {
-                if (protocol == FolderCreationProtocol.EnsurePathExists)
-                    throw new DirectoryNotFoundException(string.Format(ExceptionMessage.EMPTY_PATH_NOT_ALLOWED, target.Path));
-
-
-                //Not allowed to create new folders
-                if (protocol == FolderCreationProtocol.FailToCreate)
-                    throw new DirectoryNotFoundException(string.Format(ExceptionMessage.EMPTY_PATH_NOT_ALLOWED, target.Path));
-
-                //In any other situation we can ignore this issue. The folder will contain only the essential folders.
-                UtilityLogger.LogWarning(string.Format(ExceptionMessage.EMPTY_PATH_NOT_ALLOWED, target.Path));
-                return;
-            }
-
-            //Not allowed to create new folders
-            if (protocol == FolderCreationProtocol.FailToCreate)
-                throw new DirectoryNotFoundException(ExceptionMessage.PATH_MUST_EXIST);
-
-            Directory.CreateDirectory(target.Path);
         }
 
         private struct PathTarget
