@@ -30,6 +30,10 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 Path = FOLDER_NAME
             };
 
+            //Create the group folder, with a single subfolder named custom when GetRegisteredID is called
+            builder.SubFolders.Add("custom");
+            builder.CreateFolderOnBuild();
+
             testGroup = builder.GetRegisteredID();
             testGroup.Properties.FolderPermissions = FolderPermissions.Move;
 
@@ -68,12 +72,6 @@ namespace LogUtils.Diagnostics.Tests.Utility
                     }
                 }
             }
-        }
-
-        internal static void CreateGroupFolder()
-        {
-            Directory.CreateDirectory(testGroup.Properties.CurrentFolderPath);
-            Directory.CreateDirectory(Path.Combine(testGroup.Properties.CurrentFolderPath, "custom"));
         }
 
         internal static void CloseGroup()

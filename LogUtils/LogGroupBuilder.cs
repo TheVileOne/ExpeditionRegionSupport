@@ -1,10 +1,7 @@
 ﻿using LogUtils.Enums;
-using LogUtils.Helpers.FileHandling;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace LogUtils
 {
@@ -29,15 +26,38 @@ namespace LogUtils
         public string ModIDHint;
 
         /// <summary>
+        /// Flag indicates that the builder has permissions to create a log group folder and any subfolders
+        /// </summary>
+        public bool CanCreateFolder { get; protected set; }
+
+        /// <summary>
+        /// Collection of subfolder names, or partial paths containing subfolders names to create on building a <see cref="LogGroupID"/> through use of the builder
+        /// </summary>
+        public ICollection<string> SubFolders { get; protected set; } = [];
+
+        /// <summary>
+        /// Attempt to create the group folder, and any specified subpaths on the creation of the group ID (only applies to folder groups)
+        /// </summary>
+        public void CreateFolderOnBuild()
+        {
+            CanCreateFolder = true;
+        }
+
+        /// <summary>
         /// Creates a new unregistered <see cref="LogGroupID"/> instance based on set build parameters.
         /// </summary>
         public LogGroupID GetID()
         {
+            LogGroupID result;
             bool isAnonymous = string.IsNullOrWhiteSpace(Name);
             if (isAnonymous)
-                return LogGroupID.Factory.CreateAnonymousGroup(Path, ModIDHint);
+                result = LogGroupID.Factory.CreateAnonymousGroup(Path, ModIDHint);
 
-            return LogGroupID.Factory.CreateNamedGroup(Name, Path, ModIDHint);
+            result = LogGroupID.Factory.CreateNamedGroup(Name, Path, ModIDHint);
+
+            if (CanCreateFolder && result.Properties.IsFolderGroup)
+                CreateGroupFolder(result);
+            return result;
         }
 
         /// <summary>
@@ -50,7 +70,27 @@ namespace LogUtils
             if (isAnonymous)
                 throw new InvalidOperationException("Anonymous groups cannot be registered");
 
-            return LogGroupID.Factory.CreateNamedGroup(Name, Path, ModIDHint, true);
+            LogGroupID result = LogGroupID.Factory.CreateNamedGroup(Name, Path, ModIDHint, true);
+
+            if (CanCreateFolder && result.Properties.IsFolderGroup)
+                CreateGroupFolder(result);
+            return result;
+        }
+
+        protected void CreateGroupFolder(LogGroupID group)
+        {
+            //Create group folder
+            string groupPath = group.Properties.CurrentFolderPath;
+            Directory.CreateDirectory(groupPath);
+
+            //Create subfolders inside the group folder
+            foreach (string folder in SubFolders)
+                Directory.CreateDirectory(combinePath(groupPath, folder));
+
+            static string combinePath(string basePath, string subPath)
+            {
+                return System.IO.Path.Combine(basePath, subPath.TrimStart(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar));
+            }
         }
     }
 }
