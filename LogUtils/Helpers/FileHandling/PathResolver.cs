@@ -35,7 +35,6 @@ namespace LogUtils.Helpers.FileHandling
             if (PathUtils.IsEmpty(path))
                 return DefaultPath;
 
-            path = PathUtils.Normalize(path);
             bool isFullPath = TryExpandPath(ref path);
 
             if (isFullPath)
@@ -57,16 +56,21 @@ namespace LogUtils.Helpers.FileHandling
         /// <returns>A value indicating the fully qualified state of the path</returns>
         protected virtual bool TryExpandPath(ref string path)
         {
-            bool isExpanded = false;
-
             //Expand if path is a relative path, or lacks drive information
+            bool isExpanded;
             if (path[0] == '.' || path[0] == Path.DirectorySeparatorChar || path[0] == Path.AltDirectorySeparatorChar)
             {
                 path = Path.GetFullPath(path);
                 isExpanded = true;
             }
+            else
+            {
+                path = PathUtils.Normalize(path);
+                isExpanded = Path.IsPathRooted(path);
+            }
 
-            isExpanded |= Path.IsPathRooted(path);
+            if (path.Length > PathUtils.PATH_VOLUME_LENGTH)
+                path = path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             return isExpanded;
         }
     }

@@ -160,11 +160,13 @@ namespace LogUtils.Properties
                 }
                 UtilityLogger.Log("First time assignment");
             }
-            ChangePath(GetContainingPath(newPath), applyToMembers: false);
+            ChangePath(newPath, applyToMembers: false);
         }
 
         internal void ChangePath(string newPath, bool applyToMembers)
         {
+            newPath = GetContainingPath(newPath);
+
             if (applyToMembers && Members.Count > 0)
                 LogGroup.ChangePath(GetFolderMembers(), CurrentFolderPath, newPath);
             CurrentFolderPath = newPath;

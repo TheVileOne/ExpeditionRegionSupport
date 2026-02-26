@@ -219,7 +219,6 @@ namespace LogUtils.Helpers.FileHandling
             if (IsEmpty(path))
                 return path;
 
-            //TODO: Decide if this should trim trailing separator characters
             //Path.GetFullPath will replace Path.DirectorySeparatorChar '//' for us, but not Path.Combine
             return path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
         }
