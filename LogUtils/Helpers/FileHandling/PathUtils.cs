@@ -1,6 +1,7 @@
 ﻿using LogUtils.Helpers.Comparers;
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
 
@@ -12,6 +13,8 @@ namespace LogUtils.Helpers.FileHandling
         /// The length of a Windows path volume
         /// </summary>
         public const int PATH_VOLUME_LENGTH = 3;
+
+        internal readonly static char[] PATH_SEPARATORS = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
 
         /// <summary>
         /// Checks that a directory is contained within a path string
@@ -223,12 +226,23 @@ namespace LogUtils.Helpers.FileHandling
             return path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
         }
 
+
         /// <summary>
-        /// Removes any trailing directory separator characters
+        /// Replace all directory separator characters with the default platform-specific directory separator character 
         /// </summary>
-        public static string Trim(string path)
+        /// <returns>Path string with normalized separator characters with no trailing separator characters (except those that define the path root)</returns>
+        public static string NormalizeAndTrim(string path)
         {
-            return path?.TrimEnd(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+            if (IsEmpty(path))
+                return path;
+
+            string result = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+
+            if (result.Length <= PATH_VOLUME_LENGTH)
+                return result;
+
+            //Path.GetFullPath will replace Path.DirectorySeparatorChar '//' for us, but not Path.Combine
+            return result.TrimEnd(PATH_SEPARATORS);
         }
 
         /// <summary>
@@ -261,7 +275,7 @@ namespace LogUtils.Helpers.FileHandling
         public static string PrependWithSeparator(string path)
         {
             //Remove any existing separators, so that we don't have more than one
-            return Path.DirectorySeparatorChar + path.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            return Path.DirectorySeparatorChar + path.TrimStart(PATH_SEPARATORS);
         }
 
         /// <summary>
@@ -294,15 +308,13 @@ namespace LogUtils.Helpers.FileHandling
 
         internal static string[] SplitPathInternal(string path)
         {
-            char[] separators = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
-
             int prefixLength = GetPrefixLength(path);
 
             if (prefixLength > 0)
                 path = path.Substring(prefixLength);
 
-            return path.Trim(separators) //Trimming avoids empty data making it into the results
-                       .Split(separators);
+            return path.Trim(PATH_SEPARATORS) //Trimming avoids empty data making it into the results
+                       .Split(PATH_SEPARATORS);
         }
 
         /// <summary>
@@ -328,6 +340,7 @@ namespace LogUtils.Helpers.FileHandling
         /// </summary>
         public static bool IsAbsolute(string path)
         {
+            //TODO: This is an inaccurate definition of an absolute path
             return Path.IsPathRooted(path) && path[0] != Path.DirectorySeparatorChar && path[0] != Path.AltDirectorySeparatorChar;
         }
 
@@ -380,19 +393,34 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <summary>
-        /// Attempts to get a fully qualified path from a <see cref="FileSystemInfo"/> instance
+        /// Combines path without any trailing separators
         /// </summary>
-        /// <returns>A fully qualified path, or <see langword="null"/> if one could not be accessed</returns>
-        public static string GetFullPathSafely(FileSystemInfo info)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static string CombineAndTrim(string path1, string path2)
         {
-            try
-            {
-                return info.FullName;
-            }
-            catch
-            {
-                return null;
-            }
+            string result = Path.Combine(path1, path2);
+
+            if (result.Length <= PATH_VOLUME_LENGTH)
+                return result;
+
+            return result.TrimEnd(PATH_SEPARATORS);
+        }
+
+        /// <summary>
+        /// Converts to full path without trailing path separators
+        /// </summary>
+        /// <param name="path">Path to convert to a fully qualified path</param>
+        /// <returns>A fully qualified path, or the path itself when given an empty path string</returns>
+        public static string GetFullPathAndTrim(string path)
+        {
+            if (IsEmpty(path)) return path;
+
+            string result = Path.GetFullPath(path);
+
+            if (result.Length <= PATH_VOLUME_LENGTH)
+                return result;
+
+            return result.TrimEnd(Path.DirectorySeparatorChar);
         }
 
         public static string GetPathKeyword(string path)
@@ -449,11 +477,6 @@ namespace LogUtils.Helpers.FileHandling
         public static bool PathsAreEqual(string path, string pathOther)
         {
             return ComparerUtils.PathComparer.Equals(path, pathOther);
-        }
-
-        internal static string CombineWithoutTrailingSeparators(string path1, string path2)
-        {
-            return Path.Combine(path1, path2).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         }
     }
 }

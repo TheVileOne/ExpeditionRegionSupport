@@ -21,7 +21,7 @@ namespace LogUtils.Helpers.FileHandling
             if (dirName == null || dirNameOther == null)
                 return dirName == dirNameOther;
 
-            char[] separatorChars = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
+            char[] separatorChars = PathUtils.PATH_SEPARATORS;
 
             //Trim out characters that can interfere with matching
             if (trimLeadingSeparators)

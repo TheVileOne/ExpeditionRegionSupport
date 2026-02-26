@@ -28,7 +28,7 @@ namespace LogUtils
                     _targetPath = string.Empty;
                     return;
                 }
-                _targetPath = value.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                _targetPath = value.TrimEnd(PathUtils.PATH_SEPARATORS);
             }
         }
 

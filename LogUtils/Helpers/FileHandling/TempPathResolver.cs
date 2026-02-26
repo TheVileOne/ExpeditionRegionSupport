@@ -29,7 +29,7 @@ namespace LogUtils.Helpers.FileHandling
                 if (info.HasFilename || info.HasDirectory) //Path string is a filename or directory name stub
                 {
                     string targetName = info.Target.Name;
-                    return PathUtils.CombineWithoutTrailingSeparators(tempPath, targetName);
+                    return PathUtils.CombineAndTrim(tempPath, targetName);
                 }
 
                 //Path is either empty, or does not contain any folder, or filename information
@@ -62,7 +62,7 @@ namespace LogUtils.Helpers.FileHandling
                         string targetName = info.Target.Name;
                         return Path.Combine(tempPath, targetPath, targetName);
                     }
-                    return PathUtils.CombineWithoutTrailingSeparators(tempPath, targetPath);
+                    return PathUtils.CombineAndTrim(tempPath, targetPath);
                 }
 
                 //Maintains consistent handling between directory, and file paths
@@ -75,7 +75,7 @@ namespace LogUtils.Helpers.FileHandling
                 targetPath = info.BuildPath()
                                  .TakeLast(maxFoldersToSelect)
                                  .GetResult();
-                return PathUtils.CombineWithoutTrailingSeparators(tempPath, targetPath);
+                return PathUtils.CombineAndTrim(tempPath, targetPath);
             }
 
             //The path that is handled here cannot be a full path, and cannot be a stub either.
@@ -85,7 +85,7 @@ namespace LogUtils.Helpers.FileHandling
                 string targetName = info.Target.Name;
                 return Path.Combine(tempPath, targetPath, targetName);
             }
-            return PathUtils.CombineWithoutTrailingSeparators(tempPath, targetPath);
+            return PathUtils.CombineAndTrim(tempPath, targetPath);
         }
     }
 

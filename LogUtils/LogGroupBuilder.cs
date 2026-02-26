@@ -1,4 +1,5 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Helpers.FileHandling;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -89,7 +90,7 @@ namespace LogUtils
 
             static string combinePath(string basePath, string subPath)
             {
-                return System.IO.Path.Combine(basePath, subPath.TrimStart(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar));
+                return System.IO.Path.Combine(basePath, subPath.TrimStart(PathUtils.PATH_SEPARATORS));
             }
         }
     }
