@@ -305,11 +305,11 @@ namespace LogUtils
 
             //Not allowed to create new folders
             if (protocol == FolderCreationProtocol.FailToCreate)
-                throw new DirectoryNotFoundException(ExceptionMessage.PATH_MUST_EXIST);
+                throw new DirectoryNotFoundException(string.Format(ExceptionMessage.PATH_MUST_EXIST, TargetPath));
 
             //Not allowed to create any new folders other than the parent directory
             if (protocol == FolderCreationProtocol.CreateFolder && !DirectoryUtils.ParentExists(TargetPath))
-                throw new DirectoryNotFoundException(ExceptionMessage.PATH_MUST_EXIST);
+                throw new DirectoryNotFoundException(string.Format(ExceptionMessage.PATH_MUST_EXIST, TargetPath));
 
             Directory.CreateDirectory(TargetPath);
         }
@@ -327,7 +327,7 @@ namespace LogUtils
 
         private static class ExceptionMessage
         {
-            public const string PATH_MUST_EXIST = "Target path must exist before files can be moved";
+            public const string PATH_MUST_EXIST = "Target path must exist before files can be moved\n{0}";
             public const string EMPTY_PATH_NOT_ALLOWED = "Target path could not be created. Folder would be empty.\n{0}";
         }
     }
