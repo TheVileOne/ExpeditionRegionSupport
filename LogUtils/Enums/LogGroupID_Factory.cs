@@ -1,8 +1,4 @@
-﻿using LogUtils.Helpers.FileHandling;
-using LogUtils.Properties;
-using System;
-
-namespace LogUtils.Enums
+﻿namespace LogUtils.Enums
 {
     public partial class LogGroupID
     {

@@ -260,7 +260,7 @@ namespace LogUtils.Enums
                     });
                     Properties.SetLastKnownPath(Path.Combine(probableLastKnownPath, Properties.Filename.WithExtension()));
                 }
-            } 
+            }
             else if (!Properties.Group.Equals(groupID))
             {
                 UtilityLogger.LogWarning("Entry already assigned");

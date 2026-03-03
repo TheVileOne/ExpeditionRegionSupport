@@ -233,7 +233,8 @@ namespace LogUtils
                 if (!target.Properties.IsFolderGroup)
                     throw new ArgumentException("Group is not associated with a folder path");
 
-                LogFile.MoveFolder(target.Properties.CurrentFolderPath, TargetPath);
+                LogFolderInfo folderInfo = new LogFolderInfo(target.Properties.CurrentFolderPath);
+                folderInfo.Move(TargetPath, checkPermissions: true);
             }
             catch (Exception ex)
             {
@@ -329,27 +330,6 @@ namespace LogUtils
         {
             public const string PATH_MUST_EXIST = "Target path must exist before files can be moved\n{0}";
             public const string EMPTY_PATH_NOT_ALLOWED = "Target path could not be created. Folder would be empty.\n{0}";
-        }
-    }
-
-    internal sealed class GroupFileMover : LogFileMover
-    {
-        internal readonly LogGroupMover Owner;
-
-        public GroupFileMover(LogGroupMover owner, string sourceLogPath, string destLogPath) : base(sourceLogPath, destLogPath)
-        {
-            Owner = owner;
-        }
-
-        protected override FileExceptionHandler CreateExceptionHandler(ErrorContext context)
-        {
-            var handler = base.CreateExceptionHandler(context);
-
-            FailProtocol protocol = Owner.FailProtocol;
-
-            if (protocol != FailProtocol.Throw) //Throwing inside file move process is currently unsupported
-                handler.Protocol = protocol;
-            return handler;
         }
     }
 

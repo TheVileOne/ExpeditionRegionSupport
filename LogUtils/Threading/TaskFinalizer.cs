@@ -18,7 +18,7 @@ namespace LogUtils.Threading
 
         private TaskFinalizer(IEnumerator<DotNetTask> enumerator)
         {
-            taskEnumerator = enumerator;          
+            taskEnumerator = enumerator;
         }
 
         internal void Initialize()
