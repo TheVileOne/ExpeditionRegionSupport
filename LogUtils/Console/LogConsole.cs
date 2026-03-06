@@ -26,7 +26,7 @@ namespace LogUtils.Console
         /// <summary>
         /// This lock is used for interacting with BepInEx log console
         /// </summary>
-        public static readonly Lock WriteLock = new Lock();
+        public static readonly Lock WriteLock = new Lock("ConsoleWriter");
 
         public static readonly List<ConsoleLogWriter> Writers = new List<ConsoleLogWriter>();
 

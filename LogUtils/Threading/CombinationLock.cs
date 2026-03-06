@@ -13,7 +13,11 @@ namespace LogUtils.Threading
         private bool workCompleted;
         private TaskFinalizer workFinalizer;
 
-        public CombinationLock(IEnumerable<T> groupProvider)
+        public CombinationLock(IEnumerable<T> groupProvider) : this(groupProvider, "CombinationLock")
+        {
+        }
+
+        public CombinationLock(IEnumerable<T> groupProvider, object context) : base(context)
         {
             Items = new ReadOnlyCollection<T>(groupProvider.ToList());
         }

@@ -8,7 +8,7 @@ namespace LogUtils.Timers
 {
     public class EventScheduler : UtilityComponent, IDisposable
     {
-        public Lock EventLock = new Lock();
+        public Lock EventLock = new Lock("EventScheduler");
 
         private Queue<ScheduledEvent> pendingEvents = new Queue<ScheduledEvent>();
         private Queue<FrameTimer> pendingTimers = new Queue<FrameTimer>();

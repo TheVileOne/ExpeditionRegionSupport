@@ -18,7 +18,7 @@ namespace LogUtils.Requests
         /// This lock object marshals control over submission of <see cref="LogRequest"/> instances, and the processing of requests stored in <see cref="UnhandledRequests"/>. When there is a need to
         /// process a request directly from that collection, it is recommended to use this lock object to achieve thread safety
         /// </summary>
-        public Lock RequestProcessLock = new Lock();
+        public Lock RequestProcessLock = new Lock("LogRequestHandler");
 
         /// <inheritdoc/>
         public override string Tag => UtilityConsts.ComponentTags.REQUEST_DATA;
