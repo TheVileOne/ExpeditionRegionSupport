@@ -158,20 +158,6 @@ namespace LogUtils
 
             initializingInProgress = false;
             IsInitialized = true;
-
-            LogGroupID myGroup = new LogGroupID("Slugg log group", true);
-            LogID myLogIDConflict = new LogID("Slugg log group", LogAccess.FullAccess, true);
-            LogID myOtherLogIDConflict = new LogID("Slugg log group", "root", LogAccess.FullAccess, true);
-
-            myGroup.Properties.FolderPath = "Test";
-
-            LogCategory category = new LogCategory("LogPath", true);
-            UtilityLogger.LogWarning("Category: " + category.Value);
-            Logger logger = new Logger(LogID.BepInEx);
-            //UtilityLogger.DebugLog("Path 1 " + myLogIDConflict.Properties.OriginalFolderPath);
-            //UtilityLogger.DebugLog("Path 2 " + myOtherLogIDConflict.Properties.OriginalFolderPath);
-            logger.Log(category, "Path 1 " + myLogIDConflict.Properties.OriginalFolderPath ?? "NULL");
-            logger.Log(category, "Path 2 " + myOtherLogIDConflict.Properties.OriginalFolderPath ?? "NULL");
         }
 
         internal static UtilitySetup.InitializationStep ApplyStep(UtilitySetup.InitializationStep currentStep)
