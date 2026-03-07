@@ -361,13 +361,9 @@ namespace LogUtils
 
             if (properties is LogGroupProperties)
             {
-                if (UtilityCore.Build == UtilitySetup.Build.RELEASE)
-                {
-                    UtilityLogger.LogWarning("Restoring group files is not yet supported");
-                    return;
-                }
-                //TODO: This needs to be handled
-                throw new NotImplementedException();
+                //TODO: Implement RemoveFromFolder support for group files
+                UtilityLogger.LogWarning("Restoring group files is not yet supported");
+                return;
             }
 
             LogID logFile = properties.ID;
