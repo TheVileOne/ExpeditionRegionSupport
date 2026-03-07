@@ -84,7 +84,7 @@ namespace LogUtils.Diagnostics
         {
             Lock.OnEvent += (Lock source, Lock.EventID eventID) =>
             {
-                UtilityLogger.Log($"Lock context [{source.Context ?? "<NULL>"}] Event [{eventID}]");
+                UtilityLogger.DebugLog($"Lock context [{source.Context ?? "Unknown"}] Event [{eventID}]");
             };
         }
 
