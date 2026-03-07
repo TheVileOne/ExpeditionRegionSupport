@@ -77,12 +77,8 @@ namespace LogUtils.Threading
         /// Constructs a new <see cref="Lock"/> object
         /// </summary>
         /// <exception cref="LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
-        public Lock()
+        public Lock() : this(false)
         {
-            _lockID = Interlocked.Increment(ref _nextID);
-
-            LockObject = lockScope = new Scope(this);
-            RaiseEvent(EventID.LockCreated);
         }
 
         /// <summary>
@@ -90,9 +86,10 @@ namespace LogUtils.Threading
         /// </summary>
         /// <param name="context">An object that identifies this instance</param>
         /// <exception cref="LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
-        public Lock(object context) : this()
+        public Lock(object context) : this(true)
         {
             _context = context;
+            RaiseEvent(EventID.LockCreated);
         }
 
         /// <summary>
@@ -100,9 +97,20 @@ namespace LogUtils.Threading
         /// </summary>
         /// <param name="contextProvider">A callback that returns a context on demand</param>
         /// <exception cref="LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
-        public Lock(ContextProvider contextProvider) : this()
+        public Lock(ContextProvider contextProvider) : this(true)
         {
             _contextProvider = contextProvider;
+            RaiseEvent(EventID.LockCreated);
+        }
+
+        private Lock(bool contextExpected)
+        {
+            _lockID = Interlocked.Increment(ref _nextID);
+
+            LockObject = lockScope = new Scope(this);
+
+            if (!contextExpected)
+                RaiseEvent(EventID.LockCreated);
         }
 
         /// <summary>

@@ -2,6 +2,7 @@
 using LogUtils.Diagnostics.Tests.Utility;
 using LogUtils.Enums;
 using LogUtils.Requests;
+using LogUtils.Threading;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -77,6 +78,14 @@ namespace LogUtils.Diagnostics
 
             logger.LogDebug(report.ToString());
             logger.Dispose();
+        }
+
+        internal static void LogLockEvents()
+        {
+            Lock.OnEvent += (Lock source, Lock.EventID eventID) =>
+            {
+                UtilityLogger.DebugLog($"Lock context [{source.Context ?? "Unknown"}] Event [{eventID}]");
+            };
         }
 
         internal static void TestMultipleWritersOneFile()

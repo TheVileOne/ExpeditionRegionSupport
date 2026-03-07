@@ -17,7 +17,7 @@ namespace LogUtils.Helpers.FileHandling
         public DirectoryTree(string rootPath)
         {
             Root = new DirectoryTreeNode(this, Path.GetFileName(rootPath));
-            RootPath = Path.GetFullPath(rootPath).TrimEnd(Path.DirectorySeparatorChar);
+            RootPath = PathUtils.GetFullPathAndTrim(rootPath);
         }
 
         /// <summary>

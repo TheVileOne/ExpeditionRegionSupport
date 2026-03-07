@@ -149,7 +149,7 @@ namespace LogUtils.Helpers.FileHandling
                 }
             }
 
-            private bool isResetting; 
+            private bool isResetting;
             public void Reset()
             {
                 if (nodeState == PathNodeState.NotStarted) return;

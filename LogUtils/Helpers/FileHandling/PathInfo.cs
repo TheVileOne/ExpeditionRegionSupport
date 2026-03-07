@@ -75,7 +75,7 @@ namespace LogUtils.Helpers.FileHandling
                 {
                     if (pathTarget == string.Empty) //Most likely means path ends in a directory separator
                     {
-                        path = path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                        path = path.TrimEnd(PathUtils.PATH_SEPARATORS);
                         pathTarget = Path.GetFileName(path); //This is either going to be a directory, or empty if there is only root information
                     }
 
@@ -115,7 +115,7 @@ namespace LogUtils.Helpers.FileHandling
 
                 if (pathTarget == string.Empty) //Most likely means path ends in a directory separator
                 {
-                    path = path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                    path = path.TrimEnd(PathUtils.PATH_SEPARATORS);
                     pathTarget = Path.GetFileName(path); //This is either going to be a directory, or empty if there is only root information
                 }
 

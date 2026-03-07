@@ -1,6 +1,5 @@
 ﻿using LogUtils.Helpers.FileHandling;
 using System;
-using System.IO;
 
 namespace LogUtils.Helpers.Comparers
 {
@@ -99,6 +98,6 @@ namespace LogUtils.Helpers.Comparers
             return base.GetHashCode(obj);
         }
 
-        private static string prepareValue(string path) => Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar);
+        private static string prepareValue(string path) => PathUtils.GetFullPathAndTrim(path);
     }
 }

@@ -5,7 +5,7 @@ namespace LogUtils
     public static partial class ExtensionMethods
     {
         /// <summary>
-        /// Extension method that checks if an enumerable contains an item of a specified type
+        /// Checks that an item of a specified type is contained by the enumerable
         /// </summary>
         public static bool ContainsType<T>(this IEnumerable self)
         {

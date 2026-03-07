@@ -361,14 +361,16 @@ namespace LogUtils.Threading
         /// <param name="condition">The break condition</param>
         /// <param name="frequency">The frequency at which the condition will be checked</param>
         /// <param name="timeout">The timeout in milliseconds</param>
+        /// <param name="cancellationToken">Token for notification and handling of a cancellation event</param>
         /// <exception cref="TimeoutException">Timeout expired</exception>
-        public static async DotNetTask WaitUntil(Func<bool> condition, int frequency = 5, int timeout = -1)
+        public static async DotNetTask WaitUntil(Func<bool> condition, int frequency = 5, int timeout = -1, CancellationToken cancellationToken = default)
         {
             //Code sourced from https://stackoverflow.com/a/52357854/30273286
             var waitTask = DotNetTask.Run(async () =>
             {
                 while (!condition())
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     await DotNetTask.Delay(frequency).ConfigureAwait(false);
                 }
             });

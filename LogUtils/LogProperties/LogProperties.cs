@@ -487,7 +487,7 @@ namespace LogUtils.Properties
         internal void BeginInit()
         {
             InitializationInProgress = true;
-            FileLock = new FileLock(new Lock.ContextProvider(() => ID));
+            FileLock = new FileLock(new Lock.ContextProvider(() => InitializationInProgress ? GetRawID() : ID));
 
             ReadOnlyProvider readOnlyProvider = new ReadOnlyProvider(() => ReadOnly);
 

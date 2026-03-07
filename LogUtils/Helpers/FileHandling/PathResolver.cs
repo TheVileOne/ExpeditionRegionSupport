@@ -60,17 +60,14 @@ namespace LogUtils.Helpers.FileHandling
             bool isExpanded;
             if (path[0] == '.' || path[0] == Path.DirectorySeparatorChar || path[0] == Path.AltDirectorySeparatorChar)
             {
-                path = Path.GetFullPath(path);
+                path = PathUtils.GetFullPathAndTrim(path);
                 isExpanded = true;
             }
             else
             {
-                path = PathUtils.Normalize(path);
+                path = PathUtils.NormalizeAndTrim(path);
                 isExpanded = Path.IsPathRooted(path);
             }
-
-            if (path.Length > PathUtils.PATH_VOLUME_LENGTH)
-                path = path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             return isExpanded;
         }
     }
