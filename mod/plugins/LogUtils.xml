@@ -8240,10 +8240,11 @@
             Replace all directory separator characters with the default platform-specific directory separator character 
             </summary>
         </member>
-        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.Trim(System.String)">
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.NormalizeAndTrim(System.String)">
             <summary>
-            Removes any trailing directory separator characters
+            Replace all directory separator characters with the default platform-specific directory separator character 
             </summary>
+            <returns>Path string with normalized separator characters with no trailing separator characters (except those that define the path root)</returns>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.PathWithoutFilename(System.String)">
             <summary>
@@ -8298,11 +8299,17 @@
             Checks that the path string contains both directory and file information
             </summary>
         </member>
-        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.GetFullPathSafely(System.IO.FileSystemInfo)">
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.CombineAndTrim(System.String,System.String)">
             <summary>
-            Attempts to get a fully qualified path from a <see cref="T:System.IO.FileSystemInfo"/> instance
+            Combines path without any trailing separators
             </summary>
-            <returns>A fully qualified path, or <see langword="null"/> if one could not be accessed</returns>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.GetFullPathAndTrim(System.String)">
+            <summary>
+            Converts to full path without trailing path separators
+            </summary>
+            <param name="path">Path to convert to a fully qualified path</param>
+            <returns>A fully qualified path, or the path itself when given an empty path string</returns>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.Rebase(System.String,System.String,System.String)">
             <summary>
@@ -8486,11 +8493,6 @@
             <param name="destLogPath">The full path to the destination of the log file. Log filename is optional</param>
             <param name="overwriteExisting">Specifies the behavior that happens when the file already exists at the destination path</param>
         </member>
-        <member name="M:LogUtils.Helpers.LogFile.MoveFolder(System.String,System.String)">
-            <summary>
-            Process for moving a directory containing log files - assumes folder path is valid
-            </summary>
-        </member>
         <member name="M:LogUtils.Helpers.LogFile.Open(LogUtils.Enums.LogID)">
             <summary>
             Opens a FileStream instance for a log file
@@ -8577,7 +8579,7 @@
         </member>
         <member name="M:LogUtils.ExtensionMethods.ContainsType``1(System.Collections.IEnumerable)">
             <summary>
-            Extension method that checks if an enumerable contains an item of a specified type
+            Checks that an item of a specified type is contained by the enumerable
             </summary>
         </member>
         <member name="M:LogUtils.ExtensionMethods.IsComposite(UnityEngine.LogType)">
@@ -12218,6 +12220,29 @@
             <param name="lockObject">An object that will be used for locking</param>
             <param name="contextProvider">A callback that returns a context on demand</param>
             <exception cref="T:System.ArgumentNullException">Lock object is a null value.</exception>
+            <exception cref="T:LogUtils.Threading.LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
+        </member>
+        <member name="M:LogUtils.Threading.CombinationLock`1.#ctor(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Constructs a new <see cref="T:LogUtils.Threading.Lock"/> object
+            </summary>
+            <param name="groupProvider">A collection of objects to acquire locks from</param>
+            <exception cref="T:LogUtils.Threading.LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
+        </member>
+        <member name="M:LogUtils.Threading.CombinationLock`1.#ctor(System.Collections.Generic.IEnumerable{`0},System.Object)">
+            <summary>
+            Constructs a new <see cref="T:LogUtils.Threading.Lock"/> object
+            </summary>
+            <param name="groupProvider">A collection of objects to acquire locks from</param>
+            <param name="context">An object that identifies this instance</param>
+            <exception cref="T:LogUtils.Threading.LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
+        </member>
+        <member name="M:LogUtils.Threading.CombinationLock`1.#ctor(System.Collections.Generic.IEnumerable{`0},LogUtils.Threading.Lock.ContextProvider)">
+            <summary>
+            Constructs a new <see cref="T:LogUtils.Threading.CombinationLock`1"/> object
+            </summary>
+            <param name="groupProvider">A collection of objects to acquire locks from</param>
+            <param name="contextProvider">A callback that returns a context on demand</param>
             <exception cref="T:LogUtils.Threading.LockInvocationException">An exception was thrown during a lock monitoring event.</exception>
         </member>
         <member name="M:LogUtils.Threading.CombinationLock`1.Dispose">
