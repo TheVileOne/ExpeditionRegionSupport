@@ -1,5 +1,6 @@
-﻿using System;
+﻿using LogUtils.Diagnostics;
 using System.Collections.Generic;
+using System.Threading;
 using DotNetTask = System.Threading.Tasks.Task;
 
 namespace LogUtils.Threading
@@ -9,6 +10,7 @@ namespace LogUtils.Threading
     /// </summary>
     public readonly struct TaskFinalizer
     {
+        private readonly CancellationTokenSource tokenSource;
         private readonly IEnumerator<DotNetTask> taskEnumerator;
 
         /// <summary>
@@ -16,22 +18,47 @@ namespace LogUtils.Threading
         /// </summary>
         public readonly DotNetTask Current => taskEnumerator.Current;
 
+        /// <summary>
+        /// Retrieve a token for handling task cancellation events
+        /// </summary>
+        public CancellationToken CancellationToken => tokenSource.Token;
+
         private TaskFinalizer(IEnumerator<DotNetTask> enumerator)
         {
+            tokenSource = new CancellationTokenSource();
             taskEnumerator = enumerator;
         }
 
         internal void Initialize()
         {
+            Assert.That(taskEnumerator.Current, AssertBehavior.Throw).IsNull();
             taskEnumerator.MoveNext(); //Ensures that task is stored in Current
         }
 
         /// <summary>
-        /// Invoke finalizer code on an enumerated task
+        /// Invokes cancellation event before invoking finalizer code on the current task
         /// </summary>
-        /// <exception cref="InvalidOperationException">Task execution finalizer has already run</exception>
-        public readonly void CompleteTask()
+        public readonly void Cancel()
         {
+            tokenSource.Cancel();
+            EndCurrent();
+        }
+
+        /// <summary>
+        /// Invoke finalizer code on the current task
+        /// </summary>
+        public readonly void Complete()
+        {
+            EndCurrent();
+        }
+
+        internal readonly void EndCurrent()
+        {
+            if (taskEnumerator.Current == null)
+            {
+                UtilityLogger.Log("Task already completed");
+                return;
+            }
             taskEnumerator.MoveNext();
         }
 

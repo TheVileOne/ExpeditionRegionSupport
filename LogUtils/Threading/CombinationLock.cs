@@ -46,6 +46,9 @@ namespace LogUtils.Threading
 
         public new IScopedCollection<T> Acquire()
         {
+            if (workCompleted)
+                throw new ObjectDisposedException(nameof(CombinationLock<T>));
+
             ThreadSafeWorker worker = new ThreadSafeWorker(Items.GetLocks());
 
             workFinalizer = worker.DoWorkAsync(waitForCompletion);
@@ -54,31 +57,23 @@ namespace LogUtils.Threading
 
         private async DotNetTask waitForCompletion()
         {
-            DotNetTask waitTask = Task.WaitUntil(() =>
+            DotNetTask waitTask = Task.WaitUntil(waitOperation, cancellationToken: workFinalizer.CancellationToken);
+            await waitTask.ConfigureAwait(false);
+
+            bool waitOperation()
             {
                 return workCompleted;
-            });
-            await waitTask.ConfigureAwait(false);
+            }
         }
 
         /// <inheritdoc/>
         public void Dispose()
         {
-            DotNetTask localWaitTask = workFinalizer.Current;
+            if (workCompleted) return;
+
+            //Work is complete at this point. It is safe to release the locks.
             workCompleted = true;
-            try
-            {
-                localWaitTask.Wait(); //Wait for task to actually complete
-                localWaitTask.Dispose();
-            }
-            catch (Exception ex)
-            {
-                UtilityLogger.LogError(ex);
-            }
-            finally
-            {
-                workFinalizer.CompleteTask();
-            }
+            workFinalizer.Cancel();
         }
     }
 
