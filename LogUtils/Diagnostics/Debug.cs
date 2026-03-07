@@ -3,7 +3,10 @@ using LogUtils.Diagnostics.Tests.Utility;
 using LogUtils.Enums;
 using LogUtils.Requests;
 using LogUtils.Threading;
+using LogUtils.Timers;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using ReportVerbosity = LogUtils.Enums.FormatEnums.FormatVerbosity;
@@ -34,6 +37,25 @@ namespace LogUtils.Diagnostics
         public static DebugContext LastKnownContext;
 
         internal static TestSuite UtilityTests;
+
+        /// <summary>
+        /// Creates a new instance of a diagnostic timer
+        /// </summary>
+        public static Stopwatch CreateTimer()
+        {
+            return new Stopwatch();
+        }
+
+        /// <summary>
+        /// Starts a timed execution region
+        /// </summary>
+        /// <param name="logger">A logger to report the execution time</param>
+        /// <returns>Disposable scope to signal the end of the region</returns>
+        public static IDisposable StartTimingRegion(ILogger logger = null)
+        {
+            Stopwatch timer = CreateTimer();
+            return timer.BeginScope(logger);
+        }
 
         internal static void InitializeTestSuite()
         {
@@ -103,6 +125,20 @@ namespace LogUtils.Diagnostics
             t2.Log("Message logged using queue writer");
             t3.Log("Message logged using standard writer");
             t1.Log("This message will break LogUtils");
+        }
+    }
+
+    public static class DebugExtensions
+    {
+        /// <summary>
+        /// Starts a timed execution region
+        /// </summary>
+        /// <param name="timer">A timer capable of tracking elapsed ticks</param>
+        /// <param name="logger">A logger to report the execution time</param>
+        public static IDisposable BeginScope(this Stopwatch timer, ILogger logger = null)
+        {
+            timer.Start();
+            return new TimerScope(timer, logger ?? UtilityLogger.Logger);
         }
     }
 }
