@@ -243,7 +243,7 @@ namespace LogUtils
                     activeBuffers.Add(writeBuffer);
 
                     logFile.Properties.FileLock.SetActivity(FileAction.Move); //Lock activated by ThreadSafeWorker
-                    logFile.Properties.NotifyPendingMove(LogProperties.GetNewBasePath(logFile, currentPath, newPath));
+                    logFile.Properties.NotifyPendingFolderMove(LogProperties.GetNewBasePath(logFile, currentPath, newPath));
 
                     //The move operation requires that all persistent file activity be closed until move is complete
                     streamsToResume.AddRange(logFile.Properties.PersistentStreamHandles.InterruptAll());
@@ -260,7 +260,7 @@ namespace LogUtils
                 if (!moveCompleted)
                 {
                     foreach (LogID logFile in AllFiles)
-                        logFile.Properties.NotifyPendingMoveAborted();
+                        logFile.Properties.NotifyPendingFolderMoveAborted();
                 }
 
                 //Reopen the streams

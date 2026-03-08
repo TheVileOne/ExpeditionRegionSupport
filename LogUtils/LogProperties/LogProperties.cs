@@ -860,11 +860,29 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
+        /// Triggers the <see cref="UtilityEvents.OnMovePending"/> event involving a folder move
+        /// </summary>
+        /// <param name="movePath">The pending log path for this instance (include filename with extension if filename has changed)</param>
+        public void NotifyPendingFolderMove(string movePath)
+        {
+            movePath = PathUtils.PathWithoutFilename(movePath, out string filename);
+            UtilityEvents.OnMovePending?.Invoke(new LogMovePendingEventArgs(this, movePath, filename, true));
+        }
+
+        /// <summary>
         /// Triggers the <see cref="UtilityEvents.OnMoveAborted"/> event
         /// </summary>
         public void NotifyPendingMoveAborted()
         {
-            UtilityEvents.OnMoveAborted?.Invoke(new Events.LogEventArgs(this));
+            UtilityEvents.OnMoveAborted?.Invoke(new LogMoveAbortedEventArgs(this));
+        }
+
+        /// <summary>
+        /// Triggers the <see cref="UtilityEvents.OnMoveAborted"/> event involving a folder move
+        /// </summary>
+        public void NotifyPendingFolderMoveAborted()
+        {
+            UtilityEvents.OnMoveAborted?.Invoke(new LogMoveAbortedEventArgs(this, true));
         }
 
         /// <summary>
