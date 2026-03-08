@@ -37,22 +37,22 @@ namespace LogUtils.Compatibility.BepInEx.Listeners
                 UtilityLogger.DebugLog("LogListener has been disposed");
             }
 
+            LogRequest request;
+            //Utility log events are easy to trigger stack overflows through recursive access. For this reason we handle utility sourced requests
+            //differently than other requests.
+            if (eventArgs.Source is UtilityLogSource)
+            {
+                request = new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.BepInEx, eventArgs));
+                logUtilityEvent(request);
+                return;
+            }
+
             using (UtilityCore.RequestHandler.BeginCriticalSection())
             {
-                LogRequest request;
-                //Utility log events are easy to trigger stack overflows through recursive access. For this reason we handle utility sourced requests
-                //differently than other requests.
-                if (eventArgs.Source is UtilityLogSource)
-                {
-                    request = new LogRequest(RequestType.Game, new LogRequestEventArgs(LogID.BepInEx, eventArgs));
-                    logUtilityEvent(request);
-                    return;
-                }
-
                 //No situation should require sanitization here. This is a safeguard protection used for stability purposes.
                 UtilityCore.RequestHandler.SanitizeCurrentRequest();
 
-                //BepInEx requests are handled through an external API. We make sure the recursive counter is updated to reflect that we receives a request.
+                //BepInEx requests are handled through an external API. We make sure the recursive counter is updated to reflect that we received a request.
                 request = UtilityCore.RequestHandler.GetRequestFromAPI(LogID.BepInEx);
 
                 //if (RWInfo.LatestSetupPeriodReached >= SetupPeriod.RWAwake)
@@ -96,6 +96,7 @@ namespace LogUtils.Compatibility.BepInEx.Listeners
                 return;
             }
 
+            UtilityCore.RequestHandler.BeginCriticalSection();
             utilityRequestsInProcess.Add(request);
             try
             {
@@ -111,6 +112,7 @@ namespace LogUtils.Compatibility.BepInEx.Listeners
             finally
             {
                 utilityRequestsInProcess.Remove(request);
+                UtilityCore.RequestHandler.EndCriticalSection();
             }
         }
 
