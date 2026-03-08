@@ -243,6 +243,7 @@ namespace LogUtils.Properties
 
                 cleanupTask = LogTasker.Schedule(new Task(callback, TimeSpan.FromMilliseconds(20))
                 {
+                    Name = "Cleanup",
                     IsContinuous = true
                 });
             }

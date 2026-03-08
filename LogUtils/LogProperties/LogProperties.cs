@@ -315,6 +315,7 @@ namespace LogUtils.Properties
                         eventTask = null;
                     });
                     eventTask = LogTasker.Schedule(new Task(eventAction, 0));
+                    eventTask.Name = "Eligibility Update";
                 }
             }
         }
@@ -346,6 +347,7 @@ namespace LogUtils.Properties
                         eventTask = null;
                     });
                     eventTask = LogTasker.Schedule(new Task(eventAction, 0));
+                    eventTask.Name = "Eligibility Update";
                 }
             }
         }
