@@ -2,8 +2,10 @@
 using LogUtils.Compatibility.BepInEx;
 using LogUtils.Enums;
 using LogUtils.Formatting;
+using LogUtils.Timers;
 using System;
 using System.Threading;
+using System.Timers;
 using UnityEngine;
 
 namespace LogUtils
@@ -14,9 +16,16 @@ namespace LogUtils
 
         private bool recursiveAccessFlag;
 
-        private readonly object sourceLock = new object();
+        private readonly SemaphoreSlim sourceLock = new SemaphoreSlim(1);
+        private readonly PollingTimer timedLockRelease = new PollingTimer(150);
 
         public string SourceName => UtilityConsts.UTILITY_NAME;
+
+        public UtilityLogSource()
+        {
+            timedLockRelease.OnSignal += timer_OnSignal;
+            timedLockRelease.OnTimeout += timer_OnTimeout;
+        }
 
         internal bool IsAccessRecursive()
         {
@@ -140,13 +149,56 @@ namespace LogUtils
         }
         #endregion
 
+        private void timer_OnTimeout(PollingTimer source, ElapsedEventArgs data)
+        {
+            UtilityLogger.DebugLog("WARNING - Lock release timeout");
+            source.Signal();
+        }
+
+        private void timer_OnSignal(PollingTimer source)
+        {
+            if (sourceLock.CurrentCount == 0)
+                sourceLock.Release();
+            source.Stop();
+            recursiveAccessFlag = false;
+        }
+
+        private bool acquireLock()
+        {
+            if (sourceLock.Wait(millisecondsTimeout: 150))
+            {
+                if (!timedLockRelease.Started)
+                    timedLockRelease.Start();
+                UtilityLogger.DebugLog("Lock acquired by thread " + Environment.CurrentManagedThreadId);
+                return true;
+            }
+            else
+            {
+                UtilityLogger.DebugLog("WARNING - Unable to acquire lock");
+                UtilityLogger.DebugLog("Lock failed to be acquired by thread " + Environment.CurrentManagedThreadId);
+                return false;
+            }
+        }
+
+        private void releaseLock()
+        {
+            timedLockRelease.Signal();
+            UtilityLogger.DebugLog("Lock released by thread " + Environment.CurrentManagedThreadId);
+        }
+
         internal void LogBase(LogLevel category, object messageObj)
         {
-            Monitor.Enter(sourceLock);
+            UtilityLogger.DebugLog("MESSAGE RECEIVED " + messageObj + " " + Environment.CurrentManagedThreadId);
+            if (!acquireLock()) return; //It took too long to acquire lock
+
+            //UtilityLogger.DebugLog("Lock acquired by thread " + Environment.CurrentManagedThreadId);
+            //UtilityLogger.DebugLog(messageObj);
+            //UtilityLogger.DebugLog(Environment.StackTrace);
 
             if (IsAccessRecursive()) //Game will be put into a bad state if we allow log event to execute
             {
-                Monitor.Exit(sourceLock);
+                UtilityLogger.DebugLog("Recursion detected");
+                releaseLock();
                 return;
             }
 
@@ -158,7 +210,7 @@ namespace LogUtils
             finally
             {
                 recursiveAccessFlag = false;
-                Monitor.Exit(sourceLock);
+                releaseLock();
             }
         }
 
