@@ -223,12 +223,13 @@ namespace LogUtils
 
             List<MessageBuffer> activeBuffers = new List<MessageBuffer>();
             List<StreamResumer> streamsToResume = new List<StreamResumer>();
+
+            string currentPath = FolderPath;
+            int currentFile = 0,
+                expectedFileMoves = AllFiles.Count;
+            UtilityLogger.Log($"Moving {expectedFileMoves} files");
             try
             {
-                int expectedFileMoves = AllFiles.Count;
-                int currentFile = 0;
-                UtilityLogger.Log($"Moving {expectedFileMoves} files");
-
                 UtilityCore.RequestHandler.BeginCriticalSection();
                 while (currentFile != expectedFileMoves)
                 {
@@ -242,13 +243,12 @@ namespace LogUtils
                     activeBuffers.Add(writeBuffer);
 
                     logFile.Properties.FileLock.SetActivity(FileAction.Move); //Lock activated by ThreadSafeWorker
-                    logFile.Properties.NotifyPendingMove(LogProperties.GetNewBasePath(logFile, FolderPath, newPath));
+                    logFile.Properties.NotifyPendingMove(LogProperties.GetNewBasePath(logFile, currentPath, newPath));
 
                     //The move operation requires that all persistent file activity be closed until move is complete
                     streamsToResume.AddRange(logFile.Properties.PersistentStreamHandles.InterruptAll());
                     currentFile++;
                 }
-                string currentPath = FolderPath;
 
                 Directory.Move(currentPath, newPath);
                 moveCompleted = true;
