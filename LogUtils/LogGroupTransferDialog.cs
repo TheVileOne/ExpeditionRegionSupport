@@ -70,36 +70,37 @@ namespace LogUtils
         /// </summary>
         public static void ShowDialog(LogGroupID groupID, string pendingGroupPath)
         {
-            //Allow a short grace period for folder permissions to be established
-            if (RainWorldInfo.LatestSetupPeriodReached < SetupPeriod.PreMods)
+            //It is important that folder permissions be assigned before the user interacts with this dialog. Dialog can only run after mod init completes
+            //and game will continue to process update frames while dialog is running giving a window for enabled mods to assign folder permissions.
+            if (!MustBeScheduled)
             {
-                UtilityLogger.Log("Scheduling transfer dialog");
-
-                string currentGroupPath = groupID.Properties.CurrentFolderPath;
-                UtilityEvents.OnSetupPeriodReached += scheduledEvent;
-
-                void scheduledEvent(SetupPeriodEventArgs e)
-                {
-                    if (e.CurrentPeriod < SetupPeriod.PreMods)
-                        return;
-
-                    bool pathChanged = !PathUtils.PathsAreEqual(currentGroupPath, groupID.Properties.CurrentFolderPath);
-                    if (!pathChanged)
-                    {
-                        var dialog = new LogGroupTransferDialog(groupID, pendingGroupPath);
-                        dialog.Show();
-                    }
-                    else
-                    {
-                        UtilityLogger.Log("Path already changed. Transfer no longer necessary.");
-                    }
-                    UtilityEvents.OnSetupPeriodReached -= scheduledEvent;
-                }
+                UtilityDialog dialog = new LogGroupTransferDialog(groupID, pendingGroupPath);
+                dialog.Show();
                 return;
             }
-            //Dialog will run after Update frame completes. Although unlikely it is possible for the path to change by the time the dialog shows.
-            var dialog = new LogGroupTransferDialog(groupID, pendingGroupPath);
-            dialog.Show();
+
+            UtilityLogger.Log("Scheduling transfer dialog");
+
+            string currentGroupPath = groupID.Properties.CurrentFolderPath;
+            UtilityEvents.OnSetupPeriodReached += scheduledEvent;
+
+            void scheduledEvent(SetupPeriodEventArgs e)
+            {
+                if (e.CurrentPeriod < SetupPeriod.PreMods)
+                    return;
+
+                bool pathChanged = !PathUtils.PathsAreEqual(currentGroupPath, groupID.Properties.CurrentFolderPath);
+                if (!pathChanged)
+                {
+                    UtilityDialog dialog = new LogGroupTransferDialog(groupID, pendingGroupPath);
+                    dialog.Show();
+                }
+                else
+                {
+                    UtilityLogger.Log("Path already changed. Transfer no longer necessary.");
+                }
+                UtilityEvents.OnSetupPeriodReached -= scheduledEvent;
+            }
         }
 
         private static Vector2 calculateSize(LogGroupID groupID, string destinationPath)

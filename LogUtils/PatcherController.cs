@@ -38,20 +38,21 @@ namespace LogUtils
                 return;
             }
 
-            if (RainWorldInfo.LatestSetupPeriodReached >= SetupPeriod.PreMods) //Late enough into init process to not have to schedule
-                AskForPermission();
-            else
+            if (!UtilityDialog.MustBeScheduled)
             {
-                UtilityEvents.OnSetupPeriodReached += askForPermissionEvent;
+                AskForPermission();
+                return;
+            }
 
-                static void askForPermissionEvent(SetupPeriodEventArgs e)
-                {
-                    if (e.CurrentPeriod < SetupPeriod.PreMods)
-                        return;
+            UtilityEvents.OnSetupPeriodReached += askForPermissionEvent;
 
-                    AskForPermission();
-                    UtilityEvents.OnSetupPeriodReached -= askForPermissionEvent;
-                }
+            static void askForPermissionEvent(SetupPeriodEventArgs e)
+            {
+                if (e.CurrentPeriod < SetupPeriod.PreMods)
+                    return;
+
+                AskForPermission();
+                UtilityEvents.OnSetupPeriodReached -= askForPermissionEvent;
             }
         }
 

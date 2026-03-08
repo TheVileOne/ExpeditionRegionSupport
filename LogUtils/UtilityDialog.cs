@@ -7,6 +7,15 @@ namespace LogUtils
 {
     public class UtilityDialog : Dialog
     {
+        /// <summary>
+        /// Establishes criteria for when a dialog should be scheduled
+        /// </summary>
+        /// <remarks>
+        /// Any dialog submitted during mod initialization wont be able to activate until the end of the mod initialization frame (after post mods).<br/>
+        /// This means that this will only affect the order dialogs will appear.
+        /// </remarks>
+        public static bool MustBeScheduled => RainWorldInfo.LatestSetupPeriodReached < SetupPeriod.PreMods;
+
         private State state = State.NotSubmitted;
 
         /// <summary>
