@@ -54,6 +54,12 @@ namespace LogUtils.Diagnostics.Tools
                     case Lock.EventID.LockReleased:
                         EventRecord[source].RecordReleaseEvent(); //Released a lock
                         break;
+                    case Lock.EventID.FailedToAcquire:
+                        EventRecord[source].RecordLockTimeout();
+                        break;
+                    default:
+                        UtilityLogger.DebugLog("Unrecognized lock event");
+                        break;
                 }
             }
             catch
@@ -122,6 +128,11 @@ namespace LogUtils.Diagnostics.Tools
             public void RecordReleaseEvent()
             {
                 Holder = -1;
+            }
+
+            public void RecordLockTimeout()
+            {
+                WaitingOnRelease.Remove(Environment.CurrentManagedThreadId);
             }
         }
     }

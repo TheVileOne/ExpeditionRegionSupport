@@ -188,5 +188,47 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 return objects;
             }
         }
+
+        internal static void TriggerDeadlock()
+        {
+            //TODO: LogUtils is still vulnerable to this issue
+            TimeSpan threadWaitTime = TimeSpan.FromSeconds(3); //Higher this value is, the more likely game will not respond
+            Lock testLock = LogID.Expedition.GetLock();
+
+            DotNetTask.Run(() =>
+            {
+                UtilityLogger.DebugLog("Deadlock thread 0 started");
+                using (testLock.Acquire())
+                {
+                    using (UtilityCore.RequestHandler.BeginCriticalSection())
+                    {
+                        Thread.Sleep(threadWaitTime);
+                    }
+                }
+                UtilityLogger.DebugLog("Deadlock thread 0 ended");
+                reportLockInfo();
+            });
+
+            DotNetTask.Run(() =>
+            {
+                UtilityLogger.DebugLog("Deadlock thread 1 started");
+                using (UtilityCore.RequestHandler.BeginCriticalSection())
+                {
+                    using (testLock.Acquire())
+                    {
+                        Thread.Sleep(threadWaitTime);
+                    }
+                }
+                UtilityLogger.DebugLog("Deadlock thread 1 ended");
+                reportLockInfo();
+            });
+
+            static void reportLockInfo()
+            {
+                UtilityLogger.DebugLog("Request lock active count: " + UtilityCore.RequestHandler.RequestProcessLock.ActiveCount);
+                UtilityLogger.DebugLog("File lock active count:    " + LogID.Expedition.GetLock().ActiveCount);
+                UtilityLogger.DebugLog("Active file locks:         " + Lock.CurrentFileLockAcquireCount);
+            }
+        }
     }
 }

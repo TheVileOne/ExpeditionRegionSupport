@@ -31,9 +31,26 @@ namespace LogUtils.Threading
         public bool IsAcquiredByCurrentThread => ActiveCount > 0 && Monitor.IsEntered(LockObject);
 
         /// <summary>
-        /// Suppresses the next Release attempt made on this lock 
+        /// Suppresses the next Release attempt made on this lock by the current thread
         /// </summary>
-        public bool SuppressNextRelease;
+        public bool SuppressNextRelease
+        {
+            get => suppressReleaseCounter > 0;
+            set
+            {
+                if (!value)
+                {
+                    //Only a lock monitor event is suppressed, we should not unsuppress it. Users should avoid suppression if it produces an undesirable effect.
+                    if (suppressReleaseCounter > 0)
+                        throw new InvalidOperationException("Suppression cannot be disabled");
+                    return;
+                }
+                suppressReleaseCounter++;
+            }
+        }
+
+        [ThreadStatic]
+        private int suppressReleaseCounter = 0;
 
         private static int _nextID;
         private object _context;
@@ -113,6 +130,8 @@ namespace LogUtils.Threading
                 RaiseEvent(EventID.LockCreated);
         }
 
+        internal static int CurrentFileLockAcquireCount;
+
         /// <summary>
         /// Acquires a lock on the current thread
         /// </summary>
@@ -126,10 +145,28 @@ namespace LogUtils.Threading
 
             if (!lockEntered)
             {
-                //Block until lock is entered
-                Monitor.Enter(LockObject);
+                if (CurrentFileLockAcquireCount > 0 && Equals(UtilityCore.RequestHandler.RequestProcessLock))
+                {
+                    UtilityLogger.DebugLog("Unsafe lock conditions present. Enabling deadlock prevention feature.");
+                    //Block until lock is entered or lock timeout is reached
+                    if (!Monitor.TryEnter(LockObject, TimeSpan.FromMilliseconds(250)))
+                    {
+                        UtilityLogger.DebugLog("Lock attempt timed out");
+                        RaiseEvent(EventID.FailedToAcquire);
+                        suppressReleaseCounter++;
+                        return lockScope;
+                    }
+                }
+                else
+                {
+                    //Block until lock is entered
+                    Monitor.Enter(LockObject);
+                }
                 RaiseEvent(EventID.LockAcquired);
             }
+
+            if (this is FileLock)
+                Interlocked.Increment(ref CurrentFileLockAcquireCount);
 
             ActiveCount++;
             return lockScope;
@@ -144,11 +181,15 @@ namespace LogUtils.Threading
         {
             if (SuppressNextRelease)
             {
-                SuppressNextRelease = false;
+                UtilityLogger.DebugLog($"Lock release has been suppressed [{Context}]");
+                suppressReleaseCounter--;
                 return;
             }
 
             if (ActiveCount == 0) return;
+
+            if (this is FileLock)
+                Interlocked.Decrement(ref CurrentFileLockAcquireCount);
 
             ActiveCount--;
             Monitor.Exit(LockObject);
@@ -195,7 +236,8 @@ namespace LogUtils.Threading
             LockCreated,
             LockReleased,
             LockAcquired,
-            WaitingToAcquire
+            WaitingToAcquire,
+            FailedToAcquire,
         }
 
         /// <summary>
