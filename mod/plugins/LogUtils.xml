@@ -3862,12 +3862,31 @@
             Context flag, typically used for assert processing
             </summary>
         </member>
+        <member name="M:LogUtils.Diagnostics.Debug.CreateTimer">
+            <summary>
+            Creates a new instance of a diagnostic timer
+            </summary>
+        </member>
+        <member name="M:LogUtils.Diagnostics.Debug.StartTimingRegion(LogUtils.ILogger)">
+            <summary>
+            Starts a timed execution region
+            </summary>
+            <param name="logger">A logger to report the execution time</param>
+            <returns>Disposable scope to signal the end of the region</returns>
+        </member>
         <member name="M:LogUtils.Diagnostics.Debug.LogRequestInfo(LogUtils.Enums.LogID,System.Collections.Generic.IEnumerable{LogUtils.Requests.LogRequest})">
             <summary>
             Logs requests to file in a report style format
             </summary>
             <param name="reportFile">The log file to write the report to</param>
             <param name="requests">The objects to log</param>
+        </member>
+        <member name="M:LogUtils.Diagnostics.DebugExtensions.BeginScope(System.Diagnostics.Stopwatch,LogUtils.ILogger)">
+            <summary>
+            Starts a timed execution region
+            </summary>
+            <param name="timer">A timer capable of tracking elapsed ticks</param>
+            <param name="logger">A logger to report the execution time</param>
         </member>
         <member name="M:LogUtils.Diagnostics.DebugLogger.BeginEnumeration">
             <summary>
@@ -12306,9 +12325,9 @@
         <member name="P:LogUtils.Threading.Lock.IsAcquiredByCurrentThread">
             <summary/>
         </member>
-        <member name="F:LogUtils.Threading.Lock.SuppressNextRelease">
+        <member name="P:LogUtils.Threading.Lock.SuppressNextRelease">
             <summary>
-            Suppresses the next Release attempt made on this lock 
+            Suppresses the next Release attempt made on this lock by the current thread
             </summary>
         </member>
         <member name="E:LogUtils.Threading.Lock.OnEvent">
@@ -12554,13 +12573,14 @@
             Assigns a randomized identifier value
             </summary>
         </member>
-        <member name="M:LogUtils.Threading.Task.WaitUntil(System.Func{System.Boolean},System.Int32,System.Int32)">
+        <member name="M:LogUtils.Threading.Task.WaitUntil(System.Func{System.Boolean},System.Int32,System.Int32,System.Threading.CancellationToken)">
             <summary>
             Blocks until condition is true or timeout occurs.
             </summary>
             <param name="condition">The break condition</param>
             <param name="frequency">The frequency at which the condition will be checked</param>
             <param name="timeout">The timeout in milliseconds</param>
+            <param name="cancellationToken">Token for notification and handling of a cancellation event</param>
             <exception cref="T:System.TimeoutException">Timeout expired</exception>
         </member>
         <member name="T:LogUtils.Threading.TaskFinalizer">
@@ -12573,11 +12593,20 @@
             Gets the currently running, or completed <see cref="T:System.Threading.Tasks.Task"/> object
             </summary>
         </member>
-        <member name="M:LogUtils.Threading.TaskFinalizer.CompleteTask">
+        <member name="P:LogUtils.Threading.TaskFinalizer.CancellationToken">
             <summary>
-            Invoke finalizer code on an enumerated task
+            Retrieve a token for handling task cancellation events
             </summary>
-            <exception cref="T:System.InvalidOperationException">Task execution finalizer has already run</exception>
+        </member>
+        <member name="M:LogUtils.Threading.TaskFinalizer.Cancel">
+            <summary>
+            Invokes cancellation event before invoking finalizer code on the current task
+            </summary>
+        </member>
+        <member name="M:LogUtils.Threading.TaskFinalizer.Complete">
+            <summary>
+            Invoke finalizer code on the current task
+            </summary>
         </member>
         <member name="P:LogUtils.Threading.TaskHandle.IsValid">
             <summary>
@@ -12865,6 +12894,11 @@
         <member name="M:LogUtils.Timers.PollingTimer.Dispose(System.Boolean)">
             <inheritdoc/>
         </member>
+        <member name="M:LogUtils.Timers.TimerScope.Dispose">
+            <summary>
+            Reports the time in milliseconds that the scoped region took to execute
+            </summary>
+        </member>
         <member name="T:LogUtils.UtilityComponent">
             <summary>
             Base class for UnityEngine components used by the assembly
@@ -12964,6 +12998,15 @@
             <summary>
             Creates, or establishes a reference to an existing instance of necessary utility components
             </summary>
+        </member>
+        <member name="P:LogUtils.UtilityDialog.MustBeScheduled">
+            <summary>
+            Establishes criteria for when a dialog should be scheduled
+            </summary>
+            <remarks>
+            Any dialog submitted during mod initialization wont be able to activate until the end of the mod initialization frame (after post mods).<br/>
+            This means that this will only affect the order dialogs will appear.
+            </remarks>
         </member>
         <member name="P:LogUtils.UtilityDialog.IsActive">
             <summary>
