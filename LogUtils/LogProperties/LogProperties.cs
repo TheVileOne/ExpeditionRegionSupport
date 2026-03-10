@@ -912,6 +912,7 @@ namespace LogUtils.Properties
             LogProperties properties = new LogProperties(filename, path)
             {
                 Version            = this.Version,
+                AccessPeriod       = this.AccessPeriod,
                 LogsFolderAware    = this.LogsFolderAware,
                 LogsFolderEligible = this.LogsFolderEligible,
                 ShowLogsAware      = this.ShowLogsAware,
