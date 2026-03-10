@@ -1,4 +1,5 @@
 ﻿using LogUtils.Enums;
+using LogUtils.Enums.FileSystem;
 using LogUtils.Helpers.FileHandling;
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,11 @@ namespace LogUtils
 {
     public class LogGroupBuilder
     {
+        /// <summary>
+        /// Permissions that restrict how a group folder is operated on through LogUtils APIs
+        /// </summary>
+        public FolderPermissions Permissions = FolderPermissions.All;
+
         /// <summary>
         /// Unique identifying value for the group.
         /// </summary>
@@ -57,6 +63,8 @@ namespace LogUtils
 
             result = LogGroupID.Factory.CreateNamedGroup(Name, Path, ModIDHint);
 
+            result.Properties.FolderPermissions = Permissions;
+
             if (CanCreateFolder && result.Properties.IsFolderGroup)
                 CreateGroupFolder(result);
             return result;
@@ -73,6 +81,8 @@ namespace LogUtils
                 throw new InvalidOperationException("Anonymous groups cannot be registered");
 
             LogGroupID result = LogGroupID.Factory.CreateNamedGroup(Name, Path, ModIDHint, true);
+
+            result.Properties.FolderPermissions = Permissions;
 
             if (CanCreateFolder && result.Properties.IsFolderGroup)
                 CreateGroupFolder(result);
