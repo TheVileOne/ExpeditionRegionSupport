@@ -130,7 +130,7 @@ namespace LogUtils.Helpers
             bool hasPermission = group.Properties.VerifyPermissions(permission);
 
             if (!hasPermission)
-                OnPermissionDenied(group.Properties.CurrentFolderPath, permission);
+                OnPermissionDenied(group.Properties.CurrentFolderPath, permission, accessViolation: false);
         }
 
         /// <summary>
@@ -138,34 +138,38 @@ namespace LogUtils.Helpers
         /// </summary>
         /// <param name="folderPath">The path that caused the violation</param>
         /// <param name="permission">The permission violation</param>
+        /// <param name="accessViolation">Indicates whether denial is due to an access violation</param>
         /// <exception cref="InvalidOperationException">Log group does not have a folder path specified</exception>
         /// <exception cref="IOException">Folder operation was unsafe, or attempted on a protected path</exception>
         /// <exception cref="PermissionDeniedException">Insufficient permission to complete folder operation</exception>
-        internal static void OnPermissionDenied(string folderPath, FolderPermissions permission)
+        internal static void OnPermissionDenied(string folderPath, FolderPermissions permission, bool accessViolation)
         {
             if (PathUtils.IsEmpty(folderPath))
                 throw new InvalidOperationException("Group does not support folder operations");
 
-            bool pathWasUnsafe = !DirectoryUtils.IsSafeToMove(folderPath);
-
-            if (pathWasUnsafe)
+            if (!accessViolation)
             {
-                string exceptionMessage = null;
-                switch (permission)
+                bool pathWasUnsafe = !DirectoryUtils.IsSafeToMove(folderPath);
+
+                if (pathWasUnsafe)
                 {
-                    case FolderPermissions.Delete:
-                        exceptionMessage = "Unable to delete folder at source path\n" +
-                                           "REASON: Folder path is restricted";
-                        break;
-                    case FolderPermissions.Move:
-                        exceptionMessage = "Unable to move folder at source path\n" +
-                                           "REASON: Folder path is restricted";
-                        break;
-                    default:
-                        exceptionMessage = "Unable to move folder at source path";
-                        break;
+                    string exceptionMessage = null;
+                    switch (permission)
+                    {
+                        case FolderPermissions.Delete:
+                            exceptionMessage = "Unable to delete folder at source path\n" +
+                                               "REASON: Folder path is restricted";
+                            break;
+                        case FolderPermissions.Move:
+                            exceptionMessage = "Unable to move folder at source path\n" +
+                                               "REASON: Folder path is restricted";
+                            break;
+                        default:
+                            exceptionMessage = "Unable to move folder at source path";
+                            break;
+                    }
+                    throw new IOException(exceptionMessage);
                 }
-                throw new IOException(exceptionMessage);
             }
 
             string action = string.Empty;
@@ -180,7 +184,7 @@ namespace LogUtils.Helpers
                 default:
                     throw new PermissionDeniedException("Unknown permission error");
             }
-            throw new PermissionDeniedException($"Permission was not given to {action}. Check mod permissions.");
+            throw new PermissionDeniedException($"Permission was not given to {action}. Check mod {(!accessViolation ? "permissions" : "access settings")}.");
         }
 
         public static IEnumerable<LogGroupID> GroupsSharingThisPath(string path)
