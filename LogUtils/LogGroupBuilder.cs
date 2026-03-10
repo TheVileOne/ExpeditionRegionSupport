@@ -36,12 +36,13 @@ namespace LogUtils
         /// </summary>
         public ICollection<string> SubFolders { get; protected set; } = [];
 
-        /// <summary>
-        /// Attempt to create the group folder, and any specified subpaths on the creation of the group ID (only applies to folder groups)
-        /// </summary>
-        public void CreateFolderOnBuild()
+        public LogGroupBuilder()
         {
-            CanCreateFolder = true;
+        }
+
+        public LogGroupBuilder(bool createFolderOnBuild)
+        {
+            CanCreateFolder = createFolderOnBuild;
         }
 
         /// <summary>

@@ -24,7 +24,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             //Build parameters may be set before creating the ID instance. All fields are optional, but some will be required to register the ID.
             //Perfectly functional log groups can be created with an unregistered ID.
-            LogGroupBuilder builder = new LogGroupBuilder()
+            LogGroupBuilder builder = new LogGroupBuilder(true)
             {
                 Name = UtilityConsts.UTILITY_NAME + "TestGroup",
                 Path = FOLDER_NAME
@@ -32,7 +32,6 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             //Create the group folder, with a single subfolder named custom when GetRegisteredID is called
             builder.SubFolders.Add("custom");
-            builder.CreateFolderOnBuild();
 
             testGroup = builder.GetRegisteredID();
             testGroup.Properties.FolderPermissions = FolderPermissions.Move;
