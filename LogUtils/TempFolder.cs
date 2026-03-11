@@ -108,11 +108,21 @@ namespace LogUtils
             AccessToken.RevokeAccess();
         }
 
+        /// <summary>
+        /// Create a temporary directory if it doesn't already exist
+        /// </summary>
+        /// <exception cref="IOException"></exception>
+        /// <exception cref="DirectoryNotFoundException">Folder is part of an unmapped drive</exception>
+        /// <exception cref="UnauthorizedAccessException">Not allowed to access directory, or directory path</exception>
         public static void Create()
         {
             folder.CreateInternal();
         }
 
+        /// <summary>
+        /// Attempt to create a temporary directory
+        /// </summary>
+        /// <returns><see langword="true"/>, if directory was created, or already exists; otherwise <see langword="false"/></returns>
         public static bool TryCreate()
         {
             try
@@ -173,23 +183,30 @@ namespace LogUtils
 
         IAccessToken IAccessToken.Access()
         {
-            Interlocked.Increment(ref accessCount);
+            lock (folderLock)
+            {
+                Interlocked.Increment(ref accessCount);
+                ScheduleDelete();
+            }
             return this;
         }
 
         void IAccessToken.RevokeAccess()
         {
-            if (accessCount == 0)
+            lock (folderLock)
             {
-                UtilityLogger.LogWarning("Abnormal amount of revoke access attempts made");
-                return;
+                if (accessCount == 0)
+                {
+                    UtilityLogger.LogWarning("Abnormal amount of revoke access attempts made");
+                    return;
+                }
+                Interlocked.Decrement(ref accessCount);
             }
-            Interlocked.Decrement(ref accessCount);
         }
 
         void IDisposable.Dispose()
         {
-            //Not safe to rfevoke access and dispose token
+            //Not safe to revoke access and dispose token
             RevokeAccess();
         }
 
