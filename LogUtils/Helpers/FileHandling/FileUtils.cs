@@ -337,6 +337,30 @@ namespace LogUtils.Helpers.FileHandling
             return false;
         }
 
+        internal static bool AttemptMoveToTempFolder(string sourcePath, out string tempPath)
+        {
+            tempPath = prepareToMoveFile();
+
+            string prepareToMoveFile()
+            {
+                string destFilename = Path.GetFileName(sourcePath);
+                //Create the folder that will contain this file, before returning the full filepath
+                return Path.Combine(TempFolder.CreateDirectoryFor(sourcePath), destFilename);
+            }
+
+            //Check orphan status in case we overwrite one
+            bool isOrphanedFile = TempFolder.OrphanedFiles.Contains(tempPath);
+
+            //Attempt to move file to the temp folder
+            if (!TryMove(sourcePath, tempPath))
+                return false;
+
+            //File was overwritten - it is no longer considered orphaned
+            if (isOrphanedFile)
+                TempFolder.OrphanedFiles.Remove(tempPath);
+            return true;
+        }
+
         public static bool TryReplace(string sourcePath, string destPath)
         {
             UtilityLogger.Log("Replacing file");
@@ -347,6 +371,21 @@ namespace LogUtils.Helpers.FileHandling
                 return false;
             }
 
+            bool destEmpty = !File.Exists(destPath);
+            if (destEmpty)
+            {
+                UtilityLogger.Log("No file located at destination path");
+
+                //Attempt to move source file to destination
+                if (!TryMove(sourcePath, destPath))
+                {
+                    UtilityLogger.LogWarning("Unable to move source file");
+                    return false;
+                }
+                UtilityLogger.Log("Move successful");
+                return true;
+            }
+
             using (IAccessToken accessToken = TempFolder.Access())
             {
                 if (!TempFolder.TryCreate())
@@ -354,57 +393,28 @@ namespace LogUtils.Helpers.FileHandling
                     UtilityLogger.LogWarning("Unable to replace file. Temp directory could not be created.");
                     return false;
                 }
-                bool destEmpty = !File.Exists(destPath);
-                if (destEmpty)
+
+                bool fileMoved = AttemptMoveToTempFolder(destPath, out string tempPath);
+
+                if (!fileMoved)
+                    return false;
+
+                //Attempt to move source file to destination
+                if (!TryMove(sourcePath, destPath))
                 {
-                    UtilityLogger.Log("No file located at destination path");
+                    UtilityLogger.LogWarning("Unable to move source file");
 
-                    //Attempt to move source file to destination
-                    if (!TryMove(sourcePath, destPath))
+                    //If it fails, we move file at destination back
+                    if (!TryMove(tempPath, destPath))
                     {
-                        UtilityLogger.LogWarning("Unable to move source file");
-                        return false;
+                        UtilityLogger.LogWarning("Unable to restore destination file");
+                        TempFolder.OrphanedFiles.Add(tempPath);
                     }
+                    return false;
                 }
-                else
-                {
-                    string tempPath = prepareToMoveFile();
-
-                    string prepareToMoveFile()
-                    {
-                        string destFilename = Path.GetFileName(destPath);
-                        //Create the folder that will contain this file, before returning the full filepath
-                        return Path.Combine(TempFolder.CreateDirectoryFor(destPath), destFilename);
-                    }
-
-                    //Check orphan status in case we overwrite one
-                    bool isOrphanedFile = TempFolder.OrphanedFiles.Contains(tempPath);
-
-                    //Attempt to move file to the temp folder
-                    if (!TryMove(destPath, tempPath))
-                        return false;
-
-                    //File was overwritten - it is no longer considered orphaned
-                    if (isOrphanedFile)
-                        TempFolder.OrphanedFiles.Remove(tempPath);
-
-                    //Attempt to move source file to destination
-                    if (!TryMove(sourcePath, destPath))
-                    {
-                        UtilityLogger.LogWarning("Unable to move source file");
-
-                        //If it fails, we move file at destination back
-                        if (!TryMove(tempPath, destPath))
-                        {
-                            UtilityLogger.LogWarning("Unable to restore destination file");
-                            TempFolder.OrphanedFiles.Add(tempPath);
-                        }
-                        return false;
-                    }
-                }
-                UtilityLogger.Log("Move successful");
-                return true;
             }
+            UtilityLogger.Log("Move successful");
+            return true;
         }
 
         /// <summary>
