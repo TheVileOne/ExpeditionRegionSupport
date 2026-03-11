@@ -156,6 +156,12 @@ namespace LogUtils
                 eventListener.Dispose(); //This event listener removes itself from the Listeners collection when disposed
             }
 
+            //LogUtils functions best initialized early. An initial setup period post mod initialization is the latest an official setup period can be established
+            bool shouldInvokeLateSetupEvent = RainWorldInfo.LatestSetupPeriodReached == SetupPeriod.PostMods;
+
+            if (shouldInvokeLateSetupEvent)
+                RainWorldInfo.NotifyOnPeriodReached(SetupPeriod.LatePostMods); //Use a special case enum value to reflect this special situation
+
             initializingInProgress = false;
             IsInitialized = true;
         }
@@ -319,11 +325,6 @@ namespace LogUtils
             }
 
             UtilityEvents.OnSetupPeriodReached += onSetupPeriodReached;
-
-            //We should invoke at least one setup period event. Use a special case enum value to reflect this special situation.
-            if (startupPeriod == SetupPeriod.PostMods)
-                RainWorldInfo.NotifyOnPeriodReached(SetupPeriod.LatePostMods);
-
             RainWorldInfo.LatestSetupPeriodReached = startupPeriod;
         }
 
