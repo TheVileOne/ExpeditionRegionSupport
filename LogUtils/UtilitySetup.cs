@@ -13,12 +13,13 @@
             ESTABLISH_SETUP_PERIOD = 4,
             INITIALIZE_COMPONENTS = 5,
             INITIALIZE_PATCHER = 6,
-            INITIALIZE_ENUMS = 7,
-            PARSE_FILTER_RULES = 8,
-            ADAPT_LOGGING_SYSTEM = 9,
-            POST_LOGID_PROCESSING = 10,
-            APPLY_HOOKS = 11,
-            COMPLETE = 12
+            INITIALIZE_TEMP_FOLDER  = 7,
+            INITIALIZE_ENUMS = 8,
+            PARSE_FILTER_RULES = 9,
+            ADAPT_LOGGING_SYSTEM = 10,
+            POST_LOGID_PROCESSING = 11,
+            APPLY_HOOKS = 12,
+            COMPLETE = 13
         }
 
         public enum Build

@@ -1,5 +1,4 @@
-﻿using LogUtils.Helpers;
-using LogUtils.Helpers.Comparers;
+﻿using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Threading;
 using System;
@@ -14,7 +13,7 @@ namespace LogUtils
         private static int accessCount;
         private static readonly object folderLock = new object();
 
-        private static readonly TempFolder folder = new TempFolder();
+        private static TempFolder folder => UtilityCore.TempFolder; 
 
         internal static IAccessToken AccessToken => folder;
 
@@ -34,13 +33,32 @@ namespace LogUtils
         /// </summary>
         public static string Path => folder.FullPath;
 
-        private TempFolder() : this(Paths.GetTempDirectory())
+        /// <summary>
+        /// Creates a new <see cref="TempFolder"/> instance
+        /// </summary>
+        /// <param name="folderName">The name of the folder that should be created in the users Temp folder path</param>
+        /// <exception cref="ArgumentException">
+        /// folderName was null, or contains only whitespace - OR - contains an illegal path character
+        /// </exception>
+        public TempFolder(string folderName)
         {
+            if (PathUtils.IsEmpty(folderName))
+                throw new ArgumentException(nameof(folderName), "Folder name cannot be empty.");
+
+            FullPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), folderName);
         }
 
-        private TempFolder(string path)
+        /// <summary>
+        /// Completes initialization tasks that should be handled when a temporary folder is established. 
+        /// </summary>
+        public void Initialize()
         {
-            FullPath = path;
+            if (!UtilityCore.IsControllingAssembly || !Directory.Exists(Path))
+                return;
+
+            OrphanAllFiles();
+            if (OrphanedFiles.Count == 0) //There are no files - folder is safe for removal 
+                ScheduleDelete();
         }
 
         #region Static
@@ -149,22 +167,6 @@ namespace LogUtils
                 UtilityLogger.LogError("Unable to delete Temp folder", ex);
                 return false;
             }
-        }
-
-        internal static void OnStartup()
-        {
-            if (!UtilityCore.IsControllingAssembly || !Directory.Exists(Path))
-                return;
-
-            OrphanAllFiles();
-            if (OrphanedFiles.Count == 0) //There are no files - folder is safe for removal 
-                folder.ScheduleDelete();
-        }
-
-        internal static void OnShutdown()
-        {
-            //Last chance to cleanup the folder
-            folder.Cleanup();
         }
 
         /// <summary>
