@@ -66,6 +66,7 @@ namespace LogUtils
         {
             lock (folderLock)
             {
+                UtilityLogger.DebugLog("Temporary folder accessed");
                 Interlocked.Increment(ref accessCount);
                 ScheduleDelete();
             }
@@ -81,6 +82,7 @@ namespace LogUtils
                     UtilityLogger.LogWarning("Abnormal amount of revoke access attempts made");
                     return;
                 }
+                UtilityLogger.DebugLog("Temporary folder access revoked");
                 Interlocked.Decrement(ref accessCount);
             }
         }
@@ -105,6 +107,7 @@ namespace LogUtils
                     scheduledTask = null;
                 }
                 DeleteInternal();
+                UtilityLogger.DebugLog("Temporary folder cleanup successful");
             }
             catch
             {
