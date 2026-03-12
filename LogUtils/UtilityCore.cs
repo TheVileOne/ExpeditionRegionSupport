@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEngine;
 using Debug = LogUtils.Diagnostics.Debug;
 
 namespace LogUtils
@@ -93,6 +94,8 @@ namespace LogUtils
 
         public static EventScheduler Scheduler;
 
+        private static Action earlyShutdownEvent;
+
         /// <summary>
         /// Ensures that core functionality is in a proper and useable state by ensuring the initialization procedure has run
         /// </summary>
@@ -139,6 +142,12 @@ namespace LogUtils
                 UtilityLogger.LogFatal("A fatal error has occurred during setup process. Utility will no longer function as expected");
                 UtilityLogger.LogFatal($"FAILED STEP: {UtilitySetup.CurrentStep}");
                 UtilityLogger.LogFatal(ex);
+            }
+
+            if (RainWorldInfo.LatestSetupPeriodReached == SetupPeriod.Pregame)
+            {
+                earlyShutdownEvent = OnEarlyShutdown;
+                Application.quitting += earlyShutdownEvent;
             }
 
             if (IsControllingAssembly && Build == UtilitySetup.Build.DEVELOPMENT)
@@ -348,6 +357,13 @@ namespace LogUtils
             {
                 RainWorldInfo.LatestSetupPeriodReached = getPeriod(e.CurrentPeriod);
 
+                if (earlyShutdownEvent != null)
+                {
+                    UtilityLogger.DebugLog("Removing early shutdown event");
+                    Application.quitting -= earlyShutdownEvent;
+                    earlyShutdownEvent = null;
+                }
+
                 if (RainWorldInfo.LatestSetupPeriodReached == SetupPeriod.PostMods)
                     LogsFolder.AddGroupsToFolder();
 
@@ -414,6 +430,7 @@ namespace LogUtils
 
         internal static void OnShutdown()
         {
+            UtilityLogger.DebugLog("Shutting down normally");
             LogProperties.PropertyManager.SaveToFile();
 
             Config.TrySave();
@@ -472,6 +489,13 @@ namespace LogUtils
             disposeTask.Wait();
 
             LogTasker.Close();
+        }
+
+        internal static void OnEarlyShutdown()
+        {
+            //TODO: Graceful shutdown procedures for early shutdowns
+            UtilityLogger.DebugLog("Early shutdown detected");
+            RainWorldInfo.IsShuttingDown = true;
         }
     }
 }
