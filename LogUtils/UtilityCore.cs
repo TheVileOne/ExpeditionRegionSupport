@@ -94,7 +94,7 @@ namespace LogUtils
 
         public static EventScheduler Scheduler;
 
-        public static TempFolder TempFolder;
+        public static TempFolderInfo TempFolder;
 
         private static Action earlyShutdownEvent;
 
@@ -240,7 +240,7 @@ namespace LogUtils
                     }
                 case UtilitySetup.InitializationStep.INITIALIZE_TEMP_FOLDER:
                     {
-                        TempFolder = new TempFolder(UtilityConsts.TEMP_FOLDER_NAME);
+                        TempFolder = new TempFolderInfo(UtilityConsts.TEMP_FOLDER_NAME);
                         TempFolder.Initialize();
 
                         nextStep = UtilitySetup.InitializationStep.INITIALIZE_ENUMS;

@@ -9,7 +9,7 @@ namespace LogUtils
     {
         /// <summary>
         /// Signal that a process intends to access and use a temporary folder. While accessing, LogUtils guarantees that the folder wont be moved, or deleted
-        /// through the <see cref="TempFolder"/> public API. Call <see cref="RevokeAccess"/> to signal that your process no longer needs to access the temporary folder.
+        /// through the <see cref="TempFolderInfo"/> public API. Call <see cref="RevokeAccess"/> to signal that your process no longer needs to access the temporary folder.
         /// </summary>
         /// <remarks>For each time this method is called, a following <see cref="RevokeAccess"/> must also be called.</remarks>
         IAccessToken Access();
