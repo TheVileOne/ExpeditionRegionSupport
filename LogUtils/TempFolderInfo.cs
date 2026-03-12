@@ -14,11 +14,18 @@ namespace LogUtils
 
         private int accessCount;
 
+        /// <summary>
+        /// Fully qualified path to a temporary folder
+        /// </summary>
+        public readonly string FullPath;
+
         private readonly HashSet<string> _orphanedFiles = new HashSet<string>(ComparerUtils.PathComparer);
         /// <summary>
         /// Contains paths pertaining to files within the temp folder flagged as orphaned; usually an indication that the file was unable to be moved from the directory
         /// </summary>
         public ICollection<string> OrphanedFiles => _orphanedFiles;
+
+        public PathResolver Resolver;
 
         /// <summary>
         /// Checks whether deletion of the temp folder minimizes risk of unwanted data loss
@@ -38,6 +45,7 @@ namespace LogUtils
                 throw new ArgumentException(nameof(folderName), "Folder name cannot be empty.");
 
             FullPath = Path.Combine(Path.GetTempPath(), folderName);
+            Resolver = new TempPathResolver(FullPath);
         }
 
         /// <summary>
@@ -53,50 +61,55 @@ namespace LogUtils
                 ScheduleDelete();
         }
 
-        #region Static
-        /// <summary>
-        /// Creates the directory structure for a given file, or directory path
-        /// </summary>
-        /// <param name="path">A file, or directory path</param>
-        /// <returns>The created directory path, or null if path could not be created</returns>
-        public string CreateDirectoryFor(string path)
+
+        IAccessToken IAccessToken.Access()
         {
-            string targetPath = getTargetPath(path);
-            try
+            lock (folderLock)
             {
-                Directory.CreateDirectory(targetPath);
-                return targetPath;
+                Interlocked.Increment(ref accessCount);
+                ScheduleDelete();
             }
-            catch (Exception ex)
+            return this;
+        }
+
+        void IAccessToken.RevokeAccess()
+        {
+            lock (folderLock)
             {
-                UtilityLogger.LogError("Unable to create directory", ex);
-                return null;
-            }
-
-            string getTargetPath(string input)
-            {
-                string targetPath = MapPathToFolder(input); //Does not require path separator trimming
-
-                bool isTargetingTempFolder = PathUtils.PathsAreEqual(targetPath, FullPath);
-
-                if (isTargetingTempFolder)
-                    return FullPath;
-
-                //Targets the parent directory of the filename, or directory path provided
-                return Path.GetDirectoryName(targetPath);
+                if (accessCount == 0)
+                {
+                    UtilityLogger.LogWarning("Abnormal amount of revoke access attempts made");
+                    return;
+                }
+                Interlocked.Decrement(ref accessCount);
             }
         }
 
-        /// <summary>
-        /// Maps a path, filename, or directory to a location within the Temp folder, and returns the resulting path string
-        /// </summary>
-        /// <param name="path">A path, filename, or directory name to locate</param>
-        /// <returns>A fully qualified path inside the Temp folder</returns>
-        /// <remarks>No attempt is made to ensure path exists within the Temp folder</remarks>
-        public string MapPathToFolder(string path)
+        void IDisposable.Dispose()
         {
-            TempPathResolver pathResolver = new TempPathResolver(FullPath);
-            return pathResolver.Resolve(path);
+            IAccessToken token = this;
+            token.RevokeAccess();
+        }
+
+        /// <summary>
+        /// Initiates a cleanup process on the temp folder
+        /// </summary>
+        /// <remarks>The current cleanup behavior is deletion of the folder when it is safe to do so</remarks>
+        public void Cleanup()
+        {
+            try
+            {
+                if (RainWorldInfo.IsShuttingDown) //No other cleanup tasks need to run
+                {
+                    scheduledTask?.Cancel();
+                    scheduledTask = null;
+                }
+                DeleteInternal();
+            }
+            catch
+            {
+                UtilityLogger.LogWarning("Temporary folder cleanup unable to complete successfully");
+            }
         }
 
         /// <summary>
@@ -137,7 +150,7 @@ namespace LogUtils
             }
             catch (Exception ex)
             {
-                UtilityLogger.LogError("Unable to delete Temp folder", ex);
+                UtilityLogger.LogError("Unable to delete temporary folder", ex);
                 return false;
             }
         }
@@ -157,41 +170,6 @@ namespace LogUtils
                 UtilityLogger.LogError("Orphaned file check failed", ex);
             }
         }
-        #endregion
-        #region Internal
-        /// <summary>
-        /// Fully qualified path to a temporary folder
-        /// </summary>
-        public readonly string FullPath;
-
-        IAccessToken IAccessToken.Access()
-        {
-            lock (folderLock)
-            {
-                Interlocked.Increment(ref accessCount);
-                ScheduleDelete();
-            }
-            return this;
-        }
-
-        void IAccessToken.RevokeAccess()
-        {
-            lock (folderLock)
-            {
-                if (accessCount == 0)
-                {
-                    UtilityLogger.LogWarning("Abnormal amount of revoke access attempts made");
-                    return;
-                }
-                Interlocked.Decrement(ref accessCount);
-            }
-        }
-
-        void IDisposable.Dispose()
-        {
-            IAccessToken token = this;
-            token.RevokeAccess();
-        }
 
         internal void CreateInternal()
         {
@@ -202,24 +180,15 @@ namespace LogUtils
             }
         }
 
-        /// <summary>
-        /// Initiates a cleanup process on the temp folder
-        /// </summary>
-        /// <remarks>The current cleanup behavior is deletion of the folder when it is safe to do so</remarks>
-        public void Cleanup()
+        internal void DeleteInternal()
         {
-            try
+            lock (folderLock)
             {
-                if (RainWorldInfo.IsShuttingDown) //No other cleanup tasks need to run
-                {
-                    scheduledTask?.Cancel();
-                    scheduledTask = null;
-                }
-                DeleteInternal();
-            }
-            catch
-            {
-                UtilityLogger.LogWarning("Temp folder cleanup unable to complete successfully");
+                if (!SafeToDelete)
+                    throw new InvalidOperationException("Delete operation is unsafe.");
+
+                //TODO: This needs to throw here
+                DirectoryUtils.DeletePermanently(FullPath, DirectoryDeletionScope.AllFilesAndFolders);
             }
         }
 
@@ -248,18 +217,5 @@ namespace LogUtils
                 }
             }
         }
-
-        internal void DeleteInternal()
-        {
-            lock (folderLock)
-            {
-                if (!SafeToDelete)
-                    throw new InvalidOperationException("Delete operation is unsafe.");
-
-                //TODO: This needs to throw here
-                DirectoryUtils.DeletePermanently(FullPath, DirectoryDeletionScope.AllFilesAndFolders);
-            }
-        }
-        #endregion
     }
 }
