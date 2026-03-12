@@ -159,6 +159,11 @@ namespace LogUtils
             OrphanAllFiles();
             if (OrphanedFiles.Count == 0) //There are no files - folder is safe for removal 
                 folder.ScheduleDelete();
+
+        internal static void OnShutdown()
+        {
+            //Last chance to cleanup the folder
+            folder.Cleanup();
         }
 
         /// <summary>
@@ -219,6 +224,27 @@ namespace LogUtils
 
                 Directory.CreateDirectory(Path);
                 ScheduleDelete();
+            }
+        }
+
+        /// <summary>
+        /// Initiates a cleanup process on the temp folder
+        /// </summary>
+        /// <remarks>The current cleanup behavior is deletion of the folder when it is safe to do so</remarks>
+        public void Cleanup()
+        {
+            try
+            {
+                if (RainWorldInfo.IsShuttingDown) //No other cleanup tasks need to run
+                {
+                    scheduledTask?.Cancel();
+                    scheduledTask = null;
+                }
+                DeleteInternal();
+            }
+            catch
+            {
+                UtilityLogger.LogWarning("Temp folder cleanup unable to complete successfully");
             }
         }
 

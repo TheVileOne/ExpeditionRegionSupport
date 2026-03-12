@@ -431,64 +431,69 @@ namespace LogUtils
         internal static void OnShutdown()
         {
             UtilityLogger.DebugLog("Shutting down normally");
-            LogProperties.PropertyManager.SaveToFile();
-
-            Config.TrySave();
-            UtilityLogger.Log("Disabling log files");
-
-            //End all active log sessions
-            foreach (LogProperties properties in LogProperties.PropertyManager.AllProperties)
+            try
             {
-                if (properties is LogGroupProperties groupProperties)
+                LogProperties.PropertyManager.SaveToFile();
+                Config.TrySave();
+
+                //End all active log sessions
+                UtilityLogger.Log("Disabling log files");
+                foreach (LogProperties properties in LogProperties.PropertyManager.AllProperties)
                 {
-                    foreach (LogID member in groupProperties.Members.Where(logID => !logID.Registered))
+                    if (properties is LogGroupProperties groupProperties)
                     {
-                        using (member.Properties.FileLock.Acquire())
+                        foreach (LogID member in groupProperties.Members.Where(logID => !logID.Registered))
                         {
-                            member.Properties.EndLogSession();
-                            member.Properties.AllowLogging = false; //No new logs should happen beyond this point
+                            using (member.Properties.FileLock.Acquire())
+                            {
+                                member.Properties.EndLogSession();
+                                member.Properties.AllowLogging = false; //No new logs should happen beyond this point
+                            }
+                        }
+                        properties.AllowLogging = false;
+                        continue;
+                    }
+
+                    if (properties.ID.Equals(LogID.BepInEx))
+                        continue;
+
+                    using (properties.FileLock.Acquire())
+                    {
+                        properties.EndLogSession();
+                        properties.AllowLogging = false; //No new logs should happen beyond this point
+                    }
+                }
+
+                LogID logFile = LogID.BepInEx;
+
+                if (logFile.Properties.FileExists)
+                {
+                    using (logFile.Properties.FileLock.Acquire())
+                    {
+                        //End the log session later than the others to ensure that session state is reported to file
+                        logFile.Properties.EndLogSession();
+                        logFile.Properties.AllowLogging = false;
+
+                        if (logFile.Properties.ShouldOverwrite)
+                        {
+                            //BepInEx log file requires special treatment. This log file cannot be replaced on game start like the other log files
+                            //To account for this, replace this log file when the game closes
+                            logFile.Properties.CreateTempFile(true);
                         }
                     }
-                    properties.AllowLogging = false;
-                    continue;
-                }
-
-                if (properties.ID.Equals(LogID.BepInEx))
-                    continue;
-
-                using (properties.FileLock.Acquire())
-                {
-                    properties.EndLogSession();
-                    properties.AllowLogging = false; //No new logs should happen beyond this point
                 }
             }
-
-            LogID logFile = LogID.BepInEx;
-
-            if (logFile.Properties.FileExists)
+            finally
             {
-                using (logFile.Properties.FileLock.Acquire())
-                {
-                    //End the log session later than the others to ensure that session state is reported to file
-                    logFile.Properties.EndLogSession();
-                    logFile.Properties.AllowLogging = false;
+                TempFolder.OnShutdown();
 
-                    if (logFile.Properties.ShouldOverwrite)
-                    {
-                        //BepInEx log file requires special treatment. This log file cannot be replaced on game start like the other log files
-                        //To account for this, replace this log file when the game closes
-                        logFile.Properties.CreateTempFile(true);
-                    }
-                }
+                //Stop listening for log events
+                var disposeTask = System.Threading.Tasks.Task.Run(BepInExAdapter.DisposeListeners);
+
+                //Disposing the listeners sometimes locks up the main thread for some reason. Running on a background thread avoids potential lock ups
+                disposeTask.Wait();
+                LogTasker.Close();
             }
-
-            //Stop listening for log events
-            var disposeTask = System.Threading.Tasks.Task.Run(BepInExAdapter.DisposeListeners);
-
-            //Disposing the listeners sometimes locks up the main thread for some reason. Running on a background thread avoids potential lock ups
-            disposeTask.Wait();
-
-            LogTasker.Close();
         }
 
         internal static void OnEarlyShutdown()
@@ -496,6 +501,8 @@ namespace LogUtils
             //TODO: Graceful shutdown procedures for early shutdowns
             UtilityLogger.DebugLog("Early shutdown detected");
             RainWorldInfo.IsShuttingDown = true;
+
+            TempFolder.OnShutdown();
         }
     }
 }
