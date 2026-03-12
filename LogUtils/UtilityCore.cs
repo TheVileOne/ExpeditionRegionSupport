@@ -96,7 +96,10 @@ namespace LogUtils
 
         public static TempFolderInfo TempFolder;
 
+        private static BackupAccessPeriod backupPeriod;
         private static Action earlyShutdownEvent;
+
+        internal static bool IsExpectingBackups => IsControllingAssembly && RainWorldInfo.LatestSetupPeriodReached < SetupPeriod.PostMods;
 
         /// <summary>
         /// Ensures that core functionality is in a proper and useable state by ensuring the initialization procedure has run
@@ -243,6 +246,13 @@ namespace LogUtils
                         TempFolder = new TempFolderInfo(UtilityConsts.TEMP_FOLDER_NAME);
                         TempFolder.Initialize();
 
+                        if (IsExpectingBackups) //Signal that temp folder will be available during mod initialization
+                        {
+                            backupPeriod.Begin();
+                        }
+                        else
+                            UtilityLogger.DebugLog("Backup access period not active");
+
                         nextStep = UtilitySetup.InitializationStep.INITIALIZE_ENUMS;
                         break;
                     }
@@ -372,7 +382,10 @@ namespace LogUtils
                 }
 
                 if (RainWorldInfo.LatestSetupPeriodReached == SetupPeriod.PostMods)
+                {
+                    backupPeriod.End();
                     LogsFolder.AddGroupsToFolder();
+                }
 
                 if (PropertyManager.StartupRoutineActive)
                 {
@@ -499,6 +512,7 @@ namespace LogUtils
             }
             finally
             {
+                backupPeriod.End();
                 TempFolder.Cleanup();
 
                 //Stop listening for log events
@@ -508,6 +522,29 @@ namespace LogUtils
                 disposeTask.Wait();
                 LogTasker.Close();
             }
+        }
+    }
+
+    internal struct BackupAccessPeriod
+    {
+        private IAccessToken token;
+
+        public readonly bool IsActive => token != null;
+
+        public void Begin()
+        {
+            if (IsActive) return;
+
+            UtilityLogger.DebugLog("Backup access period started");
+            token = TempFolder.Access();
+        }
+
+        public void End()
+        {
+            if (!IsActive) return;
+
+            UtilityLogger.DebugLog("Backup access period ended");
+            token.RevokeAccess();
         }
     }
 }
