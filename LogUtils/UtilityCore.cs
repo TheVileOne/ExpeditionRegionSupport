@@ -94,6 +94,8 @@ namespace LogUtils
 
         public static EventScheduler Scheduler;
 
+        public static TempFolderInfo TempFolder;
+
         private static Action earlyShutdownEvent;
 
         /// <summary>
@@ -233,6 +235,14 @@ namespace LogUtils
                         PatcherLogEventProcessor.ProcessLogEvents();
                         PatcherController.Initialize();
 
+                        nextStep = UtilitySetup.InitializationStep.INITIALIZE_TEMP_FOLDER;
+                        break;
+                    }
+                case UtilitySetup.InitializationStep.INITIALIZE_TEMP_FOLDER:
+                    {
+                        TempFolder = new TempFolderInfo(UtilityConsts.TEMP_FOLDER_NAME);
+                        TempFolder.Initialize();
+
                         nextStep = UtilitySetup.InitializationStep.INITIALIZE_ENUMS;
                         break;
                     }
@@ -280,8 +290,6 @@ namespace LogUtils
                     }
                 case UtilitySetup.InitializationStep.POST_LOGID_PROCESSING:
                     {
-                        //TempFolder startup process must be handled before log backups
-                        TempFolder.OnStartup();
                         PropertyManager.ProcessLogFiles();
 
                         if (PatcherPolicy.ShowPatcherLog)
@@ -491,7 +499,7 @@ namespace LogUtils
             }
             finally
             {
-                TempFolder.OnShutdown();
+                TempFolder.Cleanup();
 
                 //Stop listening for log events
                 var disposeTask = System.Threading.Tasks.Task.Run(BepInExAdapter.DisposeListeners);

@@ -1,55 +1,38 @@
-﻿using LogUtils.Helpers;
-using LogUtils.Helpers.Comparers;
-using LogUtils.Helpers.FileHandling;
-using LogUtils.Threading;
-using System;
-using System.Collections.Generic;
+﻿using LogUtils.Helpers.FileHandling;
 using System.IO;
-using System.Threading;
+using System;
 
 namespace LogUtils
 {
-    public class TempFolder : IAccessToken
+    public static class TempFolder
     {
-        private static int accessCount;
-        private static readonly object folderLock = new object();
-
-        private static readonly TempFolder folder = new TempFolder();
-
-        internal static IAccessToken AccessToken => folder;
-
-        private static readonly HashSet<string> _orphanedFiles = new HashSet<string>(ComparerUtils.PathComparer);
-        /// <summary>
-        /// Contains paths pertaining to files within the temp folder flagged as orphaned; usually an indication that the file was unable to be moved from the directory
-        /// </summary>
-        public static ICollection<string> OrphanedFiles => _orphanedFiles;
+        private static IAccessToken accessToken => UtilityCore.TempFolder;
 
         /// <summary>
-        /// Checks whether deletion of the temp folder minimizes risk of unwanted data loss
+        /// Signal access for the LogUtils temporary folder
         /// </summary>
-        public static bool SafeToDelete => UtilityCore.IsControllingAssembly && accessCount == 0 && OrphanedFiles.Count == 0;
-
-        /// <summary>
-        /// Full path to LogUtils temporary folder
-        /// </summary>
-        public static string Path => folder.FullPath;
-
-        private TempFolder() : this(Paths.GetTempDirectory())
+        /// <returns>A token for revoking access</returns>
+        public static IAccessToken Access()
         {
+            return accessToken.Access();
         }
 
-        private TempFolder(string path)
+        /// <summary>
+        /// Signal that access should be revoked for the LogUtils temporary folder
+        /// </summary>
+        public static void RevokeAccess()
         {
-            FullPath = path;
+            accessToken.RevokeAccess();
         }
 
-        #region Static
+
         /// <summary>
         /// Creates the directory structure for a given file, or directory path
         /// </summary>
+        /// <param name="tempFolder"></param>
         /// <param name="path">A file, or directory path</param>
         /// <returns>The created directory path, or null if path could not be created</returns>
-        public static string CreateDirectoryFor(string path)
+        public static string CreateDirectoryFor(this TempFolderInfo tempFolder, string path)
         {
             string targetPath = getTargetPath(path);
             try
@@ -63,229 +46,30 @@ namespace LogUtils
                 return null;
             }
 
-            static string getTargetPath(string input)
+            string getTargetPath(string input)
             {
-                string targetPath = MapPathToFolder(input); //Does not require path separator trimming
+                string targetPath = tempFolder.MapPathToFolder(input); //Does not require path separator trimming
 
-                bool isTargetingTempFolder = PathUtils.PathsAreEqual(targetPath, folder.FullPath);
+                bool isTargetingTempFolder = PathUtils.PathsAreEqual(targetPath, tempFolder.FullPath);
 
                 if (isTargetingTempFolder)
-                    return folder.FullPath;
+                    return tempFolder.FullPath;
 
                 //Targets the parent directory of the filename, or directory path provided
-                return System.IO.Path.GetDirectoryName(targetPath);
+                return Path.GetDirectoryName(targetPath);
             }
         }
 
         /// <summary>
         /// Maps a path, filename, or directory to a location within the Temp folder, and returns the resulting path string
         /// </summary>
+        /// <param name="tempFolder"></param>
         /// <param name="path">A path, filename, or directory name to locate</param>
         /// <returns>A fully qualified path inside the Temp folder</returns>
         /// <remarks>No attempt is made to ensure path exists within the Temp folder</remarks>
-        public static string MapPathToFolder(string path)
+        public static string MapPathToFolder(this TempFolderInfo tempFolder, string path)
         {
-            TempPathResolver pathResolver = new TempPathResolver(folder.FullPath);
-            return pathResolver.Resolve(path);
+            return tempFolder.Resolver.Resolve(path);
         }
-
-        /// <summary>
-        /// Signal that a process intends to access and use LogUtils defined temporary folder. While accessing, LogUtils guarantees that the folder wont be moved, or deleted
-        /// through the <see cref="TempFolder"/> public API. Call <see cref="RevokeAccess"/> to signal that your process no longer needs to access the Temp folder.
-        /// </summary>
-        /// <remarks>For each time this method is called, a following <see cref="RevokeAccess"/> must also be called.</remarks>
-        public static IAccessToken Access()
-        {
-            return AccessToken.Access();
-        }
-
-        /// <summary>
-        /// Signal that a process no longer needs to access any data located inside of the LogUtils defined temporary folder. Do not call this unless your process
-        /// already has access. Doing so may corrupt/remove data being used by other processes that require this temporary folder.
-        /// </summary>
-        public static void RevokeAccess()
-        {
-            AccessToken.RevokeAccess();
-        }
-
-        /// <summary>
-        /// Create a temporary directory if it doesn't already exist
-        /// </summary>
-        /// <exception cref="IOException"></exception>
-        /// <exception cref="DirectoryNotFoundException">Folder is part of an unmapped drive</exception>
-        /// <exception cref="UnauthorizedAccessException">Not allowed to access directory, or directory path</exception>
-        public static void Create()
-        {
-            folder.CreateInternal();
-        }
-
-        /// <summary>
-        /// Attempt to create a temporary directory
-        /// </summary>
-        /// <returns><see langword="true"/>, if directory was created, or already exists; otherwise <see langword="false"/></returns>
-        public static bool TryCreate()
-        {
-            try
-            {
-                folder.CreateInternal();
-                return true;
-            }
-            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
-            {
-                UtilityLogger.LogError(ex);
-                return false;
-            }
-        }
-
-        public static bool TryDelete()
-        {
-            try
-            {
-                folder.DeleteInternal();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                UtilityLogger.LogError("Unable to delete Temp folder", ex);
-                return false;
-            }
-        }
-
-        internal static void OnStartup()
-        {
-            if (!UtilityCore.IsControllingAssembly || !Directory.Exists(Path))
-                return;
-
-            OrphanAllFiles();
-            if (OrphanedFiles.Count == 0) //There are no files - folder is safe for removal 
-                folder.ScheduleDelete();
-        }
-
-        internal static void OnShutdown()
-        {
-            //Last chance to cleanup the folder
-            folder.Cleanup();
-        }
-
-        /// <summary>
-        /// Does an inventory of all files inside the temp folder (when it exists), and marks each file as orphaned
-        /// </summary>
-        internal static void OrphanAllFiles()
-        {
-            string tempFolderPath = Path;
-            try
-            {
-                string[] allFiles = Directory.GetFiles(tempFolderPath, "*", SearchOption.AllDirectories);
-                _orphanedFiles.UnionWith(allFiles);
-            }
-            catch (Exception ex)
-            {
-                UtilityLogger.LogError("Orphaned file check failed", ex);
-            }
-        }
-        #endregion
-        #region Internal
-        public string FullPath;
-
-        IAccessToken IAccessToken.Access()
-        {
-            lock (folderLock)
-            {
-                Interlocked.Increment(ref accessCount);
-                ScheduleDelete();
-            }
-            return this;
-        }
-
-        void IAccessToken.RevokeAccess()
-        {
-            lock (folderLock)
-            {
-                if (accessCount == 0)
-                {
-                    UtilityLogger.LogWarning("Abnormal amount of revoke access attempts made");
-                    return;
-                }
-                Interlocked.Decrement(ref accessCount);
-            }
-        }
-
-        void IDisposable.Dispose()
-        {
-            //Not safe to revoke access and dispose token
-            RevokeAccess();
-        }
-
-        internal void CreateInternal()
-        {
-            lock (folderLock)
-            {
-                if (accessCount == 0)
-                    UtilityLogger.LogWarning($"Please invoke {nameof(Access)} before using this method");
-
-                Directory.CreateDirectory(Path);
-                ScheduleDelete();
-            }
-        }
-
-        /// <summary>
-        /// Initiates a cleanup process on the temp folder
-        /// </summary>
-        /// <remarks>The current cleanup behavior is deletion of the folder when it is safe to do so</remarks>
-        public void Cleanup()
-        {
-            try
-            {
-                if (RainWorldInfo.IsShuttingDown) //No other cleanup tasks need to run
-                {
-                    scheduledTask?.Cancel();
-                    scheduledTask = null;
-                }
-                DeleteInternal();
-            }
-            catch
-            {
-                UtilityLogger.LogWarning("Temp folder cleanup unable to complete successfully");
-            }
-        }
-
-        private Task scheduledTask;
-        internal void ScheduleDelete()
-        {
-            if (scheduledTask != null && scheduledTask.PossibleToRun) //Only allow one deletion task to run
-                return;
-
-            scheduledTask = LogTasker.Schedule(new Task(scheduledAction, TimeSpan.FromSeconds(5)) //Not in a hurry to remove this folder
-            {
-                Name = "TempFolder",
-                IsContinuous = true
-            });
-
-            void scheduledAction()
-            {
-                if (!SafeToDelete) return;
-
-                bool deleted = DirectoryUtils.DeletePermanently(Path, DirectoryDeletionScope.AllFilesAndFolders);
-
-                if (deleted)
-                {
-                    scheduledTask.Complete();
-                    scheduledTask = null;
-                }
-            }
-        }
-
-        internal void DeleteInternal()
-        {
-            lock (folderLock)
-            {
-                if (!SafeToDelete)
-                    throw new InvalidOperationException("Delete operation is unsafe.");
-
-                //TODO: This needs to throw here
-                DirectoryUtils.DeletePermanently(Path, DirectoryDeletionScope.AllFilesAndFolders);
-            }
-        }
-        #endregion
     }
 }

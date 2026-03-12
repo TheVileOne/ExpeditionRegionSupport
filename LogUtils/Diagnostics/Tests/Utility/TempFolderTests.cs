@@ -39,12 +39,12 @@ namespace LogUtils.Diagnostics.Tests.Utility
             void testEmptyPathsReturnCorrectPath()
             {
                 foreach (string input in TestInput.Strings.EmptyPathStrings)
-                    testPath(input, TempFolder.Path);
+                    testPath(input, UtilityCore.TempFolder.FullPath);
             }
 
             void testFilenameReturnsCorrectPath()
             {
-                testPath(TEST_FILENAME, Path.Combine(TempFolder.Path, TEST_FILENAME));
+                testPath(TEST_FILENAME, Path.Combine(UtilityCore.TempFolder.FullPath, TEST_FILENAME));
             }
 
             void testFilePathsReturnCorrectPath()
@@ -57,19 +57,19 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 //Arrange paths to test
                 partialPath = @"SomeFolder\" + TEST_FILENAME;
                 gamePath = Path.Combine(RainWorldPath.RootPath, partialPath); //Assigned subfolder is unimportant to result
-                tempPath = Path.Combine(TempFolder.Path, partialPath);
+                tempPath = Path.Combine(UtilityCore.TempFolder.FullPath, partialPath);
                 foreignPath = Path.Combine(@"C:\A\B\C", TEST_FILENAME);
 
                 //Test each path against the expected output
-                testPath(partialPath, Path.Combine(TempFolder.Path, partialPath));                            //Path will be mirrored within temp folder
-                testPath(gamePath, Path.Combine(TempFolder.Path, RainWorldPath.ROOT_DIRECTORY, partialPath)); //Path will be mirrored within temp folder starting at Rain World root
+                testPath(partialPath, Path.Combine(UtilityCore.TempFolder.FullPath, partialPath));                            //Path will be mirrored within temp folder
+                testPath(gamePath, Path.Combine(UtilityCore.TempFolder.FullPath, RainWorldPath.ROOT_DIRECTORY, partialPath)); //Path will be mirrored within temp folder starting at Rain World root
                 testPath(tempPath, tempPath);                                                                 //Path will be unchanged when processing a temp folder path
-                testPath(foreignPath, Path.Combine(TempFolder.Path, @"A\B\C", TEST_FILENAME));                //Path will be mirrored within the temp folder
+                testPath(foreignPath, Path.Combine(UtilityCore.TempFolder.FullPath, @"A\B\C", TEST_FILENAME));                //Path will be mirrored within the temp folder
             }
 
             void testDirectoryReturnsCorrectPath()
             {
-                testPath(TEST_DIRECTORY, Path.Combine(TempFolder.Path, TEST_DIRECTORY));
+                testPath(TEST_DIRECTORY, Path.Combine(UtilityCore.TempFolder.FullPath, TEST_DIRECTORY));
             }
 
             void testDirectoryPathsReturnCorrectPath()
@@ -82,21 +82,21 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 //Arrange paths to test
                 partialPath = @"SomeFolder\" + TEST_DIRECTORY;
                 gamePath = Path.Combine(RainWorldPath.RootPath, partialPath); //Assigned subfolder is unimportant to result
-                tempPath = Path.Combine(TempFolder.Path, partialPath);
+                tempPath = Path.Combine(UtilityCore.TempFolder.FullPath, partialPath);
                 foreignPath = @"C:\A\B\C"; //It will affect testing behavior if the number of folders in this path is changed for this test
 
                 //Test each path against the expected output
-                testPath(partialPath, Path.Combine(TempFolder.Path, partialPath));                            //Path will be mirrored within temp folder.
-                testPath(gamePath, Path.Combine(TempFolder.Path, RainWorldPath.ROOT_DIRECTORY, partialPath)); //Path will be mirrored within temp folder starting at Rain World root.
+                testPath(partialPath, Path.Combine(UtilityCore.TempFolder.FullPath, partialPath));                            //Path will be mirrored within temp folder.
+                testPath(gamePath, Path.Combine(UtilityCore.TempFolder.FullPath, RainWorldPath.ROOT_DIRECTORY, partialPath)); //Path will be mirrored within temp folder starting at Rain World root.
                 testPath(tempPath, tempPath);                                                                 //Path will be unchanged when processing a temp folder path.
-                testPath(foreignPath, Path.Combine(TempFolder.Path, @"A\B\C"));                               //Path will be mirrored within the temp folder.
+                testPath(foreignPath, Path.Combine(UtilityCore.TempFolder.FullPath, @"A\B\C"));                               //Path will be mirrored within the temp folder.
             }
 
             void testPathTruncationByFolderSelectionLimit()
             {
                 //Test will break if limit value changes
                 string testInput = @"C:\A\B\C\D\E";
-                string expectedResult = Path.Combine(TempFolder.Path, @"B\C\D\E"); //When working with a directory path, selection maximum is increased by 1
+                string expectedResult = Path.Combine(UtilityCore.TempFolder.FullPath, @"B\C\D\E"); //When working with a directory path, selection maximum is increased by 1
 
                 testPath(testInput, expectedResult);
             }
@@ -105,10 +105,10 @@ namespace LogUtils.Diagnostics.Tests.Utility
             {
                 //Test will break if limit value changes
                 string testInput = @"C:\A\B\C\D\E";
-                string expectedResult = Path.Combine(TempFolder.Path, @"B\C\D\E"); //When working with a directory path, selection maximum is increased by 1
+                string expectedResult = Path.Combine(UtilityCore.TempFolder.FullPath, @"B\C\D\E"); //When working with a directory path, selection maximum is increased by 1
 
-                string directoryPathResult = TempFolder.MapPathToFolder(testInput);
-                string filePathResult = TempFolder.MapPathToFolder(testInput + ".txt");
+                string directoryPathResult = UtilityCore.TempFolder.MapPathToFolder(testInput);
+                string filePathResult = UtilityCore.TempFolder.MapPathToFolder(testInput + ".txt");
 
                 string[] directoryPathSegments = PathUtils.SplitPath(directoryPathResult);
                 string[] filePathSegments = PathUtils.SplitPath(filePathResult);
@@ -119,7 +119,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             void testPath(string testInput, string expectedOutput)
             {
-                string pathResult = TempFolder.MapPathToFolder(testInput);
+                string pathResult = UtilityCore.TempFolder.MapPathToFolder(testInput);
                 AssertPathsAreEqual(expectedPath: expectedOutput,
                                       actualPath: pathResult);
             }

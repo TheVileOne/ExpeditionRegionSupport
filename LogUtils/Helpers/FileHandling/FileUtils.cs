@@ -345,11 +345,11 @@ namespace LogUtils.Helpers.FileHandling
             {
                 string destFilename = Path.GetFileName(sourcePath);
                 //Create the folder that will contain this file, before returning the full filepath
-                return Path.Combine(TempFolder.CreateDirectoryFor(sourcePath), destFilename);
+                return Path.Combine(UtilityCore.TempFolder.CreateDirectoryFor(sourcePath), destFilename);
             }
 
             //Check orphan status in case we overwrite one
-            bool isOrphanedFile = TempFolder.OrphanedFiles.Contains(tempPath);
+            bool isOrphanedFile = UtilityCore.TempFolder.OrphanedFiles.Contains(tempPath);
 
             //Attempt to move file to the temp folder
             if (!TryMove(sourcePath, tempPath))
@@ -357,7 +357,7 @@ namespace LogUtils.Helpers.FileHandling
 
             //File was overwritten - it is no longer considered orphaned
             if (isOrphanedFile)
-                TempFolder.OrphanedFiles.Remove(tempPath);
+                UtilityCore.TempFolder.OrphanedFiles.Remove(tempPath);
             return true;
         }
 
@@ -388,7 +388,7 @@ namespace LogUtils.Helpers.FileHandling
 
             using (IAccessToken accessToken = TempFolder.Access())
             {
-                if (!TempFolder.TryCreate())
+                if (!UtilityCore.TempFolder.TryCreate())
                 {
                     UtilityLogger.LogWarning("Unable to replace file. Temp directory could not be created.");
                     return false;
@@ -408,7 +408,7 @@ namespace LogUtils.Helpers.FileHandling
                     if (!TryMove(tempPath, destPath))
                     {
                         UtilityLogger.LogWarning("Unable to restore destination file");
-                        TempFolder.OrphanedFiles.Add(tempPath);
+                        UtilityCore.TempFolder.OrphanedFiles.Add(tempPath);
                     }
                     return false;
                 }
