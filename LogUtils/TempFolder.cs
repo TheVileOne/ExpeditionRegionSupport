@@ -14,7 +14,6 @@ namespace LogUtils
         private static readonly object folderLock = new object();
         private static IAccessToken accessToken => UtilityCore.TempFolder;
 
-        private static TempFolder folder => UtilityCore.TempFolder; 
 
         private static readonly HashSet<string> _orphanedFiles = new HashSet<string>(ComparerUtils.PathComparer);
         /// <summary>
@@ -28,11 +27,6 @@ namespace LogUtils
         public static bool SafeToDelete => UtilityCore.IsControllingAssembly && accessCount == 0 && OrphanedFiles.Count == 0;
 
         /// <summary>
-        /// Full path to LogUtils temporary folder
-        /// </summary>
-        public static string Path => folder.FullPath;
-
-        /// <summary>
         /// Creates a new <see cref="TempFolder"/> instance
         /// </summary>
         /// <param name="folderName">The name of the folder that should be created in the users Temp folder path</param>
@@ -44,7 +38,7 @@ namespace LogUtils
             if (PathUtils.IsEmpty(folderName))
                 throw new ArgumentException(nameof(folderName), "Folder name cannot be empty.");
 
-            FullPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), folderName);
+            FullPath = Path.Combine(Path.GetTempPath(), folderName);
         }
 
         /// <summary>
@@ -52,7 +46,7 @@ namespace LogUtils
         /// </summary>
         public void Initialize()
         {
-            if (!UtilityCore.IsControllingAssembly || !Directory.Exists(Path))
+            if (!UtilityCore.IsControllingAssembly || !Directory.Exists(FullPath))
                 return;
 
             OrphanAllFiles();
@@ -96,10 +90,10 @@ namespace LogUtils
             {
                 string targetPath = MapPathToFolder(input); //Does not require path separator trimming
 
-                bool isTargetingTempFolder = PathUtils.PathsAreEqual(targetPath, folder.FullPath);
+                bool isTargetingTempFolder = PathUtils.PathsAreEqual(targetPath, FullPath);
 
                 if (isTargetingTempFolder)
-                    return folder.FullPath;
+                    return FullPath;
 
                 //Targets the parent directory of the filename, or directory path provided
                 return System.IO.Path.GetDirectoryName(targetPath);
@@ -114,7 +108,7 @@ namespace LogUtils
         /// <remarks>No attempt is made to ensure path exists within the Temp folder</remarks>
         public static string MapPathToFolder(string path)
         {
-            TempPathResolver pathResolver = new TempPathResolver(folder.FullPath);
+            TempPathResolver pathResolver = new TempPathResolver(FullPath);
             return pathResolver.Resolve(path);
         }
 
@@ -126,7 +120,7 @@ namespace LogUtils
         /// <exception cref="UnauthorizedAccessException">Not allowed to access directory, or directory path</exception>
         public static void Create()
         {
-            folder.CreateInternal();
+            CreateInternal();
         }
 
         /// <summary>
@@ -137,7 +131,7 @@ namespace LogUtils
         {
             try
             {
-                folder.CreateInternal();
+                CreateInternal();
                 return true;
             }
             catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
@@ -151,7 +145,7 @@ namespace LogUtils
         {
             try
             {
-                folder.DeleteInternal();
+                DeleteInternal();
                 return true;
             }
             catch (Exception ex)
@@ -166,10 +160,9 @@ namespace LogUtils
         /// </summary>
         internal static void OrphanAllFiles()
         {
-            string tempFolderPath = Path;
             try
             {
-                string[] allFiles = Directory.GetFiles(tempFolderPath, "*", SearchOption.AllDirectories);
+                string[] allFiles = Directory.GetFiles(FullPath, "*", SearchOption.AllDirectories);
                 _orphanedFiles.UnionWith(allFiles);
             }
             catch (Exception ex)
@@ -179,7 +172,10 @@ namespace LogUtils
         }
         #endregion
         #region Internal
-        public string FullPath;
+        /// <summary>
+        /// Fully qualified path to a temporary folder
+        /// </summary>
+        public readonly string FullPath;
 
         IAccessToken IAccessToken.Access()
         {
@@ -217,7 +213,7 @@ namespace LogUtils
                 if (accessCount == 0)
                     UtilityLogger.LogWarning($"Please invoke {nameof(Access)} before using this method");
 
-                Directory.CreateDirectory(Path);
+                Directory.CreateDirectory(FullPath);
                 ScheduleDelete();
             }
         }
@@ -259,7 +255,7 @@ namespace LogUtils
             {
                 if (!SafeToDelete) return;
 
-                bool deleted = DirectoryUtils.DeletePermanently(Path, DirectoryDeletionScope.AllFilesAndFolders);
+                bool deleted = DirectoryUtils.DeletePermanently(FullPath, DirectoryDeletionScope.AllFilesAndFolders);
 
                 if (deleted)
                 {
@@ -277,7 +273,7 @@ namespace LogUtils
                     throw new InvalidOperationException("Delete operation is unsafe.");
 
                 //TODO: This needs to throw here
-                DirectoryUtils.DeletePermanently(Path, DirectoryDeletionScope.AllFilesAndFolders);
+                DirectoryUtils.DeletePermanently(FullPath, DirectoryDeletionScope.AllFilesAndFolders);
             }
         }
         #endregion
