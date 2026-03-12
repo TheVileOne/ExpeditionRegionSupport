@@ -144,9 +144,9 @@ namespace LogUtils
                 UtilityLogger.LogFatal(ex);
             }
 
-            if (RainWorldInfo.LatestSetupPeriodReached == SetupPeriod.Pregame)
+            if (RainWorldInfo.LatestSetupPeriodReached == SetupPeriod.Pregame || (InitializedWithErrors && UtilitySetup.CurrentStep < UtilitySetup.InitializationStep.APPLY_HOOKS))
             {
-                earlyShutdownEvent = OnEarlyShutdown;
+                earlyShutdownEvent = OnShutdown;
                 Application.quitting += earlyShutdownEvent;
             }
 
@@ -357,9 +357,8 @@ namespace LogUtils
             {
                 RainWorldInfo.LatestSetupPeriodReached = getPeriod(e.CurrentPeriod);
 
-                if (earlyShutdownEvent != null)
+                if (earlyShutdownEvent != null) //Event will be handled in RainWorld.OnDestroy instead
                 {
-                    UtilityLogger.DebugLog("Removing early shutdown event");
                     Application.quitting -= earlyShutdownEvent;
                     earlyShutdownEvent = null;
                 }
@@ -430,7 +429,14 @@ namespace LogUtils
 
         internal static void OnShutdown()
         {
-            UtilityLogger.DebugLog("Shutting down normally");
+            if (!RainWorldInfo.IsShuttingDown)
+            {
+                UtilityLogger.DebugLog("Early shutdown detected");
+                RainWorldInfo.IsShuttingDown = true;
+            }
+            else
+                UtilityLogger.DebugLog("Shutting down normally");
+
             try
             {
                 LogProperties.PropertyManager.SaveToFile();
@@ -494,15 +500,6 @@ namespace LogUtils
                 disposeTask.Wait();
                 LogTasker.Close();
             }
-        }
-
-        internal static void OnEarlyShutdown()
-        {
-            //TODO: Graceful shutdown procedures for early shutdowns
-            UtilityLogger.DebugLog("Early shutdown detected");
-            RainWorldInfo.IsShuttingDown = true;
-
-            TempFolder.OnShutdown();
         }
     }
 }
