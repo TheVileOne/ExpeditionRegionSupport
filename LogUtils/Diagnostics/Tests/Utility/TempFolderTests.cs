@@ -107,8 +107,8 @@ namespace LogUtils.Diagnostics.Tests.Utility
                 string testInput = @"C:\A\B\C\D\E";
                 string expectedResult = Path.Combine(UtilityCore.TempFolder.FullPath, @"B\C\D\E"); //When working with a directory path, selection maximum is increased by 1
 
-                string directoryPathResult = TempFolder.MapPathToFolder(testInput);
-                string filePathResult = TempFolder.MapPathToFolder(testInput + ".txt");
+                string directoryPathResult = UtilityCore.TempFolder.MapPathToFolder(testInput);
+                string filePathResult = UtilityCore.TempFolder.MapPathToFolder(testInput + ".txt");
 
                 string[] directoryPathSegments = PathUtils.SplitPath(directoryPathResult);
                 string[] filePathSegments = PathUtils.SplitPath(filePathResult);
@@ -119,7 +119,7 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
             void testPath(string testInput, string expectedOutput)
             {
-                string pathResult = TempFolder.MapPathToFolder(testInput);
+                string pathResult = UtilityCore.TempFolder.MapPathToFolder(testInput);
                 AssertPathsAreEqual(expectedPath: expectedOutput,
                                       actualPath: pathResult);
             }

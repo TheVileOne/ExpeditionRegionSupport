@@ -10,21 +10,21 @@ namespace LogUtils
 {
     public class TempFolder : IAccessToken
     {
-        private static int accessCount;
         private static readonly object folderLock = new object();
         private static IAccessToken accessToken => UtilityCore.TempFolder;
 
+        private int accessCount;
 
-        private static readonly HashSet<string> _orphanedFiles = new HashSet<string>(ComparerUtils.PathComparer);
+        private readonly HashSet<string> _orphanedFiles = new HashSet<string>(ComparerUtils.PathComparer);
         /// <summary>
         /// Contains paths pertaining to files within the temp folder flagged as orphaned; usually an indication that the file was unable to be moved from the directory
         /// </summary>
-        public static ICollection<string> OrphanedFiles => _orphanedFiles;
+        public ICollection<string> OrphanedFiles => _orphanedFiles;
 
         /// <summary>
         /// Checks whether deletion of the temp folder minimizes risk of unwanted data loss
         /// </summary>
-        public static bool SafeToDelete => UtilityCore.IsControllingAssembly && accessCount == 0 && OrphanedFiles.Count == 0;
+        public bool SafeToDelete => UtilityCore.IsControllingAssembly && accessCount == 0 && OrphanedFiles.Count == 0;
 
         /// <summary>
         /// Creates a new <see cref="TempFolder"/> instance
@@ -72,7 +72,7 @@ namespace LogUtils
         /// </summary>
         /// <param name="path">A file, or directory path</param>
         /// <returns>The created directory path, or null if path could not be created</returns>
-        public static string CreateDirectoryFor(string path)
+        public string CreateDirectoryFor(string path)
         {
             string targetPath = getTargetPath(path);
             try
@@ -86,7 +86,7 @@ namespace LogUtils
                 return null;
             }
 
-            static string getTargetPath(string input)
+            string getTargetPath(string input)
             {
                 string targetPath = MapPathToFolder(input); //Does not require path separator trimming
 
@@ -106,7 +106,7 @@ namespace LogUtils
         /// <param name="path">A path, filename, or directory name to locate</param>
         /// <returns>A fully qualified path inside the Temp folder</returns>
         /// <remarks>No attempt is made to ensure path exists within the Temp folder</remarks>
-        public static string MapPathToFolder(string path)
+        public string MapPathToFolder(string path)
         {
             TempPathResolver pathResolver = new TempPathResolver(FullPath);
             return pathResolver.Resolve(path);
@@ -118,7 +118,7 @@ namespace LogUtils
         /// <exception cref="IOException"></exception>
         /// <exception cref="DirectoryNotFoundException">Folder is part of an unmapped drive</exception>
         /// <exception cref="UnauthorizedAccessException">Not allowed to access directory, or directory path</exception>
-        public static void Create()
+        public void Create()
         {
             CreateInternal();
         }
@@ -127,7 +127,7 @@ namespace LogUtils
         /// Attempt to create a temporary directory
         /// </summary>
         /// <returns><see langword="true"/>, if directory was created, or already exists; otherwise <see langword="false"/></returns>
-        public static bool TryCreate()
+        public bool TryCreate()
         {
             try
             {
@@ -141,7 +141,7 @@ namespace LogUtils
             }
         }
 
-        public static bool TryDelete()
+        public bool TryDelete()
         {
             try
             {
@@ -156,9 +156,9 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Does an inventory of all files inside the temp folder (when it exists), and marks each file as orphaned
+        /// Does an inventory of all files inside a temporary folder, and marks each file as orphaned
         /// </summary>
-        internal static void OrphanAllFiles()
+        public void OrphanAllFiles()
         {
             try
             {

@@ -230,13 +230,13 @@ namespace LogUtils
     {
         public override void Restore()
         {
-            string replacedFilePath = TempFolder.MapPathToFolder(CurrentPath);
+            string replacedFilePath = UtilityCore.TempFolder.MapPathToFolder(CurrentPath);
 
             bool fileRestored = AttemptRestore() && FileUtils.TryMove(replacedFilePath, CurrentPath);
             if (!fileRestored)
             {
                 UtilityLogger.LogWarning("Restore operation could not be completed. File is now orphaned.");
-                TempFolder.OrphanedFiles.Add(replacedFilePath);
+                UtilityCore.TempFolder.OrphanedFiles.Add(replacedFilePath);
             }
         }
     }
