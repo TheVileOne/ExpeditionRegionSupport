@@ -8576,12 +8576,13 @@
             Example showing how API can be used by a mod to move their group folder, or its contents around
             </summary>
         </member>
-        <member name="M:LogUtils.Helpers.LogGroup.OnPermissionDenied(System.String,LogUtils.Enums.FileSystem.FolderPermissions)">
+        <member name="M:LogUtils.Helpers.LogGroup.OnPermissionDenied(System.String,LogUtils.Enums.FileSystem.FolderPermissions,System.Boolean)">
             <summary>
             Throws an exception based on a permission violation
             </summary>
             <param name="folderPath">The path that caused the violation</param>
             <param name="permission">The permission violation</param>
+            <param name="accessViolation">Indicates whether denial is due to an access violation</param>
             <exception cref="T:System.InvalidOperationException">Log group does not have a folder path specified</exception>
             <exception cref="T:System.IO.IOException">Folder operation was unsafe, or attempted on a protected path</exception>
             <exception cref="T:LogUtils.PermissionDeniedException">Insufficient permission to complete folder operation</exception>
@@ -9258,6 +9259,11 @@
             <exception cref="T:System.ArgumentNullException">Folder info is a null value</exception>
             <exception cref="T:System.Security.SecurityException">Insufficient access to specified path</exception>
         </member>
+        <member name="M:LogUtils.LogFolderInfo.GetAccess">
+            <summary>
+            Returns the access period that satisfies all groups targeting this folder path
+            </summary>
+        </member>
         <member name="M:LogUtils.LogFolderInfo.GetPermissions">
             <summary>
             Returns the folder permissions associated with this folder path
@@ -9533,6 +9539,16 @@
             </summary>
             <remarks>Emulates BepInEx logging</remarks>
         </member>
+        <member name="F:LogUtils.LogGroupBuilder.Access">
+            <summary>
+            The earliest period in which members are allowed to start a new log session through a log event.
+            </summary>
+        </member>
+        <member name="F:LogUtils.LogGroupBuilder.Permissions">
+            <summary>
+            Permissions that restrict how a group folder is operated on through LogUtils APIs
+            </summary>
+        </member>
         <member name="F:LogUtils.LogGroupBuilder.Name">
             <summary>
             Unique identifying value for the group.
@@ -9559,11 +9575,6 @@
         <member name="P:LogUtils.LogGroupBuilder.SubFolders">
             <summary>
             Collection of subfolder names, or partial paths containing subfolders names to create on building a <see cref="T:LogUtils.Enums.LogGroupID"/> through use of the builder
-            </summary>
-        </member>
-        <member name="M:LogUtils.LogGroupBuilder.CreateFolderOnBuild">
-            <summary>
-            Attempt to create the group folder, and any specified subpaths on the creation of the group ID (only applies to folder groups)
             </summary>
         </member>
         <member name="M:LogUtils.LogGroupBuilder.GetID">
@@ -10167,8 +10178,11 @@
         </member>
         <member name="F:LogUtils.Properties.LogProperties.AccessPeriod">
             <summary>
-            The earliest period that the log file may start a new log session through a log event
-            It is recommended to keep at the earliest possible write period, or a period that is close to when the log file is used by a mod's logger
+            - Log Files <br/>
+            The earliest period that the log file may start a new log session through a log event.
+            It is recommended to keep at the earliest possible write period, or a period that is close to when the log file is used by a mod's logger. <br/>
+            - Log Groups <br/>
+            All applicable members will inherit this property. This value also impacts how early a targeted folder may be operated on through LogUtils folder management API. See <see cref="T:LogUtils.LogFolderInfo"/>.
             </summary>
         </member>
         <member name="F:LogUtils.Properties.LogProperties.AllowLogging">
@@ -12172,10 +12186,30 @@
             already has access. Doing so may corrupt/remove data being used by other processes that require this temporary folder.
             </summary>
         </member>
+        <member name="M:LogUtils.TempFolder.Create">
+            <summary>
+            Create a temporary directory if it doesn't already exist
+            </summary>
+            <exception cref="T:System.IO.IOException"></exception>
+            <exception cref="T:System.IO.DirectoryNotFoundException">Folder is part of an unmapped drive</exception>
+            <exception cref="T:System.UnauthorizedAccessException">Not allowed to access directory, or directory path</exception>
+        </member>
+        <member name="M:LogUtils.TempFolder.TryCreate">
+            <summary>
+            Attempt to create a temporary directory
+            </summary>
+            <returns><see langword="true"/>, if directory was created, or already exists; otherwise <see langword="false"/></returns>
+        </member>
         <member name="M:LogUtils.TempFolder.OrphanAllFiles">
             <summary>
             Does an inventory of all files inside the temp folder (when it exists), and marks each file as orphaned
             </summary>
+        </member>
+        <member name="M:LogUtils.TempFolder.Cleanup">
+            <summary>
+            Initiates a cleanup process on the temp folder
+            </summary>
+            <remarks>The current cleanup behavior is deletion of the folder when it is safe to do so</remarks>
         </member>
         <member name="T:LogUtils.Templates.LoggerTemplate">
             <summary>

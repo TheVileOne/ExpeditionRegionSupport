@@ -159,6 +159,7 @@ namespace LogUtils
             OrphanAllFiles();
             if (OrphanedFiles.Count == 0) //There are no files - folder is safe for removal 
                 folder.ScheduleDelete();
+        }
 
         internal static void OnShutdown()
         {
