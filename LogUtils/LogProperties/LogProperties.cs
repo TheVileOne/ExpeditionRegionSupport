@@ -701,7 +701,8 @@ namespace LogUtils.Properties
                         return FileStatus.NoActionRequired;
                 }
 
-                ReplacementFilePath = Path.ChangeExtension(lastKnownPath, FileExt.TEMP);
+                UtilityLogger.DebugLog("Creating replacement file");
+                ReplacementFilePath = FileExtension.Replace(lastKnownPath, FileExt.TEMP);
 
                 FileStatus status;
                 if (copyOnly)
@@ -715,12 +716,31 @@ namespace LogUtils.Properties
                     status = LogFile.Move(lastKnownPath, ReplacementFilePath, true);
                 }
 
+                bool cleanupRequired = true;
                 if (status == FileStatus.MoveComplete || status == FileStatus.CopyComplete)
+                {
+                    using (TempFolder.Access())
+                    {
+                        UtilityLogger.DebugLog("Sending to temporary folder");
+                        //The file is currently in the Rain world folder, but it is better placed in the temporary folder to reduce clutter
+                        if (FileUtils.AttemptMoveToTempFolder(ReplacementFilePath, out string tempPath))
+                        {
+                            //UtilityLogger.DebugLog(tempPath);
+                            ReplacementFilePath = tempPath;
+                            cleanupRequired = false; //No need to cleanup the temporary folder
+                        }
+                        else
+                            UtilityLogger.DebugLog("Failed");
+                    }
                     BackupListener.OnTempFileCreated(ID);
+                }
 
-                //Even though move may not have completed, these temp files have their way of persisting.
-                //Attempt to cleanup anyways just to be sure.
-                PropertyManager.OnCleanupRequired(this);
+                if (cleanupRequired)
+                {
+                    //Even though move may not have completed, these temp files have their way of persisting.
+                    //Attempt to cleanup anyways just to be sure.
+                    PropertyManager.OnCleanupRequired(this);
+                }
                 return status;
             }
         }
