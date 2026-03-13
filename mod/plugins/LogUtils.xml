@@ -8886,6 +8886,24 @@
             Long file extensions of any form are allowed
             </summary>
         </member>
+        <member name="T:LogUtils.IAccessToken">
+            <summary>
+            Interface for facilitating access to a temporary folder
+            </summary>
+        </member>
+        <member name="M:LogUtils.IAccessToken.Access">
+            <summary>
+            Signal that a process intends to access and use a temporary folder. While accessing, LogUtils guarantees that the folder wont be moved, or deleted
+            through the <see cref="T:LogUtils.TempFolderInfo"/> public API. Call <see cref="M:LogUtils.IAccessToken.RevokeAccess"/> to signal that your process no longer needs to access the temporary folder.
+            </summary>
+            <remarks>For each time this method is called, a following <see cref="M:LogUtils.IAccessToken.RevokeAccess"/> must also be called.</remarks>
+        </member>
+        <member name="M:LogUtils.IAccessToken.RevokeAccess">
+            <summary>
+            Signal that a process no longer needs to access any data located inside of a temporary folder. Do not call this unless your process
+            already has access. Doing so may corrupt/remove data being used by other processes that require this temporary folder.
+            </summary>
+        </member>
         <member name="M:LogUtils.IFlushable.Flush">
             <summary>
             Flushes out the log buffer
@@ -12143,50 +12161,70 @@
             <param name="tag">The input to compare to</param>
             <returns>Whether a match has been found</returns>
         </member>
-        <member name="P:LogUtils.TempFolder.OrphanedFiles">
+        <member name="M:LogUtils.TempFolder.Access">
             <summary>
-            Contains paths pertaining to files within the temp folder flagged as orphaned; usually an indication that the file was unable to be moved from the directory
+            Signal access for the LogUtils temporary folder
+            </summary>
+            <returns>A token for revoking access</returns>
+        </member>
+        <member name="M:LogUtils.TempFolder.RevokeAccess">
+            <summary>
+            Signal that access should be revoked for the LogUtils temporary folder
             </summary>
         </member>
-        <member name="P:LogUtils.TempFolder.SafeToDelete">
-            <summary>
-            Checks whether deletion of the temp folder minimizes risk of unwanted data loss
-            </summary>
-        </member>
-        <member name="P:LogUtils.TempFolder.Path">
-            <summary>
-            Full path to LogUtils temporary folder
-            </summary>
-        </member>
-        <member name="M:LogUtils.TempFolder.CreateDirectoryFor(System.String)">
+        <member name="M:LogUtils.TempFolder.CreateDirectoryFor(LogUtils.TempFolderInfo,System.String)">
             <summary>
             Creates the directory structure for a given file, or directory path
             </summary>
+            <param name="tempFolder"></param>
             <param name="path">A file, or directory path</param>
             <returns>The created directory path, or null if path could not be created</returns>
         </member>
-        <member name="M:LogUtils.TempFolder.MapPathToFolder(System.String)">
+        <member name="M:LogUtils.TempFolder.MapPathToFolder(LogUtils.TempFolderInfo,System.String)">
             <summary>
             Maps a path, filename, or directory to a location within the Temp folder, and returns the resulting path string
             </summary>
+            <param name="tempFolder"></param>
             <param name="path">A path, filename, or directory name to locate</param>
             <returns>A fully qualified path inside the Temp folder</returns>
             <remarks>No attempt is made to ensure path exists within the Temp folder</remarks>
         </member>
-        <member name="M:LogUtils.TempFolder.Access">
+        <member name="F:LogUtils.TempFolderInfo.FullPath">
             <summary>
-            Signal that a process intends to access and use LogUtils defined temporary folder. While accessing, LogUtils guarantees that the folder wont be moved, or deleted
-            through the <see cref="T:LogUtils.TempFolder"/> public API. Call <see cref="M:LogUtils.TempFolder.RevokeAccess"/> to signal that your process no longer needs to access the Temp folder.
-            </summary>
-            <remarks>For each time this method is called, a following <see cref="M:LogUtils.TempFolder.RevokeAccess"/> must also be called.</remarks>
-        </member>
-        <member name="M:LogUtils.TempFolder.RevokeAccess">
-            <summary>
-            Signal that a process no longer needs to access any data located inside of the LogUtils defined temporary folder. Do not call this unless your process
-            already has access. Doing so may corrupt/remove data being used by other processes that require this temporary folder.
+            Fully qualified path to a temporary folder
             </summary>
         </member>
-        <member name="M:LogUtils.TempFolder.Create">
+        <member name="P:LogUtils.TempFolderInfo.OrphanedFiles">
+            <summary>
+            Contains paths pertaining to files within the temp folder flagged as orphaned; usually an indication that the file was unable to be moved from the directory
+            </summary>
+        </member>
+        <member name="P:LogUtils.TempFolderInfo.SafeToDelete">
+            <summary>
+            Checks whether deletion of the temp folder minimizes risk of unwanted data loss
+            </summary>
+        </member>
+        <member name="M:LogUtils.TempFolderInfo.#ctor(System.String)">
+            <summary>
+            Creates a new <see cref="T:LogUtils.TempFolderInfo"/> instance
+            </summary>
+            <param name="folderName">The name of the folder that should be created in the users Temp folder path</param>
+            <exception cref="T:System.ArgumentException">
+            folderName was null, or contains only whitespace - OR - contains an illegal path character
+            </exception>
+        </member>
+        <member name="M:LogUtils.TempFolderInfo.Initialize">
+            <summary>
+            Completes initialization tasks that should be handled when a temporary folder is established. 
+            </summary>
+        </member>
+        <member name="M:LogUtils.TempFolderInfo.Cleanup">
+            <summary>
+            Initiates a cleanup process on the temp folder
+            </summary>
+            <remarks>The current cleanup behavior is deletion of the folder when it is safe to do so</remarks>
+        </member>
+        <member name="M:LogUtils.TempFolderInfo.Create">
             <summary>
             Create a temporary directory if it doesn't already exist
             </summary>
@@ -12194,22 +12232,16 @@
             <exception cref="T:System.IO.DirectoryNotFoundException">Folder is part of an unmapped drive</exception>
             <exception cref="T:System.UnauthorizedAccessException">Not allowed to access directory, or directory path</exception>
         </member>
-        <member name="M:LogUtils.TempFolder.TryCreate">
+        <member name="M:LogUtils.TempFolderInfo.TryCreate">
             <summary>
             Attempt to create a temporary directory
             </summary>
             <returns><see langword="true"/>, if directory was created, or already exists; otherwise <see langword="false"/></returns>
         </member>
-        <member name="M:LogUtils.TempFolder.OrphanAllFiles">
+        <member name="M:LogUtils.TempFolderInfo.OrphanAllFiles">
             <summary>
-            Does an inventory of all files inside the temp folder (when it exists), and marks each file as orphaned
+            Does an inventory of all files inside a temporary folder, and marks each file as orphaned
             </summary>
-        </member>
-        <member name="M:LogUtils.TempFolder.Cleanup">
-            <summary>
-            Initiates a cleanup process on the temp folder
-            </summary>
-            <remarks>The current cleanup behavior is deletion of the folder when it is safe to do so</remarks>
         </member>
         <member name="T:LogUtils.Templates.LoggerTemplate">
             <summary>
