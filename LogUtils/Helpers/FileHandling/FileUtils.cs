@@ -112,6 +112,10 @@ namespace LogUtils.Helpers.FileHandling
                 File.Delete(path);
                 return true;
             }
+            catch (DirectoryNotFoundException)
+            {
+                return true;
+            }
             catch (Exception ex)
             {
                 ex.Data[ExceptionDataKey.TARGET_PATH] = path;
@@ -132,6 +136,10 @@ namespace LogUtils.Helpers.FileHandling
             try
             {
                 File.Delete(path);
+                return true;
+            }
+            catch (DirectoryNotFoundException)
+            {
                 return true;
             }
             catch (Exception ex)
