@@ -40,6 +40,61 @@ namespace LogUtils.Diagnostics.Tests.Utility
             }
         }
 
+        internal sealed class RenamePathTests : TestCase, ITestable
+        {
+            internal const string TEST_NAME = "Test - Rename Paths";
+
+            public RenamePathTests() : base(TEST_NAME)
+            {
+            }
+
+            public void Test()
+            {
+                testRenamingPathTargetsCurrentFolder();
+                testRenamingPathUpdatesFileName();
+                testRenamingPathUpdatesDirectoryName();
+            }
+
+            private void testRenamingPathTargetsCurrentFolder()
+            {
+                LogID example = TestLogID.Factory.Create("example.txt");
+
+                string result = Path.GetDirectoryName(LogProperties.GetRenamedPath(example, "test.txt"));
+
+                AssertPathsAreEqual(example.Properties.CurrentFolderPath, result);
+                TestEnumFactory.DisposeObjects();
+            }
+
+            private void testRenamingPathUpdatesFileName()
+            {
+                LogID example = TestLogID.Factory.Create("example.txt");
+
+                //Expected to rename current path to end with test.txt instead of example.txt
+                string result = Path.GetFileName(LogProperties.GetRenamedPath(example, "test.txt"));
+
+                AssertThat(result).IsEqualTo("test.txt");
+                TestEnumFactory.DisposeObjects();
+            }
+
+            private void testRenamingPathUpdatesDirectoryName()
+            {
+                string testPath = Path.Combine(RainWorldPath.RootPath, "example");
+                LogID example = TestLogID.Factory.CreateLogGroup("example", testPath);
+
+                //Expected to rename current path to end with test instead of example
+                string result = Path.GetFileName(LogProperties.GetRenamedPath(example, "test"));
+
+                AssertThat(result).IsEqualTo("test");
+                TestEnumFactory.DisposeObjects();
+            }
+
+            [PostTest]
+            public void ShowResults()
+            {
+                TestLogger.LogDebug(CreateReport());
+            }
+        }
+
         internal sealed class ComparisonTests : TestCase, ITestable
         {
             internal const string TEST_NAME = "Test - LogID Comparison";

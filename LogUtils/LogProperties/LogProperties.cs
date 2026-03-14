@@ -1221,6 +1221,54 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
+        /// Returns the current log path with the targeted file or directory name replaced with the provided value
+        /// </summary>
+        /// <param name="logID">The source of the current log path</param>
+        /// <param name="newName">The file or directory name to use</param>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="newName"/> contains path separators, or illegal characters - OR - 
+        /// <paramref name="logID"/> does not have a path (as is the case for a non-folder based log group)
+        /// </exception>
+        /// <exception cref="ArgumentNullException">LogID, or name provided is <see langword="null"/></exception>
+        /// <exception cref="InvalidOperationException"><see cref="LogID"/> instance does not have a <see cref="LogProperties"/> instance</exception>
+        public static string GetRenamedPath(LogID logID, string newName)
+        {
+            if (logID == null)
+                throw new ArgumentNullException(nameof(logID), "LogID is required");
+
+            if (newName == null)
+                throw new ArgumentNullException(nameof(newName), "Name is required");
+
+            char[] nameChars = newName.ToCharArray();
+            for (int i = 0; i < nameChars.Length; i++)
+            {
+                if (PathUtils.PATH_SEPARATORS.Contains(nameChars[i]))
+                    throw new ArgumentException("Name cannot contain directory separator characters");
+            }
+
+            if (logID.Properties == null)
+                throw new InvalidOperationException("LogID does not support log paths");
+
+            bool hasFilename = logID.Properties.CurrentFilename != null && logID.Properties.CurrentFilename.IsValid;
+
+            string result;
+            if (hasFilename)
+            {
+                //Log file behavior
+                result = Path.Combine(logID.Properties.CurrentFolderPath, newName);
+            }
+            else
+            {
+                //Log group behavior
+                if (Path.HasExtension(newName)) //Although directories can have similar names as files, this is probably a programming error.
+                    UtilityLogger.LogWarning("New directory name may be a filename instead");
+
+                result = Path.Combine(Path.GetDirectoryName(logID.Properties.CurrentFolderPath), newName);
+            }
+            return result;
+        }
+
+        /// <summary>
         /// Attempts to create a valid path associated with a log group. In certain situation, this may fail, and return the given path instead.
         /// </summary>
         public static string ApplyGroupPath(LogGroupID groupID, string folderPath)
