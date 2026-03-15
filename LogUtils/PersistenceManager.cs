@@ -1,5 +1,6 @@
 ﻿using LogUtils.Collections;
 using System;
+using System.ComponentModel;
 using System.Linq;
 using UnityEngine;
 
@@ -17,7 +18,11 @@ namespace LogUtils
         /// </summary>
         public event Action<PersistentFileHandle> OnHandleDisposed;
 
-        public PersistenceManager()
+        /// <summary>
+        /// Starts <see cref="MonoBehaviour"/> updates for the component
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void Start()
         {
             enabled = true;
         }

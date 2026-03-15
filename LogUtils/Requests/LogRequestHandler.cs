@@ -7,7 +7,9 @@ using LogUtils.Requests.Validation;
 using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using UnityEngine;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace LogUtils.Requests
@@ -118,8 +120,16 @@ namespace LogUtils.Requests
 
         public LogRequestHandler()
         {
-            enabled = true;
             UnhandledRequests = new LinkedLogRequestCollection(20);
+        }
+
+        /// <summary>
+        /// Starts <see cref="MonoBehaviour"/> updates for the component
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void Start()
+        {
+            enabled = true;
         }
 
         /// <summary>

@@ -3,6 +3,8 @@ using LogUtils.Events;
 using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using UnityEngine;
 
 namespace LogUtils.Timers
 {
@@ -25,8 +27,16 @@ namespace LogUtils.Timers
 
         public EventScheduler()
         {
-            enabled = true;
             FrameTimer.OnRelease += onTimerReleased;
+        }
+
+        /// <summary>
+        /// Starts <see cref="MonoBehaviour"/> updates for the component
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void Start()
+        {
+            enabled = true;
         }
 
         /// <summary>
