@@ -236,7 +236,12 @@ namespace LogUtils.Requests
             bool shouldBeReported(RejectionReason reason)
             {
                 //These conditions can get spammy
-                return reason != RejectionReason.WaitingOnOtherRequests && (reason != RejectionReason.LogUnavailable || context is not ConsoleID);
+                if (reason == RejectionReason.WaitingOnOtherRequests || reason == RejectionReason.FilterMatch)
+                    return false;
+
+                if (reason == RejectionReason.LogUnavailable && context is ConsoleID) //Console is probably disabled
+                    return false;
+                return true;
             }
         }
 
