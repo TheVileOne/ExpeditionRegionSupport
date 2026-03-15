@@ -7,6 +7,8 @@ namespace LogUtils.Threading
 {
     public class Task
     {
+        private static readonly Random idGenerator = new Random();
+
         /// <summary>
         /// A string used to identify a task in logging events
         /// </summary>
@@ -337,7 +339,7 @@ namespace LogUtils.Threading
         /// </summary>
         public void SetID()
         {
-            ID = UnityEngine.Random.Range(0, 1000);
+            ID = idGenerator.Next(0, 1000);
         }
 
         public void SetInitialTime()
