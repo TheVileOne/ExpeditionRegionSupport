@@ -1,6 +1,7 @@
 ﻿using LogUtils.Helpers.Comparers;
 using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using RainWorldPath = LogUtils.Helpers.Paths.RainWorld;
@@ -21,6 +22,7 @@ namespace LogUtils.Helpers.FileHandling
         /// </summary>
         /// <param name="path">The path to check</param>
         /// <param name="dirName">The directory name to search for</param>
+        /// <exception cref="ArgumentException">Path contains illegal characters</exception>
         public static bool ContainsDirectory(string path, string dirName)
         {
             if (IsEmpty(path)) return false;
@@ -36,6 +38,7 @@ namespace LogUtils.Helpers.FileHandling
         /// <param name="path">The path to check</param>
         /// <param name="dirName">The directory name to search for</param>
         /// <param name="dirLevelsToCheck">The number of directory separators to check starting from the right</param>
+        /// <exception cref="ArgumentException">Path contains illegal characters</exception>
         public static bool ContainsDirectory(string path, string dirName, int dirLevelsToCheck)
         {
             if (IsEmpty(path)) return false;
@@ -51,7 +54,8 @@ namespace LogUtils.Helpers.FileHandling
                     break;
                 }
 
-                if (path.EndsWith(dirName, StringComparison.InvariantCultureIgnoreCase))
+                string pathTarget = Path.GetFileName(path);
+                if (DirectoryUtils.IsDirectoryName(dirName, pathTarget))
                 {
                     dirFound = true;
                     dirLevelsToCheck = 0;
@@ -77,7 +81,23 @@ namespace LogUtils.Helpers.FileHandling
             path = ResolvePath(path);
             pathOther = ResolvePath(pathOther);
 
-            return path.StartsWith(pathOther, StringComparison.InvariantCultureIgnoreCase);
+            bool containsExactPath = path.StartsWith(pathOther, StringComparison.InvariantCultureIgnoreCase);
+
+            if (containsExactPath)
+            {
+                if (path.Length == pathOther.Length) //Exact match
+                    return true;
+
+                //Find the character after the matched portion of the path string
+                char checkChar = path.Length > pathOther.Length
+                               ? path[pathOther.Length]
+                               : pathOther[path.Length];
+
+                //Path separator marks the end of the directory. This confirms there is a match of the complete directory name
+                bool hasTrailingSeparator = PATH_SEPARATORS.Contains(checkChar);
+                return hasTrailingSeparator;
+            }
+            return false;
         }
 
         /// <summary>
@@ -248,6 +268,7 @@ namespace LogUtils.Helpers.FileHandling
         /// <summary>
         /// Returns a path string without the filename (filename must have an extension)
         /// </summary>
+        /// <exception cref="ArgumentException">Path contains illegal characters</exception>
         public static string PathWithoutFilename(string path)
         {
             return PathWithoutFilename(path, out _);
