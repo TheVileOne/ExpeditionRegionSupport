@@ -313,6 +313,11 @@ namespace LogUtils.Enums
 
             ErrorFlags = Error | Fatal; //TODO: Include Exception
             Default = Info;
+
+            Assert.Level = LogCategoryLevels.Assert;
+            Assert.ConsoleColor = ConsoleColorMap.GetColor(Assert.Level);
+            Important.Level = LogCategoryLevels.Important;
+            Important.ConsoleColor = ConsoleColorMap.GetColor(Important.Level);
         }
 #pragma warning restore IDE0055 //Fix formatting
 
