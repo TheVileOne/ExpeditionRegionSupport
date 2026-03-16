@@ -210,7 +210,7 @@ namespace LogUtils.Helpers.FileHandling
             }
 
             if (!canDelete)
-                throw new InvalidOperationException("Deletion criteria is not met");
+                throw new InvalidOperationException("Folder not empty");
 
             switch (mode)
             {
