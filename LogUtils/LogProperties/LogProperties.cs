@@ -752,7 +752,12 @@ namespace LogUtils.Properties
                 UtilityLogger.LogWarning("This feature does not apply to log groups");
                 return;
             }
-            FileUtils.TryDelete(ReplacementFilePath, "Unable to delete temporary file");
+
+            if (FileUtils.TryDelete(ReplacementFilePath, "Unable to delete temporary file"))
+            {
+                //Null the path to signal that there is no longer a replacement file available
+                ReplacementFilePath = null;
+            }
         }
 
         /// <summary>
