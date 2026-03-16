@@ -8196,6 +8196,7 @@
             </summary>
             <param name="path">The path to check</param>
             <param name="dirName">The directory name to search for</param>
+            <exception cref="T:System.ArgumentException">Path contains illegal characters</exception>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.ContainsDirectory(System.String,System.String,System.Int32)">
             <summary>
@@ -8204,6 +8205,7 @@
             <param name="path">The path to check</param>
             <param name="dirName">The directory name to search for</param>
             <param name="dirLevelsToCheck">The number of directory separators to check starting from the right</param>
+            <exception cref="T:System.ArgumentException">Path contains illegal characters</exception>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.ContainsOtherPath(System.String,System.String)">
             <summary>
@@ -8269,6 +8271,7 @@
             <summary>
             Returns a path string without the filename (filename must have an extension)
             </summary>
+            <exception cref="T:System.ArgumentException">Path contains illegal characters</exception>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.PathWithoutFilename(System.String,System.String@)">
             <summary>
@@ -10425,6 +10428,19 @@
             Resolves a path, or path keyword into a usable log path
             </summary>
         </member>
+        <member name="M:LogUtils.Properties.LogProperties.GetRenamedPath(LogUtils.Enums.LogID,System.String)">
+            <summary>
+            Returns the current log path with the targeted file or directory name replaced with the provided value
+            </summary>
+            <param name="logID">The source of the current log path</param>
+            <param name="newName">The file or directory name to use</param>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="newName"/> contains path separators, or illegal characters - OR - 
+            <paramref name="logID"/> does not have a path (as is the case for a non-folder based log group)
+            </exception>
+            <exception cref="T:System.ArgumentNullException">LogID, or name provided is <see langword="null"/></exception>
+            <exception cref="T:System.InvalidOperationException"><see cref="T:LogUtils.Enums.LogID"/> instance does not have a <see cref="T:LogUtils.Properties.LogProperties"/> instance</exception>
+        </member>
         <member name="M:LogUtils.Properties.LogProperties.ApplyGroupPath(LogUtils.Enums.LogGroupID,System.String)">
             <summary>
             Attempts to create a valid path associated with a log group. In certain situation, this may fail, and return the given path instead.
@@ -11170,6 +11186,11 @@
         <member name="E:LogUtils.PersistenceManager.OnHandleDisposed">
             <summary>
             Invoked when a <see cref="T:LogUtils.PersistentFileHandle"/> instance is disposed
+            </summary>
+        </member>
+        <member name="M:LogUtils.PersistenceManager.Start">
+            <summary>
+            Starts <see cref="T:UnityEngine.MonoBehaviour"/> updates for the component
             </summary>
         </member>
         <member name="M:LogUtils.PersistenceManager.Update">
@@ -11938,6 +11959,11 @@
         <member name="F:LogUtils.Requests.LogRequestHandler.RecursionCheckCounter">
             <summary>
             A counter used to prevent recursive <see cref="T:LogUtils.Requests.LogRequest"/> submissions
+            </summary>
+        </member>
+        <member name="M:LogUtils.Requests.LogRequestHandler.Start">
+            <summary>
+            Starts <see cref="T:UnityEngine.MonoBehaviour"/> updates for the component
             </summary>
         </member>
         <member name="M:LogUtils.Requests.LogRequestHandler.BeginCriticalSection">
@@ -12795,6 +12821,11 @@
         </member>
         <member name="P:LogUtils.Timers.EventScheduler.Tag">
             <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.Timers.EventScheduler.Start">
+            <summary>
+            Starts <see cref="T:UnityEngine.MonoBehaviour"/> updates for the component
+            </summary>
         </member>
         <member name="M:LogUtils.Timers.EventScheduler.AddEvent(LogUtils.Timers.ScheduledEvent)">
             <summary>
