@@ -359,35 +359,32 @@ namespace LogUtils
                 {
                     moveFilesDuringMerge(mergeInfo);
 
-                    if (mergeInfo.FolderDepth == 0)
+                    foreach (LogGroupID logGroup in Groups.HasPathExact(FolderPath))
                     {
                         UtilityLogger.Log("Updating group path");
-                        foreach (LogGroupID logGroup in Groups.HasPathExact(FolderPath))
-                        {
-                            MergeRecord record = MergeRecordFactory.Create(logGroup);
-                            logGroup.Properties.ChangePath(mergeInfo.DestinationPath, applyToMembers: false);
-                            record.CurrentPath = logGroup.Properties.CurrentFolderPath;
+                        MergeRecord record = MergeRecordFactory.Create(logGroup);
+                        logGroup.Properties.ChangePath(mergeInfo.DestinationPath, applyToMembers: false);
+                        record.CurrentPath = logGroup.Properties.CurrentFolderPath;
 
-                            mergeInfo.History.AddRecord(record);
-                        }
+                        mergeInfo.History.AddRecord(record);
+                    }
+
+                    if (mergeInfo.History.HasFailed)
+                        return;
+
+                    //Merge current subfolders
+                    DirectoryInfo[] subFolders = mergeInfo.CurrentSource.GetDirectories();
+                    foreach (LogFolderInfo subFolderInfo in subFolders.Select(GetSubFolderInfo).ToArray())
+                    {
+                        subFolderInfo.mergeCurrentFolder(mergeInfo);
+
+                        if (mergeInfo.History.HasFailed)
+                            break;
                     }
                 }
                 else
                 {
-                    moveFolderDuringMerge(mergeInfo);
-                }
-
-                if (mergeInfo.History.HasFailed)
-                    return;
-
-                //Merge current subfolders
-                DirectoryInfo[] subFolders = mergeInfo.CurrentSource.GetDirectories();
-                foreach (LogFolderInfo subFolderInfo in subFolders.Select(GetSubFolderInfo))
-                {
-                    subFolderInfo.mergeCurrentFolder(mergeInfo);
-
-                    if (mergeInfo.History.HasFailed)
-                        break;
+                    moveFolderDuringMerge(mergeInfo); //Once folder is moved, there is no need to check subfolders
                 }
             }
             catch (Exception ex) //Exceptional states will be handled by the caller
