@@ -50,7 +50,6 @@ namespace LogUtils
         {
             if (Conflicts.Count == 0) return;
 
-            UtilityLogger.LogWarning("Conflict processing unavailable");
         }
 
         /// <summary>
