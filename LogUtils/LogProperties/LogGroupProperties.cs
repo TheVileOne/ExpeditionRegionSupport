@@ -6,6 +6,7 @@ using LogUtils.Helpers.FileHandling;
 using LogUtils.Threading;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using static LogUtils.UtilityConsts;
@@ -142,13 +143,25 @@ namespace LogUtils.Properties
         }
 
         /// <inheritdoc/>
-        public override void ChangeFilename(string newFilename)
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public sealed override void ChangeFilename(string newFilename)
         {
             UtilityLogger.LogWarning($"This log group does not support this operation '{nameof(ChangeFilename)}'");
         }
 
         /// <inheritdoc/>
-        public override void ChangePath(string newPath)
+        public sealed override void ChangePath(string newPath)
+        {
+            ChangePath(newPath, applyToMembers: false);
+        }
+
+        /// <summary>
+        /// Sets the current path to a specified value.
+        /// </summary>
+        /// <param name="newPath">The new path</param>
+        /// <param name="applyToMembers">Should the path also be applied to group members</param>
+        /// <remarks>Warning: Not applying path to group members will disassociate those members from future path applications to the group.</remarks>
+        public virtual void ChangePath(string newPath, bool applyToMembers)
         {
             UtilityLogger.Log("Assigning new group path");
             if (!IsFolderGroup)
@@ -160,11 +173,7 @@ namespace LogUtils.Properties
                 }
                 UtilityLogger.Log("First time assignment");
             }
-            ChangePath(newPath, applyToMembers: false);
-        }
 
-        internal void ChangePath(string newPath, bool applyToMembers)
-        {
             newPath = GetContainingPath(newPath);
 
             if (applyToMembers && Members.Count > 0)

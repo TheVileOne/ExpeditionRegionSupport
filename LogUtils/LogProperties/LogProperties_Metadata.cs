@@ -324,8 +324,19 @@ namespace LogUtils.Properties
         /// <summary>
         /// Sets the current filename to a specified value.
         /// </summary>
-        /// <inheritdoc cref="ChangePath" select="remarks"/>
         /// <param name="newFilename">The new filename</param>
+        /// <remarks>
+        /// <para>
+        /// For log files:<br/>
+        /// - This will not initiate a file move, or rename any file.
+        /// <br/>
+        /// To move, or rename a log file, use <see cref="LogFile.Move(LogID, string)"/> instead.
+        /// </para>
+        /// <para>
+        /// For log groups:<br/>
+        /// - This method does nothing.
+        /// </para>
+        /// </remarks>
         /// <exception cref="ArgumentException">The filename is null, empty, or contains invalid characters</exception>
         public virtual void ChangeFilename(string newFilename)
         {
@@ -336,13 +347,14 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
-        /// Sets the current path to a specified value. Filename field will also be changed if provided.
+        /// Sets the current path to a specified value.
         /// </summary>
+        /// <param name="newPath">The new path</param>
         /// <remarks>
         /// <para>
         /// For log files:<br/>
-        /// - This will not initiate a file move, or rename any file.
-        /// <br/>
+        /// - This will not initiate a file move, or rename any file.<br/>
+        /// - Filename field will also be changed if provided.<br/>
         /// To move, or rename a log file, use <see cref="LogFile.Move(LogID, string)"/> instead.
         /// </para>
         /// <para>
@@ -350,7 +362,6 @@ namespace LogUtils.Properties
         /// - This method updates the group path.
         /// </para>
         /// </remarks>
-        /// <param name="newPath">The new path</param>
         /// <exception cref="ArgumentException">The directory is null, empty, or contains invalid characters</exception>
         public virtual void ChangePath(string newPath)
         {
