@@ -46,29 +46,11 @@ namespace LogUtils
                 Entries.Enqueue(record);
         }
 
-        public void ResolveConflicts()
+        public void ProcessConflicts()
         {
-            //Handle unresolved file conflicts
-            ConflictResolutionHandler handler = ConflictHandler;
-            try
-            {
-                handler.CollectFeedbackAndResolve();
-            }
-            catch (OperationCanceledException ex) //User chose to cancel merge, or there was a failure to resolve
-            {
-                HasFailed = true;
-                Exception = ex;
-            }
-            finally
-            {
-                while (handler.ResolvedEntries.Count > 0)
-                {
-                    MergeRecord current = handler.ResolvedEntries.Dequeue();
+            if (Conflicts.Count == 0) return;
 
-                    if (!current.IsCanceled)
-                        AddRecord(current);
-                }
-            }
+            UtilityLogger.LogWarning("Conflict processing unavailable");
         }
 
         /// <summary>

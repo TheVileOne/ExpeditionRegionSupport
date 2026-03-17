@@ -311,14 +311,21 @@ namespace LogUtils
 
             MergeHistory history = mergeInfo.History;
 
-            if (!history.HasFailed)
-                history.ResolveConflicts();
-
             if (history.HasFailed)
             {
                 cancelMerge(history);
                 throw new IOException("Unable to complete merge operation", history.Exception);
             }
+
+            if (history.Conflicts.Count > 0)
+            {
+                UtilityLogger.Log("Merge operation has unresolved conflicts");
+                UtilityLogger.Log("Number of conflicts detected: " + history.Conflicts.Count);
+                history.ProcessConflicts();
+                return;
+            }
+
+            UtilityLogger.Log("No conflicts detected");
 
             //The merge process will leave behind an empty folder
             DirectoryUtils.DeletePermanently(FolderPath, deleteOnlyIfEmpty: true);
