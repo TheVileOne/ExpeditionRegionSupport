@@ -73,17 +73,31 @@ namespace LogUtils
 
         private LogFolderInfo(string folderPath, LogFolderInfo parentInfo) : this(folderPath)
         {
-            if (!PathUtils.ContainsOtherPath(FolderPath, parentInfo.FolderPath))
-                throw new ArgumentException("Path must be a subdirectory");
-
+            string parentPath = parentInfo.FolderPath,
+                   childPath = FolderPath;
+            if (!PathUtils.ContainsOtherPath(childPath, parentPath))
+            {
+                throw new ArgumentException(
+                    "Path must be a subdirectory.\n" +
+                        "Parent Path: " + parentPath + "\n" +
+                        "Child Path : " + childPath + "\n",
+                    nameof(folderPath));
+            }
             RefreshInfoInternal(parentInfo.Groups.GetProperties(), parentInfo.FilesNotFromFolderGroups);
         }
 
         private LogFolderInfo(DirectoryInfo folderInfo, LogFolderInfo parentInfo) : this(folderInfo)
         {
-            if (!PathUtils.ContainsOtherPath(FolderPath, parentInfo.FolderPath))
-                throw new ArgumentException("Path must be a subdirectory");
-
+            string parentPath = parentInfo.FolderPath,
+                   childPath = FolderPath;
+            if (!PathUtils.ContainsOtherPath(childPath, parentPath))
+            {
+                throw new ArgumentException(
+                    "Path must be a subdirectory.\n" +
+                        "Parent Path: " + parentPath + "\n" +
+                        "Child Path : " + childPath + "\n",
+                    nameof(folderInfo));
+            }
             RefreshInfoInternal(parentInfo.Groups.GetProperties(), parentInfo.FilesNotFromFolderGroups);
         }
 
