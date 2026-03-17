@@ -89,18 +89,16 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
         internal static void MoveGroupFolder()
         {
-            //The group folder is expected to have this path if the move is successful 
-            string newGroupPath = LogProperties.GetContainingPath("MyLogFiles");
-
+            UtilityLogger.Logger.LogDebug("TEST MOVE");
             try
             {
-                //This method can throw exceptions
-                LogGroup.MoveFolder(testGroup, newGroupPath);
+                LogGroup.MoveFolder(testGroup, LogProperties.GetRenamedPath(testGroup, "LogUtilsTestGroup-2"));
             }
             catch (Exception ex)
             {
                 UtilityLogger.LogError(ex);
             }
+            UtilityLogger.Logger.LogDebug("TEST MOVE COMPLETE");
         }
 
         private static string formatLogName(SlugcatStats.Name slugcatName)
