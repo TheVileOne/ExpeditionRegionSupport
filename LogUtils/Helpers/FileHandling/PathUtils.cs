@@ -210,6 +210,16 @@ namespace LogUtils.Helpers.FileHandling
         }
 
         /// <summary>
+        /// A slightly quicker version of path resolution that doesn't handle paths that could be reliably resolved through a GetFullPath call
+        /// </summary>
+        internal static string QuickResolve(string path)
+        {
+            if (!IsResolutionCandidate(path)) //Avoids path normalization, and expansion of fully qualified paths. Relative paths will return as relative paths.
+                return path;
+            return RainWorldDirectory.PathResolver.Resolve(path);
+        }
+
+        /// <summary>
         /// Gets the length of any relative, or root path information at the start of the path string
         /// </summary>
         public static int GetPrefixLength(string path)
@@ -411,6 +421,14 @@ namespace LogUtils.Helpers.FileHandling
                     return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Is the path string going to benefit from going through the path resolution process
+        /// </summary>
+        public static bool IsResolutionCandidate(string pathString)
+        {
+            return IsEmpty(pathString) || (!Path.IsPathRooted(pathString) && pathString[0] != '.');
         }
 
         /// <summary>

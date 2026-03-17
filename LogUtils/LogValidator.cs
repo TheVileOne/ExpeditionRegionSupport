@@ -43,7 +43,7 @@ namespace LogUtils
             if (!FileExtension.IsSupported(sourcePath)) return false; //We don't want to handle random filetypes
 
             //A valid filetype is all we need to validate the source path
-            SourceFile = new FileInfo(sourcePath);
+            SourceFile = new FileInfo(PathUtils.QuickResolve(sourcePath));
 
             //Should we treat it as a directory, or a file
             if (Path.HasExtension(destPath))
@@ -53,11 +53,11 @@ namespace LogUtils
                 if (!FileExtension.Match(SourceFile.Name, destFilename) && !FileExtension.IsSupported(destFilename))
                     return false; //We can only replace log files
 
-                DestinationFile = new FileInfo(destPath);
+                DestinationFile = new FileInfo(PathUtils.QuickResolve(destPath));
             }
             else
             {
-                DestinationFile = new FileInfo(Path.Combine(destPath, SourceFile.Name));
+                DestinationFile = new FileInfo(PathUtils.QuickResolve(Path.Combine(destPath, SourceFile.Name)));
             }
             return true;
         }
