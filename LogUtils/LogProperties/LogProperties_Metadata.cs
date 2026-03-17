@@ -3,6 +3,7 @@ using LogUtils.Helpers;
 using LogUtils.Helpers.FileHandling;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -16,11 +17,19 @@ namespace LogUtils.Properties
         /// </summary>
         public virtual bool IsMetadataOptional => false;
 
+        /// <summary>
+        /// The current number of folder path change attempts (even ones that leave the original path intact)
+        /// </summary>
+        /// <remarks>This value helps LogUtils determine if a path change attempt happened even if the value does not change from the one set in the properties file</remarks>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public int FolderPathVersion { get; set; }
+
         private bool _fileExists;
         private LogFilename _filename;
         private LogFilename _altFilename;
         private string _folderPath = string.Empty;
         private string _originalFolderPath = string.Empty;
+        private string _currentFolderPath = string.Empty;
 
         /// <summary>
         /// Indicates whether log file currently exists
@@ -88,7 +97,7 @@ namespace LogUtils.Properties
         public LogFilename CurrentFilename { get; protected set; }
 
         /// <summary>
-        /// The active filepath of the log file (with filename)
+        /// The active fully qualified path of the log file (with filename)
         /// </summary>
         public string CurrentFilePath => Path.Combine(CurrentFolderPath, CurrentFilename.WithExtension());
 
@@ -98,12 +107,21 @@ namespace LogUtils.Properties
         public string ReplacementFilePath { get; private set; }
 
         /// <summary>
-        /// The active full path of the directory containing the log file
+        /// The active fully qualified path of the directory containing the log file
         /// </summary>
-        public string CurrentFolderPath { get; protected set; }
+        public string CurrentFolderPath
+        {
+            get => _currentFolderPath;
+            protected set
+            {
+                if (_currentFolderPath != string.Empty)
+                    FolderPathVersion++;
+                _currentFolderPath = value;
+            }
+        }
 
         /// <summary>
-        /// The full path to the directory containing the log file as recorded from the properties file
+        /// The fully qualified path to the directory containing the log file as recorded from the properties file
         /// </summary>
         public string FolderPath
         {
@@ -119,7 +137,7 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
-        /// The path that was first assigned when the log file was first registered
+        /// The fully qualified path that was first assigned when the log file was first registered
         /// </summary>
         public string OriginalFolderPath
         {
@@ -135,7 +153,7 @@ namespace LogUtils.Properties
         }
 
         /// <summary>
-        /// The path of the last known location of the log file
+        /// The fully qualified path of the last known location of the log file
         /// </summary>
         /// <value>Default value is an empty string when not storing a path</value>
         public string LastKnownFilePath { get; private set; }

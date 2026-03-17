@@ -196,6 +196,8 @@ namespace LogUtils
                 if (PathUtils.PathsAreEqual(newPath, FolderPath))
                 {
                     UtilityLogger.Log("Path change is not necessary");
+                    foreach (LogGroupID group in Groups)
+                        group.Properties.FolderPathVersion++; //Even though we don't touch the path, a successful code path should increase the version counter anyways
                     return;
                 }
                 //Currently unsupported, but may be supported in the future

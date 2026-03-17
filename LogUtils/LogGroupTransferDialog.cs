@@ -81,7 +81,7 @@ namespace LogUtils
 
             UtilityLogger.Log("Scheduling transfer dialog");
 
-            string currentGroupPath = groupID.Properties.CurrentFolderPath;
+            int folderPathVersion = groupID.Properties.FolderPathVersion;
             UtilityEvents.OnSetupPeriodReached += scheduledEvent;
 
             void scheduledEvent(SetupPeriodEventArgs e)
@@ -89,8 +89,8 @@ namespace LogUtils
                 if (e.CurrentPeriod < SetupPeriod.PreMods)
                     return;
 
-                bool dialogStillRequired = !PathUtils.PathsAreEqual(currentGroupPath, groupID.Properties.CurrentFolderPath)
-                                        && !PathUtils.PathsAreEqual(groupID.Properties.CurrentFolderPath, groupID.Properties.LastKnownFolderPath);
+                //Check that a folder change attempt has happened in the time since the event was scheduled
+                bool dialogStillRequired = folderPathVersion == groupID.Properties.FolderPathVersion;
 
                 if (dialogStillRequired)
                 {
@@ -99,7 +99,7 @@ namespace LogUtils
                 }
                 else
                 {
-                    UtilityLogger.Log("Path already changed. Transfer no longer necessary.");
+                    UtilityLogger.Log("Path has been updated. Transfer is no longer necessary.");
                 }
                 UtilityEvents.OnSetupPeriodReached -= scheduledEvent;
             }
