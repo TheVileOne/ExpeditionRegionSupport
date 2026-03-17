@@ -16,5 +16,10 @@ namespace LogUtils.Helpers
                 return aggregateException.InnerExceptions;
             return [];
         }
+
+        public static void ThrowArgumentRequiredException(string paramName, string context)
+        {
+            throw new ArgumentException(string.Format(UtilityConsts.ExceptionResources.ARGUMENT_REQUIRED, context ?? "Argument"), paramName);
+        }
     }
 }

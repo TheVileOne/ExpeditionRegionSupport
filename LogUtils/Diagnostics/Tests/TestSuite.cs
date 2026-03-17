@@ -101,7 +101,7 @@ namespace LogUtils.Diagnostics.Tests
         public void Add(ITestable item)
         {
             if (item == null)
-                throw new ArgumentNullException("Collection does not support the storage of null values");
+                throw new ArgumentNullException(nameof(item), "Collection does not support the storage of null values");
 
             UtilityLogger.Log("Loading " + item.Name);
 
@@ -200,7 +200,7 @@ namespace LogUtils.Diagnostics.Tests
             if (Size == 0) return;
 
             if (comparer == null)
-                throw new ArgumentNullException("Comparer cannot be null");
+                throw new ArgumentNullException(nameof(comparer));
 
             Array.Sort(InnerCollection, index, count, comparer);
         }

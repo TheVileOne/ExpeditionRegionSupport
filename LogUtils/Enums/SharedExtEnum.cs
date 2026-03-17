@@ -1,4 +1,5 @@
-﻿using LogUtils.Helpers.Comparers;
+﻿using LogUtils.Helpers;
+using LogUtils.Helpers.Comparers;
 using System;
 
 namespace LogUtils.Enums
@@ -109,7 +110,7 @@ namespace LogUtils.Enums
             value = value?.Trim();
 
             if (string.IsNullOrEmpty(value))
-                throw new ArgumentException("Value cannot be null or empty.", nameof(value));
+                ExceptionUtils.ThrowArgumentRequiredException(nameof(value), "Value");
 
             T result = (T)Activator.CreateInstance(typeof(T), value, false);
             if (!result.Registered)

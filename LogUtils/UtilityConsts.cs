@@ -163,6 +163,11 @@ namespace LogUtils
             public const string Asserts = "Testing.Asserts";
         }
 
+        public static class ExceptionResources
+        {
+            public const string ARGUMENT_REQUIRED = "{0} is required";
+        }
+
         public static class PolicyNames
         {
             public static class Debug

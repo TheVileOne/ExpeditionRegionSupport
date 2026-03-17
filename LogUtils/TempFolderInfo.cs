@@ -1,4 +1,5 @@
-﻿using LogUtils.Helpers.Comparers;
+﻿using LogUtils.Helpers;
+using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Threading;
 using System;
@@ -42,7 +43,7 @@ namespace LogUtils
         public TempFolderInfo(string folderName)
         {
             if (PathUtils.IsEmpty(folderName))
-                throw new ArgumentException(nameof(folderName), "Folder name cannot be empty.");
+                ExceptionUtils.ThrowArgumentRequiredException(nameof(folderName), "Folder name");
 
             FullPath = Path.Combine(Path.GetTempPath(), folderName);
             Resolver = new TempPathResolver(FullPath);

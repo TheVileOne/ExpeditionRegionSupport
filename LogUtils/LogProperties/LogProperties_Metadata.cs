@@ -330,7 +330,7 @@ namespace LogUtils.Properties
         public virtual void ChangeFilename(string newFilename)
         {
             if (PathUtils.IsEmpty(FileExtension.Remove(newFilename)))
-                throw new ArgumentException("Filename cannot be null, or empty", nameof(newFilename));
+                ExceptionUtils.ThrowArgumentRequiredException(nameof(newFilename), "Filename");
 
             UpdateCurrentPath(CurrentFolderPath, new LogFilename(newFilename));
         }
@@ -357,7 +357,7 @@ namespace LogUtils.Properties
             newPath = PathUtils.PathWithoutFilename(newPath, out string filename);
 
             if (PathUtils.IsEmpty(newPath))
-                throw new ArgumentException("Path cannot be null, or empty", nameof(newPath));
+                ExceptionUtils.ThrowArgumentRequiredException(nameof(newPath), "Path");
 
             LogFilename newFilename;
             newPath = GetContainingPath(newPath);

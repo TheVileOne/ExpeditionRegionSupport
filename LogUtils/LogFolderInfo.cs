@@ -172,7 +172,7 @@ namespace LogUtils
         /// </summary>
         /// <param name="newPath">A fully qualified folder path, or path keyword</param>
         /// <param name="checkPermissions">Flag helps enhance safe folder operations. Keep value set to true (Recommended)</param>
-        /// <exception cref="ArgumentException">Path represents a child, or parent directory of this folder</exception>
+        /// <exception cref="ArgumentException">Path is null, or empty - OR-  represents a child, or parent directory of this folder</exception>
         /// <exception cref="IOException">
         /// Path was not allowed to be moved i.e. a Rain World directory path, or mod folder path
         /// - OR - merge operation failed - OR - user canceled the merge operation
@@ -186,6 +186,9 @@ namespace LogUtils
             if (!UtilityCore.IsControllingAssembly)
                 return;
 
+            if (PathUtils.IsEmpty(newPath))
+                ExceptionUtils.ThrowArgumentRequiredException(nameof(newPath), "Path");
+
             newPath = LogProperties.GetContainingPath(newPath);
 
             if (PathUtils.ContainsOtherPath(newPath, FolderPath) || PathUtils.ContainsOtherPath(FolderPath, newPath))
@@ -196,7 +199,9 @@ namespace LogUtils
                     return;
                 }
                 //Currently unsupported, but may be supported in the future
-                throw new ArgumentException("New path represents a child, or parent directory of the current path", nameof(newPath));
+                throw new ArgumentException("New path represents a child, or parent directory of the current path\n" +
+                                            "Current Path: " + FolderPath + "\n" +
+                                            "New Path    : " + newPath, nameof(newPath));
             }
 
             if (checkPermissions)
