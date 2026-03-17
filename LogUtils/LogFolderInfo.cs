@@ -251,6 +251,7 @@ namespace LogUtils
 
         private void moveFolderToPath(string newPath)
         {
+            UtilityLogger.Log("Moving folder to path");
             bool moveCompleted = false;
 
             List<MessageBuffer> activeBuffers = new List<MessageBuffer>();
@@ -309,10 +310,12 @@ namespace LogUtils
 
         private void mergeFolder(string newPath)
         {
+            UtilityLogger.Log("Merge operation started");
             MergeFolderState mergeInfo = new MergeFolderState
             {
                 DestinationPath = newPath
             };
+
             mergeCurrentFolder(mergeInfo);
 
             MergeHistory history = mergeInfo.History;
@@ -343,6 +346,7 @@ namespace LogUtils
         /// </summary>
         private void mergeCurrentFolder(MergeFolderState mergeInfo)
         {
+            UtilityLogger.Log("Merging folder");
             try
             {
                 mergeInfo.CurrentSource = GetDirectoryInfo();
@@ -357,11 +361,12 @@ namespace LogUtils
 
                 if (mergeInfo.FolderDepth == 0 || Directory.Exists(mergeInfo.DestinationPath)) //Folder will need be merged with an existing folder at the destination
                 {
+                    UtilityLogger.Log("Moving files during merge");
                     moveFilesDuringMerge(mergeInfo);
 
+                    UtilityLogger.Log("Updating group paths");
                     foreach (LogGroupID logGroup in Groups.HasPathExact(FolderPath))
                     {
-                        UtilityLogger.Log("Updating group path");
                         MergeRecord record = MergeRecordFactory.Create(logGroup);
                         logGroup.Properties.ChangePath(mergeInfo.DestinationPath, applyToMembers: false);
                         record.CurrentPath = logGroup.Properties.CurrentFolderPath;
@@ -384,6 +389,7 @@ namespace LogUtils
                 }
                 else
                 {
+                    UtilityLogger.Log("Moving folder during merge");
                     moveFolderDuringMerge(mergeInfo); //Once folder is moved, there is no need to check subfolders
                 }
             }
@@ -401,6 +407,7 @@ namespace LogUtils
 
         private void cancelMerge(MergeHistory history)
         {
+            UtilityLogger.Log("Merge operation canceled");
             history.Restore();
         }
 
