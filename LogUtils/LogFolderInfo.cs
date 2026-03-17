@@ -281,6 +281,11 @@ namespace LogUtils
                     currentFile++;
                 }
 
+                if (!DirectoryUtils.ParentExists(newPath))
+                {
+                    UtilityLogger.Log("Creating parent directory for folder");
+                    Directory.GetParent(newPath).Create();
+                }
                 Directory.Move(currentPath, newPath);
                 moveCompleted = true;
 
