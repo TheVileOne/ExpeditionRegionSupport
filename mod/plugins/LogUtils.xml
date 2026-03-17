@@ -8251,6 +8251,11 @@
             </summary>
             <remarks>Supports files and directories</remarks>
         </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.QuickResolve(System.String)">
+            <summary>
+            A slightly quicker version of path resolution that doesn't handle paths that could be reliably resolved through a GetFullPath call
+            </summary>
+        </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.GetPrefixLength(System.String)">
             <summary>
             Gets the length of any relative, or root path information at the start of the path string
@@ -8319,6 +8324,11 @@
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.IsFilePath(System.String)">
             <summary>
             Checks that the path string contains both directory and file information
+            </summary>
+        </member>
+        <member name="M:LogUtils.Helpers.FileHandling.PathUtils.IsResolutionCandidate(System.String)">
+            <summary>
+            Is the path string going to benefit from going through the path resolution process
             </summary>
         </member>
         <member name="M:LogUtils.Helpers.FileHandling.PathUtils.CombineAndTrim(System.String,System.String)">
@@ -9296,7 +9306,7 @@
             </summary>
             <param name="newPath">A fully qualified folder path, or path keyword</param>
             <param name="checkPermissions">Flag helps enhance safe folder operations. Keep value set to true (Recommended)</param>
-            <exception cref="T:System.ArgumentException">Path represents a child, or parent directory of this folder</exception>
+            <exception cref="T:System.ArgumentException">Path is null, or empty - OR-  represents a child, or parent directory of this folder</exception>
             <exception cref="T:System.IO.IOException">
             Path was not allowed to be moved i.e. a Rain World directory path, or mod folder path
             - OR - merge operation failed - OR - user canceled the merge operation
@@ -10076,6 +10086,14 @@
         <member name="M:LogUtils.Properties.LogGroupProperties.ChangePath(System.String)">
             <inheritdoc/>
         </member>
+        <member name="M:LogUtils.Properties.LogGroupProperties.ChangePath(System.String,System.Boolean)">
+            <summary>
+            Sets the current path to a specified value.
+            </summary>
+            <param name="newPath">The new path</param>
+            <param name="applyToMembers">Should the path also be applied to group members</param>
+            <remarks>Warning: Not applying path to group members will disassociate those members from future path applications to the group.</remarks>
+        </member>
         <member name="M:LogUtils.Properties.LogGroupProperties.GetFolderMembers">
             <summary>
             Searches for all group members that are physically located inside the group folder, or otherwise target it
@@ -10456,6 +10474,12 @@
             Indicates whether optional metadata is supported for this instance
             </summary>
         </member>
+        <member name="P:LogUtils.Properties.LogProperties.FolderPathVersion">
+            <summary>
+            The current number of folder path change attempts (even ones that leave the original path intact)
+            </summary>
+            <remarks>This value helps LogUtils determine if a path change attempt happened even if the value does not change from the one set in the properties file</remarks>
+        </member>
         <member name="P:LogUtils.Properties.LogProperties.FileExists">
             <summary>
             Indicates whether log file currently exists
@@ -10484,7 +10508,7 @@
         </member>
         <member name="P:LogUtils.Properties.LogProperties.CurrentFilePath">
             <summary>
-            The active filepath of the log file (with filename)
+            The active fully qualified path of the log file (with filename)
             </summary>
         </member>
         <member name="P:LogUtils.Properties.LogProperties.ReplacementFilePath">
@@ -10494,22 +10518,22 @@
         </member>
         <member name="P:LogUtils.Properties.LogProperties.CurrentFolderPath">
             <summary>
-            The active full path of the directory containing the log file
+            The active fully qualified path of the directory containing the log file
             </summary>
         </member>
         <member name="P:LogUtils.Properties.LogProperties.FolderPath">
             <summary>
-            The full path to the directory containing the log file as recorded from the properties file
+            The fully qualified path to the directory containing the log file as recorded from the properties file
             </summary>
         </member>
         <member name="P:LogUtils.Properties.LogProperties.OriginalFolderPath">
             <summary>
-            The path that was first assigned when the log file was first registered
+            The fully qualified path that was first assigned when the log file was first registered
             </summary>
         </member>
         <member name="P:LogUtils.Properties.LogProperties.LastKnownFilePath">
             <summary>
-            The path of the last known location of the log file
+            The fully qualified path of the last known location of the log file
             </summary>
             <value>Default value is an empty string when not storing a path</value>
         </member>
@@ -10529,14 +10553,7 @@
             <summary>
             Sets the current filename to a specified value.
             </summary>
-            <inheritdoc cref="M:LogUtils.Properties.LogProperties.ChangePath(System.String)" select="remarks"/>
             <param name="newFilename">The new filename</param>
-            <exception cref="T:System.ArgumentException">The filename is null, empty, or contains invalid characters</exception>
-        </member>
-        <member name="M:LogUtils.Properties.LogProperties.ChangePath(System.String)">
-            <summary>
-            Sets the current path to a specified value. Filename field will also be changed if provided.
-            </summary>
             <remarks>
             <para>
             For log files:<br/>
@@ -10546,10 +10563,28 @@
             </para>
             <para>
             For log groups:<br/>
+            - This method does nothing.
+            </para>
+            </remarks>
+            <exception cref="T:System.ArgumentException">The filename is null, empty, or contains invalid characters</exception>
+        </member>
+        <member name="M:LogUtils.Properties.LogProperties.ChangePath(System.String)">
+            <summary>
+            Sets the current path to a specified value.
+            </summary>
+            <param name="newPath">The new path</param>
+            <remarks>
+            <para>
+            For log files:<br/>
+            - This will not initiate a file move, or rename any file.<br/>
+            - Filename field will also be changed if provided.<br/>
+            To move, or rename a log file, use <see cref="M:LogUtils.Helpers.LogFile.Move(LogUtils.Enums.LogID,System.String)"/> instead.
+            </para>
+            <para>
+            For log groups:<br/>
             - This method updates the group path.
             </para>
             </remarks>
-            <param name="newPath">The new path</param>
             <exception cref="T:System.ArgumentException">The directory is null, empty, or contains invalid characters</exception>
         </member>
         <member name="F:LogUtils.Properties.LogPropertyData.UnrecognizedFields">
