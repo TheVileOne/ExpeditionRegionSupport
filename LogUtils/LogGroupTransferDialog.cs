@@ -89,8 +89,10 @@ namespace LogUtils
                 if (e.CurrentPeriod < SetupPeriod.PreMods)
                     return;
 
-                bool pathChanged = !PathUtils.PathsAreEqual(currentGroupPath, groupID.Properties.CurrentFolderPath);
-                if (!pathChanged)
+                bool dialogStillRequired = !PathUtils.PathsAreEqual(currentGroupPath, groupID.Properties.CurrentFolderPath)
+                                        && !PathUtils.PathsAreEqual(groupID.Properties.CurrentFolderPath, groupID.Properties.LastKnownFolderPath);
+
+                if (dialogStillRequired)
                 {
                     UtilityDialog dialog = new LogGroupTransferDialog(groupID, pendingGroupPath);
                     dialog.Show();
