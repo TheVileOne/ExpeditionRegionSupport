@@ -1,4 +1,5 @@
-﻿using LogUtils.Enums;
+﻿using LogUtils.Diagnostics;
+using LogUtils.Enums;
 using LogUtils.Enums.FileSystem;
 using LogUtils.Helpers;
 using LogUtils.Helpers.Comparers;
@@ -595,13 +596,16 @@ namespace LogUtils
         {
             if (logFile == null) return false;
 
-            LogID[] results = LogID.FindAll(properties =>
-            {
-                return ComparerUtils.PathComparer.CompareFilenameAndPath(properties.CurrentFilePath, conflictingFilePath, true) == 0;
-            }).ToArray();
+            //Find out if the conflict is another recognized log file
+            LogID destinationLogFile =
+                LogID.FindAll(properties => ComparerUtils.PathComparer.CompareFilenameAndPath(properties.CurrentFilePath, conflictingFilePath, true) == 0)
+                     .FirstOrDefault();
 
-            if (results.Length == 0) //Unrecognized file - might be able to resolve conflict by renaming log file, but LogUtils would have to support it
+            if (destinationLogFile == null) //Unrecognized file - might be able to resolve conflict by renaming log file, but LogUtils would have to support it
             {
+                if (UtilityCore.Build == UtilitySetup.Build.DEVELOPMENT)
+                    Assert.That(logFile.Properties.FileExists, AssertBehavior.LogAndThrow).IsTrue();
+
                 //Currently not necessary as this method is only used in situations where a file must exist
                 //if (!logFile.Properties.FileExists)
                 //{
@@ -610,8 +614,6 @@ namespace LogUtils
                 //}
                 return false;
             }
-
-            LogID destinationLogFile = results[0]; //There shouldn't be more than one result
 
             if (destinationLogFile.Equals(logFile)) //Unusual situation, but shouldn't cause issues
             {
