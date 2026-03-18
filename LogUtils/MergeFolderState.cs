@@ -49,6 +49,18 @@ namespace LogUtils
             History = new MergeHistory();
             Events = new MergeEventHandler();
         }
+
+        public readonly void ProcessConflicts()
+        {
+            if (History.Conflicts.Count == 0) return;
+
+            MergeHistory history = History;
+            MergeEventHandler events = Events;
+            UtilityCore.Scheduler.Schedule(() =>
+            {
+                ConflictResolutionDialog.ShowDialog(history, events);
+            }, frameInterval: 1, syncToRainWorld: true, invokeLimit: 1);
+        }
     }
 
     public class MergeEventHandler

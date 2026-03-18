@@ -16,11 +16,6 @@ namespace LogUtils
         public Queue<MergeRecord> Conflicts = new Queue<MergeRecord>();
 
         /// <summary>
-        /// Handles all merge conflicts
-        /// </summary>
-        internal ConflictResolutionHandler ConflictHandler;
-
-        /// <summary>
         /// Indicates whether merge process ran to completion
         /// </summary>
         public bool HasFailed;
@@ -29,11 +24,6 @@ namespace LogUtils
         /// Inclues the exception resulting in a failed merge execution. Not all exceptions are able to be exposed through this field yet.
         /// </summary>
         public Exception Exception;
-
-        public MergeHistory()
-        {
-            ConflictHandler = new ConflictResolutionHandler(Conflicts);
-        }
 
         public void AddRecord(MergeRecord record)
         {
@@ -44,12 +34,6 @@ namespace LogUtils
         {
             foreach (MergeRecord record in records)
                 Entries.Enqueue(record);
-        }
-
-        public void ProcessConflicts()
-        {
-            if (Conflicts.Count == 0) return;
-
         }
 
         /// <summary>

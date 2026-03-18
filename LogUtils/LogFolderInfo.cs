@@ -352,7 +352,7 @@ namespace LogUtils
                     cancelMerge(history);
                     return;
                 }
-                history.ProcessConflicts();
+                mergeInfo.ProcessConflicts();
                 return;
             }
 
