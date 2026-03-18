@@ -35,6 +35,11 @@ namespace LogUtils
         public string DestinationPath;
 
         /// <summary>
+        /// Contains event handlers pertaining to the merge process
+        /// </summary>
+        public MergeEventHandler Events;
+
+        /// <summary>
         /// The complete history of file system, LogID, and LogGroupID changes since the merge began
         /// </summary>
         public MergeHistory History;
@@ -42,6 +47,13 @@ namespace LogUtils
         public MergeFolderState()
         {
             History = new MergeHistory();
+            Events = new MergeEventHandler();
         }
+    }
+
+    public class MergeEventHandler
+    {
+        public event Action OnCancel;
+        public event Action OnCompleted;
     }
 }

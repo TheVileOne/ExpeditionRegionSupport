@@ -1,6 +1,7 @@
 ﻿using LogUtils.Diagnostics;
 using LogUtils.Enums;
 using LogUtils.Enums.FileSystem;
+using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Helpers.FileHandling;
 using LogUtils.Threading;
@@ -15,6 +16,8 @@ namespace LogUtils.Properties
 {
     public class LogGroupProperties : LogProperties
     {
+        public event EventHandler<MergeConflictEventArgs> OnMergeConflict;
+
         private FolderPermissions _permissions = FolderPermissions.Invalid;
         /// <summary>
         /// A set of flags indicating activities that are safe, and permissible to happen to a defined group folder
@@ -331,6 +334,18 @@ namespace LogUtils.Properties
                     return false;
             }
             return true;
+        }
+
+        public MergeConflictEventArgs NotifyMergeConflict(LogFolderInfo source, MergeEventHandler mergeEvents)
+        {
+            var eventHandler = OnMergeConflict;
+
+            if (eventHandler == null)
+                return null;
+
+            MergeConflictEventArgs data = new MergeConflictEventArgs((LogGroupID)ID, mergeEvents);
+            eventHandler.Invoke(source, data);
+            return data;
         }
     }
 }

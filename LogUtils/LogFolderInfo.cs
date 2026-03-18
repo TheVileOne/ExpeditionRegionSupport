@@ -1,6 +1,7 @@
 ﻿using LogUtils.Diagnostics;
 using LogUtils.Enums;
 using LogUtils.Enums.FileSystem;
+using LogUtils.Events;
 using LogUtils.Helpers;
 using LogUtils.Helpers.Comparers;
 using LogUtils.Helpers.FileHandling;
@@ -382,18 +383,13 @@ namespace LogUtils
 
                 if (mergeInfo.FolderDepth == 0 || Directory.Exists(mergeInfo.DestinationPath)) //Folder will need be merged with an existing folder at the destination
                 {
+                    int mergeConflictTotal = mergeInfo.History.Conflicts.Count;
+
                     UtilityLogger.Log("Moving files during merge");
                     moveFilesDuringMerge(mergeInfo);
 
                     UtilityLogger.Log("Updating group paths");
-                    foreach (LogGroupID logGroup in Groups.HasPathExact(FolderPath))
-                    {
-                        MergeRecord record = MergeRecordFactory.Create(logGroup);
-                        logGroup.Properties.ChangePath(mergeInfo.DestinationPath, applyToMembers: false);
-                        record.CurrentPath = logGroup.Properties.CurrentFolderPath;
-
-                        mergeInfo.History.AddRecord(record);
-                    }
+                    updateGroupPaths(mergeInfo, hasConflicts: mergeConflictTotal != mergeInfo.History.Conflicts.Count);
 
                     if (mergeInfo.History.HasFailed)
                         return;
@@ -418,6 +414,57 @@ namespace LogUtils
             {
                 mergeInfo.History.HasFailed = true;
                 mergeInfo.History.Exception = ex;
+            }
+        }
+
+        private void updateGroupPaths(MergeFolderState mergeInfo, bool hasConflicts)
+        {
+            if (!hasConflicts)
+            {
+                foreach (LogGroupID logGroup in Groups.HasPathExact(FolderPath))
+                {
+                    MergeRecord record = MergeRecordFactory.Create(logGroup);
+                    logGroup.Properties.ChangePath(mergeInfo.DestinationPath, applyToMembers: false);
+                    record.CurrentPath = logGroup.Properties.CurrentFolderPath;
+
+                    mergeInfo.History.AddRecord(record);
+                }
+                return;
+            }
+
+            foreach (LogGroupID logGroup in Groups.HasPathExact(FolderPath))
+            {
+                var eventData = logGroup.Properties.NotifyMergeConflict(this, mergeInfo.Events);
+
+                if (eventData == null)
+                    continue;
+
+                if (eventData.CancelMerge)
+                {
+                    mergeInfo.History.HasFailed = true;
+                    break;
+                }
+
+                string destinationPath = mergeInfo.DestinationPath;
+                switch (eventData.ShouldUpdatePath)
+                {
+                    default:
+                    case PathUpdateMode.UpdateImmediately:
+                        updateGroupPath();
+                        break;
+                    case PathUpdateMode.WaitForConflictResolution:
+                        eventData.OnConflictResolved += updateGroupPath;
+                        break;
+                }
+
+                void updateGroupPath()
+                {
+                    MergeRecord record = MergeRecordFactory.Create(logGroup);
+                    logGroup.Properties.ChangePath(destinationPath, applyToMembers: false);
+                    record.CurrentPath = logGroup.Properties.CurrentFolderPath;
+
+                    mergeInfo.History.AddRecord(record);
+                }
             }
         }
 
