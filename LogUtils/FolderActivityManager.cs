@@ -3,6 +3,7 @@ using LogUtils.Helpers.FileHandling;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using static LogUtils.FolderActivityManager;
 
 namespace LogUtils
 {
@@ -87,21 +88,8 @@ namespace LogUtils
         public ActivityRecord[] GetProblematicRecords(string path)
         {
             return ActiveMoves.Except(ActiveMovesThisThread)
-                              .Where(query)
+                              .GetMatches(path)
                               .ToArray();
-            bool query(ActivityRecord record)
-            {
-                bool hasProblematicSource, hasProblematicDestination;
-
-                hasProblematicSource =
-                    !PathUtils.IsEmpty(record.SourcePath)
-                         && (PathUtils.ContainsOtherPath(record.SourcePath, path) || PathUtils.ContainsOtherPath(path, record.SourcePath));
-
-                hasProblematicDestination =
-                    !PathUtils.IsEmpty(record.DestinationPath)
-                         && (PathUtils.ContainsOtherPath(record.DestinationPath, path) || PathUtils.ContainsOtherPath(path, record.DestinationPath));
-                return hasProblematicSource || hasProblematicDestination;
-            }
         }
 
         public record ActivityRecord
@@ -116,6 +104,28 @@ namespace LogUtils
         {
             None,
             Merge,
+        }
+    }
+
+    public static partial class ExtensionMethods
+    {
+        internal static IEnumerable<ActivityRecord> GetMatches(this IEnumerable<ActivityRecord> self, string path)
+        {
+            return self.Where(matchPredicate);
+
+            bool matchPredicate(ActivityRecord record)
+            {
+                bool isSourceMatch, isDestinationMatch;
+
+                isSourceMatch =
+                    !PathUtils.IsEmpty(record.SourcePath)
+                         && (PathUtils.ContainsOtherPath(record.SourcePath, path) || PathUtils.ContainsOtherPath(path, record.SourcePath));
+
+                isDestinationMatch =
+                    !PathUtils.IsEmpty(record.DestinationPath)
+                         && (PathUtils.ContainsOtherPath(record.DestinationPath, path) || PathUtils.ContainsOtherPath(path, record.DestinationPath));
+                return isSourceMatch || isDestinationMatch;
+            }
         }
     }
 }
