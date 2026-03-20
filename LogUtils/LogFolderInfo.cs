@@ -13,6 +13,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Security;
+using static LogUtils.FolderActivityManager;
 
 namespace LogUtils
 {
@@ -21,6 +22,8 @@ namespace LogUtils
     /// </summary>
     public sealed class LogFolderInfo
     {
+        internal static readonly FolderActivityManager ActivityManager = new FolderActivityManager();
+
         /// <summary>
         /// A fully qualified path that contains log groups or files
         /// </summary>
@@ -241,26 +244,75 @@ namespace LogUtils
                     LogGroup.OnPermissionDenied(FolderPath, FolderPermissions.Move, accessViolation: !canAccess);
             }
 
-            using (var scope = demandAllLocks())
+            ActivityRecord moveRecord = null;
+            ICollection<ActivityRecord> problematicEntries; //TODO: Problematic entries does not handle the situation where the LogFolderInfo targeted folder is moved
+            lock (ActivityManager)
             {
-                bool canMoveFiles = Exists;
+                moveRecord = ActivityManager.AddRecord(FolderPath, newPath);
+                problematicEntries = ActivityManager.GetProblematicRecords(FolderPath);
 
-                if (!canMoveFiles)
+                //Listen for new problematic records in between now and when locks are secured
+                ActivityManager.OnRecordAdded.Handler += onEvent;
+                ActivityManager.OnRecordRemoved.Handler += onEvent;
+            }
+
+            bool canFolderStateBeTrusted = problematicEntries.Count == 0;
+            void onEvent(FolderActivityManager manager, ActivityRecord record)
+            {
+                ICollection<ActivityRecord> entries = ActivityManager.GetProblematicRecords(FolderPath);
+
+                //A new entry being added, or removed are both indicators that the state of the folder could be outdated
+                if (entries.Count != problematicEntries.Count)
+                    canFolderStateBeTrusted = false;
+            }
+            try
+            {
+                IDisposable scope = demandAllLocks();
+
+                if (!canFolderStateBeTrusted)
                 {
-                    changePathOfNonExistingFilesAndFolders(newPath);
-                    return;
+                    //Cancel pending merge operations
+
+                    //Update the current group, and files references while still under the old locks
+                    RefreshInfo();
+                    IDisposable newScope = demandAllLocks(); //It is possible that newly acquired locks could be associated with problematic relations, but the risk is remote.
+
+                    scope.Dispose();
+                    scope = newScope;
                 }
 
-                bool canMoveFolderToPath = !Directory.Exists(newPath);
+                //The locks will prevent other move operations from occuring, listening will no longer be necessary
+                lock (ActivityManager)
+                {
+                    ActivityManager.OnRecordAdded.Handler -= onEvent;
+                    ActivityManager.OnRecordRemoved.Handler -= onEvent;
+                }
 
-                if (canMoveFolderToPath)
+                using (scope)
                 {
-                    moveFolderToPath(newPath);
+                    bool canMoveFiles = Exists;
+
+                    if (!canMoveFiles)
+                    {
+                        changePathOfNonExistingFilesAndFolders(newPath);
+                        return;
+                    }
+
+                    bool canMoveFolderToPath = !Directory.Exists(newPath);
+
+                    if (canMoveFolderToPath)
+                    {
+                        moveFolderToPath(newPath);
+                    }
+                    else
+                    {
+                        mergeFolder(newPath);
+                    }
                 }
-                else
-                {
-                    mergeFolder(newPath);
-                }
+            }
+            finally
+            {
+                ActivityManager.RemoveRecordAnyThread(moveRecord);
             }
         }
 
