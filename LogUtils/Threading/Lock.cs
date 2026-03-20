@@ -35,22 +35,21 @@ namespace LogUtils.Threading
         /// </summary>
         public bool SuppressNextRelease
         {
-            get => suppressReleaseCounter > 0;
+            get => suppressReleaseCounter.Value > 0;
             set
             {
                 if (!value)
                 {
                     //Only a lock monitor event is suppressed, we should not unsuppress it. Users should avoid suppression if it produces an undesirable effect.
-                    if (suppressReleaseCounter > 0)
+                    if (suppressReleaseCounter.Value > 0)
                         throw new InvalidOperationException("Suppression cannot be disabled");
                     return;
                 }
-                suppressReleaseCounter++;
+                suppressReleaseCounter.Value++;
             }
         }
 
-        [ThreadStatic]
-        private int suppressReleaseCounter = 0;
+        private readonly ThreadLocal<int> suppressReleaseCounter = new ThreadLocal<int>();
 
         private static int _nextID;
         private object _context;
@@ -153,7 +152,7 @@ namespace LogUtils.Threading
                     {
                         UtilityLogger.DebugLog("Lock attempt timed out");
                         RaiseEvent(EventID.FailedToAcquire);
-                        suppressReleaseCounter++;
+                        suppressReleaseCounter.Value++;
                         return lockScope;
                     }
                 }
@@ -182,7 +181,7 @@ namespace LogUtils.Threading
             if (SuppressNextRelease)
             {
                 UtilityLogger.DebugLog($"Lock release has been suppressed [{Context}]");
-                suppressReleaseCounter--;
+                suppressReleaseCounter.Value--;
                 return;
             }
 
