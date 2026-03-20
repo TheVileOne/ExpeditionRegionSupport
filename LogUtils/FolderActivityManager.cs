@@ -19,14 +19,11 @@ namespace LogUtils
         internal ThreadSafeEvent<FolderActivityManager, ActivityRecord> OnRecordAdded = new ThreadSafeEvent<FolderActivityManager, ActivityRecord>();
         internal ThreadSafeEvent<FolderActivityManager, ActivityRecord> OnRecordRemoved = new ThreadSafeEvent<FolderActivityManager, ActivityRecord>();
 
-        public FolderActivityManager()
-        {
-            _activeRecords.Value = new List<ActivityRecord>();
-            _inactiveRecords.Value = new List<ActivityRecord>();
-        }
-
         public ActivityRecord AddRecord(string sourcePath, string destinationPath)
         {
+            if (!_activeRecords.IsValueCreated)
+                _activeRecords.Value = new List<ActivityRecord>();
+
             ActivityRecord record;
             _activeRecords.Value.Add(record = new ActivityRecord()
             {
@@ -62,6 +59,10 @@ namespace LogUtils
         {
             if (!RemoveRecordAnyThread(record))
                 UtilityLogger.LogWarning("Expected active move record");
+
+            if (!_inactiveRecords.IsValueCreated)
+                _inactiveRecords.Value = new List<ActivityRecord>();
+
             _inactiveRecords.Value.Add(record);
         }
 
