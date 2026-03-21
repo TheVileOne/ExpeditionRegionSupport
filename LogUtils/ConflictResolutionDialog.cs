@@ -1,6 +1,7 @@
 using LogUtils.Events;
 using System.Linq;
 using UnityEngine;
+using static LogUtils.FolderActivityManager;
 
 namespace LogUtils
 {
@@ -26,7 +27,16 @@ namespace LogUtils
 
         public static void ShowDialog(MergeHistory history, MergeEventHandler mergeEvents)
         {
-            if (history.HasFailed) return;
+            if (history == null)
+                throw new ArgumentNullException(nameof(history));
+
+            ActivityRecord record = LogFolderInfo.ActivityManager.GetRecord(history);
+
+            if (record == null || record.State > ActivityState.WaitingForConflictResolution)
+            {
+                UtilityLogger.Log("Conflict resolution is no longer required");
+                return;
+            }
 
             //It is important that folder permissions be assigned before the user interacts with this dialog. Dialog can only run after mod init completes
             //and game will continue to process update frames while dialog is running giving a window for enabled mods to assign folder permissions.
@@ -45,11 +55,15 @@ namespace LogUtils
                 if (e.CurrentPeriod < SetupPeriod.PreMods)
                     return;
 
-                if (!history.HasFailed)
+                if (record.State > ActivityState.WaitingForConflictResolution)
                 {
-                    UtilityDialog dialog = new ConflictResolutionDialog(history, mergeEvents);
-                    dialog.Show();
+                    UtilityLogger.Log("Conflict resolution is no longer required");
+                    UtilityEvents.OnSetupPeriodReached -= scheduledEvent;
+                    return;
                 }
+
+                UtilityDialog dialog = new ConflictResolutionDialog(history, mergeEvents);
+                dialog.Show();
                 UtilityEvents.OnSetupPeriodReached -= scheduledEvent;
             }
         }

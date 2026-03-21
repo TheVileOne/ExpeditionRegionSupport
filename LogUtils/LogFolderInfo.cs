@@ -244,11 +244,16 @@ namespace LogUtils
                     LogGroup.OnPermissionDenied(FolderPath, FolderPermissions.Move, accessViolation: !canAccess);
             }
 
-            ActivityRecord moveRecord = null;
+            ActivityRecord record = new ActivityRecord()
+            {
+                SourcePath = FolderPath,
+                DestinationPath = newPath
+            };
+
             ICollection<ActivityRecord> problematicEntries; //TODO: Problematic entries does not handle the situation where the LogFolderInfo targeted folder is moved
             lock (ActivityManager)
             {
-                moveRecord = ActivityManager.AddRecord(FolderPath, newPath);
+                ActivityManager.AddRecord(record);
                 problematicEntries = ActivityManager.GetProblematicRecords(FolderPath);
 
                 //Listen for new problematic records in between now and when locks are secured
@@ -267,8 +272,10 @@ namespace LogUtils
             }
             try
             {
+                record.State = ActivityState.AcquiringLocks;
                 IDisposable scope = demandAllLocks();
 
+                record.State = ActivityState.VerifyingFolderState;
                 if (!canFolderStateBeTrusted)
                 {
                     cancelPendingMerges(FolderPath);
@@ -298,6 +305,7 @@ namespace LogUtils
                     ActivityManager.OnRecordRemoved.Handler -= onEvent;
                 }
 
+                record.State = ActivityState.VerificationCompleted;
                 using (scope)
                 {
                     bool canMoveFiles = Exists;
@@ -319,15 +327,24 @@ namespace LogUtils
                         mergeFolder(newPath);
                     }
                 }
+
+                if (record.State != ActivityState.WaitingForConflictResolution)
+                {
+                    if (record.State != ActivityState.VerificationCompleted)
+                        UtilityLogger.LogWarning("Unexpected operation state");
+
+                    record.State = ActivityState.Completed;
+                }
             }
             finally
             {
+                UtilityLogger.Log($"Operation ended with state [{record.State}]");
                 lock (ActivityManager)
                 {
-                    if (moveRecord.IsMergeInProgress) //Merge was unable to complete this frame
-                        ActivityManager.Deactivate(moveRecord);
+                    if (record.State == ActivityState.WaitingForConflictResolution) //Merge was unable to complete this frame
+                        ActivityManager.Deactivate(record);
                     else
-                        ActivityManager.RemoveRecordAnyThread(moveRecord);
+                        ActivityManager.RemoveRecordAnyThread(record);
                 }
             }
         }
@@ -552,7 +569,10 @@ namespace LogUtils
             ActivityRecord mergeRecord = ActivityManager.GetRecord(history);
 
             if (mergeRecord != null)
+            {
+                mergeRecord.State = ActivityState.Faulted;
                 mergeRecord.Events.RaiseEvent(MergeEventID.Canceled);
+            }
         }
 
         private IEnumerable<MergeRecord> changePathOfNonExistingFilesAndFolders(string destinationPath)

@@ -1,5 +1,6 @@
 ﻿using LogUtils.Events;
 using LogUtils.Helpers.FileHandling;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -20,19 +21,18 @@ namespace LogUtils
         internal ThreadSafeEvent<FolderActivityManager, ActivityRecord> OnRecordAdded = new ThreadSafeEvent<FolderActivityManager, ActivityRecord>();
         internal ThreadSafeEvent<FolderActivityManager, ActivityRecord> OnRecordRemoved = new ThreadSafeEvent<FolderActivityManager, ActivityRecord>();
 
-        public ActivityRecord AddRecord(string sourcePath, string destinationPath)
+        public void AddRecord(ActivityRecord record)
         {
+            if (record == null)
+                throw new ArgumentNullException(nameof(record));
+
+            record.State = ActivityState.Started;
+
             if (!_activeRecords.IsValueCreated)
                 _activeRecords.Value = new List<ActivityRecord>();
 
-            ActivityRecord record;
-            _activeRecords.Value.Add(record = new ActivityRecord()
-            {
-                SourcePath = sourcePath,
-                DestinationPath = destinationPath
-            });
+            _activeRecords.Value.Add(record);
             OnRecordAdded.Raise(this, record);
-            return record;
         }
 
         /// <summary>
@@ -108,20 +108,35 @@ namespace LogUtils
 
         public record ActivityRecord
         {
+            private ActivityState _state = ActivityState.NotStarted;
+            public ActivityState State
+            {
+                get => _state;
+                set
+                {
+                    //Not thread safe, but probably good enough
+                    if (value < _state) return; //Record state cannot be set to an earlier state
+                    _state = value;
+                }
+            }
+
             public MergeHistory MergeHistory;
             public MergeEventHandler Events;
 
             public string SourcePath;
             public string DestinationPath;
+        }
 
-            public bool IsMergeInProgress
-            {
-                get
-                {
-                    MergeHistory history = MergeHistory;
-                    return history != null && history.Conflicts.Count > 0 && !history.HasFailed;
-                }
-            }
+        public enum ActivityState
+        {
+            NotStarted = 0,
+            Started = 1,
+            AcquiringLocks = 2,
+            VerifyingFolderState = 3,
+            VerificationCompleted = 4, //Ready to move
+            WaitingForConflictResolution = 5,
+            Faulted = 6, //Failed, or canceled
+            Completed = 7
         }
 
         public enum ActivityContext

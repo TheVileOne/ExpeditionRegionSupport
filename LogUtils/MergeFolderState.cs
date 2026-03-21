@@ -52,11 +52,11 @@ namespace LogUtils
 
         public readonly void ProcessConflicts()
         {
-            if (History.Conflicts.Count == 0) return;
-
             MergeHistory history = History;
             MergeEventHandler events = Events;
-            ConflictResolutionDialog.ShowDialog(history, events);
+
+            if (history.Conflicts.Count > 0)
+                ConflictResolutionDialog.ShowDialog(history, events);
         }
     }
 
