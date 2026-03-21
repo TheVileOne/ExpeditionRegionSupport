@@ -339,12 +339,12 @@ namespace LogUtils
             finally
             {
                 UtilityLogger.Log($"Operation ended with state [{record.State}]");
-                lock (ActivityManager)
+                if (record.State != ActivityState.WaitingForConflictResolution)
                 {
-                    if (record.State == ActivityState.WaitingForConflictResolution) //Merge was unable to complete this frame
-                        ActivityManager.Deactivate(record);
-                    else
-                        ActivityManager.RemoveRecordAnyThread(record);
+                    lock (ActivityManager)
+                    {
+                        ActivityManager.RemoveRecord(record);
+                    }
                 }
             }
         }
