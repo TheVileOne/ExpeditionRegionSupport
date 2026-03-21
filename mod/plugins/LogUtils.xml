@@ -7104,19 +7104,19 @@
             </summary>
             <returns>true, when applicable, false otherwise</returns>
         </member>
-        <member name="M:LogUtils.FolderActivityManager.RemoveRecordAnyThread(LogUtils.FolderActivityManager.ActivityRecord)">
+        <member name="M:LogUtils.FolderActivityManager.RemoveRecord(LogUtils.FolderActivityManager.ActivityRecord)">
             <summary>
-            Removes an active record associated with any thread
+            Removes an active record
             </summary>
         </member>
-        <member name="M:LogUtils.FolderActivityManager.Deactivate(LogUtils.FolderActivityManager.ActivityRecord)">
+        <member name="M:LogUtils.FolderActivityManager.GetMergeRecords(System.String)">
             <summary>
-            Changes an active record to an inactive record
+            Gets any merge records merging into, or out of a provided path, or the parent directory containing the path
             </summary>
         </member>
-        <member name="M:LogUtils.FolderActivityManager.RemoveInactiveAnyThread(LogUtils.FolderActivityManager.ActivityRecord)">
+        <member name="M:LogUtils.FolderActivityManager.GetProblematicRecords(System.String)">
             <summary>
-            Removes an inactive record associated with any thread
+            Searches for any move records that can interfere with the folder state during a move operation
             </summary>
         </member>
         <member name="T:LogUtils.ExtensionMethods">
