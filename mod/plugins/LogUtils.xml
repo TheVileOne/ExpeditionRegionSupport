@@ -2401,6 +2401,11 @@
         <member name="M:LogUtils.Logger.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,System.String,System.String)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.LogOnce(System.Collections.Generic.IEnumerable{LogUtils.Enums.ILogTarget},LogUtils.Enums.LogCategory,System.String,System.String)"/>
         </member>
+        <member name="P:LogUtils.ConflictResolutionDialog.HasAnyDialogs">
+            <summary>
+            Indicates that there are pending, or active dialogs for this type
+            </summary>
+        </member>
         <member name="F:LogUtils.ConflictResolutionFeedback.Overwrite">
             <summary>
             The file at destination will be replaced
@@ -6983,6 +6988,36 @@
             Constructs a JollyCoop LogElement struct using stored event data
             </summary>
         </member>
+        <member name="T:LogUtils.Events.MergeConflictEventArgs">
+            <summary>
+            Event arguments for a merge conflict event
+            </summary>
+        </member>
+        <member name="P:LogUtils.Events.MergeConflictEventArgs.Target">
+            <summary>
+            Affected log group by this event
+            </summary>
+        </member>
+        <member name="P:LogUtils.Events.MergeConflictEventArgs.CancelMerge">
+            <summary>
+            Make a request to cancel the merge process
+            </summary>
+        </member>
+        <member name="F:LogUtils.Events.MergeConflictEventArgs.ShouldUpdatePath">
+            <summary>
+            Affects whether path is updated immediately or after merge process completes (after post mods)
+            </summary>
+        </member>
+        <member name="E:LogUtils.Events.MergeConflictEventArgs.OnMergeCanceled">
+            <summary>
+            Optional action that must run if merge process doesn't complete
+            </summary>
+        </member>
+        <member name="E:LogUtils.Events.MergeConflictEventArgs.OnConflictResolved">
+            <summary>
+            Optional action that must run when conflicts involving this group is resolved
+            </summary>
+        </member>
         <member name="E:LogUtils.Events.PathChangeEventPublisher.Event">
             <summary>
             Event raised when a path change event occurs
@@ -7068,6 +7103,243 @@
             Checks whether the filter is currently applicable
             </summary>
             <returns>true, when applicable, false otherwise</returns>
+        </member>
+        <member name="M:LogUtils.FolderActivityManager.RemoveRecordAnyThread(LogUtils.FolderActivityManager.ActivityRecord)">
+            <summary>
+            Removes an active record associated with any thread
+            </summary>
+        </member>
+        <member name="M:LogUtils.FolderActivityManager.Deactivate(LogUtils.FolderActivityManager.ActivityRecord)">
+            <summary>
+            Changes an active record to an inactive record
+            </summary>
+        </member>
+        <member name="M:LogUtils.FolderActivityManager.RemoveInactiveAnyThread(LogUtils.FolderActivityManager.ActivityRecord)">
+            <summary>
+            Removes an inactive record associated with any thread
+            </summary>
+        </member>
+        <member name="T:LogUtils.ExtensionMethods">
+            <summary>
+            Class for miscellaneous extension methods
+            </summary>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.ContainsType``1(System.Collections.IEnumerable)">
+            <summary>
+            Checks that an item of a specified type is contained by the enumerable
+            </summary>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.IsComposite(UnityEngine.LogType)">
+            <summary>
+            Evaluates whether the enum is composed of two or more distinct flagged values
+            </summary>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.Deconstruct(BepInEx.Logging.LogLevel)">
+            <summary>
+            Deconstructs an enum into its flagged values
+            </summary>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.Deconstruct(UnityEngine.LogType)">
+            <summary>
+            Deconstructs an enum into its flagged values
+            </summary>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.GetFlags(UnityEngine.LogType)">
+            <summary>
+            Extracts any bitflag compatible values, masking all others
+            </summary>
+            <param name="logType">The LogType to evaluate</param>
+            <returns>A LogType only containing bits within the conversion value range if any are present; otherwise defaults to -1</returns>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.Normalize(System.Collections.Generic.HashSet{LogUtils.Enums.LogCategory})">
+            <summary>
+            Ensures that set is not null, and invalid entries are not present
+            </summary>
+            <remarks>This method is null safe, and HashSet will be operated on directly</remarks>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.ToFormattableLogger(LogUtils.ILogger)">
+            <summary>
+            Converts instance into an <see cref="T:LogUtils.IFormatLogger"/> object
+            </summary>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.CanHandle(LogUtils.ILogHandler,LogUtils.Requests.LogRequest)">
+            <summary>
+            Check that an <see cref="T:LogUtils.ILogHandler"/> is able to process the provided <see cref="T:LogUtils.Requests.LogRequest"/> instance
+            </summary>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.CompatibleWith(System.Collections.Generic.IEnumerable{LogUtils.ILogHandler},LogUtils.Enums.LogID,LogUtils.Requests.RequestType)">
+            <summary>
+            Finds all logger instances that accepts log requests for a specified <see cref="T:LogUtils.Enums.LogID"/> instance
+            </summary>
+            <param name="handlers"></param>
+            <param name="logFile">The <see cref="T:LogUtils.Enums.LogID"/> to check</param>
+            <param name="requestType">The request type expected</param>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.FindCompatible(System.Collections.Generic.IEnumerable{LogUtils.ILogHandler},LogUtils.Enums.LogID,LogUtils.Requests.RequestType)">
+            <summary>
+            Find a logger instance that accepts log requests for a specified <see cref="T:LogUtils.Enums.LogID"/> instance
+            </summary>
+            <param name="handlers"></param>
+            <param name="logFile">The <see cref="T:LogUtils.Enums.LogID"/> to check</param>
+            <param name="requestType">The request type expected</param>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.NearestEquivalent(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},LogUtils.Enums.LogID)">
+            <summary>
+            Finds the best fit candidate in a target collection for a provided log file
+            </summary>
+            <returns>A <see cref="T:LogUtils.Enums.LogID"/> contained in the target collection with a matching filename, and/or path (best fit)</returns>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.WriteFromBuffer(LogUtils.ILogWriter,LogUtils.Enums.LogID,System.Boolean)">
+            <summary>
+            Attempts to write content from the message buffer to file
+            </summary>
+            <param name="writer"></param>
+            <param name="logFile">The file that contains the message buffer</param>
+            <param name="respectBufferState">When true no content will be written to file if <see cref="P:LogUtils.MessageBuffer.IsBuffering"/> property is set to true</param>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.Find(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String,System.String)">
+            <summary>
+            Finds a <see cref="T:LogUtils.Enums.LogID"/> instance with the given metadata in the provided collection
+            </summary>
+            <remarks>
+            - Compares ID, Filename, and CurrentFilename fields
+            </remarks>
+            <param name="values"></param>
+            <param name="filename">The filename to search for</param>
+            <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.Find(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.IO.FileInfo)">
+            <summary>
+            Finds a <see cref="T:LogUtils.Enums.LogID"/> instance with the given metadata in the provided collection
+            </summary>
+            <remarks>
+            - Compares CurrentFilename, and CurrentFolderPath fields
+            </remarks>
+            <param name="values"></param>
+            <param name="fileInfo">The file to search for a direct match for</param>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.FindAll(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String)">
+            <summary>
+            Finds all <see cref="T:LogUtils.Enums.LogID"/> instances with the given metadata in the provided collection
+            </summary>
+            <remarks>
+            - Compares ID, Filename, and CurrentFilename fields
+            </remarks>
+            <param name="values"></param>
+            <param name="filename">The filename to search for</param>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.FindAll(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String,LogUtils.Properties.CompareOptions)">
+            <summary>
+            Finds all <see cref="T:LogUtils.Enums.LogID"/> instances with the given metadata in the provided collection
+            </summary>
+            <param name="values"></param>
+            <param name="filename">The filename to search for</param>
+            <param name="compareOptions">Represents options that determine which fields to check against</param>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.FindAll(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.Func{LogUtils.Properties.LogProperties,System.Boolean})">
+            <summary>
+            Finds all <see cref="T:LogUtils.Enums.LogID"/> instances that match a predicate in the provided collection
+            </summary>
+            <param name="values"></param>
+            <param name="predicate">The predicate to match</param>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.FindByTag(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String)">
+            <summary>
+            Finds all <see cref="T:LogUtils.Enums.LogID"/> instances with the given tag in the provided collection
+            </summary>
+            <param name="values"></param>
+            <param name="tag">The tag to search for</param>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.Find(System.Collections.Generic.IEnumerable{LogUtils.Properties.LogProperties},System.String,System.String)">
+            <inheritdoc cref="M:LogUtils.ExtensionMethods.Find(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String,System.String)"/>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.FindAll(System.Collections.Generic.IEnumerable{LogUtils.Properties.LogProperties},System.String,LogUtils.Properties.CompareOptions)">
+            <inheritdoc cref="M:LogUtils.ExtensionMethods.FindAll(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String,LogUtils.Properties.CompareOptions)"/>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.FindAll(System.Collections.Generic.IEnumerable{LogUtils.Properties.LogProperties},System.Func{LogUtils.Properties.LogProperties,System.Boolean})">
+            <inheritdoc cref="M:LogUtils.ExtensionMethods.FindAll(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.Func{LogUtils.Properties.LogProperties,System.Boolean})"/>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.FindByTag(System.Collections.Generic.IEnumerable{LogUtils.Properties.LogProperties},System.String)">
+            <inheritdoc cref="M:LogUtils.ExtensionMethods.FindByTag(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String)"/>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.GetIDs(System.Collections.Generic.IEnumerable{LogUtils.Properties.LogProperties})">
+            <summary>
+            Returns all <see cref="T:LogUtils.Enums.LogID"/> instances belonging to entries in this enumeration
+            </summary>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.GetProperties(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID})">
+            <summary>
+            Returns all <see cref="T:LogUtils.Properties.LogProperties"/> instances belonging to entries in this enumeration
+            </summary>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.GetIDs(System.Collections.Generic.IEnumerable{LogUtils.Properties.LogGroupProperties})">
+            <summary>
+            Returns all <see cref="T:LogUtils.Enums.LogGroupID"/> instances belonging to entries in this enumeration
+            </summary>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.GetProperties(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogGroupID})">
+            <inheritdoc cref="M:LogUtils.ExtensionMethods.GetProperties(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID})"/>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.GetMembers(System.Collections.Generic.IEnumerable{LogUtils.Properties.LogGroupProperties})">
+            <summary>
+            Returns all group members belonging to entries in this enumeration
+            </summary>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.GetMemberProperties(System.Collections.Generic.IEnumerable{LogUtils.Properties.LogGroupProperties})">
+            <summary>
+            Returns all <see cref="T:LogUtils.Properties.LogProperties"/> instance belonging to group members of entries in this enumeration
+            </summary>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.AppendHeader(System.Text.StringBuilder,System.String)">
+            <summary>
+            Appends a message in between divider spacers
+            </summary>
+            <param name="builder">The builder to append to</param>
+            <param name="header">The content to use as a header</param>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.MatchAny(System.String,System.Collections.Generic.IEqualityComparer{System.String},System.String[])">
+            <summary>
+            Evaluates whether a string is equal to any of the provided values
+            </summary>
+            <param name="str">The string to evaluate</param>
+            <param name="comparer">An IEqualityComparer to use for the evaluation</param>
+            <param name="values">The values to compare the string against</param>
+            <returns>Whether a match was found</returns>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.Bump(System.Version,LogUtils.VersionCode,System.Int32)">
+            <summary>
+            Bumps provided version to a specified value
+            </summary>
+            <exception cref="T:System.ArgumentOutOfRangeException">Increment value is negative</exception>
+            <exception cref="T:System.NotImplementedException">VersionCode is invalid</exception>
+            <exception cref="T:System.NotSupportedException">The Version object doesn't provide the requested version value</exception>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.Add``1(System.Collections.Generic.ICollection{System.WeakReference{``0}},``0)">
+            <inheritdoc cref="M:System.Collections.Generic.ICollection`1.Add(`0)"/>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.AddRange``1(System.Collections.Generic.ICollection{System.WeakReference{``0}},System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            Adds each item in the provided collection to the ICollection&lt;T&gt;"/>
+            </summary>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.Remove``1(System.Collections.Generic.ICollection{System.WeakReference{``0}},``0)">
+            <inheritdoc cref="M:System.Collections.Generic.ICollection`1.Remove(`0)"/>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.RemoveWhere``1(System.Collections.Generic.ICollection{System.WeakReference{``0}},System.Predicate{``0})">
+            <summary>
+            Remove items from the ICollection&lt;T&gt; based on a predicate
+            </summary>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.RemoveCollectedEntries``1(System.Collections.Generic.ICollection{System.WeakReference{``0}})">
+            <summary>
+            Remove entries that have been garbage collected
+            </summary>
+            <returns>The number of removed entries</returns>
+        </member>
+        <member name="M:LogUtils.ExtensionMethods.GetLocks``1(System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            Selects all acquirable lock objects from the enumeration
+            </summary>
         </member>
         <member name="M:LogUtils.FormattableLogWrapper.Log(System.Object)">
             <inheritdoc cref="M:LogUtils.Documentation.LoggerDocumentation.Standard.Log(System.Object)"/>
@@ -8603,228 +8875,6 @@
         <member name="F:LogUtils.Helpers.Paths.RainWorld.ROOT_DIRECTORY">
             <summary>
             The name of the Rain World root folder
-            </summary>
-        </member>
-        <member name="T:LogUtils.ExtensionMethods">
-            <summary>
-            Class for miscellaneous extension methods
-            </summary>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.ContainsType``1(System.Collections.IEnumerable)">
-            <summary>
-            Checks that an item of a specified type is contained by the enumerable
-            </summary>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.IsComposite(UnityEngine.LogType)">
-            <summary>
-            Evaluates whether the enum is composed of two or more distinct flagged values
-            </summary>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.Deconstruct(BepInEx.Logging.LogLevel)">
-            <summary>
-            Deconstructs an enum into its flagged values
-            </summary>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.Deconstruct(UnityEngine.LogType)">
-            <summary>
-            Deconstructs an enum into its flagged values
-            </summary>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.GetFlags(UnityEngine.LogType)">
-            <summary>
-            Extracts any bitflag compatible values, masking all others
-            </summary>
-            <param name="logType">The LogType to evaluate</param>
-            <returns>A LogType only containing bits within the conversion value range if any are present; otherwise defaults to -1</returns>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.Normalize(System.Collections.Generic.HashSet{LogUtils.Enums.LogCategory})">
-            <summary>
-            Ensures that set is not null, and invalid entries are not present
-            </summary>
-            <remarks>This method is null safe, and HashSet will be operated on directly</remarks>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.ToFormattableLogger(LogUtils.ILogger)">
-            <summary>
-            Converts instance into an <see cref="T:LogUtils.IFormatLogger"/> object
-            </summary>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.CanHandle(LogUtils.ILogHandler,LogUtils.Requests.LogRequest)">
-            <summary>
-            Check that an <see cref="T:LogUtils.ILogHandler"/> is able to process the provided <see cref="T:LogUtils.Requests.LogRequest"/> instance
-            </summary>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.CompatibleWith(System.Collections.Generic.IEnumerable{LogUtils.ILogHandler},LogUtils.Enums.LogID,LogUtils.Requests.RequestType)">
-            <summary>
-            Finds all logger instances that accepts log requests for a specified <see cref="T:LogUtils.Enums.LogID"/> instance
-            </summary>
-            <param name="handlers"></param>
-            <param name="logFile">The <see cref="T:LogUtils.Enums.LogID"/> to check</param>
-            <param name="requestType">The request type expected</param>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.FindCompatible(System.Collections.Generic.IEnumerable{LogUtils.ILogHandler},LogUtils.Enums.LogID,LogUtils.Requests.RequestType)">
-            <summary>
-            Find a logger instance that accepts log requests for a specified <see cref="T:LogUtils.Enums.LogID"/> instance
-            </summary>
-            <param name="handlers"></param>
-            <param name="logFile">The <see cref="T:LogUtils.Enums.LogID"/> to check</param>
-            <param name="requestType">The request type expected</param>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.NearestEquivalent(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},LogUtils.Enums.LogID)">
-            <summary>
-            Finds the best fit candidate in a target collection for a provided log file
-            </summary>
-            <returns>A <see cref="T:LogUtils.Enums.LogID"/> contained in the target collection with a matching filename, and/or path (best fit)</returns>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.WriteFromBuffer(LogUtils.ILogWriter,LogUtils.Enums.LogID,System.Boolean)">
-            <summary>
-            Attempts to write content from the message buffer to file
-            </summary>
-            <param name="writer"></param>
-            <param name="logFile">The file that contains the message buffer</param>
-            <param name="respectBufferState">When true no content will be written to file if <see cref="P:LogUtils.MessageBuffer.IsBuffering"/> property is set to true</param>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.Find(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String,System.String)">
-            <summary>
-            Finds a <see cref="T:LogUtils.Enums.LogID"/> instance with the given metadata in the provided collection
-            </summary>
-            <remarks>
-            - Compares ID, Filename, and CurrentFilename fields
-            </remarks>
-            <param name="values"></param>
-            <param name="filename">The filename to search for</param>
-            <param name="relativePathNoFile">The filepath to search for. When set to null, any filename match will be returned with custom root being prioritized</param>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.Find(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.IO.FileInfo)">
-            <summary>
-            Finds a <see cref="T:LogUtils.Enums.LogID"/> instance with the given metadata in the provided collection
-            </summary>
-            <remarks>
-            - Compares CurrentFilename, and CurrentFolderPath fields
-            </remarks>
-            <param name="values"></param>
-            <param name="fileInfo">The file to search for a direct match for</param>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.FindAll(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String)">
-            <summary>
-            Finds all <see cref="T:LogUtils.Enums.LogID"/> instances with the given metadata in the provided collection
-            </summary>
-            <remarks>
-            - Compares ID, Filename, and CurrentFilename fields
-            </remarks>
-            <param name="values"></param>
-            <param name="filename">The filename to search for</param>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.FindAll(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String,LogUtils.Properties.CompareOptions)">
-            <summary>
-            Finds all <see cref="T:LogUtils.Enums.LogID"/> instances with the given metadata in the provided collection
-            </summary>
-            <param name="values"></param>
-            <param name="filename">The filename to search for</param>
-            <param name="compareOptions">Represents options that determine which fields to check against</param>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.FindAll(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.Func{LogUtils.Properties.LogProperties,System.Boolean})">
-            <summary>
-            Finds all <see cref="T:LogUtils.Enums.LogID"/> instances that match a predicate in the provided collection
-            </summary>
-            <param name="values"></param>
-            <param name="predicate">The predicate to match</param>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.FindByTag(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String)">
-            <summary>
-            Finds all <see cref="T:LogUtils.Enums.LogID"/> instances with the given tag in the provided collection
-            </summary>
-            <param name="values"></param>
-            <param name="tag">The tag to search for</param>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.Find(System.Collections.Generic.IEnumerable{LogUtils.Properties.LogProperties},System.String,System.String)">
-            <inheritdoc cref="M:LogUtils.ExtensionMethods.Find(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String,System.String)"/>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.FindAll(System.Collections.Generic.IEnumerable{LogUtils.Properties.LogProperties},System.String,LogUtils.Properties.CompareOptions)">
-            <inheritdoc cref="M:LogUtils.ExtensionMethods.FindAll(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String,LogUtils.Properties.CompareOptions)"/>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.FindAll(System.Collections.Generic.IEnumerable{LogUtils.Properties.LogProperties},System.Func{LogUtils.Properties.LogProperties,System.Boolean})">
-            <inheritdoc cref="M:LogUtils.ExtensionMethods.FindAll(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.Func{LogUtils.Properties.LogProperties,System.Boolean})"/>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.FindByTag(System.Collections.Generic.IEnumerable{LogUtils.Properties.LogProperties},System.String)">
-            <inheritdoc cref="M:LogUtils.ExtensionMethods.FindByTag(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID},System.String)"/>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.GetIDs(System.Collections.Generic.IEnumerable{LogUtils.Properties.LogProperties})">
-            <summary>
-            Returns all <see cref="T:LogUtils.Enums.LogID"/> instances belonging to entries in this enumeration
-            </summary>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.GetProperties(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID})">
-            <summary>
-            Returns all <see cref="T:LogUtils.Properties.LogProperties"/> instances belonging to entries in this enumeration
-            </summary>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.GetIDs(System.Collections.Generic.IEnumerable{LogUtils.Properties.LogGroupProperties})">
-            <summary>
-            Returns all <see cref="T:LogUtils.Enums.LogGroupID"/> instances belonging to entries in this enumeration
-            </summary>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.GetProperties(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogGroupID})">
-            <inheritdoc cref="M:LogUtils.ExtensionMethods.GetProperties(System.Collections.Generic.IEnumerable{LogUtils.Enums.LogID})"/>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.GetMembers(System.Collections.Generic.IEnumerable{LogUtils.Properties.LogGroupProperties})">
-            <summary>
-            Returns all group members belonging to entries in this enumeration
-            </summary>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.GetMemberProperties(System.Collections.Generic.IEnumerable{LogUtils.Properties.LogGroupProperties})">
-            <summary>
-            Returns all <see cref="T:LogUtils.Properties.LogProperties"/> instance belonging to group members of entries in this enumeration
-            </summary>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.AppendHeader(System.Text.StringBuilder,System.String)">
-            <summary>
-            Appends a message in between divider spacers
-            </summary>
-            <param name="builder">The builder to append to</param>
-            <param name="header">The content to use as a header</param>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.MatchAny(System.String,System.Collections.Generic.IEqualityComparer{System.String},System.String[])">
-            <summary>
-            Evaluates whether a string is equal to any of the provided values
-            </summary>
-            <param name="str">The string to evaluate</param>
-            <param name="comparer">An IEqualityComparer to use for the evaluation</param>
-            <param name="values">The values to compare the string against</param>
-            <returns>Whether a match was found</returns>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.Bump(System.Version,LogUtils.VersionCode,System.Int32)">
-            <summary>
-            Bumps provided version to a specified value
-            </summary>
-            <exception cref="T:System.ArgumentOutOfRangeException">Increment value is negative</exception>
-            <exception cref="T:System.NotImplementedException">VersionCode is invalid</exception>
-            <exception cref="T:System.NotSupportedException">The Version object doesn't provide the requested version value</exception>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.Add``1(System.Collections.Generic.ICollection{System.WeakReference{``0}},``0)">
-            <inheritdoc cref="M:System.Collections.Generic.ICollection`1.Add(`0)"/>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.AddRange``1(System.Collections.Generic.ICollection{System.WeakReference{``0}},System.Collections.Generic.IEnumerable{``0})">
-            <summary>
-            Adds each item in the provided collection to the ICollection&lt;T&gt;"/>
-            </summary>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.Remove``1(System.Collections.Generic.ICollection{System.WeakReference{``0}},``0)">
-            <inheritdoc cref="M:System.Collections.Generic.ICollection`1.Remove(`0)"/>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.RemoveWhere``1(System.Collections.Generic.ICollection{System.WeakReference{``0}},System.Predicate{``0})">
-            <summary>
-            Remove items from the ICollection&lt;T&gt; based on a predicate
-            </summary>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.RemoveCollectedEntries``1(System.Collections.Generic.ICollection{System.WeakReference{``0}})">
-            <summary>
-            Remove entries that have been garbage collected
-            </summary>
-            <returns>The number of removed entries</returns>
-        </member>
-        <member name="M:LogUtils.ExtensionMethods.GetLocks``1(System.Collections.Generic.IEnumerable{``0})">
-            <summary>
-            Selects all acquirable lock objects from the enumeration
             </summary>
         </member>
         <member name="F:LogUtils.FileExtensionInfo.MIN_LONG_EXTENSION_LENGTH">
@@ -11075,6 +11125,11 @@
             The specified path to merge into
             </summary>
         </member>
+        <member name="F:LogUtils.MergeFolderState.Events">
+            <summary>
+            Contains event handlers pertaining to the merge process
+            </summary>
+        </member>
         <member name="F:LogUtils.MergeFolderState.History">
             <summary>
             The complete history of file system, LogID, and LogGroupID changes since the merge began
@@ -11083,11 +11138,6 @@
         <member name="F:LogUtils.MergeHistory.Conflicts">
             <summary>
             A queue containing merge conflicts that require input from the user to resolve
-            </summary>
-        </member>
-        <member name="F:LogUtils.MergeHistory.ConflictHandler">
-            <summary>
-            Handles all merge conflicts
             </summary>
         </member>
         <member name="F:LogUtils.MergeHistory.HasFailed">
