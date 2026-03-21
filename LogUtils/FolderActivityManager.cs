@@ -85,6 +85,14 @@ namespace LogUtils
             return removed;
         }
 
+        public ActivityRecord[] GetPendingMergeRecords(string path)
+        {
+            return InactiveMoves.Except(ActiveMovesThisThread)
+                                .GetMatches(path)
+                                .Where(entry => entry.MergeHistory != null)
+                                .ToArray();
+        }
+
         public ActivityRecord[] GetProblematicRecords(string path)
         {
             return ActiveMoves.Except(ActiveMovesThisThread)

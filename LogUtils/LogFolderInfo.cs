@@ -271,7 +271,8 @@ namespace LogUtils
 
                 if (!canFolderStateBeTrusted)
                 {
-                    //Cancel pending merge operations
+                    cancelPendingMerges(FolderPath);
+                    cancelPendingMerges(newPath);
 
                     //Update the current group, and files references while still under the old locks
                     RefreshInfo();
@@ -279,6 +280,15 @@ namespace LogUtils
 
                     scope.Dispose();
                     scope = newScope;
+
+                    void cancelPendingMerges(string path)
+                    {
+                        var mergeRecords = ActivityManager.GetPendingMergeRecords(path);
+                        foreach (ActivityRecord pendingMerge in mergeRecords)
+                        {
+                            cancelMerge(pendingMerge.MergeHistory);
+                        }
+                    }
                 }
 
                 //The locks will prevent other move operations from occuring, listening will no longer be necessary
@@ -312,7 +322,13 @@ namespace LogUtils
             }
             finally
             {
-                ActivityManager.RemoveRecordAnyThread(moveRecord);
+                lock (ActivityManager)
+                {
+                    if (moveRecord.MergeHistory != null && !moveRecord.MergeHistory.HasFailed)
+                        ActivityManager.SetInactive(moveRecord);
+                    else
+                        ActivityManager.RemoveRecordAnyThread(moveRecord);
+                }
             }
         }
 
@@ -383,9 +399,12 @@ namespace LogUtils
                 DestinationPath = newPath
             };
 
-            mergeCurrentFolder(mergeInfo);
-
             MergeHistory history = mergeInfo.History;
+
+            ActivityRecord currentRecord = ActivityManager.ActiveMovesThisThread.First(entry => PathUtils.PathsAreEqual(entry.SourcePath, FolderPath));
+            currentRecord.MergeHistory = history;
+
+            mergeCurrentFolder(mergeInfo);
 
             if (history.HasFailed)
             {
