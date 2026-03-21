@@ -324,8 +324,8 @@ namespace LogUtils
             {
                 lock (ActivityManager)
                 {
-                    if (moveRecord.MergeHistory != null && !moveRecord.MergeHistory.HasFailed)
-                        ActivityManager.SetInactive(moveRecord);
+                    if (moveRecord.IsMergeInProgress) //Merge was unable to complete this frame
+                        ActivityManager.Deactivate(moveRecord);
                     else
                         ActivityManager.RemoveRecordAnyThread(moveRecord);
                 }

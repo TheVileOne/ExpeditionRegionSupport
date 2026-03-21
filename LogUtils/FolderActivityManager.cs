@@ -56,7 +56,7 @@ namespace LogUtils
         /// <summary>
         /// Changes an active record to an inactive record
         /// </summary>
-        public void SetInactive(ActivityRecord record)
+        public void Deactivate(ActivityRecord record)
         {
             if (!RemoveRecordAnyThread(record))
                 UtilityLogger.LogWarning("Expected active move record");
@@ -106,6 +106,15 @@ namespace LogUtils
 
             public string SourcePath;
             public string DestinationPath;
+
+            public bool IsMergeInProgress
+            {
+                get
+                {
+                    MergeHistory history = MergeHistory;
+                    return history != null && history.Conflicts.Count > 0 && !history.HasFailed;
+                }
+            }
         }
 
         public enum ActivityContext
