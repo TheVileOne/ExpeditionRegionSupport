@@ -56,10 +56,7 @@ namespace LogUtils
 
             MergeHistory history = History;
             MergeEventHandler events = Events;
-            UtilityCore.Scheduler.Schedule(() =>
-            {
-                ConflictResolutionDialog.ShowDialog(history, events);
-            }, frameInterval: 1, syncToRainWorld: true, invokeLimit: 1);
+            ConflictResolutionDialog.ShowDialog(history, events);
         }
     }
 
