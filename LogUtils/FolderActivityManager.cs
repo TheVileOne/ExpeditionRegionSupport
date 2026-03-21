@@ -85,6 +85,12 @@ namespace LogUtils
             return removed;
         }
 
+        public ActivityRecord GetRecord(MergeHistory history)
+        {
+            var allRecords = ActiveMoves.Concat(InactiveMoves);
+            return allRecords.FirstOrDefault(entry => entry.MergeHistory == history);
+        }
+
         public ActivityRecord[] GetPendingMergeRecords(string path)
         {
             return InactiveMoves.Except(ActiveMovesThisThread)
@@ -103,6 +109,7 @@ namespace LogUtils
         public record ActivityRecord
         {
             public MergeHistory MergeHistory;
+            public MergeEventHandler Events;
 
             public string SourcePath;
             public string DestinationPath;

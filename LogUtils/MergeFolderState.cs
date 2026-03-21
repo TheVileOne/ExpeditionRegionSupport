@@ -64,5 +64,27 @@ namespace LogUtils
     {
         public event Action OnCancel;
         public event Action OnCompleted;
+
+        public void RaiseEvent(MergeEventID eventID)
+        {
+            switch (eventID)
+            {
+                case MergeEventID.Canceled:
+                    OnCancel?.Invoke();
+                    break;
+                case MergeEventID.Completed:
+                    OnCompleted?.Invoke();
+                    break;
+                default:
+                    UtilityLogger.LogWarning("Unrecognized event");
+                    break;
+            }
+        }
+    }
+
+    public enum MergeEventID
+    {
+        Canceled,
+        Completed
     }
 }

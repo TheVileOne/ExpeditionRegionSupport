@@ -428,6 +428,7 @@ namespace LogUtils
             }
 
             UtilityLogger.Log("No conflicts detected");
+            mergeInfo.Events.RaiseEvent(MergeEventID.Completed);
 
             //The merge process will leave behind an empty folder
             DirectoryUtils.DeletePermanently(FolderPath, deleteOnlyIfEmpty: true);
@@ -548,6 +549,10 @@ namespace LogUtils
         {
             UtilityLogger.Log("Merge operation canceled");
             history.Restore();
+            ActivityRecord mergeRecord = ActivityManager.GetRecord(history);
+
+            if (mergeRecord != null)
+                mergeRecord.Events.RaiseEvent(MergeEventID.Canceled);
         }
 
         private IEnumerable<MergeRecord> changePathOfNonExistingFilesAndFolders(string destinationPath)
