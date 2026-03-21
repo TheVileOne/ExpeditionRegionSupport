@@ -427,12 +427,17 @@ namespace LogUtils
                 DestinationPath = newPath
             };
 
-            MergeHistory history = mergeInfo.History;
-
-            ActivityRecord currentRecord = ActivityManager.ActiveMovesThisThread.First(entry => PathUtils.PathsAreEqual(entry.SourcePath, FolderPath));
-            currentRecord.MergeHistory = history;
+            ActivityRecord record;
+            lock (ActivityManager)
+            {
+                record = ActivityManager.ActiveMovesThisThread.First(entry => PathUtils.PathsAreEqual(entry.SourcePath, FolderPath));
+                record.Events = mergeInfo.Events;
+                record.MergeHistory = mergeInfo.History;
+            }
 
             mergeCurrentFolder(mergeInfo);
+
+            MergeHistory history = mergeInfo.History;
 
             if (history.HasFailed)
             {
@@ -451,6 +456,8 @@ namespace LogUtils
                     cancelMerge(history);
                     return;
                 }
+
+                record.State = ActivityState.WaitingForConflictResolution;
                 mergeInfo.ProcessConflicts();
                 return;
             }
