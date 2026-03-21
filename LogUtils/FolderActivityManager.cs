@@ -58,17 +58,31 @@ namespace LogUtils
             return ActiveMoves.FirstOrDefault(entry => entry.MergeHistory == history);
         }
 
-        public ActivityRecord[] GetPendingMergeRecords(string path)
+        /// <summary>
+        /// Gets any merge records merging into, or out of a provided path, or the parent directory containing the path
+        /// </summary>
+        public ActivityRecord[] GetMergeRecords(string path)
         {
-            return ActiveMoves.Except(ActiveMovesThisThread)
+            return ActiveMoves.GetMergeRecords()
                               .GetMatches(path)
-                              .Where(entry => entry.MergeHistory != null)
                               .ToArray();
         }
 
+        /// <summary>
+        /// Searches for any move records that can interfere with the folder state during a move operation
+        /// </summary>
         public ActivityRecord[] GetProblematicRecords(string path)
         {
-            return ActiveMoves.Except(ActiveMovesThisThread)
+            var problematicMerges
+                = ActiveMoves.GetMergeRecords()
+                             //Check that merge happened off this thread, or  whether this thread will have priority over it
+                             .Where(entry => !ActiveMovesThisThread.Contains(entry) || entry.State == ActivityState.WaitingForConflictResolution);
+
+            var exclusions = ActiveMoves.GetMergeRecords().Concat(ActiveMovesThisThread).Distinct();
+
+            return ActiveMoves.Except(exclusions)                                  //Exclude
+                              .Where(entry => entry.State < ActivityState.Faulted)
+                              .Concat(problematicMerges)
                               .GetMatches(path)
                               .ToArray();
         }
@@ -105,12 +119,6 @@ namespace LogUtils
             Faulted = 6, //Failed, or canceled
             Completed = 7
         }
-
-        public enum ActivityContext
-        {
-            None,
-            Merge,
-        }
     }
 
     public static partial class ExtensionMethods
@@ -132,6 +140,11 @@ namespace LogUtils
                          && (PathUtils.ContainsOtherPath(record.DestinationPath, path) || PathUtils.ContainsOtherPath(path, record.DestinationPath));
                 return isSourceMatch || isDestinationMatch;
             }
+        }
+
+        internal static IEnumerable<ActivityRecord> GetMergeRecords(this IEnumerable<ActivityRecord> self)
+        {
+            return self.Where(entry => entry.MergeHistory != null);
         }
     }
 }

@@ -278,6 +278,7 @@ namespace LogUtils
                 record.State = ActivityState.VerifyingFolderState;
                 if (!canFolderStateBeTrusted)
                 {
+                    UtilityLogger.Log("Folder may be in an unsafe state. Updating folder state...");
                     cancelPendingMerges(FolderPath);
                     cancelPendingMerges(newPath);
 
@@ -290,10 +291,20 @@ namespace LogUtils
 
                     void cancelPendingMerges(string path)
                     {
-                        var mergeRecords = ActivityManager.GetPendingMergeRecords(path);
-                        foreach (ActivityRecord pendingMerge in mergeRecords)
+                        lock (ActivityManager)
                         {
-                            cancelMerge(pendingMerge.MergeHistory);
+                            var mergeRecords =
+                                    ActivityManager
+                                        .GetMergeRecords(path)
+                                        .Where(entry => entry.State < ActivityState.Faulted)
+                                        //Check that merge happened off this thread, or whether this thread will have priority over it
+                                        .Where(entry => !ActivityManager.ActiveMovesThisThread.Contains(entry) || entry.State == ActivityState.WaitingForConflictResolution);
+
+                            foreach (ActivityRecord pendingMerge in mergeRecords)
+                            {
+                                UtilityLogger.Log("Merge canceled to preserve folder state");
+                                cancelMerge(pendingMerge.MergeHistory);
+                            }
                         }
                     }
                 }
@@ -566,12 +577,15 @@ namespace LogUtils
         {
             UtilityLogger.Log("Merge operation canceled");
             history.Restore();
-            ActivityRecord mergeRecord = ActivityManager.GetRecord(history);
-
-            if (mergeRecord != null)
+            lock (ActivityManager)
             {
-                mergeRecord.State = ActivityState.Faulted;
-                mergeRecord.Events.RaiseEvent(MergeEventID.Canceled);
+                ActivityRecord mergeRecord = ActivityManager.GetRecord(history);
+
+                if (mergeRecord != null)
+                {
+                    mergeRecord.State = ActivityState.Faulted;
+                    mergeRecord.Events.RaiseEvent(MergeEventID.Canceled);
+                }
             }
         }
 
