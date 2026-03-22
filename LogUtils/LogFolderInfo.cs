@@ -450,13 +450,6 @@ namespace LogUtils
                 UtilityLogger.Log("Merge operation has unresolved conflicts");
                 UtilityLogger.Log("Number of conflicts detected: " + history.Conflicts.Count);
 
-                if (UtilityCore.Build == UtilitySetup.Build.RELEASE)
-                {
-                    UtilityLogger.LogWarning("Conflict processing unavailable");
-                    cancelMerge(history);
-                    return;
-                }
-
                 record.State = ActivityState.WaitingForConflictResolution;
                 mergeInfo.ProcessConflicts();
                 return;
