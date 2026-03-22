@@ -74,6 +74,15 @@ namespace LogUtils
 
             buttonPosition = new Vector2(buttonPosition.x + (buttonSize.x + buttonSpacing) - (buttonSize.x / 2), currentPosition.y);
             dialogPage.subObjects.Add(new SimpleButton(this, dialogPage, Translate("Cancel"), DialogOption.CANCEL, buttonPosition, buttonSize));
+
+            OnClose += conflictResolutionDialog_OnClose;
+        }
+
+        private void conflictResolutionDialog_OnClose(UtilityDialog source, DialogCloseEventArgs data)
+        {
+            //Ensure that files are always cleaned up even on a sudden closure of the dialog
+            if (activeConflict != null)
+                Singal(null, DialogOption.CANCEL);
         }
 
         /// <summary>
