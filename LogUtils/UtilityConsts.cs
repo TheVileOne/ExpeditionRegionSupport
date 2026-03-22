@@ -324,6 +324,10 @@ namespace LogUtils
             public const string FOLDER_MOVE = "FOLDER_MOVE";
             public const string FILE_MOVE = "FILE_MOVE";
             public const string PATH_CHANGE = "PATH_CHANGE";
+            public const string CANCEL = "CANCEL";
+            public const string OVERWRITE = "OVERWRITE";
+            public const string KEEP_BOTH = "KEEP_BOTH";
+            public const string SKIP = "SKIP";
         }
     }
 }

@@ -1,134 +1,114 @@
 ﻿using LogUtils.Helpers.FileHandling;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace LogUtils
 {
     internal class ConflictResolutionHandler
     {
-        private readonly Queue<MergeRecord> conflicts;
-        private readonly Queue<ConflictResolutionFeedback> feedback;
+        private readonly List<MergeRecord> conflicts;
+        private readonly List<ConflictResolutionFeedback> feedback;
 
+        private int skipIndex = -1;
         public Queue<MergeRecord> ResolvedEntries = new Queue<MergeRecord>();
 
-        public ConflictResolutionHandler(Queue<MergeRecord> mergeConflicts)
+        public ConflictResolutionHandler()
         {
-            conflicts = mergeConflicts; //Reference updated through MergeHistory instance
-            feedback = new Queue<ConflictResolutionFeedback>();
+            conflicts = new List<MergeRecord>();
+            feedback = new List<ConflictResolutionFeedback>();
         }
 
-        public void CollectFeedbackAndResolve()
+        public void CollectFeedback(ConflictResolutionFeedback feedback, MergeRecord conflict)
         {
-            CollectFeedbackFromUser();
-            ResolveAll();
-        }
-
-        public void CollectFeedbackFromUser()
-        {
-            UtilityLogger.Log("Number of conflicts detected: " + conflicts.Count);
-
-            if (conflicts.Count == 0)
+            UtilityLogger.Log("Received feedback");
+            if (skipIndex != -1)
+            {
+                this.feedback[skipIndex] = feedback;
+                this.conflicts[skipIndex] = conflict;
                 return;
-
-            ConflictResolutionFeedback[] tempArray = new ConflictResolutionFeedback[conflicts.Count];
-            int currentIndex = 0;
-
-            //Populate feedback for each unresolved conflict
-            foreach (MergeRecord current in conflicts)
-            {
-                tempArray[currentIndex] = askUserForFeedback(current);
-                currentIndex++;
             }
 
-            currentIndex = 0;
-            while (currentIndex < tempArray.Length)
-            {
-                //Each pass we build up the feedback queue in order
-                if (currentIndex == feedback.Count && tempArray[currentIndex] != ConflictResolutionFeedback.SaveForLater)
-                {
-                    feedback.Enqueue(tempArray[currentIndex]);
-                    currentIndex++;
-                    continue;
-                }
-
-                if (tempArray[currentIndex] == ConflictResolutionFeedback.SaveForLater)
-                {
-                    //This record was not decided on during any previous pass - ask again for feedback
-                    tempArray[currentIndex] = askUserForFeedback(conflicts.ElementAt(currentIndex));
-                }
-                currentIndex++;
-
-                //After all entries have been processed, set index to the last entry we had to reask for feedback. The process should not end
-                //until all entries in the SaveforLater state receive a valid resolution option.
-                if (currentIndex == tempArray.Length)
-                    currentIndex = feedback.Count;
-            }
+            this.feedback.Add(feedback);
+            this.conflicts.Add(conflict);
         }
 
-        private ConflictResolutionFeedback askUserForFeedback(MergeRecord conflict)
+        /// <summary>
+        /// Returns an enumerator containing all conflicts the user decided to handler later
+        /// </summary>
+        public IEnumerator<MergeRecord> GetSkippedConflicts()
         {
-            //TODO: Create feedback dialog
-            return ConflictResolutionFeedback.KeepBoth;
+            for (int i = 0; i < feedback.Count; i++)
+            {
+                if (feedback[i] == ConflictResolutionFeedback.SaveForLater)
+                {
+                    skipIndex = i;
+                    yield return conflicts[i];
+                }
+            }
+            yield break;
         }
 
         public void ResolveAll()
         {
-            using (TempFolder.Access())
+            IAccessToken access = TempFolder.Access();
+            int conflictsHandled = 0;
+            try
             {
-                ResolveAllInternal();
-            }
-        }
-
-        internal void ResolveAllInternal()
-        {
-            while (conflicts.Count > 0)
-            {
-                //These queues will have the same amount of entries
-                var currentRecord = conflicts.Dequeue();
-                var currentFeedback = feedback.Dequeue();
-
-                bool isResolved = false;
-                switch (currentFeedback)
+                for (int i = 0; i < conflicts.Count; i++)
                 {
-                    case ConflictResolutionFeedback.CancelMove:
-                        isResolved = true;
-                        currentRecord.IsCanceled = true;
-                        break;
-                    case ConflictResolutionFeedback.Overwrite:
-                        isResolved = FileUtils.TryReplace(currentRecord.OriginalPath, currentRecord.CurrentPath);
+                    //These collections have the same amount of entries
+                    var currentRecord = conflicts[i];
+                    var currentFeedback = feedback[i];
 
-                        if (isResolved)
-                        {
-                            FileReplaceRecord replaceRecord = new FileReplaceRecord
-                            {
-                                OriginalPath = currentRecord.OriginalPath,
-                                CurrentPath = currentRecord.CurrentPath
-                            };
+                    bool isResolved = false;
+                    switch (currentFeedback)
+                    {
+                        case ConflictResolutionFeedback.CancelMove:
+                            isResolved = true;
+                            currentRecord.IsCanceled = true;
+                            break;
+                        case ConflictResolutionFeedback.Overwrite:
+                            isResolved = FileUtils.TryReplace(currentRecord.OriginalPath, currentRecord.CurrentPath);
 
-                            if (currentRecord is FileMoveRecord moveRecord && moveRecord.Target != null)
+                            if (isResolved)
                             {
-                                //Transfer log file and update path to reflect the new current path
-                                replaceRecord.Target = moveRecord.Target;
-                                replaceRecord.Target.Properties.ChangePath(replaceRecord.CurrentPath);
+                                FileReplaceRecord replaceRecord = new FileReplaceRecord
+                                {
+                                    OriginalPath = currentRecord.OriginalPath,
+                                    CurrentPath = currentRecord.CurrentPath
+                                };
+
+                                if (currentRecord is FileMoveRecord moveRecord && moveRecord.Target != null)
+                                {
+                                    //Transfer log file and update path to reflect the new current path
+                                    replaceRecord.Target = moveRecord.Target;
+                                    replaceRecord.Target.Properties.ChangePath(replaceRecord.CurrentPath);
+                                }
+                                currentRecord = replaceRecord;
                             }
-                            currentRecord = replaceRecord;
-                        }
-                        break;
-                    case ConflictResolutionFeedback.KeepBoth:
-                        isResolved = FileUtils.TryMove(currentRecord.OriginalPath, currentRecord.CurrentPath, FileMoveOption.RenameSourceIfNecessary, out string newCurrentPath);
+                            break;
+                        case ConflictResolutionFeedback.KeepBoth:
+                            isResolved = FileUtils.TryMove(currentRecord.OriginalPath, currentRecord.CurrentPath, FileMoveOption.RenameSourceIfNecessary, out string newCurrentPath);
 
-                        if (isResolved)
-                            currentRecord.CurrentPath = newCurrentPath;
-                        break;
-                    case ConflictResolutionFeedback.SaveForLater:
-                        throw new InvalidOperationException("Conflict resolution state is not valid.");
+                            if (isResolved)
+                                currentRecord.CurrentPath = newCurrentPath;
+                            break;
+                        case ConflictResolutionFeedback.SaveForLater:
+                            throw new InvalidOperationException("Conflict resolution state is not valid.");
+                    }
+
+                    if (!isResolved)
+                        throw new OperationCanceledException("Unable to resolve conflict");
+
+                    ResolvedEntries.Enqueue(currentRecord);
+                    conflictsHandled = i;
                 }
-
-                if (!isResolved)
-                    throw new OperationCanceledException("Unable to resolve conflict");
-
-                ResolvedEntries.Enqueue(currentRecord);
+            }
+            finally
+            {
+                access.Dispose();
+                conflicts.RemoveRange(0, conflictsHandled);
+                feedback.RemoveRange(0, conflictsHandled);
             }
         }
     }

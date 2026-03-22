@@ -1,8 +1,10 @@
 using LogUtils.Events;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static LogUtils.FolderActivityManager;
+using static LogUtils.UtilityConsts;
 
 namespace LogUtils
 {
@@ -13,11 +15,14 @@ namespace LogUtils
         private readonly MergeEventHandler events;
         private readonly MergeHistory history;
         private readonly ConflictResolutionHandler handler;
+        private MergeRecord activeConflict;
+
+        private IEnumerator<MergeRecord> skippedEntries;
 
         public ConflictResolutionDialog(MergeHistory history, MergeEventHandler mergeEvents) : base(DESCRIPTION, new Vector2(200, 200), RainWorldInfo.RainWorld.processManager)
         {
             this.events = mergeEvents;
-            this.handler = new ConflictResolutionHandler(history.Conflicts);
+            this.handler = new ConflictResolutionHandler();
             this.history = history;
         }
 
@@ -66,6 +71,85 @@ namespace LogUtils
                 UtilityDialog dialog = new ConflictResolutionDialog(history, mergeEvents);
                 dialog.Show();
                 UtilityEvents.OnSetupPeriodReached -= scheduledEvent;
+            }
+        }
+
+        /// <summary>
+        /// Collects feedback results based on user-selected options
+        /// </summary>
+        /// <param name="sender">Event source object</param>
+        /// <param name="message">Case-sensitive identifier</param>
+        public override void Singal(MenuObject sender, string message)
+        {
+            if (activeConflict == null)
+            {
+                base.Singal(sender, message);
+                return;
+            }
+
+            UtilityLogger.Log("OPTION SELECTED: " + message);
+            switch (message)
+            {
+                case "CANCEL":
+                    handler.CollectFeedback(ConflictResolutionFeedback.CancelMove, activeConflict);
+                    break;
+                case "OVERWRITE":
+                    handler.CollectFeedback(ConflictResolutionFeedback.Overwrite, activeConflict);
+                    break;
+                case "KEEP_BOTH":
+                    handler.CollectFeedback(ConflictResolutionFeedback.KeepBoth, activeConflict);
+                    break;
+                case "SKIP":
+                    handler.CollectFeedback(ConflictResolutionFeedback.SaveForLater, activeConflict);
+                    break;
+                default:
+                    base.Singal(sender, message);
+                    return;
+            }
+            activeConflict = null;
+        }
+
+        /// <summary/>
+        public override void Update()
+        {
+            base.Update();
+            if (activeConflict == null)
+            {
+                updateActiveConflict();
+                if (activeConflict == null)
+                {
+                    handler.ResolveAll();
+                    UtilityLogger.Log("No more conflicts");
+                    Dismiss();
+                    return;
+                }
+                //TODO: Update info to reflect new conflict information
+            }
+        }
+
+        private void updateActiveConflict()
+        {
+            if (history.Conflicts.Count > 0)
+            {
+                activeConflict = history.Conflicts.Dequeue();
+                return;
+            }
+
+            if (skippedEntries == null)
+                skippedEntries = handler.GetSkippedConflicts();
+
+            if (!skippedEntries.MoveNext())
+            {
+                //User may have skipped more entries
+                skippedEntries.Dispose();
+                skippedEntries = handler.GetSkippedConflicts();
+
+                if (skippedEntries.MoveNext())
+                    activeConflict = skippedEntries.Current;
+            }
+            else
+            {
+                activeConflict = skippedEntries.Current;
             }
         }
     }
