@@ -133,7 +133,6 @@ namespace LogUtils
             }
         }
 
-
         private static string createDescription(MergeHistory history)
         {
             switch (history.Conflicts.Count)
@@ -234,20 +233,47 @@ namespace LogUtils
                 updateActiveConflict();
                 if (activeConflict == null)
                 {
-                    handler.ResolveAll();
-                    lock (LogFolderInfo.ActivityManager)
+                    try
                     {
-                        ActivityRecord record = LogFolderInfo.ActivityManager.GetRecord(history);
-
-                        if (record != null)
+                        handler.ResolveAll();
+                        lock (LogFolderInfo.ActivityManager)
                         {
-                            record.State = ActivityState.Completed;
-                            record.Events.RaiseEvent(MergeEventID.Completed);
-                            LogFolderInfo.ActivityManager.RemoveRecord(record);
+                            ActivityRecord record = LogFolderInfo.ActivityManager.GetRecord(history);
+
+                            if (record != null)
+                            {
+                                record.State = ActivityState.Completed;
+                                record.Events.RaiseEvent(MergeEventID.Completed);
+                                LogFolderInfo.ActivityManager.RemoveRecord(record);
+                            }
+                        }
+                        UtilityLogger.Log("No more conflicts");
+                    }
+                    catch (OperationCanceledException ex) //User chose to cancel merge, or there was a failure to resolve
+                    {
+                        history.HasFailed = true;
+                        history.Exception = ex;
+                    }
+                    finally
+                    {
+                        while (handler.ResolvedEntries.Count > 0)
+                        {
+                            MergeRecord current = handler.ResolvedEntries.Dequeue();
+
+                            if (!current.IsCanceled)
+                                history.AddRecord(current);
                         }
                     }
-                    UtilityLogger.Log("No more conflicts");
-                    Dismiss();
+
+                    if (!history.HasFailed)
+                    {
+                        Dismiss();
+                    }
+                    else
+                    {
+                        UtilityLogger.LogError("Unable to complete merge", history.Exception);
+                        Singal(null, DialogOption.CANCEL);
+                    }
                     return;
                 }
                 updateDetails();
