@@ -23,16 +23,14 @@ namespace LogUtils
         private Vector2 detailsPosition;
         private PositionedMenuObject detailsContainer;
 
-        private readonly MergeEventHandler events;
         private readonly MergeHistory history;
         private readonly ConflictResolutionHandler handler;
         private MergeRecord activeConflict;
 
         private IEnumerator<MergeRecord> skippedEntries;
 
-        public ConflictResolutionDialog(MergeHistory history, MergeEventHandler mergeEvents) : base(createDescription(history), calculateSize(history), RainWorldInfo.RainWorld.processManager)
+        public ConflictResolutionDialog(MergeHistory history) : base(createDescription(history), calculateSize(history), RainWorldInfo.RainWorld.processManager)
         {
-            this.events = mergeEvents;
             this.handler = new ConflictResolutionHandler();
             this.history = history;
 
@@ -90,7 +88,7 @@ namespace LogUtils
         /// </summary>
         public static bool HasAnyDialogs => UtilityCore.CurrentDialogs.Where(dialog => dialog.IsActive || dialog.IsPending).ContainsType<ConflictResolutionDialog>();
 
-        public static void ShowDialog(MergeHistory history, MergeEventHandler mergeEvents)
+        public static void ShowDialog(MergeHistory history)
         {
             if (history == null)
                 throw new ArgumentNullException(nameof(history));
@@ -107,7 +105,7 @@ namespace LogUtils
             //and game will continue to process update frames while dialog is running giving a window for enabled mods to assign folder permissions.
             if (!MustBeScheduled)
             {
-                UtilityDialog dialog = new ConflictResolutionDialog(history, mergeEvents);
+                UtilityDialog dialog = new ConflictResolutionDialog(history);
                 dialog.Show();
                 return;
             }
@@ -127,7 +125,7 @@ namespace LogUtils
                     return;
                 }
 
-                UtilityDialog dialog = new ConflictResolutionDialog(history, mergeEvents);
+                UtilityDialog dialog = new ConflictResolutionDialog(history);
                 dialog.Show();
                 UtilityEvents.OnSetupPeriodReached -= scheduledEvent;
             }

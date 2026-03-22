@@ -53,10 +53,9 @@ namespace LogUtils
         public readonly void ProcessConflicts()
         {
             MergeHistory history = History;
-            MergeEventHandler events = Events;
 
             if (history.Conflicts.Count > 0)
-                ConflictResolutionDialog.ShowDialog(history, events);
+                ConflictResolutionDialog.ShowDialog(history);
         }
     }
 
