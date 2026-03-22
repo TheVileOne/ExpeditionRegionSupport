@@ -178,6 +178,23 @@ namespace LogUtils
             switch (message)
             {
                 case "CANCEL":
+                    history.Restore();
+                    lock (LogFolderInfo.ActivityManager)
+                    {
+                        ActivityRecord record = LogFolderInfo.ActivityManager.GetRecord(history);
+
+                        if (record != null)
+                        {
+                            record.State = ActivityState.Faulted;
+                            record.Events.RaiseEvent(MergeEventID.Canceled);
+                            LogFolderInfo.ActivityManager.RemoveRecord(record);
+                        }
+                    }
+                    activeConflict = null;
+                    Dismiss();
+                    break;
+                case "LEAVE_FILE":
+                    //TODO: File-specific cancellation
                     handler.CollectFeedback(ConflictResolutionFeedback.CancelMove, activeConflict);
                     break;
                 case "OVERWRITE":
@@ -200,12 +217,26 @@ namespace LogUtils
         public override void Update()
         {
             base.Update();
+
+            if (State == DialogState.Closed) return;
+
             if (activeConflict == null)
             {
                 updateActiveConflict();
                 if (activeConflict == null)
                 {
                     handler.ResolveAll();
+                    lock (LogFolderInfo.ActivityManager)
+                    {
+                        ActivityRecord record = LogFolderInfo.ActivityManager.GetRecord(history);
+
+                        if (record != null)
+                        {
+                            record.State = ActivityState.Completed;
+                            record.Events.RaiseEvent(MergeEventID.Completed);
+                            LogFolderInfo.ActivityManager.RemoveRecord(record);
+                        }
+                    }
                     UtilityLogger.Log("No more conflicts");
                     Dismiss();
                     return;

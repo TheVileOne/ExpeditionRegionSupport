@@ -328,6 +328,7 @@ namespace LogUtils
             public const string OVERWRITE = "OVERWRITE";
             public const string KEEP_BOTH = "KEEP_BOTH";
             public const string SKIP = "SKIP";
+            public const string LEAVE_FILE = "LEAVE_FILE";
         }
     }
 }
