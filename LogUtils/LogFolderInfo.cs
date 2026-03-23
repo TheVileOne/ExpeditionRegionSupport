@@ -579,12 +579,13 @@ namespace LogUtils
             history.Restore();
             lock (ActivityManager)
             {
-                ActivityRecord mergeRecord = ActivityManager.GetRecord(history);
+                ActivityRecord record = ActivityManager.GetRecord(history);
 
-                if (mergeRecord != null)
+                if (record != null)
                 {
-                    mergeRecord.State = ActivityState.Faulted;
-                    mergeRecord.Events.RaiseEvent(MergeEventID.Canceled);
+                    record.State = ActivityState.Faulted;
+                    record.Events.RaiseEvent(MergeEventID.Canceled);
+                    ActivityManager.RemoveRecord(record);
                 }
             }
         }
