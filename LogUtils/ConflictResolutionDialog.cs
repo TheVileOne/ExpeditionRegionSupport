@@ -174,7 +174,7 @@ namespace LogUtils
         /// <param name="message">Case-sensitive identifier</param>
         public override void Singal(MenuObject sender, string message)
         {
-            if (activeConflict == null)
+            if (activeConflict == null && message != DialogOption.CANCEL)
             {
                 base.Singal(sender, message);
                 return;
