@@ -183,7 +183,7 @@ namespace LogUtils
             UtilityLogger.Log("OPTION SELECTED: " + message);
             switch (message)
             {
-                case "CANCEL":
+                case DialogOption.CANCEL:
                     history.Restore();
                     lock (LogFolderInfo.ActivityManager)
                     {
@@ -199,17 +199,17 @@ namespace LogUtils
                     activeConflict = null;
                     Dismiss();
                     break;
-                case "LEAVE_FILE":
+                case DialogOption.LEAVE_FILE:
                     //TODO: File-specific cancellation
                     handler.CollectFeedback(ConflictResolutionFeedback.CancelMove, activeConflict);
                     break;
-                case "OVERWRITE":
+                case DialogOption.OVERWRITE:
                     handler.CollectFeedback(ConflictResolutionFeedback.Overwrite, activeConflict);
                     break;
-                case "KEEP_BOTH":
+                case DialogOption.KEEP_BOTH:
                     handler.CollectFeedback(ConflictResolutionFeedback.KeepBoth, activeConflict);
                     break;
-                case "SKIP":
+                case DialogOption.SKIP:
                     handler.CollectFeedback(ConflictResolutionFeedback.SaveForLater, activeConflict);
                     break;
                 default:
