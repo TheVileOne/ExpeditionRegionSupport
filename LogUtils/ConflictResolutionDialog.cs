@@ -27,9 +27,37 @@ namespace LogUtils
         private readonly ConflictResolutionHandler handler;
         private MergeRecord activeConflict;
 
+        private int conflictsRemaining
+        {
+            get
+            {
+                int activeCount = history.Conflicts.Count;
+                int skippedCount = handler.Feedback.Count(f => f == ConflictResolutionFeedback.SaveForLater);
+
+                int result = 0;
+                if (activeConflict == null)
+                {
+                    result = activeCount + skippedCount;
+                }
+                else if (activeCount > 0)
+                {
+                    result = activeCount + skippedCount + 1;
+                }
+                else if (skippedCount > 0)
+                {
+                    result = skippedCount + (activeConflict != skippedEntries.Current ? 1 : 0); //Avoids double counting
+                }
+                else
+                {
+                    result = 1; //Only conflict is the active conflict
+                }
+                return result;
+            }
+        }
+
         private IEnumerator<MergeRecord> skippedEntries;
 
-        public ConflictResolutionDialog(MergeHistory history) : base(createDescription(history), calculateSize(history), RainWorldInfo.RainWorld.processManager)
+        public ConflictResolutionDialog(MergeHistory history) : base(createDescription(history.Conflicts.Count, history.Conflicts.Peek()), calculateSize(history), RainWorldInfo.RainWorld.processManager)
         {
             this.handler = new ConflictResolutionHandler();
             this.history = history;
@@ -131,16 +159,16 @@ namespace LogUtils
             }
         }
 
-        private static string createDescription(MergeHistory history)
+        private static string createDescription(int conflictCount, MergeRecord activeRecord)
         {
-            switch (history.Conflicts.Count)
+            switch (conflictCount)
             {
                 case 0:
                     return "ERROR: No conflicts detected. Please report this.";
                 case 1:
-                    return string.Format(DESCRIPTION, "Destination already has a file named " + Path.GetFileName(history.Conflicts.Peek().CurrentPath));
+                    return string.Format(DESCRIPTION, "Destination already has a file named " + Path.GetFileName(activeRecord.CurrentPath));
                 default:
-                    return string.Format(DESCRIPTION, $"Destination has {history.Conflicts.Count()} files with the same name.");
+                    return string.Format(DESCRIPTION, $"Destination has {conflictCount} files with the same name.");
             }
         }
 
@@ -332,6 +360,8 @@ namespace LogUtils
             }
             else
             {
+                descriptionLabel.text = createDescription(conflictsRemaining, activeConflict);
+
                 MenuLabel currentLabel = (MenuLabel)detailsContainer.subObjects[0];
                 MenuLabel destinationLabel = (MenuLabel)detailsContainer.subObjects[1];
 

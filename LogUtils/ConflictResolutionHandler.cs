@@ -10,6 +10,8 @@ namespace LogUtils
         private readonly List<ConflictResolutionFeedback> feedback;
 
         private int skipIndex = -1;
+
+        public IReadOnlyCollection<ConflictResolutionFeedback> Feedback => feedback; 
         public Queue<MergeRecord> ResolvedEntries = new Queue<MergeRecord>();
 
         public ConflictResolutionHandler()
