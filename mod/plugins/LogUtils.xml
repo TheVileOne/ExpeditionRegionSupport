@@ -2406,6 +2406,21 @@
             Indicates that there are pending, or active dialogs for this type
             </summary>
         </member>
+        <member name="M:LogUtils.ConflictResolutionDialog.Singal(Menu.MenuObject,System.String)">
+            <summary>
+            Collects feedback results based on user-selected options
+            </summary>
+            <param name="sender">Event source object</param>
+            <param name="message">Case-sensitive identifier</param>
+        </member>
+        <member name="M:LogUtils.ConflictResolutionDialog.Update">
+            <summary/>
+        </member>
+        <member name="M:LogUtils.ConflictResolutionHandler.GetSkippedConflicts">
+            <summary>
+            Returns an enumerator containing all conflicts the user decided to handler later
+            </summary>
+        </member>
         <member name="F:LogUtils.ConflictResolutionFeedback.Overwrite">
             <summary>
             The file at destination will be replaced
