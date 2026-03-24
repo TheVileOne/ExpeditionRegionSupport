@@ -13,7 +13,7 @@ namespace LogUtils
 {
     public class ConflictResolutionDialog : UtilityDialog
     {
-        internal const string DESCRIPTION = "Attempt to move files unable to continue. {0} Select resolution option to continue.";
+        internal const string DESCRIPTION = "Attempt to move files unable to continue:   {0}";
 
         internal const float PADDING_X = 90f;
         internal const float PADDING_Y = 15f;
@@ -63,8 +63,10 @@ namespace LogUtils
             this.history = history;
 
             //Old value: 97.5f
-            const float DESCRIPTION_LABEL_OFFSET = 117.5f; //Defines the spacing between the top of the screen (higher value means label draws higher on the screen)
-            const float DETAILS_LABEL_OFFSET = 52.51f;     //Defines the spacing between the description label and the detail labels
+            const float DESCRIPTION_LABEL_OFFSET = 157.5f; //Defines the spacing between the top of the screen.
+                                                           //A higher value means label draws higher on the screen.
+            const float DETAILS_LABEL_OFFSET = 115f;       //Defines the spacing between the description label and the detail labels.
+                                                           //A higher value means places detail labels closer to description label.
 
             descriptionLabel.pos.y = pos.y + DESCRIPTION_LABEL_OFFSET;
 
@@ -79,6 +81,13 @@ namespace LogUtils
             detailsPosition = currentPosition;
             updateDetails();
             currentPosition.y -= LABEL_HEIGHT * detailsContainer.subObjects.Count + 1; //Account for label positions
+
+            Vector2 labelPosition = new Vector2(currentPosition.x + PADDING_X, currentPosition.y - 24f);
+            MenuLabel label = new MenuLabel(this, dialogPage, "Select option to continue", labelPosition, Vector2.zero, false);
+
+            label.label.alignment = FLabelAlignment.Left;
+            dialogPage.subObjects.Add(label);
+
             currentPosition.y -= PADDING_Y * 6; //Set some extra space between the options and the info section
 
             Vector2 buttonPosition;
@@ -166,7 +175,7 @@ namespace LogUtils
                 case 0:
                     return "ERROR: No conflicts detected. Please report this.";
                 case 1:
-                    return string.Format(DESCRIPTION, "Destination already has a file named " + Path.GetFileName(activeRecord.CurrentPath));
+                    return string.Format(DESCRIPTION, $"Destination already has a file named `{Path.GetFileName(activeRecord.CurrentPath)}`.");
                 default:
                     return string.Format(DESCRIPTION, $"Destination has {conflictCount} files with the same name.");
             }
