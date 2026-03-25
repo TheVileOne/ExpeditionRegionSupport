@@ -36,22 +36,27 @@ namespace LogUtils
         #region Constructors
         public UtilityDialog(string description, ProcessManager manager, bool longLabel = false) : base(description, manager, longLabel)
         {
+            HackHide();
         }
 
         public UtilityDialog(string description, ProcessManager manager) : base(description, manager)
         {
+            HackHide();
         }
 
         public UtilityDialog(string longDescription, string title, Vector2 size, ProcessManager manager, bool longLabel = false) : base(longDescription, title, size, manager, longLabel)
         {
+            HackHide();
         }
 
         public UtilityDialog(string description, Vector2 size, ProcessManager manager) : base(description, size, manager)
         {
+            HackHide();
         }
 
         public UtilityDialog(ProcessManager manager) : base(manager)
         {
+            HackHide();
         }
         #endregion
 
@@ -89,6 +94,12 @@ namespace LogUtils
 
             OnClose?.Invoke(this, new DialogCloseEventArgs());
             base.ShutDownProcess();
+        }
+
+        public override void Init()
+        {
+            HackShow();
+            base.Init();
         }
     }
 
