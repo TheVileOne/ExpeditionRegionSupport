@@ -113,7 +113,7 @@ namespace LogUtils
             OnClose += conflictResolutionDialog_OnClose;
         }
 
-        private void conflictResolutionDialog_OnClose(UtilityDialog source, DialogCloseEventArgs data)
+        private void conflictResolutionDialog_OnClose(UtilityDialog source, EventArgs data)
         {
             //Ensure that files are always cleaned up even on a sudden closure of the dialog
             if (activeConflict != null)

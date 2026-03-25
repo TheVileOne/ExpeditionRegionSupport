@@ -55,7 +55,7 @@ namespace LogUtils
             addGroupsToFolder(Processor.GroupTopLevelEntries());
         }
 
-        private static void dialog_OnClose(UtilityDialog source, DialogCloseEventArgs data)
+        private static void dialog_OnClose(UtilityDialog source, EventArgs data)
         {
             AddGroupsToFolder();
             source.OnClose -= dialog_OnClose;

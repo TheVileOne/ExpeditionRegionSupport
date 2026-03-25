@@ -1,4 +1,5 @@
-﻿using Menu;
+﻿using LogUtils.Events;
+using Menu;
 using System;
 using System.Linq;
 using UnityEngine;
@@ -34,9 +35,19 @@ namespace LogUtils
         public virtual bool WantsToClose { get; protected set; }
 
         /// <summary>
-        /// Event raised when this dialog is closing
+        /// A signal that allows closing procedure to complete
         /// </summary>
-        public event Events.EventHandler<UtilityDialog, DialogCloseEventArgs> OnClose;
+        public bool IsReadyToClose { get; protected set; } = true;
+
+        /// <summary>
+        /// Event raised when this dialog enters the closing state
+        /// </summary>
+        public event EventHandler<UtilityDialog, EventArgs> OnClosing;
+
+        /// <summary>
+        /// Event raised when this dialog enters the closed state
+        /// </summary>
+        public event EventHandler<UtilityDialog, EventArgs> OnClose;
 
         #region Constructors
         public UtilityDialog(string description, ProcessManager manager, bool longLabel = false) : base(description, manager, longLabel)
@@ -103,21 +114,35 @@ namespace LogUtils
         {
             State = DialogState.Closed;
 
-            OnClose?.Invoke(this, new DialogCloseEventArgs());
+            OnClose?.Invoke(this, new EventArgs());
             base.ShutDownProcess();
         }
 
+        /// <summary>
+        /// Method is invoked by Rain World assembly
+        /// </summary>
         public override void Init()
         {
             HackShow();
             base.Init();
         }
 
+        /// <summary>
+        /// Method is invoked by Rain World assembly
+        /// </summary>
         public override void Update()
         {
+            if (State == DialogState.Closed) return;
+
+            if (WantsToClose && State != DialogState.Closing)
+            {
+                State = DialogState.Closing;
+                OnClosing?.Invoke(this, EventArgs.Empty);
+            }
+
             base.Update();
 
-            if (WantsToClose)
+            if (IsReadyToClose && State == DialogState.Closing)
                 Dismiss();
         }
     }
@@ -126,8 +151,7 @@ namespace LogUtils
     {
         NotSubmitted = -1, //Instance has yet to be submitted to Rain World's dialog stack
         Submitted = 0,     //Instance is currently submitted to Rain World's dialog stack
-        Closed = 1,        //Instanceis in the process of being unloaded
+        Closing = 1,       //Instance is slated to be closed
+        Closed = 2,        //Instance is in the process of being unloaded
     }
-
-    public class DialogCloseEventArgs : EventArgs;
 }
