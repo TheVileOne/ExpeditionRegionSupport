@@ -29,6 +29,11 @@ namespace LogUtils
         public bool IsPending => State != DialogState.Closed && manager.dialog != this && UtilityCore.DialogManager.Dialogs.Contains(this);
 
         /// <summary>
+        /// A value indicating that this dialog should be closed as soon as possible
+        /// </summary>
+        public virtual bool WantsToClose { get; protected set; }
+
+        /// <summary>
         /// Event raised when this dialog is closing
         /// </summary>
         public event Events.EventHandler<UtilityDialog, DialogCloseEventArgs> OnClose;
@@ -82,6 +87,12 @@ namespace LogUtils
         /// <remarks>This will always invoke close event even if dialog is not active</remarks>
         public void Dismiss()
         {
+            if (manager == null)
+            {
+                WantsToClose = true;
+                return;
+            }
+
             manager.StopSideProcess(this);
         }
 
@@ -100,6 +111,14 @@ namespace LogUtils
         {
             HackShow();
             base.Init();
+        }
+
+        public override void Update()
+        {
+            base.Update();
+
+            if (WantsToClose)
+                Dismiss();
         }
     }
 

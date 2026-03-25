@@ -22,12 +22,17 @@ namespace LogUtils
 
         private readonly LogGroupID groupID;
         private readonly string destinationPath;
+        private readonly int initialPathVersion;
 
         private RadioButtonGroup dialogOptions;
 
-        public LogGroupTransferDialog(LogGroupID groupID, string destinationPath) : base(DESCRIPTION, calculateSize(groupID, destinationPath), RainWorldInfo.RainWorld.processManager)
+        /// <inheritdoc/>
+        public override bool WantsToClose => base.WantsToClose || !init && initialPathVersion != groupID.Properties.FolderPathVersion;
+
+        public LogGroupTransferDialog(LogGroupID groupID, string destinationPath, int initialPathVersion) : base(DESCRIPTION, calculateSize(groupID, destinationPath), RainWorldInfo.RainWorld.processManager)
         {
             this.groupID = groupID;
+            this.initialPathVersion = initialPathVersion;
             this.destinationPath = destinationPath;
 
             descriptionLabel.pos.y = pos.y + 185f;
@@ -70,18 +75,18 @@ namespace LogUtils
         /// </summary>
         public static void ShowDialog(LogGroupID groupID, string pendingGroupPath)
         {
+            int initialPathVersion = groupID.Properties.FolderPathVersion;
             //It is important that folder permissions be assigned before the user interacts with this dialog. Dialog can only run after mod init completes
             //and game will continue to process update frames while dialog is running giving a window for enabled mods to assign folder permissions.
             if (!MustBeScheduled)
             {
-                UtilityDialog dialog = new LogGroupTransferDialog(groupID, pendingGroupPath);
+                UtilityLogger.Log("Preparing transfer dialog");
+                UtilityDialog dialog = new LogGroupTransferDialog(groupID, pendingGroupPath, initialPathVersion);
                 dialog.Show();
                 return;
             }
 
             UtilityLogger.Log("Scheduling transfer dialog");
-
-            int folderPathVersion = groupID.Properties.FolderPathVersion;
             UtilityEvents.OnSetupPeriodReached += scheduledEvent;
 
             void scheduledEvent(SetupPeriodEventArgs e)
@@ -89,18 +94,9 @@ namespace LogUtils
                 if (e.CurrentPeriod < SetupPeriod.PreMods)
                     return;
 
-                //Check that a folder change attempt has happened in the time since the event was scheduled
-                bool dialogStillRequired = folderPathVersion == groupID.Properties.FolderPathVersion;
-
-                if (dialogStillRequired)
-                {
-                    UtilityDialog dialog = new LogGroupTransferDialog(groupID, pendingGroupPath);
-                    dialog.Show();
-                }
-                else
-                {
-                    UtilityLogger.Log("Path has been updated. Transfer is no longer necessary.");
-                }
+                UtilityLogger.Log("Preparing transfer dialog");
+                UtilityDialog dialog = new LogGroupTransferDialog(groupID, pendingGroupPath, initialPathVersion);
+                dialog.Show();
                 UtilityEvents.OnSetupPeriodReached -= scheduledEvent;
             }
         }
@@ -203,6 +199,13 @@ namespace LogUtils
             {
                 UtilityLogger.LogError("Failed to move folder", ex);
             }
+        }
+
+        /// <inheritdoc/>
+        public override void Init()
+        {
+            base.Init();
+            UtilityLogger.Log(!WantsToClose ? "Showing transfer dialog" : "Path transfer is no longer necessary");
         }
     }
 }
