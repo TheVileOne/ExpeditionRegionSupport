@@ -26,7 +26,7 @@ namespace LogUtils
         /// <summary>
         /// Indicates whether the dialog is actively being displayed by the Rain World client, or is scheduled to be
         /// </summary>
-        public bool IsPending => State != DialogState.Closed && manager.dialog != this && UtilityCore.CurrentDialogs.Contains(this);
+        public bool IsPending => State != DialogState.Closed && manager.dialog != this && UtilityCore.DialogManager.Dialogs.Contains(this);
 
         /// <summary>
         /// Event raised when this dialog is closing

@@ -37,7 +37,7 @@ namespace LogUtils
                 try
                 {
                     //Subscribe event to the first instance, which should be the most active example
-                    UtilityDialog dialog = UtilityCore.CurrentDialogs.OfType<LogGroupTransferDialog>().First();
+                    UtilityDialog dialog = UtilityCore.DialogManager.Dialogs.OfType<LogGroupTransferDialog>().First();
 
                     dialog.OnClose += dialog_OnClose;
                     subscribedToCloseEvent = true;
