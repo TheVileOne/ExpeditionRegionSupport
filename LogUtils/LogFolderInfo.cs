@@ -250,74 +250,14 @@ namespace LogUtils
                 DestinationPath = newPath
             };
 
-            ICollection<ActivityRecord> problematicEntries; //TODO: Problematic entries does not handle the situation where the LogFolderInfo targeted folder is moved
-            lock (ActivityManager)
-            {
-                ActivityManager.AddRecord(record);
-                problematicEntries = ActivityManager.GetProblematicRecords(FolderPath);
-
-                //Listen for new problematic records in between now and when locks are secured
-                ActivityManager.OnRecordAdded.Handler += onEvent;
-                ActivityManager.OnRecordRemoved.Handler += onEvent;
-            }
-
-            bool canFolderStateBeTrusted = problematicEntries.Count == 0;
-            void onEvent(FolderActivityManager manager, ActivityRecord record)
-            {
-                ICollection<ActivityRecord> entries = ActivityManager.GetProblematicRecords(FolderPath);
-
-                //A new entry being added, or removed are both indicators that the state of the folder could be outdated
-                if (entries.Count != problematicEntries.Count)
-                    canFolderStateBeTrusted = false;
-            }
             try
             {
-                record.State = ActivityState.AcquiringLocks;
-                IDisposable scope = demandAllLocks();
-
-                record.State = ActivityState.VerifyingFolderState;
-                if (!canFolderStateBeTrusted)
-                {
-                    UtilityLogger.Log("Folder may be in an unsafe state. Updating folder state...");
-                    cancelPendingMerges(FolderPath);
-                    cancelPendingMerges(newPath);
-
-                    //Update the current group, and files references while still under the old locks
-                    RefreshInfo();
-                    IDisposable newScope = demandAllLocks(); //It is possible that newly acquired locks could be associated with problematic relations, but the risk is remote.
-
-                    scope.Dispose();
-                    scope = newScope;
-
-                    void cancelPendingMerges(string path)
-                    {
-                        lock (ActivityManager)
-                        {
-                            var mergeRecords =
-                                    ActivityManager
-                                        .GetMergeRecords(path)
-                                        .Where(entry => entry.State < ActivityState.Faulted)
-                                        //Check that merge happened off this thread, or whether this thread will have priority over it
-                                        .Where(entry => !ActivityManager.ActiveMovesThisThread.Contains(entry) || entry.State == ActivityState.WaitingForConflictResolution);
-
-                            foreach (ActivityRecord pendingMerge in mergeRecords)
-                            {
-                                UtilityLogger.Log("Merge canceled to preserve folder state");
-                                cancelMerge(pendingMerge.MergeHistory);
-                            }
-                        }
-                    }
-                }
-
-                //The locks will prevent other move operations from occuring, listening will no longer be necessary
                 lock (ActivityManager)
                 {
-                    ActivityManager.OnRecordAdded.Handler -= onEvent;
-                    ActivityManager.OnRecordRemoved.Handler -= onEvent;
+                    ActivityManager.AddRecord(record);
                 }
 
-                record.State = ActivityState.VerificationCompleted;
-                using (scope)
+                using (var scope = ensureTrustedFolderState(record))
                 {
                     bool canMoveFiles = Exists;
 
@@ -358,6 +298,88 @@ namespace LogUtils
                     }
                 }
             }
+        }
+
+        private IDisposable ensureTrustedFolderState(ActivityRecord record)
+        {
+            bool canFolderStateBeTrusted = true;
+
+            EventHandler<FolderActivityManager, ActivityRecord> eventListener = null;
+            lock (ActivityManager)
+            {
+                //TODO: Problematic entries does not handle the situation where the LogFolderInfo targeted folder is moved
+                ActivityRecord[] problematicEntries = ActivityManager.GetProblematicRecords(record.SourcePath);
+                canFolderStateBeTrusted = problematicEntries.Length == 0;
+
+                if (canFolderStateBeTrusted)
+                {
+                    eventListener = onEvent;
+
+                    //Listen for new problematic records in between now and when locks are secured
+                    ActivityManager.OnRecordAdded.Handler += eventListener;
+                    ActivityManager.OnRecordRemoved.Handler += eventListener;
+
+                    void onEvent(FolderActivityManager manager, ActivityRecord record)
+                    {
+                        ICollection<ActivityRecord> entries = ActivityManager.GetProblematicRecords(record.SourcePath);
+
+                        //A new entry being added, or removed are both indicators that the state of the folder could be outdated
+                        if (entries.Count != problematicEntries.Length)
+                            canFolderStateBeTrusted = false;
+                    }
+                }
+            }
+
+            record.State = ActivityState.AcquiringLocks;
+            IDisposable scope = demandAllLocks();
+
+            record.State = ActivityState.VerifyingFolderState;
+            if (!canFolderStateBeTrusted)
+            {
+                UtilityLogger.Log("Folder may be in an unsafe state. Updating folder state...");
+                lock (ActivityManager)
+                {
+                    cancelPendingMerges(record.SourcePath);
+                    cancelPendingMerges(record.DestinationPath);
+
+                    void cancelPendingMerges(string path)
+                    {
+                        var mergeRecords =
+                                ActivityManager
+                                    .GetMergeRecords(path)
+                                    .Where(entry => entry.State < ActivityState.Faulted)
+                                    //Check that merge happened off this thread, or whether this thread will have priority over it
+                                    .Where(entry => !ActivityManager.ActiveMovesThisThread.Contains(entry) || entry.State == ActivityState.WaitingForConflictResolution);
+
+                        foreach (ActivityRecord pendingMerge in mergeRecords)
+                        {
+                            UtilityLogger.Log("Merge canceled to preserve folder state");
+                            cancelMerge(pendingMerge.MergeHistory);
+                        }
+                    }
+                }
+
+                //Update the current group, and files references while still under the old locks
+                RefreshInfo();
+                IDisposable newScope = demandAllLocks(); //It is possible that newly acquired locks could be associated with problematic relations, but the risk is remote.
+
+                scope.Dispose();
+                scope = newScope;
+            }
+
+            if (eventListener != null)
+            {
+                //The locks will prevent other move operations from occuring, listening will no longer be necessary
+                lock (ActivityManager)
+                {
+                    ActivityManager.OnRecordAdded.Handler -= eventListener;
+                    ActivityManager.OnRecordRemoved.Handler -= eventListener;
+                }
+                eventListener = null;
+            }
+
+            record.State = ActivityState.VerificationCompleted;
+            return scope;
         }
 
         private void moveFolderToPath(string newPath)
