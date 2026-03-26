@@ -112,18 +112,16 @@ namespace LogUtils
 
         internal void RefreshInfoInternal(IEnumerable<LogGroupProperties> searchGroups, IEnumerable<LogID> searchFiles)
         {
+            UtilityLogger.Log("Refreshing folder state");
+
             Groups = createCollection(LogGroup.GroupsSharingThisPath(FolderPath, searchGroups).ToList());
 
             IEnumerable<LogGroupProperties> allOtherGroups = searchGroups
                              .Except(Groups.GetProperties());
 
             var nonGroupMembers = LogGroup.NonGroupMembersSharingThisPath(FolderPath, searchFiles)
-                                          .Concat(allOtherGroups.SelectMany(group =>
-                                          {
-                                              var membersToCheck = group.IsFolderGroup ? group.GetNonConformingMembers() : group.Members;
-                                              return membersToCheck.Where(member => PathUtils.ContainsOtherPath(member.Properties.CurrentFolderPath, FolderPath));
+                                          .Concat(allOtherGroups.SelectMany(group => group.Members.HasPath(FolderPath)));
 
-                                          }));
             FilesNotFromFolderGroups = createCollection(nonGroupMembers.ToList());
             AllFiles = createCollection(Groups.SelectMany(group => group.Properties.GetFolderMembers())
                                               .Concat(FilesNotFromFolderGroups)
