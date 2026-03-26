@@ -1,7 +1,6 @@
 ﻿using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
-using LogUtils.Helpers.FileHandling;
 using Menu;
 using Menu.Remix.MixedUI;
 using System;
@@ -68,7 +67,8 @@ namespace LogUtils
         /// <summary>
         /// Indicates that there are pending, or active dialogs for this type
         /// </summary>
-        public static bool HasAnyDialogs => UtilityCore.DialogManager.Dialogs.Where(dialog => dialog.IsActive || dialog.IsPending).ContainsType<LogGroupTransferDialog>();
+        public static bool HasAnyDialogs => UtilityCore.DialogManager.Dialogs.Where(dialog => dialog.IsActive || dialog.IsPending).ContainsType<LogGroupTransferDialog>()
+                                         || UtilityCore.DialogManager.DialogsInQueue.ContainsType<LogGroupTransferDialog>();
 
         /// <summary>
         /// Shows a dialog presenting options on how to transfer a log group to a specified path

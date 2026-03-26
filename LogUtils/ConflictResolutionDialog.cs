@@ -123,7 +123,8 @@ namespace LogUtils
         /// <summary>
         /// Indicates that there are pending, or active dialogs for this type
         /// </summary>
-        public static bool HasAnyDialogs => UtilityCore.DialogManager.Dialogs.Where(dialog => dialog.IsActive || dialog.IsPending).ContainsType<ConflictResolutionDialog>();
+        public static bool HasAnyDialogs => UtilityCore.DialogManager.Dialogs.Where(dialog => dialog.IsActive || dialog.IsPending).ContainsType<ConflictResolutionDialog>()
+                                         || UtilityCore.DialogManager.DialogsInQueue.ContainsType<ConflictResolutionDialog>();
 
         public static void ShowDialog(MergeHistory history)
         {

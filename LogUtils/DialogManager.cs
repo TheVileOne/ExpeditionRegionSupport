@@ -27,5 +27,16 @@ namespace LogUtils
                 return result ?? Enumerable.Empty<UtilityDialog>();
             }
         }
+
+        public IEnumerable<UtilityDialog> DialogsInQueue
+        {
+            get
+            {
+                if (!RainWorldInfo.IsRainWorldRunning)
+                    return Enumerable.Empty<UtilityDialog>();
+
+                return RainWorldInfo.RainWorld.processManager._showDialogQueue.Where(data => data.Dialog is UtilityDialog).OfType<UtilityDialog>();
+            }
+        }
     }
 }
