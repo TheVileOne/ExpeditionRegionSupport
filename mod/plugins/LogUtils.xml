@@ -7965,9 +7965,6 @@
             A special comparison case where one, or both <see cref="T:LogUtils.Properties.LogProperties"/> instances is a null value
             </summary>
         </member>
-        <member name="M:LogUtils.Helpers.Comparers.LogIDComparer.Equals(LogUtils.Enums.LogID,LogUtils.Enums.LogID)">
-            <inheritdoc/>
-        </member>
         <member name="M:LogUtils.Helpers.Comparers.LogIDComparer.Equals(LogUtils.Properties.LogProperties,LogUtils.Properties.LogProperties)">
             <inheritdoc/>
         </member>
@@ -10484,6 +10481,7 @@
             <summary>
             Creates a new <see cref="T:LogUtils.Properties.LogProperties"/> instance inheriting all log independent property values for the current instance
             </summary>
+            <returns>A newly created instance with compatible properties transferred over to it. Always returns an insance of the base type.</returns>
         </member>
         <member name="M:LogUtils.Properties.LogProperties.Equals(LogUtils.Properties.LogProperties)">
             <inheritdoc/>
@@ -13224,14 +13222,9 @@
             Indicates whether the dialog is actively being displayed by the Rain World client
             </summary>
         </member>
-        <member name="P:LogUtils.UtilityDialog.IsPending">
+        <member name="P:LogUtils.UtilityDialog.IsWaitingToShow">
             <summary>
             Indicates whether the dialog is actively being displayed by the Rain World client, or is scheduled to be
-            </summary>
-        </member>
-        <member name="P:LogUtils.UtilityDialog.IsInDialogQueue">
-            <summary>
-            Checks whether this dialog is waiting to be added to the dialog stack
             </summary>
         </member>
         <member name="P:LogUtils.UtilityDialog.WantsToClose">

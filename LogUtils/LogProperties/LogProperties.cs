@@ -934,6 +934,7 @@ namespace LogUtils.Properties
         /// <summary>
         /// Creates a new <see cref="LogProperties"/> instance inheriting all log independent property values for the current instance
         /// </summary>
+        /// <returns>A newly created instance with compatible properties transferred over to it. Always returns an insance of the base type.</returns>
         public LogProperties Clone(string filename, string path)
         {
             #pragma warning disable IDE0055 //Fix formatting
