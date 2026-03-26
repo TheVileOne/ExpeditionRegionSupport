@@ -1,6 +1,7 @@
 ﻿using LogUtils.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace LogUtils
 {
@@ -37,6 +38,17 @@ namespace LogUtils
 
                 return RainWorldInfo.RainWorld.processManager._showDialogQueue.Where(data => data.Dialog is UtilityDialog).OfType<UtilityDialog>();
             }
+        }
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            StringBuilder builder = new StringBuilder();
+
+            foreach (var dialog in Dialogs.Concat(DialogsInQueue))
+                builder.AppendLine($"[{dialog.GetType()}]");
+
+            return builder.ToString();
         }
     }
 }
