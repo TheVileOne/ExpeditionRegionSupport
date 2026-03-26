@@ -2406,6 +2406,8 @@
             Indicates that there are pending, or active dialogs for this type
             </summary>
         </member>
+<<<<<<< Updated upstream
+=======
         <member name="M:LogUtils.ConflictResolutionDialog.Singal(Menu.MenuObject,System.String)">
             <summary>
             Collects feedback results based on user-selected options
@@ -2416,11 +2418,7 @@
         <member name="M:LogUtils.ConflictResolutionDialog.Update">
             <summary/>
         </member>
-        <member name="M:LogUtils.ConflictResolutionHandler.GetSkippedConflicts">
-            <summary>
-            Returns an enumerator containing all conflicts the user decided to handler later
-            </summary>
-        </member>
+>>>>>>> Stashed changes
         <member name="F:LogUtils.ConflictResolutionFeedback.Overwrite">
             <summary>
             The file at destination will be replaced
@@ -4600,19 +4598,6 @@
             </summary>
         </member>
         <member name="M:LogUtils.Diagnostics.Tools.TestStringProvider.StringFactory.GetEnumerator">
-            <inheritdoc/>
-        </member>
-        <member name="P:LogUtils.DialogManager.Dialogs">
-            <summary>
-            All <see cref="T:LogUtils.UtilityDialog"/> instances currently being shown or waiting to be shown
-            </summary>
-        </member>
-        <member name="M:LogUtils.DialogManager.ForceUpdate">
-            <summary>
-            Closes all dialogs that want to close
-            </summary>
-        </member>
-        <member name="M:LogUtils.DialogManager.ToString">
             <inheritdoc/>
         </member>
         <member name="M:LogUtils.DirectToFileLogger.Delete">
@@ -7132,19 +7117,19 @@
             </summary>
             <returns>true, when applicable, false otherwise</returns>
         </member>
-        <member name="M:LogUtils.FolderActivityManager.RemoveRecord(LogUtils.FolderActivityManager.ActivityRecord)">
+        <member name="M:LogUtils.FolderActivityManager.RemoveRecordAnyThread(LogUtils.FolderActivityManager.ActivityRecord)">
             <summary>
-            Removes an active record
+            Removes an active record associated with any thread
             </summary>
         </member>
-        <member name="M:LogUtils.FolderActivityManager.GetMergeRecords(System.String)">
+        <member name="M:LogUtils.FolderActivityManager.Deactivate(LogUtils.FolderActivityManager.ActivityRecord)">
             <summary>
-            Gets any merge records merging into, or out of a provided path, or the parent directory containing the path
+            Changes an active record to an inactive record
             </summary>
         </member>
-        <member name="M:LogUtils.FolderActivityManager.GetProblematicRecords(System.String)">
+        <member name="M:LogUtils.FolderActivityManager.RemoveInactiveAnyThread(LogUtils.FolderActivityManager.ActivityRecord)">
             <summary>
-            Searches for any move records that can interfere with the folder state during a move operation
+            Removes an inactive record associated with any thread
             </summary>
         </member>
         <member name="T:LogUtils.ExtensionMethods">
@@ -9810,9 +9795,6 @@
         <member name="F:LogUtils.FolderCreationProtocol.CreateFolder">
             <summary>Creates the parent directory only. Fail procedure activates when more than one directory specified in the the path doesn't exist</summary>
         </member>
-        <member name="P:LogUtils.LogGroupTransferDialog.WantsToClose">
-            <inheritdoc/>
-        </member>
         <member name="P:LogUtils.LogGroupTransferDialog.HasAnyDialogs">
             <summary>
             Indicates that there are pending, or active dialogs for this type
@@ -9829,9 +9811,6 @@
             </summary>
             <param name="sender">Event source object</param>
             <param name="message">Case-sensitive identifier</param>
-        </member>
-        <member name="M:LogUtils.LogGroupTransferDialog.Init">
-            <inheritdoc/>
         </member>
         <member name="F:LogUtils.Properties.Custom.CustomLogProperty.IsLogRule">
             <summary>
@@ -10136,6 +10115,11 @@
             Indicates whether log group is associated with a folder path
             </summary>
         </member>
+        <member name="P:LogUtils.Properties.LogGroupProperties.IsMergeSensitive">
+            <summary>
+            
+            </summary>
+        </member>
         <member name="P:LogUtils.Properties.LogGroupProperties.IsMetadataOptional">
             <inheritdoc/>
         </member>
@@ -10149,6 +10133,12 @@
             <summary>
             All members associated with this log group
             </summary>
+        </member>
+        <member name="P:LogUtils.Properties.LogGroupProperties.AvoidMemberSeparation">
+            <summary>
+            When true, group-wide file operations will fail if all qualifying members cannot be kept together as a unit
+            </summary>
+            <remarks>This property does nothing unless you specify a folder path</remarks>
         </member>
         <member name="P:LogUtils.Properties.LogGroupProperties.CompareMask">
             <inheritdoc/>
@@ -13190,6 +13180,11 @@
         <member name="F:LogUtils.UtilityCore.Config">
             <inheritdoc cref="T:LogUtils.Policy.UtilityConfig"/>
         </member>
+        <member name="P:LogUtils.UtilityCore.CurrentDialogs">
+            <summary>
+            The active or currently pending dialog instances handled by the Rain World client
+            </summary>
+        </member>
         <member name="F:LogUtils.UtilityCore.DataHandler">
             <summary>
             Handles cross-mod data storage for the utility
@@ -13229,29 +13224,9 @@
             Indicates whether the dialog is actively being displayed by the Rain World client, or is scheduled to be
             </summary>
         </member>
-        <member name="P:LogUtils.UtilityDialog.IsInDialogQueue">
-            <summary>
-            Checks whether this dialog is waiting to be added to the dialog stack
-            </summary>
-        </member>
-        <member name="P:LogUtils.UtilityDialog.WantsToClose">
-            <summary>
-            A value indicating that this dialog should be closed as soon as possible
-            </summary>
-        </member>
-        <member name="P:LogUtils.UtilityDialog.IsReadyToClose">
-            <summary>
-            A signal that allows closing procedure to complete
-            </summary>
-        </member>
-        <member name="E:LogUtils.UtilityDialog.OnClosing">
-            <summary>
-            Event raised when this dialog enters the closing state
-            </summary>
-        </member>
         <member name="E:LogUtils.UtilityDialog.OnClose">
             <summary>
-            Event raised when this dialog enters the closed state
+            Event raised when this dialog is closing
             </summary>
         </member>
         <member name="M:LogUtils.UtilityDialog.Dismiss">
@@ -13261,16 +13236,6 @@
             <remarks>This will always invoke close event even if dialog is not active</remarks>
         </member>
         <member name="M:LogUtils.UtilityDialog.ShutDownProcess">
-            <summary>
-            Method is invoked by Rain World assembly
-            </summary>
-        </member>
-        <member name="M:LogUtils.UtilityDialog.Init">
-            <summary>
-            Method is invoked by Rain World assembly
-            </summary>
-        </member>
-        <member name="M:LogUtils.UtilityDialog.Update">
             <summary>
             Method is invoked by Rain World assembly
             </summary>
