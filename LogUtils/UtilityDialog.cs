@@ -104,13 +104,25 @@ namespace LogUtils
         /// <remarks>This will always invoke close event even if dialog is not active</remarks>
         public void Dismiss()
         {
-            if (manager == null)
+            if (manager.sideProcesses.Contains(this))
             {
-                WantsToClose = true;
-                return;
+                manager.StopSideProcess(this);
             }
+            else if (UtilityCore.DialogManager.Dialogs.Contains(this))
+            {
+                manager.dialogStack.Remove(this);
+            }
+            else if (UtilityCore.DialogManager.DialogsInQueue.Contains(this))
+            {
+                for (int i = 0; i < manager._showDialogQueue.Count; i++)
+                {
+                    var data = manager._showDialogQueue.Dequeue();
 
-            manager.StopSideProcess(this);
+                    if (data.Dialog == this)
+                        continue;
+                    manager._showDialogQueue.Enqueue(data);
+                }
+            }
         }
 
         /// <summary>
