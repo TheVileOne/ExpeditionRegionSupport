@@ -67,7 +67,7 @@ namespace LogUtils
         /// <summary>
         /// Indicates that there are pending, or active dialogs for this type
         /// </summary>
-        public static bool HasAnyDialogs => UtilityCore.DialogManager.Dialogs.Where(dialog => dialog.IsActive || dialog.IsPending).ContainsType<LogGroupTransferDialog>()
+        public static bool HasAnyDialogs => UtilityCore.DialogManager.Dialogs.Where(dialog => dialog.IsActive || dialog.IsWaitingToShow).ContainsType<LogGroupTransferDialog>()
                                          || UtilityCore.DialogManager.DialogsInQueue.ContainsType<LogGroupTransferDialog>();
 
         /// <summary>

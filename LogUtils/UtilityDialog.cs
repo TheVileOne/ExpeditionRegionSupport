@@ -27,13 +27,14 @@ namespace LogUtils
         /// <summary>
         /// Indicates whether the dialog is actively being displayed by the Rain World client, or is scheduled to be
         /// </summary>
-        public bool IsPending => State != DialogState.Closed && manager.dialog != this &&
-            (UtilityCore.DialogManager.Dialogs.Contains(this) || IsInDialogQueue);
-
-        /// <summary>
-        /// Checks whether this dialog is waiting to be added to the dialog stack
-        /// </summary>
-        public bool IsInDialogQueue => manager._showDialogQueue.Any(data => data.Dialog == this);
+        public bool IsWaitingToShow
+        {
+            get
+            {
+                return State != DialogState.Closing && State != DialogState.Closed && manager.dialog != this
+                    && (UtilityCore.DialogManager.Dialogs.Contains(this) || UtilityCore.DialogManager.DialogsInQueue.Contains(this));
+            }
+        }
 
         /// <summary>
         /// A value indicating that this dialog should be closed as soon as possible
