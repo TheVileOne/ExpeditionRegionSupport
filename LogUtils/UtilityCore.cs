@@ -444,6 +444,22 @@ namespace LogUtils
                 LogProperties.PropertyManager.SaveToFile();
                 Config.TrySave();
 
+                UtilityDialog[] unhandledDialogs = DialogManager.Dialogs.Concat(DialogManager.DialogsInQueue).ToArray();
+
+                if (unhandledDialogs.Length > 0)
+                {
+                    UtilityLogger.Log("Closing unhandled dialogs");
+                    foreach (UtilityDialog dialog in unhandledDialogs)
+                    {
+                        if (dialog is ConflictResolutionDialog)
+                        {
+                            dialog.Singal(null, UtilityConsts.DialogOption.CANCEL);
+                            continue;
+                        }
+                        dialog.Dismiss();
+                    }
+                }
+
                 //End all active log sessions
                 UtilityLogger.Log("Disabling log files");
                 foreach (LogProperties properties in LogProperties.PropertyManager.AllProperties)
