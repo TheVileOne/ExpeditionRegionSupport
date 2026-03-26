@@ -89,6 +89,7 @@ namespace LogUtils.Properties
                 [DataFields.LOGS_FOLDER_AWARE]    = new Action(() => properties.LogsFolderAware    = bool.Parse(dataFields[DataFields.LOGS_FOLDER_AWARE])),
                 [DataFields.LOGS_FOLDER_ELIGIBLE] = new Action(() => properties.LogsFolderEligible = bool.Parse(dataFields[DataFields.LOGS_FOLDER_ELIGIBLE])),
                 [DataFields.SHOW_LOGS_AWARE]      = new Action(() => properties.ShowLogsAware      = bool.Parse(dataFields[DataFields.SHOW_LOGS_AWARE])),
+                [DataFields.OVERWRITE_LOG]        = new Action(() => properties.OverwriteLog       = bool.Parse(dataFields[DataFields.OVERWRITE_LOG])),
                 [DataFields.Intro.MESSAGE]        = new Action(() => properties.IntroMessage       = dataFields[DataFields.Intro.MESSAGE]),
                 [DataFields.Intro.TIMESTAMP]      = new Action(() => properties.ShowIntroTimestamp = bool.Parse(dataFields[DataFields.Intro.TIMESTAMP])),
                 [DataFields.Outro.MESSAGE]        = new Action(() => properties.OutroMessage       = dataFields[DataFields.Outro.MESSAGE]),

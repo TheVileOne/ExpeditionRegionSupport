@@ -12,7 +12,7 @@ namespace LogUtils
 
         public static class DataFields
         {
-            public const int EXPECTED_FIELD_COUNT = 21;
+            public const int EXPECTED_FIELD_COUNT = 22;
             public const int EXPECTED_OPTIONAL_FIELD_COUNT = 5;
 
             public readonly static string[] OrderedFields;
@@ -26,6 +26,7 @@ namespace LogUtils
             public const string PATH = "path";
             public const string ORIGINAL_PATH = "origpath";
             public const string LAST_KNOWN_PATH = "lastknownpath";
+            public const string OVERWRITE_LOG = "overwritelog";
             public const string LOGS_FOLDER_AWARE = "logsfolderaware";
             public const string LOGS_FOLDER_ELIGIBLE = "logsfoldereligible";
             public const string SHOW_LOGS_AWARE = "showlogsaware";
@@ -77,6 +78,7 @@ namespace LogUtils
                     case LOGS_FOLDER_AWARE:
                     case LOGS_FOLDER_ELIGIBLE:
                     case SHOW_LOGS_AWARE:
+                    case OVERWRITE_LOG:
                     case TIMESTAMP_FORMAT:
                     case Rules.HEADER:
                     case Rules.SHOW_LINE_COUNT:
@@ -130,6 +132,7 @@ namespace LogUtils
                     LOGS_FOLDER_AWARE,
                     LOGS_FOLDER_ELIGIBLE,
                     SHOW_LOGS_AWARE,
+                    OVERWRITE_LOG,
                     Intro.MESSAGE,
                     Intro.TIMESTAMP,
                     Outro.MESSAGE,
