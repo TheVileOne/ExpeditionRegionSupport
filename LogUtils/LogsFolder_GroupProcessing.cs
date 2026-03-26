@@ -29,6 +29,7 @@ namespace LogUtils
             if (!Exists) return;
 
             retry:
+            UtilityCore.DialogManager.ForceUpdate();
             if (LogGroupTransferDialog.HasAnyDialogs)
             {
                 UtilityLogger.Log("Transfer dialog active. Interrupting operation until dialog is handled.");

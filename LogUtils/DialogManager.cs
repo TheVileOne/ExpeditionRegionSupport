@@ -40,6 +40,17 @@ namespace LogUtils
             }
         }
 
+        /// <summary>
+        /// Closes all dialogs that want to close
+        /// </summary>
+        public void ForceUpdate()
+        {
+            var pendingDismissal = Dialogs.Where(d => d.WantsToClose).ToArray();
+
+            foreach (UtilityDialog dialog in pendingDismissal)
+                dialog.Dismiss();
+        }
+
         /// <inheritdoc/>
         public override string ToString()
         {
