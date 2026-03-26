@@ -17,12 +17,13 @@ namespace LogUtils.Helpers.Comparers
         /// <inheritdoc/>
         public virtual int Compare(T extEnum, T extEnumOther)
         {
-            if (extEnum == null)
-                return extEnumOther != null ? int.MinValue : 0;
+            if (extEnum == null || extEnumOther == null)
+            {
+                if (extEnum == extEnumOther)
+                    return 0;
 
-            if (extEnumOther != null)
-                return int.MaxValue;
-
+                return extEnum == null ? int.MinValue : int.MaxValue;
+            }
             return CompareByHash(extEnum, extEnumOther);
         }
 

@@ -35,12 +35,7 @@ namespace LogUtils.Helpers.Comparers
         public override int Compare(LogID id, LogID idOther)
         {
             if (id == null || idOther == null)
-            {
-                if (id == idOther)
-                    return 0;
-
-                return id == null ? int.MinValue : int.MaxValue;
-            }
+                return base.Compare(id, idOther);
 
             //Properties field may be null when comparing against ComparisonLogID instances
             if (id.Properties == null || idOther.Properties == null)
@@ -139,12 +134,6 @@ namespace LogUtils.Helpers.Comparers
                     compareValue = base.Compare(value, id.Value);
             }
             return compareValue;
-        }
-
-        /// <inheritdoc/>
-        public override bool Equals(LogID id, LogID idOther)
-        {
-            return Compare(id, idOther) == 0;
         }
 
         /// <inheritdoc/>
