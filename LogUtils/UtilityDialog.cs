@@ -152,7 +152,11 @@ namespace LogUtils
         /// </summary>
         public override void Update()
         {
-            if (State == DialogState.Closed) return;
+            if (State == DialogState.Closed)
+            {
+                base.Update();
+                return;
+            }
 
             if (WantsToClose && State != DialogState.Closing)
             {
