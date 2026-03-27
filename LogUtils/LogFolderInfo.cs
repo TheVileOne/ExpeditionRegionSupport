@@ -570,7 +570,7 @@ namespace LogUtils
                         updateGroupPath();
                         break;
                     case PathUpdateMode.WaitForConflictResolution:
-                        eventData.OnConflictResolved += updateGroupPath;
+                        eventData.OnConflictsResolved += updateGroupPath;
                         break;
                 }
 

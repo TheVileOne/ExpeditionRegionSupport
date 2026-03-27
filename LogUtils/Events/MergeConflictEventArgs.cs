@@ -36,7 +36,7 @@ namespace LogUtils.Events
         /// <summary>
         /// Optional action that must run when conflicts involving this group is resolved
         /// </summary>
-        public event Action OnConflictResolved
+        public event Action OnConflictsResolved
         {
             add => _eventHandler.OnCompleted += value;
             remove => _eventHandler.OnCompleted -= value;
