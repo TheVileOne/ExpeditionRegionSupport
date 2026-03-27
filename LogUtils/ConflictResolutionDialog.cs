@@ -1,4 +1,5 @@
 ﻿using LogUtils.Events;
+using LogUtils.Helpers.FileHandling;
 using Menu;
 using Menu.Remix.MixedUI;
 using System;
@@ -281,6 +282,9 @@ namespace LogUtils
                                 record.State = ActivityState.Completed;
                                 record.Events.RaiseEvent(MergeEventID.Completed);
                                 LogFolderInfo.ActivityManager.RemoveRecord(record);
+
+                                //The merge process will leave behind an empty folder
+                                DirectoryUtils.DeletePermanently(record.SourcePath, deleteOnlyIfEmpty: true);
                             }
                         }
                         UtilityLogger.Log("No more conflicts");
