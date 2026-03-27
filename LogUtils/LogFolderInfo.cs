@@ -556,9 +556,6 @@ namespace LogUtils
             {
                 var eventData = logGroup.Properties.NotifyMergeConflict(this, mergeInfo.Events);
 
-                if (eventData == null)
-                    continue;
-
                 if (eventData.CancelMerge)
                 {
                     mergeInfo.History.HasFailed = true;

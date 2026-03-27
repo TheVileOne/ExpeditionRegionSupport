@@ -338,13 +338,8 @@ namespace LogUtils.Properties
 
         public MergeConflictEventArgs NotifyMergeConflict(LogFolderInfo source, MergeEventHandler mergeEvents)
         {
-            var eventHandler = OnMergeConflict;
-
-            if (eventHandler == null)
-                return null;
-
             MergeConflictEventArgs data = new MergeConflictEventArgs((LogGroupID)ID, mergeEvents);
-            eventHandler.Invoke(source, data);
+            OnMergeConflict?.Invoke(source, data);
             return data;
         }
     }
