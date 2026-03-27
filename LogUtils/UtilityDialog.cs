@@ -143,6 +143,7 @@ namespace LogUtils
         public override void Init()
         {
             HackShow();
+            infoLabel.MoveToFront();
             base.Init();
         }
 
