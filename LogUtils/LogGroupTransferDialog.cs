@@ -155,6 +155,10 @@ namespace LogUtils
             dialogOptions.AddOption(textWidth: 80f, Translate("Move group files only"), DialogOption.FILE_MOVE);
             dialogOptions.AddOption(textWidth: 80f, Translate("Change group path only"), DialogOption.PATH_CHANGE);
 
+            InfoText[dialogOptions.OptionCollection[0]] = "The source folder will be moved to the destination folder. (May fail)";
+            InfoText[dialogOptions.OptionCollection[1]] = "All group files belonging to the source path will be moved to destination path. Folder structure will be preserved. (May fail)";
+            InfoText[dialogOptions.OptionCollection[2]] = "Path of the group, and applicable group files will be changed to the destination path without moving any files.";
+
             dialogOptions.SetInitial(DialogOption.FOLDER_MOVE);
             dialogPage.subObjects.Add(dialogOptions);
             position.y -= dialogOptions.Height; //Account for option positions

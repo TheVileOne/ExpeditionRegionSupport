@@ -91,6 +91,7 @@ namespace LogUtils
 
             currentPosition.y -= PADDING_Y * 6; //Set some extra space between the options and the info section
 
+            SimpleButton button;
             Vector2 buttonPosition;
             Vector2 buttonSize = new Vector2(150f, 30f);
             float buttonSpacing = PADDING_X;
@@ -100,16 +101,24 @@ namespace LogUtils
             float buttonPadding = 160f; //(roundedRect.size.x - expectedTotalButtonsWidth) / 2;
 
             buttonPosition = new Vector2(buttonPadding + currentPosition.x + (buttonSize.x / 2), currentPosition.y);
-            dialogPage.subObjects.Add(new SimpleButton(this, dialogPage, Translate("Overwrite"), DialogOption.OVERWRITE, buttonPosition, buttonSize));
+            button = new SimpleButton(this, dialogPage, Translate("Overwrite"), DialogOption.OVERWRITE, buttonPosition, buttonSize);
+            dialogPage.subObjects.Add(button);
+            InfoText[button] = "Replace the destination file with the source file";
 
             buttonPosition = new Vector2(buttonPosition.x + (buttonSize.x + buttonSpacing) - (buttonSize.x / 2), currentPosition.y);
-            dialogPage.subObjects.Add(new SimpleButton(this, dialogPage, Translate("Keep Both"), DialogOption.KEEP_BOTH, buttonPosition, buttonSize));
+            button = new SimpleButton(this, dialogPage, Translate("Keep Both"), DialogOption.KEEP_BOTH, buttonPosition, buttonSize);
+            dialogPage.subObjects.Add(button);
+            InfoText[button] = "The source file will be renamed with a numbered suffix";
 
             buttonPosition = new Vector2(buttonPosition.x + (buttonSize.x + buttonSpacing) - (buttonSize.x / 2), currentPosition.y);
-            dialogPage.subObjects.Add(new SimpleButton(this, dialogPage, Translate("Skip For Now"), DialogOption.SKIP, buttonPosition, buttonSize));
+            button = new SimpleButton(this, dialogPage, Translate("Skip For Now"), DialogOption.SKIP, buttonPosition, buttonSize);
+            dialogPage.subObjects.Add(button);
+            InfoText[button] = "Select the next unresolved conflict";
 
             buttonPosition = new Vector2(buttonPosition.x + (buttonSize.x + buttonSpacing) - (buttonSize.x / 2), currentPosition.y);
-            dialogPage.subObjects.Add(new SimpleButton(this, dialogPage, Translate("Cancel"), DialogOption.CANCEL, buttonPosition, buttonSize));
+            button = new SimpleButton(this, dialogPage, Translate("Cancel"), DialogOption.CANCEL, buttonPosition, buttonSize);
+            dialogPage.subObjects.Add(button);
+            InfoText[button] = "Undo all merged folder, and file changes";
 
             OnClose += conflictResolutionDialog_OnClose;
         }

@@ -1,6 +1,7 @@
 ﻿using LogUtils.Events;
 using Menu;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -45,6 +46,11 @@ namespace LogUtils
         /// A signal that allows closing procedure to complete
         /// </summary>
         public bool IsReadyToClose { get; protected set; } = true;
+
+        /// <summary>
+        /// Dictionary of UI descriptions
+        /// </summary>
+        public Dictionary<MenuObject, string> InfoText =  new Dictionary<MenuObject, string>();
 
         /// <summary>
         /// Event raised when this dialog enters the closing state
@@ -168,6 +174,21 @@ namespace LogUtils
 
             if (IsReadyToClose && State == DialogState.Closing)
                 Dismiss();
+        }
+
+        /// <summary>
+        /// Method is invoked by Rain World assembly
+        /// </summary>
+        public override string UpdateInfoText()
+        {
+            string infoText = base.UpdateInfoText();
+
+            if (selectedObject == null || !string.IsNullOrEmpty(infoText))
+                return infoText;
+
+            if (InfoText.TryGetValue(selectedObject, out string value))
+                infoText = Translate(value);
+            return infoText;
         }
     }
 
