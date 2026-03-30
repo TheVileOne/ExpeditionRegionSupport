@@ -126,6 +126,16 @@ namespace LogUtils
                 SelectionChanged?.Invoke(this, new SelectionChangedEventArgs(lastSelected, box));
             }
         }
+
+        /// <summary>
+        /// Method is invoked by Rain World assembly
+        /// </summary>
+        public override void Update()
+        {
+            if (Selected != null && Selected.IsMouseOverMe)
+                menu.infolabelDirty = true;
+            base.Update();
+        }
     }
 
     public class SelectionChangedEventArgs(CheckBox lastSelection, CheckBox newSelection) : EventArgs

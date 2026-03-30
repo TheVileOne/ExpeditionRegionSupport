@@ -160,7 +160,6 @@ namespace LogUtils
             InfoText[dialogOptions.OptionCollection[1]] = "All group files belonging to the source path are moved to destination path. Folder structure is preserved (May fail)";
             InfoText[dialogOptions.OptionCollection[2]] = "Path of the group, and applicable group files are changed to the destination path without moving any files";
 
-            dialogOptions.SetInitial(DialogOption.FOLDER_MOVE);
             dialogPage.subObjects.Add(dialogOptions);
             position.y -= dialogOptions.Height; //Account for option positions
         }
@@ -209,6 +208,8 @@ namespace LogUtils
         /// <inheritdoc/>
         public override void Init()
         {
+            dialogOptions.SetInitial(DialogOption.FOLDER_MOVE);
+
             base.Init();
             UtilityLogger.Log(!WantsToClose ? "Showing transfer dialog" : "Path transfer is no longer necessary");
         }

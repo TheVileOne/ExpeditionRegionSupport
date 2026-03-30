@@ -158,6 +158,9 @@ namespace LogUtils
         /// </summary>
         public override void Update()
         {
+            if (!FreezeMenuFunctions) //The game doesn't set this to true until you click on the screen, which breaks hover mechanics
+                manager.menuesMouseMode = true;
+
             if (State == DialogState.Closed)
             {
                 base.Update();

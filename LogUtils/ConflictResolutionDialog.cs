@@ -267,7 +267,7 @@ namespace LogUtils
             activeConflict = null;
         }
 
-        /// <summary/>
+        /// <inheritdoc/>
         public override void Update()
         {
             base.Update();
