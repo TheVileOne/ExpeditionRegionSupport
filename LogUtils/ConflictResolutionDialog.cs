@@ -108,7 +108,7 @@ namespace LogUtils
             buttonPosition = new Vector2(buttonPosition.x + (buttonSize.x + buttonSpacing) - (buttonSize.x / 2), currentPosition.y);
             button = new SimpleButton(this, dialogPage, Translate("Keep Both"), DialogOption.KEEP_BOTH, buttonPosition, buttonSize);
             dialogPage.subObjects.Add(button);
-            InfoText[button] = "The source file will be renamed with a numbered suffix";
+            InfoText[button] = "The source file is renamed with a numbered suffix";
 
             buttonPosition = new Vector2(buttonPosition.x + (buttonSize.x + buttonSpacing) - (buttonSize.x / 2), currentPosition.y);
             button = new SimpleButton(this, dialogPage, Translate("Skip For Now"), DialogOption.SKIP, buttonPosition, buttonSize);
@@ -118,7 +118,7 @@ namespace LogUtils
             buttonPosition = new Vector2(buttonPosition.x + (buttonSize.x + buttonSpacing) - (buttonSize.x / 2), currentPosition.y);
             button = new SimpleButton(this, dialogPage, Translate("Cancel"), DialogOption.CANCEL, buttonPosition, buttonSize);
             dialogPage.subObjects.Add(button);
-            InfoText[button] = "Undo all merged folder, and file changes";
+            InfoText[button] = "Revert all merged folder, and file changes";
 
             OnClose += conflictResolutionDialog_OnClose;
         }
