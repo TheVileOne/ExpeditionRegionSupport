@@ -123,7 +123,7 @@ namespace LogUtils.Properties
                         UtilityLogger.Log("Group eligible for log directory. No change necessary");
                         ChangePath(LastKnownFolderPath, applyToMembers: false);
                     }
-                    else
+                    else if (UtilityCore.IsControllingAssembly)
                     {
                         //Expect that the user-supplied path is the same as the current path when this is called
                         Assert.That(PathUtils.PathsAreEqual(FolderPath, CurrentFolderPath));
