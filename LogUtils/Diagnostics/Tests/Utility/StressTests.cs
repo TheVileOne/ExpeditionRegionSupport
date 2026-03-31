@@ -191,11 +191,10 @@ namespace LogUtils.Diagnostics.Tests.Utility
 
         internal static void TriggerDeadlock()
         {
-            //TODO: LogUtils is still vulnerable to this issue
             TimeSpan threadWaitTime = TimeSpan.FromSeconds(3); //Higher this value is, the more likely game will not respond
             Lock testLock = LogID.Expedition.GetLock();
 
-            DotNetTask.Run(() =>
+            DotNetTask task1 = DotNetTask.Run(() =>
             {
                 UtilityLogger.DebugLog("Deadlock thread 0 started");
                 using (testLock.Acquire())
@@ -206,10 +205,10 @@ namespace LogUtils.Diagnostics.Tests.Utility
                     }
                 }
                 UtilityLogger.DebugLog("Deadlock thread 0 ended");
-                reportLockInfo();
+                reportLockInfo(testLock);
             });
 
-            DotNetTask.Run(() =>
+            DotNetTask task2 = DotNetTask.Run(() =>
             {
                 UtilityLogger.DebugLog("Deadlock thread 1 started");
                 using (UtilityCore.RequestHandler.BeginCriticalSection())
@@ -220,13 +219,16 @@ namespace LogUtils.Diagnostics.Tests.Utility
                     }
                 }
                 UtilityLogger.DebugLog("Deadlock thread 1 ended");
-                reportLockInfo();
+                reportLockInfo(testLock);
             });
 
-            static void reportLockInfo()
+            DotNetTask.WhenAll(task1, task2).Wait(); //Waiting here allows test to complete without other log behavior interfering with the results
+
+            static void reportLockInfo(Lock testLock)
             {
+                //When all tasks are finished, these counts should all be zeroes
                 UtilityLogger.DebugLog("Request lock active count: " + UtilityCore.RequestHandler.RequestProcessLock.ActiveCount);
-                UtilityLogger.DebugLog("File lock active count:    " + LogID.Expedition.GetLock().ActiveCount);
+                UtilityLogger.DebugLog("File lock active count:    " + testLock.ActiveCount);
                 UtilityLogger.DebugLog("Active file locks:         " + Lock.CurrentFileLockAcquireCount);
             }
         }
