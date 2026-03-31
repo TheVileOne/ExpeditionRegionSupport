@@ -49,6 +49,11 @@ namespace LogUtils.Threading
             }
         }
 
+        /// <summary>
+        /// The amount of time in milliseconds before a lock timeout occurs
+        /// </summary>
+        public int Timeout = System.Threading.Timeout.Infinite;
+
         private readonly ThreadLocal<int> suppressReleaseCounter = new ThreadLocal<int>();
 
         private static int _nextID;
@@ -138,36 +143,26 @@ namespace LogUtils.Threading
         public Scope Acquire()
         {
             //Blockless attempt to enter lock
-            bool lockEntered = Monitor.TryEnter(LockObject, 1);
-
-            RaiseEvent(lockEntered ? EventID.LockAcquired : EventID.WaitingToAcquire);
+            bool lockEntered = Monitor.TryEnter(LockObject);
 
             if (!lockEntered)
             {
-                if (CurrentFileLockAcquireCount > 0 && Equals(UtilityCore.RequestHandler.RequestProcessLock))
+                //Block until lock is entered or lock timeout is reached
+                RaiseEvent(EventID.WaitingToAcquire);
+                if (!Monitor.TryEnter(LockObject, Timeout))
                 {
-                    UtilityLogger.DebugLog("Unsafe lock conditions present. Enabling deadlock prevention feature.");
-                    //Block until lock is entered or lock timeout is reached
-                    if (!Monitor.TryEnter(LockObject, TimeSpan.FromMilliseconds(250)))
-                    {
-                        UtilityLogger.DebugLog("Lock attempt timed out");
-                        RaiseEvent(EventID.FailedToAcquire);
-                        suppressReleaseCounter.Value++;
-                        return lockScope;
-                    }
+                    UtilityLogger.DebugLog("Lock attempt timed out");
+                    RaiseEvent(EventID.FailedToAcquire);
+                    suppressReleaseCounter.Value++;
+                    return lockScope;
                 }
-                else
-                {
-                    //Block until lock is entered
-                    Monitor.Enter(LockObject);
-                }
-                RaiseEvent(EventID.LockAcquired);
             }
 
             if (this is FileLock)
                 Interlocked.Increment(ref CurrentFileLockAcquireCount);
 
             ActiveCount++;
+            RaiseEvent(EventID.LockAcquired);
             return lockScope;
         }
 
@@ -185,7 +180,12 @@ namespace LogUtils.Threading
                 return;
             }
 
-            if (ActiveCount == 0) return;
+            if (ActiveCount == 0)
+            {
+                if (UtilityCore.Build == UtilitySetup.Build.DEVELOPMENT)
+                    throw new SynchronizationLockException();
+                return;
+            }
 
             if (this is FileLock)
                 Interlocked.Decrement(ref CurrentFileLockAcquireCount);

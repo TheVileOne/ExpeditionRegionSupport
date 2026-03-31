@@ -121,6 +121,7 @@ namespace LogUtils.Requests
         public LogRequestHandler()
         {
             UnhandledRequests = new LinkedLogRequestCollection(20);
+            RequestProcessLock.Timeout = 250;
         }
 
         /// <summary>
