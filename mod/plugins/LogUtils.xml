@@ -2414,7 +2414,7 @@
             <param name="message">Case-sensitive identifier</param>
         </member>
         <member name="M:LogUtils.ConflictResolutionDialog.Update">
-            <summary/>
+            <inheritdoc/>
         </member>
         <member name="M:LogUtils.ConflictResolutionHandler.GetSkippedConflicts">
             <summary>
@@ -7041,7 +7041,7 @@
             Optional action that must run if merge process doesn't complete
             </summary>
         </member>
-        <member name="E:LogUtils.Events.MergeConflictEventArgs.OnConflictResolved">
+        <member name="E:LogUtils.Events.MergeConflictEventArgs.OnConflictsResolved">
             <summary>
             Optional action that must run when conflicts involving this group is resolved
             </summary>
@@ -11747,6 +11747,11 @@
             <param name="optionID">An identifying string for a <see cref="T:LogUtils.RadioButtonGroup"/> option; can be selectable through <see cref="M:Menu.MenuObject.Singal(Menu.MenuObject,System.String)"/></param>
         </member>
         <!-- Badly formed XML comment ignored for member "M:LogUtils.RadioButtonGroup.RemoveOption(System.String)" -->
+        <member name="M:LogUtils.RadioButtonGroup.Update">
+            <summary>
+            Method is invoked by Rain World assembly
+            </summary>
+        </member>
         <member name="P:LogUtils.RainWorldDirectory.PathFinder">
             <summary>
             Converts partial, and non-partial Rain World file or directory paths into a normalized equivalent form within the Rain World directory  
@@ -12539,6 +12544,11 @@
             Suppresses the next Release attempt made on this lock by the current thread
             </summary>
         </member>
+        <member name="F:LogUtils.Threading.Lock.Timeout">
+            <summary>
+            The amount of time in milliseconds before a lock timeout occurs
+            </summary>
+        </member>
         <member name="E:LogUtils.Threading.Lock.OnEvent">
             <summary>
             Listens to lock monitoring events, (such as a lock being created, acquired, or released)
@@ -13237,6 +13247,11 @@
             A signal that allows closing procedure to complete
             </summary>
         </member>
+        <member name="F:LogUtils.UtilityDialog.InfoText">
+            <summary>
+            Dictionary of UI descriptions
+            </summary>
+        </member>
         <member name="E:LogUtils.UtilityDialog.OnClosing">
             <summary>
             Event raised when this dialog enters the closing state
@@ -13264,6 +13279,11 @@
             </summary>
         </member>
         <member name="M:LogUtils.UtilityDialog.Update">
+            <summary>
+            Method is invoked by Rain World assembly
+            </summary>
+        </member>
+        <member name="M:LogUtils.UtilityDialog.UpdateInfoText">
             <summary>
             Method is invoked by Rain World assembly
             </summary>
