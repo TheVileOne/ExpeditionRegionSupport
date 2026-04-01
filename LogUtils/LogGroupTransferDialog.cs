@@ -1,4 +1,5 @@
-﻿using LogUtils.Enums;
+﻿using LogUtils.Console;
+using LogUtils.Enums;
 using LogUtils.Events;
 using LogUtils.Helpers;
 using Menu;
@@ -19,11 +20,19 @@ namespace LogUtils
 
         internal const float LABEL_HEIGHT = 24f;
 
+        private const int ERROR_DISPLAY_TIME = 2000;
+
         private readonly LogGroupID groupID;
         private readonly string destinationPath;
         private readonly int initialPathVersion;
 
         private RadioButtonGroup dialogOptions;
+
+        private bool errorDisplayActive;
+        private Lifetime errorDisplayLifetime;
+
+        private Color infoLabelErrorColor;
+        private Color infoLabelErrorSecondaryColor;
 
         /// <inheritdoc/>
         public override bool WantsToClose => base.WantsToClose || !init && initialPathVersion != groupID.Properties.FolderPathVersion;
@@ -202,6 +211,16 @@ namespace LogUtils
             catch (Exception ex)
             {
                 UtilityLogger.LogError("Failed to move folder", ex);
+                errorDisplayActive = true;
+                if (errorDisplayLifetime == null || !errorDisplayLifetime.IsAlive)
+                {
+                    errorDisplayLifetime = Lifetime.FromMilliseconds(ERROR_DISPLAY_TIME);
+                }
+                else
+                {
+                    //Extend the lifetime each time there is an error
+                    errorDisplayLifetime.SetDuration(errorDisplayLifetime.TimeRemaining + (ERROR_DISPLAY_TIME / 2));
+                }
             }
         }
 
@@ -210,8 +229,62 @@ namespace LogUtils
         {
             dialogOptions.SetInitial(DialogOption.FOLDER_MOVE);
 
+            //Colors taken from infoLabel flicker code
+            Color startColor = MenuRGB(MenuColors.White);
+            Color endColor = MenuRGB(MenuColors.MediumGrey);
+
+            Color colorOffset = endColor - startColor;
+
+            //The display color will oscillate between these two colors when the error info message is shown 
+            infoLabelErrorColor = ConsoleColorMap.GetColor(ConsoleColor.DarkRed); //new Color(0.75f, 0f, 0f);
+            infoLabelErrorSecondaryColor = infoLabelErrorColor + colorOffset;
+
             base.Init();
             UtilityLogger.Log(!WantsToClose ? "Showing transfer dialog" : "Path transfer is no longer necessary");
+        }
+
+        /// <summary>
+        /// Method is invoked by Rain World assembly
+        /// </summary>
+        public override void GrafUpdate(float timeStacker)
+        {
+            base.GrafUpdate(timeStacker);
+
+            if (infoLabel != null && errorDisplayActive)
+            {
+                infoLabel.color = Color.Lerp(infoLabelErrorColor, infoLabelErrorSecondaryColor, 0.5f + (0.5f * Mathf.Sin((infoLabelSin + timeStacker) / 9f)));
+            }
+        }
+
+        /// <inheritdoc/>
+        public override void Update()
+        {
+            base.Update();
+
+            if (errorDisplayActive)
+            {
+                if (errorDisplayLifetime.IsAlive)
+                    infoLabelFade = 1f; //Keep label from fading out
+                else if (infoLabelFade < 0.05f)
+                {
+                    errorDisplayActive = false;
+                    if (infoLabel != null)
+                    {
+                        infolabelDirty = true;
+                        infoLabel.text = UpdateInfoText();
+                    }
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public override string UpdateInfoText()
+        {
+            string infoText = base.UpdateInfoText();
+
+            if (errorDisplayActive)
+                infoText = "!!! ERROR !!! Operation failed to complete. Check exception log for more details";
+            return infoText;
         }
     }
 }
