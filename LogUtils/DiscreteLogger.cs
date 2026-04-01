@@ -1,4 +1,5 @@
-﻿using LogUtils.Enums;
+﻿using BepInEx.Logging;
+using LogUtils.Enums;
 
 namespace LogUtils
 {
@@ -16,6 +17,13 @@ namespace LogUtils
         /// </summary>
         /// <inheritdoc select="params"/>
         public DiscreteLogger(ILogTarget preset) : base(LoggingMode.Inherit, true, preset)
+        {
+        }
+
+
+        /// <inheritdoc cref="DiscreteLogger(ILogTarget)"/>
+        /// <inheritdoc select="params"/>
+        public DiscreteLogger(ILogSource logSource) : base(logSource)
         {
         }
 

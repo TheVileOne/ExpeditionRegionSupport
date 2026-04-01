@@ -210,7 +210,12 @@ namespace LogUtils
             }
             catch (Exception ex)
             {
-                UtilityLogger.LogError("Failed to move folder", ex);
+                var logTargets = LogID.BepInEx | LogID.Exception;
+                using (Logger errorLogger = new DiscreteLogger(UtilityLogger.Logger))
+                {
+                    errorLogger.LogError(logTargets, ex);
+                }
+
                 errorDisplayActive = true;
                 if (errorDisplayLifetime == null || !errorDisplayLifetime.IsAlive)
                 {
