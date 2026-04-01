@@ -10,11 +10,6 @@ namespace LogUtils
     public class LogGroupBuilder
     {
         /// <summary>
-        /// The earliest period in which members are allowed to start a new log session through a log event.
-        /// </summary>
-        public SetupPeriod Access = SetupPeriod.Pregame;
-
-        /// <summary>
         /// Permissions that restrict how a group folder is operated on through LogUtils APIs
         /// </summary>
         public FolderPermissions Permissions = FolderPermissions.All;
@@ -68,7 +63,6 @@ namespace LogUtils
 
             result = LogGroupID.Factory.CreateNamedGroup(Name, Path, ModIDHint);
 
-            result.Properties.AccessPeriod = Access;
             result.Properties.FolderPermissions = Permissions;
 
             if (CanCreateFolder && result.Properties.IsFolderGroup)
@@ -88,7 +82,6 @@ namespace LogUtils
 
             LogGroupID result = LogGroupID.Factory.CreateNamedGroup(Name, Path, ModIDHint, true);
 
-            result.Properties.AccessPeriod = Access;
             result.Properties.FolderPermissions = Permissions;
 
             if (CanCreateFolder && result.Properties.IsFolderGroup)

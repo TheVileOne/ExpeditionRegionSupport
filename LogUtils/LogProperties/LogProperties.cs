@@ -167,7 +167,7 @@ namespace LogUtils.Properties
         /// The earliest period that the log file may start a new log session through a log event.
         /// It is recommended to keep at the earliest possible write period, or a period that is close to when the log file is used by a mod's logger. <br/>
         /// - Log Groups <br/>
-        /// All applicable members will inherit this property. This value also impacts how early a targeted folder may be operated on through LogUtils folder management API. See <see cref="LogFolderInfo"/>.
+        /// All applicable members will inherit this property.
         /// </summary>
         public SetupPeriod AccessPeriod = SetupPeriod.Pregame;
 

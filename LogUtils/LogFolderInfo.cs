@@ -156,20 +156,6 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Returns the access period that satisfies all groups targeting this folder path
-        /// </summary>
-        public SetupPeriod GetAccess()
-        {
-            SetupPeriod accessPeriod = SetupPeriod.Pregame;
-            foreach (LogGroupID group in Groups)
-            {
-                if (accessPeriod < group.Properties.AccessPeriod) //Seek out the latest access period
-                    accessPeriod = group.Properties.AccessPeriod;
-            }
-            return accessPeriod;
-        }
-
-        /// <summary>
         /// Returns the folder permissions associated with this folder path
         /// </summary>
         public FolderPermissions GetPermissions()
@@ -225,21 +211,11 @@ namespace LogUtils
 
             if (checkPermissions)
             {
-                bool canAccess, canMove;
-
-                SetupPeriod accessPeriod = GetAccess();
-                canAccess = RainWorldInfo.LatestSetupPeriodReached >= accessPeriod;
-
-                if (canAccess)
-                {
-                    FolderPermissions permissions = GetPermissions();
-                    canMove = (permissions & FolderPermissions.Move) != 0;
-                }
-                else
-                    canMove = false;
+                FolderPermissions permissions = GetPermissions();
+                bool canMove = (permissions & FolderPermissions.Move) != 0;
 
                 if (!canMove)
-                    LogGroup.OnPermissionDenied(FolderPath, FolderPermissions.Move, accessViolation: !canAccess);
+                    LogGroup.OnPermissionDenied(FolderPath, FolderPermissions.Move);
             }
 
             ActivityRecord record = new ActivityRecord()
