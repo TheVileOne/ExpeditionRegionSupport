@@ -42,10 +42,12 @@ namespace LogUtils.Properties
             optionalFieldsMissingTotal = optionalFieldsMissingCount; //Must be set before unrecognized fields are checked
             FieldOrderMismatch = fieldOrderMismatch;                 //Must be set before unrecognized fields are checked
 
+            UtilityLogger.LogWarning("Mismatch A: " + FieldOrderMismatch);
             //Ensure that required fields that are missing are considered as an order mismatch
             if (optionalFieldsRequired)
                 FieldOrderMismatch |= optionalFieldsMissingTotal > 0;
 
+            UtilityLogger.LogWarning("Mismatch B: " + FieldOrderMismatch);
             UnrecognizedFields = GetUnrecognizedFields();
             Processor = new LogPropertyDataProcessor(this);
         }
@@ -114,6 +116,7 @@ namespace LogUtils.Properties
 
             int unknownFieldTotal = getFieldCheckTotal();
 
+            UtilityLogger.LogWarning("Unknown field count: " + unknownFieldTotal);
             if (unknownFieldTotal > 0)
             {
                 //Handle unrecognized, and custom fields by storing them in a list that other mods will be able to access
@@ -150,6 +153,8 @@ namespace LogUtils.Properties
                 if (FieldOrderMismatch) //We can't know how many unrecognized fields there are. We must check every field.
                     return Fields.Count;
 
+                UtilityLogger.LogWarning("FIELD count: " + Fields.Count);
+                UtilityLogger.LogWarning("EXPECTED count: " + getExpectedFieldCount());
                 return Math.Max(Fields.Count - getExpectedFieldCount(), 0);
             }
 

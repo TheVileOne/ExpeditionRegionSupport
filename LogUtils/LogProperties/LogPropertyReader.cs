@@ -119,10 +119,13 @@ namespace LogUtils.Properties
                         }
                         else
                         {
+                            UtilityLogger.Log("EXPECTED MATCH FAILED: " + header);
+
                             int optionalFieldsBypassed = countOptionalFieldsBeforeNextMatch(header, fieldMatchCount);
 
                             if (optionalFieldsBypassed > 0)
                             {
+                                UtilityLogger.Log("RESOLVED");
                                 expectedFieldsMatch = true;
                                 fieldMatchCount += optionalFieldsBypassed + 1;
                                 optionalFieldsMissingCount += optionalFieldsBypassed;
