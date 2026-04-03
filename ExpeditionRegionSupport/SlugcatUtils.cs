@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Watcher;
 
 namespace ExpeditionRegionSupport
 {
@@ -27,12 +28,16 @@ namespace ExpeditionRegionSupport
         public static bool SlugcatsInitialized;
 
         /// <summary>
-        /// For useful purposes, Downpour slugcats are not considered modded
+        /// Determines if Slugcat name is not associated with an official Rain World slugcat
         /// </summary>
         public static bool IsModcat(SlugcatStats.Name slugcat)
         {
+            if (slugcat == null) return false;
+
             return !IsVanillaSlugcat(slugcat) && !SlugcatStats.IsSlugcatFromMSC(slugcat)
-                && !slugcat.Equals(SlugcatStats.Name.Night) && !slugcat.Equals(MoreSlugcatsEnums.SlugcatStatsName.Slugpup);
+                && !slugcat.Equals(WatcherEnums.SlugcatStatsName.Watcher)
+                && !slugcat.Equals(SlugcatStats.Name.Night)
+                && !slugcat.Equals(MoreSlugcatsEnums.SlugcatStatsName.Slugpup);
         }
 
         public static bool IsVanillaSlugcat(SlugcatStats.Name slugcat)
