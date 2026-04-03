@@ -142,8 +142,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
 
             sb.AppendLine()
               .Append("WorldState: ")
-              .Append(WorldState)
-              .Append(Environment.NewLine)
+              .AppendLine(WorldState.ToString())
               .Append(Slugcats.ToString())
               .Append("Progression Restrictions: ")
               .Append(ProgressionRestriction);
@@ -279,10 +278,8 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
 
             foreach (string room in Rooms)
             {
-                sb.Append(room);
-                sb.Append(Environment.NewLine);
+                sb.AppendLine(room);
             }
-
             return sb.ToString();
         }
     }
@@ -418,18 +415,14 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
             {
                 if (slugcatNames.Count == 0)
                 {
-                    sb.Append(noEntryString);
-                    sb.Append(Environment.NewLine);
+                    sb.AppendLine(noEntryString);
                 }
                 else
                 {
-                    sb.Append(hasEntryString);
-                    sb.Append(Environment.NewLine);
-
+                    sb.AppendLine(hasEntryString);
                     foreach (SlugcatStats.Name name in slugcatNames)
                     {
-                        sb.Append(name.value);
-                        sb.Append(Environment.NewLine);
+                        sb.AppendLine(name.value);
                     }
                 }
             }
