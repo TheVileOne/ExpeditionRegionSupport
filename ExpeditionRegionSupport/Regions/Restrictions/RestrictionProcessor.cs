@@ -140,7 +140,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                             processFile(testCase);
 
                             //Log test case results
-                            testCaseID = LogID.CreateTemporaryID(testCaseName.Replace("test", "result"), resultFolder);
+                            testCaseID = LogID.Factory.CreateTemporaryID(testCaseName.Replace("test", "result"), resultFolder);
 
                             Plugin.Logger.LogTargets.Add(testCaseID);
 

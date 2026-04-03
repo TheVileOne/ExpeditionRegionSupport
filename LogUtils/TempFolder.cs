@@ -25,7 +25,6 @@ namespace LogUtils
             token.RevokeAccess();
         }
 
-
         /// <summary>
         /// Creates the directory structure for a given file, or directory path
         /// </summary>

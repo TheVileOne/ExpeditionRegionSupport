@@ -256,7 +256,6 @@ namespace LogUtils.Helpers.FileHandling
             return path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
         }
 
-
         /// <summary>
         /// Replace all directory separator characters with the default platform-specific directory separator character 
         /// </summary>

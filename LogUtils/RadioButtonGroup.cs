@@ -9,7 +9,10 @@ namespace LogUtils
     {
         public event Events.EventHandler<RadioButtonGroup, SelectionChangedEventArgs> SelectionChanged;
 
-        public CheckBox Selected { get; private set; }
+        /// <summary>
+        /// The selected group item
+        /// </summary>
+        public new CheckBox Selected { get; private set; }
 
         /// <summary>
         /// The option set by default (one option has to be)
@@ -80,7 +83,7 @@ namespace LogUtils
         /// <summary>
         /// Removes a <see cref="RadioButtonGroup"/> option with the specified identifying string
         /// </summary>
-        /// <param name="optionID">An identifying string for a <see cref="RadioButtonGroup"/> option/param>
+        /// <param name="optionID">An identifying string for a <see cref="RadioButtonGroup"/> option</param>
         public void RemoveOption(string optionID)
         {
             CheckBox found = Options.Find(o => o.IDString == optionID);
