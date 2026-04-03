@@ -9,8 +9,8 @@
 
 	<!-- Metadata properties -->
 	<PropertyGroup>
-		<AssemblyVersion>1.01</AssemblyVersion>
-		<FileVersion>1.01</FileVersion>
+		<AssemblyVersion>1.0.2</AssemblyVersion>
+		<FileVersion>1.0.2</FileVersion>
 	</PropertyGroup>
 
 	<!-- Build output properties -->

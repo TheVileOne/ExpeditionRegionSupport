@@ -4640,6 +4640,10 @@
             </summary>
             <inheritdoc select="params"/>
         </member>
+        <member name="M:LogUtils.DiscreteLogger.#ctor(BepInEx.Logging.ILogSource)">
+            <inheritdoc cref="M:LogUtils.DiscreteLogger.#ctor(LogUtils.Enums.ILogTarget)"/>
+            <inheritdoc select="params"/>
+        </member>
         <member name="M:LogUtils.DiscreteLogger.#ctor(System.Boolean,LogUtils.Enums.ILogTarget)">
             <inheritdoc cref="M:LogUtils.DiscreteLogger.#ctor(LogUtils.Enums.ILogTarget)"/>
             <inheritdoc select="params"/>
@@ -8886,13 +8890,12 @@
             Example showing how API can be used by a mod to move their group folder, or its contents around
             </summary>
         </member>
-        <member name="M:LogUtils.Helpers.LogGroup.OnPermissionDenied(System.String,LogUtils.Enums.FileSystem.FolderPermissions,System.Boolean)">
+        <member name="M:LogUtils.Helpers.LogGroup.OnPermissionDenied(System.String,LogUtils.Enums.FileSystem.FolderPermissions)">
             <summary>
             Throws an exception based on a permission violation
             </summary>
             <param name="folderPath">The path that caused the violation</param>
             <param name="permission">The permission violation</param>
-            <param name="accessViolation">Indicates whether denial is due to an access violation</param>
             <exception cref="T:System.InvalidOperationException">Log group does not have a folder path specified</exception>
             <exception cref="T:System.IO.IOException">Folder operation was unsafe, or attempted on a protected path</exception>
             <exception cref="T:LogUtils.PermissionDeniedException">Insufficient permission to complete folder operation</exception>
@@ -9365,11 +9368,6 @@
             <exception cref="T:System.ArgumentNullException">Folder info is a null value</exception>
             <exception cref="T:System.Security.SecurityException">Insufficient access to specified path</exception>
         </member>
-        <member name="M:LogUtils.LogFolderInfo.GetAccess">
-            <summary>
-            Returns the access period that satisfies all groups targeting this folder path
-            </summary>
-        </member>
         <member name="M:LogUtils.LogFolderInfo.GetPermissions">
             <summary>
             Returns the folder permissions associated with this folder path
@@ -9645,11 +9643,6 @@
             </summary>
             <remarks>Emulates BepInEx logging</remarks>
         </member>
-        <member name="F:LogUtils.LogGroupBuilder.Access">
-            <summary>
-            The earliest period in which members are allowed to start a new log session through a log event.
-            </summary>
-        </member>
         <member name="F:LogUtils.LogGroupBuilder.Permissions">
             <summary>
             Permissions that restrict how a group folder is operated on through LogUtils APIs
@@ -9828,6 +9821,17 @@
             <param name="message">Case-sensitive identifier</param>
         </member>
         <member name="M:LogUtils.LogGroupTransferDialog.Init">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.LogGroupTransferDialog.GrafUpdate(System.Single)">
+            <summary>
+            Method is invoked by Rain World assembly
+            </summary>
+        </member>
+        <member name="M:LogUtils.LogGroupTransferDialog.Update">
+            <inheritdoc/>
+        </member>
+        <member name="M:LogUtils.LogGroupTransferDialog.UpdateInfoText">
             <inheritdoc/>
         </member>
         <member name="F:LogUtils.Properties.Custom.CustomLogProperty.IsLogRule">
@@ -10302,7 +10306,7 @@
             The earliest period that the log file may start a new log session through a log event.
             It is recommended to keep at the earliest possible write period, or a period that is close to when the log file is used by a mod's logger. <br/>
             - Log Groups <br/>
-            All applicable members will inherit this property. This value also impacts how early a targeted folder may be operated on through LogUtils folder management API. See <see cref="T:LogUtils.LogFolderInfo"/>.
+            All applicable members will inherit this property.
             </summary>
         </member>
         <member name="F:LogUtils.Properties.LogProperties.AllowLogging">
@@ -11706,6 +11710,11 @@
         <member name="M:LogUtils.QueueLogWriter.OnWriteException(LogUtils.Enums.LogID,System.Exception)">
             <inheritdoc/>
         </member>
+        <member name="P:LogUtils.RadioButtonGroup.Selected">
+            <summary>
+            The selected group item
+            </summary>
+        </member>
         <member name="P:LogUtils.RadioButtonGroup.DefaultOption">
             <summary>
             The option set by default (one option has to be)
@@ -11746,7 +11755,12 @@
             <param name="displayText">The text that will show on this option's display label</param>
             <param name="optionID">An identifying string for a <see cref="T:LogUtils.RadioButtonGroup"/> option; can be selectable through <see cref="M:Menu.MenuObject.Singal(Menu.MenuObject,System.String)"/></param>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:LogUtils.RadioButtonGroup.RemoveOption(System.String)" -->
+        <member name="M:LogUtils.RadioButtonGroup.RemoveOption(System.String)">
+            <summary>
+            Removes a <see cref="T:LogUtils.RadioButtonGroup"/> option with the specified identifying string
+            </summary>
+            <param name="optionID">An identifying string for a <see cref="T:LogUtils.RadioButtonGroup"/> option</param>
+        </member>
         <member name="M:LogUtils.RadioButtonGroup.Update">
             <summary>
             Method is invoked by Rain World assembly
