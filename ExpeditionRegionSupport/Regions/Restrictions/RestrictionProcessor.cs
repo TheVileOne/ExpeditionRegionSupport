@@ -766,6 +766,10 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
                     {
                         return WorldState.MSC;
                     }
+                case "watcher":
+                    {
+                        return WorldState.Watcher;
+                    }
                 case "any":
                     {
                         return WorldState.Any;

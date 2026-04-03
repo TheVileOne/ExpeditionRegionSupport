@@ -36,6 +36,9 @@ namespace ExpeditionRegionSupport.Filters.Utils
                 if (!RegionFilterSettings.AllowDownpourRegions.Value)
                     regions = regions.Where(r => !RegionUtils.IsDownpourRegion(r));
 
+                if (!RegionFilterSettings.AllowWatcherRegions.Value)
+                    regions = regions.Where(r => !RegionUtils.IsWatcherRegion(r));
+
                 if (!RegionFilterSettings.AllowCustomRegions.Value)
                     regions = regions.Where(r => !RegionUtils.IsCustomRegion(r));
                 return regions;

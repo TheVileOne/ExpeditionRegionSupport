@@ -15,6 +15,7 @@ namespace ExpeditionRegionSupport.Filters.Settings
 
         public static readonly FilterToggle AllowVanillaRegions;
         public static readonly FilterToggle AllowDownpourRegions;
+        public static readonly FilterToggle AllowWatcherRegions;
         public static readonly FilterToggle AllowCustomRegions;
         public static readonly FilterToggle VisitedRegionsOnly;
         public static readonly FilterToggle StoryAndOptionalRegionsOnly;
@@ -45,6 +46,7 @@ namespace ExpeditionRegionSupport.Filters.Settings
 
             AllowVanillaRegions = new FilterToggle(FilterOption.NoVanilla, true, false);
             AllowDownpourRegions = new FilterToggle(FilterOption.NoDownpour, true, false);
+            AllowWatcherRegions = new FilterToggle(FilterOption.NoWatcher, false, false); //Watcher regions disabled for now
             AllowCustomRegions = new FilterToggle(FilterOption.NoCustom, true, false);
             VisitedRegionsOnly = new FilterToggle(FilterOption.VisitedRegionsOnly, false, true);
             StoryAndOptionalRegionsOnly = new FilterToggle(FilterOption.StoryAndOptionalRegionsOnly, false, true);
@@ -237,6 +239,7 @@ namespace ExpeditionRegionSupport.Filters.Settings
         StoryAndOptionalRegionsOnly,
         NoVanilla,
         NoDownpour,
+        NoWatcher,
         NoCustom
     }
 }

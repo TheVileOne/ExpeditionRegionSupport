@@ -341,6 +341,9 @@ namespace ExpeditionRegionSupport.Regions
                     case FilterOption.NoDownpour:
                         filter = new Predicate<string>(RegionUtils.IsDownpourRegion);
                         break;
+                    case FilterOption.NoWatcher:
+                        filter = new Predicate<string>(RegionUtils.IsWatcherRegion);
+                        break;
                     case FilterOption.NoCustom:
                         filter = new Predicate<string>(RegionUtils.IsCustomRegion);
                         break;

@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Watcher;
 
 namespace ExpeditionRegionSupport.Regions
 {
@@ -393,8 +394,10 @@ namespace ExpeditionRegionSupport.Regions
                 //WorldStates for Monk, Survivor and Hunter are the same value as WorldState.Standard. Obviously they have unique WorldStates,
                 //but all three characters have access to the same story regions.
                 //For custom slugcats unrelated to MSC, give them full access
-                if (name == SlugcatStats.Name.White || name == SlugcatStats.Name.Yellow || name == SlugcatStats.Name.Red)
+                if (SlugcatUtils.IsVanillaSlugcat(name))
                     state = WorldState.Vanilla;
+                else if (ModManager.Watcher && SlugcatStats.SlugcatToTimeline(name) == SlugcatStats.Timeline.Watcher)
+                    state = WorldState.Watcher;
                 else
                     state = WorldState.Other;
             }
@@ -601,6 +604,43 @@ namespace ExpeditionRegionSupport.Regions
                 regionCode == "CL" || //Silent Construct
                 regionCode == "UG" || //Undergrowth
                 regionCode == "VS";   //Pipeyard
+        }
+
+        public static bool IsWatcherRegion(string regionCode)
+        {
+            if (regionCode == null || regionCode.Length < 4)
+                return false;
+
+            return
+                regionCode == "WSKA" ||
+                regionCode == "WSKB" ||
+                regionCode == "WRFA" ||
+                regionCode == "WRRA" ||
+                regionCode == "WPGA" ||
+                regionCode == "WARF" ||
+                regionCode == "WSKD" ||
+                regionCode == "WMPA" ||
+                regionCode == "WTDA" ||
+                regionCode == "WTDB" ||
+                regionCode == "WARG" ||
+                regionCode == "WARD" ||
+                regionCode == "WBLA" ||
+                regionCode == "WARE" ||
+                regionCode == "WRFB" ||
+                regionCode == "WSKC" ||
+                regionCode == "WVWA" ||
+                regionCode == "WVWB" ||
+                regionCode == "WARB" ||
+                regionCode == "WARC" ||
+                regionCode == "WPTA" ||
+                regionCode == "WARA" ||
+                regionCode == "WAUA" ||
+                regionCode == "WORA" ||
+                regionCode == "WHIR" ||
+                regionCode == "WSUR" ||
+                regionCode == "WDSR" ||
+                regionCode == "WGWR" ||
+                regionCode == "WSSR";
         }
 
         public static bool IsCustomRegion(string regionCode)

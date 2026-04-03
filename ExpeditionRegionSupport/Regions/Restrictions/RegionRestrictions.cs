@@ -481,7 +481,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
     {
         Invalid = -1,
         None = 0,
-        Any = Vanilla | MSC | Other,
+        Any = Vanilla | MSC | Watcher | Other,
         Monk = 1,
         Survivor = 1,
         Hunter = 1,
@@ -493,6 +493,7 @@ namespace ExpeditionRegionSupport.Regions.Restrictions
         Gourmand = 16,
         Saint = 32,
         MSC = OldWorld | Rivulet | Gourmand | Saint,
-        Other = 64
+        Other = 64,
+        Watcher = 128,
     }
 }
