@@ -18,10 +18,20 @@ namespace LogUtils
 
         public bool AttemptCopyOnFailure = true;
 
+        private FileExceptionHandler _exceptionHandler;
         /// <summary>
-        /// When set exceptions will be handled through this instance instead of the default handling behavior 
+        /// Handles exceptions caught while handling file system operations through this instance
         /// </summary>
-        public FileExceptionHandler ExceptionHandler;
+        public FileExceptionHandler ExceptionHandler
+        {
+            get
+            {
+                if (_exceptionHandler == null)
+                    _exceptionHandler = CreateExceptionHandler();
+                return _exceptionHandler;
+            }
+            set => _exceptionHandler = value;
+        }
 
         /// <summary>
         /// Creates an object capable of moving, or copying log files to a new destination
@@ -62,11 +72,8 @@ namespace LogUtils
                     ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
                     ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
 
-                    ErrorContext context = ErrorContext.Move;
-                    var handler = ExceptionHandler ?? CreateExceptionHandler(context);
-
-                    SetExceptionHandlerContext(handler, context);
-                    handler.OnError(ex);
+                    SetExceptionHandlerContext(ErrorContext.Move);
+                    ExceptionHandler.OnError(ex);
 
                     status = FileStatus.Error;
                     if (AttemptCopyOnFailure)
@@ -78,11 +85,8 @@ namespace LogUtils
             Exception validationException = logValidator.GetLastException();
             if (validationException != null)
             {
-                ErrorContext context = ErrorContext.Move;
-                var handler = ExceptionHandler ?? CreateExceptionHandler(context);
-
-                SetExceptionHandlerContext(handler, context);
-                handler.OnError(validationException, "Validation error occurred");
+                SetExceptionHandlerContext(ErrorContext.Move);
+                ExceptionHandler.OnError(validationException, "Validation error occurred");
             }
             return FileStatus.ValidationFailed;
         }
@@ -109,11 +113,8 @@ namespace LogUtils
                     ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
                     ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
 
-                    ErrorContext context = ErrorContext.Copy;
-                    var handler = ExceptionHandler ?? CreateExceptionHandler(context);
-
-                    SetExceptionHandlerContext(handler, context);
-                    handler.OnError(ex);
+                    SetExceptionHandlerContext(ErrorContext.Copy);
+                    ExceptionHandler.OnError(ex);
 
                     status = FileStatus.Error;
                 }
@@ -123,11 +124,8 @@ namespace LogUtils
             Exception validationException = logValidator.GetLastException();
             if (validationException != null)
             {
-                ErrorContext context = ErrorContext.Copy;
-                var handler = ExceptionHandler ?? CreateExceptionHandler(context);
-
-                SetExceptionHandlerContext(handler, context);
-                handler.OnError(validationException, "Validation error occurred");
+                SetExceptionHandlerContext(ErrorContext.Copy);
+                ExceptionHandler.OnError(validationException, "Validation error occurred");
             }
             return FileStatus.ValidationFailed;
         }
@@ -148,11 +146,8 @@ namespace LogUtils
                 ex.Data[ExceptionDataKey.SOURCE_PATH] = sourcePath;
                 ex.Data[ExceptionDataKey.DESTINATION_PATH] = destPath;
 
-                ErrorContext context = ErrorContext.Copy;
-                var handler = ExceptionHandler ?? CreateExceptionHandler(context);
-
-                SetExceptionHandlerContext(handler, context);
-                handler.OnError(ex);
+                SetExceptionHandlerContext(ErrorContext.Copy);
+                ExceptionHandler.OnError(ex);
 
                 status = FileStatus.Error;
             }
@@ -204,10 +199,11 @@ namespace LogUtils
             return FileStatus.MoveRequired;
         }
 
-        protected virtual FileExceptionHandler CreateExceptionHandler(ErrorContext context) => new LogFileMoverExceptionHandler();
+        protected virtual FileExceptionHandler CreateExceptionHandler() => new LogFileMoverExceptionHandler();
 
-        protected void SetExceptionHandlerContext(FileExceptionHandler handler, ErrorContext context)
+        protected void SetExceptionHandlerContext(ErrorContext context)
         {
+            var handler = ExceptionHandler;
             switch (context)
             {
                 case ErrorContext.Move:
