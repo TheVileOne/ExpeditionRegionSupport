@@ -24,7 +24,7 @@ namespace LogUtils
             IsRegex = useAsRegexPattern;
         }
 
-        public bool CheckMatch(string testString)
+        public readonly bool CheckMatch(string testString)
         {
             if (IsRegex)
             {
@@ -38,7 +38,7 @@ namespace LogUtils
         /// Checks whether the filter is currently applicable
         /// </summary>
         /// <returns>true, when applicable, false otherwise</returns>
-        public bool CheckValidation()
+        public readonly bool CheckValidation()
         {
             //time_ prefix describes activation range keywords
             return Keywords.Count == 0 || Keywords.TrueForAll(k =>

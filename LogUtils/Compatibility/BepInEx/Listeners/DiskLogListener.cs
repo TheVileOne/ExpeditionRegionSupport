@@ -81,18 +81,16 @@ namespace LogUtils.Compatibility.BepInEx.Listeners
 
         private void logUtilityEvent(LogRequest request)
         {
-            const int retry_request_time = 5; //milliseconds
-
             if (utilityRequestsInProcess.Count > 0)
             {
-                Task utilityRequestTask = new Task(() =>
+                const int retry_request_time = 5; //milliseconds
+
+                LogTasker.Schedule(new Task(retryRequest, retry_request_time)
                 {
-                    logUtilityEvent(request);
-                }, retry_request_time);
+                    Name = UtilityConsts.UTILITY_NAME
+                });
 
-                utilityRequestTask.Name = UtilityConsts.UTILITY_NAME;
-
-                LogTasker.Schedule(utilityRequestTask);
+                void retryRequest() => logUtilityEvent(request);
                 return;
             }
 
