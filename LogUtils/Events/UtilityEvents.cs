@@ -15,8 +15,9 @@ namespace LogUtils.Events
         public static LogEventHandler OnMoveAborted;
         public static LogEventHandler OnPathChanged;
 
-        //Setup events
+        //Loading events
         public static Action OnProcessSwitch;
+        public static Action OnProcessShutdown;
         public static SetupPeriodEventHandler OnSetupPeriodReached;
 
         //RainWorld Events

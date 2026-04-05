@@ -130,7 +130,7 @@ namespace LogUtils
 
             if (RainWorldInfo.LatestSetupPeriodReached == SetupPeriod.Pregame || (InitializedWithErrors && UtilitySetup.CurrentStep < UtilitySetup.InitializationStep.APPLY_HOOKS))
             {
-                earlyShutdownEvent = OnShutdown;
+                earlyShutdownEvent = UtilityEvents.OnProcessShutdown;
                 Application.quitting += earlyShutdownEvent;
             }
 
@@ -177,6 +177,7 @@ namespace LogUtils
                         if (Build == UtilitySetup.Build.DEVELOPMENT)
                             DeadlockTester.Run();
 
+                        UtilityEvents.OnProcessShutdown += OnProcessShutdown;
                         nextStep = UtilitySetup.InitializationStep.START_SCHEDULER;
                         break;
                     }
@@ -429,7 +430,7 @@ namespace LogUtils
             PropertyManager.PropertyFile.RefreshStream();
         }
 
-        internal static void OnShutdown()
+        internal static void OnProcessShutdown()
         {
             if (!RainWorldInfo.IsShuttingDown)
             {

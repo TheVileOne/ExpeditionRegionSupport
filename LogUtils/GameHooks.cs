@@ -171,14 +171,13 @@ namespace LogUtils
         private static void RainWorld_OnDestroy(On.RainWorld.orig_OnDestroy orig, RainWorld self)
         {
             RainWorldInfo.IsShuttingDown = true;
-
             try
             {
                 orig(self);
             }
             finally
             {
-                UtilityCore.OnShutdown();
+                UtilityEvents.OnProcessShutdown.Invoke();
             }
         }
 
