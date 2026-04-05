@@ -20,7 +20,6 @@ namespace LogUtils
         {
         }
 
-
         /// <inheritdoc cref="DiscreteLogger(ILogTarget)"/>
         /// <inheritdoc select="params"/>
         public DiscreteLogger(ILogSource logSource) : base(logSource)

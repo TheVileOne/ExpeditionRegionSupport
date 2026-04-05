@@ -62,7 +62,6 @@ namespace LogUtils
                 ScheduleDelete();
         }
 
-
         IAccessToken IAccessToken.Access()
         {
             lock (folderLock)
