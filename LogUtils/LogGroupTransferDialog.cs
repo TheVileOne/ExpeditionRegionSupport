@@ -153,7 +153,7 @@ namespace LogUtils
                 label.label.alignment = FLabelAlignment.Left;
                 dialogPage.subObjects.Add(label);
             }
-            position.y -= LABEL_HEIGHT * detailLabels.Length + 1; //Account for label positions
+            position.y -= LABEL_HEIGHT * (detailLabels.Length + 1); //Account for label positions
         }
 
         private void addOptions(ref Vector2 position)

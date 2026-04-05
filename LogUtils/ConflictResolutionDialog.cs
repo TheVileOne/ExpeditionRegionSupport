@@ -81,7 +81,7 @@ namespace LogUtils
 
             detailsPosition = currentPosition;
             updateDetails();
-            currentPosition.y -= LABEL_HEIGHT * detailsContainer.subObjects.Count + 1; //Account for label positions
+            currentPosition.y -= LABEL_HEIGHT * (detailsContainer.subObjects.Count + 1); //Account for label positions
 
             Vector2 labelPosition = new Vector2(currentPosition.x + PADDING_X, currentPosition.y - 24f);
             MenuLabel label = new MenuLabel(this, dialogPage, "Select option to continue", labelPosition, Vector2.zero, false);
