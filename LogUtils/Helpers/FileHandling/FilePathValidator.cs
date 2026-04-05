@@ -1,19 +1,23 @@
-﻿using LogUtils.Helpers.FileHandling;
-using System;
+﻿using System;
 using System.IO;
 
-namespace LogUtils
+namespace LogUtils.Helpers.FileHandling
 {
-    public class LogValidator
+    public class FilePathValidator
     {
         public FileInfo SourceFile;
         public FileInfo DestinationFile;
+
+        /// <summary>
+        /// Indicate whether files with unsupported file extensions should be handled
+        /// </summary>
+        public bool EnforceSupportedFileTypes;
 
         internal string UnvalidatedSourcePath, UnvalidatedDestinationPath;
 
         private Exception lastException;
 
-        public LogValidator(string sourceLogPath, string destLogPath)
+        public FilePathValidator(string sourceLogPath, string destLogPath)
         {
             UnvalidatedSourcePath = sourceLogPath;
             UnvalidatedDestinationPath = destLogPath;
@@ -40,7 +44,7 @@ namespace LogUtils
             UnvalidatedSourcePath = UnvalidatedDestinationPath = null;
             SourceFile = DestinationFile = null;
 
-            if (!FileExtension.IsSupported(sourcePath)) return false; //We don't want to handle random filetypes
+            if (EnforceSupportedFileTypes && !FileExtension.IsSupported(sourcePath)) return false;
 
             //A valid filetype is all we need to validate the source path
             SourceFile = new FileInfo(PathUtils.QuickResolve(sourcePath));
@@ -50,7 +54,7 @@ namespace LogUtils
             {
                 string destFilename = Path.GetFileName(destPath);
 
-                if (!FileExtension.Match(SourceFile.Name, destFilename) && !FileExtension.IsSupported(destFilename))
+                if (EnforceSupportedFileTypes && !FileExtension.Match(SourceFile.Name, destFilename) && !FileExtension.IsSupported(destFilename))
                     return false; //We can only replace log files
 
                 DestinationFile = new FileInfo(PathUtils.QuickResolve(destPath));

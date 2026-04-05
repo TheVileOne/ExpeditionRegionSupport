@@ -37,11 +37,11 @@ namespace LogUtils.Helpers
         /// <param name="overwriteExisting">Specifies the behavior that happens when the file already exists at the destination path</param>
         internal static FileStatus Copy(string sourceLogPath, string destLogPath, bool overwriteExisting)
         {
-            LogFileMover fileMover = new LogFileMover(sourceLogPath, destLogPath)
+            FileMover fileMover = new FileMover(sourceLogPath, destLogPath)
             {
+                EnforceSupportedFileTypes = true,
                 ReplaceExistingFile = overwriteExisting
             };
-
             return fileMover.CopyFile();
         }
 
@@ -132,11 +132,11 @@ namespace LogUtils.Helpers
         /// <param name="overwriteExisting">Specifies the behavior that happens when the file already exists at the destination path</param>
         internal static FileStatus Move(string sourceLogPath, string destLogPath, bool overwriteExisting)
         {
-            LogFileMover fileMover = new LogFileMover(sourceLogPath, destLogPath)
+            FileMover fileMover = new FileMover(sourceLogPath, destLogPath)
             {
+                EnforceSupportedFileTypes = true,
                 ReplaceExistingFile = overwriteExisting
             };
-
             return fileMover.MoveFile();
         }
 

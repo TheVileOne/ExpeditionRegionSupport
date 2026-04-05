@@ -3,20 +3,25 @@ using LogUtils.Enums.FileSystem;
 using LogUtils.Helpers.FileHandling;
 using System;
 using System.IO;
-using ExceptionDataKey = LogUtils.UtilityConsts.ExceptionDataKey;
+using static LogUtils.UtilityConsts;
 
 namespace LogUtils
 {
-    public class LogFileMover
+    public class FileMover
     {
         private readonly string sourcePath, destPath;
 
         /// <summary>
         /// Move attempt will replace a file at the destination path when true; fail to move when false
         /// </summary>
-        public bool ReplaceExistingFile = true;
+        public bool ReplaceExistingFile { get; set; } = true;
 
-        public bool AttemptCopyOnFailure = true;
+        public bool AttemptCopyOnFailure { get; set; } = true;
+
+        /// <summary>
+        /// Indicate whether files with unsupported file extensions should be handled
+        /// </summary>
+        public bool EnforceSupportedFileTypes { get; set; }
 
         private FileExceptionHandler _exceptionHandler;
         /// <summary>
@@ -34,34 +39,34 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Creates an object capable of moving, or copying log files to a new destination
+        /// Creates an object capable of moving, or copying files to a new destination
         /// </summary>
-        /// <param name="sourceLogPath">The full path to the log file that needs to be moved (including filename + ext)</param>
-        /// <param name="destLogPath">The full path to the destination of the log file. Log filename is optional.</param>
-        public LogFileMover(string sourceLogPath, string destLogPath)
+        /// <param name="sourcePath">The full path to the file that needs to be moved (including filename + ext)</param>
+        /// <param name="destPath">The full path to the destination of the file. Filename is optional.</param>
+        public FileMover(string sourcePath, string destPath)
         {
-            sourcePath = sourceLogPath;
-            destPath = destLogPath;
+            this.sourcePath = sourcePath;
+            this.destPath = destPath;
         }
 
         /// <summary>
-        /// Moves a log file from one place to another. Allows file renaming.
+        /// Moves a file from one place to another. Allows file renaming.
         /// </summary>
-        public FileStatus MoveFile()
+        public virtual FileStatus MoveFile()
         {
-            LogValidator logValidator = new LogValidator(sourcePath, destPath);
+            FilePathValidator validator = CreateValidator();
 
-            if (logValidator.Validate())
+            if (validator.Validate())
             {
                 FileStatus status;
                 try
                 {
-                    status = PrepareToMoveFile(logValidator);
+                    status = PrepareToMoveFile(validator);
 
                     if (status == FileStatus.MoveRequired)
                     {
-                        FileInfo sourceFilePath = logValidator.SourceFile;
-                        FileInfo destFilePath = logValidator.DestinationFile;
+                        FileInfo sourceFilePath = validator.SourceFile;
+                        FileInfo destFilePath = validator.DestinationFile;
 
                         sourceFilePath.MoveTo(destFilePath.FullName);
                         return FileStatus.MoveComplete;
@@ -77,12 +82,12 @@ namespace LogUtils
 
                     status = FileStatus.Error;
                     if (AttemptCopyOnFailure)
-                        status = CopyFile(logValidator);
+                        status = CopyFile(validator);
                 }
                 return status;
             }
 
-            Exception validationException = logValidator.GetLastException();
+            Exception validationException = validator.GetLastException();
             if (validationException != null)
             {
                 SetExceptionHandlerContext(ErrorContext.Move);
@@ -92,21 +97,21 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Copies a log file from one place to another. Allows file renaming.
+        /// Copies a file from one place to another. Allows file renaming.
         /// </summary>
-        public FileStatus CopyFile()
+        public virtual FileStatus CopyFile()
         {
-            LogValidator logValidator = new LogValidator(sourcePath, destPath);
+            FilePathValidator validator = CreateValidator();
 
-            if (logValidator.Validate())
+            if (validator.Validate())
             {
                 FileStatus status;
                 try
                 {
-                    status = PrepareToMoveFile(logValidator);
+                    status = PrepareToMoveFile(validator);
 
                     if (status == FileStatus.MoveRequired)
-                        return CopyFile(logValidator);
+                        return CopyFile(validator);
                 }
                 catch (Exception ex)
                 {
@@ -121,7 +126,7 @@ namespace LogUtils
                 return status;
             }
 
-            Exception validationException = logValidator.GetLastException();
+            Exception validationException = validator.GetLastException();
             if (validationException != null)
             {
                 SetExceptionHandlerContext(ErrorContext.Copy);
@@ -130,10 +135,10 @@ namespace LogUtils
             return FileStatus.ValidationFailed;
         }
 
-        internal FileStatus CopyFile(LogValidator logValidator)
+        internal FileStatus CopyFile(FilePathValidator validator)
         {
-            FileInfo sourceFilePath = logValidator.SourceFile;
-            FileInfo destFilePath = logValidator.DestinationFile;
+            FileInfo sourceFilePath = validator.SourceFile;
+            FileInfo destFilePath = validator.DestinationFile;
 
             FileStatus status;
             try
@@ -155,12 +160,12 @@ namespace LogUtils
         }
 
         /// <summary>
-        /// Handles FileSystem operations that are necessary before a move/copy operation can be possible
+        /// Handles file system operations that are necessary before a move/copy operation can be possible
         /// </summary>
-        internal FileStatus PrepareToMoveFile(LogValidator logValidator)
+        internal FileStatus PrepareToMoveFile(FilePathValidator validator)
         {
-            FileInfo sourceFilePath = logValidator.SourceFile;
-            FileInfo destFilePath = logValidator.DestinationFile;
+            FileInfo sourceFilePath = validator.SourceFile;
+            FileInfo destFilePath = validator.DestinationFile;
 
             DirectoryInfo sourceFileDir = sourceFilePath.Directory;
             DirectoryInfo destFileDir = destFilePath.Directory;
@@ -199,7 +204,18 @@ namespace LogUtils
             return FileStatus.MoveRequired;
         }
 
-        protected virtual FileExceptionHandler CreateExceptionHandler() => new LogFileMoverExceptionHandler();
+        protected virtual FilePathValidator CreateValidator()
+        {
+            return new FilePathValidator(sourcePath, destPath)
+            {
+                EnforceSupportedFileTypes = EnforceSupportedFileTypes
+            };
+        }
+
+        protected virtual FileExceptionHandler CreateExceptionHandler()
+        {
+            return new FileMoveExceptionHandler();
+        }
 
         protected void SetExceptionHandlerContext(ErrorContext context)
         {
@@ -215,27 +231,6 @@ namespace LogUtils
             }
         }
 
-        internal sealed class LogFileMoverExceptionHandler : FileExceptionHandler
-        {
-            protected override string CreateErrorMessage(ExceptionContextWrapper contextWrapper, ref bool includeStackTrace)
-            {
-                if (contextWrapper.CustomMessage != null) //Custom error message always overrides default provided message formatting
-                    return contextWrapper.CustomMessage;
-
-                string message = null;
-                if (contextWrapper.IsExceptionContext)
-                {
-                    if (contextWrapper.Context == ActionType.Move)
-                        message = "Unable to move file. Attempting to copy instead";
-                }
-
-                if (message != null)
-                    return message;
-
-                return base.CreateErrorMessage(contextWrapper, ref includeStackTrace);
-            }
-        }
-
         protected enum ErrorContext
         {
             Move,
@@ -244,5 +239,23 @@ namespace LogUtils
         }
     }
 
-    internal delegate LogFileMover LogFileMoverProvider(string sourceLogPath, string destLogPath);
+    internal sealed class FileMoveExceptionHandler : FileExceptionHandler
+    {
+        protected override string CreateErrorMessage(ExceptionContextWrapper contextWrapper, ref bool includeStackTrace)
+        {
+            if (contextWrapper.CustomMessage != null) //Custom error message always overrides default provided message formatting
+                return contextWrapper.CustomMessage;
+
+            string message = null;
+            if (contextWrapper.IsExceptionContext && contextWrapper.Context == ActionType.Move)
+            {
+                message = "Unable to move file. Attempting to copy instead";
+            }
+
+            if (message != null)
+                return message;
+
+            return base.CreateErrorMessage(contextWrapper, ref includeStackTrace);
+        }
+    }
 }
