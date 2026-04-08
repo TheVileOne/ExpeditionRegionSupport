@@ -216,15 +216,18 @@ namespace LogUtils.Enums
         public LogID(LogGroupID groupID, string filename, string relativePathNoFile, LogAccess access) : base(Sanitize(filename), false)
         {
             //Initialize properties
-            var groupProperties = groupID.Properties;
-
-            if (!groupProperties.IsFolderGroup)
+            if (groupID == null || !groupID.Properties.IsFolderGroup)
             {
+                if (groupID == null)
+                    UtilityLogger.LogWarning($"Parameter `{nameof(groupID)}` was null. This is probably not intentional.");
+
                 //When there is no group path, the provided path will be used as the log path, and property initialization will be handled like a typical LogID initialization
                 InitializeProperties(filename, relativePathNoFile);
             }
             else
             {
+                var groupProperties = groupID.Properties;
+
                 //When there is a group path, the group path will be combined with the provided path as long as the two paths are compatible
                 string assignedFolderPath = LogProperties.ApplyGroupPath(groupID, relativePathNoFile);
 
