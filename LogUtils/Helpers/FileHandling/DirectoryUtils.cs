@@ -138,8 +138,8 @@ namespace LogUtils.Helpers.FileHandling
         /// <exception cref="UnauthorizedAccessException">The caller does not have the required permission</exception>
         /// <exception cref="PathTooLongException"><paramref name="path"/> exceeds maximum number of path characters</exception>
         /// <exception cref="InvalidEnumArgumentException">Enum value is unrecognized</exception>
-        /// <exception cref="InvalidOperationException">Deletion criteria is not met</exception>
-        /// <exception cref="IOException">Directory was unable to be deleted</exception>
+        /// <exception cref="IOException">Directory was unable to be deleted (including scope violations)</exception>
+        ///  <exception cref="DirectoryNotEmptyException">Scope violation - must not contains files</exception>
         public static void Delete(string path, DirectoryDeletionScope scope, DirectoryDeletionMode mode)
         {
             DeleteInternal(path, scope, mode);
@@ -184,6 +184,11 @@ namespace LogUtils.Helpers.FileHandling
                 DeleteInternal(path, scope, mode);
                 return true;
             }
+            catch (DirectoryNotEmptyException)
+            {
+                UtilityLogger.LogWarning("Unable to delete directory - Directory is not empty");
+                return false;
+            }
             catch (Exception ex)
             {
                 UtilityLogger.LogError(customErrorMsg ?? "Unable to delete directory", ex);
@@ -210,7 +215,7 @@ namespace LogUtils.Helpers.FileHandling
             }
 
             if (!canDelete)
-                throw new InvalidOperationException("Folder not empty");
+                throw new DirectoryNotEmptyException();
 
             switch (mode)
             {
@@ -235,7 +240,7 @@ namespace LogUtils.Helpers.FileHandling
 
             //Check if the source directory exists
             if (!dir.Exists)
-                throw new DirectoryNotFoundException($"Source directory not found: {dir.FullName}");
+                throw new DirectoryNotFoundException($"Source directory not found '{dir.FullName}'");
 
             //Cache directories before we start copying
             DirectoryInfo[] dirs = dir.GetDirectories();
@@ -267,7 +272,7 @@ namespace LogUtils.Helpers.FileHandling
                 }
             }
 
-            UtilityLogger.Log(failedToCopy + " failed to copy");
+            UtilityLogger.LogWarning("Unable to copy all files");
 
             foreach (string file in failedToCopy)
                 UtilityLogger.Log(file);
@@ -294,5 +299,16 @@ namespace LogUtils.Helpers.FileHandling
         Permanent,
         /// <summary>Directory will be sent to the Recycle Bin on the user's computer</summary>
         RecycleBin
+    }
+
+    public sealed class DirectoryNotEmptyException : IOException
+    {
+        public DirectoryNotEmptyException() : base()
+        {
+        }
+
+        public DirectoryNotEmptyException(string message) : base(message)
+        {
+        }
     }
 }
