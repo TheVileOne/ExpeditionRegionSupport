@@ -165,6 +165,8 @@ namespace LogUtils
             dialogOptions.AddOption(textWidth: 80f, Translate("Move group files only"), DialogOption.FILE_MOVE);
             dialogOptions.AddOption(textWidth: 80f, Translate("Change group path only"), DialogOption.PATH_CHANGE);
 
+            dialogOptions.SetInitial(DialogOption.FOLDER_MOVE);
+
             InfoText[dialogOptions.OptionCollection[0]] = "The source folder is moved to the destination path (May fail)";
             InfoText[dialogOptions.OptionCollection[1]] = "All group files belonging to the source path are moved to destination path. Folder structure is preserved (May fail)";
             InfoText[dialogOptions.OptionCollection[2]] = "Path of the group, and applicable group files are changed to the destination path without moving any files";
@@ -232,8 +234,6 @@ namespace LogUtils
         /// <inheritdoc/>
         public override void Init()
         {
-            dialogOptions.SetInitial(DialogOption.FOLDER_MOVE);
-
             //Colors taken from infoLabel flicker code
             Color startColor = MenuRGB(MenuColors.White);
             Color endColor = MenuRGB(MenuColors.MediumGrey);
