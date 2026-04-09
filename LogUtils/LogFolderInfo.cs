@@ -418,17 +418,16 @@ namespace LogUtils
         private void mergeFolder(string newPath)
         {
             UtilityLogger.Log("Merge operation started");
-            MergeFolderState mergeInfo = new MergeFolderState
-            {
-                DestinationPath = newPath
-            };
 
+            MergeFolderState mergeInfo;
             ActivityRecord record;
             lock (ActivityManager)
             {
                 record = ActivityManager.ActiveMovesThisThread.First(entry => PathUtils.PathsAreEqual(entry.SourcePath, FolderPath));
-                record.Events = mergeInfo.Events;
-                record.MergeHistory = mergeInfo.History;
+                mergeInfo = new MergeFolderState(record)
+                {
+                    DestinationPath = newPath
+                };
             }
 
             mergeCurrentFolder(mergeInfo);

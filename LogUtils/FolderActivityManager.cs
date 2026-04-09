@@ -106,6 +106,11 @@ namespace LogUtils
 
             public string SourcePath;
             public string DestinationPath;
+
+            public ActivityRecord()
+            {
+                Events = new MergeEventHandler();
+            }
         }
 
         public enum ActivityState

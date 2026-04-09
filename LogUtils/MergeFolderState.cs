@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using static LogUtils.FolderActivityManager;
 
 namespace LogUtils
 {
@@ -34,20 +35,26 @@ namespace LogUtils
         /// </summary>
         public string DestinationPath;
 
+        private readonly ActivityRecord activityRecord;
+
         /// <summary>
         /// Contains event handlers pertaining to the merge process
         /// </summary>
-        public MergeEventHandler Events;
+        public readonly MergeEventHandler Events => activityRecord.Events;
 
         /// <summary>
         /// The complete history of file system, LogID, and LogGroupID changes since the merge began
         /// </summary>
-        public MergeHistory History;
+        public readonly MergeHistory History => activityRecord.MergeHistory;
 
-        public MergeFolderState()
+        public MergeFolderState() : this(new ActivityRecord())
         {
-            History = new MergeHistory();
-            Events = new MergeEventHandler();
+        }
+
+        public MergeFolderState(ActivityRecord record)
+        {
+            activityRecord = record;
+            activityRecord.MergeHistory = new MergeHistory();
         }
 
         public readonly void ProcessConflicts()
