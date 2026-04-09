@@ -195,15 +195,15 @@ namespace LogUtils
                 {
                     case DialogOption.FOLDER_MOVE:
                         LogGroup.MoveFolder(groupID, destinationPath);
-                        Dismiss();
+                        WantsToClose = true;
                         return;
                     case DialogOption.FILE_MOVE:
                         LogGroup.MoveFiles(groupID, destinationPath);
-                        Dismiss();
+                        WantsToClose = true;
                         return;
                     case DialogOption.PATH_CHANGE:
                         groupID.Properties.ChangePath(destinationPath, applyToMembers: true);
-                        Dismiss();
+                        WantsToClose = true;
                         return;
                     default:
                         base.Singal(sender, message);
