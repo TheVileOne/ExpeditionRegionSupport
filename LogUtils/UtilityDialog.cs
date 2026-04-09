@@ -93,8 +93,8 @@ namespace LogUtils
         {
             State = DialogState.Submitted;
 
-            UtilityLogger.Log("Dialog activated");
-            UtilityLogger.Log("Active process: " + manager.currentMainLoop.ID);
+            UtilityLogger.Logger.LogDebug($"Dialog activated [{GetType()}]");
+            UtilityLogger.Logger.LogDebug("Active process: " + manager.currentMainLoop.ID);
 
             if (!manager.currentMainLoop.AllowDialogs) //Most menus will support dialogs
                 UtilityLogger.LogWarning("Active process does not allow dialogs");
