@@ -194,7 +194,9 @@ namespace LogUtils
                 switch (message)
                 {
                     case DialogOption.FOLDER_MOVE:
+                        LogFolderInfo.ActivityManager.OnRecordAdded.Handler += onRecordAdded;
                         LogGroup.MoveFolder(groupID, destinationPath);
+                        LogFolderInfo.ActivityManager.OnRecordAdded.Handler -= onRecordAdded;
                         WantsToClose = true;
                         return;
                     case DialogOption.FILE_MOVE:
@@ -208,6 +210,11 @@ namespace LogUtils
                     default:
                         base.Singal(sender, message);
                         break;
+                }
+
+                void onRecordAdded(FolderActivityManager source, FolderActivityManager.ActivityRecord data)
+                {
+                    data.Events.OnCancel += () => WantsToClose = false;
                 }
             }
             catch (Exception ex)
