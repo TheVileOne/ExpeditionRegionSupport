@@ -240,7 +240,23 @@ namespace LogUtils.Enums
                 if (existingProperties != null)
                     Properties = existingProperties;
                 else
+                {
                     Properties = groupProperties.Clone(filename, assignedFolderPath);
+
+                    //The identifying hash should be formed using original path info. Current path can be influenced by the properties file, and the last known path
+                    if (PathUtils.PathsAreEqual(assignedFolderPath, groupProperties.CurrentFolderPath))
+                    {
+                        //Most common situation
+                        Properties.IDHash = LogProperties.CreateIDHash(filename, groupProperties.OriginalFolderPath);
+                    }
+                    else if (PathUtils.ContainsOtherPath(assignedFolderPath, groupProperties.CurrentFolderPath))
+                    {
+                        string relativeAssignedPath = PathUtils.TrimCommonRoot(assignedFolderPath, groupProperties.CurrentFolderPath);
+
+                        Properties.IDHash = LogProperties.CreateIDHash(filename, PathUtils.Normalize(Path.Combine(groupProperties.OriginalFolderPath, relativeAssignedPath)));
+                    }
+                    //Any other situation is not dependent on the value of the group path. No hash change should be necessary.
+                }
             }
 
             //Assign to group
@@ -259,7 +275,7 @@ namespace LogUtils.Enums
                         if (PathUtils.IsEmpty(lastKnownPath))
                             return Properties.CurrentFolderPath; //Fallback to a probably known file location
 
-                        return group.Properties.LastKnownFolderPath;
+                        return lastKnownPath;
                     });
                     Properties.SetLastKnownPath(Path.Combine(probableLastKnownPath, Properties.Filename.WithExtension()));
                 }
