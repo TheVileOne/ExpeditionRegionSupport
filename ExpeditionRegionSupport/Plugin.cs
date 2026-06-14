@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using Expedition;
 using ExpeditionRegionSupport.Data;
 using ExpeditionRegionSupport.Filters;
@@ -101,6 +102,7 @@ namespace ExpeditionRegionSupport
                 On.Menu.ExpeditionMenu.Singal += ExpeditionMenu_Singal;
 
                 //CharacterSelect
+                On.Expedition.ChallengeTools.EchoScore += ChallengeTools_EchoScore;
                 On.Menu.CharacterSelectPage.UpdateSelectedSlugcat += CharacterSelectPage_UpdateSelectedSlugcat;
                 IL.Menu.CharacterSelectPage.Update += CharacterSelectPage_Update;
 
@@ -403,6 +405,20 @@ namespace ExpeditionRegionSupport
             return HSLColor.Lerp(baseColor, Menu.Menu.MenuColor(cwt.HighlightColor), Mathf.Max(colorLerp, flashLerp)).rgb;
         }
 
+        private void ChallengeTools_EchoScore(On.Expedition.ChallengeTools.orig_EchoScore orig, ref int[] echoScores)
+        {
+            orig(ref echoScores);
+
+            for (int i = 0; i < echoScores.Length; i++)
+            {
+                if (echoScores[i] == 0)
+                {
+                    //TODO: This should be assigned from EchoSettings instead
+                    echoScores[i] = 65; //Modded, and special echos should be worth extra points
+                }
+            }
+        }
+
         private void CharacterSelectPage_UpdateSelectedSlugcat(On.Menu.CharacterSelectPage.orig_UpdateSelectedSlugcat orig, CharacterSelectPage self, int slugcatIndex)
         {
             SlugcatStats.Name lastSelected = ExpeditionData.slugcatPlayer;
@@ -412,6 +428,16 @@ namespace ExpeditionRegionSupport
             {
                 slugcatDirty = false;
                 ActiveWorldState = RegionUtils.GetWorldStateFromStoryRegions(ExpeditionData.slugcatPlayer);
+
+                //RegionKit updates custom echoes too late. Parse them here so custom echo challenges are possible.
+                if (Chainloader.PluginInfos.TryGetValue("rwmodding.coreorg.rk", out PluginInfo regionKit))
+                {
+                    Type echoParser = Assembly.LoadFrom(regionKit.Location).GetType("RegionKit.Modules.EchoExtender.EchoParser");
+                    echoParser.GetMethod("LoadAllRegions").Invoke(null, new object[] { ExpeditionData.slugcatPlayer });
+                    ChallengeTools.EchoScore(ref ChallengeTools.echoScores);
+                }
+                ChallengeUtils.GenerateEchoBlacklist(ExpeditionData.slugcatPlayer);
+
                 RegionUtils.AvailableRegionCache = null;
                 RegionFilter.UpdateFilter();
             }

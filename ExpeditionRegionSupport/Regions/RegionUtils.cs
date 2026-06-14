@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using Watcher;
 
 namespace ExpeditionRegionSupport.Regions
 {
@@ -114,6 +113,20 @@ namespace ExpeditionRegionSupport.Regions
 
             RegionAccessibilityCache = regionCache;
             return regionCache.Regions;
+        }
+
+        public static List<string> GetApplicableEchoRegions()
+        {
+            IEnumerable<GhostWorldPresence.GhostID> entries = GhostWorldPresence.GhostID.values.entries.Select(e => new GhostWorldPresence.GhostID(e, false));
+
+            List<string> applicableRegions = new List<string>();
+            foreach (GhostWorldPresence.GhostID ghostID in entries)
+            {
+                if (ChallengeUtils.EchoBlacklist.Contains(ghostID))
+                    continue;
+                applicableRegions.Add(ghostID.value); //TODO: Use RegionKit to fetch the region in case a region has multiple echoes
+            }
+            return applicableRegions;
         }
 
         internal static void FindAllConnectingRegionsRecursive(List<string> connectedRegions, string regionCode, SlugcatStats.Name slugcat, bool firstPass = true)

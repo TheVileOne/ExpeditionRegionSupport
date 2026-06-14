@@ -1,11 +1,49 @@
 ﻿using Expedition;
 using MoreSlugcats;
 using System.Collections.Generic;
+using System.Linq;
+using Watcher;
 
 namespace ExpeditionRegionSupport.Filters.Utils
 {
     public static class ChallengeUtils
     {
+        public static HashSet<GhostWorldPresence.GhostID> EchoBlacklist = new HashSet<GhostWorldPresence.GhostID>();
+
+        public static void GenerateEchoBlacklist(SlugcatStats.Name slugcat)
+        {
+            EchoBlacklist.Clear();
+
+            if (ModManager.Watcher)
+                EchoBlacklist.Add(WatcherEnums.GhostID.SpinningTop);
+
+            EchoBlacklist.Add(GhostWorldPresence.GhostID.NoGhost); //Not a region
+
+            if (ModManager.MSC)
+            {
+                EchoBlacklist.Add(MoreSlugcatsEnums.GhostID.MS); //This echo cannot be chosen for echo challenges
+
+                //Remove echoes that only apply to Saint
+                if (slugcat != MoreSlugcatsEnums.SlugcatStatsName.Saint)
+                    EchoBlacklist.Add(MoreSlugcatsEnums.GhostID.SL);
+            }
+
+            for (int i = 0; i < ChallengeTools.echoScores.Length; i++)
+            {
+                if (ChallengeTools.echoScores[i] <= 0)
+                    EchoBlacklist.Add(new GhostWorldPresence.GhostID(GhostWorldPresence.GhostID.values.entries[i]));
+            }
+
+            if (ChallengeTools.echoScores.Length < GhostWorldPresence.GhostID.values.entries.Count)
+            {
+                Plugin.Logger.LogWarning("Echo scores are nopt updated");
+                foreach (string value in GhostWorldPresence.GhostID.values.entries.Skip(ChallengeTools.echoScores.Length))
+                {
+                    EchoBlacklist.Add(new GhostWorldPresence.GhostID(value));
+                }
+            }
+        }
+
         public static List<Challenge> GetChallenges(SlugcatStats.Name challengeOwner)
         {
             if (!ExpeditionData.allChallengeLists.ContainsKey(challengeOwner))
@@ -30,23 +68,6 @@ namespace ExpeditionRegionSupport.Filters.Utils
         public static List<Challenge> GetCustomRegionChallenges()
         {
             return ChallengeOrganizer.availableChallengeTypes.FindAll(c => c is IRegionChallenge);
-        }
-
-        public static List<string> GetApplicableEchoRegions(SlugcatStats.Name slugcat)
-        {
-            List<string> applicableRegions = new List<string>(ExtEnum<GhostWorldPresence.GhostID>.values.entries);
-
-            applicableRegions.Remove("NoGhost"); //Not a region
-
-            if (ModManager.MSC)
-            {
-                applicableRegions.Remove("MS"); //This echo cannot be chosen for echo challenges
-
-                //Remove echoes that only apply to Saint
-                if (slugcat != MoreSlugcatsEnums.SlugcatStatsName.Saint)
-                    applicableRegions.Remove("SL");
-            }
-            return applicableRegions;
         }
     }
 }

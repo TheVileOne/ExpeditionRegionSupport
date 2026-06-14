@@ -303,7 +303,7 @@ namespace ExpeditionRegionSupport.Filters
         private static List<string> processFilterEcho()
         {
             List<string> availableRegions = RegionUtils.GetAvailableRegions(ExpeditionData.slugcatPlayer);
-            List<string> availableEchoRegions = ChallengeUtils.GetApplicableEchoRegions(ExpeditionData.slugcatPlayer);
+            List<string> availableEchoRegions = RegionUtils.GetApplicableEchoRegions();
 
             return Filter.GetMatches(availableEchoRegions, availableRegions).ToList();
         }
